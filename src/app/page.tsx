@@ -158,7 +158,7 @@ export default function Home() {
               />
                <FeatureCard
                 icon={<Eye className="w-8 h-8 text-accent" />}
-                title="Visual Testing (VT/RVI)"
+                title="Visual Testing (VT / RVI)"
                 description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
                 isHighlighted
               />
@@ -177,7 +177,7 @@ export default function Home() {
                <FeatureCard
                 icon={<Thermometer className="w-8 h-8 text-accent" />}
                 title="Advanced & Other Methods"
-                description="Support for Eddy Current (ET), Leak Testing (LT), and Microwave Testing."
+                description="Support for Eddy Current (ET), Leak Testing (LT), and Infrared Thermography (IR)."
                 isHighlighted
               />
             </div>

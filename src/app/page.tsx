@@ -152,15 +152,20 @@ export default function Home() {
                <FeatureCard
                 icon={<Eye className="w-8 h-8 text-accent" />}
                 title="Visual Testing (VT/RVI)"
-                description="A direct or remote visual examination of a component, using tools like videoscopes and borescopes to access hard-to-reach areas."
+                description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
               />
               <FeatureCard
                 icon={<Ear className="w-8 h-8 text-accent" />}
                 title="Acoustic Emission (AE)"
                 description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
               />
-               <FeatureCard
+              <FeatureCard
                 icon={<Radio className="w-8 h-8 text-accent" />}
+                title="Acoustic Pulse Reflectometry (APR)"
+                description="A non-invasive method for detecting blockages and defects in tubes by analyzing reflected sound waves."
+              />
+               <FeatureCard
+                icon={<Thermometer className="w-8 h-8 text-accent" />}
                 title="Advanced & Other Methods"
                 description="Support for Eddy Current (ET), Leak Testing (LT), Infrared (IR), and Microwave Testing."
               />

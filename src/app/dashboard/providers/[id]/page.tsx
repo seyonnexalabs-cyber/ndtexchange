@@ -14,6 +14,7 @@ import { serviceProviders } from "@/lib/service-providers-data";
 import { technicians } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -57,28 +58,45 @@ export default function ProviderDetailPage() {
                 </Link>
             </Button>
             
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-1">
-                    <Card>
-                        <CardHeader className="items-center">
-                             <Image 
-                                src={provider.logoUrl} 
-                                alt={`${provider.name} logo`} 
-                                width={80} 
-                                height={80} 
-                                className="rounded-lg border p-1 mb-4"
-                            />
-                            <CardTitle className="text-2xl font-headline">{provider.name}</CardTitle>
-                            <CardDescription className="flex items-center gap-1.5 pt-1">
-                                <MapPin className="w-4 h-4"/> {provider.location}
-                            </CardDescription>
+            <div className="flex items-center gap-4 mb-6">
+                 <Image 
+                    src={provider.logoUrl} 
+                    alt={`${provider.name} logo`} 
+                    width={80} 
+                    height={80} 
+                    className="rounded-lg border p-1"
+                />
+                <div>
+                    <h1 className="text-2xl font-headline font-bold">{provider.name}</h1>
+                    <p className="text-muted-foreground flex items-center gap-1.5 pt-1">
+                        <MapPin className="w-4 h-4"/> {provider.location}
+                    </p>
+                </div>
+            </div>
+
+            <Tabs defaultValue="details">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="technicians">Technicians</TabsTrigger>
+                </TabsList>
+                <TabsContent value="details">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Provider Details</CardTitle>
+                            <CardDescription>Company information and offered services.</CardDescription>
                         </CardHeader>
-                        <CardContent className="text-center">
-                            <StarRating rating={provider.rating} />
-                            <p className="mt-4 text-sm text-muted-foreground">{provider.description}</p>
-                            <div className="mt-4">
+                        <CardContent className="space-y-4">
+                            <div>
+                                <h3 className="font-semibold text-sm mb-1">Rating</h3>
+                                <StarRating rating={provider.rating} />
+                            </div>
+                             <div>
+                                <h3 className="font-semibold text-sm mb-1">About</h3>
+                                <p className="text-sm text-muted-foreground">{provider.description}</p>
+                            </div>
+                            <div>
                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
-                                <div className="flex flex-wrap gap-1.5 justify-center">
+                                <div className="flex flex-wrap gap-1.5">
                                     {provider.techniques.map(tech => (
                                         <Badge key={tech} variant="outline">{tech}</Badge>
                                     ))}
@@ -86,9 +104,9 @@ export default function ProviderDetailPage() {
                             </div>
                         </CardContent>
                     </Card>
-                </div>
-                 <div className="lg:col-span-2">
-                    <Card>
+                </TabsContent>
+                <TabsContent value="technicians">
+                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Users /> Technician Roster
@@ -162,8 +180,8 @@ export default function ProviderDetailPage() {
                            )}
                         </CardContent>
                     </Card>
-                </div>
-            </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

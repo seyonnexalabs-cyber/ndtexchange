@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type UserType = 'client' | 'inspector' | 'admin' | 'auditor';
 
@@ -112,7 +113,13 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full">Sign In</Button>
-            <Button variant="link" size="sm" className="text-muted-foreground">
+            <div className="text-sm">
+                Don&apos;t have an account?{' '}
+                <Button variant="link" className="p-0 h-auto" asChild>
+                    <Link href="#">Sign up</Link>
+                </Button>
+            </div>
+            <Button variant="link" size="sm" className="text-muted-foreground !mt-0">
               Forgot your password?
             </Button>
           </CardFooter>

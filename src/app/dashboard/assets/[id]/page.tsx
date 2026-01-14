@@ -23,8 +23,8 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-8 h-8 text-muted-foreground" />,
 };
 
-export default function AssetDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = React.use(params);
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
 

@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -17,11 +18,11 @@ import { cn } from '@/lib/utils';
 
 const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: Job['workflow'] }) => {
     const allStatuses: Job['status'][] = [
-        'Posted', 
-        'Assigned', 
-        'Scheduled', 
-        'In Progress', 
-        'Report Submitted', 
+        'Posted',
+        'Assigned',
+        'Scheduled',
+        'In Progress',
+        'Report Submitted',
         ...(workflow === 'level3' ? ['Under Audit', 'Audit Approved'] as const : []),
         'Client Review',
         'Client Approved',
@@ -35,7 +36,7 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
         <Card className="mb-6">
             <CardHeader>
                 <CardTitle>Job Lifecycle</CardTitle>
-                <CardDescription>
+                 <CardDescription>
                     {workflow === 'level3' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
                 </CardDescription>
             </CardHeader>
@@ -302,3 +303,5 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
+
+    

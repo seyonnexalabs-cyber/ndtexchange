@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from "react";
 import { assets, inspections } from "@/lib/placeholder-data";
 import { notFound, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -22,7 +23,7 @@ const assetIcons = {
 };
 
 export default function AssetDetailPage({ params }: { params: { id: string } }) {
-    const asset = assets.find(a => a.id === params.id);
+    const asset = useMemo(() => assets.find(a => a.id === params.id), [params.id]);
     const searchParams = useSearchParams();
 
     if (!asset) {
@@ -198,3 +199,5 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         </div>
     );
 }
+
+    

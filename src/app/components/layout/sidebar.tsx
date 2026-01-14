@@ -19,12 +19,13 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const AppSidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,6 +34,10 @@ const AppSidebar = () => {
     { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ];
+
+  const handleLogout = () => {
+    router.push('/login');
+  };
 
   return (
     <Sidebar>
@@ -72,7 +77,7 @@ const AppSidebar = () => {
                 <p className="font-semibold truncate">John Doe</p>
                 <p className="text-xs text-sidebar-foreground/70 truncate">Level III Inspector</p>
             </div>
-            <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+            <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />
             </Button>
          </div>

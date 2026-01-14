@@ -151,7 +151,7 @@ export default function Home() {
               />
                <FeatureCard
                 icon={<Eye className="w-8 h-8 text-accent" />}
-                title="Visual Testing (VT)"
+                title="Visual Testing (VT/RVI)"
                 description="A direct or remote visual examination of a component, using tools like videoscopes and borescopes to access hard-to-reach areas."
               />
                <FeatureCard

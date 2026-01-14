@@ -23,7 +23,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const jobSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   location: z.string().min(2, 'Location is required.'),
-  technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD', 'APR', 'ET', 'AE', 'LT', 'IR']),
+  technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD', 'ET', 'AE', 'LT', 'IR']),
   description: z.string().optional(),
   assets: z.array(z.string()).refine(value => value.some(item => item), {
     message: "You have to select at least one asset.",
@@ -265,7 +265,6 @@ export default function JobsMarketplacePage() {
                                                 <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
                                                 <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
                                                 <SelectItem value="VT">VT - Visual Testing</SelectItem>
-                                                <SelectItem value="APR">APR - Acoustic Pulse Reflectometry</SelectItem>
                                                 <SelectItem value="ET">ET - Eddy Current Testing</SelectItem>
                                                 <SelectItem value="AE">AE - Acoustic Emission Testing</SelectItem>
                                                 <SelectItem value="LT">LT - Leak Testing</SelectItem>

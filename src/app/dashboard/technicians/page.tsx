@@ -45,7 +45,7 @@ export default function TechniciansPage() {
                                     </TableCell>
                                     <TableCell>{tech.level}</TableCell>
                                     <TableCell>
-                                        <div className="flex gap-1">
+                                        <div className="flex flex-wrap gap-1">
                                             {tech.certifications.map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
                                         </div>
                                     </TableCell>

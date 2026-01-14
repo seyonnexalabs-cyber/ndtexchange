@@ -12,7 +12,7 @@ export type Job = {
     title: string;
     client: string;
     location: string;
-    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'APR';
+    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'APR' | 'ET' | 'AE' | 'LT' | 'IR';
     status: 'Open' | 'In Progress' | 'Completed' | 'Awarded';
     postedDate: string;
     technicianIds?: string[];
@@ -41,7 +41,7 @@ export type Technician = {
     id: string;
     name: string;
     level: 'Level I' | 'Level II' | 'Level III';
-    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD' | 'APR')[];
+    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD' | 'APR' | 'ET' | 'AE' | 'LT' | 'IR')[];
     status: 'Available' | 'On Assignment';
     avatar: string;
 };
@@ -65,8 +65,8 @@ export const inspectorAssets: InspectorAsset[] = [
 
 export const technicians: Technician[] = [
     { id: 'TECH-01', name: 'Carlos Ray', level: 'Level II', certifications: ['UT', 'MT', 'PT'], status: 'Available', avatar: 'tech-carlos' },
-    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT'], status: 'On Assignment', avatar: 'tech-aisha' },
-    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD'], status: 'Available', avatar: 'tech-ben' },
+    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT', 'ET'], status: 'On Assignment', avatar: 'tech-aisha' },
+    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', avatar: 'tech-ben' },
 ];
 
 
@@ -77,6 +77,8 @@ export const jobs: Job[] = [
     { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'] },
     { id: 'JOB-005', title: 'VT of Bridge Structural Welds', client: 'State Department of Transportation', location: 'Sacramento, CA', technique: 'VT', status: 'Open', postedDate: '2024-07-02' },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Open', postedDate: '2024-07-03' },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Open', postedDate: '2024-07-05' },
+
 
 ];
 

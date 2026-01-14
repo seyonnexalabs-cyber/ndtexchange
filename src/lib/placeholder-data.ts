@@ -39,7 +39,7 @@ export type Technician = {
     id: string;
     name: string;
     level: 'Level I' | 'Level II' | 'Level III';
-    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT')[];
+    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD')[];
     status: 'Available' | 'On Assignment';
     avatar: string;
 };
@@ -70,7 +70,7 @@ export const technicians: Technician[] = [
 
 export const jobs: Job[] = [
     { id: 'JOB-001', title: 'PAUT on Pressure Vessel Welds', client: 'PetroChem Inc.', location: 'Houston, TX', technique: 'PAUT', status: 'Open', postedDate: '2024-06-28' },
-    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Logistics Corp', location: 'Long Beach, CA', technique: 'In Progress', status: 'In Progress', postedDate: '2024-06-25' },
+    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Logistics Corp', location: 'Long Beach, CA', technique: 'MT', status: 'In Progress', postedDate: '2024-06-25' },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15' },
 ];
 

@@ -21,7 +21,7 @@ export type Job = {
     technicianIds?: string[];
     equipmentIds?: string[];
     assetIds?: string[];
-    workflow?: 'standard' | 'level3';
+    workflow?: 'standard' | 'level3' | 'auto';
 };
 
 export type Inspection = {

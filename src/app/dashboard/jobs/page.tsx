@@ -29,7 +29,7 @@ const jobSchema = z.object({
   assets: z.array(z.string()).refine(value => value.some(item => item), {
     message: "You have to select at least one asset.",
   }),
-  workflow: z.enum(['standard', 'level3']),
+  workflow: z.enum(['standard', 'level3', 'auto']),
 });
 
 export default function JobsMarketplacePage() {
@@ -289,21 +289,38 @@ export default function JobsMarketplacePage() {
                                         defaultValue={field.value}
                                         className="flex flex-col space-y-1"
                                         >
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 has-[[data-state=checked]]:border-primary">
                                             <FormControl>
-                                            <RadioGroupItem value="standard" />
+                                                <RadioGroupItem value="standard" />
                                             </FormControl>
-                                            <FormLabel className="font-normal">
-                                            Standard (Client + Inspector)
-                                            </FormLabel>
+                                            <div>
+                                                <FormLabel className="font-normal">
+                                                Standard Workflow
+                                                </FormLabel>
+                                                <p className="text-xs text-muted-foreground">Client and Inspector only. No third-party audit.</p>
+                                            </div>
                                         </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 has-[[data-state=checked]]:border-primary">
                                             <FormControl>
-                                            <RadioGroupItem value="level3" />
+                                                <RadioGroupItem value="level3" />
                                             </FormControl>
-                                            <FormLabel className="font-normal">
-                                            Level III Approval Required (Auditor added)
-                                            </FormLabel>
+                                            <div>
+                                                <FormLabel className="font-normal">
+                                                Level III Approval Required
+                                                </FormLabel>
+                                                <p className="text-xs text-muted-foreground">Manually add an Auditor to the job for third-party oversight.</p>
+                                            </div>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 has-[[data-state=checked]]:border-primary">
+                                            <FormControl>
+                                                <RadioGroupItem value="auto" />
+                                            </FormControl>
+                                            <div>
+                                                <FormLabel className="font-normal">
+                                                Auto-Audit based on Rules
+                                                </FormLabel>
+                                                <p className="text-xs text-muted-foreground">The system will assign an Auditor if the job meets predefined criteria (e.g., critical asset).</p>
+                                            </div>
                                         </FormItem>
                                         </RadioGroup>
                                     </FormControl>

@@ -33,7 +33,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
         'Scheduled',
         'In Progress',
         'Report Submitted',
-        ...(workflow === 'level3' ? ['Under Audit', 'Audit Approved'] as const : []),
+        ...(workflow === 'level3' || workflow === 'auto' ? ['Under Audit', 'Audit Approved'] as const : []),
         'Client Review',
         'Client Approved',
         'Completed',
@@ -48,7 +48,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                 <CardHeader>
                     <CardTitle>Job Lifecycle</CardTitle>
                     <CardDescription>
-                        {workflow === 'level3' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
+                        {workflow === 'level3' || workflow === 'auto' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex items-center justify-center">
@@ -115,7 +115,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
             <CardHeader>
                 <CardTitle>Job Lifecycle</CardTitle>
                  <CardDescription>
-                    {workflow === 'level3' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
+                    {workflow === 'level3' || workflow === 'auto' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
                 </CardDescription>
             </CardHeader>
             <CardContent className="relative">

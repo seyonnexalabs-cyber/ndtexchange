@@ -57,6 +57,7 @@ export type Technician = {
     certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR')[];
     status: 'Available' | 'On Assignment';
     avatar: string;
+    providerId: string;
 };
 
 export type Bid = {
@@ -97,9 +98,11 @@ export const inspectorAssets: InspectorAsset[] = [
 ];
 
 export const technicians: Technician[] = [
-    { id: 'TECH-01', name: 'Carlos Ray', level: 'Level II', certifications: ['UT', 'MT', 'PT'], status: 'Available', avatar: 'tech-carlos' },
-    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT', 'ET'], status: 'On Assignment', avatar: 'tech-aisha' },
-    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', avatar: 'tech-ben' },
+    { id: 'TECH-01', name: 'Carlos Ray', level: 'Level II', certifications: ['UT', 'MT', 'PT'], status: 'Available', avatar: 'tech-carlos', providerId: 'provider-03' },
+    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT', 'ET'], status: 'On Assignment', avatar: 'tech-aisha', providerId: 'provider-01' },
+    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', avatar: 'tech-ben', providerId: 'provider-01' },
+    { id: 'TECH-04', name: 'David Lee', level: 'Level I', certifications: ['MT', 'PT'], status: 'Available', avatar: 'tech-david', providerId: 'provider-02' },
+    { id: 'TECH-05', name: 'Maria Garcia', level: 'Level II', certifications: ['UT', 'RT'], status: 'On Assignment', avatar: 'tech-maria', providerId: 'provider-03' },
 ];
 
 const today = new Date();
@@ -157,11 +160,11 @@ export const jobs: Job[] = [
 ];
 
 export const bids: Bid[] = [
-    { id: 'BID-001', jobId: 'JOB-001', providerId: 'inspector-provider', amount: 12500, status: 'Submitted', submittedDate: '2024-06-29' },
-    { id: 'BID-002', jobId: 'JOB-002', providerId: 'inspector-provider', amount: 4800, status: 'Awarded', submittedDate: '2024-06-26' },
-    { id: 'BID-003', jobId: 'JOB-005', providerId: 'inspector-provider', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
-    { id: 'BID-004', jobId: 'JOB-006', providerId: 'inspector-provider', amount: 22000, status: 'Rejected', submittedDate: '2024-07-04' },
-    { id: 'BID-005', jobId: 'JOB-007', providerId: 'inspector-provider', amount: 15000, status: 'Withdrawn', submittedDate: '2024-07-06' },
+    { id: 'BID-001', jobId: 'JOB-001', providerId: 'provider-01', amount: 12500, status: 'Submitted', submittedDate: '2024-06-29' },
+    { id: 'BID-002', jobId: 'JOB-002', providerId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-26' },
+    { id: 'BID-003', jobId: 'JOB-005', providerId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
+    { id: 'BID-004', jobId: 'JOB-006', providerId: 'provider-02', amount: 22000, status: 'Rejected', submittedDate: '2024-07-04' },
+    { id: 'BID-005', jobId: 'JOB-007', providerId: 'provider-01', amount: 15000, status: 'Withdrawn', submittedDate: '2024-07-06' },
 ];
 
 

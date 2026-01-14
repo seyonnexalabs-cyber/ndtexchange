@@ -1,16 +1,18 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MapPin, Star, MoreVertical } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -27,7 +29,7 @@ const StarRating = ({ rating }: { rating: number }) => {
 };
 
 
-const DesktopView = () => (
+const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
     <Card>
         <CardHeader>
             <CardTitle>Service Providers</CardTitle>
@@ -73,7 +75,9 @@ const DesktopView = () => (
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={constructUrl(`/dashboard/providers/${provider.id}`)}>View Details</Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem>Edit Provider</DropdownMenuItem>
                                         <DropdownMenuItem>Approve/Reject</DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -87,7 +91,7 @@ const DesktopView = () => (
     </Card>
 );
 
-const MobileView = () => (
+const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
     <div className="space-y-4">
         {serviceProviders.map(provider => (
             <Card key={provider.id}>
@@ -118,7 +122,9 @@ const MobileView = () => (
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                    <Button variant="ghost" size="sm">View Details</Button>
+                    <Button variant="ghost" size="sm" asChild>
+                        <Link href={constructUrl(`/dashboard/providers/${provider.id}`)}>View Details</Link>
+                    </Button>
                 </CardFooter>
             </Card>
         ))}
@@ -128,6 +134,12 @@ const MobileView = () => (
 
 export default function ProvidersPage() {
     const isMobile = useIsMobile();
+    const searchParams = useSearchParams();
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     return (
         <div>
@@ -139,7 +151,7 @@ export default function ProvidersPage() {
                 <Button>Add New Provider</Button>
             </div>
             
-            {isMobile ? <MobileView /> : <DesktopView />}
+            {isMobile ? <MobileView constructUrl={constructUrl}/> : <DesktopView constructUrl={constructUrl}/>}
         </div>
     );
 }

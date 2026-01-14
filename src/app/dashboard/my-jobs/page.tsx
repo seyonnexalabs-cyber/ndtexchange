@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { jobs, technicians, inspectorAssets } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 const equipmentIcons = {
     'UT Equipment': <RadioTower className="w-4 h-4 text-muted-foreground" />,
@@ -29,7 +30,7 @@ export default function MyJobsPage() {
         let PageIcon: React.ElementType = Briefcase;
         
         let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved'].includes(j.status))
+            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Approved', 'Paid'].includes(j.status))
             : jobs; // Clients see all jobs for now, could be filtered by poster ID in real app
 
         switch(view) {
@@ -95,13 +96,17 @@ export default function MyJobsPage() {
                     {displayedJobs.map(job => {
                         const assignedTechnicians = technicians.filter(t => job.technicianIds?.includes(t.id));
                         const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
+                        const isOverdue = job.scheduledDate && new Date(job.scheduledDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
 
                         return (
                             <Card key={job.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                        <Badge variant={job.status === 'Posted' ? 'secondary' : job.status === 'In Progress' ? 'default' : 'outline'}>{job.status}</Badge>
+                                        <div className="flex items-center gap-2">
+                                            {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
+                                            <Badge variant={job.status === 'Posted' ? 'secondary' : job.status === 'In Progress' ? 'default' : 'outline'}>{job.status}</Badge>
+                                        </div>
                                     </div>
                                     <CardDescription>{job.client} - {job.technique}</CardDescription>
                                 </CardHeader>
@@ -115,7 +120,7 @@ export default function MyJobsPage() {
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
                                     {job.scheduledDate && (
-                                        <div className="flex items-center text-sm text-muted-foreground">
+                                        <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
                                             <Calendar className="w-4 h-4 mr-2" />
                                             <span>Inspection: {job.scheduledDate}</span>
                                         </div>

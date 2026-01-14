@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar } from "lucide-react";
+import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -34,10 +34,11 @@ const ClientDashboard = () => {
     const upcomingInspections = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
     const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date((a as any).date || (a as any).postedDate).getTime() - new Date((b as any).date || (b as any).postedDate).getTime()).reverse().slice(0, 5);
     const isMobile = useIsMobile();
+    const overdueJobs = jobs.filter(j => j.scheduledDate && new Date(j.scheduledDate) < new Date() && !['Completed', 'Paid'].includes(j.status));
   
     return (
         <div className="grid gap-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
@@ -66,6 +67,16 @@ const ClientDashboard = () => {
                     <CardContent>
                         <div className="text-2xl font-bold">{upcomingInspections.length}</div>
                         <p className="text-xs text-muted-foreground">Due within 30 days</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-destructive/10 border-destructive text-destructive-foreground">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-destructive">Overdue Jobs</CardTitle>
+                        <AlarmClock className="h-4 w-4 text-destructive" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-destructive">{overdueJobs.length}</div>
+                        <p className="text-xs text-destructive/80">Require immediate attention</p>
                     </CardContent>
                 </Card>
             </div>

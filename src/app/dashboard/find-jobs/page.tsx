@@ -149,12 +149,18 @@ export default function FindJobsPage() {
             )}
             
             <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                {filteredJobs.map(job => (
-                    <Card key={job.id}>
+                {filteredJobs.map(job => {
+                    const isExpired = job.bidExpiryDate && new Date(job.bidExpiryDate) < new Date();
+                    return (
+                    <Card key={job.id} className={isExpired ? 'bg-muted/50' : ''}>
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                <Badge>{job.technique}</Badge>
+                                {isExpired ? (
+                                    <Badge variant="destructive">Bidding Expired</Badge>
+                                ) : (
+                                    <Badge>{job.technique}</Badge>
+                                )}
                             </div>
                             <CardDescription>Posted by {job.client}</CardDescription>
                         </CardHeader>
@@ -181,13 +187,13 @@ export default function FindJobsPage() {
                             )}
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={() => handleOpenDialog(job)}>
+                            <Button onClick={() => handleOpenDialog(job)} disabled={isExpired}>
                                 <Gavel className="mr-2"/>
-                                Place Bid
+                                {isExpired ? 'Bidding Closed' : 'Place Bid'}
                             </Button>
                         </CardFooter>
                     </Card>
-                ))}
+                )})}
             </div>
 
             {filteredJobs.length === 0 && (

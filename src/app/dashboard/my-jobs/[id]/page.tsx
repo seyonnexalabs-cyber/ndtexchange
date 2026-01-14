@@ -15,8 +15,17 @@ import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Up
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: Job['workflow'] }) => {
+
+const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['status'], workflow: Job['workflow'], onStatusChange: (status: Job['status']) => void }) => {
     const allStatuses: Job['status'][] = [
         'Posted',
         'Assigned',
@@ -41,40 +50,63 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex items-center overflow-x-auto pb-4 space-x-2 md:space-x-4">
+                <Carousel
+                  opts={{
+                    align: "start",
+                    dragFree: true,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent className="-ml-2">
                     {allStatuses.map((step, index) => {
                         const isCompleted = index < currentStatusIndex;
                         const isActive = index === currentStatusIndex;
 
                         return (
-                            <div key={step} className="flex items-center space-x-2 flex-shrink-0">
-                                <div className="flex flex-col items-center">
+                           <CarouselItem key={step} className="pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6">
+                                <div className="flex flex-col items-center text-center">
                                     <div className={cn(
-                                        "w-8 h-8 rounded-full flex items-center justify-center",
-                                        isCompleted ? "bg-primary text-primary-foreground" : isActive ? "bg-accent/20" : "bg-muted",
+                                        "w-10 h-10 rounded-full flex items-center justify-center border-2",
+                                        isCompleted ? "bg-primary border-primary text-primary-foreground" : 
+                                        isActive ? "bg-accent/20 border-accent text-accent" : 
+                                        "bg-muted border-muted-foreground/20 text-muted-foreground",
                                     )}>
-                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className={cn("text-xs font-bold", isActive ? "text-accent" : "text-muted-foreground")}>{index + 1}</span>}
+                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="font-bold">{index + 1}</span>}
                                     </div>
                                     <p className={cn(
-                                        "text-xs text-center mt-2 w-20 break-words",
-                                        isActive ? "font-bold text-foreground" : "text-muted-foreground",
+                                        "text-xs font-medium mt-2 h-8",
+                                        isActive ? "text-foreground" : "text-muted-foreground",
                                     )}>{step}</p>
                                 </div>
-                                {index < allStatuses.length - 1 && (
-                                   <div className={cn("w-6 sm:w-12 h-1 rounded-full", isCompleted ? "bg-primary" : "bg-muted")} />
-                                )}
-                            </div>
+                            </CarouselItem>
                         );
                     })}
-                </div>
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:flex" />
+                  <CarouselNext className="hidden sm:flex" />
+                </Carousel>
             </CardContent>
+             <CardFooter className="flex-col items-start gap-4 border-t pt-6">
+                <div className="font-semibold text-sm">Lifecycle Test Control</div>
+                <div className="flex items-center gap-4">
+                    <Label htmlFor="status-select">Override Status:</Label>
+                    <Select onValueChange={onStatusChange} defaultValue={status}>
+                        <SelectTrigger id="status-select" className="w-[200px]">
+                            <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </CardFooter>
         </Card>
     );
 };
 
 
-export default function JobDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = React.use(params);
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     
@@ -82,6 +114,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
     const [assignedTechIds, setAssignedTechIds] = useState<string[]>([]);
     const [assignedEquipIds, setAssignedEquipIds] = useState<string[]>([]);
+    const [currentStatus, setCurrentStatus] = useState<Job['status']>('Posted');
     
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
@@ -93,6 +126,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         if (job) {
             setAssignedTechIds(job.technicianIds || []);
             setAssignedEquipIds(job.equipmentIds || []);
+            setCurrentStatus(job.status);
         }
     }, [job]);
 
@@ -142,7 +176,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </Link>
             </Button>
 
-            <JobLifecycle status={job.status} workflow={job.workflow} />
+            <JobLifecycle status={currentStatus} workflow={job.workflow} onStatusChange={setCurrentStatus} />
             
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">

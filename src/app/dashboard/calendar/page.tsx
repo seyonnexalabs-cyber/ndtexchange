@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -72,7 +73,7 @@ export default function CalendarPage() {
             }));
     }, [role]);
 
-    const start = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
+    const start = startOfWeek(currentDate, { weekStartsOn: 0 }); // Sunday
     const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
 
     const goToNextWeek = () => setCurrentDate(addDays(currentDate, 7));

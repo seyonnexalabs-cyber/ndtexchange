@@ -23,7 +23,8 @@ export type Job = {
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid';
     postedDate: string;
     bidExpiryDate?: string;
-    scheduledDate?: string;
+    scheduledStartDate?: string;
+    scheduledEndDate?: string;
     technicianIds?: string[];
     equipmentIds?: string[];
     assetIds?: string[];
@@ -97,6 +98,8 @@ const tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
 const dayAfterTomorrow = new Date(today);
 dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+const twoDaysAfterTomorrow = new Date(today);
+twoDaysAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 const yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
 const nextWeek = new Date(today);
@@ -121,9 +124,9 @@ export const jobs: Job[] = [
             { name: 'Previous Inspection Report.pdf', url: '#' },
         ]
     },
-    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'MT', status: 'Scheduled', postedDate: '2024-06-25', scheduledDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01'], equipmentIds: ['YOKE-02'], assetIds: ['ASSET-004'], workflow: 'standard' },
-    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledDate: '2024-06-10', technicianIds: ['TECH-01'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
-    { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', scheduledDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], assetIds: ['ASSET-002'], workflow: 'level3' },
+    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'MT', status: 'Scheduled', postedDate: '2024-06-25', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01'], equipmentIds: ['YOKE-02'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-01'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
+    { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], assetIds: ['ASSET-002'], workflow: 'level3' },
     { 
         id: 'JOB-005', 
         title: 'VT of Bridge Structural Welds', 
@@ -140,8 +143,8 @@ export const jobs: Job[] = [
         ] 
     },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0] },
-    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Scheduled', postedDate: '2024-07-05', scheduledDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'standard' },
-    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Scheduled', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'standard' },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
 ];
 
 export const bids: Bid[] = [

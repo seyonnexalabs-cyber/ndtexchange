@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -34,7 +35,7 @@ const ClientDashboard = () => {
     const upcomingInspections = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
     const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date((a as any).date || (a as any).postedDate).getTime() - new Date((b as any).date || (b as any).postedDate).getTime()).reverse().slice(0, 5);
     const isMobile = useIsMobile();
-    const overdueJobs = jobs.filter(j => j.scheduledDate && new Date(j.scheduledDate) < new Date() && !['Completed', 'Paid'].includes(j.status));
+    const overdueJobs = jobs.filter(j => j.scheduledStartDate && new Date(j.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(j.status));
   
     return (
         <div className="grid gap-6">
@@ -110,7 +111,7 @@ const ClientDashboard = () => {
                                                     <Badge variant="outline">Job Posted</Badge>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mt-2">Posted: {activity.postedDate}</div>
-                                                {activity.scheduledDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {activity.scheduledDate}</div>}
+                                                {activity.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {activity.scheduledStartDate}</div>}
                                                 <div className="text-sm text-muted-foreground mt-1">Status: <Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></div>
                                             </Card>
                                         )
@@ -144,7 +145,7 @@ const ClientDashboard = () => {
                                     <TableRow key={`job-${activity.id}`}>
                                         <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
                                         <TableCell className="font-medium">{activity.title}</TableCell>
-                                        <TableCell>{activity.scheduledDate ? `Sch: ${activity.scheduledDate}` : `Post: ${activity.postedDate}`}</TableCell>
+                                        <TableCell>{activity.scheduledStartDate ? `Sch: ${activity.scheduledStartDate}` : `Post: ${activity.postedDate}`}</TableCell>
                                         <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
                                     </TableRow>
                                     )
@@ -251,7 +252,7 @@ const InspectorDashboard = () => {
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
                                         <div className="text-sm text-muted-foreground">Location: {job.location}</div>
-                                        {job.scheduledDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {job.scheduledDate}</div>}
+                                        {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {job.scheduledStartDate}</div>}
                                     </Card>
                                 ))}
                                 {upcomingJobs.length === 0 && <div className="text-center text-muted-foreground py-4">No upcoming jobs.</div>}
@@ -271,7 +272,7 @@ const InspectorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
-                                        <TableCell>{job.scheduledDate || "Not Scheduled"}</TableCell>
+                                        <TableCell>{job.scheduledStartDate || "Not Scheduled"}</TableCell>
                                         <TableCell><Badge variant="secondary">{job.status}</Badge></TableCell>
                                     </TableRow>
                                 ))}
@@ -420,7 +421,7 @@ const AuditorDashboard = () => {
                                         <Badge variant={job.status === 'Report Submitted' ? 'destructive' : 'secondary'}>{job.status === 'Report Submitted' ? 'Awaiting Review' : 'Under Audit'}</Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-2">Technique: {job.technique}</div>
-                                    <div className="text-sm text-muted-foreground">Submitted: {job.scheduledDate || job.postedDate}</div>
+                                    <div className="text-sm text-muted-foreground">Submitted: {job.scheduledStartDate || job.postedDate}</div>
                                 </Card>
                             ))}
                             {auditQueue.length === 0 && <div className="text-center text-muted-foreground py-4">The audit queue is empty.</div>}
@@ -440,7 +441,7 @@ const AuditorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
-                                        <TableCell>{job.scheduledDate || job.postedDate}</TableCell>
+                                        <TableCell>{job.scheduledStartDate || job.postedDate}</TableCell>
                                         <TableCell><Badge variant="destructive">Awaiting Review</Badge></TableCell>
                                     </TableRow>
                                 ))}
@@ -448,7 +449,7 @@ const AuditorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
-                                        <TableCell>{job.scheduledDate || job.postedDate}</TableCell>
+                                        <TableCell>{job.scheduledStartDate || job.postedDate}</TableCell>
                                         <TableCell><Badge variant="secondary">Under Audit</Badge></TableCell>
                                     </TableRow>
                                 ))}

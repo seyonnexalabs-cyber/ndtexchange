@@ -96,7 +96,7 @@ export default function MyJobsPage() {
                     {displayedJobs.map(job => {
                         const assignedTechnicians = technicians.filter(t => job.technicianIds?.includes(t.id));
                         const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
-                        const isOverdue = job.scheduledDate && new Date(job.scheduledDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
+                        const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
 
                         return (
                             <Card key={job.id}>
@@ -119,10 +119,10 @@ export default function MyJobsPage() {
                                         <Calendar className="w-4 h-4 mr-2" />
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
-                                    {job.scheduledDate && (
+                                    {job.scheduledStartDate && (
                                         <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
                                             <Calendar className="w-4 h-4 mr-2" />
-                                            <span>Inspection: {job.scheduledDate}</span>
+                                            <span>Inspection: {job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}` : ''}</span>
                                         </div>
                                     )}
 
@@ -170,7 +170,7 @@ export default function MyJobsPage() {
             ) : (
                  <div className="text-center p-10 border rounded-lg">
                     <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h2 className="mt-4 text-xl font-headline">No {view} Jobs</h2>
+                    <h2 className="mt-4 text-xl font-headline">No {view} jobs</h2>
                     <p className="mt-2 text-muted-foreground">You don't have any jobs currently in this category.</p>
                      {getEmptyStateAction()}
                 </div>

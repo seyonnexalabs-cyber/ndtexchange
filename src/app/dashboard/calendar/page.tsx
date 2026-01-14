@@ -10,7 +10,7 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Briefcase, MapPin,
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { addDays, startOfWeek, format, isSameDay, addWeeks, subWeeks } from 'date-fns';
+import { addDays, startOfWeek, format, isSameDay, addWeeks, subWeeks, eachDayOfInterval, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import Link from 'next/link';
@@ -35,7 +35,22 @@ export default function CalendarPage() {
     const [activeTab, setActiveTab] = useState('jobs');
 
     const events: CalendarEvent[] = useMemo(() => {
-        const scheduledJobs = jobs.filter(job => job.scheduledDate);
+        const scheduledJobs = jobs.filter(job => job.scheduledStartDate);
+
+        const createEventsForJob = (job: Job): CalendarEvent[] => {
+            const startDate = parseISO(job.scheduledStartDate as string);
+            const endDate = job.scheduledEndDate ? parseISO(job.scheduledEndDate) : startDate;
+            const interval = eachDayOfInterval({ start: startDate, end: endDate });
+
+            return interval.map(date => ({
+                id: `job-${job.id}-${format(date, 'yyyy-MM-dd')}`,
+                title: job.title,
+                date: date,
+                type: 'job',
+                isClash: false, // Clash detection for jobs is not implemented in this view
+                data: job,
+            }));
+        };
 
         if (activeTab === 'jobs') {
             return scheduledJobs
@@ -44,59 +59,43 @@ export default function CalendarPage() {
                     if (role === 'inspector') return !!job.technicianIds?.length;
                     return true;
                 })
-                .map(job => ({
-                    id: `job-${job.id}`,
-                    title: job.title,
-                    date: new Date(job.scheduledDate as string),
-                    type: 'job',
-                    isClash: false,
-                    data: job,
-                }));
+                .flatMap(createEventsForJob);
         }
 
-        if (activeTab === 'technicians') {
-            const techSchedule: Record<string, { resource: Technician, jobs: Job[], date: Date }> = {};
+        if (activeTab === 'technicians' || activeTab === 'equipment') {
+            const resourceSchedule: Record<string, { resource: Technician | InspectorAsset; jobs: Job[]; date: Date }> = {};
+            
             scheduledJobs.forEach(job => {
-                job.technicianIds?.forEach(techId => {
-                    const tech = technicians.find(t => t.id === techId);
-                    if (tech) {
-                        const key = `${tech.id}-${job.scheduledDate}`;
-                        if (!techSchedule[key]) {
-                            techSchedule[key] = { resource: tech, jobs: [], date: new Date(job.scheduledDate!) };
-                        }
-                        techSchedule[key].jobs.push(job);
+                if (!job.scheduledStartDate) return;
+                const startDate = parseISO(job.scheduledStartDate);
+                const endDate = job.scheduledEndDate ? parseISO(job.scheduledEndDate) : startDate;
+                const interval = eachDayOfInterval({ start: startDate, end: endDate });
+
+                const resourceIds = activeTab === 'technicians' ? job.technicianIds : job.equipmentIds;
+                const resourceList = activeTab === 'technicians' ? technicians : inspectorAssets;
+
+                resourceIds?.forEach(resourceId => {
+                    const resource = (resourceList as Array<Technician | InspectorAsset>).find(r => r.id === resourceId);
+                    if (resource) {
+                        interval.forEach(date => {
+                            const key = `${resource.id}-${format(date, 'yyyy-MM-dd')}`;
+                             if (!resourceSchedule[key]) {
+                                resourceSchedule[key] = { resource, jobs: [], date };
+                            }
+                            // Avoid duplicating jobs for the same resource on the same day
+                            if (!resourceSchedule[key].jobs.some(j => j.id === job.id)) {
+                                resourceSchedule[key].jobs.push(job);
+                            }
+                        });
                     }
                 });
             });
-            return Object.values(techSchedule).map(s => ({
-                id: `tech-${s.resource.id}-${format(s.date, 'yyyy-MM-dd')}`,
-                title: s.resource.name,
-                date: s.date,
-                type: 'technician',
-                isClash: s.jobs.length > 1,
-                data: { resource: s.resource, jobs: s.jobs },
-            }));
-        }
 
-        if (activeTab === 'equipment') {
-            const equipSchedule: Record<string, { resource: InspectorAsset, jobs: Job[], date: Date }> = {};
-            scheduledJobs.forEach(job => {
-                job.equipmentIds?.forEach(equipId => {
-                    const equip = inspectorAssets.find(e => e.id === equipId);
-                    if (equip) {
-                        const key = `${equip.id}-${job.scheduledDate}`;
-                        if (!equipSchedule[key]) {
-                            equipSchedule[key] = { resource: equip, jobs: [], date: new Date(job.scheduledDate!) };
-                        }
-                        equipSchedule[key].jobs.push(job);
-                    }
-                });
-            });
-             return Object.values(equipSchedule).map(s => ({
-                id: `equip-${s.resource.id}-${format(s.date, 'yyyy-MM-dd')}`,
+            return Object.values(resourceSchedule).map(s => ({
+                id: `${activeTab.slice(0, 4)}-${s.resource.id}-${format(s.date, 'yyyy-MM-dd')}`,
                 title: s.resource.name,
                 date: s.date,
-                type: 'equipment',
+                type: activeTab === 'technicians' ? 'technician' : 'equipment',
                 isClash: s.jobs.length > 1,
                 data: { resource: s.resource, jobs: s.jobs },
             }));
@@ -194,6 +193,15 @@ export default function CalendarPage() {
                                 <p className="text-muted-foreground">{job.technique}</p>
                             </div>
                         </div>
+                        {job.scheduledStartDate && (
+                             <div className="flex items-center">
+                                <CalendarIcon className="w-4 h-4 mr-3 text-muted-foreground" />
+                                <div>
+                                    <p className="font-semibold">Scheduled Dates</p>
+                                    <p className="text-muted-foreground">{job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}` : ''}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setSelectedEvent(null)}>Close</Button>

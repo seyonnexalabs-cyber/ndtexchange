@@ -38,7 +38,16 @@ const jobSchema = z.object({
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
   bidExpiryDate: z.date().optional(),
-  scheduledDate: z.date().optional(),
+  scheduledStartDate: z.date().optional(),
+  scheduledEndDate: z.date().optional(),
+}).refine(data => {
+    if (data.scheduledStartDate && data.scheduledEndDate) {
+        return data.scheduledEndDate >= data.scheduledStartDate;
+    }
+    return true;
+}, {
+    message: "End date cannot be before start date.",
+    path: ["scheduledEndDate"],
 });
 
 export default function JobsMarketplacePage() {
@@ -112,10 +121,10 @@ export default function JobsMarketplacePage() {
                                         <Calendar className="w-4 h-4 mr-2" />
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
-                                    {job.scheduledDate && (
+                                    {job.scheduledStartDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <Calendar className="w-4 h-4 mr-2" />
-                                            <span>Target Date: {job.scheduledDate}</span>
+                                            <span>Target Date: {job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}`: ''}</span>
                                         </div>
                                     )}
                                     {job.bidExpiryDate && (
@@ -166,10 +175,10 @@ export default function JobsMarketplacePage() {
                                         <Calendar className="w-4 h-4 mr-2" />
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
-                                    {job.scheduledDate && (
+                                    {job.scheduledStartDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <Calendar className="w-4 h-4 mr-2" />
-                                            <span>Scheduled: {job.scheduledDate}</span>
+                                            <span>Scheduled: {job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}` : ''}</span>
                                         </div>
                                     )}
                                 </CardContent>
@@ -292,10 +301,10 @@ export default function JobsMarketplacePage() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="scheduledDate"
+                                    name="scheduledStartDate"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                        <FormLabel>Target Inspection Date (Optional)</FormLabel>
+                                        <FormLabel>Target Start Date (Optional)</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                             <FormControl>
@@ -321,6 +330,45 @@ export default function JobsMarketplacePage() {
                                                 selected={field.value}
                                                 onSelect={field.onChange}
                                                 disabled={(date) => date < new Date()}
+                                                initialFocus
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="scheduledEndDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Target End Date (Optional)</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                >
+                                                {field.value ? (
+                                                    format(field.value, "PPP")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <CalendarComponent
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) => date < (form.getValues('scheduledStartDate') || new Date())}
                                                 initialFocus
                                             />
                                             </PopoverContent>

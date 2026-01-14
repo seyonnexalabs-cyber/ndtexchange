@@ -34,18 +34,18 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
     const currentStatusIndex = allStatuses.indexOf(status);
 
     return (
-        <Card className="mb-6">
+        <Card>
             <CardContent className="pt-6">
-                <ul className="space-y-4 relative">
-                   {/* Dotted Line */}
-                   <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border -translate-x-1/2 border-l-2 border-dashed border-muted-foreground/30 -z-10" />
+                 <ul className="relative">
+                    {/* Dotted Line */}
+                    <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border -translate-x-1/2 border-l-2 border-dashed border-muted-foreground/30 -z-10" />
 
                     {allStatuses.map((step, index) => {
                         const isCompleted = index < currentStatusIndex;
                         const isActive = index === currentStatusIndex;
 
                         return (
-                           <li key={step} className="flex items-center gap-4">
+                           <li key={step} className="flex items-center gap-4 mb-4">
                                 <div className={cn(
                                     "w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 z-10",
                                     isCompleted ? "bg-primary border-primary text-primary-foreground" : 
@@ -153,7 +153,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </Link>
             </Button>
 
-             <Accordion type="single" collapsible className="w-full mb-6" defaultValue="item-1">
+             <Accordion type="single" collapsible className="w-full mb-6">
                 <AccordionItem value="item-1" className="border-b-0">
                     <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
                         <div className="flex items-center gap-4">

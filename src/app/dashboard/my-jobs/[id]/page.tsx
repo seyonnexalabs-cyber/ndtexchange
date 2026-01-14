@@ -51,13 +51,13 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
                                 <div className="flex flex-col items-center">
                                     <div className={cn(
                                         "w-8 h-8 rounded-full flex items-center justify-center",
-                                        isCompleted ? "bg-primary text-primary-foreground" : isActive ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground",
+                                        isCompleted ? "bg-primary text-primary-foreground" : isActive ? "bg-accent/20" : "bg-muted",
                                     )}>
-                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="text-xs font-bold">{index + 1}</span>}
+                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className={cn("text-xs font-bold", isActive ? "text-accent" : "text-muted-foreground")}>{index + 1}</span>}
                                     </div>
                                     <p className={cn(
                                         "text-xs text-center mt-2 w-20 break-words",
-                                        isActive ? "font-bold text-accent-foreground" : "text-muted-foreground",
+                                        isActive ? "font-bold text-foreground" : "text-muted-foreground",
                                     )}>{step}</p>
                                 </div>
                                 {index < allStatuses.length - 1 && (
@@ -73,8 +73,8 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
 };
 
 
-export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = React.use(params);
+export default function JobDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     

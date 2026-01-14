@@ -85,7 +85,7 @@ const ClientDashboard = () => {
                                             <Card key={`insp-${activity.id}`} className="p-4">
                                                 <div className="flex justify-between items-start">
                                                     <div className="font-medium">{activity.technique} on {activity.assetName}</div>
-                                                    <Badge variant="outline">Inspection</Badge>
+                                                    <Badge variant="outline">Inspection Report</Badge>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mt-2">Date: {activity.date}</div>
                                                 <div className="text-sm text-muted-foreground">Status: <Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></div>
@@ -96,7 +96,7 @@ const ClientDashboard = () => {
                                             <Card key={`job-${activity.id}`} className="p-4">
                                                 <div className="flex justify-between items-start">
                                                     <div className="font-medium">{activity.title}</div>
-                                                    <Badge variant="outline">Job</Badge>
+                                                    <Badge variant="outline">Job Posted</Badge>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mt-2">Posted: {activity.postedDate}</div>
                                                 <div className="text-sm text-muted-foreground">Status: <Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></div>
@@ -121,7 +121,7 @@ const ClientDashboard = () => {
                                 if ('technique' in activity && 'assetName' in activity) { // It's an inspection
                                     return (
                                     <TableRow key={`insp-${activity.id}`}>
-                                        <TableCell><Badge variant="outline">Inspection</Badge></TableCell>
+                                        <TableCell><Badge variant="outline">Inspection Report</Badge></TableCell>
                                         <TableCell className="font-medium">{activity.technique} on {activity.assetName}</TableCell>
                                         <TableCell>{activity.date}</TableCell>
                                         <TableCell><Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></TableCell>
@@ -130,7 +130,7 @@ const ClientDashboard = () => {
                                 } else if ('client' in activity) { // It's a job
                                     return (
                                     <TableRow key={`job-${activity.id}`}>
-                                        <TableCell><Badge variant="outline">Job</Badge></TableCell>
+                                        <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
                                         <TableCell className="font-medium">{activity.title}</TableCell>
                                         <TableCell>{activity.postedDate}</TableCell>
                                         <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
@@ -478,5 +478,3 @@ export default function DashboardPage() {
         </div>
     );
 }
-
-    

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { jobs, technicians, inspectorAssets } from '@/lib/placeholder-data';
@@ -76,17 +76,23 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     
-    const job = useMemo(() => jobs.find(j => j.id === params.id), [params]);
+    const job = useMemo(() => jobs.find(j => j.id === params.id), [params.id]);
 
-    // Using state to manage assignments since we don't have a backend
-    const [assignedTechIds, setAssignedTechIds] = useState(job?.technicianIds || []);
-    const [assignedEquipIds, setAssignedEquipIds] = useState(job?.equipmentIds || []);
+    const [assignedTechIds, setAssignedTechIds] = useState<string[]>([]);
+    const [assignedEquipIds, setAssignedEquipIds] = useState<string[]>([]);
     
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
 
     const [tempSelectedTechs, setTempSelectedTechs] = useState<string[]>([]);
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (job) {
+            setAssignedTechIds(job.technicianIds || []);
+            setAssignedEquipIds(job.equipmentIds || []);
+        }
+    }, [job]);
 
     if (!job) {
         notFound();

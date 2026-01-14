@@ -5,12 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { allUsers } from "@/lib/placeholder-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Users, MoreVertical } from "lucide-react";
+import { Users, Filter, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const statusStyles: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     Active: 'default',
@@ -20,11 +25,38 @@ const statusStyles: { [key: string]: 'default' | 'secondary' | 'destructive' } =
 
 const PlatformUsersView = () => {
     const isMobile = useIsMobile();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
     
     const platformUsers = useMemo(() => {
-        return allUsers.filter(user => !user.role.toLowerCase().includes('admin'));
+        return allUsers.filter(user => {
+            if (user.role.toLowerCase().includes('admin')) return false;
+
+            const searchMatch = !searchQuery ||
+                user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.company.toLowerCase().includes(searchQuery.toLowerCase());
+            
+            const roleMatch = selectedRoles.length === 0 || selectedRoles.includes(user.role);
+
+            const statusMatch = statusFilter === 'all' || user.status === statusFilter;
+
+            return searchMatch && roleMatch && statusMatch;
+        });
+    }, [searchQuery, selectedRoles, statusFilter]);
+
+    const uniqueRoles = useMemo(() => {
+        const roles = new Set(allUsers.filter(u => !u.role.toLowerCase().includes('admin')).map(u => u.role));
+        return Array.from(roles);
     }, []);
 
+    const handleRoleChange = (role: string) => {
+        setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
+    };
+
+    const hasActiveFilters = searchQuery || selectedRoles.length > 0 || statusFilter !== 'all';
+    
     if (isMobile) {
         return (
             <div className="space-y-4">
@@ -66,12 +98,78 @@ const PlatformUsersView = () => {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Platform Users</CardTitle>
-                <CardDescription>An overview of all client, provider, and auditor accounts.</CardDescription>
-            </CardHeader>
-            <CardContent>
+        <>
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <Input 
+                    placeholder="Search name, email, company..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-grow"
+                />
+                 <div className="flex gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Role ({selectedRoles.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64">
+                             <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Filter by Role</h4>
+                                </div>
+                                <div className="grid gap-2">
+                                    {uniqueRoles.map(role => (
+                                        <div key={role} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`role-${role}`}
+                                                checked={selectedRoles.includes(role)}
+                                                onCheckedChange={() => handleRoleChange(role)}
+                                            />
+                                            <Label htmlFor={`role-${role}`}>{role}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Invited">Invited</SelectItem>
+                            <SelectItem value="Disabled">Disabled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
+            </div>
+             {hasActiveFilters && (
+                <div className="mb-4 flex items-center flex-wrap gap-2">
+                    <span className="text-sm font-medium">Active Filters:</span>
+                    {selectedRoles.map(role => (
+                        <Badge key={role} variant="secondary">
+                            {role}
+                            <button onClick={() => handleRoleChange(role)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+                    {statusFilter !== 'all' && (
+                        <Badge variant="secondary">
+                            Status: {statusFilter}
+                             <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedRoles([]); setStatusFilter('all'); }}>Clear All</Button>
+                </div>
+            )}
+            <Card>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -104,10 +202,17 @@ const PlatformUsersView = () => {
                                 </TableCell>
                             </TableRow>
                         ))}
+                         {platformUsers.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                                    No users found matching your filters.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
-            </CardContent>
-        </Card>
+            </Card>
+        </>
     );
 };
 
@@ -120,7 +225,7 @@ export default function UsersPage() {
                     <Users/>
                     User Management
                 </h1>
-                <Button>Invite New User</Button>
+                <Button>Add User</Button>
             </div>
             
             <PlatformUsersView />

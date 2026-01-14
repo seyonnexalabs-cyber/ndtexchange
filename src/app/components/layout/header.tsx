@@ -1,16 +1,32 @@
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useMemo } from 'react';
+import Link from 'next/link';
+
+
+const userDetails = {
+    client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD' },
+    inspector: { name: 'Jane Smith', role: 'Level II Inspector', avatar: 'user-avatar-inspector', fallback: 'JS' },
+    admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU' },
+};
 
 const AppHeader = () => {
     const pathname = usePathname();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
+    
+    const currentUser = useMemo(() => {
+        return userDetails[role as keyof typeof userDetails] || userDetails.client;
+    }, [role]);
+
     const pathSegments = pathname.split('/').filter(Boolean);
     let title = 'Dashboard';
     if (pathSegments.length > 1) {
@@ -23,6 +39,11 @@ const AppHeader = () => {
     const handleLogout = () => {
         router.push('/login');
     };
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     return (
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
@@ -45,15 +66,17 @@ const AppHeader = () => {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                             <Avatar className="h-9 w-9">
-                                <AvatarImage src="https://picsum.photos/seed/user-avatar/100/100" alt="User" />
-                                <AvatarFallback>JD</AvatarFallback>
+                                <AvatarImage src={`https://picsum.photos/seed/${currentUser.avatar}/100/100`} alt="User" />
+                                <AvatarFallback>{currentUser.fallback}</AvatarFallback>
                             </Avatar>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuLabel>{currentUser.name}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={constructUrl('/dashboard/settings')}>Settings</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Support</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>

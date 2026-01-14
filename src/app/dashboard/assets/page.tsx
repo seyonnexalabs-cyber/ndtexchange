@@ -1,3 +1,4 @@
+'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { assets } from "@/lib/placeholder-data";
@@ -8,6 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
+import { useSearchParams } from "next/navigation";
 
 const assetIcons = {
     'Tank': <TankIcon className="w-6 h-6 text-muted-foreground" />,
@@ -18,6 +20,13 @@ const assetIcons = {
 };
 
 export default function AssetsPage() {
+    const searchParams = useSearchParams();
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -57,7 +66,7 @@ export default function AssetsPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem asChild><Link href={`/dashboard/assets/${asset.id}`}>View Details</Link></DropdownMenuItem>
+                                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/assets/${asset.id}`)}>View Details</Link></DropdownMenuItem>
                                         <DropdownMenuItem>Edit</DropdownMenuItem>
                                         <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Delete</DropdownMenuItem>
                                     </DropdownMenuContent>

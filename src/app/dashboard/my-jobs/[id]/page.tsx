@@ -16,7 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['status'], workflow: Job['workflow'], onStatusChange: (status: Job['status']) => void }) => {
     const allStatuses: Job['status'][] = [
@@ -35,43 +35,35 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
 
     return (
         <Card className="mb-6">
-            <CardHeader>
-                <CardTitle>Job Lifecycle</CardTitle>
-                <CardDescription>
-                    {workflow === 'level3' || workflow === 'auto' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col sm:flex-row gap-8">
-                    <ul className="space-y-4 relative">
-                       {/* Dotted Line */}
-                       <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border -translate-x-1/2 border-l-2 border-dashed border-muted-foreground/30 -z-10" />
+            <CardContent className="pt-6">
+                <ul className="space-y-4 relative">
+                   {/* Dotted Line */}
+                   <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border -translate-x-1/2 border-l-2 border-dashed border-muted-foreground/30 -z-10" />
 
-                        {allStatuses.map((step, index) => {
-                            const isCompleted = index < currentStatusIndex;
-                            const isActive = index === currentStatusIndex;
+                    {allStatuses.map((step, index) => {
+                        const isCompleted = index < currentStatusIndex;
+                        const isActive = index === currentStatusIndex;
 
-                            return (
-                               <li key={step} className="flex items-center gap-4">
-                                    <div className={cn(
-                                        "w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 z-10",
-                                        isCompleted ? "bg-primary border-primary text-primary-foreground" : 
-                                        isActive ? "bg-accent/20 border-accent text-accent" : 
-                                        "bg-muted border-muted-foreground/20 text-muted-foreground",
-                                    )}>
-                                    {isCompleted ? <CheckCircle className="w-6 h-6" /> : <span className="text-base font-bold">{index + 1}</span>}
-                                    </div>
-                                    <p className={cn(
-                                        "font-medium",
-                                        isActive ? "text-foreground" : "text-muted-foreground",
-                                    )}>{step}</p>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
+                        return (
+                           <li key={step} className="flex items-center gap-4">
+                                <div className={cn(
+                                    "w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 z-10",
+                                    isCompleted ? "bg-primary border-primary text-primary-foreground" : 
+                                    isActive ? "bg-accent/20 border-accent text-accent" : 
+                                    "bg-muted border-muted-foreground/20 text-muted-foreground",
+                                )}>
+                                {isCompleted ? <CheckCircle className="w-6 h-6" /> : <span className="text-base font-bold">{index + 1}</span>}
+                                </div>
+                                <p className={cn(
+                                    "font-medium",
+                                    isActive ? "text-foreground" : "text-muted-foreground",
+                                )}>{step}</p>
+                            </li>
+                        );
+                    })}
+                </ul>
             </CardContent>
-            <CardFooter className="flex-col items-start gap-4 border-t pt-6">
+             <CardFooter className="flex-col items-start gap-4 border-t pt-6">
                 <div className="font-semibold text-sm">Lifecycle Test Control</div>
                 <div className="flex items-center gap-4">
                     <Label htmlFor="status-select">Override Status:</Label>
@@ -161,7 +153,19 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </Link>
             </Button>
 
-            <JobLifecycle status={currentStatus} workflow={job.workflow} onStatusChange={setCurrentStatus} />
+             <Accordion type="single" collapsible className="w-full mb-6" defaultValue="item-1">
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
+                        <div className="flex items-center gap-4">
+                            <span>Job Lifecycle</span>
+                             <Badge>{currentStatus}</Badge>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                         <JobLifecycle status={currentStatus} workflow={job.workflow} onStatusChange={setCurrentStatus} />
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
             
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">

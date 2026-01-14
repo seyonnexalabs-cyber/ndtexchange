@@ -1,57 +1,13 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Globe } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import PublicHeader from '@/app/components/layout/public-header';
+import PublicFooter from '@/app/components/layout/public-footer';
 
 export default function PrivacyPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <Link href="/" className="text-2xl font-headline font-bold text-primary">
-            NDT Exchange
-          </Link>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/#features" className="text-sm font-medium text-foreground hover:text-primary">
-              Features
-            </Link>
-            <Link href="/#techniques" className="text-sm font-medium text-foreground hover:text-primary">
-              Techniques
-            </Link>
-            <Link href="/about" className="text-sm font-medium text-foreground hover:text-primary">
-              About
-            </Link>
-            <Link href="/manufacturers" className="text-sm font-medium text-foreground hover:text-primary">
-              Manufacturers
-            </Link>
-             <Link href="/providers" className="text-sm font-medium text-foreground hover:text-primary">
-              Providers
-            </Link>
-          </nav>
-          <div className="flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Globe className="h-5 w-5" />
-                  <span className="sr-only">Select language</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>English</DropdownMenuItem>
-                <DropdownMenuItem>Español</DropdownMenuItem>
-                <DropdownMenuItem>Deutsch</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Link href="/login">Get Started</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="max-w-4xl mx-auto">
@@ -90,13 +46,7 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <footer className="bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <p>&copy; {new Date().getFullYear()} NDT Exchange. All Rights Reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

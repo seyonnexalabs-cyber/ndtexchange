@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
@@ -133,11 +134,13 @@ export default function Home() {
                 icon={<Waves className="w-8 h-8 text-accent" />}
                 title="Ultrasonic Testing (UT/PAUT)"
                 description="Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods."
+                isHighlighted
               />
               <FeatureCard
                 icon={<Scan className="w-8 h-8 text-accent" />}
                 title="Radiographic Testing (RT)"
                 description="Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities."
+                isHighlighted
               />
                <FeatureCard
                 icon={<Magnet className="w-8 h-8 text-accent" />}
@@ -153,21 +156,25 @@ export default function Home() {
                 icon={<Eye className="w-8 h-8 text-accent" />}
                 title="Visual Testing (VT/RVI)"
                 description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
+                isHighlighted
               />
               <FeatureCard
                 icon={<Ear className="w-8 h-8 text-accent" />}
                 title="Acoustic Emission (AE)"
                 description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
+                isHighlighted
               />
               <FeatureCard
                 icon={<Radio className="w-8 h-8 text-accent" />}
                 title="Acoustic Pulse Reflectometry (APR)"
                 description="A non-invasive method for detecting blockages and defects in tubes by analyzing reflected sound waves."
+                isHighlighted
               />
                <FeatureCard
                 icon={<Thermometer className="w-8 h-8 text-accent" />}
                 title="Advanced & Other Methods"
-                description="Support for Eddy Current (ET), Leak Testing (LT), Infrared (IR), and Microwave Testing."
+                description="Support for Eddy Current (ET), Leak Testing (LT), and Microwave Testing."
+                isHighlighted
               />
             </div>
           </div>
@@ -190,9 +197,12 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function FeatureCard({ icon, title, description, isHighlighted = false }: { icon: React.ReactNode, title: string, description: string, isHighlighted?: boolean }) {
   return (
-    <Card className="text-center">
+    <Card className={cn(
+        "text-center transition-all",
+        isHighlighted && "border-accent bg-accent/5 shadow-lg shadow-accent/10"
+    )}>
       <CardHeader>
         <div className="mx-auto bg-accent/10 p-4 rounded-full w-fit">
           {icon}

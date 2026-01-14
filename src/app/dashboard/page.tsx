@@ -110,7 +110,8 @@ const ClientDashboard = () => {
                                                     <Badge variant="outline">Job Posted</Badge>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mt-2">Posted: {activity.postedDate}</div>
-                                                <div className="text-sm text-muted-foreground">Status: <Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></div>
+                                                {activity.scheduledDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {activity.scheduledDate}</div>}
+                                                <div className="text-sm text-muted-foreground mt-1">Status: <Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></div>
                                             </Card>
                                         )
                                      }
@@ -143,7 +144,7 @@ const ClientDashboard = () => {
                                     <TableRow key={`job-${activity.id}`}>
                                         <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
                                         <TableCell className="font-medium">{activity.title}</TableCell>
-                                        <TableCell>{activity.postedDate}</TableCell>
+                                        <TableCell>{activity.scheduledDate ? `Sch: ${activity.scheduledDate}` : `Post: ${activity.postedDate}`}</TableCell>
                                         <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
                                     </TableRow>
                                     )
@@ -250,6 +251,7 @@ const InspectorDashboard = () => {
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
                                         <div className="text-sm text-muted-foreground">Location: {job.location}</div>
+                                        {job.scheduledDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {job.scheduledDate}</div>}
                                     </Card>
                                 ))}
                                 {upcomingJobs.length === 0 && <div className="text-center text-muted-foreground py-4">No upcoming jobs.</div>}
@@ -260,7 +262,7 @@ const InspectorDashboard = () => {
                                 <TableRow>
                                     <TableHead>Job Title</TableHead>
                                     <TableHead>Client</TableHead>
-                                    <TableHead>Location</TableHead>
+                                    <TableHead>Date</TableHead>
                                     <TableHead>Status</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -269,7 +271,7 @@ const InspectorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
-                                        <TableCell>{job.location}</TableCell>
+                                        <TableCell>{job.scheduledDate || "Not Scheduled"}</TableCell>
                                         <TableCell><Badge variant="secondary">{job.status}</Badge></TableCell>
                                     </TableRow>
                                 ))}
@@ -418,7 +420,7 @@ const AuditorDashboard = () => {
                                         <Badge variant={job.status === 'Report Submitted' ? 'destructive' : 'secondary'}>{job.status === 'Report Submitted' ? 'Awaiting Review' : 'Under Audit'}</Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-2">Technique: {job.technique}</div>
-                                    <div className="text-sm text-muted-foreground">Submitted: {job.postedDate}</div>
+                                    <div className="text-sm text-muted-foreground">Submitted: {job.scheduledDate || job.postedDate}</div>
                                 </Card>
                             ))}
                             {auditQueue.length === 0 && <div className="text-center text-muted-foreground py-4">The audit queue is empty.</div>}
@@ -438,7 +440,7 @@ const AuditorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
-                                        <TableCell>{job.postedDate}</TableCell>
+                                        <TableCell>{job.scheduledDate || job.postedDate}</TableCell>
                                         <TableCell><Badge variant="destructive">Awaiting Review</Badge></TableCell>
                                     </TableRow>
                                 ))}
@@ -446,7 +448,7 @@ const AuditorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
-                                        <TableCell>{job.postedDate}</TableCell>
+                                        <TableCell>{job.scheduledDate || job.postedDate}</TableCell>
                                         <TableCell><Badge variant="secondary">Under Audit</Badge></TableCell>
                                     </TableRow>
                                 ))}

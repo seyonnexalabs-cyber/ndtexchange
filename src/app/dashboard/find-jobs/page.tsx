@@ -50,7 +50,7 @@ export default function FindJobsPage() {
     });
 
     const filteredJobs = useMemo(() => {
-        const openJobs = jobs.filter(j => j.status === 'Posted');
+        const openJobs = jobs.filter(j => j.status === 'Posted' || (j.status === 'Posted' && j.bidExpiryDate && new Date(j.bidExpiryDate) < new Date()));
         
         return openJobs.filter(job => {
             const searchMatch = !searchQuery || 

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -155,9 +155,9 @@ export default function Home() {
                 description="A direct or remote visual examination of a component, using tools like videoscopes and borescopes to access hard-to-reach areas."
               />
                <FeatureCard
-                icon={<Ear className="w-8 h-8 text-accent" />}
-                title="Acoustic & Advanced Methods"
-                description="Support for Acoustic Emission (AE), Acoustic Pulse Reflectometry (APR), Eddy Current (ET), Leak Testing (LT) and Infrared (IR)."
+                icon={<Radio className="w-8 h-8 text-accent" />}
+                title="Advanced & Other Methods"
+                description="Support for Acoustic Emission (AE), Eddy Current (ET), Leak Testing (LT), Infrared (IR), and Microwave Testing."
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -19,8 +19,8 @@ export default function Home() {
             <Link href="#features" className="text-sm font-medium text-foreground hover:text-primary">
               Features
             </Link>
-            <Link href="#pricing" className="text-sm font-medium text-foreground hover:text-primary">
-              Pricing
+            <Link href="#techniques" className="text-sm font-medium text-foreground hover:text-primary">
+              Techniques
             </Link>
             <Link href="#about" className="text-sm font-medium text-foreground hover:text-primary">
               About
@@ -103,6 +103,52 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <section id="techniques" className="py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-headline font-semibold text-primary">
+                A Wide Spectrum of NDT Techniques
+              </h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                From conventional methods to advanced technologies, our platform supports the techniques you need.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <FeatureCard
+                icon={<Waves className="w-8 h-8 text-accent" />}
+                title="Ultrasonic Testing (UT/PAUT)"
+                description="Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods."
+              />
+              <FeatureCard
+                icon={<Scan className="w-8 h-8 text-accent" />}
+                title="Radiographic Testing (RT)"
+                description="Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities."
+              />
+               <FeatureCard
+                icon={<Magnet className="w-8 h-8 text-accent" />}
+                title="Magnetic Particle (MT)"
+                description="Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field."
+              />
+               <FeatureCard
+                icon={<Droplets className="w-8 h-8 text-accent" />}
+                title="Penetrant Testing (PT)"
+                description="Locating surface-breaking defects in non-porous materials using a liquid penetrant and developer."
+              />
+               <FeatureCard
+                icon={<Eye className="w-8 h-8 text-accent" />}
+                title="Visual Testing (VT)"
+                description="The fundamental first step. A direct visual examination of a component to identify surface-level issues."
+              />
+               <FeatureCard
+                icon={<Thermometer className="w-8 h-8 text-accent" />}
+                title="And Many More..."
+                description="Support for Eddy Current (ET), Acoustic Emission (AE), Leak Testing (LT), Infrared (IR), and Acoustic Pulse Reflectometry (APR)."
+              />
+            </div>
+          </div>
+        </section>
+
       </main>
 
       <footer className="bg-primary text-primary-foreground">

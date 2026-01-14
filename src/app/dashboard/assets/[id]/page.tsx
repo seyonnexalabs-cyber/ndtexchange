@@ -23,8 +23,8 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-8 h-8 text-muted-foreground" />,
 };
 
-export default function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = React.use(params);
+export default function AssetDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
 
@@ -42,7 +42,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mb-6 gap-4">
                 <div>
                     <Button asChild variant="outline" size="sm" className="mb-4">
                         <Link href={constructUrl("/dashboard/assets")}>
@@ -56,8 +56,8 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     </h1>
                     <p className="text-muted-foreground">{asset.id}</p>
                 </div>
-                <div>
-                    <Button className="mr-2">Edit Asset</Button>
+                <div className='flex gap-2 self-start sm:self-center'>
+                    <Button>Edit Asset</Button>
                     <Button variant="destructive">Delete Asset</Button>
                 </div>
             </div>
@@ -65,7 +65,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                     <Tabs defaultValue="history">
-                        <TabsList className="mb-4">
+                        <TabsList className="mb-4 w-full sm:w-auto grid grid-cols-3">
                             <TabsTrigger value="history">Inspection History</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="details">Details</TabsTrigger>

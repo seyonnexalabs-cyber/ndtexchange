@@ -155,15 +155,17 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                 </div>
                 <div>
                      <Card>
-                        <CardHeader>
+                        <CardHeader className="p-0">
                             {image && (
-                                <div className="relative h-48 w-full -m-1 mb-2">
+                                <div className="relative h-48 w-full">
                                     <Image src={image.imageUrl} alt={asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                                 </div>
                             )}
-                            <CardTitle>Asset Summary</CardTitle>
+                            <div className="p-6">
+                                <CardTitle>Asset Summary</CardTitle>
+                            </div>
                         </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
+                        <CardContent className="space-y-4 text-sm p-6 pt-0">
                             <div className="flex items-start">
                                 <Tag className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                 <div>

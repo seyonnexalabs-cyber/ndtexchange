@@ -20,11 +20,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const StarRating = ({ rating }: { rating: number }) => {
     return (
         <div className="flex items-center">
-            {[...Array(Math.floor(rating))].map((_, i) => (
-                <Star key={`full-${i}`} className="w-4 h-4 fill-amber-400 text-amber-400" />
-            ))}
-            {[...Array(5 - Math.floor(rating))].map((_, i) => (
-                <Star key={`empty-${i}`} className="w-4 h-4 fill-gray-300 text-gray-300" />
+            {[...Array(5)].map((_, i) => (
+                <Star
+                    key={i}
+                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
+                />
             ))}
             <span className="ml-2 text-xs text-muted-foreground">{rating.toFixed(1)}</span>
         </div>

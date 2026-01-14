@@ -78,7 +78,18 @@ export type Client = {
     contactEmail: string;
     activeJobs: number;
     totalSpend: number;
-}
+};
+
+export type Review = {
+  id: string;
+  jobId: string;
+  providerId: string;
+  clientId: string;
+  rating: number;
+  comment: string;
+  date: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+};
 
 
 export const clientAssets: Asset[] = [
@@ -194,6 +205,12 @@ export const clientData: Client[] = [
     { id: 'client-02', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 75000 },
     { id: 'client-03', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
     { id: 'client-04', name: 'State DOT', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
+];
+
+export const reviews: Review[] = [
+  { id: 'REV-001', jobId: 'JOB-003', providerId: 'provider-03', clientId: 'client-02', rating: 5, comment: 'Excellent and thorough service. The report was detailed and delivered on time.', date: '2024-06-20', status: 'Approved' },
+  { id: 'REV-002', jobId: 'JOB-002', providerId: 'provider-03', clientId: 'client-01', rating: 4, comment: 'Good work, but the inspector was a bit late on the first day.', date: '2024-07-01', status: 'Pending' },
+  { id: 'REV-003', jobId: 'JOB-004', providerId: 'provider-01', clientId: 'client-03', rating: 5, comment: 'Top-notch professionals. Ben Carter and his team are the best in the business.', date: '2024-07-15', status: 'Approved' },
 ];
 
 

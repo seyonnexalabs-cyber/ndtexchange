@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,18 +19,13 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 
 const StarRating = ({ rating }: { rating: number }) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 !== 0;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-
     return (
         <div className="flex items-center">
-            {[...Array(fullStars)].map((_, i) => (
-                <Star key={`full-${i}`} className="w-5 h-5 fill-amber-400 text-amber-400" />
-            ))}
-            {halfStar && <Star key="half" className="w-5 h-5 fill-amber-400 text-amber-400" style={{ clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' }} />}
-            {[...Array(emptyStars)].map((_, i) => (
-                <Star key={`empty-${i}`} className="w-5 h-5 fill-gray-300 text-gray-300" />
+            {[...Array(5)].map((_, i) => (
+                <Star
+                    key={i}
+                    className={`w-5 h-5 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
+                />
             ))}
             <span className="ml-2 text-sm text-muted-foreground">{rating.toFixed(1)}</span>
         </div>

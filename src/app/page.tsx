@@ -152,7 +152,7 @@ export default function Home() {
                <FeatureCard
                 icon={<Eye className="w-8 h-8 text-accent" />}
                 title="Visual Testing (VT)"
-                description="The fundamental first step. A direct visual examination of a component to identify surface-level issues."
+                description="A direct or remote visual examination of a component, using tools like videoscopes and borescopes to access hard-to-reach areas."
               />
                <FeatureCard
                 icon={<Ear className="w-8 h-8 text-accent" />}

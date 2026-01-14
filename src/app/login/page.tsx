@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Building, HardHat, Shield, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -68,8 +68,9 @@ export default function LoginPage() {
                   <RadioGroupItem value="client" id="client" className="peer sr-only" />
                   <Label
                     htmlFor="client"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
+                    <Building className="h-5 w-5" />
                     Client
                   </Label>
                 </div>
@@ -77,8 +78,9 @@ export default function LoginPage() {
                   <RadioGroupItem value="inspector" id="inspector" className="peer sr-only" />
                   <Label
                     htmlFor="inspector"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
+                    <HardHat className="h-5 w-5" />
                     Inspector
                   </Label>
                 </div>
@@ -86,8 +88,9 @@ export default function LoginPage() {
                   <RadioGroupItem value="admin" id="admin" className="peer sr-only" />
                   <Label
                     htmlFor="admin"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
+                    <Shield className="h-5 w-5" />
                     Admin
                   </Label>
                 </div>
@@ -95,8 +98,9 @@ export default function LoginPage() {
                   <RadioGroupItem value="auditor" id="auditor" className="peer sr-only" />
                   <Label
                     htmlFor="auditor"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
+                    <Eye className="h-5 w-5" />
                     Auditor
                   </Label>
                 </div>

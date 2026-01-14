@@ -74,10 +74,11 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
 
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     
-    const job = useMemo(() => jobs.find(j => j.id === params.id), [params.id]);
+    const job = useMemo(() => jobs.find(j => j.id === id), [id]);
 
     const [assignedTechIds, setAssignedTechIds] = useState<string[]>([]);
     const [assignedEquipIds, setAssignedEquipIds] = useState<string[]>([]);
@@ -303,5 +304,3 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
-
-    

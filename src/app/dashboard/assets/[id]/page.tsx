@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag } from "lucide-react";
+import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,8 +41,11 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         <div>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <Button asChild variant="outline" size="sm" className="mb-2">
-                        <Link href={constructUrl("/dashboard/assets")}>Back to Assets</Link>
+                    <Button asChild variant="outline" size="sm" className="mb-4">
+                        <Link href={constructUrl("/dashboard/assets")}>
+                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            Back to Assets
+                        </Link>
                     </Button>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         {assetIcons[asset.type]}

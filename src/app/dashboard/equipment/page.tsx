@@ -31,7 +31,7 @@ const equipmentIcons = {
 const equipmentSchema = z.object({
   id: z.string().min(2, "ID is required."),
   name: z.string().min(2, "Name must be at least 2 characters."),
-  type: z.enum(['UT Equipment', 'PAUT Probe', 'Calibration Block', 'Yoke']),
+  type: z.string().min(2, "Type must be at least 2 characters."),
   status: z.enum(['Calibrated', 'Calibration Due', 'In Service']),
   nextCalibration: z.date(),
 });
@@ -44,7 +44,7 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
         defaultValues: {
             id: '',
             name: "",
-            type: "UT Equipment",
+            type: "",
             status: "In Service",
             ...defaultValues,
             nextCalibration: defaultValues?.nextCalibration || new Date(),
@@ -85,21 +85,11 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                     name="type"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormLabel>Equipment Type</FormLabel>
                             <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select an equipment type" />
-                            </SelectTrigger>
+                                <Input placeholder="e.g., UT Equipment" {...field} />
                             </FormControl>
-                            <SelectContent>
-                                <SelectItem value="UT Equipment">UT Equipment</SelectItem>
-                                <SelectItem value="PAUT Probe">PAUT Probe</SelectItem>
-                                <SelectItem value="Calibration Block">Calibration Block</SelectItem>
-                                <SelectItem value="Yoke">Yoke</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
+                            <FormMessage />
                         </FormItem>
                     )}
                 />

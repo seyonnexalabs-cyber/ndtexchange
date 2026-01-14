@@ -40,11 +40,10 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-4">
+                <div className="flex items-center space-x-2 overflow-x-auto pb-4">
                     {allStatuses.map((step, index) => {
                         const isCompleted = index < currentStatusIndex;
                         const isActive = index === currentStatusIndex;
-                        const isUpcoming = index > currentStatusIndex;
 
                         return (
                             <div key={step} className="flex items-center space-x-2 flex-shrink-0">
@@ -56,12 +55,12 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
                                        {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="text-xs font-bold text-muted-foreground">{index + 1}</span>}
                                     </div>
                                     <p className={cn(
-                                        "text-xs text-center mt-2 w-20",
+                                        "text-xs text-center mt-2 w-20 break-words",
                                         isActive ? "font-bold text-accent-foreground" : "text-muted-foreground",
-                                    )}>{step.replace(' ', '\n')}</p>
+                                    )}>{step}</p>
                                 </div>
                                 {index < allStatuses.length - 1 && (
-                                   <div className={cn("w-8 sm:w-12 h-1 rounded-full", isCompleted ? "bg-primary" : "bg-muted")} />
+                                   <div className={cn("w-6 sm:w-12 h-1 rounded-full", isCompleted ? "bg-primary" : "bg-muted")} />
                                 )}
                             </div>
                         );

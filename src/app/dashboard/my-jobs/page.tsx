@@ -1,14 +1,54 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, technicians, inspectorAssets } from "@/lib/placeholder-data";
+import { jobs, technicians, inspectorAssets, clientAssets, NDTTechniques } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { useJobPost } from "./job-post-provider";
+
+
+const jobSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters.'),
+  location: z.string().min(2, 'Location is required.'),
+  technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD', 'ET', 'AE', 'LT', 'IR', 'APR']),
+  description: z.string().optional(),
+  assets: z.array(z.string()).refine(value => value.some(item => item), {
+    message: "You have to select at least one asset.",
+  }),
+  workflow: z.enum(['standard', 'level3', 'auto']),
+  documents: z.any().optional(), // For file uploads
+  bidExpiryDate: z.date().optional(),
+  scheduledStartDate: z.date().optional(),
+  scheduledEndDate: z.date().optional(),
+}).refine(data => {
+    if (data.scheduledStartDate && data.scheduledEndDate) {
+        return data.scheduledEndDate >= data.scheduledStartDate;
+    }
+    return true;
+}, {
+    message: "End date cannot be before start date.",
+    path: ["scheduledEndDate"],
+});
+
 
 const equipmentIcons = {
     'UT Equipment': <RadioTower className="w-4 h-4 text-muted-foreground" />,
@@ -19,10 +59,339 @@ const equipmentIcons = {
 
 type JobView = 'active' | 'completed' | 'upcoming';
 
+function PostJobDialog() {
+    const { isJobPostOpen, setJobPostOpen } = useJobPost();
+    const form = useForm<z.infer<typeof jobSchema>>({
+        resolver: zodResolver(jobSchema),
+        defaultValues: {
+            title: '',
+            location: '',
+            technique: 'UT',
+            description: '',
+            assets: [],
+            workflow: 'standard',
+        },
+    });
+
+    function onSubmit(values: z.infer<typeof jobSchema>) {
+        console.log('New Job Submitted:', values);
+        setJobPostOpen(false);
+        form.reset();
+    }
+
+    return (
+        <Dialog open={isJobPostOpen} onOpenChange={setJobPostOpen}>
+            <DialogContent className="sm:max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Post a New Job</DialogTitle>
+                    <DialogDescription>
+                        Fill out the details below to create a new job listing on the marketplace.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Job Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., PAUT on Pressure Vessel Welds" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Location</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="City, State" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="technique"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Required Technique</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a technique" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {NDTTechniques.map(tech => (
+                                                    <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="bidExpiryDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                    <FormLabel>Bid Expiry Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < new Date()}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="scheduledStartDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                    <FormLabel>Target Start Date (Optional)</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < new Date()}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="scheduledEndDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                    <FormLabel>Target End Date (Optional)</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < (form.getValues('scheduledStartDate') || new Date())}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        
+                        <FormField
+                            control={form.control}
+                            name="assets"
+                            render={() => (
+                            <FormItem>
+                                <FormLabel>Select Asset(s)</FormLabel>
+                                <ScrollArea className="h-32 w-full rounded-md border p-4">
+                                    {clientAssets.map((asset) => (
+                                    <FormField
+                                        key={asset.id}
+                                        control={form.control}
+                                        name="assets"
+                                        render={({ field }) => {
+                                        return (
+                                            <FormItem
+                                            key={asset.id}
+                                            className="flex flex-row items-start space-x-3 space-y-0"
+                                            >
+                                            <FormControl>
+                                                <Checkbox
+                                                checked={field.value?.includes(asset.id)}
+                                                onCheckedChange={(checked) => {
+                                                    return checked
+                                                    ? field.onChange([...(field.value || []), asset.id])
+                                                    : field.onChange(
+                                                        field.value?.filter(
+                                                            (value) => value !== asset.id
+                                                        )
+                                                        )
+                                                }}
+                                                />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                                {asset.name} ({asset.location})
+                                            </FormLabel>
+                                            </FormItem>
+                                        )
+                                        }}
+                                    />
+                                    ))}
+                                </ScrollArea>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        
+                         <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Job Description (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Provide a detailed scope of work, requirements, and any specifications." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="documents"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Attach Documents</FormLabel>
+                                        <FormControl>
+                                            <Input type="file" multiple onChange={(e) => field.onChange(e.target.files)} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="workflow"
+                                render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                    <FormLabel>Approval Workflow</FormLabel>
+                                    <FormControl>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1"
+                                    >
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="standard" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Standard Workflow (Client Approval)
+                                        </FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="level3" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Level III Approval Required
+                                        </FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="auto" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Auto-select based on rules
+                                        </FormLabel>
+                                        </FormItem>
+                                    </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="button" variant="ghost" onClick={() => setJobPostOpen(false)}>Cancel</Button>
+                            <Button type="submit">Post Job</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [view, setView] = useState<JobView>('active');
+    const { setJobPostOpen } = useJobPost();
 
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow = [];
@@ -30,8 +399,8 @@ export default function MyJobsPage() {
         let PageIcon: React.ElementType = Briefcase;
         
         let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Approved', 'Paid'].includes(j.status))
-            : jobs; // Clients see all jobs for now, could be filtered by poster ID in real app
+            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Paid'].includes(j.status))
+            : jobs; 
 
         switch(view) {
             case 'active':
@@ -61,8 +430,9 @@ export default function MyJobsPage() {
     const getEmptyStateAction = () => {
         if (role === 'client') {
             return (
-                <Button asChild className="mt-4">
-                    <Link href={constructUrl('/dashboard/jobs')}>Post a Job</Link>
+                <Button className="mt-4" onClick={() => setJobPostOpen(true)}>
+                    <PlusCircle className="mr-2" />
+                    Post a Job
                 </Button>
             );
         }
@@ -119,6 +489,12 @@ export default function MyJobsPage() {
                                         <Calendar className="w-4 h-4 mr-2" />
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
+                                     {job.bidExpiryDate && (
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                            <AlarmClock className="w-4 h-4 mr-2" />
+                                            <span>Bids Expire: {job.bidExpiryDate}</span>
+                                        </div>
+                                    )}
                                     {job.scheduledStartDate && (
                                         <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
                                             <Calendar className="w-4 h-4 mr-2" />
@@ -175,6 +551,7 @@ export default function MyJobsPage() {
                      {getEmptyStateAction()}
                 </div>
             )}
+            <PostJobDialog />
         </div>
     );
 }

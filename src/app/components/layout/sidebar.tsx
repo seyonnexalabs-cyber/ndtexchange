@@ -28,12 +28,14 @@ import {
   Wrench,
   Gavel,
   Star,
+  PlusCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo } from 'react';
+import { useJobPost } from '@/app/dashboard/my-jobs/job-post-provider';
 
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD' },
@@ -44,36 +46,39 @@ const userDetails = {
 
 const allMenuItems = [
   // Common
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
+  { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin', 'auditor'] },
+  { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
   
   // Client
-  { href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
-  { href: '/dashboard/jobs', label: 'Job Marketplace', icon: Briefcase, roles: ['client'] },
-  { href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
-  { href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
-  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
-  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector'], badge: 3 },
-  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin', 'auditor'] },
-
+  { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
+  { id: 'post-job', action: 'post-job', label: 'Post New Job', icon: PlusCircle, roles: ['client'] },
+  { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
+  
+  // Common across roles but handled differently or with different data
+  { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
+  { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
+  { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector'], badge: 3 },
+  
+  // Admin / Auditor Specific
+  { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin', 'auditor'] },
 
   // Inspector
-  { href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
-  { href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel, roles: ['inspector'] },
-  { href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['inspector'] },
-  { href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
-  { href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
+  { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
+  { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel, roles: ['inspector'] },
+  { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['inspector'] },
+  { id: 'technicians', href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
+  { id: 'equipment', href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
   
   // Admin
-  { href: '/dashboard/clients', label: 'Clients', icon: Users, roles: ['admin'] },
-  { href: '/dashboard/providers', label: 'Providers', icon: ShieldCheck, roles: ['admin'] },
-  { href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase, roles: ['admin'] },
-  { href: '/dashboard/reviews', label: 'Reviews', icon: Star, roles: ['admin'] },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
-  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { id: 'clients', href: '/dashboard/clients', label: 'Clients', icon: Users, roles: ['admin'] },
+  { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: ShieldCheck, roles: ['admin'] },
+  { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase, roles: ['admin'] },
+  { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star, roles: ['admin'] },
+  { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
+  { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
   
   // Auditor
-  { href: '/dashboard/compliance', label: 'Compliance', icon: Eye, roles: ['auditor'] },
+  { id: 'compliance', href: '/dashboard/compliance', label: 'Compliance', icon: Eye, roles: ['auditor'] },
 ];
 
 const AppSidebar = () => {
@@ -81,6 +86,7 @@ const AppSidebar = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
+  const { setJobPostOpen } = useJobPost();
 
   const currentUser = useMemo(() => {
     return userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -91,9 +97,9 @@ const AppSidebar = () => {
     const labelOrder = [
         'Dashboard', 
         // Client
-        'My Assets', 'Job Marketplace', 'My Jobs',
+        'My Assets', 'My Jobs', 'Post New Job',
         // Inspector
-        'Find Jobs', 'My Bids', 'My Jobs', 'Technicians', 'Equipment', 
+        'Find Jobs', 'My Bids', 'Technicians', 'Equipment', 
         // Admin
         'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 
         // Auditor
@@ -126,6 +132,15 @@ const AppSidebar = () => {
     return `${base}?${params.toString()}`;
   }
 
+  const handleAction = (action?: string) => {
+    if (action === 'post-job') {
+      // This will only work if the currently rendered page is using the context.
+      // We will ensure MyJobsPage has the provider.
+      router.push(constructUrl('/dashboard/my-jobs'));
+      setTimeout(() => setJobPostOpen(true), 100);
+    }
+  }
+
 
   return (
     <Sidebar>
@@ -139,21 +154,36 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')}
-                tooltip={{ children: item.label }}
-              >
-                <Link href={constructUrl(item.href)}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                  {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {menuItems.map((item) => {
+            if (item.action) {
+              return (
+                 <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => handleAction(item.action)}
+                    tooltip={{ children: item.label }}
+                  >
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            }
+            return (
+              <SidebarMenuItem key={item.id}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={item.href && (pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard'))}
+                  tooltip={{ children: item.label }}
+                >
+                  <Link href={item.href ? constructUrl(item.href) : '#'}>
+                    <item.icon />
+                    <span>{item.label}</span>
+                    {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border">

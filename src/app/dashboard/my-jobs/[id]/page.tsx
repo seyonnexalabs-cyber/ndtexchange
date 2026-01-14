@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { jobs, technicians, inspectorAssets } from '@/lib/placeholder-data';
@@ -10,8 +10,65 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Job } from '@/lib/placeholder-data';
+import { cn } from '@/lib/utils';
+
+const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: Job['workflow'] }) => {
+    const allStatuses: Job['status'][] = [
+        'Posted', 
+        'Assigned', 
+        'Scheduled', 
+        'In Progress', 
+        'Draft Submitted', 
+        ...(workflow === 'level3' ? ['Under Audit', 'Audit Approved'] as const : []),
+        'Client Review',
+        'Client Approved',
+        'Completed',
+        'Paid'
+    ];
+
+    const currentStatusIndex = allStatuses.indexOf(status);
+
+    return (
+        <Card className="mb-6">
+            <CardHeader>
+                <CardTitle>Job Lifecycle</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-4">
+                    {allStatuses.map((step, index) => {
+                        const isCompleted = index < currentStatusIndex;
+                        const isActive = index === currentStatusIndex;
+                        const isUpcoming = index > currentStatusIndex;
+
+                        return (
+                            <div key={step} className="flex items-center space-x-2 flex-shrink-0">
+                                <div className="flex flex-col items-center">
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-full flex items-center justify-center text-white",
+                                        isCompleted ? "bg-primary" : isActive ? "bg-accent" : "bg-muted",
+                                    )}>
+                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="text-xs font-bold text-muted-foreground">{index + 1}</span>}
+                                    </div>
+                                    <p className={cn(
+                                        "text-xs text-center mt-2 w-20",
+                                        isActive ? "font-bold text-accent-foreground" : "text-muted-foreground",
+                                    )}>{step.replace(' ', '\n')}</p>
+                                </div>
+                                {index < allStatuses.length - 1 && (
+                                   <div className={cn("w-8 sm:w-12 h-1 rounded-full", isCompleted ? "bg-primary" : "bg-muted")} />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
@@ -73,6 +130,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     Back to My Jobs
                 </Link>
             </Button>
+
+            <JobLifecycle status={job.status} workflow={job.workflow} />
             
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">

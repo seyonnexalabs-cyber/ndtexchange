@@ -103,6 +103,7 @@ export default function CalendarPage() {
                                 onSelect={(day) => day && setCurrentDate(day)}
                                 captionLayout="dropdown"
                                 initialFocus
+                                className="rounded-md border shadow-sm"
                             />
                         </PopoverContent>
                     </Popover>
@@ -129,5 +130,4 @@ export default function CalendarPage() {
         </div>
     );
 }
-
 

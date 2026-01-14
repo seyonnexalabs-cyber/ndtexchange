@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { jobs } from '@/lib/placeholder-data';
+import { jobs, clientAssets } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,19 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const jobSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   location: z.string().min(2, 'Location is required.'),
   technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD', 'APR', 'ET', 'AE', 'LT', 'IR']),
   description: z.string().optional(),
+  assets: z.array(z.string()).refine(value => value.some(item => item), {
+    message: "You have to select at least one asset.",
+  }),
+  workflow: z.enum(['standard', 'level3']),
 });
 
 export default function JobsMarketplacePage() {
@@ -36,6 +43,8 @@ export default function JobsMarketplacePage() {
             location: '',
             technique: 'UT',
             description: '',
+            assets: [],
+            workflow: 'standard',
         },
     });
 
@@ -48,7 +57,7 @@ export default function JobsMarketplacePage() {
     }
     
     const openJobs = useMemo(() => jobs.filter(j => j.status === 'Open'), []);
-    const clientJobs = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
+    const jobsPostedByClient = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
 
     return (
         <div>
@@ -117,7 +126,7 @@ export default function JobsMarketplacePage() {
                  <div className="space-y-6">
                     <h2 className="text-lg font-semibold">Your Posted Jobs</h2>
                     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                         {clientJobs.map(job => (
+                         {jobsPostedByClient.map(job => (
                             <Card key={job.id} className="bg-muted/30">
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
@@ -145,7 +154,7 @@ export default function JobsMarketplacePage() {
                             </Card>
                         ))}
                     </div>
-                     {clientJobs.length === 0 && (
+                     {jobsPostedByClient.length === 0 && (
                         <div className="text-center p-10 border rounded-lg">
                             <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
                             <h2 className="mt-4 text-xl font-headline">No Jobs Posted</h2>
@@ -156,7 +165,7 @@ export default function JobsMarketplacePage() {
             )}
 
             <Dialog open={isPostJobDialogOpen} onOpenChange={setIsPostJobDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Post a New Job</DialogTitle>
                         <DialogDescription>
@@ -176,6 +185,51 @@ export default function JobsMarketplacePage() {
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="assets"
+                                render={() => (
+                                <FormItem>
+                                    <FormLabel>Select Asset(s)</FormLabel>
+                                    <ScrollArea className="h-32 w-full rounded-md border p-4">
+                                        {clientAssets.map((asset) => (
+                                        <FormField
+                                            key={asset.id}
+                                            control={form.control}
+                                            name="assets"
+                                            render={({ field }) => {
+                                            return (
+                                                <FormItem
+                                                key={asset.id}
+                                                className="flex flex-row items-start space-x-3 space-y-0"
+                                                >
+                                                <FormControl>
+                                                    <Checkbox
+                                                    checked={field.value?.includes(asset.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked
+                                                        ? field.onChange([...field.value, asset.id])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                                (value) => value !== asset.id
+                                                            )
+                                                            )
+                                                    }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    {asset.name} ({asset.location})
+                                                </FormLabel>
+                                                </FormItem>
+                                            )
+                                            }}
+                                        />
+                                        ))}
+                                    </ScrollArea>
+                                    <FormMessage />
+                                </FormItem>
                                 )}
                             />
                              <FormField
@@ -224,10 +278,44 @@ export default function JobsMarketplacePage() {
                             />
                             <FormField
                                 control={form.control}
+                                name="workflow"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                    <FormLabel>Select Workflow Type</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1"
+                                        >
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="standard" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                            Standard (Client + Inspector)
+                                            </FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="level3" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                            Level III Approval Required (Auditor added)
+                                            </FormLabel>
+                                        </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Job Description</FormLabel>
+                                        <FormLabel>Job Description (Optional)</FormLabel>
                                         <FormControl>
                                             <Textarea placeholder="Provide a detailed scope of work, requirements, and any specifications." {...field} />
                                         </FormControl>

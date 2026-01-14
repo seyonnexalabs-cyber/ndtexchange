@@ -101,6 +101,16 @@ export type Review = {
   status: 'Pending' | 'Approved' | 'Rejected';
 };
 
+export type PlatformUser = {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    company: string;
+    status: 'Active' | 'Invited' | 'Disabled';
+    avatar: string;
+};
+
 
 export const clientAssets: Asset[] = [
     { id: 'ASSET-001', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15' },
@@ -246,6 +256,23 @@ export const reviews: Review[] = [
   { id: 'REV-003', jobId: 'JOB-004', providerId: 'provider-01', clientId: 'client-03', rating: 5, comment: 'Top-notch professionals. Ben Carter and his team are the best in the business.', date: '2024-07-15', status: 'Approved' },
 ];
 
+export const allUsers: PlatformUser[] = [
+    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', avatar: 'user-avatar-client' },
+    { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active', avatar: 'user-avatar-sarah' },
+    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active', avatar: 'user-avatar-admin' },
+    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', avatar: 'user-avatar-auditor' },
+    ...technicians.map(t => ({
+        id: `user-${t.id}`,
+        name: t.name,
+        email: `${t.name.toLowerCase().replace(' ', '.')}@provider.com`,
+        role: `Inspector (${t.level})`,
+        company: `Provider #${t.providerId.split('-')[1]}`, // Mock company name
+        status: 'Active',
+        avatar: t.avatar,
+    })),
+     { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited', avatar: 'user-avatar-invited' },
+     { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Provider #2', status: 'Disabled', avatar: 'user-avatar-disabled' },
+];
 
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };

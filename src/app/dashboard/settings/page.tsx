@@ -15,6 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
+import { allUsers } from '@/lib/placeholder-data';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 
 const userDetails = {
@@ -28,6 +31,52 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   email: z.string().email('Please enter a valid email address.'),
 });
+
+const AdminTeamManagement = () => {
+    const adminUsers = allUsers.filter(user => user.role.toLowerCase().includes('admin'));
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Admin Team Management</CardTitle>
+                <CardDescription>Manage users with administrative privileges on the platform.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {adminUsers.map(user => (
+                            <TableRow key={user.id}>
+                                <TableCell className="font-medium flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={`https://picsum.photos/seed/${user.avatar}/100/100`} />
+                                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    {user.name}
+                                </TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>
+                                    <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                   <Button variant="ghost" size="sm">Manage</Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function SettingsPage() {
     const searchParams = useSearchParams();
@@ -68,6 +117,7 @@ export default function SettingsPage() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          {role === 'admin' && <TabsTrigger value="team">Team Management</TabsTrigger>}
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
@@ -173,6 +223,11 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
         </TabsContent>
+        {role === 'admin' && (
+            <TabsContent value="team">
+                <AdminTeamManagement />
+            </TabsContent>
+        )}
         <TabsContent value="appearance">
              <Card>
                 <CardHeader>

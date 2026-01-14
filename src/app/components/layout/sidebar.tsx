@@ -48,9 +48,14 @@ const allMenuItems = [
   { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
   
   // Client
-  { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client'] },
-  { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'admin'] },
-  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'admin', 'auditor'] },
+  { href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
+  { href: '/dashboard/jobs', label: 'Job Marketplace', icon: Briefcase, roles: ['client', 'admin'] },
+  { href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
+  { href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector'] },
+  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
+  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector'], badge: 3 },
+  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin', 'auditor'] },
+
 
   // Inspector
   { href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
@@ -58,9 +63,6 @@ const allMenuItems = [
   { href: '/dashboard/active-jobs', label: 'Active Jobs', icon: CheckCircle, roles: ['inspector'] },
   { href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
   { href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
-  { href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['inspector'] },
-  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['inspector'] },
-  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['inspector'], badge: 3 },
   
   // Admin
   { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
@@ -82,19 +84,30 @@ const AppSidebar = () => {
 
   const menuItems = useMemo(() => {
     // A bit of sorting to keep a sensible order
-    const roleOrder = ['client', 'inspector', 'admin', 'auditor'];
     const labelOrder = [
         'Dashboard', 
-        'Assets', 'Jobs', 'Inspections', // Client
-        'Find Jobs', 'My Bids', 'Active Jobs', 'Technicians', 'Equipment', 'Reports', 'Calendar', 'Messages', // Inspector
-        'Users', 'Analytics', // Admin
-        'Compliance', // Auditor
+        // Client
+        'My Assets', 'Job Marketplace', 'My Jobs', 'Reports', 'Calendar', 'Messages',
+        // Inspector
+        'Find Jobs', 'My Bids', 'Active Jobs', 'Technicians', 'Equipment', 
+        // Admin
+        'Users', 'Analytics', 'Inspections',
+        // Auditor
+        'Compliance',
+        // Common last
         'Settings'
     ];
 
     return allMenuItems
         .filter(item => item.roles.includes(role))
-        .sort((a, b) => labelOrder.indexOf(a.label) - labelOrder.indexOf(b.label));
+        .sort((a, b) => {
+            const aIndex = labelOrder.indexOf(a.label);
+            const bIndex = labelOrder.indexOf(b.label);
+            if (aIndex === -1 && bIndex === -1) return a.label.localeCompare(b.label);
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+            return aIndex - bIndex;
+        });
 
   }, [role]);
 

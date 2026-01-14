@@ -120,17 +120,17 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
             </CardHeader>
             <CardContent className="relative">
                 <Carousel opts={{ align: "start", dragFree: true }}>
-                    <CarouselContent className="-ml-2">
+                    <CarouselContent className="-ml-4">
                         {allStatuses.map((step, index) => {
                             const isCompleted = index < currentStatusIndex;
                             const isActive = index === currentStatusIndex;
 
                             return (
-                               <CarouselItem key={step} className="pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-[12%]">
-                                    <div className="flex items-start space-x-2 flex-shrink-0">
+                               <CarouselItem key={step} className="pl-4 basis-auto">
+                                    <div className="flex items-start">
                                         <div className="flex flex-col items-center gap-2">
                                             <div className={cn(
-                                                "w-10 h-10 rounded-full flex items-center justify-center border-2",
+                                                "w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0",
                                                 isCompleted ? "bg-primary border-primary text-primary-foreground" : 
                                                 isActive ? "bg-accent/20 border-accent" : 
                                                 "bg-muted border-muted-foreground/20",
@@ -143,15 +143,15 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                                             )}>{step}</p>
                                         </div>
                                         {index < allStatuses.length - 1 && (
-                                        <div className={cn("w-full h-1 rounded-full mt-5", isCompleted ? "bg-primary" : "bg-muted")} />
+                                            <div className={cn("w-full h-1 rounded-full mt-5", isCompleted ? "bg-primary" : "bg-muted")} />
                                         )}
                                     </div>
                                 </CarouselItem>
                             );
                         })}
                     </CarouselContent>
-                    <CarouselPrevious className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2" />
-                    <CarouselNext className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2" />
+                    <CarouselPrevious className="absolute left-0 -translate-x-1/2 top-5 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-0 translate-x-1/2 top-5 -translate-y-1/2" />
                 </Carousel>
             </CardContent>
              <CardFooter className="flex-col items-start gap-4 border-t pt-6">

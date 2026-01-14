@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -100,6 +101,9 @@ export default function CalendarPage() {
                                 mode="single"
                                 selected={currentDate}
                                 onSelect={(day) => day && setCurrentDate(day)}
+                                captionLayout="dropdown-buttons"
+                                fromYear={new Date().getFullYear() - 5}
+                                toYear={new Date().getFullYear() + 5}
                                 initialFocus
                             />
                         </PopoverContent>
@@ -127,4 +131,5 @@ export default function CalendarPage() {
         </div>
     );
 }
+
 

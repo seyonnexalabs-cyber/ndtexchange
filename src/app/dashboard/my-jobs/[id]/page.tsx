@@ -86,8 +86,8 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                         );
                     })}
                   </CarouselContent>
-                  <CarouselPrevious className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-4 h-8 w-8" />
-                  <CarouselNext className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-4 h-8 w-8" />
+                  <CarouselPrevious className="absolute -top-4 left-1/2 -translate-x-1/2" />
+                  <CarouselNext className="absolute -bottom-4 left-1/2 -translate-x-1/2" />
                 </Carousel>
             </CardContent>
              <CardFooter className="flex-col items-start gap-4 border-t pt-6">
@@ -109,7 +109,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
 };
 
 
-export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function JobDetailPage({ params }: { params: { id: string } }) {
     const { id } = React.use(params);
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';

@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { jobs, technicians, inspectorAssets, Job, Technician, InspectorAsset } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,11 @@ export default function CalendarPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [activeTab, setActiveTab] = useState('jobs');
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
 
     const events: CalendarEvent[] = useMemo(() => {
         const scheduledJobs = jobs.filter(job => job.scheduledStartDate);
@@ -308,7 +313,7 @@ export default function CalendarPage() {
                     <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
                         {weekDays.map(day => (
                             <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
-                                <div className={`font-semibold text-center mb-2 ${isSameDay(day, new Date()) ? 'text-primary' : ''}`}>
+                                <div className={cn('font-semibold text-center mb-2', today && isSameDay(day, today) && 'text-primary')}>
                                     <p className="text-sm">{format(day, 'EEE')}</p>
                                     <p className="text-2xl">{format(day, 'd')}</p>
                                 </div>
@@ -323,7 +328,7 @@ export default function CalendarPage() {
                      <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
                         {weekDays.map(day => (
                             <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
-                                <div className={`font-semibold text-center mb-2 ${isSameDay(day, new Date()) ? 'text-primary' : ''}`}>
+                                <div className={cn('font-semibold text-center mb-2', today && isSameDay(day, today) && 'text-primary')}>
                                     <p className="text-sm">{format(day, 'EEE')}</p>
                                     <p className="text-2xl">{format(day, 'd')}</p>
                                 </div>
@@ -338,7 +343,7 @@ export default function CalendarPage() {
                     <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
                         {weekDays.map(day => (
                             <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
-                                <div className={`font-semibold text-center mb-2 ${isSameDay(day, new Date()) ? 'text-primary' : ''}`}>
+                                <div className={cn('font-semibold text-center mb-2', today && isSameDay(day, today) && 'text-primary')}>
                                     <p className="text-sm">{format(day, 'EEE')}</p>
                                     <p className="text-2xl">{format(day, 'd')}</p>
                                 </div>
@@ -360,6 +365,5 @@ export default function CalendarPage() {
 
         </div>
     );
-}
 
     

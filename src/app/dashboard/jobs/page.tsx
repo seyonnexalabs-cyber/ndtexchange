@@ -10,7 +10,7 @@ import { jobs, clientAssets } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, MapPin, Calendar, PlusCircle, Gavel, FileText, Info } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, PlusCircle, Gavel, FileText, Info, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ const jobSchema = z.object({
     message: "You have to select at least one asset.",
   }),
   workflow: z.enum(['standard', 'level3', 'auto']),
+  documents: z.any().optional(), // For file uploads
 });
 
 export default function JobsMarketplacePage() {
@@ -277,58 +278,7 @@ export default function JobsMarketplacePage() {
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="workflow"
-                                render={({ field }) => (
-                                    <FormItem className="space-y-3">
-                                    <FormLabel>Select Workflow Type</FormLabel>
-                                    <FormControl>
-                                        <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex flex-col space-y-1"
-                                        >
-                                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 has-[[data-state=checked]]:border-primary">
-                                            <FormControl>
-                                                <RadioGroupItem value="standard" />
-                                            </FormControl>
-                                            <div>
-                                                <FormLabel className="font-normal">
-                                                Standard Workflow
-                                                </FormLabel>
-                                                <p className="text-xs text-muted-foreground">Client and Inspector only. No third-party audit.</p>
-                                            </div>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 has-[[data-state=checked]]:border-primary">
-                                            <FormControl>
-                                                <RadioGroupItem value="level3" />
-                                            </FormControl>
-                                            <div>
-                                                <FormLabel className="font-normal">
-                                                Level III Approval Required
-                                                </FormLabel>
-                                                <p className="text-xs text-muted-foreground">Manually add an Auditor to the job for third-party oversight.</p>
-                                            </div>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 has-[[data-state=checked]]:border-primary">
-                                            <FormControl>
-                                                <RadioGroupItem value="auto" />
-                                            </FormControl>
-                                            <div>
-                                                <FormLabel className="font-normal">
-                                                Auto-Audit based on Rules
-                                                </FormLabel>
-                                                <p className="text-xs text-muted-foreground">The system will assign an Auditor if the job meets predefined criteria (e.g., critical asset).</p>
-                                            </div>
-                                        </FormItem>
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
+                             <FormField
                                 control={form.control}
                                 name="description"
                                 render={({ field }) => (
@@ -336,6 +286,19 @@ export default function JobsMarketplacePage() {
                                         <FormLabel>Job Description (Optional)</FormLabel>
                                         <FormControl>
                                             <Textarea placeholder="Provide a detailed scope of work, requirements, and any specifications." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="documents"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Attach Documents</FormLabel>
+                                        <FormControl>
+                                            <Input type="file" multiple onChange={(e) => field.onChange(e.target.files)} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

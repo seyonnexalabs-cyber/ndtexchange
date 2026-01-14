@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -23,6 +24,7 @@ const DesktopView = () => (
                         <TableHead>Level</TableHead>
                         <TableHead>Certifications</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -43,6 +45,9 @@ const DesktopView = () => (
                             </TableCell>
                             <TableCell>
                                 <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <Button variant="ghost" size="sm">View Profile</Button>
                             </TableCell>
                         </TableRow>
                     ))}

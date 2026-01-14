@@ -28,7 +28,7 @@ export default function MyJobsPage() {
         let PageIcon: React.ElementType = Briefcase;
         
         let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Draft Submitted', 'Under Audit', 'Audit Approved'].includes(j.status))
+            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved'].includes(j.status))
             : jobs; // Clients see all jobs for now, could be filtered by poster ID in real app
 
         switch(view) {

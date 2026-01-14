@@ -21,7 +21,7 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
         'Assigned', 
         'Scheduled', 
         'In Progress', 
-        'Draft Submitted', 
+        'Report Submitted', 
         ...(workflow === 'level3' ? ['Under Audit', 'Audit Approved'] as const : []),
         'Client Review',
         'Client Approved',

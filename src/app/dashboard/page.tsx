@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock } from "lucide-react";
+import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -303,7 +303,7 @@ const AdminDashboard = () => {
 // --- Auditor Dashboard ---
 const AuditorDashboard = () => {
     const jobsUnderAudit = jobs.filter(j => j.status === 'Under Audit');
-    const jobsAwaitingReview = jobs.filter(j => j.status === 'Draft Submitted' && j.workflow === 'level3');
+    const jobsAwaitingReview = jobs.filter(j => j.status === 'Report Submitted' && j.workflow === 'level3');
 
     return (
          <div className="grid gap-6">

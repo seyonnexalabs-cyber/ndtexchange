@@ -11,8 +11,8 @@ export default function PublicHeader() {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: '/#features', label: 'Features', page: '/' },
-    { href: '/#techniques', label: 'Techniques', page: '/' },
+    { href: '/#features', label: 'Features' },
+    { href: '/#techniques', label: 'Techniques' },
     { href: '/about', label: 'About' },
     { href: '/manufacturers', label: 'Manufacturers' },
     { href: '/providers', label: 'Providers' },
@@ -25,24 +25,18 @@ export default function PublicHeader() {
           NDT Exchange
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => {
-            // Only render home-specific links on the homepage
-            if (link.page && pathname !== link.page) {
-                return null;
-            }
-            return (
-                 <Link 
-                    key={link.label}
-                    href={link.href} 
-                    className={cn(
-                        "text-sm font-medium text-foreground hover:text-primary",
-                        pathname === link.href && "font-bold"
-                    )}
-                >
-                    {link.label}
-                </Link>
-            )
-          })}
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className={cn(
+                "text-sm font-medium text-foreground hover:text-primary",
+                (pathname === link.href || (pathname === '/' && link.href.startsWith('/#'))) && "font-bold"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center space-x-2">
           <DropdownMenu>

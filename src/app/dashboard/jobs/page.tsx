@@ -1,8 +1,243 @@
-export default function JobsPage() {
+'use client';
+
+import { useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { jobs } from '@/lib/placeholder-data';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Briefcase, MapPin, Calendar, PlusCircle, Gavel, FileText, Info } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const jobSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters.'),
+  location: z.string().min(2, 'Location is required.'),
+  technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD']),
+  description: z.string().optional(),
+});
+
+export default function JobsMarketplacePage() {
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
+    const [isPostJobDialogOpen, setIsPostJobDialogOpen] = useState(false);
+
+    const form = useForm<z.infer<typeof jobSchema>>({
+        resolver: zodResolver(jobSchema),
+        defaultValues: {
+            title: '',
+            location: '',
+            technique: 'UT',
+            description: '',
+        },
+    });
+
+    function onSubmit(values: z.infer<typeof jobSchema>) {
+        // In a real app, this would submit to a backend.
+        console.log('New Job Submitted:', values);
+        // Here we would add the new job to our state. For now, just log and close.
+        setIsPostJobDialogOpen(false);
+        form.reset();
+    }
+    
+    const openJobs = useMemo(() => jobs.filter(j => j.status === 'Open'), []);
+    const clientJobs = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
+
     return (
-        <div className="text-center p-10">
-            <h1 className="text-2xl font-headline">NDT Job Marketplace</h1>
-            <p className="mt-4 text-muted-foreground">This section is coming soon.</p>
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                    <Briefcase />
+                    Job Marketplace
+                </h1>
+                {role === 'client' && (
+                    <Button onClick={() => setIsPostJobDialogOpen(true)}>
+                        <PlusCircle className="mr-2" />
+                        Post New Job
+                    </Button>
+                )}
+            </div>
+
+            {role === 'inspector' && (
+                <div className="space-y-6">
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Location-Based Visibility</AlertTitle>
+                        <AlertDescription>
+                            You are currently viewing all open jobs. In a live environment, you would only see jobs matching your registered state and country.
+                        </AlertDescription>
+                    </Alert>
+                    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                        {openJobs.map(job => (
+                            <Card key={job.id}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                        <Badge>{job.technique}</Badge>
+                                    </div>
+                                    <CardDescription>Posted by {job.client}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <MapPin className="w-4 h-4 mr-2" />
+                                        <span>{job.location}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        <span>Posted: {job.postedDate}</span>
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <Button>
+                                        <Gavel className="mr-2"/>
+                                        Place Bid
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                     {openJobs.length === 0 && (
+                        <div className="text-center p-10 border rounded-lg">
+                            <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h2 className="mt-4 text-xl font-headline">No Open Jobs</h2>
+                            <p className="mt-2 text-muted-foreground">There are currently no new jobs available for bidding.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+            
+            {role === 'client' && (
+                 <div className="space-y-6">
+                    <h2 className="text-lg font-semibold">Your Posted Jobs</h2>
+                    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                         {clientJobs.map(job => (
+                            <Card key={job.id} className="bg-muted/30">
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                        <Badge variant={job.status === 'Open' ? 'secondary' : 'default'}>{job.status}</Badge>
+                                    </div>
+                                    <CardDescription>{job.technique} Inspection</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <MapPin className="w-4 h-4 mr-2" />
+                                        <span>{job.location}</span>
+                                    </div>
+                                     <div className="flex items-center text-sm text-muted-foreground">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        <span>Posted: {job.postedDate}</span>
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <Button variant="outline">
+                                        <FileText className="mr-2"/>
+                                        View Bids (3)
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                     {clientJobs.length === 0 && (
+                        <div className="text-center p-10 border rounded-lg">
+                            <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h2 className="mt-4 text-xl font-headline">No Jobs Posted</h2>
+                            <p className="mt-2 text-muted-foreground">You haven't posted any jobs yet. Get started by posting a new job.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <Dialog open={isPostJobDialogOpen} onOpenChange={setIsPostJobDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Post a New Job</DialogTitle>
+                        <DialogDescription>
+                            Fill out the details below to create a new job listing on the marketplace.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                            <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Job Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., PAUT on Pressure Vessel Welds" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Location</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="City, State" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="technique"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Required Technique</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a technique" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="UT">UT - Ultrasonic Testing</SelectItem>
+                                                <SelectItem value="PAUT">PAUT - Phased Array UT</SelectItem>
+                                                <SelectItem value="TOFD">TOFD - Time-of-Flight Diffraction</SelectItem>
+                                                <SelectItem value="MT">MT - Magnetic Particle</SelectItem>
+                                                <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
+                                                <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
+                                                <SelectItem value="VT">VT - Visual Testing</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Job Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea placeholder="Provide a detailed scope of work, requirements, and any specifications." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => setIsPostJobDialogOpen(false)}>Cancel</Button>
+                                <Button type="submit">Post Job</Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

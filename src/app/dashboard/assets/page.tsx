@@ -3,17 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets, inspectorAssets, technicians } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, HardHat, User, SlidersHorizontal, RadioTower, Building } from "lucide-react";
+import { MoreVertical, HardHat, User, SlidersHorizontal, RadioTower, Building, QrCode } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const assetIcons = {
     'Tank': <TankIcon className="w-6 h-6 text-muted-foreground" />,
@@ -30,6 +31,7 @@ const inspectorAssetIcons = {
 
 const ClientAssetsView = () => {
     const searchParams = useSearchParams();
+    const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -86,6 +88,7 @@ const ClientAssetsView = () => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/assets/${asset.id}`)}>View Details</Link></DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                                 <DropdownMenuItem>Edit</DropdownMenuItem>
                                                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Delete</DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -97,11 +100,38 @@ const ClientAssetsView = () => {
                     </div>
                 </div>
             ))}
+             <Dialog open={!!qrCodeData} onOpenChange={(open) => !open && setQrCodeData(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>QR Code for {qrCodeData?.name}</DialogTitle>
+                        <DialogDescription>
+                           Scan this code to quickly access asset details.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center p-4">
+                        {qrCodeData && (
+                            <Image 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeData.id)}`}
+                                alt={`QR Code for ${qrCodeData.name}`}
+                                width={200}
+                                height={200}
+                            />
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
 
 const InspectorAssetsView = () => {
+    const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
+
     return (
         <Tabs defaultValue="equipment">
             <TabsList className="mb-4">
@@ -120,8 +150,19 @@ const InspectorAssetsView = () => {
                                 <p className="text-sm text-muted-foreground">{asset.type}</p>
                                 <Badge variant={asset.status === 'Calibrated' ? 'default' : 'secondary'} className="mt-2">{asset.status}</Badge>
                             </CardContent>
-                            <CardFooter className="text-sm text-muted-foreground">
-                                Cal Due: {asset.nextCalibration}
+                            <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
+                                <span>Cal Due: {asset.nextCalibration}</span>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </CardFooter>
                         </Card>
                     ))}
@@ -169,6 +210,31 @@ const InspectorAssetsView = () => {
                     </CardContent>
                 </Card>
             </TabsContent>
+            <Dialog open={!!qrCodeData} onOpenChange={(open) => !open && setQrCodeData(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>QR Code for {qrCodeData?.name}</DialogTitle>
+                        <DialogDescription>
+                           Scan this code to quickly access equipment details.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center p-4">
+                        {qrCodeData && (
+                            <Image 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeData.id)}`}
+                                alt={`QR Code for ${qrCodeData.name}`}
+                                width={200}
+                                height={200}
+                            />
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Tabs>
     );
 };
@@ -187,7 +253,13 @@ export default function AssetsPage() {
                     {isInspector ? <HardHat/> : <Building/>}
                     {isInspector ? "My Resources" : "Asset Management"}
                 </h1>
-                <Button>Add New {isInspector ? 'Resource' : 'Asset'}</Button>
+                <div className="flex gap-2">
+                     <Button variant="outline">
+                        <QrCode className="mr-2 h-4 w-4"/>
+                        Scan QR
+                    </Button>
+                    <Button>Add New {isInspector ? 'Resource' : 'Asset'}</Button>
+                </div>
             </div>
             {isInspector ? <InspectorAssetsView /> : <ClientAssetsView />}
         </div>

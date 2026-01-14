@@ -80,6 +80,28 @@
     --ring: 0 0% 9%;
   }
 
+  .auditor-theme {
+    --background: 270 10% 97%;
+    --foreground: 270 10% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 270 10% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 10% 20%;
+    --primary: 262 52% 52%; /* Purple */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 270 10% 94%;
+    --secondary-foreground: 270 10% 20%;
+    --muted: 270 10% 94%;
+    --muted-foreground: 270 7% 50%;
+    --accent: 265 40% 65%; /* Lighter Purple */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 270 10% 88%;
+    --input: 270 10% 88%;
+    --ring: 262 52% 52%;
+  }
+
   .dark {
     /* Keeping dark theme somewhat sensible but focusing on light theme */
     --background: 222.2 84% 4.9%;

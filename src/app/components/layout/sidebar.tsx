@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Users,
   BarChart,
+  Eye,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -30,16 +31,18 @@ const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD' },
   inspector: { name: 'Jane Smith', role: 'Level II Inspector', avatar: 'user-avatar-inspector', fallback: 'JS' },
   admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU' },
+  auditor: { name: 'Alex Chen', role: 'Compliance Auditor', avatar: 'user-avatar-auditor', fallback: 'AC' },
 };
 
 const allMenuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin'] },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin', 'auditor'] },
   { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client', 'inspector'] },
-  { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'inspector', 'admin'] },
-  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'inspector', 'admin'] },
+  { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'inspector', 'admin', 'auditor'] },
+  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'inspector', 'admin', 'auditor'] },
   { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin'] },
+  { href: '/dashboard/compliance', label: 'Compliance', icon: Eye, roles: ['auditor'] },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
 ];
 
 const AppSidebar = () => {

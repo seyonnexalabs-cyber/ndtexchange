@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type UserType = 'client' | 'inspector' | 'admin';
+type UserType = 'client' | 'inspector' | 'admin' | 'auditor';
 
 export default function LoginPage() {
   const [userType, setUserType] = useState<UserType>('client');
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme');
+    document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme', 'auditor-theme');
     const newTheme = `${userType}-theme`;
     document.body.classList.add(newTheme);
     setTheme(newTheme);
@@ -36,6 +36,8 @@ export default function LoginPage() {
         return 'Inspector Hub';
       case 'admin':
         return 'Platform Administration';
+      case 'auditor':
+        return 'Auditor Console';
     }
   };
 
@@ -58,14 +60,14 @@ export default function LoginPage() {
               <Label>Select Role</Label>
               <RadioGroup
                 defaultValue="client"
-                className="grid grid-cols-3 gap-4"
+                className="grid grid-cols-4 gap-2"
                 onValueChange={(value: UserType) => setUserType(value)}
               >
                 <div>
                   <RadioGroupItem value="client" id="client" className="peer sr-only" />
                   <Label
                     htmlFor="client"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
                     Client
                   </Label>
@@ -74,7 +76,7 @@ export default function LoginPage() {
                   <RadioGroupItem value="inspector" id="inspector" className="peer sr-only" />
                   <Label
                     htmlFor="inspector"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
                     Inspector
                   </Label>
@@ -83,9 +85,18 @@ export default function LoginPage() {
                   <RadioGroupItem value="admin" id="admin" className="peer sr-only" />
                   <Label
                     htmlFor="admin"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
                   >
                     Admin
+                  </Label>
+                </div>
+                 <div>
+                  <RadioGroupItem value="auditor" id="auditor" className="peer sr-only" />
+                  <Label
+                    htmlFor="auditor"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
+                  >
+                    Auditor
                   </Label>
                 </div>
               </RadioGroup>

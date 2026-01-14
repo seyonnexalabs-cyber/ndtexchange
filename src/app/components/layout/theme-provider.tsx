@@ -8,7 +8,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const role = searchParams.get('role');
 
   useEffect(() => {
-    document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme');
+    document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme', 'auditor-theme');
     if (role) {
       document.body.classList.add(`${role}-theme`);
     } else {

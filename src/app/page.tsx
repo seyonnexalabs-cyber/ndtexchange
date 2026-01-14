@@ -128,7 +128,7 @@ export default function Home() {
                 From conventional methods to advanced technologies, our platform supports the techniques you need.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <FeatureCard
                 icon={<Waves className="w-8 h-8 text-accent" />}
                 title="Ultrasonic Testing (UT/PAUT)"
@@ -154,10 +154,15 @@ export default function Home() {
                 title="Visual Testing (VT/RVI)"
                 description="A direct or remote visual examination of a component, using tools like videoscopes and borescopes to access hard-to-reach areas."
               />
+              <FeatureCard
+                icon={<Ear className="w-8 h-8 text-accent" />}
+                title="Acoustic Emission (AE)"
+                description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
+              />
                <FeatureCard
                 icon={<Radio className="w-8 h-8 text-accent" />}
                 title="Advanced & Other Methods"
-                description="Support for Acoustic Emission (AE), Eddy Current (ET), Leak Testing (LT), Infrared (IR), and Microwave Testing."
+                description="Support for Eddy Current (ET), Leak Testing (LT), Infrared (IR), and Microwave Testing."
               />
             </div>
           </div>

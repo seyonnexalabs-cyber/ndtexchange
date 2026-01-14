@@ -73,7 +73,7 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const job = jobs.find(j => j.id === params.id);
+    const job = useMemo(() => jobs.find(j => j.id === params.id), [params.id]);
 
     // Using state to manage assignments since we don't have a backend
     const [assignedTechIds, setAssignedTechIds] = useState(job?.technicianIds || []);

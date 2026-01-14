@@ -9,7 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -293,9 +293,51 @@ const ClientAssetsView = () => {
     );
 }
 
+const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onScan: (id: string) => void }) => {
+    const [scannedId, setScannedId] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (scannedId.trim()) {
+            onScan(scannedId.trim());
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Scan Asset QR Code</DialogTitle>
+                    <DialogDescription>
+                        This is a simulation. In a real app, you would use your device's camera. Please enter the Asset ID manually.
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit}>
+                    <div className="space-y-4 py-4">
+                        <Input 
+                            placeholder="Enter Asset ID (e.g., ASSET-001)"
+                            value={scannedId}
+                            onChange={(e) => setScannedId(e.target.value)}
+                            autoFocus
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+                        <Button type="submit">Find Asset</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
 export default function AssetsPage() {
     const [isAddAssetOpen, setAddAssetOpen] = useState(false);
+    const [isScanOpen, setScanOpen] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
         console.log("New Asset Data:", values);
@@ -306,6 +348,21 @@ export default function AssetsPage() {
         setAddAssetOpen(false);
     };
 
+    const handleQrScan = (id: string) => {
+        const assetExists = clientAssets.some(asset => asset.id === id);
+        if (assetExists) {
+            const params = new URLSearchParams(searchParams.toString());
+            router.push(`/dashboard/assets/${id}?${params.toString()}`);
+            setScanOpen(false);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: "Asset Not Found",
+                description: `No asset with ID "${id}" could be found.`,
+            });
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -314,7 +371,7 @@ export default function AssetsPage() {
                     Asset Management
                 </h1>
                 <div className="flex gap-2">
-                     <Button variant="outline">
+                     <Button variant="outline" onClick={() => setScanOpen(true)}>
                         <QrCode className="mr-2 h-4 w-4"/>
                         Scan QR
                     </Button>
@@ -337,6 +394,11 @@ export default function AssetsPage() {
                     />
                 </DialogContent>
             </Dialog>
+            <QRScannerDialog 
+                isOpen={isScanOpen}
+                onOpenChange={setScanOpen}
+                onScan={handleQrScan}
+            />
         </div>
     );
 }

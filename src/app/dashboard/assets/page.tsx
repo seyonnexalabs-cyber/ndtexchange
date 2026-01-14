@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, Building, QrCode } from "lucide-react";
+import { MoreVertical, Building, QrCode, Calendar as CalendarIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,6 +13,162 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useSearch } from "@/app/components/layout/search-provider";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+
+const assetSchema = z.object({
+    name: z.string().min(3, 'Name must be at least 3 characters.'),
+    type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
+    location: z.string().min(2, 'Location is required.'),
+    status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
+    nextInspection: z.date(),
+});
+
+const AssetForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: z.infer<typeof assetSchema>) => void }) => {
+    const form = useForm<z.infer<typeof assetSchema>>({
+        resolver: zodResolver(assetSchema),
+        defaultValues: {
+            name: '',
+            type: 'Tank',
+            location: '',
+            status: 'Operational',
+            nextInspection: new Date(),
+        }
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Asset Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Storage Tank T-102" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Asset Type</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select a type" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Tank">Tank</SelectItem>
+                                        <SelectItem value="Piping">Piping</SelectItem>
+                                        <SelectItem value="Vessel">Vessel</SelectItem>
+                                        <SelectItem value="Crane">Crane</SelectItem>
+                                        <SelectItem value="Weld Joint">Weld Joint</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Operational">Operational</SelectItem>
+                                        <SelectItem value="Requires Inspection">Requires Inspection</SelectItem>
+                                        <SelectItem value="Under Repair">Under Repair</SelectItem>
+                                        <SelectItem value="Decommissioned">Decommissioned</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Location</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Refinery A, Section 2" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="nextInspection"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Next Inspection Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                    date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Create Asset</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
 
 const assetIcons = {
     'Tank': <TankIcon className="w-6 h-6 text-muted-foreground" />,
@@ -138,6 +294,18 @@ const ClientAssetsView = () => {
 }
 
 export default function AssetsPage() {
+    const [isAddAssetOpen, setAddAssetOpen] = useState(false);
+    const { toast } = useToast();
+
+    const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
+        console.log("New Asset Data:", values);
+        toast({
+            title: "Asset Created",
+            description: `${values.name} has been added to your asset list.`,
+        });
+        setAddAssetOpen(false);
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -150,10 +318,25 @@ export default function AssetsPage() {
                         <QrCode className="mr-2 h-4 w-4"/>
                         Scan QR
                     </Button>
-                    <Button>Add New Asset</Button>
+                    <Button onClick={() => setAddAssetOpen(true)}>Add New Asset</Button>
                 </div>
             </div>
             <ClientAssetsView />
+
+             <Dialog open={isAddAssetOpen} onOpenChange={setAddAssetOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Asset</DialogTitle>
+                        <DialogDescription>
+                            Enter the details for the new asset to add it to your inventory.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <AssetForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setAddAssetOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

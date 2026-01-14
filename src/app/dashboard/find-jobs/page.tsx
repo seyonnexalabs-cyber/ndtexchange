@@ -166,6 +166,12 @@ export default function FindJobsPage() {
                                 <Calendar className="w-4 h-4 mr-2" />
                                 <span>Posted: {job.postedDate}</span>
                             </div>
+                             {job.scheduledDate && (
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <Calendar className="w-4 h-4 mr-2" />
+                                    <span>Target Date: {job.scheduledDate}</span>
+                                </div>
+                            )}
                         </CardContent>
                         <CardFooter>
                             <Button onClick={() => handleOpenDialog(job)}>

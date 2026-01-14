@@ -22,7 +22,7 @@ export default function Home() {
             <Link href="#techniques" className="text-sm font-medium text-foreground hover:text-primary">
               Techniques
             </Link>
-            <Link href="#about" className="text-sm font-medium text-foreground hover:text-primary">
+            <Link href="/about" className="text-sm font-medium text-foreground hover:text-primary">
               About
             </Link>
           </nav>
@@ -31,7 +31,7 @@ export default function Home() {
               <Link href="/login">Login</Link>
             </Button>
             <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Link href="/dashboard">Get Started</Link>
+              <Link href="/login">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function Home() {
               </p>
               <div className="mt-10">
                 <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Link href="/dashboard">Explore the Dashboard</Link>
+                  <Link href="/about">Learn More</Link>
                 </Button>
               </div>
             </div>

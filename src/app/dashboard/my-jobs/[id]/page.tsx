@@ -50,10 +50,10 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
                             <div key={step} className="flex items-center space-x-2 flex-shrink-0">
                                 <div className="flex flex-col items-center">
                                     <div className={cn(
-                                        "w-8 h-8 rounded-full flex items-center justify-center text-white",
-                                        isCompleted ? "bg-primary" : isActive ? "bg-accent" : "bg-muted",
+                                        "w-8 h-8 rounded-full flex items-center justify-center",
+                                        isCompleted ? "bg-primary text-primary-foreground" : isActive ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground",
                                     )}>
-                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="text-xs font-bold text-muted-foreground">{index + 1}</span>}
+                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="text-xs font-bold">{index + 1}</span>}
                                     </div>
                                     <p className={cn(
                                         "text-xs text-center mt-2 w-20 break-words",

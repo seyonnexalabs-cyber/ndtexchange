@@ -48,8 +48,16 @@ export default function TermsPage() {
             <p>
               In no event shall NDT Exchange, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT Exchange, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
             </p>
+
+            <h2 className="text-2xl font-headline text-foreground pt-4">5. Financial Transactions</h2>
+            <p>
+              NDT Exchange provides a platform to connect asset owners (Clients) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Clients and providers.
+            </p>
+            <p>
+              All payments for services rendered are to be handled directly between the Client and the service provider. NDT Exchange does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
+            </p>
             
-            <h2 className="text-2xl font-headline text-foreground pt-4">5. Governing Law & Jurisdiction</h2>
+            <h2 className="text-2xl font-headline text-foreground pt-4">6. Governing Law & Jurisdiction</h2>
             <p>
               These Terms will be governed by and interpreted in accordance with the laws of the State/Country, and you submit to the non-exclusive jurisdiction of the state and federal courts located in State/Country for the resolution of any disputes.
             </p>

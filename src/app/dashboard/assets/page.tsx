@@ -92,7 +92,7 @@ const ClientAssetsView = () => {
                     </div>
                 </div>
             ))}
-             <Dialog open={!!qrCodeData} onOpenChange={(open) => !open && setQrCodeData(null)}>
+             <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>QR Code for {qrCodeData?.name}</DialogTitle>

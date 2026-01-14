@@ -204,6 +204,9 @@ export default function ManufacturersPage() {
             <Link href="/manufacturers" className="text-sm font-medium text-foreground hover:text-primary font-bold">
               Manufacturers
             </Link>
+             <Link href="/providers" className="text-sm font-medium text-foreground hover:text-primary">
+              Providers
+            </Link>
           </nav>
           <div className="flex items-center space-x-2">
             <DropdownMenu>

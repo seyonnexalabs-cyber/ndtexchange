@@ -1,3 +1,4 @@
+
 export type Asset = {
     id: string;
     name: string;
@@ -12,7 +13,7 @@ export type Job = {
     title: string;
     client: string;
     location: string;
-    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR';
+    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR' | 'APR';
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid';
     postedDate: string;
     technicianIds?: string[];
@@ -86,6 +87,21 @@ export const inspections: Inspection[] = [
     { id: 'INSP-001', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'VT', inspector: 'Pending', date: '2024-07-20', status: 'Scheduled' },
     { id: 'INSP-003', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Mike Johnson', date: '2024-06-22', status: 'Requires Review' },
+];
+
+export const NDTTechniques = [
+  { "id": "UT", "name": "Ultrasonic Testing" },
+  { "id": "PAUT", "name": "Phased Array UT" },
+  { "id": "TOFD", "name": "Time-of-Flight Diffraction" },
+  { "id": "RT", "name": "Radiographic Testing" },
+  { "id": "MT", "name": "Magnetic Particle Testing" },
+  { "id": "PT", "name": "Penetrant Testing" },
+  { "id": "VT", "name": "Visual Testing" },
+  { "id": "ET", "name": "Electromagnetic Testing" },
+  { "id": "AE", "name": "Acoustic Emission" },
+  { "id": "LT", "name": "Leak Testing" },
+  { "id": "IR", "name": "Infrared/Thermal Testing" },
+  { "id": "APR", "name": "Acoustic Pulse Reflectometry" }
 ];
 
 

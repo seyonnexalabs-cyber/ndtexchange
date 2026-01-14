@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
@@ -30,6 +31,9 @@ export default function Home() {
             </Link>
             <Link href="/manufacturers" className="text-sm font-medium text-foreground hover:text-primary">
               Manufacturers
+            </Link>
+             <Link href="/providers" className="text-sm font-medium text-foreground hover:text-primary">
+              Providers
             </Link>
           </nav>
           <div className="flex items-center space-x-2">
@@ -175,7 +179,7 @@ export default function Home() {
                 isHighlighted
               />
                <FeatureCard
-                icon={<Thermometer className="w-8 h-8 text-accent" />}
+                icon={<Radio className="w-8 h-8 text-accent" />}
                 title="Electromagnetic Testing (ET)"
                 description="Using principles of electromagnetism to detect flaws, such as Eddy Current, Alternating Current Field Measurement (ACFM), and Remote Field Testing (RFT)."
                 isHighlighted

@@ -40,7 +40,7 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex items-center space-x-2 overflow-x-auto pb-4">
+                <div className="flex items-center overflow-x-auto pb-4 space-x-2 md:space-x-4">
                     {allStatuses.map((step, index) => {
                         const isCompleted = index < currentStatusIndex;
                         const isActive = index === currentStatusIndex;
@@ -75,7 +75,7 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const job = useMemo(() => jobs.find(j => j.id === params.id), [params.id]);
+    const job = jobs.find(j => j.id === params.id);
 
     // Using state to manage assignments since we don't have a backend
     const [assignedTechIds, setAssignedTechIds] = useState(job?.technicianIds || []);

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -20,6 +21,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
 
 const jobSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -31,6 +37,7 @@ const jobSchema = z.object({
   }),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
+  bidExpiryDate: z.date().optional(),
 });
 
 export default function JobsMarketplacePage() {
@@ -167,7 +174,7 @@ export default function JobsMarketplacePage() {
             )}
 
             <Dialog open={isPostJobDialogOpen} onOpenChange={setIsPostJobDialogOpen}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Post a New Job</DialogTitle>
                         <DialogDescription>
@@ -176,20 +183,106 @@ export default function JobsMarketplacePage() {
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                            <FormField
-                                control={form.control}
-                                name="title"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Job Title</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g., PAUT on Pressure Vessel Welds" {...field} />
-                                        </FormControl>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="title"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Job Title</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="e.g., PAUT on Pressure Vessel Welds" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="location"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Location</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="City, State" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="technique"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Required Technique</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a technique" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="UT">UT - Ultrasonic Testing</SelectItem>
+                                                    <SelectItem value="PAUT">PAUT - Phased Array UT</SelectItem>
+                                                    <SelectItem value="TOFD">TOFD - Time-of-Flight Diffraction</SelectItem>
+                                                    <SelectItem value="MT">MT - Magnetic Particle Testing</SelectItem>
+                                                    <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
+                                                    <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
+                                                    <SelectItem value="VT">VT - Visual Testing</SelectItem>
+                                                    <SelectItem value="ET">ET - Electromagnetic Testing</SelectItem>
+                                                    <SelectItem value="AE">AE - Acoustic Emission</SelectItem>
+                                                    <SelectItem value="LT">LT - Leak Testing</SelectItem>
+                                                    <SelectItem value="IR">IR - Infrared/Thermal Testing</SelectItem>
+                                                    <SelectItem value="APR">APR - Acoustic Pulse Reflectometry</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="bidExpiryDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Bid Expiry Date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                >
+                                                {field.value ? (
+                                                    format(field.value, "PPP")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <CalendarComponent
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) => date < new Date()}
+                                                initialFocus
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
                                         <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            
+                            <FormField
                                 control={form.control}
                                 name="assets"
                                 render={() => (
@@ -212,7 +305,7 @@ export default function JobsMarketplacePage() {
                                                     checked={field.value?.includes(asset.id)}
                                                     onCheckedChange={(checked) => {
                                                         return checked
-                                                        ? field.onChange([...field.value, asset.id])
+                                                        ? field.onChange([...(field.value || []), asset.id])
                                                         : field.onChange(
                                                             field.value?.filter(
                                                                 (value) => value !== asset.id
@@ -234,50 +327,7 @@ export default function JobsMarketplacePage() {
                                 </FormItem>
                                 )}
                             />
-                             <FormField
-                                control={form.control}
-                                name="location"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Location</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="City, State" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="technique"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Required Technique</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a technique" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="UT">UT - Ultrasonic Testing</SelectItem>
-                                                <SelectItem value="PAUT">PAUT - Phased Array UT</SelectItem>
-                                                <SelectItem value="TOFD">TOFD - Time-of-Flight Diffraction</SelectItem>
-                                                <SelectItem value="MT">MT - Magnetic Particle Testing</SelectItem>
-                                                <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
-                                                <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
-                                                <SelectItem value="VT">VT - Visual Testing</SelectItem>
-                                                <SelectItem value="ET">ET - Electromagnetic Testing</SelectItem>
-                                                <SelectItem value="AE">AE - Acoustic Emission</SelectItem>
-                                                <SelectItem value="LT">LT - Leak Testing</SelectItem>
-                                                <SelectItem value="IR">IR - Infrared/Thermal Testing</SelectItem>
-                                                <SelectItem value="APR">APR - Acoustic Pulse Reflectometry</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            
                              <FormField
                                 control={form.control}
                                 name="description"
@@ -291,19 +341,64 @@ export default function JobsMarketplacePage() {
                                     </FormItem>
                                 )}
                             />
-                             <FormField
-                                control={form.control}
-                                name="documents"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Attach Documents</FormLabel>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="documents"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Attach Documents</FormLabel>
+                                            <FormControl>
+                                                <Input type="file" multiple onChange={(e) => field.onChange(e.target.files)} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="workflow"
+                                    render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                        <FormLabel>Approval Workflow</FormLabel>
                                         <FormControl>
-                                            <Input type="file" multiple onChange={(e) => field.onChange(e.target.files)} />
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="flex flex-col space-y-1"
+                                        >
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                                <RadioGroupItem value="standard" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                                Standard Workflow (Client Approval)
+                                            </FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                                <RadioGroupItem value="level3" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                                Level III Approval Required
+                                            </FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                                <RadioGroupItem value="auto" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                                Auto-select based on rules
+                                            </FormLabel>
+                                            </FormItem>
+                                        </RadioGroup>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
-                                )}
-                            />
+                                    )}
+                                />
+                            </div>
+
                             <DialogFooter>
                                 <Button type="button" variant="ghost" onClick={() => setIsPostJobDialogOpen(false)}>Cancel</Button>
                                 <Button type="submit">Post Job</Button>

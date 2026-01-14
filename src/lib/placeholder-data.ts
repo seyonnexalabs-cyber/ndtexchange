@@ -22,6 +22,7 @@ export type Job = {
     technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR' | 'APR';
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid';
     postedDate: string;
+    bidExpiryDate?: string;
     scheduledDate?: string;
     technicianIds?: string[];
     equipmentIds?: string[];
@@ -98,6 +99,8 @@ const dayAfterTomorrow = new Date(today);
 dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 const yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
+const nextWeek = new Date(today);
+nextWeek.setDate(nextWeek.getDate() + 7);
 
 
 export const jobs: Job[] = [
@@ -108,7 +111,8 @@ export const jobs: Job[] = [
         location: 'Houston, TX', 
         technique: 'PAUT', 
         status: 'Posted', 
-        postedDate: '2024-06-28', 
+        postedDate: '2024-06-28',
+        bidExpiryDate: nextWeek.toISOString().split('T')[0],
         assetIds: ['ASSET-003'], 
         workflow: 'level3',
         documents: [
@@ -128,13 +132,14 @@ export const jobs: Job[] = [
         technique: 'VT', 
         status: 'Posted', 
         postedDate: '2024-07-02', 
+        bidExpiryDate: nextWeek.toISOString().split('T')[0],
         assetIds: ['ASSET-005'], 
         workflow: 'standard',
         documents: [
             { name: 'Bridge_Structural_Plans.pdf', url: '#' }
         ] 
     },
-    { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03' },
+    { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0] },
     { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Scheduled', postedDate: '2024-07-05', scheduledDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'standard' },
     { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
 ];

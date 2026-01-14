@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { jobs, NDTTechniques, Job } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info, AlarmClock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -170,6 +171,12 @@ export default function FindJobsPage() {
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <Calendar className="w-4 h-4 mr-2" />
                                     <span>Target Date: {job.scheduledDate}</span>
+                                </div>
+                            )}
+                            {job.bidExpiryDate && (
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <AlarmClock className="w-4 h-4 mr-2" />
+                                    <span>Bids Expire: {job.bidExpiryDate}</span>
                                 </div>
                             )}
                         </CardContent>

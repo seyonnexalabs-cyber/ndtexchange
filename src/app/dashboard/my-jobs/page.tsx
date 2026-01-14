@@ -28,7 +28,7 @@ export default function MyJobsPage() {
         let PageIcon: React.ElementType = Briefcase;
         
         let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => j.status === 'In Progress' || j.status === 'Completed' || j.status === 'Awarded')
+            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned'].includes(j.status))
             : jobs; // Clients see all jobs for now, could be filtered by poster ID in real app
 
         switch(view) {
@@ -43,7 +43,7 @@ export default function MyJobsPage() {
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = relevantJobs.filter(job => role === 'inspector' ? job.status === 'Awarded' : job.status === 'Open' || job.status === 'Awarded');
+                jobsToShow = relevantJobs.filter(job => role === 'inspector' ? job.status === 'Assigned' : ['Posted', 'Assigned'].includes(job.status));
                 pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
                 PageIcon = Award;
                 break;

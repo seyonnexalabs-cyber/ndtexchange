@@ -56,7 +56,7 @@ export default function JobsMarketplacePage() {
         form.reset();
     }
     
-    const openJobs = useMemo(() => jobs.filter(j => j.status === 'Open'), []);
+    const openJobs = useMemo(() => jobs.filter(j => j.status === 'Posted'), []);
     const jobsPostedByClient = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
 
     return (
@@ -131,7 +131,7 @@ export default function JobsMarketplacePage() {
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                        <Badge variant={job.status === 'Open' ? 'secondary' : 'default'}>{job.status}</Badge>
+                                        <Badge variant={job.status === 'Posted' ? 'secondary' : 'default'}>{job.status}</Badge>
                                     </div>
                                     <CardDescription>{job.technique} Inspection</CardDescription>
                                 </CardHeader>

@@ -38,7 +38,7 @@ export default function ActiveJobsPage() {
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = jobs.filter(job => job.status === 'Awarded');
+                jobsToShow = jobs.filter(job => job.status === 'Assigned' || job.status === 'Scheduled');
                 pageTitle = 'Upcoming Jobs';
                 PageIcon = Award;
                 break;

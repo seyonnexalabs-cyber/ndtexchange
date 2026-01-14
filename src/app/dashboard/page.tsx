@@ -61,7 +61,7 @@ export default function DashboardPage() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'In Progress' || j.status === 'Open').length}</div>
+            <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'In Progress' || j.status === 'Posted').length}</div>
             <p className="text-xs text-muted-foreground">+1 open this week</p>
           </CardContent>
         </Card>
@@ -110,7 +110,7 @@ export default function DashboardPage() {
                          <TableCell><Badge variant="outline">Job</Badge></TableCell>
                          <TableCell className="font-medium">{activity.title}</TableCell>
                          <TableCell>{activity.postedDate}</TableCell>
-                         <TableCell><Badge variant={activity.status === 'Open' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
+                         <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
                        </TableRow>
                     )
                   }

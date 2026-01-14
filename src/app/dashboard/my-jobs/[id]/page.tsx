@@ -18,6 +18,22 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
+const statusDescriptions: Record<Job['status'], string> = {
+    'Draft': 'Job is being created and is not yet visible.',
+    'Posted': 'Job is live on the marketplace, awaiting bids.',
+    'Assigned': 'Job has been awarded to an inspector.',
+    'Scheduled': 'Inspection date and time have been confirmed.',
+    'In Progress': 'Inspection is currently being performed.',
+    'Report Submitted': 'Inspector has submitted the inspection report.',
+    'Under Audit': 'Report is being reviewed by a Level III auditor.',
+    'Audit Approved': 'Auditor has approved the inspection report.',
+    'Client Review': 'Report is now with the client for final review.',
+    'Client Approved': 'Client has approved the report and findings.',
+    'Completed': 'All work is finished and the job is closed.',
+    'Paid': 'Payment for the job has been settled.'
+};
+
+
 const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['status'], workflow: Job['workflow'], onStatusChange: (status: Job['status']) => void }) => {
     const allStatuses: Job['status'][] = [
         'Posted',
@@ -156,9 +172,12 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
              <Accordion type="single" collapsible className="w-full mb-6">
                 <AccordionItem value="item-1" className="border-b-0">
                     <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
-                        <div className="flex items-center gap-4">
-                            <span>Job Lifecycle</span>
-                             <Badge>{currentStatus}</Badge>
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-4">
+                                <span>Job Lifecycle</span>
+                                <Badge>{currentStatus}</Badge>
+                            </div>
+                            <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[currentStatus]}</span>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent className="pt-4">

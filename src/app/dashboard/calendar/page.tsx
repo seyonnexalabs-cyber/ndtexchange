@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -7,10 +6,15 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { jobs } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { addDays, startOfWeek, format, isSameDay, addWeeks, subWeeks } from 'date-fns';
 import { Briefcase } from 'lucide-react';
-import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
 
 type CalendarEvent = {
   id: string;
@@ -24,29 +28,31 @@ type CalendarEvent = {
 export default function CalendarPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const [date, setDate] = useState<Date | undefined>(new Date());
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     const events: CalendarEvent[] = useMemo(() => {
         return jobs
             .filter(job => {
-                if (role === 'client') {
-                    return job.client === 'Global Energy Corp.'; // Assuming a static client for demo
-                }
-                if (role === 'inspector') {
-                    // Show assigned or jobs they bid on
-                    return job.technicianIds?.length || ['JOB-001', 'JOB-005'].includes(job.id);
-                }
-                return true; // Admin/Auditor see all
+                if (role === 'client') return job.client === 'Global Energy Corp.';
+                if (role === 'inspector') return job.technicianIds?.length;
+                return true;
             })
             .map(job => ({
                 id: job.id,
                 title: job.title,
-                date: new Date(job.postedDate),
+                date: addDays(new Date(job.postedDate), 7), // Demo: due 7 days after posting
                 type: 'job',
                 role,
                 data: job
             }));
     }, [role]);
+
+    const weekStartsOn = 0; // Sunday
+    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn });
+
+    const weekDays = useMemo(() => {
+        return Array.from({ length: 7 }).map((_, i) => addDays(startOfCurrentWeek, i));
+    }, [startOfCurrentWeek]);
 
     const eventsByDate = useMemo(() => {
         return events.reduce((acc, event) => {
@@ -59,68 +65,66 @@ export default function CalendarPage() {
         }, {} as Record<string, CalendarEvent[]>);
     }, [events]);
 
-
-    const DayWithEvents = ({ date, ...props }: { date: Date } & React.HTMLAttributes<HTMLDivElement>) => {
-        // This check is important because react-day-picker can pass undefined dates for empty cells
-        if (!date) {
-            return <div {...props}></div>;
-        }
-
-        const dateKey = format(date, 'yyyy-MM-dd');
-        const dayEvents = eventsByDate[dateKey] || [];
-        
-        return (
-            <div {...props}>
-                <span>{format(date, 'd')}</span>
-                <div className="mt-1 space-y-1">
-                    {dayEvents.map((event, index) => (
-                        <Badge 
-                            key={`${event.id}-${index}`} 
-                            variant="secondary"
-                            className="block w-full text-left truncate text-xs p-1"
-                        >
-                            {event.title}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-    
     return (
         <div className="flex flex-col h-full">
-             <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Briefcase />
-                    Job Calendar
+                    Job Schedule
                 </h1>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <Button variant="outline" size="icon" onClick={() => setCurrentDate(subWeeks(currentDate, 1))}>
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" onClick={() => setCurrentDate(new Date())}>Today</Button>
+                         <Button variant="outline" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, 1))}>
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[200px] justify-start text-left font-normal",
+                                    !currentDate && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {currentDate ? format(currentDate, "MMMM yyyy") : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={currentDate}
+                                onSelect={(day) => day && setCurrentDate(day)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
             </div>
-            <Card>
-                <CardContent className="p-0 sm:p-2">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        className="w-full"
-                        classNames={{
-                            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                            month: "space-y-4 w-full",
-                            table: "w-full border-collapse space-y-1",
-                            head_row: "flex",
-                            head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
-                            row: "flex w-full mt-2",
-                            cell: "h-24 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                            day: "h-full w-full p-2 font-normal flex flex-col items-start justify-start aria-selected:opacity-100 hover:bg-accent/50 rounded-md",
-                            day_selected: "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                            day_today: "bg-accent/20 text-accent-foreground",
-                            day_outside: "text-muted-foreground opacity-50",
-                        }}
-                        components={{
-                            Day: DayWithEvents as any,
-                        }}
-                    />
-                </CardContent>
-            </Card>
+            <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
+                {weekDays.map(day => (
+                    <div key={day.toString()} className="border-b border-r p-2 flex flex-col">
+                        <div className={`font-semibold text-center mb-2 ${isSameDay(day, new Date()) ? 'text-primary' : ''}`}>
+                            <p className="text-sm">{format(day, 'EEE')}</p>
+                            <p className="text-2xl">{format(day, 'd')}</p>
+                        </div>
+                        <div className="flex-grow space-y-2 overflow-y-auto">
+                           {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(event => (
+                               <Card key={event.id} className="bg-muted/50 p-2">
+                                   <p className="text-xs font-semibold truncate">{event.title}</p>
+                                   <p className="text-xs text-muted-foreground">{event.data.technique}</p>
+                               </Card>
+                           ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
+

@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,6 +19,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const equipmentIcons = {
     'UTM-1000': <RadioTower className="w-6 h-6 text-muted-foreground" />,
@@ -31,10 +34,86 @@ const equipmentSchema = z.object({
   nextCalibration: z.date(),
 });
 
+const DesktopView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
+    <Card>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Next Calibration</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {inspectorAssets.map(asset => (
+                    <TableRow key={asset.id}>
+                        <TableCell className="font-medium flex items-center gap-3">
+                            {equipmentIcons[asset.id as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
+                            {asset.name}
+                        </TableCell>
+                        <TableCell>{asset.type}</TableCell>
+                        <TableCell>
+                            <Badge variant={asset.status === 'Calibrated' ? 'default' : asset.status === 'In Service' ? 'secondary' : 'destructive'}>{asset.status}</Badge>
+                        </TableCell>
+                        <TableCell>{asset.nextCalibration}</TableCell>
+                        <TableCell className="text-right">
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onEditClick(asset)}>Edit</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    </Card>
+);
+
+const MobileView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
+     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {inspectorAssets.map(asset => (
+            <Card key={asset.id}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-lg font-semibold">{asset.name}</CardTitle>
+                    {equipmentIcons[asset.id as keyof typeof equipmentIcons] || <Wrench className="w-6 h-6 text-muted-foreground" />}
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground">{asset.type}</p>
+                    <Badge variant={asset.status === 'Calibrated' ? 'default' : 'secondary'} className="mt-2">{asset.status}</Badge>
+                </CardContent>
+                <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>Cal Due: {asset.nextCalibration}</span>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEditClick(asset)}>Edit</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </CardFooter>
+            </Card>
+        ))}
+    </div>
+);
+
 
 export default function EquipmentPage() {
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const [editingEquipment, setEditingEquipment] = useState<InspectorAsset | null>(null);
+    const isMobile = useIsMobile();
 
     const form = useForm<z.infer<typeof equipmentSchema>>({
         resolver: zodResolver(equipmentSchema),
@@ -78,34 +157,12 @@ export default function EquipmentPage() {
                     <Button>Add New Equipment</Button>
                 </div>
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {inspectorAssets.map(asset => (
-                    <Card key={asset.id}>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-lg font-semibold">{asset.name}</CardTitle>
-                            {equipmentIcons[asset.id as keyof typeof equipmentIcons] || <RadioTower className="w-6 h-6 text-muted-foreground" />}
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground">{asset.type}</p>
-                            <Badge variant={asset.status === 'Calibrated' ? 'default' : 'secondary'} className="mt-2">{asset.status}</Badge>
-                        </CardContent>
-                        <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
-                            <span>Cal Due: {asset.nextCalibration}</span>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleEditClick(asset)}>Edit</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
+            
+            {isMobile ? 
+                <MobileView onEditClick={handleEditClick} onQrClick={setQrCodeData} /> : 
+                <DesktopView onEditClick={handleEditClick} onQrClick={setQrCodeData} />
+            }
+
              <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>

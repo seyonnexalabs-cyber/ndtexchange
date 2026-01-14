@@ -15,6 +15,8 @@ export type Job = {
     technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD';
     status: 'Open' | 'In Progress' | 'Completed' | 'Awarded';
     postedDate: string;
+    technicianIds?: string[];
+    equipmentIds?: string[];
 };
 
 export type Inspection = {
@@ -70,8 +72,9 @@ export const technicians: Technician[] = [
 
 export const jobs: Job[] = [
     { id: 'JOB-001', title: 'PAUT on Pressure Vessel Welds', client: 'PetroChem Inc.', location: 'Houston, TX', technique: 'PAUT', status: 'Open', postedDate: '2024-06-28' },
-    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Logistics Corp', location: 'Long Beach, CA', technique: 'MT', status: 'In Progress', postedDate: '2024-06-25' },
+    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Logistics Corp', location: 'Long Beach, CA', technique: 'MT', status: 'In Progress', postedDate: '2024-06-25', technicianIds: ['TECH-02'], equipmentIds: ['YOKE-02'] },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15' },
+    { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'] },
 ];
 
 export const inspections: Inspection[] = [

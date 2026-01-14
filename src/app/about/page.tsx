@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldCheck, Building, UserCheck, CheckCircle, Globe } from 'lucide-react';
@@ -21,6 +22,9 @@ export default function AboutPage() {
             </Link>
             <Link href="/about" className="text-sm font-medium text-foreground hover:text-primary font-bold">
               About
+            </Link>
+            <Link href="/manufacturers" className="text-sm font-medium text-foreground hover:text-primary">
+              Manufacturers
             </Link>
           </nav>
           <div className="flex items-center space-x-2">

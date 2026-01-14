@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Globe } from 'lucide-react';
@@ -20,6 +21,9 @@ export default function PrivacyPage() {
             </Link>
             <Link href="/about" className="text-sm font-medium text-foreground hover:text-primary">
               About
+            </Link>
+            <Link href="/manufacturers" className="text-sm font-medium text-foreground hover:text-primary">
+              Manufacturers
             </Link>
           </nav>
           <div className="flex items-center space-x-2">

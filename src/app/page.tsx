@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio } from 'lucide-react';
@@ -26,6 +27,9 @@ export default function Home() {
             </Link>
             <Link href="/about" className="text-sm font-medium text-foreground hover:text-primary">
               About
+            </Link>
+            <Link href="/manufacturers" className="text-sm font-medium text-foreground hover:text-primary">
+              Manufacturers
             </Link>
           </nav>
           <div className="flex items-center space-x-2">

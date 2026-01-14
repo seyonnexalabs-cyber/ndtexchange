@@ -1,4 +1,5 @@
 
+
 export type Asset = {
     id: string;
     name: string;
@@ -49,6 +50,15 @@ export type Technician = {
     avatar: string;
 };
 
+export type Bid = {
+    id: string;
+    jobId: string;
+    providerId: string; // The company placing the bid
+    amount: number;
+    status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn';
+    submittedDate: string;
+};
+
 
 export const clientAssets: Asset[] = [
     { id: 'ASSET-001', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15' },
@@ -82,6 +92,15 @@ export const jobs: Job[] = [
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03' },
     { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Posted', postedDate: '2024-07-05', assetIds: ['ASSET-003'], workflow: 'standard' },
 ];
+
+export const bids: Bid[] = [
+    { id: 'BID-001', jobId: 'JOB-001', providerId: 'inspector-provider', amount: 12500, status: 'Submitted', submittedDate: '2024-06-29' },
+    { id: 'BID-002', jobId: 'JOB-002', providerId: 'inspector-provider', amount: 4800, status: 'Awarded', submittedDate: '2024-06-26' },
+    { id: 'BID-003', jobId: 'JOB-005', providerId: 'inspector-provider', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
+    { id: 'BID-004', jobId: 'JOB-006', providerId: 'inspector-provider', amount: 22000, status: 'Rejected', submittedDate: '2024-07-04' },
+    { id: 'BID-005', jobId: 'JOB-007', providerId: 'inspector-provider', amount: 15000, status: 'Withdrawn', submittedDate: '2024-07-06' },
+];
+
 
 export const inspections: Inspection[] = [
     { id: 'INSP-001', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },

@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "An industrial setting with a focus on metal structures, implying inspection and engineering.",
+      "imageUrl": "https://images.unsplash.com/photo-1496247749665-49cf5b1022e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxpbmR1c3RyaWFsJTIwZW5naW5lZXJpbmd8ZW58MHx8fHwxNzY4Mzg1Mjc5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial engineering"
+    },
+    {
+      "id": "asset1",
+      "description": "A large industrial tank.",
+      "imageUrl": "https://images.unsplash.com/photo-1766560505794-3d3978bf5f89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmR1c3RyaWFsJTIwdGFua3xlbnwwfHx8fDE3NjgzODUyODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial tank"
+    },
+    {
+      "id": "asset2",
+      "description": "A complex network of industrial pipes.",
+      "imageUrl": "https://images.unsplash.com/photo-1542274368-443d694d79aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwcGlwZXN8ZW58MHx8fHwxNzY4MjkwODg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial pipes"
+    },
+    {
+      "id": "asset3",
+      "description": "A construction crane against a city skyline.",
+      "imageUrl": "https://images.unsplash.com/photo-1566766804405-eed274ee46bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb25zdHJ1Y3Rpb24lMjBjcmFuZXxlbnwwfHx8fDE3NjgzMTY1OTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "construction crane"
+    },
+    {
+      "id": "asset4",
+      "description": "A close-up of a weld joint on a steel beam.",
+      "imageUrl": "https://images.unsplash.com/photo-1632838961436-26d62b5ffbc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3ZWxkJTIwam9pbnR8ZW58MHx8fHwxNzY4Mzg1MjgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "weld joint"
+    },
+    {
+      "id": "asset5",
+      "description": "A pressure vessel in a factory setting",
+      "imageUrl": "https://images.unsplash.com/photo-1722954881636-c57bb310e0c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwcmVzc3VyZSUyMHZlc3NlbHxlbnwwfHx8fDE3NjgzODUyODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pressure vessel"
+    }
+  ]
 }

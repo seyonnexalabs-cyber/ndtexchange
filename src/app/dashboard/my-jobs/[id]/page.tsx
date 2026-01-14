@@ -76,7 +76,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     
-    const job = useMemo(() => jobs.find(j => j.id === params.id), [params.id]);
+    const job = useMemo(() => jobs.find(j => j.id === params.id), [params]);
 
     // Using state to manage assignments since we don't have a backend
     const [assignedTechIds, setAssignedTechIds] = useState(job?.technicianIds || []);

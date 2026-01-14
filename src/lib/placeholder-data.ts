@@ -14,6 +14,14 @@ export type JobDocument = {
     url: string;
 };
 
+export type JobUpdate = {
+    user: string;
+    avatar: string;
+    timestamp: string;
+    action: string;
+    details?: string;
+};
+
 export type Job = {
     id: string;
     title: string;
@@ -30,6 +38,7 @@ export type Job = {
     assetIds?: string[];
     workflow: 'standard' | 'level3' | 'auto';
     documents?: JobDocument[];
+    history?: JobUpdate[];
 };
 
 export type Inspection = {
@@ -145,9 +154,31 @@ export const jobs: Job[] = [
             { name: 'Scope of Work.pdf', url: '#' },
             { name: 'Vessel Drawings.pdf', url: '#' },
             { name: 'Previous Inspection Report.pdf', url: '#' },
+        ],
+        history: [
+            { user: 'John Doe', avatar: 'user-avatar-client', timestamp: '2024-06-28 10:00 AM', action: 'Job created and posted to marketplace.' },
         ]
     },
-    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'MT', status: 'Scheduled', postedDate: '2024-06-25', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01'], equipmentIds: ['YOKE-02'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { 
+        id: 'JOB-002', 
+        title: 'MT Inspection on Crane Hooks', 
+        client: 'Global Energy Corp.', 
+        location: 'Long Beach, CA', 
+        technique: 'MT', 
+        status: 'Scheduled', 
+        postedDate: '2024-06-25', 
+        scheduledStartDate: tomorrow.toISOString().split('T')[0], 
+        scheduledEndDate: tomorrow.toISOString().split('T')[0], 
+        technicianIds: ['TECH-01'], 
+        equipmentIds: ['YOKE-02'], 
+        assetIds: ['ASSET-004'], 
+        workflow: 'standard',
+        history: [
+            { user: 'Carlos Ray', avatar: 'tech-carlos', timestamp: '2024-06-27 11:30 AM', action: 'Job scheduled.', details: `Start: ${tomorrow.toISOString().split('T')[0]}` },
+            { user: 'John Doe', avatar: 'user-avatar-client', timestamp: '2024-06-26 04:15 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
+            { user: 'John Doe', avatar: 'user-avatar-client', timestamp: '2024-06-25 09:00 AM', action: 'Job created and posted to marketplace.' },
+        ]
+    },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-01'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
     { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], assetIds: ['ASSET-002'], workflow: 'level3' },
     { 

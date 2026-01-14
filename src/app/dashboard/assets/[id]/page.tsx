@@ -24,7 +24,7 @@ const assetIcons = {
 };
 
 export default function AssetDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+    const { id } = React.use(params);
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
 

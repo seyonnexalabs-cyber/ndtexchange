@@ -57,21 +57,21 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                   }}
                   className="w-full"
                 >
-                  <CarouselContent className="-ml-2">
+                  <CarouselContent className="-ml-1">
                     {allStatuses.map((step, index) => {
                         const isCompleted = index < currentStatusIndex;
                         const isActive = index === currentStatusIndex;
 
                         return (
-                           <CarouselItem key={step} className="pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6">
+                           <CarouselItem key={step} className="pl-2 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6">
                                 <div className="flex flex-col items-center text-center">
                                     <div className={cn(
                                         "w-10 h-10 rounded-full flex items-center justify-center border-2",
                                         isCompleted ? "bg-primary border-primary text-primary-foreground" : 
-                                        isActive ? "bg-accent/20 border-accent text-accent" : 
-                                        "bg-muted border-muted-foreground/20 text-muted-foreground",
+                                        isActive ? "bg-accent/20 border-accent" : 
+                                        "bg-muted border-muted-foreground/20",
                                     )}>
-                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className="font-bold">{index + 1}</span>}
+                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className={cn("font-bold", isActive ? "text-accent" : "text-muted-foreground")}>{index + 1}</span>}
                                     </div>
                                     <p className={cn(
                                         "text-xs font-medium mt-2 h-8",

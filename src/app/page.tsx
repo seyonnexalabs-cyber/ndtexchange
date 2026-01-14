@@ -28,7 +28,7 @@ export default function Home() {
           </nav>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" asChild>
-              <Link href="/dashboard">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
             <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
               <Link href="/dashboard">Get Started</Link>

@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/components/icons";
+import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 
 const assetIcons = {
     'Tank': <TankIcon className="w-6 h-6 text-muted-foreground" />,

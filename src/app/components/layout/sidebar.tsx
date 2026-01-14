@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -20,6 +21,13 @@ import {
   Users,
   BarChart,
   Eye,
+  Search,
+  FileText,
+  Calendar,
+  MessageSquare,
+  Wrench,
+  CheckCircle,
+  Gavel,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -35,14 +43,31 @@ const userDetails = {
 };
 
 const allMenuItems = [
+  // Common
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client', 'inspector'] },
-  { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'inspector', 'admin', 'auditor'] },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
+  
+  // Client
+  { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client'] },
+  { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'admin'] },
+  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'admin', 'auditor'] },
+
+  // Inspector
+  { href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
+  { href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel, roles: ['inspector'] },
+  { href: '/dashboard/active-jobs', label: 'Active Jobs', icon: CheckCircle, roles: ['inspector'] },
+  { href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
+  { href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
+  { href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['inspector'] },
+  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['inspector'] },
+  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['inspector'], badge: 3 },
+  
+  // Admin
   { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
+  
+  // Auditor
   { href: '/dashboard/compliance', label: 'Compliance', icon: Eye, roles: ['auditor'] },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
 ];
 
 const AppSidebar = () => {
@@ -56,7 +81,21 @@ const AppSidebar = () => {
   }, [role]);
 
   const menuItems = useMemo(() => {
-    return allMenuItems.filter(item => item.roles.includes(role));
+    // A bit of sorting to keep a sensible order
+    const roleOrder = ['client', 'inspector', 'admin', 'auditor'];
+    const labelOrder = [
+        'Dashboard', 
+        'Assets', 'Jobs', 'Inspections', // Client
+        'Find Jobs', 'My Bids', 'Active Jobs', 'Technicians', 'Equipment', 'Reports', 'Calendar', 'Messages', // Inspector
+        'Users', 'Analytics', // Admin
+        'Compliance', // Auditor
+        'Settings'
+    ];
+
+    return allMenuItems
+        .filter(item => item.roles.includes(role))
+        .sort((a, b) => labelOrder.indexOf(a.label) - labelOrder.indexOf(b.label));
+
   }, [role]);
 
   const handleLogout = () => {
@@ -91,6 +130,7 @@ const AppSidebar = () => {
                 <Link href={constructUrl(item.href)}>
                   <item.icon />
                   <span>{item.label}</span>
+                  {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

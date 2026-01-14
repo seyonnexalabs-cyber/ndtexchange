@@ -82,8 +82,8 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                         );
                     })}
                   </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
+                  <CarouselPrevious className="absolute left-0 -translate-x-1/2" />
+                  <CarouselNext className="absolute right-0 translate-x-1/2" />
                 </Carousel>
             </CardContent>
              <CardFooter className="flex-col items-start gap-4 border-t pt-6">
@@ -338,3 +338,5 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         </div>
     );
 }
+
+    

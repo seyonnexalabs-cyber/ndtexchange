@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets, inspectorAssets, technicians } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, HardHat, User, SlidersHorizontal, RadioTower } from "lucide-react";
+import { MoreVertical, HardHat, User, SlidersHorizontal, RadioTower, Building } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";

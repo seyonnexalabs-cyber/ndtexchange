@@ -60,7 +60,7 @@ const allMenuItems = [
   // Inspector
   { href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
   { href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel, roles: ['inspector'] },
-  { href: '/dashboard/active-jobs', label: 'My Jobs', icon: Briefcase, roles: ['inspector'] },
+  { href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['inspector'] },
   { href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
   { href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
   

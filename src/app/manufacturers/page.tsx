@@ -1,72 +1,74 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ShieldCheck, Globe, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear } from 'lucide-react';
+import { ShieldCheck, Globe, Waves, Scan, Magnet, Eye, Thermometer, Ear, Link as LinkIcon, Building } from 'lucide-react';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const manufacturers = [
   {
     technique: "Ultrasonic Testing (UT, PAUT, TOFD)",
-    icon: <Waves className="w-6 h-6 text-accent" />,
+    icon: <Waves className="w-8 h-8 text-accent" />,
     companies: [
-      "Evident Scientific (formerly Olympus)",
-      "Eddyfi Technologies",
-      "Sonatest",
-      "Zetec",
-      "Baker Hughes (formerly GE Inspection Technologies)",
+      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
+      { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
+      { name: "Sonatest", url: "https://www.sonatest.com" },
+      { name: "Zetec", url: "https://www.zetec.com" },
+      { name: "Baker Hughes (Krautkrämer)", url: "https://www.bakerhughes.com/inspection" },
+      { name: "Proceq (Screening Eagle)", url: "https://www.screeningeagle.com" },
     ]
   },
   {
     technique: "Visual Testing (VT / RVI)",
-    icon: <Eye className="w-6 h-6 text-accent" />,
+    icon: <Eye className="w-8 h-8 text-accent" />,
     companies: [
-      "Evident Scientific (formerly Olympus)",
-      "Baker Hughes (Everest VIT)",
-      "viZaar",
+      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
+      { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/inspection/visual-inspection" },
+      { name: "viZaar", url: "https://www.vizaar.com" },
+      { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
     ]
   },
   {
     technique: "Radiographic Testing (RT)",
-    icon: <Scan className="w-6 h-6 text-accent" />,
+    icon: <Scan className="w-8 h-8 text-accent" />,
     companies: [
-      "Fujifilm",
-      "Yxlon (Comet Group)",
-      "Carestream NDT",
-      "VJ Technologies",
+      { name: "Fujifilm", url: "https://www.fujifilm.com/us/en/business/ndt" },
+      { name: "Yxlon (Comet Group)", url: "https://www.yxlon.com" },
+      { name: "Carestream NDT", url: "https://www.carestream.com/ndt" },
+      { name: "VJ Technologies", url: "https://www.vjt.com" },
+      { name: "COMET Group", url: "https://www.comet-group.com" },
     ]
   },
   {
     technique: "Eddy Current Testing (ET)",
-    icon: <Thermometer className="w-6 h-6 text-accent" />,
+    icon: <Thermometer className="w-8 h-8 text-accent" />,
     companies: [
-      "Evident Scientific (formerly Olympus)",
-      "Zetec",
-      "Foerster Instruments",
+      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
+      { name: "Zetec", url: "https://www.zetec.com" },
+      { name: "Foerster Instruments", url: "https://www.foerstergroup.com" },
     ]
   },
   {
-    technique: "Magnetic Particle (MT) & Penetrant Testing (PT)",
-    icon: <Magnet className="w-6 h-6 text-accent" />,
+    technique: "Magnetic Particle & Penetrant (MT/PT)",
+    icon: <Magnet className="w-8 h-8 text-accent" />,
     companies: [
-      "Magnaflux",
-      "Parker Research Corp",
+      { name: "Magnaflux", url: "https://www.magnaflux.com" },
+      { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
     ]
   },
     {
     technique: "Acoustic Emission (AE)",
-    icon: <Ear className="w-6 h-6 text-accent" />,
+    icon: <Ear className="w-8 h-8 text-accent" />,
     companies: [
-      "MISTRAS Group",
-      "Vallen Systeme",
+      { name: "MISTRAS Group", url: "https://www.mistrasgroup.com" },
+      { name: "Vallen Systeme", url: "https://www.vallen.de/en/" },
     ]
   },
   {
     technique: "Acoustic Pulse Reflectometry (APR)",
-    icon: <Waves className="w-6 h-6 text-accent" />,
+    icon: <Waves className="w-8 h-8 text-accent" />,
     companies: [
-      "Talcyon",
+      { name: "Talcyon", url: "https://www.talcyon.com" },
     ]
   }
 ];
@@ -133,28 +135,32 @@ export default function ManufacturersPage() {
 
         <section className="py-20">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="max-w-4xl mx-auto">
-                    <Card>
-                        <CardContent className="p-6">
-                            <Accordion type="multiple" defaultValue={[manufacturers[0].technique]} className="w-full">
-                                {manufacturers.map((m) => (
-                                    <AccordionItem value={m.technique} key={m.technique}>
-                                        <AccordionTrigger className="text-lg font-semibold text-primary hover:no-underline">
-                                            <div className="flex items-center gap-4">
-                                                {m.icon}
-                                                {m.technique}
-                                            </div>
-                                        </AccordionTrigger>
-                                        <AccordionContent className="pt-4 pl-4">
-                                            <ul className="space-y-2 list-disc list-inside text-muted-foreground">
-                                                {m.companies.map(company => <li key={company}>{company}</li>)}
-                                            </ul>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </CardContent>
-                    </Card>
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {manufacturers.map((m) => (
+                        <Card key={m.technique} className="flex flex-col">
+                            <CardHeader>
+                                <div className="flex items-center gap-4">
+                                     <div className="bg-accent/10 p-4 rounded-full w-fit">
+                                        {m.icon}
+                                    </div>
+                                    <CardTitle className="text-xl font-headline">{m.technique}</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-grow">
+                                <ul className="space-y-3">
+                                    {m.companies.map(company => (
+                                        <li key={company.name} className="flex items-center">
+                                            <Link href={company.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-muted-foreground hover:text-primary group">
+                                               <Building className="w-4 h-4 mr-3 shrink-0" />
+                                               <span className="flex-grow">{company.name}</span>
+                                               <LinkIcon className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
             </div>
         </section>

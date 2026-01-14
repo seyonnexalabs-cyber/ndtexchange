@@ -17,6 +17,8 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  Users,
+  BarChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -30,6 +32,16 @@ const userDetails = {
   admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU' },
 };
 
+const allMenuItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin'] },
+  { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client'] },
+  { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'inspector', 'admin'] },
+  { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'inspector', 'admin'] },
+  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin'] },
+];
+
 const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
@@ -40,13 +52,9 @@ const AppSidebar = () => {
     return userDetails[role as keyof typeof userDetails] || userDetails.client;
   }, [role]);
 
-  const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/assets', label: 'Assets', icon: Building },
-    { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
-    { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-  ];
+  const menuItems = useMemo(() => {
+    return allMenuItems.filter(item => item.roles.includes(role));
+  }, [role]);
 
   const handleLogout = () => {
     router.push('/login');

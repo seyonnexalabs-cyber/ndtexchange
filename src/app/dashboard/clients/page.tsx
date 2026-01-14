@@ -2,16 +2,15 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { clientData } from "@/lib/placeholder-data";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Briefcase, DollarSign, MoreVertical } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
-
-const DesktopView = () => (
+const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
     <Card>
         <CardHeader>
             <CardTitle>Client Accounts</CardTitle>
@@ -52,7 +51,9 @@ const DesktopView = () => (
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={constructUrl(`/dashboard/clients/${client.id}`)}>View Details</Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem>Edit Client</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -65,7 +66,7 @@ const DesktopView = () => (
     </Card>
 );
 
-const MobileView = () => (
+const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
     <div className="space-y-4">
         {clientData.map(client => (
             <Card key={client.id}>
@@ -92,7 +93,9 @@ const MobileView = () => (
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                    <Button variant="ghost" size="sm">View Details</Button>
+                    <Button variant="ghost" size="sm" asChild>
+                        <Link href={constructUrl(`/dashboard/clients/${client.id}`)}>View Details</Link>
+                    </Button>
                 </CardFooter>
             </Card>
         ))}
@@ -102,6 +105,12 @@ const MobileView = () => (
 
 export default function ClientsPage() {
     const isMobile = useIsMobile();
+    const searchParams = useSearchParams();
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    };
 
     return (
         <div>
@@ -113,7 +122,7 @@ export default function ClientsPage() {
                 <Button>Add New Client</Button>
             </div>
             
-            {isMobile ? <MobileView /> : <DesktopView />}
+            {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}
         </div>
     );
 }

@@ -73,7 +73,7 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
 };
 
 
-export default function JobDetailPage({ params }: { params: { id: string } }) {
+export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';

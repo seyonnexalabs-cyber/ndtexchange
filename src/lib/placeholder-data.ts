@@ -64,6 +64,8 @@ export type Bid = {
     amount: number;
     status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn';
     submittedDate: string;
+    proposedTechnique?: string;
+    proposalJustification?: string;
 };
 
 

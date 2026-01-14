@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { jobs, NDTTechniques, Job } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -17,11 +17,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSearch } from '@/app/components/layout/search-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
   comments: z.string().optional(),
   quote: z.any().optional(), // For file upload
+  proposedTechnique: z.string(),
+  proposalJustification: z.string().optional(),
 });
 
 export default function FindJobsPage() {
@@ -35,7 +39,13 @@ export default function FindJobsPage() {
         defaultValues: {
             amount: 0,
             comments: '',
+            proposalJustification: '',
         },
+    });
+
+    const proposedTechnique = useWatch({
+      control: form.control,
+      name: 'proposedTechnique',
     });
 
     const filteredJobs = useMemo(() => {
@@ -52,6 +62,16 @@ export default function FindJobsPage() {
             return searchMatch && techniqueMatch && locationMatch;
         });
     }, [searchQuery, selectedTechniques, locationFilter]);
+
+    const handleOpenDialog = (job: Job) => {
+        form.reset({
+            amount: 0,
+            comments: '',
+            proposedTechnique: job.technique,
+            proposalJustification: '',
+        });
+        setSelectedJob(job);
+    };
     
     function onBidSubmit(values: z.infer<typeof bidSchema>) {
         console.log('New Bid Submitted:', { jobId: selectedJob?.id, ...values });
@@ -148,7 +168,7 @@ export default function FindJobsPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={() => setSelectedJob(job)}>
+                            <Button onClick={() => handleOpenDialog(job)}>
                                 <Gavel className="mr-2"/>
                                 Place Bid
                             </Button>
@@ -166,14 +186,14 @@ export default function FindJobsPage() {
             )}
 
             <Dialog open={!!selectedJob} onOpenChange={(open) => !open && handleCloseDialog()}>
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Place Bid on: {selectedJob?.title}</DialogTitle>
                         <DialogDescription>
                             Review the job details and attached documents, then submit your bid and quotation.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid md:grid-cols-2 gap-6 pt-4">
+                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 pt-4">
                         <div className="space-y-4">
                              <h3 className="font-semibold text-lg">Job Documents</h3>
                              <div className="space-y-2">
@@ -212,6 +232,48 @@ export default function FindJobsPage() {
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                    control={form.control}
+                                    name="proposedTechnique"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Proposed Technique</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a technique" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {NDTTechniques.map(tech => (
+                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 {proposedTechnique !== selectedJob?.technique && (
+                                    <FormField
+                                        control={form.control}
+                                        name="proposalJustification"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Justification for Change</FormLabel>
+                                                <FormControl>
+                                                    <Textarea placeholder="Explain why this technique is a better choice for this job..." {...field} />
+                                                </FormControl>
+                                                 <Alert variant="destructive" className="p-2 text-sm flex items-center gap-2">
+                                                    <Info className="h-4 w-4"/>
+                                                    <AlertDescription>Client must approve technique changes.</AlertDescription>
+                                                 </Alert>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                 )}
+
                                  <FormField
                                     control={form.control}
                                     name="comments"

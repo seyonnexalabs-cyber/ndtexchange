@@ -49,48 +49,52 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                     {workflow === 'level3' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex items-center justify-center">
                 <Carousel
                   opts={{
                     align: "start",
-                    dragFree: true,
+                    loop: false,
+                    startIndex: currentStatusIndex,
                   }}
-                  className="w-full"
+                  orientation="vertical"
+                  className="w-full max-w-xs"
                 >
-                  <CarouselContent className="-ml-1">
+                  <CarouselContent className="-mt-1 h-[80px]">
                     {allStatuses.map((step, index) => {
                         const isCompleted = index < currentStatusIndex;
                         const isActive = index === currentStatusIndex;
 
                         return (
-                           <CarouselItem key={step} className="pl-2">
-                                <div className="flex flex-col items-center text-center">
-                                    <div className={cn(
-                                        "w-10 h-10 rounded-full flex items-center justify-center border-2",
-                                        isCompleted ? "bg-primary border-primary text-primary-foreground" : 
-                                        isActive ? "bg-accent/20 border-accent" : 
-                                        "bg-muted border-muted-foreground/20",
-                                    )}>
-                                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className={cn("font-bold", isActive ? "text-accent" : "text-muted-foreground")}>{index + 1}</span>}
+                           <CarouselItem key={step} className="pt-1 basis-auto">
+                                <div className="p-1">
+                                    <div className="flex flex-col items-center justify-center text-center gap-1">
+                                        <div className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center border-2 shrink-0",
+                                            isCompleted ? "bg-primary border-primary text-primary-foreground" : 
+                                            isActive ? "bg-accent/20 border-accent" : 
+                                            "bg-muted border-muted-foreground/20",
+                                        )}>
+                                        {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span className={cn("font-bold", isActive ? "text-accent" : "text-muted-foreground")}>{index + 1}</span>}
+                                        </div>
+                                        <p className={cn(
+                                            "text-sm font-medium h-10",
+                                            isActive ? "text-foreground" : "text-muted-foreground",
+                                        )}>{step}</p>
                                     </div>
-                                    <p className={cn(
-                                        "text-xs font-medium mt-2 h-8",
-                                        isActive ? "text-foreground" : "text-muted-foreground",
-                                    )}>{step}</p>
                                 </div>
                             </CarouselItem>
                         );
                     })}
                   </CarouselContent>
-                  <CarouselPrevious className="absolute left-0 translate-x-1/2" />
-                  <CarouselNext className="absolute right-0 -translate-x-1/2" />
+                  <CarouselPrevious className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-4 h-8 w-8" />
+                  <CarouselNext className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-4 h-8 w-8" />
                 </Carousel>
             </CardContent>
              <CardFooter className="flex-col items-start gap-4 border-t pt-6">
                 <div className="font-semibold text-sm">Lifecycle Test Control</div>
                 <div className="flex items-center gap-4">
                     <Label htmlFor="status-select">Override Status:</Label>
-                    <Select onValueChange={onStatusChange} defaultValue={status}>
+                    <Select onValueChange={(val) => onStatusChange(val as Job['status'])} defaultValue={status}>
                         <SelectTrigger id="status-select" className="w-[200px]">
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>

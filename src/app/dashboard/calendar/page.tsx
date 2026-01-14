@@ -9,8 +9,12 @@ import { jobs } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Briefcase, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+
 
 type CalendarEvent = {
   id: string;
@@ -77,21 +81,42 @@ export default function CalendarPage() {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <CalendarIcon />
-                    Job Scheduler
-                </h1>
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                 <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-headline font-semibold">
+                        {format(currentDate, 'MMMM yyyy')}
+                    </h1>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-[200px] justify-start text-left font-normal",
+                                !currentDate && "text-muted-foreground"
+                            )}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {currentDate ? format(currentDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={currentDate}
+                                onSelect={(date) => date && setCurrentDate(date)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                 </div>
+                <div className="flex items-center gap-2 self-end sm:self-center">
                     <Button variant="outline" onClick={goToPreviousWeek}>
                         <ChevronLeft className="h-4 w-4" />
-                        Previous
                     </Button>
-                    <Button variant="outline" onClick={goToToday} className="hidden sm:block">
+                    <Button variant="outline" onClick={goToToday}>
                         Today
                     </Button>
                     <Button variant="outline" onClick={goToNextWeek}>
-                        Next
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
@@ -102,9 +127,9 @@ export default function CalendarPage() {
                     const dayEvents = events.filter(event => isSameDay(event.date, day));
                     return (
                         <div key={day.toISOString()} className="border-b border-r min-h-[150px] flex flex-col">
-                            <div className="p-2 border-b">
-                                <span className="font-semibold text-sm">{format(day, 'EEE')}</span>
-                                <span className="ml-2 text-muted-foreground text-sm">{format(day, 'd')}</span>
+                            <div className="p-2 border-b text-center sm:text-left">
+                                <span className="font-semibold text-sm block sm:inline">{format(day, 'EEE')}</span>
+                                <span className="sm:ml-2 text-muted-foreground text-sm">{format(day, 'd')}</span>
                             </div>
                             <div className="p-2 space-y-2 flex-grow overflow-y-auto">
                                 {dayEvents.length > 0 ? (
@@ -122,4 +147,3 @@ export default function CalendarPage() {
         </div>
     );
 }
-

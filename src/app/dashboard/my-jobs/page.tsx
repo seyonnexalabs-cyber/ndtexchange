@@ -28,7 +28,7 @@ export default function MyJobsPage() {
         let PageIcon: React.ElementType = Briefcase;
         
         let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned'].includes(j.status))
+            ? jobs.filter(j => ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Draft Submitted', 'Under Audit', 'Audit Approved'].includes(j.status))
             : jobs; // Clients see all jobs for now, could be filtered by poster ID in real app
 
         switch(view) {
@@ -38,12 +38,12 @@ export default function MyJobsPage() {
                 PageIcon = CheckCircle;
                 break;
             case 'completed':
-                jobsToShow = relevantJobs.filter(job => job.status === 'Completed');
+                jobsToShow = relevantJobs.filter(job => ['Completed', 'Paid'].includes(job.status));
                 pageTitle = 'Completed Jobs';
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = relevantJobs.filter(job => role === 'inspector' ? job.status === 'Assigned' : ['Posted', 'Assigned'].includes(job.status));
+                jobsToShow = relevantJobs.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status));
                 pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
                 PageIcon = Award;
                 break;
@@ -100,9 +100,9 @@ export default function MyJobsPage() {
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                        <Badge>{job.technique}</Badge>
+                                        <Badge variant={job.status === 'Posted' ? 'secondary' : job.status === 'In Progress' ? 'default' : 'outline'}>{job.status}</Badge>
                                     </div>
-                                    <CardDescription>{job.client}</CardDescription>
+                                    <CardDescription>{job.client} - {job.technique}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center text-sm text-muted-foreground">

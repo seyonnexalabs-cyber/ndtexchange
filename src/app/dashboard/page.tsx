@@ -40,7 +40,7 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const upcomingInspections = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
-  const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date(b.date || b.postedDate).getTime() - new Date(a.date || a.postedDate).getTime()).slice(0, 5);
+  const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date((a as any).date || (a as any).postedDate).getTime() - new Date((b as any).date || (b as any).postedDate).getTime()).reverse().slice(0, 5);
   
   return (
     <div className="grid gap-6">
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                 {recentActivities.map(activity => {
                   if ('technique' in activity && 'assetName' in activity) { // It's an inspection
                     return (
-                      <TableRow key={activity.id}>
+                      <TableRow key={`insp-${activity.id}`}>
                         <TableCell><Badge variant="outline">Inspection</Badge></TableCell>
                         <TableCell className="font-medium">{activity.technique} on {activity.assetName}</TableCell>
                         <TableCell>{activity.date}</TableCell>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
                     )
                   } else if ('client' in activity) { // It's a job
                     return (
-                       <TableRow key={activity.id}>
+                       <TableRow key={`job-${activity.id}`}>
                          <TableCell><Badge variant="outline">Job</Badge></TableCell>
                          <TableCell className="font-medium">{activity.title}</TableCell>
                          <TableCell>{activity.postedDate}</TableCell>

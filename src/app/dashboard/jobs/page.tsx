@@ -131,7 +131,7 @@ export default function JobsMarketplacePage() {
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                        <Badge variant={job.status === 'Posted' ? 'secondary' : 'default'}>{job.status}</Badge>
+                                        <Badge variant={job.status === 'Posted' ? 'secondary' : job.status === 'In Progress' ? 'default' : 'outline'}>{job.status}</Badge>
                                     </div>
                                     <CardDescription>{job.technique} Inspection</CardDescription>
                                 </CardHeader>

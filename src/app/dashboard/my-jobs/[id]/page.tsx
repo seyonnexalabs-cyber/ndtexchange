@@ -82,8 +82,8 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                         );
                     })}
                   </CarouselContent>
-                  <CarouselPrevious className="hidden sm:flex" />
-                  <CarouselNext className="hidden sm:flex" />
+                  <CarouselPrevious />
+                  <CarouselNext />
                 </Carousel>
             </CardContent>
              <CardFooter className="flex-col items-start gap-4 border-t pt-6">

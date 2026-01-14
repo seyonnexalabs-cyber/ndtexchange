@@ -83,15 +83,24 @@ export const technicians: Technician[] = [
     { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', avatar: 'tech-ben' },
 ];
 
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+const dayAfterTomorrow = new Date(today);
+dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+const yesterday = new Date(today);
+yesterday.setDate(yesterday.getDate() - 1);
+
 
 export const jobs: Job[] = [
     { id: 'JOB-001', title: 'PAUT on Pressure Vessel Welds', client: 'Global Energy Corp.', location: 'Houston, TX', technique: 'PAUT', status: 'Posted', postedDate: '2024-06-28', assetIds: ['ASSET-003'], workflow: 'level3' },
-    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'MT', status: 'Scheduled', postedDate: '2024-06-25', scheduledDate: new Date().toISOString().split('T')[0], technicianIds: ['TECH-01'], equipmentIds: [], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-002', title: 'MT Inspection on Crane Hooks', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'MT', status: 'Scheduled', postedDate: '2024-06-25', scheduledDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01'], equipmentIds: ['YOKE-02'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledDate: '2024-06-10', technicianIds: ['TECH-01'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
-    { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', scheduledDate: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], assetIds: ['ASSET-002'], workflow: 'level3' },
+    { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', scheduledDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], assetIds: ['ASSET-002'], workflow: 'level3' },
     { id: 'JOB-005', title: 'VT of Bridge Structural Welds', client: 'State Department of Transportation', location: 'Sacramento, CA', technique: 'VT', status: 'Posted', postedDate: '2024-07-02', assetIds: ['ASSET-005'], workflow: 'standard' },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03' },
-    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Scheduled', postedDate: '2024-07-05', scheduledDate: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'standard' },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', location: 'Baton Rouge, LA', technique: 'ET', status: 'Scheduled', postedDate: '2024-07-05', scheduledDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'standard' },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledDate: tomorrow.toISOString().split('T')[0], technicianIds: ['TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
 ];
 
 export const bids: Bid[] = [
@@ -127,3 +136,5 @@ export const NDTTechniques = [
 
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };
+
+    

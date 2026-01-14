@@ -175,6 +175,12 @@ export default function JobsMarketplacePage() {
                                         <Calendar className="w-4 h-4 mr-2" />
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
+                                    {job.bidExpiryDate && (
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                            <AlarmClock className="w-4 h-4 mr-2" />
+                                            <span>Bids Expire: {job.bidExpiryDate}</span>
+                                        </div>
+                                    )}
                                     {job.scheduledStartDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <Calendar className="w-4 h-4 mr-2" />

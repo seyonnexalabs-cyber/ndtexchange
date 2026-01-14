@@ -35,6 +35,9 @@ const JobLifecycle = ({ status, workflow }: { status: Job['status'], workflow: J
         <Card className="mb-6">
             <CardHeader>
                 <CardTitle>Job Lifecycle</CardTitle>
+                <CardDescription>
+                    {workflow === 'level3' ? 'Auditor workflow enabled.' : 'Standard workflow.'}
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-4">

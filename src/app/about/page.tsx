@@ -137,6 +137,7 @@ export default function AboutPage() {
             <p>&copy; {new Date().getFullYear()} NDT Exchange. All Rights Reserved.</p>
             <div className="flex gap-4 mt-4 sm:mt-0">
               <Link href="/terms" className="text-sm text-primary-foreground/80 hover:text-primary-foreground">Terms & Conditions</Link>
+              <Link href="/privacy" className="text-sm text-primary-foreground/80 hover:text-primary-foreground">Privacy Policy</Link>
             </div>
           </div>
         </div>

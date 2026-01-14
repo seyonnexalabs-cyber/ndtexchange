@@ -129,6 +129,7 @@ export default function LoginPage() {
           <p>&copy; {new Date().getFullYear()} NDT Exchange. All Rights Reserved.</p>
            <div className="flex gap-4 justify-center mt-2">
               <Link href="/terms" className="hover:text-foreground">Terms & Conditions</Link>
+              <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
             </div>
         </footer>
     </div>

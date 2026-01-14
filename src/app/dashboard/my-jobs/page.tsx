@@ -19,36 +19,59 @@ type JobView = 'active' | 'completed' | 'upcoming';
 
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
     const [view, setView] = useState<JobView>('active');
 
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow = [];
         let pageTitle = '';
         let PageIcon: React.ElementType = Briefcase;
+        
+        let relevantJobs = role === 'inspector' 
+            ? jobs.filter(j => j.status === 'In Progress' || j.status === 'Completed' || j.status === 'Awarded')
+            : jobs; // Clients see all jobs for now, could be filtered by poster ID in real app
 
         switch(view) {
             case 'active':
-                jobsToShow = jobs.filter(job => job.status === 'In Progress');
+                jobsToShow = relevantJobs.filter(job => job.status === 'In Progress');
                 pageTitle = 'Active Jobs';
                 PageIcon = CheckCircle;
                 break;
             case 'completed':
-                jobsToShow = jobs.filter(job => job.status === 'Completed');
+                jobsToShow = relevantJobs.filter(job => job.status === 'Completed');
                 pageTitle = 'Completed Jobs';
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = jobs.filter(job => job.status === 'Awarded');
-                pageTitle = 'Upcoming Jobs';
+                jobsToShow = relevantJobs.filter(job => role === 'inspector' ? job.status === 'Awarded' : job.status === 'Open' || job.status === 'Awarded');
+                pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
                 PageIcon = Award;
                 break;
         }
         return { displayedJobs: jobsToShow, title: pageTitle, Icon: PageIcon };
-    }, [view]);
+    }, [view, role]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
+    }
+
+    const getEmptyStateAction = () => {
+        if (role === 'client') {
+            return (
+                <Button asChild className="mt-4">
+                    <Link href={constructUrl('/dashboard/jobs')}>Post a Job</Link>
+                </Button>
+            );
+        }
+        if (role === 'inspector' && view !== 'completed') {
+             return (
+                <Button asChild className="mt-4">
+                    <Link href={constructUrl('/dashboard/find-jobs')}>Find a Job</Link>
+                </Button>
+            );
+        }
+        return null;
     }
 
     return (
@@ -60,7 +83,9 @@ export default function MyJobsPage() {
                 </h1>
                 <div className="flex gap-2">
                     <Button variant={view === 'active' ? 'default' : 'outline'} onClick={() => setView('active')}>Active</Button>
-                    <Button variant={view === 'upcoming' ? 'default' : 'outline'} onClick={() => setView('upcoming')}>Upcoming</Button>
+                    <Button variant={view === 'upcoming' ? 'default' : 'outline'} onClick={() => setView('upcoming')}>
+                        {role === 'inspector' ? 'Upcoming' : 'Pending'}
+                    </Button>
                     <Button variant={view === 'completed' ? 'default' : 'outline'} onClick={() => setView('completed')}>Completed</Button>
                 </div>
             </div>
@@ -135,11 +160,7 @@ export default function MyJobsPage() {
                     <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h2 className="mt-4 text-xl font-headline">No {view} Jobs</h2>
                     <p className="mt-2 text-muted-foreground">You don't have any jobs currently in this category.</p>
-                     {view !== 'completed' ? (
-                        <Button asChild className="mt-4">
-                            <Link href={constructUrl('/dashboard/find-jobs')}>Find a Job</Link>
-                        </Button>
-                     ) : null}
+                     {getEmptyStateAction()}
                 </div>
             )}
         </div>

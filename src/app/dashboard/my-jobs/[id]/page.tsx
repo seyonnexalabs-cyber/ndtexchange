@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
     const job = jobs.find(j => j.id === params.id);
 
     // Using state to manage assignments since we don't have a backend
@@ -61,6 +62,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         job.equipmentIds = tempSelectedEquip;
         setIsEquipDialogOpen(false);
     };
+
+    const isInspector = role === 'inspector';
 
     return (
         <div>
@@ -110,10 +113,12 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                      <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="flex items-center gap-2"><Users /> Technicians</CardTitle>
-                            <Button variant="outline" size="sm" onClick={openTechDialog}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Manage
-                            </Button>
+                            {isInspector && (
+                                <Button variant="outline" size="sm" onClick={openTechDialog}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Manage
+                                </Button>
+                            )}
                         </CardHeader>
                         <CardContent>
                             {assignedTechnicians.length > 0 ? (
@@ -128,10 +133,12 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                      <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="flex items-center gap-2"><Wrench /> Equipment</CardTitle>
-                             <Button variant="outline" size="sm" onClick={openEquipDialog}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Manage
-                            </Button>
+                             {isInspector && (
+                                <Button variant="outline" size="sm" onClick={openEquipDialog}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Manage
+                                </Button>
+                             )}
                         </CardHeader>
                         <CardContent>
                              {assignedEquipment.length > 0 ? (

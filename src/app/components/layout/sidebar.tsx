@@ -28,6 +28,7 @@ import {
   Wrench,
   CheckCircle,
   Gavel,
+  Star,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -49,9 +50,9 @@ const allMenuItems = [
   
   // Client
   { href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
-  { href: '/dashboard/jobs', label: 'Job Marketplace', icon: Briefcase, roles: ['client', 'admin'] },
+  { href: '/dashboard/jobs', label: 'Job Marketplace', icon: Briefcase, roles: ['client'] },
   { href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
-  { href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector'] },
+  { href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
   { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
   { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector'], badge: 3 },
   { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin', 'auditor'] },
@@ -65,8 +66,12 @@ const allMenuItems = [
   { href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
   
   // Admin
-  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { href: '/dashboard/clients', label: 'Clients', icon: Users, roles: ['admin'] },
+  { href: '/dashboard/providers', label: 'Providers', icon: ShieldCheck, roles: ['admin'] },
+  { href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase, roles: ['admin'] },
+  { href: '/dashboard/reviews', label: 'Reviews', icon: Star, roles: ['admin'] },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
+  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
   
   // Auditor
   { href: '/dashboard/compliance', label: 'Compliance', icon: Eye, roles: ['auditor'] },
@@ -87,13 +92,15 @@ const AppSidebar = () => {
     const labelOrder = [
         'Dashboard', 
         // Client
-        'My Assets', 'Job Marketplace', 'My Jobs', 'Reports', 'Calendar', 'Messages',
+        'My Assets', 'Job Marketplace', 'My Jobs',
         // Inspector
         'Find Jobs', 'My Bids', 'Active Jobs', 'Technicians', 'Equipment', 
         // Admin
-        'Users', 'Analytics', 'Inspections',
+        'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 
         // Auditor
         'Compliance',
+        // Common across multiple roles
+        'Reports', 'Calendar', 'Messages',
         // Common last
         'Settings'
     ];

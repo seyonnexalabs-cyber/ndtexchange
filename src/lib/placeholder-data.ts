@@ -45,7 +45,7 @@ export type Inspection = {
 export type InspectorAsset = {
     id: string;
     name: string;
-    type: 'UT Equipment' | 'PAUT Probe' | 'Calibration Block' | 'Yoke';
+    type: string;
     status: 'Calibrated' | 'Calibration Due' | 'In Service';
     nextCalibration: string;
 };
@@ -69,6 +69,15 @@ export type Bid = {
     proposedTechnique?: string;
     proposalJustification?: string;
 };
+
+export type Client = {
+    id: string;
+    name: string;
+    contactPerson: string;
+    contactEmail: string;
+    activeJobs: number;
+    totalSpend: number;
+}
 
 
 export const clientAssets: Asset[] = [
@@ -175,6 +184,13 @@ export const NDTTechniques = [
   { "id": "LT", "name": "Leak Testing" },
   { "id": "IR", "name": "Infrared/Thermal Testing" },
   { "id": "APR", "name": "Acoustic Pulse Reflectometry" }
+];
+
+export const clientData: Client[] = [
+    { id: 'client-01', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000 },
+    { id: 'client-02', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 75000 },
+    { id: 'client-03', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
+    { id: 'client-04', name: 'State DOT', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
 ];
 
 

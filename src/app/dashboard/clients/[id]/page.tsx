@@ -43,15 +43,30 @@ export default function ClientDetailPage() {
                 </Link>
             </Button>
             
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-1">
+            <div className="flex items-center gap-4 mb-6">
+                 <Avatar className="h-20 w-20">
+                    <AvatarImage src={`https://picsum.photos/seed/${client.id}/200/200`} />
+                    <AvatarFallback>{client.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <h1 className="text-2xl font-headline font-bold">{client.name}</h1>
+                    <p className="text-muted-foreground">Client Management</p>
+                </div>
+            </div>
+            
+            <Tabs defaultValue="details">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="jobs">Jobs</TabsTrigger>
+                    <TabsTrigger value="team">Team Members</TabsTrigger>
+                </TabsList>
+                <TabsContent value="details">
                     <Card>
-                        <CardHeader className="items-center">
-                             <Avatar className="h-20 w-20 mb-4">
-                                <AvatarImage src={`https://picsum.photos/seed/${client.id}/200/200`} />
-                                <AvatarFallback>{client.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                            <CardTitle className="text-2xl font-headline">{client.name}</CardTitle>
+                        <CardHeader>
+                            <CardTitle>Client Details</CardTitle>
+                             <CardDescription>
+                                Company contact information and key metrics.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent className="text-sm">
                             <div className="space-y-4 text-muted-foreground">
@@ -74,105 +89,83 @@ export default function ClientDetailPage() {
                             </div>
                         </CardContent>
                     </Card>
-                </div>
-                 <div className="lg:col-span-2">
-                    <Tabs defaultValue="jobs">
-                        <TabsList className="mb-4">
-                            <TabsTrigger value="details">Details</TabsTrigger>
-                            <TabsTrigger value="jobs">Jobs</TabsTrigger>
-                            <TabsTrigger value="team">Team Members</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="details">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Client Details</CardTitle>
-                                    <CardDescription>
-                                        Additional company information and metadata.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground">More detailed client information will be displayed here, such as address, billing info, and account status.</p>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                        <TabsContent value="jobs">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Briefcase /> Active & Recent Jobs
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Jobs associated with {client.name}.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                {isMobile ? (
-                                        <div className="space-y-4">
-                                            {clientJobs.map(job => (
-                                                <Card key={job.id} className="p-4">
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
-                                                            <p className="font-semibold">{job.title}</p>
-                                                            <p className="text-sm text-muted-foreground">{job.technique}</p>
-                                                        </div>
-                                                        <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
-                                                    </div>
-                                                    <div className="flex justify-end mt-3">
-                                                        <Button variant="ghost" size="sm" asChild>
-                                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
-                                                        </Button>
-                                                    </div>
-                                                </Card>
-                                            ))}
-                                        </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Job Title</TableHead>
-                                                <TableHead>Technique</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Date</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {clientJobs.map(job => (
-                                                <TableRow key={job.id}>
-                                                    <TableCell className="font-medium">{job.title}</TableCell>
-                                                    <TableCell>{job.technique}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {job.scheduledStartDate || job.postedDate}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                )}
-                                {clientJobs.length === 0 && (
-                                        <div className="text-center text-muted-foreground py-10">
-                                            No jobs found for this client.
-                                        </div>
-                                )}
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                        <TabsContent value="team">
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Team Members</CardTitle>
-                                    <CardDescription>Users from {client.name} with access to the platform.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground">Team member management is coming soon.</p>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-            </div>
+                </TabsContent>
+                <TabsContent value="jobs">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Briefcase /> Active & Recent Jobs
+                            </CardTitle>
+                            <CardDescription>
+                                Jobs associated with {client.name}.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        {isMobile ? (
+                                <div className="space-y-4">
+                                    {clientJobs.map(job => (
+                                        <Card key={job.id} className="p-4">
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <p className="font-semibold">{job.title}</p>
+                                                    <p className="text-sm text-muted-foreground">{job.technique}</p>
+                                                </div>
+                                                <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
+                                            </div>
+                                            <div className="flex justify-end mt-3">
+                                                <Button variant="ghost" size="sm" asChild>
+                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
+                                                </Button>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                        ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Job Title</TableHead>
+                                        <TableHead>Technique</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Date</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {clientJobs.map(job => (
+                                        <TableRow key={job.id}>
+                                            <TableCell className="font-medium">{job.title}</TableCell>
+                                            <TableCell>{job.technique}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {job.scheduledStartDate || job.postedDate}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )}
+                        {clientJobs.length === 0 && (
+                                <div className="text-center text-muted-foreground py-10">
+                                    No jobs found for this client.
+                                </div>
+                        )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="team">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Team Members</CardTitle>
+                            <CardDescription>Users from {client.name} with access to the platform.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">Team member management is coming soon.</p>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

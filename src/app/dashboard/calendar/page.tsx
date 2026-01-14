@@ -101,9 +101,7 @@ export default function CalendarPage() {
                                 mode="single"
                                 selected={currentDate}
                                 onSelect={(day) => day && setCurrentDate(day)}
-                                captionLayout="dropdown-buttons"
-                                fromYear={new Date().getFullYear() - 5}
-                                toYear={new Date().getFullYear() + 5}
+                                captionLayout="dropdown"
                                 initialFocus
                             />
                         </PopoverContent>

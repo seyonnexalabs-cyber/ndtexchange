@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { jobs, technicians, inspectorAssets } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -15,24 +15,41 @@ const equipmentIcons = {
     'Calibration Block': <Wrench className="w-4 h-4 text-muted-foreground" />,
 };
 
+type JobView = 'active' | 'completed' | 'upcoming';
+
 export default function ActiveJobsPage() {
     const searchParams = useSearchParams();
-    const [view, setView] = useState<'active' | 'completed'>('active');
+    const [view, setView] = useState<JobView>('active');
 
-    const displayedJobs = useMemo(() => {
-        if (view === 'active') {
-            return jobs.filter(job => job.status === 'In Progress');
+    const { displayedJobs, title, Icon } = useMemo(() => {
+        let jobsToShow = [];
+        let pageTitle = '';
+        let PageIcon: React.ElementType = Briefcase;
+
+        switch(view) {
+            case 'active':
+                jobsToShow = jobs.filter(job => job.status === 'In Progress');
+                pageTitle = 'Active Jobs';
+                PageIcon = CheckCircle;
+                break;
+            case 'completed':
+                jobsToShow = jobs.filter(job => job.status === 'Completed');
+                pageTitle = 'Completed Jobs';
+                PageIcon = History;
+                break;
+            case 'upcoming':
+                jobsToShow = jobs.filter(job => job.status === 'Awarded');
+                pageTitle = 'Upcoming Jobs';
+                PageIcon = Award;
+                break;
         }
-        return jobs.filter(job => job.status === 'Completed');
+        return { displayedJobs: jobsToShow, title: pageTitle, Icon: PageIcon };
     }, [view]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
-
-    const title = view === 'active' ? 'Active Jobs' : 'Completed Jobs';
-    const Icon = view === 'active' ? CheckCircle : History;
 
     return (
         <div>
@@ -41,9 +58,11 @@ export default function ActiveJobsPage() {
                     <Icon />
                     {title}
                 </h1>
-                <Button variant="outline" onClick={() => setView(view === 'active' ? 'completed' : 'active')}>
-                    {view === 'active' ? 'View Completed Jobs' : 'View Active Jobs'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant={view === 'active' ? 'default' : 'outline'} onClick={() => setView('active')}>Active</Button>
+                    <Button variant={view === 'upcoming' ? 'default' : 'outline'} onClick={() => setView('upcoming')}>Upcoming</Button>
+                    <Button variant={view === 'completed' ? 'default' : 'outline'} onClick={() => setView('completed')}>Completed</Button>
+                </div>
             </div>
              {displayedJobs.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -70,7 +89,7 @@ export default function ActiveJobsPage() {
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
 
-                                    {view === 'active' && (
+                                    {(view === 'active' || view === 'upcoming') && (
                                         <>
                                             <div>
                                                 <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4" /> Assigned Technicians</h4>
@@ -83,7 +102,7 @@ export default function ActiveJobsPage() {
                                                             </Badge>
                                                         ))}
                                                     </div>
-                                                ) : <p className="text-xs text-muted-foreground">No technicians assigned.</p>}
+                                                ) : <p className="text-xs text-muted-foreground">No technicians assigned yet.</p>}
                                             </div>
 
                                              <div>
@@ -97,7 +116,7 @@ export default function ActiveJobsPage() {
                                                             </Badge>
                                                         ))}
                                                     </div>
-                                                ) : <p className="text-xs text-muted-foreground">No equipment assigned.</p>}
+                                                ) : <p className="text-xs text-muted-foreground">No equipment assigned yet.</p>}
                                             </div>
                                         </>
                                     )}
@@ -114,11 +133,11 @@ export default function ActiveJobsPage() {
                     <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h2 className="mt-4 text-xl font-headline">No {view} Jobs</h2>
                     <p className="mt-2 text-muted-foreground">You don't have any jobs currently in this category.</p>
-                     {view === 'completed' ? null : (
+                     {view === 'active' || view === 'upcoming' ? (
                         <Button asChild className="mt-4">
                             <Link href={constructUrl('/dashboard/find-jobs')}>Find a Job</Link>
                         </Button>
-                     )}
+                     ) : null}
                 </div>
             )}
         </div>

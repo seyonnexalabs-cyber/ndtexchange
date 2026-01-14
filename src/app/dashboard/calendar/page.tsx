@@ -33,15 +33,16 @@ export default function CalendarPage() {
 
     const events: CalendarEvent[] = useMemo(() => {
         return jobs
+            .filter(job => job.scheduledDate)
             .filter(job => {
                 if (role === 'client') return job.client === 'Global Energy Corp.';
-                if (role === 'inspector') return job.technicianIds?.length;
+                if (role === 'inspector') return !!job.technicianIds?.length;
                 return true;
             })
             .map(job => ({
                 id: job.id,
                 title: job.title,
-                date: addDays(new Date(job.postedDate), 7), // Demo: due 7 days after posting
+                date: new Date(job.scheduledDate as string),
                 type: 'job',
                 role,
                 data: job
@@ -111,16 +112,17 @@ export default function CalendarPage() {
             </div>
             <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
                 {weekDays.map(day => (
-                    <div key={day.toString()} className="border-b border-r p-2 flex flex-col">
+                    <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
                         <div className={`font-semibold text-center mb-2 ${isSameDay(day, new Date()) ? 'text-primary' : ''}`}>
                             <p className="text-sm">{format(day, 'EEE')}</p>
                             <p className="text-2xl">{format(day, 'd')}</p>
                         </div>
                         <div className="flex-grow space-y-2 overflow-y-auto">
                            {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(event => (
-                               <Card key={event.id} className="bg-muted/50 p-2">
+                               <Card key={event.id} className="bg-muted/50 p-2 cursor-pointer hover:bg-muted">
                                    <p className="text-xs font-semibold truncate">{event.title}</p>
                                    <p className="text-xs text-muted-foreground">{event.data.technique}</p>
+                                   <Badge variant="secondary" className="mt-1 text-[10px] py-0 px-1 h-auto">{event.data.status}</Badge>
                                </Card>
                            ))}
                         </div>

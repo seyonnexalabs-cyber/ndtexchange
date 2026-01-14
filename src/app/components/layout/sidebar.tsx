@@ -26,7 +26,6 @@ import {
   Calendar,
   MessageSquare,
   Wrench,
-  CheckCircle,
   Gavel,
   Star,
 } from 'lucide-react';
@@ -61,7 +60,7 @@ const allMenuItems = [
   // Inspector
   { href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
   { href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel, roles: ['inspector'] },
-  { href: '/dashboard/active-jobs', label: 'Active Jobs', icon: CheckCircle, roles: ['inspector'] },
+  { href: '/dashboard/active-jobs', label: 'My Jobs', icon: Briefcase, roles: ['inspector'] },
   { href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
   { href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
   
@@ -94,7 +93,7 @@ const AppSidebar = () => {
         // Client
         'My Assets', 'Job Marketplace', 'My Jobs',
         // Inspector
-        'Find Jobs', 'My Bids', 'Active Jobs', 'Technicians', 'Equipment', 
+        'Find Jobs', 'My Bids', 'My Jobs', 'Technicians', 'Equipment', 
         // Admin
         'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 
         // Auditor
@@ -116,7 +115,7 @@ const AppSidebar = () => {
             return aIndex - bIndex;
         });
 
-  }, [role]);
+  }, [role, pathname]);
 
   const handleLogout = () => {
     router.push('/login');

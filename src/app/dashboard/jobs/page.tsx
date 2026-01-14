@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { jobs, clientAssets } from '@/lib/placeholder-data';
+import { jobs, clientAssets, NDTTechniques } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ const jobSchema = z.object({
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
   bidExpiryDate: z.date().optional(),
+  scheduledDate: z.date().optional(),
 });
 
 export default function JobsMarketplacePage() {
@@ -223,18 +224,9 @@ export default function JobsMarketplacePage() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="UT">UT - Ultrasonic Testing</SelectItem>
-                                                    <SelectItem value="PAUT">PAUT - Phased Array UT</SelectItem>
-                                                    <SelectItem value="TOFD">TOFD - Time-of-Flight Diffraction</SelectItem>
-                                                    <SelectItem value="MT">MT - Magnetic Particle Testing</SelectItem>
-                                                    <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
-                                                    <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
-                                                    <SelectItem value="VT">VT - Visual Testing</SelectItem>
-                                                    <SelectItem value="ET">ET - Electromagnetic Testing</SelectItem>
-                                                    <SelectItem value="AE">AE - Acoustic Emission</SelectItem>
-                                                    <SelectItem value="LT">LT - Leak Testing</SelectItem>
-                                                    <SelectItem value="IR">IR - Infrared/Thermal Testing</SelectItem>
-                                                    <SelectItem value="APR">APR - Acoustic Pulse Reflectometry</SelectItem>
+                                                    {NDTTechniques.map(tech => (
+                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -247,6 +239,45 @@ export default function JobsMarketplacePage() {
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
                                         <FormLabel>Bid Expiry Date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                >
+                                                {field.value ? (
+                                                    format(field.value, "PPP")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <CalendarComponent
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) => date < new Date()}
+                                                initialFocus
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="scheduledDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Target Inspection Date (Optional)</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                             <FormControl>

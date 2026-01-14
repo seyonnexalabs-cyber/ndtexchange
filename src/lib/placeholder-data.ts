@@ -27,7 +27,7 @@ export type Job = {
     technicianIds?: string[];
     equipmentIds?: string[];
     assetIds?: string[];
-    workflow?: 'standard' | 'level3' | 'auto';
+    workflow: 'standard' | 'level3' | 'auto';
     documents?: JobDocument[];
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar } from "lucide-react";
 import {
   ChartContainer,
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { assets, jobs, inspections, technicians, clientAssets, inspectorAssets } from "@/lib/placeholder-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // --- Client Dashboard ---
 const clientChartData = [
@@ -32,6 +33,7 @@ const clientChartConfig = {
 const ClientDashboard = () => {
     const upcomingInspections = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
     const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date((a as any).date || (a as any).postedDate).getTime() - new Date((b as any).date || (b as any).postedDate).getTime()).reverse().slice(0, 5);
+    const isMobile = useIsMobile();
   
     return (
         <div className="grid gap-6">
@@ -75,40 +77,71 @@ const ClientDashboard = () => {
                         <CardDescription>An overview of recent inspections and job updates.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recentActivities.map(activity => {
-                            if ('technique' in activity && 'assetName' in activity) { // It's an inspection
-                                return (
-                                <TableRow key={`insp-${activity.id}`}>
-                                    <TableCell><Badge variant="outline">Inspection</Badge></TableCell>
-                                    <TableCell className="font-medium">{activity.technique} on {activity.assetName}</TableCell>
-                                    <TableCell>{activity.date}</TableCell>
-                                    <TableCell><Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></TableCell>
+                        {isMobile ? (
+                            <div className="space-y-4">
+                                {recentActivities.map(activity => {
+                                     if ('technique' in activity && 'assetName' in activity) { // Inspection
+                                        return (
+                                            <Card key={`insp-${activity.id}`} className="p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="font-medium">{activity.technique} on {activity.assetName}</div>
+                                                    <Badge variant="outline">Inspection</Badge>
+                                                </div>
+                                                <div className="text-sm text-muted-foreground mt-2">Date: {activity.date}</div>
+                                                <div className="text-sm text-muted-foreground">Status: <Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></div>
+                                            </Card>
+                                        )
+                                     } else if ('client' in activity) { // Job
+                                        return (
+                                            <Card key={`job-${activity.id}`} className="p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="font-medium">{activity.title}</div>
+                                                    <Badge variant="outline">Job</Badge>
+                                                </div>
+                                                <div className="text-sm text-muted-foreground mt-2">Posted: {activity.postedDate}</div>
+                                                <div className="text-sm text-muted-foreground">Status: <Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></div>
+                                            </Card>
+                                        )
+                                     }
+                                     return null;
+                                })}
+                            </div>
+                        ) : (
+                            <Table>
+                            <TableHeader>
+                                <TableRow>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
                                 </TableRow>
-                                )
-                            } else if ('client' in activity) { // It's a job
-                                return (
-                                <TableRow key={`job-${activity.id}`}>
-                                    <TableCell><Badge variant="outline">Job</Badge></TableCell>
-                                    <TableCell className="font-medium">{activity.title}</TableCell>
-                                    <TableCell>{activity.postedDate}</TableCell>
-                                    <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
-                                </TableRow>
-                                )
-                            }
-                            return null;
-                            })}
-                        </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {recentActivities.map(activity => {
+                                if ('technique' in activity && 'assetName' in activity) { // It's an inspection
+                                    return (
+                                    <TableRow key={`insp-${activity.id}`}>
+                                        <TableCell><Badge variant="outline">Inspection</Badge></TableCell>
+                                        <TableCell className="font-medium">{activity.technique} on {activity.assetName}</TableCell>
+                                        <TableCell>{activity.date}</TableCell>
+                                        <TableCell><Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></TableCell>
+                                    </TableRow>
+                                    )
+                                } else if ('client' in activity) { // It's a job
+                                    return (
+                                    <TableRow key={`job-${activity.id}`}>
+                                        <TableCell><Badge variant="outline">Job</Badge></TableCell>
+                                        <TableCell className="font-medium">{activity.title}</TableCell>
+                                        <TableCell>{activity.postedDate}</TableCell>
+                                        <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
+                                    </TableRow>
+                                    )
+                                }
+                                return null;
+                                })}
+                            </TableBody>
+                            </Table>
+                        )}
                     </CardContent>
                 </Card>
                 <Card className="lg:col-span-2">
@@ -153,6 +186,7 @@ const InspectorDashboard = () => {
     const activeJobs = assignedJobs.filter(j => j.status === 'In Progress').length;
     const upcomingJobs = assignedJobs.filter(j => ['Assigned', 'Scheduled'].includes(j.status));
     const equipmentCalibrationDue = inspectorAssets.filter(e => e.status === 'Calibration Due');
+    const isMobile = useIsMobile();
 
     return (
         <div className="grid gap-6">
@@ -195,6 +229,21 @@ const InspectorDashboard = () => {
                         <CardDescription>Your next scheduled assignments.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {isMobile ? (
+                            <div className="space-y-4">
+                                {upcomingJobs.slice(0,5).map(job => (
+                                    <Card key={job.id} className="p-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="font-medium">{job.title}</div>
+                                            <Badge variant="secondary">{job.status}</Badge>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
+                                        <div className="text-sm text-muted-foreground">Location: {job.location}</div>
+                                    </Card>
+                                ))}
+                                {upcomingJobs.length === 0 && <div className="text-center text-muted-foreground py-4">No upcoming jobs.</div>}
+                            </div>
+                        ) : (
                          <Table>
                             <TableHeader>
                                 <TableRow>
@@ -216,6 +265,7 @@ const InspectorDashboard = () => {
                                 {upcomingJobs.length === 0 && <TableRow><TableCell colSpan={4} className="text-center">No upcoming jobs.</TableCell></TableRow>}
                             </TableBody>
                         </Table>
+                        )}
                     </CardContent>
                 </Card>
              </div>
@@ -304,6 +354,9 @@ const AdminDashboard = () => {
 const AuditorDashboard = () => {
     const jobsUnderAudit = jobs.filter(j => j.status === 'Under Audit');
     const jobsAwaitingReview = jobs.filter(j => j.status === 'Report Submitted' && j.workflow === 'level3');
+    const isMobile = useIsMobile();
+
+    const auditQueue = [...jobsAwaitingReview, ...jobsUnderAudit];
 
     return (
          <div className="grid gap-6">
@@ -345,39 +398,55 @@ const AuditorDashboard = () => {
                     <CardDescription>Jobs that require your review and approval.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Job Title</TableHead>
-                                <TableHead>Technique</TableHead>
-                                <TableHead>Submitted On</TableHead>
-                                <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {jobsAwaitingReview.map(job => (
-                                <TableRow key={job.id}>
-                                    <TableCell className="font-medium">{job.title}</TableCell>
-                                    <TableCell>{job.technique}</TableCell>
-                                    <TableCell>{job.postedDate}</TableCell>
-                                    <TableCell><Badge variant="destructive">Awaiting Review</Badge></TableCell>
-                                </TableRow>
+                    {isMobile ? (
+                        <div className="space-y-4">
+                            {auditQueue.map(job => (
+                                <Card key={job.id} className="p-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="font-medium">{job.title}</div>
+                                        <Badge variant={job.status === 'Report Submitted' ? 'destructive' : 'secondary'}>{job.status === 'Report Submitted' ? 'Awaiting Review' : 'Under Audit'}</Badge>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground mt-2">Technique: {job.technique}</div>
+                                    <div className="text-sm text-muted-foreground">Submitted: {job.postedDate}</div>
+                                </Card>
                             ))}
-                             {jobsUnderAudit.map(job => (
-                                <TableRow key={job.id}>
-                                    <TableCell className="font-medium">{job.title}</TableCell>
-                                    <TableCell>{job.technique}</TableCell>
-                                    <TableCell>{job.postedDate}</TableCell>
-                                    <TableCell><Badge variant="secondary">Under Audit</Badge></TableCell>
-                                </TableRow>
-                            ))}
-                            {(jobsAwaitingReview.length === 0 && jobsUnderAudit.length === 0) && (
+                            {auditQueue.length === 0 && <div className="text-center text-muted-foreground py-4">The audit queue is empty.</div>}
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center text-muted-foreground">The audit queue is empty.</TableCell>
+                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Technique</TableHead>
+                                    <TableHead>Submitted On</TableHead>
+                                    <TableHead>Status</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {jobsAwaitingReview.map(job => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell>{job.technique}</TableCell>
+                                        <TableCell>{job.postedDate}</TableCell>
+                                        <TableCell><Badge variant="destructive">Awaiting Review</Badge></TableCell>
+                                    </TableRow>
+                                ))}
+                                {jobsUnderAudit.map(job => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell>{job.technique}</TableCell>
+                                        <TableCell>{job.postedDate}</TableCell>
+                                        <TableCell><Badge variant="secondary">Under Audit</Badge></TableCell>
+                                    </TableRow>
+                                ))}
+                                {(jobsAwaitingReview.length === 0 && jobsUnderAudit.length === 0) && (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center text-muted-foreground">The audit queue is empty.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </div>
@@ -409,3 +478,5 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+    

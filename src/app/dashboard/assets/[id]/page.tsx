@@ -13,6 +13,7 @@ import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft } fr
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const assetIcons = {
@@ -27,6 +28,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     const { id } = React.use(params);
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
+    const isMobile = useIsMobile();
 
     if (!asset) {
         notFound();
@@ -77,37 +79,58 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                     <CardDescription>Previous inspections, defects, and repairs for this asset.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Technique</TableHead>
-                                                <TableHead>Inspector</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Report</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
+                                    {isMobile ? (
+                                        <div className="space-y-4">
                                             {assetInspections.map(inspection => (
-                                                <TableRow key={inspection.id}>
-                                                    <TableCell>{inspection.date}</TableCell>
-                                                    <TableCell>{inspection.technique}</TableCell>
-                                                    <TableCell>{inspection.inspector}</TableCell>
-                                                    <TableCell>
+                                                <Card key={inspection.id} className="p-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="font-medium">{inspection.technique}</div>
                                                         <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Button variant="outline" size="sm">View</Button>
-                                                    </TableCell>
-                                                </TableRow>
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground mt-2">Date: {inspection.date}</div>
+                                                    <div className="text-sm text-muted-foreground">Inspector: {inspection.inspector}</div>
+                                                    <div className="mt-2 flex justify-end">
+                                                        <Button variant="outline" size="sm">View Report</Button>
+                                                    </div>
+                                                </Card>
                                             ))}
                                             {assetInspections.length === 0 && (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} className="text-center text-muted-foreground">No inspection history found.</TableCell>
-                                                </TableRow>
+                                                <div className="text-center text-muted-foreground py-4">No inspection history found.</div>
                                             )}
-                                        </TableBody>
-                                    </Table>
+                                        </div>
+                                    ) : (
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Date</TableHead>
+                                                    <TableHead>Technique</TableHead>
+                                                    <TableHead>Inspector</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                    <TableHead>Report</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {assetInspections.map(inspection => (
+                                                    <TableRow key={inspection.id}>
+                                                        <TableCell>{inspection.date}</TableCell>
+                                                        <TableCell>{inspection.technique}</TableCell>
+                                                        <TableCell>{inspection.inspector}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Button variant="outline" size="sm">View</Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                {assetInspections.length === 0 && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={5} className="text-center text-muted-foreground">No inspection history found.</TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -201,3 +224,5 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         </div>
     );
 }
+
+    

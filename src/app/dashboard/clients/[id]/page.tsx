@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,12 +35,15 @@ export default function ClientDetailPage() {
 
     return (
         <div>
-            <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl("/dashboard/clients")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to Clients
-                </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
+                    <Link href={constructUrl("/dashboard/clients")}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back to Clients
+                    </Link>
+                </Button>
+                <Button>Edit Client</Button>
+            </div>
             
             <div className="flex items-center gap-4 mb-6">
                  <Avatar className="h-20 w-20">

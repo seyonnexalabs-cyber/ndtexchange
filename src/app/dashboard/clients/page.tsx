@@ -47,19 +47,9 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
                             <TableCell>{client.activeJobs}</TableCell>
                             <TableCell>${client.totalSpend.toLocaleString()}</TableCell>
                             <TableCell className="text-right">
-                               <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem asChild>
-                                            <Link href={constructUrl(`/dashboard/clients/${client.id}`)}>View Details</Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>Edit Client</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                               <Button asChild variant="outline" size="sm">
+                                    <Link href={constructUrl(`/dashboard/clients/${client.id}`)}>View Details</Link>
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}

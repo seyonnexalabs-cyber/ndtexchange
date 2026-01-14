@@ -51,12 +51,15 @@ export default function ProviderDetailPage() {
 
     return (
         <div>
-            <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl("/dashboard/providers")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to Providers
-                </Link>
-            </Button>
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
+                    <Link href={constructUrl("/dashboard/providers")}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back to Providers
+                    </Link>
+                </Button>
+                <Button>Edit Provider</Button>
+            </div>
             
             <div className="flex items-center gap-4 mb-6">
                  <Image 

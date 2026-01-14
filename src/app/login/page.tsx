@@ -127,6 +127,9 @@ export default function LoginPage() {
       </Card>
        <footer className="absolute bottom-4 text-center text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} NDT Exchange. All Rights Reserved.</p>
+           <div className="flex gap-4 justify-center mt-2">
+              <Link href="/terms" className="hover:text-foreground">Terms & Conditions</Link>
+            </div>
         </footer>
     </div>
   );

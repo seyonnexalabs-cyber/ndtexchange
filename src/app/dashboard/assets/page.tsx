@@ -309,7 +309,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
                 <DialogHeader>
                     <DialogTitle>Scan Asset QR Code</DialogTitle>
                     <DialogDescription>
-                        This is a simulation. In a real app, you would use your device's camera. Please enter the Asset ID manually.
+                        Use your device's camera to scan a QR code. If the code is unreadable, you can enter the Asset ID manually below.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>

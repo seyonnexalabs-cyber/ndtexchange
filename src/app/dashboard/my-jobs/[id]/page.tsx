@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
@@ -105,6 +105,22 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 </p>
                             </div>
                         </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">Job Results & Reports</CardTitle>
+                             <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center text-muted-foreground p-10">
+                            <FileText className="mx-auto h-12 w-12" />
+                            <p className="mt-4">Reporting features are coming soon.</p>
+                            <p className="text-xs">You'll be able to generate technique-specific digital reports here.</p>
+                        </CardContent>
+                        <CardFooter className="flex justify-end gap-2">
+                            <Button variant="outline"><Upload className="mr-2" /> Upload Report</Button>
+                            <Button>Generate Digital Report</Button>
+                        </CardFooter>
                     </Card>
 
                 </div>

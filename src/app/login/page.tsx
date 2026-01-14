@@ -113,12 +113,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full">Sign In</Button>
-            <div className="text-sm">
-                Don&apos;t have an account?{' '}
-                <Button variant="link" className="p-0 h-auto" asChild>
-                    <Link href="#">Sign up</Link>
-                </Button>
-            </div>
+            <p className="text-sm text-muted-foreground">New users must be invited.</p>
             <Button variant="link" size="sm" className="text-muted-foreground !mt-0">
               Forgot your password?
             </Button>

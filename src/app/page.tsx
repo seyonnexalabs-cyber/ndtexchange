@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -141,9 +141,9 @@ export default function Home() {
                 description="The fundamental first step. A direct visual examination of a component to identify surface-level issues."
               />
                <FeatureCard
-                icon={<Thermometer className="w-8 h-8 text-accent" />}
-                title="And Many More..."
-                description="Support for Eddy Current (ET), Acoustic Emission (AE), Leak Testing (LT), Infrared (IR), and Acoustic Pulse Reflectometry (APR)."
+                icon={<Ear className="w-8 h-8 text-accent" />}
+                title="Acoustic & Advanced Methods"
+                description="Support for Acoustic Emission (AE), Acoustic Pulse Reflectometry (APR), Eddy Current (ET), Leak Testing (LT) and Infrared (IR)."
               />
             </div>
           </div>

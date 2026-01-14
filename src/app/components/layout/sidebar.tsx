@@ -34,7 +34,7 @@ const userDetails = {
 
 const allMenuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin'] },
-  { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client'] },
+  { href: '/dashboard/assets', label: 'Assets', icon: Building, roles: ['client', 'inspector'] },
   { href: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, roles: ['client', 'inspector', 'admin'] },
   { href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['client', 'inspector', 'admin'] },
   { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },

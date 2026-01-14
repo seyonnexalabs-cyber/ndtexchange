@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { jobs, technicians, inspectorAssets } from "@/lib/placeholder-data";
@@ -113,6 +114,12 @@ export default function MyJobsPage() {
                                         <Calendar className="w-4 h-4 mr-2" />
                                         <span>Posted: {job.postedDate}</span>
                                     </div>
+                                    {job.scheduledDate && (
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                            <Calendar className="w-4 h-4 mr-2" />
+                                            <span>Inspection: {job.scheduledDate}</span>
+                                        </div>
+                                    )}
 
                                     {(view === 'active' || view === 'upcoming') && (
                                         <>

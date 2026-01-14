@@ -14,8 +14,10 @@ const manufacturers = [
       { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
       { name: "Sonatest", url: "https://www.sonatest.com" },
       { name: "Zetec", url: "https://www.zetec.com" },
-      { name: "Baker Hughes (Krautkrämer)", url: "https://www.bakerhughes.com/inspection" },
+      { name: "Baker Hughes (Waygate Technologies)", url: "https://www.bakerhughes.com/waygate-technologies" },
       { name: "Proceq (Screening Eagle)", url: "https://www.screeningeagle.com" },
+      { name: "TPAC", url: "https://www.tpac-ndt.com/" },
+      { name: "Imagilent", url: "https://www.imagilent.com/" },
     ]
   },
   {
@@ -23,20 +25,22 @@ const manufacturers = [
     icon: <Eye className="w-8 h-8 text-accent" />,
     companies: [
       { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-      { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/inspection/visual-inspection" },
+      { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/waygate-technologies/remote-visual-inspection" },
       { name: "viZaar", url: "https://www.vizaar.com" },
       { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
+      { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
     ]
   },
   {
-    technique: "Radiographic Testing (RT)",
+    technique: "Radiographic Testing (RT, DR, CT)",
     icon: <Scan className="w-8 h-8 text-accent" />,
     companies: [
       { name: "Fujifilm", url: "https://www.fujifilm.com/us/en/business/ndt" },
       { name: "Yxlon (Comet Group)", url: "https://www.yxlon.com" },
       { name: "Carestream NDT", url: "https://www.carestream.com/ndt" },
       { name: "VJ Technologies", url: "https://www.vjt.com" },
-      { name: "COMET Group", url: "https://www.comet-group.com" },
+      { name: "Nikon Metrology", url: "https://www.nikonmetrology.com/en-gb/products/x-ray-ct-inspection" },
+      { name: "Teledyne ICM", url: "https://www.teledyneicm.com/" },
     ]
   },
   {
@@ -46,6 +50,7 @@ const manufacturers = [
       { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
       { name: "Zetec", url: "https://www.zetec.com" },
       { name: "Foerster Instruments", url: "https://www.foerstergroup.com" },
+      { name: "UniWest", url: "https://uniwest.com/" },
     ]
   },
   {
@@ -54,6 +59,8 @@ const manufacturers = [
     companies: [
       { name: "Magnaflux", url: "https://www.magnaflux.com" },
       { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
+      { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
+      { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
     ]
   },
     {
@@ -62,6 +69,7 @@ const manufacturers = [
     companies: [
       { name: "MISTRAS Group", url: "https://www.mistrasgroup.com" },
       { name: "Vallen Systeme", url: "https://www.vallen.de/en/" },
+      { name: "Physical Acoustics Corp (PAC)", url: "https://www.pacndt.com/" },
     ]
   },
   {

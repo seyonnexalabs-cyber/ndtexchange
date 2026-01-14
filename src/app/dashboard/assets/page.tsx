@@ -1,7 +1,7 @@
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { clientAssets } from "@/lib/placeholder-data";
+import { clientAssets, jobs } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, Building, QrCode, Calendar as CalendarIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -338,6 +338,7 @@ export default function AssetsPage() {
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
 
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
         console.log("New Asset Data:", values);
@@ -350,16 +351,38 @@ export default function AssetsPage() {
 
     const handleQrScan = (id: string) => {
         const assetExists = clientAssets.some(asset => asset.id === id);
-        if (assetExists) {
-            const params = new URLSearchParams(searchParams.toString());
-            router.push(`/dashboard/assets/${id}?${params.toString()}`);
-            setScanOpen(false);
-        } else {
+        if (!assetExists) {
             toast({
                 variant: 'destructive',
                 title: "Asset Not Found",
                 description: `No asset with ID "${id}" could be found.`,
             });
+            return;
+        }
+
+        if (role === 'inspector') {
+            // For this simulation, we'll assume the inspector belongs to provider-03 (TEAM, Inc.)
+            const inspectorProviderId = 'provider-03';
+            
+            const hasAccess = jobs.some(job => 
+                job.assetIds?.includes(id) && job.providerId === inspectorProviderId
+            );
+
+            if (hasAccess) {
+                const params = new URLSearchParams(searchParams.toString());
+                router.push(`/dashboard/assets/${id}?${params.toString()}`);
+                setScanOpen(false);
+            } else {
+                 toast({
+                    variant: 'destructive',
+                    title: "Access Denied",
+                    description: `Your company does not have a work history for asset "${id}".`,
+                });
+            }
+        } else { // For client or other roles, allow access
+            const params = new URLSearchParams(searchParams.toString());
+            router.push(`/dashboard/assets/${id}?${params.toString()}`);
+            setScanOpen(false);
         }
     };
 

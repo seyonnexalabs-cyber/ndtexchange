@@ -20,7 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 const jobSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   location: z.string().min(2, 'Location is required.'),
-  technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD']),
+  technique: z.enum(['UT', 'RT', 'MT', 'PT', 'VT', 'PAUT', 'TOFD', 'APR']),
   description: z.string().optional(),
 });
 
@@ -211,6 +211,7 @@ export default function JobsMarketplacePage() {
                                                 <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
                                                 <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
                                                 <SelectItem value="VT">VT - Visual Testing</SelectItem>
+                                                <SelectItem value="APR">APR - Acoustic Pulse Reflectometry</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

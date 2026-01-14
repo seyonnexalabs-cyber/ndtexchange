@@ -12,7 +12,7 @@ export type Job = {
     title: string;
     client: string;
     location: string;
-    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD';
+    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'APR';
     status: 'Open' | 'In Progress' | 'Completed' | 'Awarded';
     postedDate: string;
     technicianIds?: string[];
@@ -41,7 +41,7 @@ export type Technician = {
     id: string;
     name: string;
     level: 'Level I' | 'Level II' | 'Level III';
-    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD')[];
+    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD' | 'APR')[];
     status: 'Available' | 'On Assignment';
     avatar: string;
 };

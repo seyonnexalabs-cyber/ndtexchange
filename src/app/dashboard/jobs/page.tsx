@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -261,14 +262,14 @@ export default function JobsMarketplacePage() {
                                                 <SelectItem value="UT">UT - Ultrasonic Testing</SelectItem>
                                                 <SelectItem value="PAUT">PAUT - Phased Array UT</SelectItem>
                                                 <SelectItem value="TOFD">TOFD - Time-of-Flight Diffraction</SelectItem>
-                                                <SelectItem value="MT">MT - Magnetic Particle</SelectItem>
+                                                <SelectItem value="MT">MT - Magnetic Particle Testing</SelectItem>
                                                 <SelectItem value="PT">PT - Penetrant Testing</SelectItem>
                                                 <SelectItem value="RT">RT - Radiographic Testing</SelectItem>
                                                 <SelectItem value="VT">VT - Visual Testing</SelectItem>
-                                                <SelectItem value="ET">ET - Eddy Current Testing</SelectItem>
-                                                <SelectItem value="AE">AE - Acoustic Emission Testing</SelectItem>
+                                                <SelectItem value="ET">ET - Electromagnetic Testing</SelectItem>
+                                                <SelectItem value="AE">AE - Acoustic Emission</SelectItem>
                                                 <SelectItem value="LT">LT - Leak Testing</SelectItem>
-                                                <SelectItem value="IR">IR - Infrared Thermography</SelectItem>
+                                                <SelectItem value="IR">IR - Infrared/Thermal Testing</SelectItem>
                                                 <SelectItem value="APR">APR - Acoustic Pulse Reflectometry</SelectItem>
                                             </SelectContent>
                                         </Select>

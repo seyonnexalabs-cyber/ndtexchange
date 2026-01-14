@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck, Globe, Waves, Scan, Magnet, Eye, Thermometer, Ear, Link as LinkIcon, Building } from 'lucide-react';
+import { ShieldCheck, Globe, Waves, Scan, Magnet, Eye, Thermometer, Ear, Link as LinkIcon, Building, TestTube, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -18,17 +18,8 @@ const manufacturers = [
       { name: "Proceq (Screening Eagle)", url: "https://www.screeningeagle.com" },
       { name: "TPAC", url: "https://www.tpac-ndt.com/" },
       { name: "Imagilent", url: "https://www.imagilent.com/" },
-    ]
-  },
-  {
-    technique: "Visual Testing (VT / RVI)",
-    icon: <Eye className="w-8 h-8 text-accent" />,
-    companies: [
-      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-      { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/waygate-technologies/remote-visual-inspection" },
-      { name: "viZaar", url: "https://www.vizaar.com" },
-      { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
-      { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
+      { name: "DolphiTech", url: "https://www.dolphitech.com/" },
+      { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
     ]
   },
   {
@@ -41,16 +32,20 @@ const manufacturers = [
       { name: "VJ Technologies", url: "https://www.vjt.com" },
       { name: "Nikon Metrology", url: "https://www.nikonmetrology.com/en-gb/products/x-ray-ct-inspection" },
       { name: "Teledyne ICM", url: "https://www.teledyneicm.com/" },
+      { name: "Rigaku", url: "https://www.rigaku.com/en/products/ct" },
+      { name: "Vidisco", url: "https://www.vidisco.com/" },
     ]
   },
   {
-    technique: "Eddy Current Testing (ET)",
+    technique: "Electromagnetic Testing (ET, ACFM, RFT)",
     icon: <Thermometer className="w-8 h-8 text-accent" />,
     companies: [
       { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
       { name: "Zetec", url: "https://www.zetec.com" },
       { name: "Foerster Instruments", url: "https://www.foerstergroup.com" },
       { name: "UniWest", url: "https://uniwest.com/" },
+      { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
+      { name: "ibg NDT Systems", url: "https://www.ibg-ndt.com/" },
     ]
   },
   {
@@ -61,15 +56,29 @@ const manufacturers = [
       { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
       { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
       { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
+      { name: "Sherwin Inc.", url: "https://sherwininc.com/" },
     ]
   },
-    {
+  {
+    technique: "Visual & Optical Testing (VT / RVI)",
+    icon: <Eye className="w-8 h-8 text-accent" />,
+    companies: [
+      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
+      { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/waygate-technologies/remote-visual-inspection" },
+      { name: "viZaar", url: "https://www.vizaar.com" },
+      { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
+      { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
+      { name: "Mitcorp", url: "https://www.mitcorp.com.tw/" },
+    ]
+  },
+  {
     technique: "Acoustic Emission (AE)",
     icon: <Ear className="w-8 h-8 text-accent" />,
     companies: [
       { name: "MISTRAS Group", url: "https://www.mistrasgroup.com" },
       { name: "Vallen Systeme", url: "https://www.vallen.de/en/" },
       { name: "Physical Acoustics Corp (PAC)", url: "https://www.pacndt.com/" },
+      { name: "Score Atlanta Inc.", url: "https://www.score-atl.com/" },
     ]
   },
   {
@@ -77,6 +86,34 @@ const manufacturers = [
     icon: <Waves className="w-8 h-8 text-accent" />,
     companies: [
       { name: "Talcyon", url: "https://www.talcyon.com" },
+    ]
+  },
+  {
+    technique: "Leak Testing (LT)",
+    icon: <TestTube className="w-8 h-8 text-accent" />,
+    companies: [
+      { name: "Inficon", url: "https://www.inficon.com" },
+      { name: "Pfeiffer Vacuum", url: "https://www.pfeiffer-vacuum.com" },
+      { name: "LACO Technologies", url: "https://www.lacotech.com" },
+      { name: "ATEQ", url: "https://www.ateq-leak-testing.com/" },
+    ]
+  },
+  {
+    technique: "Infrared & Thermal Testing (IR)",
+    icon: <Thermometer className="w-8 h-8 text-accent" />,
+    companies: [
+        { name: "Teledyne FLIR", url: "https://www.flir.com" },
+        { name: "Fluke Corporation", url: "https://www.fluke.com" },
+        { name: "Testo", url: "https://www.testo.com" },
+    ]
+  },
+  {
+    technique: "Other NDT Methods",
+    icon: <Lightbulb className="w-8 h-8 text-accent" />,
+    companies: [
+        { name: "GUL (Guided Ultrasonics Ltd.)", url: "https://www.guided-ultrasonics.com/", description: "Guided Wave UT" },
+        { name: "Dantec Dynamics", url: "https://www.dantecdynamics.com/", description: "Laser Shearography" },
+        { name: "Phoenix|x-ray (Waygate)", url: "https://www.bakerhughes.com/waygate-technologies/x-ray-and-ct-solutions/phoenix-x-ray", description: "Neutron Radiography" },
     ]
   }
 ];
@@ -160,7 +197,7 @@ export default function ManufacturersPage() {
                                         <li key={company.name} className="flex items-center">
                                             <Link href={company.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-muted-foreground hover:text-primary group">
                                                <Building className="w-4 h-4 mr-3 shrink-0" />
-                                               <span className="flex-grow">{company.name}</span>
+                                               <span className="flex-grow">{company.name} {company.description && <span className="text-xs text-muted-foreground/70">({company.description})</span>}</span>
                                                <LinkIcon className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </Link>
                                         </li>

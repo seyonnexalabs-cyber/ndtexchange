@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio, TestTube, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -136,7 +136,7 @@ export default function Home() {
             <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <FeatureCard
                 icon={<Waves className="w-8 h-8 text-accent" />}
-                title="Ultrasonic Testing (UT/PAUT)"
+                title="Ultrasonic Testing (UT)"
                 description="Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods."
                 isHighlighted
               />
@@ -148,7 +148,7 @@ export default function Home() {
               />
                <FeatureCard
                 icon={<Magnet className="w-8 h-8 text-accent" />}
-                title="Magnetic Particle (MT)"
+                title="Magnetic Particle Testing (MT)"
                 description="Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field."
               />
                <FeatureCard
@@ -158,7 +158,7 @@ export default function Home() {
               />
                <FeatureCard
                 icon={<Eye className="w-8 h-8 text-accent" />}
-                title="Visual Testing (VT / RVI)"
+                title="Visual & Optical Testing (VT/RVI)"
                 description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
                 isHighlighted
               />
@@ -168,7 +168,7 @@ export default function Home() {
                 description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
                 isHighlighted
               />
-              <FeatureCard
+               <FeatureCard
                 icon={<Radio className="w-8 h-8 text-accent" />}
                 title="Acoustic Pulse Reflectometry (APR)"
                 description="A non-invasive method for detecting blockages and defects in tubes by analyzing reflected sound waves."
@@ -176,8 +176,25 @@ export default function Home() {
               />
                <FeatureCard
                 icon={<Thermometer className="w-8 h-8 text-accent" />}
-                title="Advanced & Other Methods"
-                description="Support for Eddy Current (ET), Leak Testing (LT), and Infrared Thermography (IR)."
+                title="Electromagnetic Testing (ET)"
+                description="Using principles of electromagnetism to detect flaws, such as Eddy Current, Alternating Current Field Measurement (ACFM), and Remote Field Testing (RFT)."
+                isHighlighted
+              />
+               <FeatureCard
+                icon={<TestTube className="w-8 h-8 text-accent" />}
+                title="Leak Testing (LT)"
+                description="Detecting and locating leaks in pressure-containing components using methods like bubble testing, pressure change, or mass spectrometry."
+              />
+              <FeatureCard
+                icon={<Thermometer className="w-8 h-8 text-accent" />}
+                title="Infrared & Thermal Testing (IR)"
+                description="Detecting variations in temperature to identify material defects, electrical issues, or insulation gaps."
+                isHighlighted
+              />
+               <FeatureCard
+                icon={<Lightbulb className="w-8 h-8 text-accent" />}
+                title="Other NDT Methods"
+                description="Support for a variety of other methods including Guided Wave, Laser Testing (Shearography), and Neutron Radiography."
                 isHighlighted
               />
             </div>

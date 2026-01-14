@@ -13,7 +13,7 @@ export default function UsersPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 text-muted-foreground">
                     <p>
-                        From here, an administrator can view, create, edit, and disable user accounts. Each user must be associated with a specific Client company, Provider company, or the internal NDT Exchange team (Admin, Auditor).
+                        From here, an administrator can view, create, edit, and disable user accounts. Each user must be associated with a specific entity on the platform, such as a Client company, a Provider company, or an administrative/auditing body.
                     </p>
                     <p>
                         <strong>Example tasks include:</strong>

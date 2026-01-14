@@ -63,7 +63,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                         const isActive = index === currentStatusIndex;
 
                         return (
-                           <CarouselItem key={step} className="pl-2 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6">
+                           <CarouselItem key={step} className="pl-2">
                                 <div className="flex flex-col items-center text-center">
                                     <div className={cn(
                                         "w-10 h-10 rounded-full flex items-center justify-center border-2",
@@ -82,7 +82,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                         );
                     })}
                   </CarouselContent>
-                  <CarouselPrevious className="absolute left-0 -translate-x-1/2" />
+                  <CarouselPrevious className="absolute left-0 translate-x-1/2" />
                   <CarouselNext className="absolute right-0 translate-x-1/2" />
                 </Carousel>
             </CardContent>

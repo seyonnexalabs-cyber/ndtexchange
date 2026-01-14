@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck, Building, UserCheck, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Building, UserCheck, CheckCircle, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function AboutPage() {
   return (
@@ -22,7 +23,20 @@ export default function AboutPage() {
               About
             </Link>
           </nav>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Globe className="h-5 w-5" />
+                  <span className="sr-only">Select language</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>English</DropdownMenuItem>
+                <DropdownMenuItem>Español</DropdownMenuItem>
+                <DropdownMenuItem>Deutsch</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" asChild>
               <Link href="/login">Login</Link>
             </Button>

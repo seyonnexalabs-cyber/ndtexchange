@@ -12,6 +12,7 @@ import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons"
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useSearch } from "@/app/components/layout/search-provider";
 
 const assetIcons = {
     'Tank': <TankIcon className="w-6 h-6 text-muted-foreground" />,
@@ -24,6 +25,16 @@ const assetIcons = {
 const ClientAssetsView = () => {
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
+    const { searchQuery } = useSearch();
+
+    const filteredAssets = useMemo(() => {
+        if (!searchQuery) return clientAssets;
+        return clientAssets.filter(asset => 
+            asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            asset.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            asset.location.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -31,17 +42,22 @@ const ClientAssetsView = () => {
     }
 
     const assetsByLocation = useMemo(() => {
-        return clientAssets.reduce((acc, asset) => {
+        return filteredAssets.reduce((acc, asset) => {
             if (!acc[asset.location]) {
                 acc[asset.location] = [];
             }
             acc[asset.location].push(asset);
             return acc;
         }, {} as Record<string, typeof clientAssets>);
-    }, []);
+    }, [filteredAssets]);
 
     return (
         <div className="space-y-8">
+            {Object.keys(assetsByLocation).length === 0 && (
+                <div className="text-center py-10">
+                    <p className="text-muted-foreground">No assets found for your search.</p>
+                </div>
+            )}
             {Object.entries(assetsByLocation).map(([location, locationAssets]) => (
                 <div key={location}>
                     <h2 className="text-xl font-semibold mb-4">{location}</h2>

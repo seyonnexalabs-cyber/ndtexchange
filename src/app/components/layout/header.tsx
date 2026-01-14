@@ -9,6 +9,7 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { useSearch } from './search-provider';
 
 
 const userDetails = {
@@ -23,6 +24,7 @@ const AppHeader = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+    const { searchQuery, setSearchQuery } = useSearch();
     
     const currentUser = useMemo(() => {
         return userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -53,13 +55,15 @@ const AppHeader = () => {
             <h1 className="text-xl font-semibold hidden md:block font-headline">{title}</h1>
 
             <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-                <form className="ml-auto flex-1 sm:flex-initial">
+                <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="search"
                             placeholder="Search assets, jobs..."
                             className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                 </form>

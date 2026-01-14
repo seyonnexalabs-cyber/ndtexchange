@@ -5,17 +5,12 @@
 import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { format, startOfWeek, addDays, subDays, isSameDay } from 'date-fns';
 import { jobs } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
-import Link from 'next/link';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Briefcase } from 'lucide-react';
+import { format } from 'date-fns';
 
 type CalendarEvent = {
   id: string;
@@ -26,30 +21,10 @@ type CalendarEvent = {
   data: any;
 };
 
-const JobCard = ({ event, constructUrl }: { event: CalendarEvent, constructUrl: (base: string) => string }) => {
-  return (
-    <Link href={constructUrl(`/dashboard/my-jobs/${event.id}`)} className="block">
-        <Card className="p-3 bg-card hover:bg-muted/50 transition-colors">
-            <div className="flex justify-between items-start">
-                <p className="font-semibold text-sm leading-tight">{event.title}</p>
-                <Badge variant={event.data.status === 'Posted' ? 'secondary' : 'default'}>{event.data.status}</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{event.data.technique}</p>
-        </Card>
-    </Link>
-  );
-};
-
-
 export default function CalendarPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const [currentDate, setCurrentDate] = useState(new Date());
-
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
-    }
+    const [date, setDate] = useState<Date | undefined>(new Date());
 
     const events: CalendarEvent[] = useMemo(() => {
         return jobs
@@ -73,78 +48,79 @@ export default function CalendarPage() {
             }));
     }, [role]);
 
-    const start = startOfWeek(currentDate, { weekStartsOn: 0 }); // Sunday
-    const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
+    const eventsByDate = useMemo(() => {
+        return events.reduce((acc, event) => {
+            const dateKey = format(event.date, 'yyyy-MM-dd');
+            if (!acc[dateKey]) {
+                acc[dateKey] = [];
+            }
+            acc[dateKey].push(event);
+            return acc;
+        }, {} as Record<string, CalendarEvent[]>);
+    }, [events]);
 
-    const goToNextWeek = () => setCurrentDate(addDays(currentDate, 7));
-    const goToPreviousWeek = () => setCurrentDate(subDays(currentDate, 7));
-    const goToToday = () => setCurrentDate(new Date());
 
-    return (
-        <div className="flex flex-col h-full">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                 <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-headline font-semibold">
-                        {format(currentDate, 'MMMM yyyy')}
-                    </h1>
-                     <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-[200px] justify-start text-left font-normal",
-                                !currentDate && "text-muted-foreground"
-                            )}
-                            >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {currentDate ? format(currentDate, "PPP") : <span>Pick a date</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={currentDate}
-                                onSelect={(date) => date && setCurrentDate(date)}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
-                 </div>
-                <div className="flex items-center gap-2 self-end sm:self-center">
-                    <Button variant="outline" onClick={goToPreviousWeek}>
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" onClick={goToToday}>
-                        Today
-                    </Button>
-                    <Button variant="outline" onClick={goToNextWeek}>
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+    const DayWithEvents = ({ date, ...props }: { date: Date } & React.HTMLAttributes<HTMLDivElement>) => {
+        // This check is important because react-day-picker can pass undefined dates for empty cells
+        if (!date) {
+            return <div {...props}></div>;
+        }
+
+        const dateKey = format(date, 'yyyy-MM-dd');
+        const dayEvents = eventsByDate[dateKey] || [];
+        
+        return (
+            <div {...props}>
+                <span>{format(date, 'd')}</span>
+                <div className="mt-1 space-y-1">
+                    {dayEvents.map((event, index) => (
+                        <Badge 
+                            key={`${event.id}-${index}`} 
+                            variant="secondary"
+                            className="block w-full text-left truncate text-xs p-1"
+                        >
+                            {event.title}
+                        </Badge>
+                    ))}
                 </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-7 flex-grow border-t border-l">
-                {weekDays.map(day => {
-                    const dayEvents = events.filter(event => isSameDay(event.date, day));
-                    return (
-                        <div key={day.toISOString()} className="border-b border-r min-h-[150px] flex flex-col">
-                            <div className="p-2 border-b text-center sm:text-left">
-                                <span className="font-semibold text-sm block sm:inline">{format(day, 'EEE')}</span>
-                                <span className="sm:ml-2 text-muted-foreground text-sm">{format(day, 'd')}</span>
-                            </div>
-                            <div className="p-2 space-y-2 flex-grow overflow-y-auto">
-                                {dayEvents.length > 0 ? (
-                                    dayEvents.map(event => (
-                                        <JobCard key={event.id} event={event} constructUrl={constructUrl} />
-                                    ))
-                                ) : (
-                                    <div className="h-full w-full"></div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
+        );
+    }
+    
+    return (
+        <div className="flex flex-col h-full">
+             <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                    <Briefcase />
+                    Job Calendar
+                </h1>
             </div>
+            <Card>
+                <CardContent className="p-0 sm:p-2">
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="w-full"
+                        classNames={{
+                            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                            month: "space-y-4 w-full",
+                            table: "w-full border-collapse space-y-1",
+                            head_row: "flex",
+                            head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
+                            row: "flex w-full mt-2",
+                            cell: "h-24 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            day: "h-full w-full p-2 font-normal flex flex-col items-start justify-start aria-selected:opacity-100 hover:bg-accent/50 rounded-md",
+                            day_selected: "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                            day_today: "bg-accent/20 text-accent-foreground",
+                            day_outside: "text-muted-foreground opacity-50",
+                        }}
+                        components={{
+                            Day: DayWithEvents as any,
+                        }}
+                    />
+                </CardContent>
+            </Card>
         </div>
     );
 }

@@ -1,21 +1,67 @@
 'use client';
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets } from "@/lib/placeholder-data";
+import { inspectorAssets, InspectorAsset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const equipmentIcons = {
     'UTM-1000': <RadioTower className="w-6 h-6 text-muted-foreground" />,
     'PA-Probe-5MHz': <SlidersHorizontal className="w-6 h-6 text-muted-foreground" />,
 };
 
+const equipmentSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  type: z.enum(['UT Equipment', 'PAUT Probe', 'Calibration Block', 'Yoke']),
+  status: z.enum(['Calibrated', 'Calibration Due', 'In Service']),
+  nextCalibration: z.date(),
+});
+
+
 export default function EquipmentPage() {
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
+    const [editingEquipment, setEditingEquipment] = useState<InspectorAsset | null>(null);
+
+    const form = useForm<z.infer<typeof equipmentSchema>>({
+        resolver: zodResolver(equipmentSchema),
+        defaultValues: {
+            name: "",
+            type: "UT Equipment",
+            status: "In Service",
+            nextCalibration: new Date(),
+        }
+    });
+
+    const handleEditClick = (equipment: InspectorAsset) => {
+        setEditingEquipment(equipment);
+        form.reset({
+            name: equipment.name,
+            type: equipment.type,
+            status: equipment.status,
+            nextCalibration: equipment.nextCalibration === 'N/A' ? new Date() : new Date(equipment.nextCalibration),
+        });
+    };
+
+    function onSubmit(values: z.infer<typeof equipmentSchema>) {
+        console.log("Updated Equipment Data:", values);
+        // Here you would typically call an API to update the data
+        // For this demo, we'll just log it and close the dialog
+        setEditingEquipment(null);
+    }
 
     return (
         <div>
@@ -53,7 +99,7 @@ export default function EquipmentPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditClick(asset)}>Edit</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </CardFooter>
@@ -83,6 +129,124 @@ export default function EquipmentPage() {
                             Close
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!editingEquipment} onOpenChange={(open) => {if(!open) {setEditingEquipment(null)}}}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit {editingEquipment?.name}</DialogTitle>
+                        <DialogDescription>
+                            Update the details for this piece of equipment.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Equipment Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. Olympus 45MG" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select an equipment type" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="UT Equipment">UT Equipment</SelectItem>
+                                            <SelectItem value="PAUT Probe">PAUT Probe</SelectItem>
+                                            <SelectItem value="Calibration Block">Calibration Block</SelectItem>
+                                            <SelectItem value="Yoke">Yoke</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="status"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Status</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a status" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Calibrated">Calibrated</SelectItem>
+                                            <SelectItem value="Calibration Due">Calibration Due</SelectItem>
+                                            <SelectItem value="In Service">In Service</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="nextCalibration"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                    <FormLabel>Next Calibration Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) =>
+                                                date < new Date("1900-01-01")
+                                            }
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => setEditingEquipment(null)}>Cancel</Button>
+                                <Button type="submit">Save Changes</Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
                 </DialogContent>
             </Dialog>
         </div>

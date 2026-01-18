@@ -38,10 +38,10 @@ import { useMemo } from 'react';
 import { useJobPost } from '@/app/dashboard/my-jobs/job-post-provider';
 
 const userDetails = {
-  client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD' },
-  inspector: { name: 'Jane Smith', role: 'Level II Inspector', avatar: 'user-avatar-inspector', fallback: 'JS' },
-  admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU' },
-  auditor: { name: 'Alex Chen', role: 'Compliance Auditor', avatar: 'user-avatar-auditor', fallback: 'AC' },
+  client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD', company: 'Global Energy Corp.' },
+  inspector: { name: 'Jane Smith', role: 'Level II Inspector', avatar: 'user-avatar-inspector', fallback: 'JS', company: 'TEAM, Inc.' },
+  admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU', company: 'NDT Exchange' },
+  auditor: { name: 'Alex Chen', role: 'Compliance Auditor', avatar: 'user-avatar-auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
 };
 
 const allMenuItems = [
@@ -194,7 +194,9 @@ const AppSidebar = () => {
             </Avatar>
             <div className="overflow-hidden">
                 <p className="font-semibold truncate">{currentUser.name}</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">{currentUser.role}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">
+                   {role === 'client' ? currentUser.company : currentUser.role}
+                </p>
             </div>
             <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />

@@ -448,7 +448,7 @@ export default function MyJobsPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Briefcase />
                     My Jobs

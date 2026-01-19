@@ -16,7 +16,6 @@ export type JobDocument = {
 
 export type JobUpdate = {
     user: string;
-    avatar: string;
     timestamp: string;
     action: string;
     details?: string;
@@ -66,7 +65,6 @@ export type Technician = {
     level: 'Level I' | 'Level II' | 'Level III';
     certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR')[];
     status: 'Available' | 'On Assignment';
-    avatar: string;
     providerId: string;
 };
 
@@ -108,7 +106,6 @@ export type PlatformUser = {
     role: string;
     company: string;
     status: 'Active' | 'Invited' | 'Disabled';
-    avatar: string;
 };
 
 
@@ -129,11 +126,11 @@ export const inspectorAssets: InspectorAsset[] = [
 ];
 
 export const technicians: Technician[] = [
-    { id: 'TECH-01', name: 'Carlos Ray', level: 'Level II', certifications: ['UT', 'MT', 'PT'], status: 'Available', avatar: 'tech-carlos', providerId: 'provider-03' },
-    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT', 'ET'], status: 'On Assignment', avatar: 'tech-aisha', providerId: 'provider-01' },
-    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', avatar: 'tech-ben', providerId: 'provider-01' },
-    { id: 'TECH-04', name: 'David Lee', level: 'Level I', certifications: ['MT', 'PT'], status: 'Available', avatar: 'tech-david', providerId: 'provider-02' },
-    { id: 'TECH-05', name: 'Maria Garcia', level: 'Level II', certifications: ['UT', 'RT'], status: 'On Assignment', avatar: 'tech-maria', providerId: 'provider-03' },
+    { id: 'TECH-01', name: 'Carlos Ray', level: 'Level II', certifications: ['UT', 'MT', 'PT'], status: 'Available', providerId: 'provider-03' },
+    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT', 'ET'], status: 'On Assignment', providerId: 'provider-01' },
+    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', providerId: 'provider-01' },
+    { id: 'TECH-04', name: 'David Lee', level: 'Level I', certifications: ['MT', 'PT'], status: 'Available', providerId: 'provider-02' },
+    { id: 'TECH-05', name: 'Maria Garcia', level: 'Level II', certifications: ['UT', 'RT'], status: 'On Assignment', providerId: 'provider-03' },
 ];
 
 const today = new Date();
@@ -167,7 +164,7 @@ export const jobs: Job[] = [
             { name: 'Previous Inspection Report.pdf', url: '#' },
         ],
         history: [
-            { user: 'John Doe', avatar: 'user-avatar-client', timestamp: '2024-06-28 10:00 AM', action: 'Job created and posted to marketplace.' },
+            { user: 'John Doe', timestamp: '2024-06-28 10:00 AM', action: 'Job created and posted to marketplace.' },
         ]
     },
     { 
@@ -186,9 +183,9 @@ export const jobs: Job[] = [
         assetIds: ['ASSET-004'], 
         workflow: 'standard',
         history: [
-            { user: 'Carlos Ray', avatar: 'tech-carlos', timestamp: '2024-06-27 11:30 AM', action: 'Job scheduled.', details: `Start: ${tomorrow.toISOString().split('T')[0]}` },
-            { user: 'John Doe', avatar: 'user-avatar-client', timestamp: '2024-06-26 04:15 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
-            { user: 'John Doe', avatar: 'user-avatar-client', timestamp: '2024-06-25 09:00 AM', action: 'Job created and posted to marketplace.' },
+            { user: 'Carlos Ray', timestamp: '2024-06-27 11:30 AM', action: 'Job scheduled.', details: `Start: ${tomorrow.toISOString().split('T')[0]}` },
+            { user: 'John Doe', timestamp: '2024-06-26 04:15 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
+            { user: 'John Doe', timestamp: '2024-06-25 09:00 AM', action: 'Job created and posted to marketplace.' },
         ]
     },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
@@ -257,10 +254,10 @@ export const reviews: Review[] = [
 ];
 
 export const allUsers: PlatformUser[] = [
-    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', avatar: 'user-avatar-client' },
-    { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active', avatar: 'user-avatar-sarah' },
-    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active', avatar: 'user-avatar-admin' },
-    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', avatar: 'user-avatar-auditor' },
+    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active' },
+    { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active' },
+    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active' },
+    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active' },
     ...technicians.map(t => ({
         id: `user-${t.id}`,
         name: t.name,
@@ -268,10 +265,9 @@ export const allUsers: PlatformUser[] = [
         role: `Inspector (${t.level})`,
         company: `Provider #${t.providerId.split('-')[1]}`, // Mock company name
         status: 'Active',
-        avatar: t.avatar,
     })),
-     { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited', avatar: 'user-avatar-invited' },
-     { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Provider #2', status: 'Disabled', avatar: 'user-avatar-disabled' },
+     { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited' },
+     { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Provider #2', status: 'Disabled' },
 ];
 
 // Rename 'assets' to 'clientAssets' for clarity

@@ -21,10 +21,10 @@ import { Badge } from '@/components/ui/badge';
 
 
 const userDetails = {
-    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', avatar: 'user-avatar-client', fallback: 'JD', company: 'Global Energy Corp.' },
-    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', avatar: 'user-avatar-inspector', fallback: 'JS', company: 'TEAM, Inc.' },
-    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', avatar: 'user-avatar-admin', fallback: 'AU', company: 'NDT Exchange' },
-    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', avatar: 'user-avatar-auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
+    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', fallback: 'JD', company: 'Global Energy Corp.' },
+    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', fallback: 'JS', company: 'TEAM, Inc.' },
+    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', fallback: 'AU', company: 'NDT Exchange' },
+    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', fallback: 'AC', company: 'NDT Auditors LLC' },
 };
 
 const profileSchema = z.object({

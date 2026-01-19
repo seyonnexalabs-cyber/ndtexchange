@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearchParams } from 'next/navigation';
@@ -18,13 +17,14 @@ import { Switch } from '@/components/ui/switch';
 import { allUsers } from '@/lib/placeholder-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 
 
 const userDetails = {
-    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', fallback: 'JD', company: 'Global Energy Corp.' },
-    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', fallback: 'JS', company: 'TEAM, Inc.' },
-    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', fallback: 'AU', company: 'NDT Exchange' },
-    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', fallback: 'AC', company: 'NDT Auditors LLC' },
+    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.' },
+    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.' },
+    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT Exchange' },
+    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC' },
 };
 
 const profileSchema = z.object({
@@ -124,8 +124,8 @@ const ClientTeamManagement = ({ companyName }: { companyName: string }) => {
                         {teamMembers.map(user => (
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarFallback className="text-lg font-bold font-headline">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
                                     {user.name}
                                 </TableCell>
@@ -172,8 +172,8 @@ const AdminTeamManagement = () => {
                         {adminUsers.map(user => (
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarFallback className="text-lg font-bold font-headline">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
                                     {user.name}
                                 </TableCell>
@@ -244,6 +244,14 @@ const NotificationSettings = ({ role }: { role: string }) => {
             <CardDescription>Manage how you receive email notifications for important platform events.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+             <div className="flex items-start justify-between rounded-lg border bg-card p-4 shadow-sm">
+                <div className="space-y-0.5">
+                    <Label htmlFor="master-notifications" className="text-base font-semibold">Enable All Email Notifications</Label>
+                    <p className="text-sm text-muted-foreground">A master switch to control all email alerts from the platform.</p>
+                </div>
+                <Switch id="master-notifications" defaultChecked={true} className="mt-1" />
+            </div>
+            <Separator />
              {settings.map(setting => (
                 <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
@@ -312,8 +320,8 @@ export default function SettingsPage() {
                 <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="flex items-center gap-6">
-                    <Avatar className="h-20 w-20">
-                        <AvatarFallback className="text-3xl">{currentUser.fallback}</AvatarFallback>
+                    <Avatar className="h-24 w-24">
+                        <AvatarFallback className="text-4xl font-bold font-headline">{currentUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                      <div className="flex flex-col gap-2">
                         <Button type="button">Change Photo</Button>

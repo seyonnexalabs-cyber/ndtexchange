@@ -32,6 +32,121 @@ const profileSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
 });
 
+const companyProfileSchema = z.object({
+  companyName: z.string().min(3, 'Company name must be at least 3 characters.'),
+  companyAddress: z.string().optional(),
+});
+
+
+const ClientCompanyProfile = ({ companyName }: { companyName: string }) => {
+  const form = useForm<z.infer<typeof companyProfileSchema>>({
+    resolver: zodResolver(companyProfileSchema),
+    defaultValues: {
+      companyName: companyName,
+      companyAddress: '123 Energy Corridor, Houston, TX 77079', // Placeholder
+    },
+  });
+
+  const onProfileSubmit = (data: z.infer<typeof companyProfileSchema>) => {
+    toast({
+      title: 'Company Profile Updated',
+      description: 'Your company information has been saved.',
+    });
+    console.log(data);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Company Profile</CardTitle>
+        <CardDescription>Manage your organization's details.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="companyName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="companyAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Save Changes</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+};
+
+const ClientTeamManagement = ({ companyName }: { companyName: string }) => {
+    const teamMembers = allUsers.filter(user => user.company === companyName);
+
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Team Management</CardTitle>
+                    <CardDescription>Manage users who have access to your company's account.</CardDescription>
+                </div>
+                <Button>Invite Member</Button>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {teamMembers.map(user => (
+                            <TableRow key={user.id}>
+                                <TableCell className="font-medium flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={`https://picsum.photos/seed/${user.avatar}/100/100`} />
+                                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    {user.name}
+                                </TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>
+                                    <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                   <Button variant="ghost" size="sm">Manage</Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
+
 const AdminTeamManagement = () => {
     const adminUsers = allUsers.filter(user => user.role.toLowerCase().includes('admin'));
 
@@ -173,15 +288,23 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
         <TabsContent value="company">
-             <Card>
-                <CardHeader>
-                  <CardTitle>Company Profile</CardTitle>
-                  <CardDescription>Manage your organization's details and members.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">Company settings are coming soon.</p>
-                </CardContent>
-            </Card>
+             {role === 'client' ? (
+                <div className="space-y-6">
+                    <ClientCompanyProfile companyName={currentUser.company} />
+                    <ClientTeamManagement companyName={currentUser.company} />
+                </div>
+                ) : (
+                <Card>
+                    <CardHeader>
+                    <CardTitle>Company Profile</CardTitle>
+                    <CardDescription>Details about your affiliated company.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-lg font-semibold">{currentUser.company}</p>
+                        <p className="text-muted-foreground">Company profile settings are managed by your account administrator.</p>
+                    </CardContent>
+                </Card>
+            )}
         </TabsContent>
         <TabsContent value="notifications">
             <Card>

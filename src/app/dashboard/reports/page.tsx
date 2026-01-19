@@ -9,14 +9,14 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clientAssets } from '@/lib/placeholder-data';
+import { clientAssets, NDTTechniques } from '@/lib/placeholder-data';
+import { serviceProviders } from '@/lib/service-providers-data';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import type { DateRange } from 'react-day-picker';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
@@ -212,8 +212,245 @@ const AssetHistoryReportDialog = ({ open, onOpenChange }: { open: boolean, onOpe
     )
 }
 
+const jobCostReportSchema = z.object({
+  providerIds: z.array(z.string()),
+  techniqueIds: z.array(z.string()),
+  dateRange: z.object({
+    from: z.date({ required_error: "A start date is required." }),
+    to: z.date({ required_error: "An end date is required." }),
+  }),
+  format: z.enum(['PDF', 'CSV']),
+});
+
+const JobCostAnalysisReportDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
+    const form = useForm<z.infer<typeof jobCostReportSchema>>({
+        resolver: zodResolver(jobCostReportSchema),
+        defaultValues: {
+          providerIds: [],
+          techniqueIds: [],
+          format: 'PDF',
+          dateRange: {
+            from: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+            to: new Date()
+          }
+        },
+    });
+
+    const onSubmit = (data: z.infer<typeof jobCostReportSchema>) => {
+        toast({
+            title: "Report Generation Started",
+            description: "Your Job Cost & Duration Analysis report is being generated...",
+        });
+        console.log(data);
+        onOpenChange(false);
+
+        // Simulate backend processing
+        setTimeout(() => {
+            toast({
+                title: "Report Ready",
+                description: `Job_Cost_Analysis.${data.format.toLowerCase()}`,
+                action: (
+                    <ToastAction altText="Download" asChild>
+                        <a href="/#" download={`Job_Cost_Analysis.${data.format.toLowerCase()}`}>
+                            Download
+                        </a>
+                    </ToastAction>
+                )
+            });
+        }, 3000);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Generate Job Cost & Duration Analysis</DialogTitle>
+                    <DialogDescription>
+                        Filter by providers, techniques, and date range to generate the report.
+                    </DialogDescription>
+                </DialogHeader>
+                 <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 grid md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="providerIds"
+                                    render={() => (
+                                    <FormItem>
+                                        <FormLabel>Filter by Provider(s)</FormLabel>
+                                        <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                            {serviceProviders.map((provider) => (
+                                            <FormField
+                                                key={provider.id}
+                                                control={form.control}
+                                                name="providerIds"
+                                                render={({ field }) => {
+                                                return (
+                                                    <FormItem
+                                                    key={provider.id}
+                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                    >
+                                                    <FormControl>
+                                                        <Checkbox
+                                                        checked={field.value?.includes(provider.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), provider.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== provider.id
+                                                                )
+                                                                )
+                                                        }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal text-sm">
+                                                        {provider.name}
+                                                    </FormLabel>
+                                                    </FormItem>
+                                                )
+                                                }}
+                                            />
+                                            ))}
+                                        </ScrollArea>
+                                        <FormDescription>Leave blank to include all providers.</FormDescription>
+                                    </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="techniqueIds"
+                                    render={() => (
+                                    <FormItem>
+                                        <FormLabel>Filter by Technique(s)</FormLabel>
+                                        <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                            {NDTTechniques.map((tech) => (
+                                            <FormField
+                                                key={tech.id}
+                                                control={form.control}
+                                                name="techniqueIds"
+                                                render={({ field }) => {
+                                                return (
+                                                    <FormItem
+                                                    key={tech.id}
+                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                    >
+                                                    <FormControl>
+                                                        <Checkbox
+                                                        checked={field.value?.includes(tech.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), tech.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== tech.id
+                                                                )
+                                                                )
+                                                        }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal text-sm">
+                                                        {tech.name}
+                                                    </FormLabel>
+                                                    </FormItem>
+                                                )
+                                                }}
+                                            />
+                                            ))}
+                                        </ScrollArea>
+                                        <FormDescription>Leave blank to include all techniques.</FormDescription>
+                                    </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="space-y-6">
+                               <FormField
+                                    control={form.control}
+                                    name="dateRange"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Date range</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                id="date"
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !field.value.from && "text-muted-foreground"
+                                                )}
+                                                >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {field.value.from ? (
+                                                    field.value.to ? (
+                                                    <>
+                                                        {format(field.value.from, "LLL dd, y")} -{" "}
+                                                        {format(field.value.to, "LLL dd, y")}
+                                                    </>
+                                                    ) : (
+                                                    format(field.value.from, "LLL dd, y")
+                                                    )
+                                                ) : (
+                                                    <span>Pick a date range</span>
+                                                )}
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={field.value.from}
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                numberOfMonths={1}
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="format"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Report Format</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a format" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="PDF">PDF</SelectItem>
+                                                    <SelectItem value="CSV">CSV (Excel)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+                            <Button type="submit">Generate Report</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 const ClientReports = () => {
     const [isAssetReportOpen, setAssetReportOpen] = useState(false);
+    const [isJobCostReportOpen, setJobCostReportOpen] = useState(false);
 
     const reportTypes = [
         {
@@ -227,8 +464,8 @@ const ClientReports = () => {
             title: "Job Cost & Duration Analysis",
             description: "Analyze costs and timelines across all completed jobs to identify trends and outliers.",
             icon: <BarChart className="w-6 h-6 text-accent" />,
-            action: () => {},
-            disabled: true,
+            action: () => setJobCostReportOpen(true),
+            disabled: false,
         },
         {
             title: "Provider Performance Review",
@@ -279,6 +516,7 @@ const ClientReports = () => {
             </CardContent>
         </Card>
         <AssetHistoryReportDialog open={isAssetReportOpen} onOpenChange={setAssetReportOpen} />
+        <JobCostAnalysisReportDialog open={isJobCostReportOpen} onOpenChange={setJobCostReportOpen} />
     </div>
 );
 }

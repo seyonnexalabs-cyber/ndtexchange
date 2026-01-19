@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, technicians, inspectorAssets, bids, Bid } from '@/lib/placeholder-data';
+import { jobs, technicians, inspectorAssets, bids, Bid, Job } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,9 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -25,6 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import DocumentViewer from '../components/document-viewer';
+import { Input } from '@/components/ui/input';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -479,6 +480,65 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     </Card>
 
                     {isClient && <BidsSection />}
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><MessageSquare /> Job Communication</CardTitle>
+                            <CardDescription>Ask questions, provide clarifications, and upload documents for this job.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                <h3 className="font-semibold">Message Thread</h3>
+                                <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
+                                    {jobDetails.messages && jobDetails.messages.length > 0 ? (
+                                        jobDetails.messages.map((message, index) => (
+                                             <div key={index} className="flex gap-4">
+                                                 <Avatar>
+                                                    <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                 </Avatar>
+                                                 <div>
+                                                     <div className="flex items-baseline gap-2">
+                                                        <p className="font-semibold">{message.user}</p>
+                                                        <p className="text-xs text-muted-foreground">{message.role} &bull; {message.timestamp}</p>
+                                                     </div>
+                                                     <p className="text-sm text-muted-foreground">{message.message}</p>
+                                                 </div>
+                                             </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="mt-6 space-y-2">
+                                <Label htmlFor="new-message">Your Message</Label>
+                                <Textarea id="new-message" placeholder="Type your message here..." />
+                                <div className="flex justify-end">
+                                    <Button>Send Message</Button>
+                                </div>
+                            </div>
+                            
+                            {isClient && (
+                                <>
+                                    <Separator className="my-6" />
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold">Upload Clarification Documents</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
+                                        </p>
+                                        <div className="flex items-center gap-4 p-4 border rounded-md">
+                                            <Input id="clarification-docs" type="file" multiple className="flex-grow" />
+                                            <Button variant="secondary">
+                                                <Upload className="mr-2 h-4 w-4" />
+                                                Upload
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     <Card>
                         <CardHeader>

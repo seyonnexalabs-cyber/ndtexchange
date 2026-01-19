@@ -22,6 +22,13 @@ export type JobUpdate = {
     details?: string;
 };
 
+export type JobMessage = {
+    user: string;
+    role: 'Client' | 'Inspector' | 'Auditor';
+    timestamp: string;
+    message: string;
+};
+
 export type Job = {
     id: string;
     title: string;
@@ -40,6 +47,7 @@ export type Job = {
     workflow: 'standard' | 'level3' | 'auto';
     documents?: JobDocument[];
     history?: JobUpdate[];
+    messages?: JobMessage[];
 };
 
 export type Inspection = {
@@ -189,6 +197,11 @@ export const jobs: Job[] = [
             { user: 'Carlos Ray', timestamp: '2024-06-20 08:00 AM', action: 'Job scheduled.', details: `Start: 2024-06-21` },
             { user: 'John Doe', timestamp: '2024-06-19 03:00 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
             { user: 'John Doe', timestamp: '2024-06-18 10:00 AM', action: 'Job created and posted to marketplace.' },
+        ],
+        messages: [
+            { user: 'John Doe', role: 'Client', timestamp: '2024-06-20 02:15 PM', message: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.' },
+            { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-06-20 03:00 PM', message: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.' },
+            { user: 'John Doe', role: 'Client', timestamp: '2024-06-22 10:00 AM', message: 'Thanks for the report. What was the outcome on that secondary hook?' },
         ]
     },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
@@ -281,6 +294,7 @@ export const allUsers: PlatformUser[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

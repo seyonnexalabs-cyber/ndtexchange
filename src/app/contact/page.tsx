@@ -18,10 +18,10 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-headline font-bold">
-                Start Your 60-Day Free Trial
+                Your First Year is on Us
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                Contact us to get started with a free 60-day trial. No credit card required. Explore all features and see how NDT Exchange can benefit your business.
+                Sign up today and get your first year of NDT Exchange completely free. No credit card required. Full access to all features to grow your business.
               </p>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function ContactPage() {
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                All plans are billed annually. Monthly options available. Contact us for detailed pricing.
+                All plans are billed annually after your first free year. Contact us for detailed pricing.
              </p>
           </div>
         </section>
@@ -150,7 +150,7 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
       </CardContent>
       <CardFooter>
         <Button className="w-full" variant={isFeatured ? 'default' : 'outline'}>
-          Request a Free Trial
+          Start Your Free Year
         </Button>
       </CardFooter>
     </Card>

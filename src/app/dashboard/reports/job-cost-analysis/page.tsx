@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft } from 'lucide-react';
 import { parseISO, differenceInDays, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,6 +18,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const reportSchema = z.object({
   providerIds: z.array(z.string()),
@@ -40,6 +42,12 @@ export default function JobCostAnalysisReportPage() {
           }
         },
     });
+
+    const searchParams = useSearchParams();
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     const filters = form.watch();
 
@@ -82,6 +90,12 @@ export default function JobCostAnalysisReportPage() {
     
     return (
         <div className="space-y-6">
+            <Button asChild variant="outline" size="sm">
+                <Link href={constructUrl("/dashboard/reports")}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Reports
+                </Link>
+            </Button>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">

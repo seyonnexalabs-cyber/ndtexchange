@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,6 +40,12 @@ export default function AssetHistoryReportPage() {
           }
         },
     });
+    
+    const searchParams = useSearchParams();
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     const filters = form.watch();
 
@@ -53,6 +61,12 @@ export default function AssetHistoryReportPage() {
     
     return (
         <div className="space-y-6">
+            <Button asChild variant="outline" size="sm">
+                <Link href={constructUrl("/dashboard/reports")}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Reports
+                </Link>
+            </Button>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">

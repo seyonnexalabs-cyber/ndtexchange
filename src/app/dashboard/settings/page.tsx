@@ -195,6 +195,72 @@ const AdminTeamManagement = () => {
     );
 };
 
+const NotificationSettings = ({ role }: { role: string }) => {
+  const clientSettings = [
+    { id: 'email-job-updates', label: 'Job Status Updates', description: 'Get notified when a job you posted is awarded, scheduled, or completed.' , defaultChecked: true},
+    { id: 'email-new-bids', label: 'New Bids Received', description: 'Receive an email every time a provider places a bid on your job.' , defaultChecked: true},
+    { id: 'email-report-submissions', label: 'Report Submissions', description: 'Get an email when an inspector submits a report for your review.' , defaultChecked: true},
+    { id: 'email-messages-client', label: 'Direct Messages', description: 'Receive notifications for new messages from providers.' , defaultChecked: false},
+  ];
+
+  const inspectorSettings = [
+    { id: 'email-new-jobs', label: 'New Job Opportunities', description: 'Get notified about new jobs that match your certified techniques.' , defaultChecked: true},
+    { id: 'email-bid-status', label: 'Bid Status Updates', description: 'Receive an email when your bid is awarded or rejected.' , defaultChecked: true},
+    { id: 'email-job-assignments', label: 'Job Assignments', description: 'Get notified when you are assigned to a scheduled job.' , defaultChecked: true},
+    { id: 'email-messages-inspector', label: 'Direct Messages', description: 'Receive notifications for new messages from clients.' , defaultChecked: true},
+  ];
+
+  const adminSettings = [
+    { id: 'email-new-users', label: 'New User Signups', description: 'Get notified when a new client or provider joins the platform.' , defaultChecked: true},
+    { id: 'email-new-reviews', label: 'New Reviews for Moderation', description: 'Receive an email when a new review is submitted and needs approval.' , defaultChecked: true},
+    { id: 'email-platform-alerts', label: 'Platform Health Alerts', description: 'Important system-level notifications.' , defaultChecked: true},
+  ];
+  
+  const auditorSettings = [
+    { id: 'email-audit-queue', label: 'New Reports for Audit', description: 'Get notified when a report is submitted and requires your audit.' , defaultChecked: true},
+    { id: 'email-audit-approved', label: 'Audit Status Changes', description: 'Receive a notification when a client approves or rejects a report you audited.' , defaultChecked: false},
+  ];
+
+  let settings;
+  switch (role) {
+    case 'client':
+      settings = clientSettings;
+      break;
+    case 'inspector':
+      settings = inspectorSettings;
+      break;
+    case 'admin':
+      settings = adminSettings;
+      break;
+    case 'auditor':
+      settings = auditorSettings;
+      break;
+    default:
+      settings = [];
+  }
+
+  return (
+    <Card>
+        <CardHeader>
+            <CardTitle>Email Notifications</CardTitle>
+            <CardDescription>Manage how you receive email notifications for important platform events.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+             {settings.map(setting => (
+                <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <Label htmlFor={setting.id} className="text-base">{setting.label}</Label>
+                        <p className="text-sm text-muted-foreground">{setting.description}</p>
+                    </div>
+                    <Switch id={setting.id} defaultChecked={setting.defaultChecked} className="mt-1" />
+                </div>
+             ))}
+             {settings.length === 0 && <p className="text-muted-foreground">No specific email notifications for this role.</p>}
+        </CardContent>
+    </Card>
+  );
+};
+
 
 export default function SettingsPage() {
     const searchParams = useSearchParams();
@@ -310,44 +376,7 @@ export default function SettingsPage() {
             )}
         </TabsContent>
         <TabsContent value="notifications">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Notifications</CardTitle>
-                    <CardDescription>Manage how you receive notifications.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <h3 className="font-medium">By Email</h3>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <Label htmlFor="email-jobs">Job Updates</Label>
-                            <Switch id="email-jobs" defaultChecked />
-                        </div>
-                         <div className="flex items-center justify-between rounded-lg border p-4">
-                            <Label htmlFor="email-bids">New Bids</Label>
-                            <Switch id="email-bids" defaultChecked />
-                        </div>
-                         <div className="flex items-center justify-between rounded-lg border p-4">
-                            <Label htmlFor="email-messages">Direct Messages</Label>
-                            <Switch id="email-messages" />
-                        </div>
-                    </div>
-                     <div className="space-y-2">
-                        <h3 className="font-medium">Push Notifications</h3>
-                         <div className="flex items-center justify-between rounded-lg border p-4">
-                            <Label htmlFor="push-everything">Everything</Label>
-                            <Switch id="push-everything" />
-                        </div>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <Label htmlFor="push-mentions">Mentions Only</Label>
-                            <Switch id="push-mentions" defaultChecked />
-                        </div>
-                         <div className="flex items-center justify-between rounded-lg border p-4">
-                            <Label htmlFor="push-nothing">Nothing</Label>
-                            <Switch id="push-nothing" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            <NotificationSettings role={role} />
         </TabsContent>
         {role === 'admin' && (
             <TabsContent value="team">

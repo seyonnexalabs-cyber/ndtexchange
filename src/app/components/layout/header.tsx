@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Search, Bell, Globe } from 'lucide-react';
+import { Search, Bell, Globe, QrCode } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useSearch } from './search-provider';
+import { useQRScanner } from './qr-scanner-provider';
 
 
 const userDetails = {
@@ -24,6 +25,7 @@ const AppHeader = () => {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
+    const { setScanOpen } = useQRScanner();
     
     const currentUser = useMemo(() => {
         return userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -63,6 +65,11 @@ const AppHeader = () => {
                         />
                     </div>
                 </form>
+
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setScanOpen(true)}>
+                    <QrCode className="h-5 w-5" />
+                    <span className="sr-only">Scan QR Code</span>
+                </Button>
 
                 <Button variant="ghost" size="icon" className="relative h-9 w-9">
                     <Bell className="h-5 w-5" />

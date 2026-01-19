@@ -24,6 +24,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -293,48 +294,10 @@ const ClientAssetsView = () => {
     );
 }
 
-const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onScan: (id: string) => void }) => {
-    const [scannedId, setScannedId] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (scannedId.trim()) {
-            onScan(scannedId.trim());
-        }
-    };
-
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Scan Asset QR Code</DialogTitle>
-                    <DialogDescription>
-                        Use your device's camera to scan a QR code. If the code is unreadable, you can enter the Asset ID manually below.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4 py-4">
-                        <Input 
-                            placeholder="Enter Asset ID (e.g., ASSET-001)"
-                            value={scannedId}
-                            onChange={(e) => setScannedId(e.target.value)}
-                            autoFocus
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-                        <Button type="submit">Find Asset</Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
 
 export default function AssetsPage() {
     const [isAddAssetOpen, setAddAssetOpen] = useState(false);
-    const [isScanOpen, setScanOpen] = useState(false);
+    const { setScanOpen } = useQRScanner();
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -347,43 +310,6 @@ export default function AssetsPage() {
             description: `${values.name} has been added to your asset list.`,
         });
         setAddAssetOpen(false);
-    };
-
-    const handleQrScan = (id: string) => {
-        const assetExists = clientAssets.some(asset => asset.id === id);
-        if (!assetExists) {
-            toast({
-                variant: 'destructive',
-                title: "Asset Not Found",
-                description: `No asset with ID "${id}" could be found.`,
-            });
-            return;
-        }
-
-        if (role === 'inspector') {
-            // For this simulation, we'll assume the inspector belongs to provider-03 (TEAM, Inc.)
-            const inspectorProviderId = 'provider-03';
-            
-            const hasAccess = jobs.some(job => 
-                job.assetIds?.includes(id) && job.providerId === inspectorProviderId
-            );
-
-            if (hasAccess) {
-                const params = new URLSearchParams(searchParams.toString());
-                router.push(`/dashboard/assets/${id}?${params.toString()}`);
-                setScanOpen(false);
-            } else {
-                 toast({
-                    variant: 'destructive',
-                    title: "Access Denied",
-                    description: `Your company does not have a work history for asset "${id}".`,
-                });
-            }
-        } else { // For client or other roles, allow access
-            const params = new URLSearchParams(searchParams.toString());
-            router.push(`/dashboard/assets/${id}?${params.toString()}`);
-            setScanOpen(false);
-        }
     };
 
     return (
@@ -429,11 +355,6 @@ export default function AssetsPage() {
                     />
                 </DialogContent>
             </Dialog>
-            <QRScannerDialog 
-                isOpen={isScanOpen}
-                onOpenChange={setScanOpen}
-                onScan={handleQrScan}
-            />
         </div>
     );
 }

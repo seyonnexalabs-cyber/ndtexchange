@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ShieldCheck, Building, HardHat, Shield, Eye } from 'lucide-react';
+import { ShieldCheck, Building, HardHat, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type UserType = 'client' | 'inspector' | 'admin' | 'auditor';
+type UserType = 'client' | 'inspector' | 'auditor';
 
 export default function LoginPage() {
   const [userType, setUserType] = useState<UserType>('client');
@@ -35,8 +35,6 @@ export default function LoginPage() {
         return 'Client Portal';
       case 'inspector':
         return 'Inspector Hub';
-      case 'admin':
-        return 'Platform Administration';
       case 'auditor':
         return 'Auditor Console';
     }
@@ -61,7 +59,7 @@ export default function LoginPage() {
               <Label>Select Role</Label>
               <RadioGroup
                 defaultValue="client"
-                className="grid grid-cols-4 gap-2"
+                className="grid grid-cols-3 gap-2"
                 onValueChange={(value: UserType) => setUserType(value)}
               >
                 <div>
@@ -82,16 +80,6 @@ export default function LoginPage() {
                   >
                     <HardHat className="h-5 w-5" />
                     Inspector
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem value="admin" id="admin" className="peer sr-only" />
-                  <Label
-                    htmlFor="admin"
-                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full"
-                  >
-                    <Shield className="h-5 w-5" />
-                    Admin
                   </Label>
                 </div>
                  <div>

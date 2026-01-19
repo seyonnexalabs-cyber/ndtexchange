@@ -19,8 +19,6 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-import { ToastAction } from '@/components/ui/toast';
 
 
 const assetReportSchema = z.object({
@@ -35,6 +33,8 @@ const assetReportSchema = z.object({
 });
 
 const AssetHistoryReportDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const form = useForm<z.infer<typeof assetReportSchema>>({
         resolver: zodResolver(assetReportSchema),
         defaultValues: {
@@ -48,27 +48,14 @@ const AssetHistoryReportDialog = ({ open, onOpenChange }: { open: boolean, onOpe
     });
 
     const onSubmit = (data: z.infer<typeof assetReportSchema>) => {
-        toast({
-            title: "Report Generation Started",
-            description: "Your Asset Inspection History report is being generated...",
-        });
-        console.log(data);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('assetIds', data.assetIds.join(','));
+        params.set('from', format(data.dateRange.from, 'yyyy-MM-dd'));
+        params.set('to', format(data.dateRange.to, 'yyyy-MM-dd'));
+        params.set('format', data.format);
+        
+        router.push(`/dashboard/reports/asset-history?${params.toString()}`);
         onOpenChange(false);
-
-        // Simulate backend processing
-        setTimeout(() => {
-            toast({
-                title: "Report Ready",
-                description: `Asset_History_Report.${data.format.toLowerCase()}`,
-                action: (
-                    <ToastAction altText="Download" asChild>
-                        <a href="/#" download={`Asset_History_Report.${data.format.toLowerCase()}`}>
-                            Download
-                        </a>
-                    </ToastAction>
-                )
-            });
-        }, 2500);
     };
 
     return (

@@ -33,14 +33,14 @@
     --chart-5: 0 72% 51%;
     
     /* Sidebar theme */
-    --sidebar-background: 215 50% 48%; /* primary */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 145 63% 42%; /* accent */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 215 50% 56%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 215 50% 40%;
-    --sidebar-ring: 145 63% 42%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 8% 25%;
+    --sidebar-primary: 215 50% 48%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 215 50% 48%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 215 50% 48%;
   }
 
   .inspector-theme {

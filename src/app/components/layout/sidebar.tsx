@@ -29,6 +29,7 @@ import {
   Gavel,
   Star,
   PlusCircle,
+  LifeBuoy,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -48,6 +49,7 @@ const allMenuItems = [
   // Common
   { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin', 'auditor'] },
   { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
+  { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy, roles: ['client', 'inspector', 'auditor'] },
   
   // Client
   { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
@@ -106,7 +108,8 @@ const AppSidebar = () => {
         'Compliance',
         // Common across multiple roles
         'Reports', 'Calendar', 'Messages',
-        // Common last
+        // Common last items
+        'Support',
         'Settings'
     ];
 

@@ -106,7 +106,9 @@ const AppHeader = () => {
                         <DropdownMenuItem asChild>
                             <Link href={constructUrl('/dashboard/settings')}>Settings</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Support</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={constructUrl('/dashboard/support')}>Support</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                     </DropdownMenuContent>

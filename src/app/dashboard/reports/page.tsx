@@ -20,6 +20,7 @@ import type { DateRange } from 'react-day-picker';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 
 const assetReportSchema = z.object({
@@ -49,10 +50,25 @@ const AssetHistoryReportDialog = ({ open, onOpenChange }: { open: boolean, onOpe
     const onSubmit = (data: z.infer<typeof assetReportSchema>) => {
         toast({
             title: "Report Generation Started",
-            description: "Your Asset Inspection History report is being generated.",
+            description: "Your Asset Inspection History report is being generated...",
         });
         console.log(data);
         onOpenChange(false);
+
+        // Simulate backend processing
+        setTimeout(() => {
+            toast({
+                title: "Report Ready",
+                description: `Asset_History_Report.${data.format.toLowerCase()}`,
+                action: (
+                    <ToastAction altText="Download" asChild>
+                        <a href="/#" download={`Asset_History_Report.${data.format.toLowerCase()}`}>
+                            Download
+                        </a>
+                    </ToastAction>
+                )
+            });
+        }, 2500);
     };
 
     return (

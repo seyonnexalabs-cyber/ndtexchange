@@ -1,34 +1,51 @@
 'use client';
 
 import * as React from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { jobs, bids, NDTTechniques } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, FileText, Printer, DollarSign, Clock, BarChart2 } from 'lucide-react';
+import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter } from 'lucide-react';
 import { parseISO, differenceInDays, format } from 'date-fns';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+
+const reportSchema = z.object({
+  providerIds: z.array(z.string()),
+  techniqueIds: z.array(z.string()),
+  dateRange: z.object({
+    from: z.date().optional(),
+    to: z.date().optional(),
+  }),
+});
 
 export default function JobCostAnalysisReportPage() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
+    const form = useForm<z.infer<typeof reportSchema>>({
+        resolver: zodResolver(reportSchema),
+        defaultValues: {
+          providerIds: [],
+          techniqueIds: [],
+          dateRange: {
+            from: undefined,
+            to: undefined,
+          }
+        },
+    });
 
-    const { jobs: filteredJobs, filters } = React.useMemo(() => {
-        const providerIds = searchParams.get('providers')?.split(',') || [];
-        const techniqueIds = searchParams.get('techniques')?.split(',') || [];
-        const fromDate = searchParams.get('from') ? parseISO(searchParams.get('from')) : null;
-        const toDate = searchParams.get('to') ? parseISO(searchParams.get('to')) : null;
+    const filters = form.watch();
 
-        const filters = {
-            providers: providerIds.map(id => serviceProviders.find(p => p.id === id)?.name).filter(Boolean) as string[],
-            techniques: techniqueIds.map(id => NDTTechniques.find(t => t.id === id)?.name).filter(Boolean) as string[],
-            dateRange: fromDate && toDate ? `${format(fromDate, 'PPP')} to ${format(toDate, 'PPP')}` : 'All time'
-        };
-
-        const jobsWithBids = jobs
+    const filteredJobs = React.useMemo(() => {
+        const { providerIds, techniqueIds, dateRange } = filters;
+        return jobs
             .map(job => {
                 const awardedBid = bids.find(bid => bid.jobId === job.id && bid.status === 'Awarded');
                 if (!awardedBid) return null;
@@ -43,13 +60,11 @@ export default function JobCostAnalysisReportPage() {
                 const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
                 const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerId!);
                 const techniqueMatch = techniqueIds.length === 0 || techniqueIds.includes(job.technique);
-                const dateMatch = fromDate && toDate ? (jobDate >= fromDate && jobDate <= toDate) : true;
+                const dateMatch = dateRange?.from && dateRange?.to ? (jobDate >= dateRange.from && jobDate <= dateRange.to) : true;
 
                 return providerMatch && techniqueMatch && dateMatch;
             });
-            
-        return { jobs: jobsWithBids, filters };
-    }, [searchParams]);
+    }, [filters]);
 
     const { totalCost, avgCost, avgDuration } = React.useMemo(() => {
         if (filteredJobs.length === 0) {
@@ -65,32 +80,15 @@ export default function JobCostAnalysisReportPage() {
         }
     }, [filteredJobs]);
     
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        // remove report-specific params
-        params.delete('providers');
-        params.delete('techniques');
-        params.delete('from');
-        params.delete('to');
-        params.delete('format');
-        return `${base}?${params.toString()}`;
-    }
-    
     return (
-        <div>
-            <div className="flex justify-between items-start mb-6">
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                     <Button asChild variant="outline" size="sm" className="mb-4">
-                        <Link href={constructUrl("/dashboard/reports")}>
-                            <ChevronLeft className="mr-2 h-4 w-4" />
-                            Back to Reports
-                        </Link>
-                    </Button>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <FileText />
                         Job Cost & Duration Analysis
                     </h1>
-                    <p className="text-muted-foreground mt-1">Generated on {format(new Date(), 'PPP')}</p>
+                    <p className="text-muted-foreground mt-1">Analyze costs and timelines for completed jobs.</p>
                 </div>
                 <Button onClick={() => window.print()}>
                     <Printer className="mr-2 h-4 w-4"/>
@@ -98,27 +96,159 @@ export default function JobCostAnalysisReportPage() {
                 </Button>
             </div>
             
-            <Card className="mb-6">
+            <Card>
                 <CardHeader>
-                    <CardTitle>Report Filters</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Filter /> Report Filters</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                    <div className="flex">
-                        <strong className="w-32">Date Range:</strong>
-                        <span className="text-muted-foreground">{filters.dateRange}</span>
-                    </div>
-                    <div className="flex">
-                        <strong className="w-32">Providers:</strong>
-                        <span className="text-muted-foreground">{filters.providers.length > 0 ? filters.providers.join(', ') : 'All'}</span>
-                    </div>
-                     <div className="flex">
-                        <strong className="w-32">Techniques:</strong>
-                        <span className="text-muted-foreground">{filters.techniques.length > 0 ? filters.techniques.join(', ') : 'All'}</span>
-                    </div>
+                <CardContent>
+                    <Form {...form}>
+                        <form className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                           <FormField
+                                control={form.control}
+                                name="providerIds"
+                                render={() => (
+                                <FormItem>
+                                    <FormLabel>Filter by Provider(s)</FormLabel>
+                                    <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                        {serviceProviders.map((provider) => (
+                                        <FormField
+                                            key={provider.id}
+                                            control={form.control}
+                                            name="providerIds"
+                                            render={({ field }) => {
+                                            return (
+                                                <FormItem
+                                                key={provider.id}
+                                                className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                >
+                                                <FormControl>
+                                                    <Checkbox
+                                                    checked={field.value?.includes(provider.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked
+                                                        ? field.onChange([...(field.value || []), provider.id])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                                (value) => value !== provider.id
+                                                            )
+                                                            )
+                                                    }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal text-sm">
+                                                    {provider.name}
+                                                </FormLabel>
+                                                </FormItem>
+                                            )
+                                            }}
+                                        />
+                                        ))}
+                                    </ScrollArea>
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="techniqueIds"
+                                render={() => (
+                                <FormItem>
+                                    <FormLabel>Filter by Technique(s)</FormLabel>
+                                    <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                        {NDTTechniques.map((tech) => (
+                                        <FormField
+                                            key={tech.id}
+                                            control={form.control}
+                                            name="techniqueIds"
+                                            render={({ field }) => {
+                                            return (
+                                                <FormItem
+                                                key={tech.id}
+                                                className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                >
+                                                <FormControl>
+                                                    <Checkbox
+                                                    checked={field.value?.includes(tech.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked
+                                                        ? field.onChange([...(field.value || []), tech.id])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                                (value) => value !== tech.id
+                                                            )
+                                                            )
+                                                    }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal text-sm">
+                                                    {tech.name}
+                                                </FormLabel>
+                                                </FormItem>
+                                            )
+                                            }}
+                                        />
+                                        ))}
+                                    </ScrollArea>
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                    control={form.control}
+                                    name="dateRange"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Date range</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                id="date"
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !field.value.from && "text-muted-foreground"
+                                                )}
+                                                >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {field.value.from ? (
+                                                    field.value.to ? (
+                                                    <>
+                                                        {format(field.value.from, "LLL dd, y")} -{" "}
+                                                        {format(field.value.to, "LLL dd, y")}
+                                                    </>
+                                                    ) : (
+                                                    format(field.value.from, "LLL dd, y")
+                                                    )
+                                                ) : (
+                                                    <span>Pick a date range</span>
+                                                )}
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={field.value.from}
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                numberOfMonths={1}
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="flex items-end">
+                                <Button type="button" variant="outline" onClick={() => form.reset({ providerIds: [], techniqueIds: [], dateRange: { from: undefined, to: undefined }})}>
+                                    Clear Filters
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
                 </CardContent>
             </Card>
 
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Jobs Analyzed</CardTitle>

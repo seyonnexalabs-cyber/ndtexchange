@@ -1,64 +1,65 @@
 'use client';
 
 import * as React from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { inspections, clientAssets } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, FileText, Printer, BarChart2 } from 'lucide-react';
+import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+
+
+const reportSchema = z.object({
+  assetIds: z.array(z.string()),
+  dateRange: z.object({
+    from: z.date().optional(),
+    to: z.date().optional(),
+  }),
+});
 
 export default function AssetHistoryReportPage() {
-    const searchParams = useSearchParams();
+    const form = useForm<z.infer<typeof reportSchema>>({
+        resolver: zodResolver(reportSchema),
+        defaultValues: {
+          assetIds: [],
+          dateRange: {
+            from: undefined,
+            to: undefined
+          }
+        },
+    });
 
-    const { filteredInspections, filters } = React.useMemo(() => {
-        const assetIds = searchParams.get('assetIds')?.split(',') || [];
-        const fromDate = searchParams.get('from') ? parseISO(searchParams.get('from')) : null;
-        const toDate = searchParams.get('to') ? parseISO(searchParams.get('to')) : null;
+    const filters = form.watch();
 
-        const filters = {
-            assets: assetIds.map(id => clientAssets.find(a => a.id === id)?.name).filter(Boolean) as string[],
-            dateRange: fromDate && toDate ? `${format(fromDate, 'PPP')} to ${format(toDate, 'PPP')}` : 'All time'
-        };
-
-        const filteredInspections = inspections.filter(inspection => {
+    const filteredInspections = React.useMemo(() => {
+        const { assetIds, dateRange } = filters;
+        return inspections.filter(inspection => {
             const inspectionDate = parseISO(inspection.date);
             const assetMatch = assetIds.length === 0 || assetIds.includes(inspection.assetId);
-            const dateMatch = fromDate && toDate ? (inspectionDate >= fromDate && inspectionDate <= toDate) : true;
+            const dateMatch = dateRange?.from && dateRange?.to ? (inspectionDate >= dateRange.from && inspectionDate <= dateRange.to) : true;
             return assetMatch && dateMatch;
         });
-            
-        return { filteredInspections, filters };
-    }, [searchParams]);
-    
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        // remove report-specific params
-        params.delete('assetIds');
-        params.delete('from');
-        params.delete('to');
-        params.delete('format');
-        return `${base}?${params.toString()}`;
-    }
+    }, [filters]);
     
     return (
-        <div>
-            <div className="flex justify-between items-start mb-6">
+        <div className="space-y-6">
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                     <Button asChild variant="outline" size="sm" className="mb-4">
-                        <Link href={constructUrl("/dashboard/reports")}>
-                            <ChevronLeft className="mr-2 h-4 w-4" />
-                            Back to Reports
-                        </Link>
-                    </Button>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <FileText />
                         Asset Inspection History
                     </h1>
-                    <p className="text-muted-foreground mt-1">Generated on {format(new Date(), 'PPP')}</p>
+                    <p className="text-muted-foreground mt-1">Generate a detailed history of all inspections for selected assets.</p>
                 </div>
                 <Button onClick={() => window.print()}>
                     <Printer className="mr-2 h-4 w-4"/>
@@ -66,37 +67,122 @@ export default function AssetHistoryReportPage() {
                 </Button>
             </div>
             
-            <Card className="mb-6">
+            <Card>
                 <CardHeader>
-                    <CardTitle>Report Filters</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Filter /> Report Filters</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                    <div className="flex">
-                        <strong className="w-32">Date Range:</strong>
-                        <span className="text-muted-foreground">{filters.dateRange}</span>
-                    </div>
-                    <div className="flex">
-                        <strong className="w-32">Assets:</strong>
-                        <span className="text-muted-foreground">{filters.assets.length > 0 ? filters.assets.join(', ') : 'All'}</span>
-                    </div>
+                <CardContent>
+                    <Form {...form}>
+                        <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                             <FormField
+                                control={form.control}
+                                name="assetIds"
+                                render={() => (
+                                <FormItem>
+                                    <FormLabel>Select Asset(s)</FormLabel>
+                                    <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                        {clientAssets.map((asset) => (
+                                        <FormField
+                                            key={asset.id}
+                                            control={form.control}
+                                            name="assetIds"
+                                            render={({ field }) => {
+                                            return (
+                                                <FormItem
+                                                key={asset.id}
+                                                className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                >
+                                                <FormControl>
+                                                    <Checkbox
+                                                    checked={field.value?.includes(asset.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked
+                                                        ? field.onChange([...(field.value || []), asset.id])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                                (value) => value !== asset.id
+                                                            )
+                                                            )
+                                                    }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal text-sm">
+                                                    {asset.name} ({asset.location})
+                                                </FormLabel>
+                                                </FormItem>
+                                            )
+                                            }}
+                                        />
+                                        ))}
+                                    </ScrollArea>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                    control={form.control}
+                                    name="dateRange"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Date range</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                id="date"
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !field.value.from && "text-muted-foreground"
+                                                )}
+                                                >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {field.value.from ? (
+                                                    field.value.to ? (
+                                                    <>
+                                                        {format(field.value.from, "LLL dd, y")} -{" "}
+                                                        {format(field.value.to, "LLL dd, y")}
+                                                    </>
+                                                    ) : (
+                                                    format(field.value.from, "LLL dd, y")
+                                                    )
+                                                ) : (
+                                                    <span>Pick a date range</span>
+                                                )}
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={field.value.from}
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                numberOfMonths={1}
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="flex items-end">
+                                    <Button type="button" variant="outline" onClick={() => form.reset({ assetIds: [], dateRange: { from: undefined, to: undefined }})}>
+                                        Clear Filters
+                                    </Button>
+                                </div>
+                        </form>
+                    </Form>
                 </CardContent>
             </Card>
 
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Inspections Analyzed</CardTitle>
-                        <BarChart2 className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{filteredInspections.length}</div>
-                    </CardContent>
-                </Card>
-            </div>
-            
-            <Card>
+             <Card>
                 <CardHeader>
-                    <CardTitle>Detailed Inspection Data</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><BarChart2 /> Report Results</CardTitle>
+                    <CardDescription>
+                        Found {filteredInspections.length} inspection(s) matching your criteria.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>

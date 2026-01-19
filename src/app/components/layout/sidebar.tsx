@@ -44,6 +44,7 @@ const userDetails = {
   inspector: { name: 'Jane Smith', role: 'Level II Inspector', fallback: 'JS', company: 'TEAM, Inc.' },
   admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT Exchange' },
   auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
+  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT Exchange' },
 };
 
 const allMenuItems = [
@@ -91,12 +92,12 @@ const AppSidebar = () => {
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
-  const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : 'client';
+  const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : 'common';
   
   const { setJobPostOpen } = useJobPost();
 
   const currentUser = useMemo(() => {
-    return userDetails[role as keyof typeof userDetails] || userDetails.client;
+    return userDetails[role as keyof typeof userDetails] || userDetails.common;
   }, [role]);
 
   const menuItems = useMemo(() => {
@@ -118,8 +119,15 @@ const AppSidebar = () => {
         'Settings'
     ];
 
-    return allMenuItems
-        .filter(item => item.roles.includes(role))
+    const filteredItems = allMenuItems.filter(item => {
+        if (role && role !== 'common') {
+            return item.roles.includes(role);
+        }
+        // If no valid role, show items that are not exclusive to a single role.
+        return item.roles.length > 1;
+    });
+
+    return filteredItems
         .sort((a, b) => {
             const aIndex = labelOrder.indexOf(a.label);
             const bIndex = labelOrder.indexOf(b.label);
@@ -154,8 +162,8 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link href={constructUrl("/dashboard")} className="flex items-center gap-2">
-            <ShieldCheck className="w-8 h-8 text-sidebar-primary" />
-            <h1 className="text-xl font-headline font-bold text-sidebar-foreground">
+            <ShieldCheck className="w-8 h-8 text-primary" />
+            <h1 className="text-xl font-headline font-bold text-card-foreground">
                 NDT Exchange
             </h1>
         </Link>
@@ -194,17 +202,17 @@ const AppSidebar = () => {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
+      <SidebarFooter className="p-4 border-t border-border">
          <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
                 <AvatarFallback>{currentUser.fallback}</AvatarFallback>
             </Avatar>
             <div className="overflow-hidden">
                 <p className="font-semibold truncate">{currentUser.name}</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">{currentUser.role}</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">{currentUser.company}</p>
+                <p className="text-xs text-card-foreground/70 truncate">{currentUser.role}</p>
+                <p className="text-xs text-card-foreground/70 truncate">{currentUser.company}</p>
             </div>
-            <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
+            <Button variant="ghost" size="icon" className="ml-auto text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />
             </Button>
          </div>

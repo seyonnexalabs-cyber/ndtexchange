@@ -34,15 +34,15 @@ const ClientReports = () => {
             title: "Provider Performance Review",
             description: "Compare performance metrics for service providers, including on-time delivery and report quality.",
             icon: <HardHat className="w-6 h-6 text-accent" />,
-            href: '#',
-            disabled: true,
+            href: constructUrl('/dashboard/reports/provider-performance'),
+            disabled: false,
         },
         {
             title: "Custom Report Builder",
             description: "Create your own report by selecting custom data points, filters, and date ranges.",
             icon: <Settings2 className="w-6 h-6 text-accent" />,
-            href: '#',
-            disabled: true,
+            href: constructUrl('/dashboard/reports/custom-report-builder'),
+            disabled: false,
         }
     ];
     

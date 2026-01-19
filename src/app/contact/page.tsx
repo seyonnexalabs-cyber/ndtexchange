@@ -149,8 +149,8 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
         </ul>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" variant={isFeatured ? 'default' : 'outline'}>
-          Start Your 365-Day Free Trial
+        <Button className="w-full" variant={isFeatured ? 'default' : 'outline'} asChild>
+          <Link href="#contact-form">Start Your 365-Day Free Trial</Link>
         </Button>
       </CardFooter>
     </Card>

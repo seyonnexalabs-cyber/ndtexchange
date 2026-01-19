@@ -194,76 +194,131 @@ const AdminTeamManagement = () => {
 };
 
 const NotificationSettings = ({ role }: { role: string }) => {
-  const clientSettings = [
+  const clientEmailSettings = [
     { id: 'email-job-updates', label: 'Job Status Updates', description: 'Get notified when a job you posted is awarded, scheduled, or completed.' , defaultChecked: true},
     { id: 'email-new-bids', label: 'New Bids Received', description: 'Receive an email every time a provider places a bid on your job.' , defaultChecked: true},
     { id: 'email-report-submissions', label: 'Report Submissions', description: 'Get an email when an inspector submits a report for your review.' , defaultChecked: true},
     { id: 'email-messages-client', label: 'Direct Messages', description: 'Receive notifications for new messages from providers.' , defaultChecked: false},
   ];
 
-  const inspectorSettings = [
+  const inspectorEmailSettings = [
     { id: 'email-new-jobs', label: 'New Job Opportunities', description: 'Get notified about new jobs that match your certified techniques.' , defaultChecked: true},
     { id: 'email-bid-status', label: 'Bid Status Updates', description: 'Receive an email when your bid is awarded or rejected.' , defaultChecked: true},
     { id: 'email-job-assignments', label: 'Job Assignments', description: 'Get notified when you are assigned to a scheduled job.' , defaultChecked: true},
-    { id: 'email-messages-inspector', label: 'Direct Messages', description: 'Receive notifications for new messages from clients.' , defaultChecked: true},
+    { id: 'email-messages-inspector', label: 'Direct Messages', description: 'Receive notifications for new messages from clients.' , defaultChecked: false},
   ];
 
-  const adminSettings = [
+  const adminEmailSettings = [
     { id: 'email-new-users', label: 'New User Signups', description: 'Get notified when a new client or provider joins the platform.' , defaultChecked: true},
     { id: 'email-new-reviews', label: 'New Reviews for Moderation', description: 'Receive an email when a new review is submitted and needs approval.' , defaultChecked: true},
     { id: 'email-platform-alerts', label: 'Platform Health Alerts', description: 'Important system-level notifications.' , defaultChecked: true},
   ];
   
-  const auditorSettings = [
+  const auditorEmailSettings = [
     { id: 'email-audit-queue', label: 'New Reports for Audit', description: 'Get notified when a report is submitted and requires your audit.' , defaultChecked: true},
     { id: 'email-audit-approved', label: 'Audit Status Changes', description: 'Receive a notification when a client approves or rejects a report you audited.' , defaultChecked: false},
   ];
 
-  let settings;
+  const clientPushSettings = [
+    { id: 'push-job-updates', label: 'Job Status Updates', description: 'Get a push notification when a job you posted is updated.', defaultChecked: true },
+    { id: 'push-new-bids', label: 'New Bids Received', description: 'Get a push notification when a provider places a bid on your job.', defaultChecked: true },
+    { id: 'push-messages-client', label: 'Direct Messages', description: 'Receive push notifications for new messages.', defaultChecked: true },
+  ];
+
+  const inspectorPushSettings = [
+      { id: 'push-new-jobs', label: 'New Job Opportunities', description: 'Get a push notification for new jobs that match your techniques.', defaultChecked: true },
+      { id: 'push-bid-status', label: 'Bid Status Updates', description: 'Get a push notification when your bid is awarded or rejected.', defaultChecked: true },
+      { id: 'push-messages-inspector', label: 'Direct Messages', description: 'Receive push notifications for new messages.', defaultChecked: true },
+  ];
+
+  const adminPushSettings = [
+      { id: 'push-new-users', label: 'New User Signups', description: 'Get a push notification when a new user joins.', defaultChecked: false },
+      { id: 'push-new-reviews', label: 'New Reviews for Moderation', description: 'Get a push notification when a review needs approval.', defaultChecked: true },
+  ];
+
+  const auditorPushSettings = [
+      { id: 'push-audit-queue', label: 'New Reports for Audit', description: 'Get a push notification when a report requires your audit.', defaultChecked: true },
+  ];
+
+  let emailSettings, pushSettings;
   switch (role) {
     case 'client':
-      settings = clientSettings;
+      emailSettings = clientEmailSettings;
+      pushSettings = clientPushSettings;
       break;
     case 'inspector':
-      settings = inspectorSettings;
+      emailSettings = inspectorEmailSettings;
+      pushSettings = inspectorPushSettings;
       break;
     case 'admin':
-      settings = adminSettings;
+      emailSettings = adminEmailSettings;
+      pushSettings = adminPushSettings;
       break;
     case 'auditor':
-      settings = auditorSettings;
+      emailSettings = auditorEmailSettings;
+      pushSettings = auditorPushSettings;
       break;
     default:
-      settings = [];
+      emailSettings = [];
+      pushSettings = [];
   }
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle>Email Notifications</CardTitle>
-            <CardDescription>Manage how you receive email notifications for important platform events.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-             <div className="flex items-start justify-between rounded-lg border bg-card p-4 shadow-sm">
-                <div className="space-y-0.5">
-                    <Label htmlFor="master-notifications" className="text-base font-semibold">Enable All Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground">A master switch to control all email alerts from the platform.</p>
-                </div>
-                <Switch id="master-notifications" defaultChecked={true} className="mt-1" />
-            </div>
-            <Separator />
-             {settings.map(setting => (
-                <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
+    <div className="space-y-6">
+        <Card>
+            <CardHeader>
+                <CardTitle>Email Notifications</CardTitle>
+                <CardDescription>Manage how you receive email notifications for important platform events.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-start justify-between rounded-lg border bg-card p-4 shadow-sm">
                     <div className="space-y-0.5">
-                        <Label htmlFor={setting.id} className="text-base">{setting.label}</Label>
-                        <p className="text-sm text-muted-foreground">{setting.description}</p>
+                        <Label htmlFor="master-email-notifications" className="text-base font-semibold">Enable All Email Notifications</Label>
+                        <p className="text-sm text-muted-foreground">A master switch to control all email alerts from the platform.</p>
                     </div>
-                    <Switch id={setting.id} defaultChecked={setting.defaultChecked} className="mt-1" />
+                    <Switch id="master-email-notifications" defaultChecked={true} className="mt-1" />
                 </div>
-             ))}
-             {settings.length === 0 && <p className="text-muted-foreground">No specific email notifications for this role.</p>}
-        </CardContent>
-    </Card>
+                <Separator />
+                {emailSettings.map(setting => (
+                    <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor={setting.id} className="text-base">{setting.label}</Label>
+                            <p className="text-sm text-muted-foreground">{setting.description}</p>
+                        </div>
+                        <Switch id={setting.id} defaultChecked={setting.defaultChecked} className="mt-1" />
+                    </div>
+                ))}
+                {emailSettings.length === 0 && <p className="text-muted-foreground">No specific email notifications for this role.</p>}
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Push Notifications</CardTitle>
+                <CardDescription>Manage browser and mobile app notifications for real-time alerts.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-start justify-between rounded-lg border bg-card p-4 shadow-sm">
+                    <div className="space-y-0.5">
+                        <Label htmlFor="master-push-notifications" className="text-base font-semibold">Enable All Push Notifications</Label>
+                        <p className="text-sm text-muted-foreground">A master switch to control all push alerts.</p>
+                    </div>
+                    <Switch id="master-push-notifications" defaultChecked={true} className="mt-1" />
+                </div>
+                <Separator />
+                {pushSettings.map(setting => (
+                    <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor={setting.id} className="text-base">{setting.label}</Label>
+                            <p className="text-sm text-muted-foreground">{setting.description}</p>
+                        </div>
+                        <Switch id={setting.id} defaultChecked={setting.defaultChecked} className="mt-1" />
+                    </div>
+                ))}
+                {pushSettings.length === 0 && <p className="text-muted-foreground">No specific push notifications for this role.</p>}
+            </CardContent>
+        </Card>
+    </div>
   );
 };
 

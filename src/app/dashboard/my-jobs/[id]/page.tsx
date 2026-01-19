@@ -250,7 +250,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 {job.history?.map((entry, index) => (
                                     <li key={index} className="flex gap-4">
                                         <Avatar>
-                                            <AvatarImage src={`https://picsum.photos/seed/${entry.avatar}/100/100`} />
                                             <AvatarFallback>{entry.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                         </Avatar>
                                         <div>

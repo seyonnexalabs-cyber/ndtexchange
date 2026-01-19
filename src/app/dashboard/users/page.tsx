@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -65,7 +64,6 @@ const PlatformUsersView = () => {
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <Avatar>
-                                    <AvatarImage src={`https://picsum.photos/seed/${user.avatar}/100/100`} />
                                     <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -186,7 +184,6 @@ const PlatformUsersView = () => {
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium flex items-center gap-3">
                                     <Avatar>
-                                        <AvatarImage src={`https://picsum.photos/seed/${user.avatar}/100/100`} />
                                         <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
                                     {user.name}

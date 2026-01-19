@@ -189,7 +189,6 @@ const AppSidebar = () => {
       <SidebarFooter className="p-4 border-t border-sidebar-border">
          <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
-                <AvatarImage src={`https://picsum.photos/seed/${currentUser.avatar}/100/100`} alt="User" />
                 <AvatarFallback>{currentUser.fallback}</AvatarFallback>
             </Avatar>
             <div className="overflow-hidden">

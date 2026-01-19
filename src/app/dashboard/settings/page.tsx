@@ -125,7 +125,6 @@ const ClientTeamManagement = ({ companyName }: { companyName: string }) => {
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium flex items-center gap-3">
                                     <Avatar>
-                                        <AvatarImage src={`https://picsum.photos/seed/${user.avatar}/100/100`} />
                                         <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
                                     {user.name}
@@ -174,7 +173,6 @@ const AdminTeamManagement = () => {
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium flex items-center gap-3">
                                     <Avatar>
-                                        <AvatarImage src={`https://picsum.photos/seed/${user.avatar}/100/100`} />
                                         <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
                                     {user.name}
@@ -315,7 +313,6 @@ export default function SettingsPage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="flex items-center gap-6">
                     <Avatar className="h-20 w-20">
-                        <AvatarImage src={`https://picsum.photos/seed/${currentUser.avatar}/100/100`} alt="User" />
                         <AvatarFallback>{currentUser.fallback}</AvatarFallback>
                     </Avatar>
                      <div className="flex flex-col gap-2">

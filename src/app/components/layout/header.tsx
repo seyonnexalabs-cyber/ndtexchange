@@ -67,7 +67,6 @@ const AppHeader = () => {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                             <Avatar className="h-9 w-9">
-                                <AvatarImage src={`https://picsum.photos/seed/${currentUser.avatar}/100/100`} alt="User" />
                                 <AvatarFallback>{currentUser.fallback}</AvatarFallback>
                             </Avatar>
                         </Button>

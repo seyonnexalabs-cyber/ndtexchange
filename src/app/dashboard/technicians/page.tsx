@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -32,7 +31,6 @@ const DesktopView = () => (
                         <TableRow key={tech.id}>
                             <TableCell className="font-medium flex items-center gap-3">
                                 <Avatar>
-                                <AvatarImage src={`https://picsum.photos/seed/${tech.avatar}/100/100`} />
                                 <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 {tech.name}
@@ -65,7 +63,6 @@ const MobileView = () => (
                     <div className="flex items-start justify-between">
                          <div className="flex items-center gap-3">
                             <Avatar>
-                                <AvatarImage src={`https://picsum.photos/seed/${tech.avatar}/100/100`} />
                                 <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div>

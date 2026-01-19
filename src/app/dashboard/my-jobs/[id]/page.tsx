@@ -297,21 +297,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </CardHeader>
                         <CardContent>
                             <DocumentViewer job={job} isInspector={isInspector} reportSubmitted={reportSubmitted} />
-                           <div className="mt-6 space-y-2">
-                               <h3 className="font-semibold">Attached Job Documents</h3>
-                               {job.documents?.map((doc, i) => (
-                                   <div key={i} className="flex items-center justify-between p-2 border rounded-md">
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-sm font-medium">{doc.name}</span>
-                                        </div>
-                                        <Button variant="ghost" size="sm">Download</Button>
-                                    </div>
-                               ))}
-                               {(!job.documents || job.documents.length === 0) && (
-                                   <p className="text-sm text-muted-foreground">No documents attached to this job.</p>
-                               )}
-                           </div>
                         </CardContent>
                         {isInspector && !reportSubmitted && (
                             <CardFooter className="flex justify-end gap-2">

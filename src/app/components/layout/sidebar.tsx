@@ -60,7 +60,6 @@ const allMenuItems = [
   // Common across roles but handled differently or with different data
   { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
   { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
-  { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector'], badge: 3 },
   
   // Admin / Auditor Specific
   { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin', 'auditor'] },
@@ -119,7 +118,7 @@ const AppSidebar = () => {
         // Auditor
         'Compliance',
         // Common across multiple roles
-        'Reports', 'Calendar', 'Messages',
+        'Reports', 'Calendar',
         // Common last items
         'Support',
         'Settings'

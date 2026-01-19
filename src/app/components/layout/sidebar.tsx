@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -124,7 +125,7 @@ const AppSidebar = () => {
             return aIndex - bIndex;
         });
 
-  }, [role, pathname]);
+  }, [role]);
 
   const handleLogout = () => {
     router.push('/login');

@@ -30,11 +30,18 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
     const videoRef = useRef<HTMLVideoElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const { toast } = useToast();
+    const [isScanningSupported, setIsScanningSupported] = useState(true);
 
     useEffect(() => {
+        if (!isOpen) return;
+
         let stream: MediaStream | null = null;
-        
-        const cleanupStream = () => {
+        let animationFrameId: number;
+
+        const cleanup = () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
@@ -43,16 +50,15 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
             }
         };
 
-        if (isOpen) {
-            const getCameraPermission = async () => {
-              try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const startScan = async () => {
+            // Get Camera Permission
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 setHasCameraPermission(true);
-        
                 if (videoRef.current) {
-                  videoRef.current.srcObject = stream;
+                    videoRef.current.srcObject = stream;
                 }
-              } catch (error) {
+            } catch (error) {
                 console.error('Error accessing camera:', error);
                 setHasCameraPermission(false);
                 toast({
@@ -60,21 +66,50 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
                   title: 'Camera Access Denied',
                   description: 'Please enable camera permissions in your browser settings to use this app.',
                 });
-              }
-            };
-            getCameraPermission();
-        } else {
-            cleanupStream();
-        }
+                return;
+            }
+            
+            // Check for BarcodeDetector support
+            if (!('BarcodeDetector' in window)) {
+                setIsScanningSupported(false);
+                return;
+            }
+            setIsScanningSupported(true);
 
-        return cleanupStream;
-    }, [isOpen, toast]);
+            const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+
+            const scanFrame = async () => {
+                if (videoRef.current && barcodeDetector && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+                    try {
+                        const barcodes = await barcodeDetector.detect(videoRef.current);
+                        if (barcodes.length > 0) {
+                            const scannedValue = barcodes[0].rawValue;
+                            onScan(scannedValue);
+                            // Cleanup will be handled by the effect unmounting when dialog closes
+                            return; 
+                        }
+                    } catch (e) {
+                        console.error('Barcode detection failed:', e);
+                        setIsScanningSupported(false); // Assume it's not supported if detection fails.
+                        cleanup();
+                        return;
+                    }
+                }
+                animationFrameId = requestAnimationFrame(scanFrame);
+            };
+            animationFrameId = requestAnimationFrame(scanFrame);
+        };
+
+        startScan();
+
+        return cleanup;
+    }, [isOpen, onScan, toast]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (scannedId.trim()) {
             onScan(scannedId.trim());
-            setScannedId(''); // Clear input after scan
+            setScannedId('');
         }
     };
 
@@ -83,27 +118,39 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
             onOpenChange(open);
             if (!open) {
                 setScannedId('');
+                setHasCameraPermission(null);
             }
         }}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Scan Asset QR Code</DialogTitle>
                     <DialogDescription>
-                        Use your device's camera to scan a QR code. If the code is unreadable, you can enter the Asset ID manually below.
+                        Point your camera at a QR code. If scanning is not working, you can enter the Asset ID manually.
                     </DialogDescription>
                 </DialogHeader>
                  <form onSubmit={handleSubmit}>
                     <div className="space-y-4 py-4">
-                        <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay muted playsInline />
+                        <div className="relative overflow-hidden rounded-md">
+                            <video ref={videoRef} className="w-full aspect-video bg-muted" autoPlay muted playsInline />
+                            {hasCameraPermission && <div className="absolute inset-0 border-8 border-white/20 rounded-md" />}
+                        </div>
                     
-                        {hasCameraPermission === false && (
+                        {hasCameraPermission === false ? (
                             <Alert variant="destructive">
                                 <AlertTitle>Camera Access Required</AlertTitle>
                                 <AlertDescription>
                                     Please allow camera access to use this feature.
                                 </AlertDescription>
                             </Alert>
+                        ) : !isScanningSupported && (
+                            <Alert variant="destructive">
+                                <AlertTitle>Scanning Not Supported</AlertTitle>
+                                <AlertDescription>
+                                    Your browser doesn't support real-time QR code scanning. Please enter the ID manually.
+                                </AlertDescription>
+                            </Alert>
                         )}
+
 
                         <Input 
                             placeholder="Enter Asset ID manually (e.g., ASSET-001)"
@@ -131,13 +178,21 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
   const role = searchParams.get('role') || 'client';
 
   const handleQrScan = (id: string) => {
+      toast({
+        title: "QR Code Scanned",
+        description: `Processing Asset ID: ${id}`,
+      });
+      setScanOpen(false); // Close the dialog immediately after a successful scan
+
       const assetExists = clientAssets.some(asset => asset.id === id);
       if (!assetExists) {
-          toast({
-              variant: 'destructive',
-              title: "Asset Not Found",
-              description: `No asset with ID "${id}" could be found.`,
-          });
+          setTimeout(() => {
+            toast({
+                variant: 'destructive',
+                title: "Asset Not Found",
+                description: `No asset with ID "${id}" could be found.`,
+            });
+          }, 500); // Delay toast to allow dialog to close
           return;
       }
 
@@ -156,17 +211,17 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
 
           if (hasAccess) {
               router.push(constructUrl(`/dashboard/assets/${id}`));
-              setScanOpen(false);
           } else {
-               toast({
-                  variant: 'destructive',
-                  title: "Access Denied",
-                  description: `Your company does not have a work history for asset "${id}".`,
-              });
+               setTimeout(() => {
+                toast({
+                    variant: 'destructive',
+                    title: "Access Denied",
+                    description: `Your company does not have a work history for asset "${id}".`,
+                });
+               }, 500);
           }
       } else { // For client or other roles, allow access
           router.push(constructUrl(`/dashboard/assets/${id}`));
-          setScanOpen(false);
       }
   };
 

@@ -1,4 +1,5 @@
 
+import { serviceProviders } from './service-providers-data';
 
 export type Asset = {
     id: string;
@@ -258,19 +259,23 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active' },
     { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active' },
     { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active' },
-    ...technicians.map(t => ({
-        id: `user-${t.id}`,
-        name: t.name,
-        email: `${t.name.toLowerCase().replace(' ', '.')}@provider.com`,
-        role: `Inspector (${t.level})`,
-        company: `Provider #${t.providerId.split('-')[1]}`, // Mock company name
-        status: 'Active',
-    })),
+    ...technicians.map(t => {
+        const provider = serviceProviders.find(p => p.id === t.providerId);
+        return {
+            id: `user-${t.id}`,
+            name: t.name,
+            email: `${t.name.toLowerCase().replace(' ', '.')}@provider.com`,
+            role: `Inspector (${t.level})`,
+            company: provider?.name || `Unknown Provider`,
+            status: 'Active' as 'Active' | 'Invited' | 'Disabled',
+        };
+    }),
      { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited' },
-     { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Provider #2', status: 'Disabled' },
+     { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Applus+', status: 'Disabled' },
 ];
 
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };
 
     
+

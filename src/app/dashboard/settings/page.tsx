@@ -23,10 +23,10 @@ import { format } from 'date-fns';
 
 
 const userDetails = {
-    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.' },
-    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.' },
-    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT Exchange' },
-    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC' },
+    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.', address: '123 Energy Corridor, Houston, TX 77079' },
+    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.', address: '1 Fluor Daniel Dr, Sugar Land, TX 77478' },
+    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT Exchange', address: '123 Main St, Palo Alto, CA' },
+    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', address: '456 Gov Ave, Washington, D.C.' },
 };
 
 const profileSchema = z.object({
@@ -40,12 +40,12 @@ const companyProfileSchema = z.object({
 });
 
 
-const ClientCompanyProfile = ({ companyName }: { companyName: string }) => {
+const CompanyProfileSettings = ({ companyName, companyAddress }: { companyName: string, companyAddress?: string }) => {
   const form = useForm<z.infer<typeof companyProfileSchema>>({
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
       companyName: companyName,
-      companyAddress: '123 Energy Corridor, Houston, TX 77079', // Placeholder
+      companyAddress: companyAddress || '',
     },
   });
 
@@ -100,7 +100,7 @@ const ClientCompanyProfile = ({ companyName }: { companyName: string }) => {
   );
 };
 
-const ClientTeamManagement = ({ companyName }: { companyName: string }) => {
+const TeamManagementSettings = ({ companyName }: { companyName: string }) => {
     const teamMembers = allUsers.filter(user => user.company === companyName);
 
     return (
@@ -395,7 +395,9 @@ export default function SettingsPage() {
     const role = searchParams.get('role') || 'client';
     
     const currentUser = useMemo(() => {
-        return userDetails[role as keyof typeof userDetails] || userDetails.client;
+        const details = userDetails[role as keyof typeof userDetails] || userDetails.client;
+        const address = (userDetails[role as keyof typeof userDetails] as any)?.address || '';
+        return { ...details, address };
     }, [role]);
 
     const form = useForm<z.infer<typeof profileSchema>>({
@@ -485,10 +487,10 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
         <TabsContent value="company">
-             {role === 'client' ? (
+             {role === 'client' || role === 'inspector' ? (
                 <div className="space-y-6">
-                    <ClientCompanyProfile companyName={currentUser.company} />
-                    <ClientTeamManagement companyName={currentUser.company} />
+                    <CompanyProfileSettings companyName={currentUser.company} companyAddress={currentUser.address} />
+                    <TeamManagementSettings companyName={currentUser.company} />
                 </div>
                 ) : (
                 <Card>

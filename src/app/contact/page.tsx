@@ -65,6 +65,7 @@ export default function ContactPage() {
                   "All Provider Features",
                   "Custom Integrations (API)",
                   "Advanced Security & SSO",
+                  "Auditor & Regulator access tools",
                   "Dedicated Account Manager",
                   "24/7 Premium Support"
                 ]}
@@ -72,7 +73,7 @@ export default function ContactPage() {
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                All plans are billed annually after your first 365 days. Contact us for detailed pricing.
+                All plans are billed annually after your first 365 days. Contact us for detailed pricing. Auditor access is typically managed via Client or Enterprise accounts.
              </p>
           </div>
         </section>

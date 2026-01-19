@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -26,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import DocumentViewer from '../components/document-viewer';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -481,43 +481,71 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
                     {isClient && <BidsSection />}
 
-                    <Card>
+                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><MessageSquare /> Job Communication</CardTitle>
-                            <CardDescription>Ask questions, provide clarifications, and upload documents for this job.</CardDescription>
+                            <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication &amp; History</CardTitle>
+                            <CardDescription>Review messages, see the job's history, and exchange documents.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                <h3 className="font-semibold">Message Thread</h3>
-                                <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
-                                    {jobDetails.messages && jobDetails.messages.length > 0 ? (
-                                        jobDetails.messages.map((message, index) => (
-                                             <div key={index} className="flex gap-4">
-                                                 <Avatar>
-                                                    <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                 </Avatar>
-                                                 <div>
-                                                     <div className="flex items-baseline gap-2">
-                                                        <p className="font-semibold">{message.user}</p>
-                                                        <p className="text-xs text-muted-foreground">{message.role} &bull; {message.timestamp}</p>
+                             <Tabs defaultValue="messages" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="messages">Messages</TabsTrigger>
+                                    <TabsTrigger value="history">History</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="messages" className="mt-4">
+                                    <div className="space-y-4">
+                                        <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
+                                            {jobDetails.messages && jobDetails.messages.length > 0 ? (
+                                                jobDetails.messages.map((message, index) => (
+                                                     <div key={index} className="flex gap-4">
+                                                         <Avatar>
+                                                            <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                         </Avatar>
+                                                         <div>
+                                                             <div className="flex items-baseline gap-2">
+                                                                <p className="font-semibold">{message.user}</p>
+                                                                <p className="text-xs text-muted-foreground">{message.role} &amp;bull; {message.timestamp}</p>
+                                                             </div>
+                                                             <p className="text-sm text-muted-foreground">{message.message}</p>
+                                                         </div>
                                                      </div>
-                                                     <p className="text-sm text-muted-foreground">{message.message}</p>
-                                                 </div>
-                                             </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            <div className="mt-6 space-y-2">
-                                <Label htmlFor="new-message">Your Message</Label>
-                                <Textarea id="new-message" placeholder="Type your message here..." />
-                                <div className="flex justify-end">
-                                    <Button>Send Message</Button>
-                                </div>
-                            </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="mt-6 space-y-2">
+                                        <Label htmlFor="new-message">Your Message</Label>
+                                        <Textarea id="new-message" placeholder="Type your message here..." />
+                                        <div className="flex justify-end">
+                                            <Button>Send Message</Button>
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="history" className="mt-4">
+                                     <ScrollArea className="max-h-[460px] p-1">
+                                        <ul className="space-y-6 p-2">
+                                            {jobDetails.history?.map((entry, index) => (
+                                                <li key={index} className="flex gap-4">
+                                                    <Avatar>
+                                                        <AvatarFallback>{entry.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="text-sm font-medium">{entry.user}</p>
+                                                        <p className="text-sm text-muted-foreground">{entry.action}</p>
+                                                        <p className="text-xs text-muted-foreground/80 mt-0.5">{entry.timestamp}</p>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                            {(!jobDetails.history || jobDetails.history.length === 0) && (
+                                                <p className="text-sm text-muted-foreground text-center py-4">No history available for this job.</p>
+                                            )}
+                                        </ul>
+                                    </ScrollArea>
+                                </TabsContent>
+                            </Tabs>
                             
                             {isClient && (
                                 <>
@@ -542,7 +570,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">Job Results & Reports</CardTitle>
+                            <CardTitle className="flex items-center gap-2">Job Results &amp; Reports</CardTitle>
                             <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -568,30 +596,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </div>
 
                 <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><History /> Job History</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ul className="space-y-6">
-                                {jobDetails.history?.map((entry, index) => (
-                                    <li key={index} className="flex gap-4">
-                                        <Avatar>
-                                            <AvatarFallback>{entry.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="text-sm font-medium">{entry.user}</p>
-                                            <p className="text-sm text-muted-foreground">{entry.action}</p>
-                                            <p className="text-xs text-muted-foreground/80 mt-0.5">{entry.timestamp}</p>
-                                        </div>
-                                    </li>
-                                ))}
-                                {(!jobDetails.history || jobDetails.history.length === 0) && (
-                                    <p className="text-sm text-muted-foreground">No history available for this job.</p>
-                                )}
-                            </ul>
-                        </CardContent>
-                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Assigned Resources</CardTitle>
@@ -703,3 +707,5 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
+
+    

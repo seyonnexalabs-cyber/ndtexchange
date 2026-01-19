@@ -37,7 +37,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
-import { useJobPost } from '@/app/dashboard/my-jobs/job-post-provider';
 
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
@@ -55,7 +54,7 @@ const allMenuItems = [
   
   // Client
   { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
-  { id: 'post-job', action: 'post-job', label: 'Post New Job', icon: PlusCircle, roles: ['client'] },
+  { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle, roles: ['client'] },
   { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
   
   // Common across roles but handled differently or with different data
@@ -101,8 +100,6 @@ const AppSidebar = () => {
   }, [roleParam, router]);
   
   const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : null;
-  
-  const { setJobPostOpen } = useJobPost();
 
   const currentUser = useMemo(() => {
     if (!role) return userDetails.common;
@@ -155,15 +152,6 @@ const AppSidebar = () => {
     return `${base}?${params.toString()}`;
   }
 
-  const handleAction = (action?: string) => {
-    if (action === 'post-job') {
-      // This will only work if the currently rendered page is using the context.
-      // We will ensure MyJobsPage has the provider.
-      router.push(constructUrl('/dashboard/my-jobs'));
-      setTimeout(() => setJobPostOpen(true), 100);
-    }
-  }
-
   if (!role) {
     return null; // Render nothing while redirecting
   }
@@ -180,21 +168,7 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((item) => {
-            if (item.action) {
-              return (
-                 <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    onClick={() => handleAction(item.action)}
-                    tooltip={{ children: item.label }}
-                  >
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            }
-            return (
+          {menuItems.map((item) => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
                   asChild
@@ -209,7 +183,7 @@ const AppSidebar = () => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )
-          })}
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border">

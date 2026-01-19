@@ -4,12 +4,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
@@ -18,6 +18,8 @@ import { allUsers } from '@/lib/placeholder-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { format } from 'date-fns';
 
 
 const userDetails = {
@@ -323,6 +325,71 @@ const NotificationSettings = ({ role }: { role: string }) => {
 };
 
 
+const SubscriptionSettings = () => {
+    const [trialDetails, setTrialDetails] = useState({
+        endDate: new Date(),
+        progress: 0,
+        daysRemaining: 0,
+    });
+
+    useEffect(() => {
+        // Use a fixed start date for consistent demonstration
+        const trialStartDate = new Date('2024-07-01');
+        const endDate = new Date(trialStartDate);
+        endDate.setDate(endDate.getDate() + 365);
+        
+        const today = new Date();
+        const daysElapsed = Math.max(0, Math.floor((today.getTime() - trialStartDate.getTime()) / (1000 * 3600 * 24)));
+        const progress = Math.min((daysElapsed / 365) * 100, 100);
+        const daysRemaining = Math.max(0, 365 - daysElapsed);
+
+        setTrialDetails({
+            endDate,
+            progress,
+            daysRemaining,
+        });
+    }, []);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Subscription & Billing</CardTitle>
+                <CardDescription>
+                    Manage your subscription plan and billing details.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="rounded-lg border p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p className="font-semibold">Current Plan</p>
+                            <p className="text-2xl font-bold">Free Trial</p>
+                        </div>
+                        <Badge variant="success">Active</Badge>
+                    </div>
+                    <div>
+                        <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                            <span>Trial ends on {format(trialDetails.endDate, "PPP")}</span>
+                            <span>{trialDetails.daysRemaining} days remaining</span>
+                        </div>
+                        <Progress value={trialDetails.progress} />
+                    </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                    <p>
+                        Your 365-day free trial gives you full access to all platform features. After the trial period ends, you will be prompted to choose a paid plan to continue using the service. You can add a payment method at any time.
+                    </p>
+                </div>
+            </CardContent>
+            <CardFooter className="gap-2">
+                <Button>Manage Subscription</Button>
+                <Button variant="outline">View Billing History</Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
+
 export default function SettingsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
@@ -361,6 +428,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           {role === 'admin' && <TabsTrigger value="team">Team Management</TabsTrigger>}
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -434,6 +502,9 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
             )}
+        </TabsContent>
+        <TabsContent value="subscription">
+            <SubscriptionSettings />
         </TabsContent>
         <TabsContent value="notifications">
             <NotificationSettings role={role} />

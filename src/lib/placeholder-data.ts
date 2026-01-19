@@ -116,7 +116,7 @@ export const clientAssets: Asset[] = [
     { id: 'ASSET-006', name: 'Cooling Tower Piping', type: 'Piping', location: 'Refinery A', status: 'Operational', nextInspection: '2025-02-20' },
     { id: 'ASSET-002', name: 'Main Steam Piping', type: 'Piping', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-07-20' },
     { id: 'ASSET-003', name: 'Pressure Vessel PV-203', type: 'Vessel', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-01-10' },
-    { id: 'ASSET-004', name: 'Overhead Crane C-01', type: 'Crane', location: 'Warehouse D', status: 'Under Repair', nextInspection: '2024-08-01' },
+    { id: 'ASSET-004', name: 'Overhead Crane C-01', type: 'Crane', location: 'Under Repair', nextInspection: '2024-08-01' },
     { id: 'ASSET-005', name: 'Structural Weld SW-05', type: 'Weld Joint', location: 'Bridge E', status: 'Operational', nextInspection: '2024-11-22' },
 ];
 
@@ -176,18 +176,19 @@ export const jobs: Job[] = [
         providerId: 'provider-03',
         location: 'Long Beach, CA', 
         technique: 'MT', 
-        status: 'Scheduled', 
-        postedDate: '2024-06-25', 
-        scheduledStartDate: tomorrow.toISOString().split('T')[0], 
-        scheduledEndDate: tomorrow.toISOString().split('T')[0], 
+        status: 'Report Submitted', 
+        postedDate: '2024-06-18', 
+        scheduledStartDate: '2024-06-21', 
+        scheduledEndDate: '2024-06-21', 
         technicianIds: ['TECH-01'], 
         equipmentIds: ['YOKE-02'], 
         assetIds: ['ASSET-004'], 
-        workflow: 'standard',
+        workflow: 'level3',
         history: [
-            { user: 'Carlos Ray', timestamp: '2024-06-27 11:30 AM', action: 'Job scheduled.', details: `Start: ${tomorrow.toISOString().split('T')[0]}` },
-            { user: 'John Doe', timestamp: '2024-06-26 04:15 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
-            { user: 'John Doe', timestamp: '2024-06-25 09:00 AM', action: 'Job created and posted to marketplace.' },
+            { user: 'Carlos Ray', timestamp: '2024-06-22 09:00 AM', action: 'Inspection report submitted for audit.' },
+            { user: 'Carlos Ray', timestamp: '2024-06-20 08:00 AM', action: 'Job scheduled.', details: `Start: 2024-06-21` },
+            { user: 'John Doe', timestamp: '2024-06-19 03:00 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
+            { user: 'John Doe', timestamp: '2024-06-18 10:00 AM', action: 'Job created and posted to marketplace.' },
         ]
     },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
@@ -224,7 +225,7 @@ export const bids: Bid[] = [
 export const inspections: Inspection[] = [
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'VT', inspector: 'Pending', date: '2024-07-20', status: 'Scheduled' },
-    { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Mike Johnson', date: '2024-06-22', status: 'Requires Review' },
+    { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Carlos Ray', date: '2024-06-21', status: 'Requires Review' },
     { id: 'INSP-004', jobId: 'JOB-007', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'ET', inspector: 'Aisha Khan', date: yesterday.toISOString().split('T')[0], status: 'Requires Review' },
 ];
 
@@ -280,6 +281,7 @@ export const allUsers: PlatformUser[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

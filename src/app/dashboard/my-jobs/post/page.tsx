@@ -21,6 +21,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 const jobSchema = z.object({
@@ -273,17 +275,18 @@ export default function PostJobPage() {
                                 render={() => (
                                 <FormItem>
                                     <FormLabel>Select Asset(s)</FormLabel>
-                                    <ScrollArea className="h-32 w-full rounded-md border p-4">
-                                        {clientAssets.map((asset) => (
+                                    <ScrollArea className="h-60 w-full rounded-md border p-4">
+                                        {clientAssets.map((asset, index) => (
                                         <FormField
                                             key={asset.id}
                                             control={form.control}
                                             name="assets"
                                             render={({ field }) => {
+                                            const image = PlaceHolderImages.find(p => p.id === `asset${index + 1}`);
                                             return (
                                                 <FormItem
                                                 key={asset.id}
-                                                className="flex flex-row items-start space-x-3 space-y-0"
+                                                className="flex flex-row items-center space-x-3 space-y-0 mb-3"
                                                 >
                                                 <FormControl>
                                                     <Checkbox
@@ -299,8 +302,23 @@ export default function PostJobPage() {
                                                     }}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    {asset.name} ({asset.location})
+                                                <FormLabel className="font-normal flex items-center gap-3 w-full cursor-pointer">
+                                                    {image && (
+                                                        <div className="relative w-16 h-12 rounded-md overflow-hidden shrink-0">
+                                                            <Image
+                                                                src={image.imageUrl}
+                                                                alt={asset.name}
+                                                                fill
+                                                                sizes="64px"
+                                                                className="object-cover"
+                                                                data-ai-hint={image.imageHint}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="font-semibold leading-tight">{asset.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{asset.location}</p>
+                                                    </div>
                                                 </FormLabel>
                                                 </FormItem>
                                             )

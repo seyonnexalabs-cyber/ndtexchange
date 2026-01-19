@@ -19,9 +19,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 // --- Client Dashboard ---
 const clientChartData = [
-  { status: "Operational", count: assets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
-  { status: "Requires Inspection", count: assets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
-  { status: "Under Repair", count: assets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
+  { status: "Operational", key: "operational", count: assets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
+  { status: "Requires Inspection", key: "inspection", count: assets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
+  { status: "Under Repair", key: "repair", count: assets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
 ];
 
 const clientChartConfig = {
@@ -175,7 +175,7 @@ const ClientDashboard = () => {
                             <Pie
                             data={clientChartData}
                             dataKey="count"
-                            nameKey="status"
+                            nameKey="key"
                             innerRadius={60}
                             strokeWidth={5}
                             >

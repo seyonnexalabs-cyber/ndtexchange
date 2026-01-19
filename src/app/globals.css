@@ -25,6 +25,13 @@
     --ring: 215 50% 48%;
     --radius: 0.5rem;
 
+    /* Chart Colors */
+    --chart-1: 215 50% 48%;
+    --chart-2: 145 63% 42%;
+    --chart-3: 215 40% 65%;
+    --chart-4: 145 50% 60%;
+    --chart-5: 0 72% 51%;
+    
     /* Sidebar theme */
     --sidebar-background: 215 50% 48%; /* primary */
     --sidebar-foreground: 0 0% 98%;
@@ -56,6 +63,13 @@
     --border: 225 10% 88%;
     --input: 225 10% 88%;
     --ring: 38 92% 50%;
+
+    /* Chart Colors */
+    --chart-1: 38 92% 50%;
+    --chart-2: 220 13% 40%;
+    --chart-3: 38 80% 65%;
+    --chart-4: 220 10% 60%;
+    --chart-5: 0 72% 51%;
   }
 
   .admin-theme {
@@ -78,6 +92,13 @@
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 0 0% 9%;
+
+    /* Chart Colors */
+    --chart-1: 0 0% 9%;
+    --chart-2: 0 0% 50%;
+    --chart-3: 0 0% 30%;
+    --chart-4: 0 0% 70%;
+    --chart-5: 0 72% 51%;
   }
 
   .auditor-theme {
@@ -100,6 +121,13 @@
     --border: 270 10% 88%;
     --input: 270 10% 88%;
     --ring: 262 52% 52%;
+
+    /* Chart Colors */
+    --chart-1: 262 52% 52%;
+    --chart-2: 265 40% 65%;
+    --chart-3: 262 50% 70%;
+    --chart-4: 265 35% 80%;
+    --chart-5: 0 72% 51%;
   }
 
   .dark {

@@ -16,6 +16,7 @@ export default function PublicHeader() {
     { href: '/about', label: 'About' },
     { href: '/manufacturers', label: 'Manufacturers' },
     { href: '/providers', label: 'Providers' },
+    { href: '/contact', label: 'Contact Us' },
   ];
 
   return (
@@ -56,7 +57,7 @@ export default function PublicHeader() {
             <Link href="/login">Login</Link>
           </Button>
           <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href="/login">Get Started</Link>
+            <Link href="/contact">Get Started</Link>
           </Button>
         </div>
       </div>

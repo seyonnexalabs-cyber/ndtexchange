@@ -87,7 +87,7 @@ export default function AboutPage() {
             </p>
             <div className="mt-8">
               <Button size="lg" asChild>
-                <Link href="/login">Get Started Now</Link>
+                <Link href="/contact">Get Started Now</Link>
               </Button>
             </div>
           </div>

@@ -42,9 +42,9 @@ const AppHeader = () => {
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
             <SidebarTrigger className="md:hidden"/>
 
-            <h1 className="text-xl font-semibold hidden md:block font-headline">{currentUser.company}</h1>
+            <h1 className="text-xl font-semibold hidden md:block font-headline whitespace-nowrap">{currentUser.company}</h1>
 
-            <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+            <div className="flex flex-1 items-center gap-4 md:gap-2 lg:gap-4">
                 <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

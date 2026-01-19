@@ -189,7 +189,7 @@ const DesktopView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Insp
                         </TableCell>
                         <TableCell>{asset.type}</TableCell>
                         <TableCell>
-                            <Badge variant={asset.status === 'Calibrated' ? 'default' : asset.status === 'In Service' ? 'secondary' : 'destructive'}>{asset.status}</Badge>
+                            <Badge variant={asset.status === 'Calibrated' ? 'success' : asset.status === 'In Service' ? 'default' : 'destructive'}>{asset.status}</Badge>
                         </TableCell>
                         <TableCell>{asset.nextCalibration}</TableCell>
                         <TableCell className="text-right">
@@ -223,7 +223,7 @@ const MobileView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Inspe
                 <CardContent>
                     <p className="text-sm text-muted-foreground">{asset.type}</p>
                      <p className="text-xs font-mono text-muted-foreground">{asset.id}</p>
-                    <Badge variant={asset.status === 'Calibrated' ? 'default' : 'secondary'} className="mt-2">{asset.status}</Badge>
+                    <Badge variant={asset.status === 'Calibrated' ? 'success' : 'default'} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
                     <span>Cal Due: {asset.nextCalibration}</span>

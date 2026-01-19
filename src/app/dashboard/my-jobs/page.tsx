@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, technicians, inspectorAssets, clientAssets, NDTTechniques } from "@/lib/placeholder-data";
+import { jobs, technicians, inspectorAssets, clientAssets, NDTTechniques, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle } from "lucide-react";
@@ -393,6 +393,21 @@ export default function MyJobsPage() {
     const [view, setView] = useState<JobView>('active');
     const { setJobPostOpen } = useJobPost();
 
+    const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+        'Draft': 'outline',
+        'Posted': 'secondary',
+        'Assigned': 'default',
+        'Scheduled': 'default',
+        'In Progress': 'default',
+        'Report Submitted': 'secondary',
+        'Under Audit': 'secondary',
+        'Audit Approved': 'success',
+        'Client Review': 'secondary',
+        'Client Approved': 'success',
+        'Completed': 'success',
+        'Paid': 'success'
+    };
+
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow = [];
         let pageTitle = '';
@@ -475,7 +490,7 @@ export default function MyJobsPage() {
                                         <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
                                         <div className="flex items-center gap-2">
                                             {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
-                                            <Badge variant={job.status === 'Posted' ? 'secondary' : job.status === 'In Progress' ? 'default' : 'outline'}>{job.status}</Badge>
+                                            <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                         </div>
                                     </div>
                                     <CardDescription>{job.client} - {job.technique}</CardDescription>

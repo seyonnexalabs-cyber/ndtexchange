@@ -85,7 +85,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                                 <Card key={inspection.id} className="p-4">
                                                     <div className="flex justify-between items-start">
                                                         <div className="font-medium">{inspection.technique}</div>
-                                                        <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
+                                                        <Badge variant={inspection.status === 'Completed' ? 'success' : 'secondary'}>{inspection.status}</Badge>
                                                     </div>
                                                     <div className="text-sm text-muted-foreground mt-2">Date: {inspection.date}</div>
                                                     <div className="text-sm text-muted-foreground">Inspector: {inspection.inspector}</div>
@@ -116,7 +116,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                                         <TableCell>{inspection.technique}</TableCell>
                                                         <TableCell>{inspection.inspector}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
+                                                            <Badge variant={inspection.status === 'Completed' ? 'success' : 'secondary'}>{inspection.status}</Badge>
                                                         </TableCell>
                                                         <TableCell>
                                                             <Button variant="outline" size="sm">View</Button>
@@ -197,7 +197,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                 <div>
                                     <p className="font-semibold">Status</p>
                                     <Badge variant={
-                                        asset.status === 'Operational' ? 'default' :
+                                        asset.status === 'Operational' ? 'success' :
                                         asset.status === 'Requires Inspection' ? 'destructive' :
                                         asset.status === 'Under Repair' ? 'secondary' : 'outline'
                                     }>{asset.status}</Badge>

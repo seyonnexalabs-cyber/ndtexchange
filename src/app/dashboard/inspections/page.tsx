@@ -131,7 +131,7 @@ export default function InspectionsPage() {
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="text-base">{inspection.assetName}</CardTitle>
-                                    <Badge variant={inspection.status === 'Completed' ? 'default' : inspection.status === 'Scheduled' ? 'secondary' : 'destructive'}>{inspection.status}</Badge>
+                                    <Badge variant={inspection.status === 'Completed' ? 'success' : inspection.status === 'Scheduled' ? 'secondary' : 'destructive'}>{inspection.status}</Badge>
                                 </div>
                                 <CardDescription>{inspection.technique} by {inspection.inspector}</CardDescription>
                             </CardHeader>
@@ -161,7 +161,7 @@ export default function InspectionsPage() {
                                     <TableCell>{inspection.inspector}</TableCell>
                                     <TableCell>{inspection.date}</TableCell>
                                     <TableCell>
-                                        <Badge variant={inspection.status === 'Completed' ? 'default' : inspection.status === 'Scheduled' ? 'secondary' : 'destructive'}>{inspection.status}</Badge>
+                                        <Badge variant={inspection.status === 'Completed' ? 'success' : inspection.status === 'Scheduled' ? 'secondary' : 'destructive'}>{inspection.status}</Badge>
                                     </TableCell>
                                 </TableRow>
                             ))}

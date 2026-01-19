@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, technicians, inspectorAssets } from "@/lib/placeholder-data";
+import { jobs, technicians, inspectorAssets, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X } from "lucide-react";
@@ -17,6 +17,21 @@ import { serviceProviders } from "@/lib/service-providers-data";
 
 
 const statusFilters = ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'];
+
+const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Draft': 'outline',
+    'Posted': 'secondary',
+    'Assigned': 'default',
+    'Scheduled': 'default',
+    'In Progress': 'default',
+    'Report Submitted': 'secondary',
+    'Under Audit': 'secondary',
+    'Audit Approved': 'success',
+    'Client Review': 'secondary',
+    'Client Approved': 'success',
+    'Completed': 'success',
+    'Paid': 'success'
+};
 
 export default function AllJobsPage() {
     const searchParams = useSearchParams();
@@ -137,7 +152,7 @@ export default function AllJobsPage() {
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                <Badge variant={job.status === 'Posted' ? 'secondary' : job.status === 'In Progress' ? 'default' : 'outline'}>{job.status}</Badge>
+                                <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                             </div>
                             <CardDescription>{job.client} - {job.technique}</CardDescription>
                         </CardHeader>

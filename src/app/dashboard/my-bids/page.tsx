@@ -33,9 +33,9 @@ const bidSchema = z.object({
 });
 
 
-const statusStyles = {
+const statusStyles: { [key in Bid['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Submitted: 'secondary',
-    Awarded: 'default',
+    Awarded: 'success',
     Rejected: 'destructive',
     Withdrawn: 'outline',
 };
@@ -63,7 +63,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <CardTitle className="text-lg font-semibold leading-tight">{bid.job?.title}</CardTitle>
-                                <Badge variant={statusStyles[bid.status] as any}>{bid.status}</Badge>
+                                <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
                             </div>
                              <CardDescription className="flex items-center pt-1"><Building className="w-4 h-4 mr-2"/> {bid.job?.client}</CardDescription>
                         </CardHeader>
@@ -123,7 +123,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
                             <TableCell>{bid.submittedDate}</TableCell>
                             <TableCell>
-                                <Badge variant={statusStyles[bid.status] as any}>{bid.status}</Badge>
+                                <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
                             </TableCell>
                             <TableCell className="text-right">
                                 {bid.status === 'Submitted' ? (

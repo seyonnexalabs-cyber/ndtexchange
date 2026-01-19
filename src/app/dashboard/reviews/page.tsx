@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
+import { Review } from '@/lib/placeholder-data';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -27,9 +28,9 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
-const statusStyles: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
+const statusStyles: { [key in Review['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Pending: 'secondary',
-    Approved: 'default',
+    Approved: 'success',
     Rejected: 'destructive',
 };
 

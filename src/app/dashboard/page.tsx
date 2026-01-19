@@ -12,7 +12,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets, jobs, inspections, technicians, clientAssets, inspectorAssets } from "@/lib/placeholder-data";
+import { assets, jobs, inspections, technicians, clientAssets, inspectorAssets, Job, Inspection } from "@/lib/placeholder-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,6 +30,27 @@ const clientChartConfig = {
   inspection: { label: "Requires Inspection", color: "hsl(var(--chart-4))" },
   repair: { label: "Under Repair", color: "hsl(var(--chart-5))" },
 } satisfies ChartConfig;
+
+const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Draft': 'outline',
+    'Posted': 'secondary',
+    'Assigned': 'default',
+    'Scheduled': 'default',
+    'In Progress': 'default',
+    'Report Submitted': 'secondary',
+    'Under Audit': 'secondary',
+    'Audit Approved': 'success',
+    'Client Review': 'secondary',
+    'Client Approved': 'success',
+    'Completed': 'success',
+    'Paid': 'success'
+};
+
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Scheduled': 'secondary',
+    'Completed': 'success',
+    'Requires Review': 'destructive'
+};
 
 const ClientDashboard = () => {
     const upcomingInspections = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
@@ -93,26 +114,28 @@ const ClientDashboard = () => {
                             <div className="space-y-4">
                                 {recentActivities.map(activity => {
                                      if ('technique' in activity && 'assetName' in activity) { // Inspection
+                                        const inspection = activity as Inspection;
                                         return (
-                                            <Card key={`insp-${activity.id}`} className="p-4">
+                                            <Card key={`insp-${inspection.id}`} className="p-4">
                                                 <div className="flex justify-between items-start">
-                                                    <div className="font-medium">{activity.technique} on {activity.assetName}</div>
+                                                    <div className="font-medium">{inspection.technique} on {inspection.assetName}</div>
                                                     <Badge variant="outline">Inspection Report</Badge>
                                                 </div>
-                                                <div className="text-sm text-muted-foreground mt-2">Date: {activity.date}</div>
-                                                <div className="text-sm text-muted-foreground">Status: <Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></div>
+                                                <div className="text-sm text-muted-foreground mt-2">Date: {inspection.date}</div>
+                                                <div className="text-sm text-muted-foreground">Status: <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge></div>
                                             </Card>
                                         )
                                      } else if ('client' in activity) { // Job
+                                        const job = activity as Job;
                                         return (
-                                            <Card key={`job-${activity.id}`} className="p-4">
+                                            <Card key={`job-${job.id}`} className="p-4">
                                                 <div className="flex justify-between items-start">
-                                                    <div className="font-medium">{activity.title}</div>
+                                                    <div className="font-medium">{job.title}</div>
                                                     <Badge variant="outline">Job Posted</Badge>
                                                 </div>
-                                                <div className="text-sm text-muted-foreground mt-2">Posted: {activity.postedDate}</div>
-                                                {activity.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {activity.scheduledStartDate}</div>}
-                                                <div className="text-sm text-muted-foreground mt-1">Status: <Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></div>
+                                                <div className="text-sm text-muted-foreground mt-2">Posted: {job.postedDate}</div>
+                                                {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {job.scheduledStartDate}</div>}
+                                                <div className="text-sm text-muted-foreground mt-1">Status: <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></div>
                                             </Card>
                                         )
                                      }
@@ -132,21 +155,23 @@ const ClientDashboard = () => {
                             <TableBody>
                                 {recentActivities.map(activity => {
                                 if ('technique' in activity && 'assetName' in activity) { // It's an inspection
+                                    const inspection = activity as Inspection;
                                     return (
-                                    <TableRow key={`insp-${activity.id}`}>
+                                    <TableRow key={`insp-${inspection.id}`}>
                                         <TableCell><Badge variant="outline">Inspection Report</Badge></TableCell>
-                                        <TableCell className="font-medium">{activity.technique} on {activity.assetName}</TableCell>
-                                        <TableCell>{activity.date}</TableCell>
-                                        <TableCell><Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Scheduled' ? 'secondary' : 'outline'}>{activity.status}</Badge></TableCell>
+                                        <TableCell className="font-medium">{inspection.technique} on {inspection.assetName}</TableCell>
+                                        <TableCell>{inspection.date}</TableCell>
+                                        <TableCell><Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge></TableCell>
                                     </TableRow>
                                     )
                                 } else if ('client' in activity) { // It's a job
+                                    const job = activity as Job;
                                     return (
-                                    <TableRow key={`job-${activity.id}`}>
+                                    <TableRow key={`job-${job.id}`}>
                                         <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
-                                        <TableCell className="font-medium">{activity.title}</TableCell>
-                                        <TableCell>{activity.scheduledStartDate ? `Sch: ${activity.scheduledStartDate}` : `Post: ${activity.postedDate}`}</TableCell>
-                                        <TableCell><Badge variant={activity.status === 'Posted' ? 'secondary' : activity.status === 'In Progress' ? 'default' : 'outline'}>{activity.status}</Badge></TableCell>
+                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell>{job.scheduledStartDate ? `Sch: ${job.scheduledStartDate}` : `Post: ${job.postedDate}`}</TableCell>
+                                        <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
                                     </TableRow>
                                     )
                                 }
@@ -248,7 +273,7 @@ const InspectorDashboard = () => {
                                     <Card key={job.id} className="p-4">
                                         <div className="flex justify-between items-start">
                                             <div className="font-medium">{job.title}</div>
-                                            <Badge variant="secondary">{job.status}</Badge>
+                                            <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
                                         <div className="text-sm text-muted-foreground">Location: {job.location}</div>
@@ -273,7 +298,7 @@ const InspectorDashboard = () => {
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{job.scheduledStartDate || "Not Scheduled"}</TableCell>
-                                        <TableCell><Badge variant="secondary">{job.status}</Badge></TableCell>
+                                        <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
                                     </TableRow>
                                 ))}
                                 {upcomingJobs.length === 0 && <TableRow><TableCell colSpan={4} className="text-center">No upcoming jobs.</TableCell></TableRow>}

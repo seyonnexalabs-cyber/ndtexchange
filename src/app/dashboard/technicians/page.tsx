@@ -42,7 +42,7 @@ const DesktopView = () => (
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
+                                <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                             </TableCell>
                             <TableCell className="text-right">
                                 <Button variant="ghost" size="sm">View Profile</Button>
@@ -70,7 +70,7 @@ const MobileView = () => (
                                 <CardDescription>{tech.level}</CardDescription>
                             </div>
                         </div>
-                        <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
+                        <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                     </div>
                 </CardHeader>
                 <CardContent>

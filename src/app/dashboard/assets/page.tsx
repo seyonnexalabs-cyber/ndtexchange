@@ -234,7 +234,7 @@ const ClientAssetsView = () => {
                                         <div className="flex items-start justify-between">
                                             {assetIcons[asset.type]}
                                             <Badge variant={
-                                                asset.status === 'Operational' ? 'default' :
+                                                asset.status === 'Operational' ? 'success' :
                                                 asset.status === 'Requires Inspection' ? 'destructive' :
                                                 asset.status === 'Under Repair' ? 'secondary' : 'outline'
                                             }>{asset.status}</Badge>

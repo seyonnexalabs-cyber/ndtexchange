@@ -36,6 +36,21 @@ const statusDescriptions: Record<Job['status'], string> = {
     'Paid': 'Payment for the job has been settled.'
 };
 
+const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Draft': 'outline',
+    'Posted': 'secondary',
+    'Assigned': 'default',
+    'Scheduled': 'default',
+    'In Progress': 'default',
+    'Report Submitted': 'secondary',
+    'Under Audit': 'secondary',
+    'Audit Approved': 'success',
+    'Client Review': 'secondary',
+    'Client Approved': 'success',
+    'Completed': 'success',
+    'Paid': 'success'
+};
+
 
 const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['status'], workflow: Job['workflow'], onStatusChange: (status: Job['status']) => void }) => {
     const allStatuses: Job['status'][] = [
@@ -178,7 +193,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-4">
                                 <span>Job Lifecycle</span>
-                                <Badge>{currentStatus}</Badge>
+                                <Badge variant={jobStatusVariants[currentStatus]}>{currentStatus}</Badge>
                             </div>
                             <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[currentStatus]}</span>
                         </div>
@@ -327,7 +342,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     }}
                                 />
                                 <Label htmlFor={`tech-${tech.id}`} className="flex-grow">{tech.name} <span className="text-muted-foreground">({tech.level})</span></Label>
-                                <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
+                                <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                             </div>
                         ))}
                         </div>
@@ -358,7 +373,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     }}
                                 />
                                 <Label htmlFor={`equip-${equip.id}`} className="flex-grow">{equip.name} <span className="text-muted-foreground">({equip.type})</span></Label>
-                                <Badge variant={equip.status === 'Calibrated' || equip.status === 'In Service' ? 'default' : 'secondary'}>{equip.status}</Badge>
+                                <Badge variant={equip.status === 'Calibrated' || equip.status === 'In Service' ? 'success' : 'secondary'}>{equip.status}</Badge>
                             </div>
                         ))}
                         </div>

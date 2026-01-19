@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { allUsers } from "@/lib/placeholder-data";
+import { allUsers, PlatformUser } from "@/lib/placeholder-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X } from "lucide-react";
@@ -16,8 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-const statusStyles: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
-    Active: 'default',
+const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
+    Active: 'success',
     Invited: 'secondary',
     Disabled: 'destructive',
 };

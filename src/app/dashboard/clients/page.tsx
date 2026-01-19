@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -11,6 +10,82 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+
+
+const clientSchema = z.object({
+    name: z.string().min(3, 'Company name must be at least 3 characters.'),
+    contactPerson: z.string().min(2, 'Contact person name is required.'),
+    contactEmail: z.string().email('Please enter a valid email address.'),
+});
+
+const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: z.infer<typeof clientSchema>) => void }) => {
+    const form = useForm<z.infer<typeof clientSchema>>({
+        resolver: zodResolver(clientSchema),
+        defaultValues: {
+            name: '',
+            contactPerson: '',
+            contactEmail: '',
+        }
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Company Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Global Energy Corp." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="contactPerson"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Primary Contact Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="contactEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Contact Email</FormLabel>
+                            <FormControl>
+                                <Input type="email" placeholder="e.g., contact@company.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Create Client</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
 
 
 const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
@@ -97,10 +172,21 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
 export default function ClientsPage() {
     const isMobile = useIsMobile();
     const searchParams = useSearchParams();
+    const [isAddClientOpen, setAddClientOpen] = useState(false);
+    const { toast } = useToast();
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
+    };
+
+    const handleFormSubmit = (values: z.infer<typeof clientSchema>) => {
+        console.log("New Client Data:", values);
+        toast({
+            title: "Client Created",
+            description: `${values.name} has been added as a new client.`,
+        });
+        setAddClientOpen(false);
     };
 
     return (
@@ -110,10 +196,25 @@ export default function ClientsPage() {
                     <Users/>
                     Client Management
                 </h1>
-                <Button>Add New Client</Button>
+                <Button onClick={() => setAddClientOpen(true)}>Add New Client</Button>
             </div>
             
             {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}
+
+            <Dialog open={isAddClientOpen} onOpenChange={setAddClientOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Client</DialogTitle>
+                        <DialogDescription>
+                            Enter the details for the new client company.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <ClientForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setAddClientOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

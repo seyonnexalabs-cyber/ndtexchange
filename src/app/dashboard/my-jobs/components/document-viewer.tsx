@@ -1,104 +1,136 @@
 
 'use client';
 
+import * as React from 'react';
 import { Job, JobDocument } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
-import { FileText, Maximize, FileUp, Upload } from 'lucide-react';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { FileText, Maximize, Upload, Download, FileUp } from 'lucide-react';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DocumentViewerProps {
     job: Job;
-    isInspector: boolean;
-    reportSubmitted: boolean;
 }
 
-export default function DocumentViewer({ job, isInspector, reportSubmitted }: DocumentViewerProps) {
-    const reportName = `Inspection_Report_${job.id}.pdf`;
-    
-    const allDocuments: JobDocument[] = [];
-    if (reportSubmitted) {
-        // Ensure the main report is always first
-        allDocuments.push({ name: reportName, url: '#' });
+type CategorizedDocument = JobDocument & { 
+    source: 'Client' | 'Provider' | 'Auditor' 
+};
+
+const DocumentList = ({ documents, title }: { documents: CategorizedDocument[], title: string }) => {
+    if (documents.length === 0) {
+        return (
+            <div className="text-center text-muted-foreground py-10">
+                No {title} found for this job.
+            </div>
+        )
     }
-    if (job.documents) {
-        // Add other documents, avoiding duplicates if names match
-        job.documents.forEach(doc => {
-            if (!allDocuments.some(d => d.name === doc.name)) {
-                allDocuments.push(doc);
-            }
-        });
-    }
-    
-    const defaultTab = allDocuments.length > 0 ? allDocuments[0].name : '';
 
     return (
+        <div className="space-y-3">
+            {documents.map(doc => (
+                <div key={doc.name} className="flex items-center justify-between rounded-md border p-3">
+                    <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                            <p className="text-sm font-medium">{doc.name}</p>
+                            <p className="text-xs text-muted-foreground">Source: {doc.source}</p>
+                        </div>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                        <Download className="w-4 h-4" />
+                    </Button>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default function DocumentViewer({ job }: DocumentViewerProps) {
+    const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(job.status);
+
+    const allDocuments: CategorizedDocument[] = React.useMemo(() => {
+        const docs: CategorizedDocument[] = [];
+        job.documents?.forEach(doc => {
+            docs.push({ ...doc, source: 'Client' });
+        });
+
+        if (reportSubmitted) {
+            docs.push({ name: `Inspection_Report_${job.id}.pdf`, url: '#', source: 'Provider' });
+        }
+        
+        if ((job.status === 'Audit Approved' || job.status === 'Under Audit') && (job.workflow === 'level3' || job.workflow === 'auto')) {
+             docs.push({ name: `Audit_Findings_${job.id}.pdf`, url: '#', source: 'Auditor' });
+        }
+        return docs;
+    }, [job, reportSubmitted]);
+
+    const clientDocs = allDocuments.filter(d => d.source === 'Client');
+    const providerDocs = allDocuments.filter(d => d.source === 'Provider');
+    const auditorDocs = allDocuments.filter(d => d.source === 'Auditor');
+
+    if (allDocuments.length === 0) {
+         return (
+            <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
+                <FileUp className="w-16 h-16 text-muted-foreground/70" />
+                <p className="mt-4 text-sm font-medium text-muted-foreground">No documents have been uploaded for this job yet.</p>
+            </div>
+        );
+    }
+    
+    return (
         <Dialog>
-            {reportSubmitted ? (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
-                        {allDocuments.length > 0 && (
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <Maximize className="mr-2 h-4 w-4" />
-                                    View All Documents
-                                </Button>
-                            </DialogTrigger>
-                        )}
-                    </div>
-                    <div className="space-y-2 rounded-md border p-2 max-h-48 overflow-y-auto">
-                        {allDocuments.map((doc) => (
-                             <div key={doc.name} className="flex items-center gap-2 p-2">
-                                <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                                <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
-                            </div>
-                        ))}
-                         {allDocuments.length === 0 && (
-                            <p className="p-2 text-sm text-muted-foreground">No documents are associated with this report.</p>
-                         )}
-                    </div>
-                </div>
-            ) : (
-                <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
-                    <FileUp className="w-16 h-16 text-muted-foreground/70" />
-                    <p className="mt-4 text-sm font-medium text-muted-foreground">No report has been submitted yet.</p>
-                    {isInspector && (
-                        <Button variant="outline" className="mt-4">
-                            <Upload className="mr-2 h-4 w-4" /> Upload Report
+            <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
+                    <DialogTrigger asChild>
+                        <Button>
+                            <Maximize className="mr-2 h-4 w-4" />
+                            View All Documents
                         </Button>
-                    )}
+                    </DialogTrigger>
                 </div>
-            )}
-            <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+                <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
+                    {allDocuments.map((doc) => (
+                         <div key={doc.name} className="flex items-center gap-2 p-2">
+                            <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
+                        </div>
+                    ))}
+                </ScrollArea>
+            </div>
+
+            <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Document Viewer</DialogTitle>
                     <DialogDescription>
                         Review all documents associated with job: {job.title}
                     </DialogDescription>
                 </DialogHeader>
-                 {allDocuments.length > 0 && (
-                    <Tabs defaultValue={defaultTab} className="flex-grow flex flex-col min-h-0">
-                        <TabsList className="w-full justify-start overflow-x-auto">
-                            {allDocuments.map((doc) => (
-                                <TabsTrigger key={doc.name} value={doc.name} className="truncate max-w-[200px] shrink-0">{doc.name}</TabsTrigger>
-                            ))}
-                        </TabsList>
-                        <div className="flex-grow mt-4 overflow-y-auto">
-                            {allDocuments.map((doc) => (
-                                <TabsContent key={doc.name} value={doc.name} className="h-full m-0">
-                                    <div className="w-full h-full bg-gray-800 flex flex-col items-center justify-center text-white p-4 rounded-md">
-                                        <FileText className="w-24 h-24" />
-                                        <h2 className="text-2xl font-bold mt-4 text-center">{doc.name}</h2>
-                                        <p className="mt-2 text-center">A full-featured PDF document viewer for this document would be implemented here.</p>
-                                    </div>
-                                </TabsContent>
-                            ))}
-                        </div>
-                    </Tabs>
-                 )}
+                <Tabs defaultValue="client" className="flex-grow flex flex-col min-h-0">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="client">Client Documents ({clientDocs.length})</TabsTrigger>
+                        <TabsTrigger value="provider" disabled={providerDocs.length === 0}>Provider Reports ({providerDocs.length})</TabsTrigger>
+                        <TabsTrigger value="auditor" disabled={auditorDocs.length === 0}>Auditor Files ({auditorDocs.length})</TabsTrigger>
+                    </TabsList>
+                    <ScrollArea className="flex-grow mt-4">
+                         <TabsContent value="client">
+                            <DocumentList documents={clientDocs} title="Client Documents"/>
+                        </TabsContent>
+                        <TabsContent value="provider">
+                            <DocumentList documents={providerDocs} title="Provider Reports"/>
+                        </TabsContent>
+                        <TabsContent value="auditor">
+                             <DocumentList documents={auditorDocs} title="Auditor Files"/>
+                        </TabsContent>
+                    </ScrollArea>
+                </Tabs>
+                <DialogFooter>
+                    <DialogTrigger asChild>
+                        <Button variant="outline">Close</Button>
+                    </DialogTrigger>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
 }
-

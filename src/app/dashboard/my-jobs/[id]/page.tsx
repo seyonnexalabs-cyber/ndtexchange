@@ -481,6 +481,42 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
                     {isClient && <BidsSection />}
 
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">Documents & Reports</CardTitle>
+                            <CardDescription>View all documents and reports associated with this job.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DocumentViewer job={jobDetails} />
+                            
+                            {isClient && (
+                                <>
+                                    <Separator className="my-6" />
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold">Upload Clarification Documents</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
+                                        </p>
+                                        <div className="flex items-center gap-4 p-4 border rounded-md">
+                                            <Input id="clarification-docs" type="file" multiple className="flex-grow" />
+                                            <Button variant="secondary">
+                                                <Upload className="mr-2 h-4 w-4" />
+                                                Upload
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </CardContent>
+                        {isInspector && (
+                            <CardFooter className="flex justify-end gap-2">
+                                <Button disabled={reportSubmitted}>
+                                    {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
+                                </Button>
+                            </CardFooter>
+                        )}
+                    </Card>
+
                      <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication &amp; History</CardTitle>
@@ -546,43 +582,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     </ScrollArea>
                                 </TabsContent>
                             </Tabs>
-                            
-                            {isClient && (
-                                <>
-                                    <Separator className="my-6" />
-                                    <div className="space-y-4">
-                                        <h3 className="font-semibold">Upload Clarification Documents</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
-                                        </p>
-                                        <div className="flex items-center gap-4 p-4 border rounded-md">
-                                            <Input id="clarification-docs" type="file" multiple className="flex-grow" />
-                                            <Button variant="secondary">
-                                                <Upload className="mr-2 h-4 w-4" />
-                                                Upload
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
                         </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">Job Results &amp; Reports</CardTitle>
-                            <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <DocumentViewer job={jobDetails} isInspector={isInspector} reportSubmitted={reportSubmitted} />
-                        </CardContent>
-                        {isInspector && (
-                            <CardFooter className="flex justify-end gap-2">
-                                <Button disabled={reportSubmitted}>
-                                    {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
-                                </Button>
-                            </CardFooter>
-                        )}
                     </Card>
 
                      <AuditorActions 
@@ -707,5 +707,3 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
-
-    

@@ -47,8 +47,7 @@ export default function ClientDetailPage() {
             
             <div className="flex items-center gap-4 mb-6">
                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={`https://picsum.photos/seed/${client.id}/200/200`} />
-                    <AvatarFallback>{client.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    <AvatarFallback className="text-3xl">{client.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
                 <div>
                     <h1 className="text-2xl font-headline font-bold">{client.name}</h1>

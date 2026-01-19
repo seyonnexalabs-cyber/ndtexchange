@@ -35,7 +35,6 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
                         <TableRow key={client.id}>
                             <TableCell className="font-medium flex items-center gap-3">
                                 <Avatar>
-                                    <AvatarImage src={`https://picsum.photos/seed/${client.id}/100/100`} />
                                     <AvatarFallback>{client.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 {client.name}
@@ -66,7 +65,6 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
                 <CardHeader>
                     <div className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src={`https://picsum.photos/seed/${client.id}/100/100`} />
                             <AvatarFallback>{client.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <div>

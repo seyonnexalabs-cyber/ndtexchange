@@ -313,7 +313,7 @@ export default function SettingsPage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="flex items-center gap-6">
                     <Avatar className="h-20 w-20">
-                        <AvatarFallback>{currentUser.fallback}</AvatarFallback>
+                        <AvatarFallback className="text-3xl">{currentUser.fallback}</AvatarFallback>
                     </Avatar>
                      <div className="flex flex-col gap-2">
                         <Button type="button">Change Photo</Button>

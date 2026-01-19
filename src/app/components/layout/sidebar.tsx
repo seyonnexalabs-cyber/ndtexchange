@@ -143,6 +143,28 @@ const AppSidebar = () => {
 
   }, [role]);
 
+  const activeItem = useMemo(() => {
+    if (!pathname || !menuItems.length) return null;
+
+    if (pathname === '/dashboard') {
+        return menuItems.find(item => item.href === '/dashboard');
+    }
+    
+    const matchingItems = menuItems.filter(
+      (item) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
+    );
+
+    if (matchingItems.length === 0) {
+      return menuItems.find(item => item.href === pathname);
+    }
+    if (matchingItems.length === 1) return matchingItems[0];
+    
+    // Find the item with the longest href, which is the most specific match
+    return matchingItems.reduce((best, current) => 
+        (current.href && best.href && current.href.length > best.href.length) ? current : best
+    );
+  }, [pathname, menuItems]);
+
   const handleLogout = () => {
     router.push('/login');
   };
@@ -172,7 +194,7 @@ const AppSidebar = () => {
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
                   asChild
-                  isActive={item.href && (pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard'))}
+                  isActive={item.id === activeItem?.id}
                   tooltip={{ children: item.label }}
                 >
                   <Link href={item.href ? constructUrl(item.href) : '#'}>

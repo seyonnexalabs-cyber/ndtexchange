@@ -121,7 +121,28 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
 };
 
 
-const AuditorActions = ({ onApprove, onReject }: { onApprove: () => void, onReject: () => void }) => {
+const AuditorActions = ({ status, onApprove, onReject }: { status: Job['status'], onApprove: () => void, onReject: () => void }) => {
+    const isPostAudit = ['Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(status);
+
+    if (isPostAudit) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Audit Result</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center gap-3 bg-green-600/10 text-green-700 p-4 rounded-md">
+                        <CheckCircle className="w-8 h-8" />
+                        <div>
+                            <p className="font-bold">Report Approved</p>
+                            <p className="text-sm">The report was approved by the auditor on 2024-07-22.</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        )
+    }
+    
     return (
         <Card>
             <CardHeader>
@@ -305,8 +326,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         )}
                     </Card>
 
-                    {isAuditor && (currentStatus === 'Report Submitted' || currentStatus === 'Under Audit') && (
-                        <AuditorActions onApprove={handleApprove} onReject={handleReject} />
+                    {isAuditor && job.workflow === 'level3' && reportSubmitted && (
+                        <AuditorActions status={currentStatus} onApprove={handleApprove} onReject={handleReject} />
                     )}
                 </div>
 
@@ -446,5 +467,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
+
+    
 
     

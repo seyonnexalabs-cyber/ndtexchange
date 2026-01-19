@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -12,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -117,10 +120,38 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
 };
 
 
+const AuditorActions = ({ onApprove, onReject }: { onApprove: () => void, onReject: () => void }) => {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Auditor Actions</CardTitle>
+                <CardDescription>Review the report and provide your decision.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div>
+                    <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
+                    <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2. The provided image is unclear...'" className="mt-2 min-h-[120px]"/>
+                </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+                <Button variant="destructive" onClick={onReject}>
+                    <XCircle className="mr-2"/>
+                    Request Revisions
+                </Button>
+                <Button className="bg-green-600 hover:bg-green-700" onClick={onApprove}>
+                    <CheckCircle className="mr-2"/>
+                    Approve Report
+                </Button>
+            </CardFooter>
+        </Card>
+    )
+}
+
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const { id } = React.use(params);
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+    const { toast } = useToast();
     
     const job = useMemo(() => jobs.find(j => j.id === id), [id]);
 
@@ -177,14 +208,33 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         setIsEquipDialogOpen(false);
     };
 
+    const handleApprove = () => {
+        toast({
+            title: "Report Approved",
+            description: `The inspection report for this job has been approved.`,
+        });
+        setCurrentStatus('Audit Approved');
+    }
+
+    const handleReject = () => {
+        toast({
+            variant: "destructive",
+            title: "Revisions Requested",
+            description: `The report has been sent back to the provider for revisions.`,
+        });
+        // In a real app, update status in the backend.
+    }
+
+
     const isInspector = role === 'inspector';
+    const isAuditor = role === 'auditor';
 
     return (
         <div>
             <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl("/dashboard/my-jobs")}>
+                <Link href={constructUrl(isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs")}>
                     <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to My Jobs
+                    Back to {isAuditor ? "Inspections" : "My Jobs"}
                 </Link>
             </Button>
 
@@ -241,19 +291,39 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">Job Results & Reports</CardTitle>
-                             <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
+                            <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
                         </CardHeader>
-                        <CardContent className="text-center text-muted-foreground p-10">
-                            <FileText className="mx-auto h-12 w-12" />
-                            <p className="mt-4">Reporting features are coming soon.</p>
-                            <p className="text-xs">You'll be able to generate technique-specific digital reports here.</p>
+                        <CardContent>
+                           <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                                <p className="text-muted-foreground">Inspection Report Viewer (PDF/Digital)</p>
+                           </div>
+                           <div className="mt-4 space-y-2">
+                               <h3 className="font-semibold">Attached Documents</h3>
+                               {job.documents?.map((doc, i) => (
+                                   <div key={i} className="flex items-center justify-between p-2 border rounded-md">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{doc.name}</span>
+                                        </div>
+                                        <Button variant="ghost" size="sm">Download</Button>
+                                    </div>
+                               ))}
+                               {(!job.documents || job.documents.length === 0) && (
+                                   <p className="text-sm text-muted-foreground">No documents attached to this job.</p>
+                               )}
+                           </div>
                         </CardContent>
-                        <CardFooter className="flex justify-end gap-2">
-                            <Button variant="outline"><Upload className="mr-2" /> Upload Report</Button>
-                            <Button>Generate Digital Report</Button>
-                        </CardFooter>
+                        {isInspector && (
+                            <CardFooter className="flex justify-end gap-2">
+                                <Button variant="outline"><Upload className="mr-2" /> Upload Report</Button>
+                                <Button>Generate Digital Report</Button>
+                            </CardFooter>
+                        )}
                     </Card>
 
+                    {isAuditor && (currentStatus === 'Report Submitted' || currentStatus === 'Under Audit') && (
+                        <AuditorActions onApprove={handleApprove} onReject={handleReject} />
+                    )}
                 </div>
 
                 <div className="space-y-6">

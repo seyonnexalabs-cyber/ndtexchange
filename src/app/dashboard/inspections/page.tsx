@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -153,7 +154,7 @@ export default function InspectionsPage() {
                             </CardContent>
                              <CardFooter>
                                 <Button asChild variant="outline" size="sm" className="w-full">
-                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
+                                    <Link href={constructUrl(`/dashboard/my-jobs/${inspection.jobId}`)}>Audit Report</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -184,7 +185,7 @@ export default function InspectionsPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${inspection.jobId}`)}>Audit Report</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

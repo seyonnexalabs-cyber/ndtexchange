@@ -195,7 +195,7 @@ const AppSidebar = () => {
             <div className="overflow-hidden">
                 <p className="font-semibold truncate">{currentUser.name}</p>
                 <p className="text-xs text-sidebar-foreground/70 truncate">
-                   {role === 'client' ? currentUser.company : currentUser.role}
+                   {role === 'client' || role === 'inspector' ? currentUser.company : currentUser.role}
                 </p>
             </div>
             <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>

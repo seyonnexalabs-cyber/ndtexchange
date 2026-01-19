@@ -1,7 +1,7 @@
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ const userDetails = {
 };
 
 const AppHeader = () => {
-    const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
@@ -29,15 +28,6 @@ const AppHeader = () => {
     const currentUser = useMemo(() => {
         return userDetails[role as keyof typeof userDetails] || userDetails.client;
     }, [role]);
-
-    const pathSegments = pathname.split('/').filter(Boolean);
-    let title = 'Dashboard';
-    if (pathSegments.length > 1) {
-      title = pathSegments[pathSegments.length -1].charAt(0).toUpperCase() + pathSegments[pathSegments.length -1].slice(1);
-      if (title.match(/^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$/i) || title.match(/^ASSET-\d{3}$/i)) {
-        title = "Asset Details"
-      }
-    }
 
     const handleLogout = () => {
         router.push('/login');
@@ -52,7 +42,7 @@ const AppHeader = () => {
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
             <SidebarTrigger className="md:hidden"/>
 
-            <h1 className="text-xl font-semibold hidden md:block font-headline">{title}</h1>
+            <h1 className="text-xl font-semibold hidden md:block font-headline">{currentUser.company}</h1>
 
             <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
                 <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
@@ -80,7 +70,7 @@ const AppHeader = () => {
                         <DropdownMenuLabel>
                             {currentUser.name}
                             <div className="text-xs font-normal text-muted-foreground">
-                                {role === 'client' ? currentUser.company : currentUser.role}
+                                {role === 'client' || role === 'inspector' ? currentUser.company : currentUser.role}
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />

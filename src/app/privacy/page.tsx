@@ -42,6 +42,25 @@ export default function PrivacyPage() {
                 You always retain the right to withhold personal information from us, with the understanding that your experience of our website may be affected. We will not discriminate against you for exercising any of your rights over your personal information. If you do provide us with personal information you understand that we will collect, hold, use and disclose it in accordance with this privacy policy. You retain the right to request details of any personal information we hold about you.
             </p>
 
+            <h2 className="text-2xl font-headline text-foreground pt-4">5. Data Sharing and Disclosure</h2>
+            <p>
+              Our platform is designed to connect professionals. As such, some of your information is shared to facilitate these connections:
+            </p>
+            <ul className="list-disc list-inside space-y-2 pl-4">
+                <li>
+                    <strong>For Asset Owners (Clients):</strong> When you post a job, your company name and the general location of the job will be visible to potential service providers in the marketplace. Your personal name and direct contact information are not shared until you award a job to a provider.
+                </li>
+                <li>
+                    <strong>For Service Providers (Inspectors):</strong> Your company's profile, including its name, location, and the NDT techniques you offer, is listed in our public provider directory. Your technicians' names and certifications may be visible to clients when you bid on or are assigned to a job.
+                </li>
+                <li>
+                    <strong>Between Connected Parties:</strong> Once a job is awarded, contact information (like names and emails) will be shared between the client and the awarded provider to facilitate communication and project execution.
+                </li>
+            </ul>
+            <p>
+              We do not sell your personal information to third parties. We may disclose your information to third-party service providers who assist us in operating our website and conducting our business, so long as those parties agree to keep this information confidential.
+            </p>
+
           </div>
         </div>
       </main>

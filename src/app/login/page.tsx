@@ -40,7 +40,7 @@ export default function LoginPage() {
       case 'inspector':
         return 'Service Provider Login';
       case 'auditor':
-        return 'Auditor Login';
+        return 'Audit Firm Login';
       default:
         return 'Login';
     }
@@ -123,8 +123,15 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full">
                     Sign In
                 </Button>
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                    New users must be invited.
+                <div className="mt-4 text-center text-sm">
+                    <span className="text-muted-foreground">
+                        New users must be invited.
+                    </span>
+                    <Button variant="link" asChild className="p-1">
+                        <Link href="/contact">
+                            Contact Us
+                        </Link>
+                    </Button>
                 </div>
             </CardContent>
             </form>

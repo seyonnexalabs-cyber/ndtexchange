@@ -11,7 +11,7 @@ const ClientReports = () => (
             <CardDescription>Generate and download historical reports for your assets, job statuses, and financial summaries.</CardDescription>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground">Coming soon: You will be able to create custom reports, filter by date ranges, and export data to PDF or CSV for compliance and analysis.</p>
+            <p className="text-muted-foreground">This section will act as your business intelligence center. You will be able to create custom reports, filter by date ranges, and export data to PDF or CSV for compliance and analysis.</p>
         </CardContent>
     </Card>
 );
@@ -20,10 +20,10 @@ const InspectorReports = () => (
     <Card>
         <CardHeader>
             <CardTitle className="flex items-center gap-2"><HardHat /> Inspection Report Generation</CardTitle>
-            <CardDescription>This is your workspace to create, manage, and submit technical inspection reports for your jobs.</CardDescription>
+            <CardDescription>This is your workspace to create, manage, and submit technical inspection reports for specific jobs.</CardDescription>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground">Coming soon: You will find technique-specific digital forms (UT, MT, PAUT, etc.) here to fill out your findings and submit them for review.</p>
+            <p className="text-muted-foreground">After completing a job, you will come here to find technique-specific digital forms (UT, MT, PAUT, etc.). You'll fill out your findings, attach any necessary data or images, and submit the final report for review and approval.</p>
         </CardContent>
     </Card>
 );
@@ -35,7 +35,7 @@ const AdminReports = () => (
             <CardDescription>Generate reports on platform-wide metrics, including revenue, user activity, and marketplace trends.</CardDescription>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground">Coming soon: This area will provide tools to generate formal business reports for stakeholders, financial analysis, and tracking platform growth.</p>
+            <p className="text-muted-foreground">This area provides tools to generate formal business reports for stakeholders, conduct financial analysis, and track overall platform growth and health.</p>
         </CardContent>
     </Card>
 );

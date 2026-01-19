@@ -482,3 +482,5 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
+
+    

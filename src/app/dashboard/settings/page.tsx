@@ -152,9 +152,12 @@ const AdminTeamManagement = () => {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Admin Team Management</CardTitle>
-                <CardDescription>Manage users with administrative privileges on the platform.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Admin Team Management</CardTitle>
+                    <CardDescription>Manage users with administrative privileges on the platform.</CardDescription>
+                </div>
+                <Button>Invite Admin</Button>
             </CardHeader>
             <CardContent>
                 <Table>

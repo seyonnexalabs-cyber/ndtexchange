@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
@@ -121,14 +121,35 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
 };
 
 
-const AuditorActions = ({ status, onApprove, onReject }: { status: Job['status'], onApprove: () => void, onReject: () => void }) => {
+const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprove, onReject }: { 
+    status: Job['status'], 
+    workflow: Job['workflow'], 
+    isAuditor: boolean, 
+    reportSubmitted: boolean,
+    onApprove: () => void, 
+    onReject: () => void 
+}) => {
+    // 1. Standard workflow - always disabled and just provides info
+    if (workflow === 'standard') {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Auditor Review</CardTitle>
+                    <CardDescription>This job follows the standard workflow and does not require Level III Auditor review.</CardDescription>
+                </CardHeader>
+            </Card>
+        );
+    }
+    
+    // 2. Level 3/Auto workflow
     const isPostAudit = ['Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(status);
 
+    // 2a. Audit is completed and approved
     if (isPostAudit) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Audit Result</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Audit Result</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-3 bg-green-600/10 text-green-700 p-4 rounded-md">
@@ -142,32 +163,59 @@ const AuditorActions = ({ status, onApprove, onReject }: { status: Job['status']
             </Card>
         )
     }
-    
+
+    // 2b. Audit is pending or active
+    // If report is not submitted yet
+    if (!reportSubmitted) {
+         return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Auditor Review</CardTitle>
+                    <CardDescription>This step will become active once the service provider submits their final report.</CardDescription>
+                </CardHeader>
+            </Card>
+        );
+    }
+
+    // If report submitted and user IS the auditor
+    if (isAuditor) {
+         return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Auditor Actions</CardTitle>
+                    <CardDescription>Review the report and provide your decision.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
+                        <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2...'" className="mt-2 min-h-[120px]"/>
+                    </div>
+                </CardContent>
+                <CardFooter className="flex justify-end gap-2">
+                    <Button variant="destructive" onClick={onReject}>
+                        <XCircle className="mr-2"/>
+                        Request Revisions
+                    </Button>
+                    <Button className="bg-green-600 hover:bg-green-700" onClick={onApprove}>
+                        <CheckCircle className="mr-2"/>
+                        Approve Report
+                    </Button>
+                </CardFooter>
+            </Card>
+        )
+    }
+
+    // If report submitted and user is NOT the auditor (client or inspector)
     return (
-        <Card>
+         <Card>
             <CardHeader>
-                <CardTitle>Auditor Actions</CardTitle>
-                <CardDescription>Review the report and provide your decision.</CardDescription>
+                <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Auditor Review Pending</CardTitle>
+                <CardDescription>The inspection report has been submitted and is currently under review by the Level III Auditor.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <div>
-                    <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
-                    <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2. The provided image is unclear...'" className="mt-2 min-h-[120px]"/>
-                </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-                <Button variant="destructive" onClick={onReject}>
-                    <XCircle className="mr-2"/>
-                    Request Revisions
-                </Button>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={onApprove}>
-                    <CheckCircle className="mr-2"/>
-                    Approve Report
-                </Button>
-            </CardFooter>
         </Card>
-    )
-}
+    );
+};
+
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const { id } = React.use(params);
@@ -362,6 +410,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const isAuditor = role === 'auditor';
     const isClient = role === 'client';
     const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
+    const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
+
 
     return (
         <div>
@@ -432,16 +482,23 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         <CardContent>
                             <DocumentViewer job={jobDetails} isInspector={isInspector} reportSubmitted={reportSubmitted} />
                         </CardContent>
-                        {isInspector && !reportSubmitted && (
+                        {isInspector && (
                             <CardFooter className="flex justify-end gap-2">
-                                <Button>Generate Digital Report</Button>
+                                <Button disabled={reportSubmitted}>
+                                    {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
+                                </Button>
                             </CardFooter>
                         )}
                     </Card>
 
-                    {isAuditor && jobDetails.workflow === 'level3' && reportSubmitted && (
-                        <AuditorActions status={jobDetails.status} onApprove={handleApprove} onReject={handleReject} />
-                    )}
+                     <AuditorActions 
+                        status={jobDetails.status} 
+                        workflow={jobDetails.workflow} 
+                        isAuditor={isAuditor}
+                        reportSubmitted={reportSubmitted}
+                        onApprove={handleApprove}
+                        onReject={handleReject}
+                    />
                 </div>
 
                 <div className="space-y-6">
@@ -472,14 +529,14 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Assigned Resources</CardTitle>
-                            <CardDescription>Technicians and equipment assigned to this job.</CardDescription>
+                            <CardDescription>Manage technicians and equipment for this job. Assignments are locked once the inspection is in progress.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" /> Technicians</h4>
                                     {isInspector && (
-                                        <Button variant="outline" size="sm" onClick={openTechDialog}>
+                                        <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
                                             <PlusCircle className="mr-2 h-4 w-4" /> Manage
                                         </Button>
                                     )}
@@ -497,7 +554,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                  <div className="flex items-center justify-between mb-2">
                                     <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-muted-foreground" /> Equipment</h4>
                                      {isInspector && (
-                                        <Button variant="outline" size="sm" onClick={openEquipDialog}>
+                                        <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
                                             <PlusCircle className="mr-2 h-4 w-4" /> Manage
                                         </Button>
                                      )}
@@ -580,3 +637,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
+
+
+    

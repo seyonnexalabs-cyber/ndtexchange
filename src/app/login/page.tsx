@@ -10,6 +10,7 @@ import { ShieldCheck, Building, HardHat, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type UserType = 'client' | 'inspector' | 'auditor';
 
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [userType, setUserType] = useState<UserType>('client');
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -30,7 +32,9 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/dashboard?role=${userType}`);
+    if (agreedToTerms) {
+      router.push(`/dashboard?role=${userType}`);
+    }
   };
 
   const getTitle = () => {
@@ -120,7 +124,21 @@ export default function LoginPage() {
                 </div>
                 <Input id="password" type="password" required />
                 </div>
-                <Button type="submit" className="w-full">
+                 <div className="flex items-start space-x-2">
+                    <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} className="mt-1" />
+                    <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
+                        I agree to the{' '}
+                        <Link href="/terms" className="underline hover:text-primary">
+                        Terms & Conditions
+                        </Link>{' '}
+                        and{' '}
+                        <Link href="/privacy" className="underline hover:text-primary">
+                        Privacy Policy
+                        </Link>
+                        .
+                    </Label>
+                </div>
+                <Button type="submit" className="w-full" disabled={!agreedToTerms}>
                     Sign In
                 </Button>
                 <div className="mt-4 text-center text-sm">

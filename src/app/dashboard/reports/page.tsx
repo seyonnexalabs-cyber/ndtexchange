@@ -2,19 +2,67 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, BarChart, HardHat, Building } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, BarChart, HardHat, Building, Settings2, Download } from 'lucide-react';
+
+const reportTypes = [
+    {
+        title: "Asset Inspection History",
+        description: "Generate a detailed history of all inspections for a specific asset or group of assets.",
+        icon: <Building className="w-6 h-6 text-accent" />
+    },
+    {
+        title: "Job Cost & Duration Analysis",
+        description: "Analyze costs and timelines across all completed jobs to identify trends and outliers.",
+        icon: <BarChart className="w-6 h-6 text-accent" />
+    },
+    {
+        title: "Provider Performance Review",
+        description: "Compare performance metrics for service providers, including on-time delivery and report quality.",
+        icon: <HardHat className="w-6 h-6 text-accent" />
+    },
+    {
+        title: "Custom Report Builder",
+        description: "Create your own report by selecting custom data points, filters, and date ranges.",
+        icon: <Settings2 className="w-6 h-6 text-accent" />
+    }
+];
 
 const ClientReports = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Building /> Asset & Job Reports</CardTitle>
-            <CardDescription>Generate and download historical reports for your assets, job statuses, and financial summaries.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-muted-foreground">This section will act as your business intelligence center. You will be able to create custom reports, filter by date ranges, and export data to PDF or CSV for compliance and analysis.</p>
-        </CardContent>
-    </Card>
+    <div>
+        <div className="grid gap-6 md:grid-cols-2">
+            {reportTypes.map(report => (
+                 <Card key={report.title}>
+                    <CardHeader className="flex flex-row items-center gap-4">
+                        <div className="bg-accent/10 p-4 rounded-full">
+                            {report.icon}
+                        </div>
+                        <div>
+                            <CardTitle>{report.title}</CardTitle>
+                            <CardDescription className="mt-1">{report.description}</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <Button disabled>
+                            <Download className="mr-2 h-4 w-4" />
+                            Generate Report
+                        </Button>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+        <Card className="mt-6 bg-muted/50">
+            <CardHeader>
+                <CardTitle>What is this page for?</CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground space-y-2">
+                <p>This <span className="font-semibold text-foreground">Reports</span> section is your business intelligence hub. It is designed for in-depth analysis and generating formal documentation from historical data.</p>
+                <p>Your <span className="font-semibold text-foreground">Dashboard</span>, on the other hand, provides a real-time, at-a-glance overview of current statuses and recent activities.</p>
+            </CardContent>
+        </Card>
+    </div>
 );
+
 
 const InspectorReports = () => (
     <Card>

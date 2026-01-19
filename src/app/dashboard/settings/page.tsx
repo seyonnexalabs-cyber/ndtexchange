@@ -40,7 +40,7 @@ const companyProfileSchema = z.object({
 });
 
 
-const CompanyProfileSettings = ({ companyName, companyAddress }: { companyName: string, companyAddress?: string }) => {
+const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = false }: { companyName: string, companyAddress?: string, isReadOnly?: boolean }) => {
   const form = useForm<z.infer<typeof companyProfileSchema>>({
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
@@ -73,7 +73,7 @@ const CompanyProfileSettings = ({ companyName, companyAddress }: { companyName: 
                 <FormItem>
                   <FormLabel>Company Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} disabled={isReadOnly}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -86,13 +86,13 @@ const CompanyProfileSettings = ({ companyName, companyAddress }: { companyName: 
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} disabled={isReadOnly}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">Save Changes</Button>
+            {!isReadOnly && <Button type="submit">Save Changes</Button>}
           </form>
         </Form>
       </CardContent>
@@ -430,9 +430,9 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          {role === 'admin' && <TabsTrigger value="team">Team Management</TabsTrigger>}
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
@@ -487,23 +487,17 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
         <TabsContent value="company">
-             {role === 'client' || role === 'inspector' ? (
-                <div className="space-y-6">
-                    <CompanyProfileSettings companyName={currentUser.company} companyAddress={currentUser.address} />
-                    <TeamManagementSettings companyName={currentUser.company} />
-                </div>
-                ) : (
-                <Card>
-                    <CardHeader>
-                    <CardTitle>Company Profile</CardTitle>
-                    <CardDescription>Details about your affiliated company.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-lg font-semibold">{currentUser.company}</p>
-                        <p className="text-muted-foreground">Company profile settings are managed by your account administrator.</p>
-                    </CardContent>
-                </Card>
-            )}
+             <CompanyProfileSettings 
+                companyName={currentUser.company} 
+                companyAddress={currentUser.address} 
+                isReadOnly={role === 'admin'}
+            />
+        </TabsContent>
+        <TabsContent value="team">
+            {role === 'admin' ? 
+                <AdminTeamManagement /> : 
+                <TeamManagementSettings companyName={currentUser.company} />
+            }
         </TabsContent>
         <TabsContent value="subscription">
             <SubscriptionSettings />
@@ -511,11 +505,6 @@ export default function SettingsPage() {
         <TabsContent value="notifications">
             <NotificationSettings role={role} />
         </TabsContent>
-        {role === 'admin' && (
-            <TabsContent value="team">
-                <AdminTeamManagement />
-            </TabsContent>
-        )}
         <TabsContent value="appearance">
              <Card>
                 <CardHeader>

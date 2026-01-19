@@ -224,5 +224,3 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         </div>
     );
 }
-
-    

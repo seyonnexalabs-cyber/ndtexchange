@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function ContactPage() {
   return (
@@ -97,6 +98,19 @@ export default function ContactPage() {
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input id="email" type="email" placeholder="you@company.com" />
                             </div>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="role">You are a...</Label>
+                            <Select name="role">
+                                <SelectTrigger id="role">
+                                    <SelectValue placeholder="Select your role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="client">Client / Asset Owner</SelectItem>
+                                    <SelectItem value="provider">NDT Service Provider</SelectItem>
+                                    <SelectItem value="auditor">Auditor / Regulator</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="subject">Subject</Label>

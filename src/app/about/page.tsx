@@ -29,14 +29,14 @@ export default function AboutPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-headline font-semibold text-primary">
-                    Our Mission
+                    Who We Serve
                 </h2>
                 <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                    To create a transparent, efficient, and reliable digital ecosystem for the Non-Destructive Testing industry, ensuring safety and compliance for critical infrastructure worldwide.
+                    Our platform is built to create a transparent, efficient, and reliable digital ecosystem for every stakeholder in the Non-Destructive Testing industry.
                 </p>
             </div>
 
-            <div className="grid gap-12 md:grid-cols-2">
+            <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                 <Card className="p-2">
                     <CardHeader>
                         <div className="flex items-center gap-4">
@@ -70,6 +70,24 @@ export default function AboutPage() {
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Access a marketplace of inspection jobs that match your certifications and location.</span></li>
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Manage your technicians, equipment, and certifications efficiently.</span></li>
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Utilize digital reporting tools to deliver high-quality, consistent results to your clients.</span></li>
+                        </ul>
+                    </CardContent>
+                </Card>
+                 <Card className="p-2">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                           <div className="bg-accent/10 p-4 rounded-full w-fit">
+                                <Globe className="w-8 h-8 text-accent" />
+                            </div>
+                            <CardTitle className="text-2xl font-headline">For Auditors & Regulators</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>Ensure compliance and maintain oversight with tools designed for transparency and traceability across the inspection lifecycle.</p>
+                        <ul className="space-y-2">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Secure, read-only access to review job data and final inspection reports.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Track the entire inspection process from job posting to final report approval.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Verify technician certifications and equipment calibration records for full compliance.</span></li>
                         </ul>
                     </CardContent>
                 </Card>

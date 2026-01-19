@@ -6,14 +6,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, technicians, inspectorAssets } from '@/lib/placeholder-data';
+import { jobs, technicians, inspectorAssets, bids, serviceProviders, Bid } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
@@ -106,7 +106,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                 <div className="font-semibold text-sm">Lifecycle Test Control</div>
                 <div className="flex items-center gap-4">
                     <Label htmlFor="status-select">Override Status:</Label>
-                    <Select onValueChange={(val) => onStatusChange(val as Job['status'])} defaultValue={status}>
+                    <Select onValueChange={(val) => onStatusChange(val as Job['status'])} value={status}>
                         <SelectTrigger id="status-select" className="w-[200px]">
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -175,27 +175,26 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     
-    const job = useMemo(() => jobs.find(j => j.id === id), [id]);
-
-    const [assignedTechIds, setAssignedTechIds] = useState<string[]>([]);
-    const [assignedEquipIds, setAssignedEquipIds] = useState<string[]>([]);
-    const [currentStatus, setCurrentStatus] = useState<Job['status']>('Posted');
+    // State for the entire page's data to avoid hydration issues with direct mutation
+    const [jobDetails, setJobDetails] = useState<Job | undefined>(() => jobs.find(j => j.id === id));
+    const [jobBids, setJobBids] = useState<Bid[]>(() => bids.filter(b => b.jobId === id));
     
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
 
     const [tempSelectedTechs, setTempSelectedTechs] = useState<string[]>([]);
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
-
+    
+    // Re-initialize state if id changes
     useEffect(() => {
-        if (job) {
-            setAssignedTechIds(job.technicianIds || []);
-            setAssignedEquipIds(job.equipmentIds || []);
-            setCurrentStatus(job.status);
+        const jobData = jobs.find(j => j.id === id);
+        if (jobData) {
+            setJobDetails(JSON.parse(JSON.stringify(jobData)));
+            setJobBids(JSON.parse(JSON.stringify(bids.filter(b => b.jobId === id))));
         }
-    }, [job]);
+    }, [id]);
 
-    if (!job) {
+    if (!jobDetails) {
         notFound();
     }
     
@@ -204,27 +203,57 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         return `${base}?${params.toString()}`;
     }
 
-    const assignedTechnicians = technicians.filter(t => assignedTechIds.includes(t.id));
-    const assignedEquipment = inspectorAssets.filter(e => assignedEquipIds.includes(e.id));
+    const assignedTechnicians = technicians.filter(t => jobDetails.technicianIds?.includes(t.id));
+    const assignedEquipment = inspectorAssets.filter(e => jobDetails.equipmentIds?.includes(e.id));
     
     const openTechDialog = () => {
-        setTempSelectedTechs([...assignedTechIds]);
+        setTempSelectedTechs([...(jobDetails.technicianIds || [])]);
         setIsTechDialogOpen(true);
     };
 
     const openEquipDialog = () => {
-        setTempSelectedEquip([...assignedEquipIds]);
+        setTempSelectedEquip([...(jobDetails.equipmentIds || [])]);
         setIsEquipDialogOpen(true);
     };
 
     const handleAssignTechs = () => {
-        setAssignedTechIds(tempSelectedTechs);
+        setJobDetails(prev => prev ? { ...prev, technicianIds: tempSelectedTechs } : undefined);
         setIsTechDialogOpen(false);
     };
     
     const handleAssignEquip = () => {
-        setAssignedEquipIds(tempSelectedEquip);
+        setJobDetails(prev => prev ? { ...prev, equipmentIds: tempSelectedEquip } : undefined);
         setIsEquipDialogOpen(false);
+    };
+
+    const handleStatusChange = (newStatus: Job['status']) => {
+        if (jobDetails) {
+            setJobDetails({ ...jobDetails, status: newStatus });
+        }
+    };
+
+    const handleAwardBid = (awardedBidId: string, providerId: string) => {
+        if (!jobDetails) return;
+
+        // Update job status and provider
+        setJobDetails(prev => prev ? {...prev, status: 'Assigned', providerId: providerId } : undefined);
+
+        // Update bids status
+        setJobBids(prevBids => prevBids.map(bid => {
+            if (bid.id === awardedBidId) {
+                return { ...bid, status: 'Awarded' };
+            }
+            if (bid.status === 'Submitted') {
+                 return { ...bid, status: 'Rejected' };
+            }
+            return bid;
+        }));
+
+        const provider = serviceProviders.find(p => p.id === providerId);
+        toast({
+            title: "Job Awarded!",
+            description: `${provider?.name} has been awarded the job: ${jobDetails.title}.`,
+        });
     };
 
     const handleApprove = () => {
@@ -232,7 +261,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             title: "Report Approved",
             description: `The inspection report for this job has been approved.`,
         });
-        setCurrentStatus('Audit Approved');
+        handleStatusChange('Audit Approved');
     }
 
     const handleReject = () => {
@@ -244,10 +273,95 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         // In a real app, update status in the backend.
     }
 
+    const BidsSection = () => {
+        if (!jobDetails) return null;
+        const isClient = role === 'client';
+        
+        // After job is assigned, show who it was assigned to.
+        if (jobDetails.status !== 'Posted') {
+            const assignedProvider = serviceProviders.find(p => p.id === jobDetails.providerId);
+            const awardedBid = jobBids.find(b => b.status === 'Awarded');
+    
+            if (!assignedProvider || !awardedBid) return null;
+    
+            return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Award /> Awarded Provider</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-12 w-12">
+                                <AvatarImage src={assignedProvider.logoUrl} alt={assignedProvider.name} />
+                                <AvatarFallback>{assignedProvider.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-bold text-lg">{assignedProvider.name}</p>
+                                <p className="text-muted-foreground">Awarded bid: ${awardedBid.amount.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+        }
+    
+        // If job is still posted, show bids.
+        const submittedBids = jobBids.filter(b => b.status === 'Submitted');
+
+        if (submittedBids.length === 0) {
+            return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Bids Received</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">No bids have been received for this job yet.</p>
+                    </CardContent>
+                </Card>
+            )
+        }
+    
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Bids Received ({submittedBids.length})</CardTitle>
+                    <CardDescription>Review the bids below and award the job to a provider.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {submittedBids.map(bid => {
+                        const provider = serviceProviders.find(p => p.id === bid.providerId);
+                        if (!provider) return null;
+                        return (
+                            <div key={bid.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
+                                <div className="flex items-center gap-4">
+                                    <Avatar className="h-12 w-12">
+                                         <AvatarImage src={provider.logoUrl} alt={provider.name} data-ai-hint={`${provider.name} logo`} />
+                                         <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold">{provider.name}</p>
+                                        <p className="text-sm text-muted-foreground">{provider.location}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-6 w-full sm:w-auto">
+                                   <div className="text-left sm:text-right flex-grow">
+                                        <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
+                                        <p className="text-xs text-muted-foreground">Submitted on {bid.submittedDate}</p>
+                                    </div>
+                                    {isClient && <Button onClick={() => handleAwardBid(bid.id, bid.providerId)}>Award Job</Button>}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </CardContent>
+            </Card>
+        )
+    }
 
     const isInspector = role === 'inspector';
     const isAuditor = role === 'auditor';
-    const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(currentStatus);
+    const isClient = role === 'client';
+    const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
 
     return (
         <div>
@@ -264,13 +378,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-4">
                                 <span>Job Lifecycle</span>
-                                <Badge variant={jobStatusVariants[currentStatus]}>{currentStatus}</Badge>
+                                <Badge variant={jobStatusVariants[jobDetails.status]}>{jobDetails.status}</Badge>
                             </div>
-                            <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[currentStatus]}</span>
+                            <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[jobDetails.status]}</span>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent className="pt-4">
-                         <JobLifecycle status={currentStatus} workflow={job.workflow} onStatusChange={setCurrentStatus} />
+                         <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} onStatusChange={handleStatusChange} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
@@ -283,21 +397,21 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 <div>
                                     <CardTitle className="text-2xl font-headline flex items-center gap-3">
                                         <Briefcase />
-                                        {job.title}
+                                        {jobDetails.title}
                                     </CardTitle>
-                                    <CardDescription>for {job.client}</CardDescription>
+                                    <CardDescription>for {jobDetails.client}</CardDescription>
                                 </div>
-                                <Badge>{job.technique}</Badge>
+                                <Badge>{jobDetails.technique}</Badge>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center text-sm text-muted-foreground">
                                 <MapPin className="w-4 h-4 mr-2" />
-                                <span>{job.location}</span>
+                                <span>{jobDetails.location}</span>
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4 mr-2" />
-                                <span>Posted: {job.postedDate}</span>
+                                <span>Posted: {jobDetails.postedDate}</span>
                             </div>
                              <div className="border-t pt-4">
                                 <h3 className="font-semibold text-lg">Job Description</h3>
@@ -308,13 +422,15 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </CardContent>
                     </Card>
 
+                    {isClient && <BidsSection />}
+
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">Job Results & Reports</CardTitle>
                             <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DocumentViewer job={job} isInspector={isInspector} reportSubmitted={reportSubmitted} />
+                            <DocumentViewer job={jobDetails} isInspector={isInspector} reportSubmitted={reportSubmitted} />
                         </CardContent>
                         {isInspector && !reportSubmitted && (
                             <CardFooter className="flex justify-end gap-2">
@@ -323,8 +439,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         )}
                     </Card>
 
-                    {isAuditor && job.workflow === 'level3' && reportSubmitted && (
-                        <AuditorActions status={currentStatus} onApprove={handleApprove} onReject={handleReject} />
+                    {isAuditor && jobDetails.workflow === 'level3' && reportSubmitted && (
+                        <AuditorActions status={jobDetails.status} onApprove={handleApprove} onReject={handleReject} />
                     )}
                 </div>
 
@@ -335,7 +451,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-6">
-                                {job.history?.map((entry, index) => (
+                                {jobDetails.history?.map((entry, index) => (
                                     <li key={index} className="flex gap-4">
                                         <Avatar>
                                             <AvatarFallback>{entry.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -347,7 +463,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         </div>
                                     </li>
                                 ))}
-                                {(!job.history || job.history.length === 0) && (
+                                {(!jobDetails.history || jobDetails.history.length === 0) && (
                                     <p className="text-sm text-muted-foreground">No history available for this job.</p>
                                 )}
                             </ul>

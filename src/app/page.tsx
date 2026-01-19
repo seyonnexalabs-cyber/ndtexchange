@@ -59,7 +59,7 @@ export default function Home() {
                 NDT Exchange provides the tools you need to streamline operations, from asset management to final reporting.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               <FeatureCard
                 icon={<CheckCircle className="w-8 h-8 text-accent" />}
                 title="Asset Management"
@@ -71,14 +71,10 @@ export default function Home() {
                 description="Find certified inspectors or post job requests. Our intelligent matching connects you with the right professionals."
               />
               <FeatureCard
-                icon={<Users className="w-8 h-8 text-accent" />}
-                title="Inspection Workflows"
-                description="From scheduling to digital report generation, manage the entire inspection process with custom checklists and approval flows."
-              />
-              <FeatureCard
                 icon={<ShieldCheck className="w-8 h-8 text-accent" />}
-                title="Security & Compliance"
-                description="Built with security in mind, featuring role-based access, audit logs, and compliance with industry standards."
+                title="Secure Workflows & Compliance"
+                description="Manage the entire inspection process, from scheduling to digital reporting, with role-based access and audit logs to ensure compliance."
+                isHighlighted={true}
               />
             </div>
           </div>

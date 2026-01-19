@@ -18,10 +18,10 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-headline font-bold">
-                Start Your 30-Day Free Trial
+                Start Your 60-Day Free Trial
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                Contact us to get started with a free 30-day trial. No credit card required. Explore all features and see how NDT Exchange can benefit your business.
+                Contact us to get started with a free 60-day trial. No credit card required. Explore all features and see how NDT Exchange can benefit your business.
               </p>
             </div>
           </div>

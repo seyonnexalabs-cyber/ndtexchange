@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Job } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
@@ -228,6 +228,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
     const isInspector = role === 'inspector';
     const isAuditor = role === 'auditor';
+    const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(currentStatus);
 
     return (
         <div>
@@ -294,11 +295,31 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                           <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                                <p className="text-muted-foreground">Inspection Report Viewer (PDF/Digital)</p>
-                           </div>
-                           <div className="mt-4 space-y-2">
-                               <h3 className="font-semibold">Attached Documents</h3>
+                           {reportSubmitted ? (
+                                <div className="relative group aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors">
+                                    <FileText className="w-16 h-16 text-muted-foreground/70" />
+                                    <p className="mt-2 text-sm font-semibold">Inspection_Report_{job.id}.pdf</p>
+                                    <p className="text-xs text-muted-foreground">Submitted on {job.history?.find(h => h.action.includes('submitted'))?.timestamp || 'N/A'}</p>
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button>
+                                            <Maximize className="mr-2 h-4 w-4"/>
+                                            View Fullscreen
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
+                                    <FileUp className="w-16 h-16 text-muted-foreground/70" />
+                                    <p className="mt-4 text-sm font-medium text-muted-foreground">No report has been submitted yet.</p>
+                                    {isInspector && (
+                                        <Button variant="outline" className="mt-4">
+                                            <Upload className="mr-2 h-4 w-4" /> Upload Report
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                           <div className="mt-6 space-y-2">
+                               <h3 className="font-semibold">Attached Job Documents</h3>
                                {job.documents?.map((doc, i) => (
                                    <div key={i} className="flex items-center justify-between p-2 border rounded-md">
                                         <div className="flex items-center gap-2">
@@ -313,9 +334,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                )}
                            </div>
                         </CardContent>
-                        {isInspector && (
+                        {isInspector && !reportSubmitted && (
                             <CardFooter className="flex justify-end gap-2">
-                                <Button variant="outline"><Upload className="mr-2" /> Upload Report</Button>
                                 <Button>Generate Digital Report</Button>
                             </CardFooter>
                         )}

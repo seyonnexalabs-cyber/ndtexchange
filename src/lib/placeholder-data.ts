@@ -20,6 +20,8 @@ export type JobUpdate = {
     timestamp: string;
     action: string;
     details?: string;
+    documentName?: string;
+    statusChange?: Job['status'];
 };
 
 export type JobMessage = {
@@ -174,7 +176,7 @@ export const jobs: Job[] = [
             { name: 'Previous Inspection Report.pdf', url: '#' },
         ],
         history: [
-            { user: 'John Doe', timestamp: '2024-06-28 10:00 AM', action: 'Job created and posted to marketplace.' },
+            { user: 'John Doe', timestamp: '2024-06-28 10:00 AM', action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
         ]
     },
     { 
@@ -193,10 +195,10 @@ export const jobs: Job[] = [
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
         history: [
-            { user: 'Carlos Ray', timestamp: '2024-06-22 09:00 AM', action: 'Inspection report submitted for audit.' },
-            { user: 'Carlos Ray', timestamp: '2024-06-20 08:00 AM', action: 'Job scheduled.', details: `Start: 2024-06-21` },
-            { user: 'John Doe', timestamp: '2024-06-19 03:00 PM', action: 'Job assigned to provider "TEAM, Inc.".' },
-            { user: 'John Doe', timestamp: '2024-06-18 10:00 AM', action: 'Job created and posted to marketplace.' },
+            { user: 'Carlos Ray', timestamp: '2024-06-22 09:00 AM', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
+            { user: 'Carlos Ray', timestamp: '2024-06-20 08:00 AM', action: 'Scheduled job.', details: 'Start: 2024-06-21', statusChange: 'Scheduled' },
+            { user: 'John Doe', timestamp: '2024-06-19 03:00 PM', action: 'Awarded job to provider "TEAM, Inc.".', statusChange: 'Assigned' },
+            { user: 'John Doe', timestamp: '2024-06-18 10:00 AM', action: 'Created and posted job.', statusChange: 'Posted' },
         ],
         messages: [
             { user: 'John Doe', role: 'Client', timestamp: '2024-06-20 02:15 PM', message: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.' },
@@ -294,6 +296,7 @@ export const allUsers: PlatformUser[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

@@ -26,6 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import DocumentViewer from '../components/document-viewer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import JobHistory from '../components/job-history';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -516,72 +517,50 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </CardFooter>
                         )}
                     </Card>
-
-                     <Card>
+                    
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication &amp; History</CardTitle>
-                            <CardDescription>Review messages, see the job's history, and exchange documents.</CardDescription>
+                            <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication</CardTitle>
+                            <CardDescription>Review messages and exchange information about the job.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <Tabs defaultValue="messages" className="w-full">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger value="messages">Messages</TabsTrigger>
-                                    <TabsTrigger value="history">History</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="messages" className="mt-4">
-                                    <div className="space-y-4">
-                                        <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
-                                            {jobDetails.messages && jobDetails.messages.length > 0 ? (
-                                                jobDetails.messages.map((message, index) => (
-                                                     <div key={index} className="flex gap-4">
-                                                         <Avatar>
-                                                            <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                         </Avatar>
-                                                         <div>
-                                                             <div className="flex items-baseline gap-2">
-                                                                <p className="font-semibold">{message.user}</p>
-                                                                <p className="text-xs text-muted-foreground">{message.role} &amp;bull; {message.timestamp}</p>
-                                                             </div>
-                                                             <p className="text-sm text-muted-foreground">{message.message}</p>
-                                                         </div>
-                                                     </div>
-                                                ))
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="mt-6 space-y-2">
-                                        <Label htmlFor="new-message">Your Message</Label>
-                                        <Textarea id="new-message" placeholder="Type your message here..." />
-                                        <div className="flex justify-end">
-                                            <Button>Send Message</Button>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-                                <TabsContent value="history" className="mt-4">
-                                     <ScrollArea className="max-h-[460px] p-1">
-                                        <ul className="space-y-6 p-2">
-                                            {jobDetails.history?.map((entry, index) => (
-                                                <li key={index} className="flex gap-4">
-                                                    <Avatar>
-                                                        <AvatarFallback>{entry.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="text-sm font-medium">{entry.user}</p>
-                                                        <p className="text-sm text-muted-foreground">{entry.action}</p>
-                                                        <p className="text-xs text-muted-foreground/80 mt-0.5">{entry.timestamp}</p>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                            {(!jobDetails.history || jobDetails.history.length === 0) && (
-                                                <p className="text-sm text-muted-foreground text-center py-4">No history available for this job.</p>
-                                            )}
-                                        </ul>
-                                    </ScrollArea>
-                                </TabsContent>
-                            </Tabs>
+                            <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
+                                {jobDetails.messages && jobDetails.messages.length > 0 ? (
+                                    jobDetails.messages.map((message, index) => (
+                                         <div key={index} className="flex gap-4">
+                                             <Avatar>
+                                                <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                             </Avatar>
+                                             <div>
+                                                 <div className="flex items-baseline gap-2">
+                                                    <p className="font-semibold">{message.user}</p>
+                                                    <p className="text-xs text-muted-foreground">{message.role} &amp;bull; {message.timestamp}</p>
+                                                 </div>
+                                                 <p className="text-sm text-muted-foreground">{message.message}</p>
+                                             </div>
+                                         </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
+                                )}
+                            </div>
+                            <div className="mt-6 space-y-2">
+                                <Label htmlFor="new-message">Your Message</Label>
+                                <Textarea id="new-message" placeholder="Type your message here..." />
+                                <div className="flex justify-end">
+                                    <Button>Send Message</Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><History /> Job History</CardTitle>
+                            <CardDescription>A chronological log of all events and status changes for this job.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <JobHistory history={jobDetails.history} />
                         </CardContent>
                     </Card>
 

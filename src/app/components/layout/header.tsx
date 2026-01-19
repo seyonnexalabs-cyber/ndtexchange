@@ -3,9 +3,9 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, Bell, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useMemo } from 'react';
 import Link from 'next/link';
@@ -50,8 +50,8 @@ const AppHeader = () => {
                 <p className="text-xs text-muted-foreground leading-tight">{currentUser.address}</p>
             </div>
 
-            <div className="flex flex-1 items-center gap-4 md:gap-2 lg:gap-4">
-                <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
+            <div className="flex flex-1 items-center justify-end gap-2">
+                <form className="flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -63,6 +63,30 @@ const AppHeader = () => {
                         />
                     </div>
                 </form>
+
+                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                    <Bell className="h-5 w-5" />
+                    <span className="sr-only">Notifications</span>
+                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+                    </span>
+                </Button>
+                
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <Globe className="h-5 w-5" />
+                        <span className="sr-only">Select language</span>
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                    <DropdownMenuItem>English</DropdownMenuItem>
+                    <DropdownMenuItem>Español</DropdownMenuItem>
+                    <DropdownMenuItem>Deutsch</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">

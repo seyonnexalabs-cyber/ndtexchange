@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { jobs, bids, NDTTechniques } from '@/lib/placeholder-data';
+import { jobs, bids as initialBids, NDTTechniques } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -160,6 +160,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
 export default function MyBidsPage() {
     const [editingBid, setEditingBid] = useState<MappedBid | null>(null);
     const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
+    const [bids, setBids] = useState(initialBids);
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -178,7 +179,7 @@ export default function MyBidsPage() {
                 ...bid,
                 job: jobs.find(job => job.id === bid.jobId),
             }));
-    }, []);
+    }, [bids]);
 
     const handleEditClick = (bid: MappedBid) => {
         setEditingBid(bid);
@@ -198,11 +199,9 @@ export default function MyBidsPage() {
         if (!withdrawingBid) return;
         console.log(`Withdrawing bid ${withdrawingBid.id}`);
         // Here you would call an API to update the bid status to 'Withdrawn'
-        // For this demo, we'll just log it.
-        const bidIndex = bids.findIndex(b => b.id === withdrawingBid.id);
-        if (bidIndex !== -1) {
-            bids[bidIndex].status = 'Withdrawn';
-        }
+        setBids(prevBids => prevBids.map(b => 
+            b.id === withdrawingBid.id ? { ...b, status: 'Withdrawn' } : b
+        ));
         setWithdrawingBid(null);
     };
 
@@ -378,5 +377,3 @@ export default function MyBidsPage() {
         </div>
     );
 }
-
-    

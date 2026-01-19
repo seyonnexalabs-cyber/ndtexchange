@@ -219,14 +219,11 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
     const handleAssignTechs = () => {
         setAssignedTechIds(tempSelectedTechs);
-        // In a real app, you'd also update the master `jobs` array or send to a backend
-        job.technicianIds = tempSelectedTechs;
         setIsTechDialogOpen(false);
     };
     
     const handleAssignEquip = () => {
         setAssignedEquipIds(tempSelectedEquip);
-        job.equipmentIds = tempSelectedEquip;
         setIsEquipDialogOpen(false);
     };
 
@@ -467,7 +464,3 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
-
-    
-
-    

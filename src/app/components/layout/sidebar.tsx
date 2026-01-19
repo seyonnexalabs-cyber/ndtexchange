@@ -36,7 +36,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useJobPost } from '@/app/dashboard/my-jobs/job-post-provider';
 
 const userDetails = {
@@ -92,11 +92,20 @@ const AppSidebar = () => {
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
-  const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : 'common';
+
+  useEffect(() => {
+    // If there is no role or the role is not a valid one, redirect to login
+    if (!roleParam || !validRoles.includes(roleParam as string)) {
+      router.replace('/login');
+    }
+  }, [roleParam, router]);
+  
+  const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : null;
   
   const { setJobPostOpen } = useJobPost();
 
   const currentUser = useMemo(() => {
+    if (!role) return userDetails.common;
     return userDetails[role as keyof typeof userDetails] || userDetails.common;
   }, [role]);
 
@@ -119,12 +128,10 @@ const AppSidebar = () => {
         'Settings'
     ];
 
+    if (!role) return [];
+
     const filteredItems = allMenuItems.filter(item => {
-        if (role && role !== 'common') {
-            return item.roles.includes(role);
-        }
-        // If no valid role, show items that are not exclusive to a single role.
-        return item.roles.length > 1;
+        return item.roles.includes(role);
     });
 
     return filteredItems
@@ -157,6 +164,9 @@ const AppSidebar = () => {
     }
   }
 
+  if (!role) {
+    return null; // Render nothing while redirecting
+  }
 
   return (
     <Sidebar>

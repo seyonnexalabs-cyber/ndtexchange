@@ -10,30 +10,30 @@
     --card-foreground: 222 8% 25%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 8% 25%;
-    --primary: 200 20% 37%; /* #4A6572 */
+    --primary: 215 50% 48%; /* Blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 174 63% 39%; /* #26A69A */
+    --accent: 145 63% 42%; /* Green */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 200 20% 37%;
+    --ring: 215 50% 48%;
     --radius: 0.5rem;
 
     /* Sidebar theme */
-    --sidebar-background: 200 20% 37%; /* primary */
+    --sidebar-background: 215 50% 48%; /* primary */
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 174 63% 39%; /* accent */
+    --sidebar-primary: 145 63% 42%; /* accent */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 200 20% 45%;
+    --sidebar-accent: 215 50% 56%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 200 20% 30%;
-    --sidebar-ring: 174 63% 39%;
+    --sidebar-border: 215 50% 40%;
+    --sidebar-ring: 145 63% 42%;
   }
 
   .inspector-theme {

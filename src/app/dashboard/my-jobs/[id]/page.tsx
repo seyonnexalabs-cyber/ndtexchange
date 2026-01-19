@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -256,7 +257,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </div>
 
                 <div className="space-y-6">
-                     <Card>
+                    <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><History /> Job History</CardTitle>
                         </CardHeader>
@@ -280,44 +281,47 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </ul>
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle className="flex items-center gap-2"><Users /> Technicians</CardTitle>
-                            {isInspector && (
-                                <Button variant="outline" size="sm" onClick={openTechDialog}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Manage
-                                </Button>
-                            )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Assigned Resources</CardTitle>
+                            <CardDescription>Technicians and equipment assigned to this job.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {assignedTechnicians.length > 0 ? (
-                                <ul className="space-y-2">
-                                    {assignedTechnicians.map(tech => (
-                                        <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} - {tech.level}</li>
-                                    ))}
-                                </ul>
-                            ) : <p className="text-sm text-muted-foreground">No technicians assigned.</p>}
-                        </CardContent>
-                    </Card>
-                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle className="flex items-center gap-2"><Wrench /> Equipment</CardTitle>
-                             {isInspector && (
-                                <Button variant="outline" size="sm" onClick={openEquipDialog}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Manage
-                                </Button>
-                             )}
-                        </CardHeader>
-                        <CardContent>
-                             {assignedEquipment.length > 0 ? (
-                                <ul className="space-y-2">
-                                    {assignedEquipment.map(equip => (
-                                        <li key={equip.id} className="text-sm text-muted-foreground">{equip.name} - {equip.type}</li>
-                                    ))}
-                                </ul>
-                            ) : <p className="text-sm text-muted-foreground">No equipment assigned.</p>}
+                        <CardContent className="space-y-4">
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" /> Technicians</h4>
+                                    {isInspector && (
+                                        <Button variant="outline" size="sm" onClick={openTechDialog}>
+                                            <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                        </Button>
+                                    )}
+                                </div>
+                                {assignedTechnicians.length > 0 ? (
+                                    <ul className="space-y-2 pl-2">
+                                        {assignedTechnicians.map(tech => (
+                                            <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} - {tech.level}</li>
+                                        ))}
+                                    </ul>
+                                ) : <p className="text-sm text-muted-foreground pl-2">No technicians assigned.</p>}
+                            </div>
+                            <Separator />
+                            <div>
+                                 <div className="flex items-center justify-between mb-2">
+                                    <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-muted-foreground" /> Equipment</h4>
+                                     {isInspector && (
+                                        <Button variant="outline" size="sm" onClick={openEquipDialog}>
+                                            <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                        </Button>
+                                     )}
+                                </div>
+                                 {assignedEquipment.length > 0 ? (
+                                    <ul className="space-y-2 pl-2">
+                                        {assignedEquipment.map(equip => (
+                                            <li key={equip.id} className="text-sm text-muted-foreground">{equip.name} - {equip.type}</li>
+                                        ))}
+                                    </ul>
+                                ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

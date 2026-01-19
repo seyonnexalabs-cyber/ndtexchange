@@ -194,9 +194,8 @@ const AppSidebar = () => {
             </Avatar>
             <div className="overflow-hidden">
                 <p className="font-semibold truncate">{currentUser.name}</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">
-                   {role === 'client' || role === 'inspector' ? currentUser.company : currentUser.role}
-                </p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{currentUser.role}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{currentUser.company}</p>
             </div>
             <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />

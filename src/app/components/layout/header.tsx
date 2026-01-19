@@ -13,10 +13,10 @@ import { useSearch } from './search-provider';
 
 
 const userDetails = {
-    client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD', company: 'Global Energy Corp.' },
-    inspector: { name: 'Jane Smith', role: 'Level II Inspector', avatar: 'user-avatar-inspector', fallback: 'JS', company: 'TEAM, Inc.' },
-    admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU', company: 'NDT Exchange' },
-    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', avatar: 'user-avatar-auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
+    client: { name: 'John Doe', role: 'Project Manager', avatar: 'user-avatar-client', fallback: 'JD', company: 'Global Energy Corp.', location: 'Houston, TX', address: '123 Energy Corridor' },
+    inspector: { name: 'Jane Smith', role: 'Level II Inspector', avatar: 'user-avatar-inspector', fallback: 'JS', company: 'TEAM, Inc.', location: 'Sugar Land, TX', address: '1 Fluor Daniel Dr' },
+    admin: { name: 'Admin User', role: 'Platform Admin', avatar: 'user-avatar-admin', fallback: 'AU', company: 'NDT Exchange', location: 'Palo Alto, CA', address: '123 Main St' },
+    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', avatar: 'user-avatar-auditor', fallback: 'AC', company: 'NDT Auditors LLC', location: 'Washington, D.C.', address: '456 Gov Ave' },
 };
 
 const AppHeader = () => {
@@ -42,7 +42,13 @@ const AppHeader = () => {
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
             <SidebarTrigger className="md:hidden"/>
 
-            <h1 className="text-xl font-semibold hidden md:block font-headline whitespace-nowrap">{currentUser.company}</h1>
+            <div className="hidden md:flex flex-col justify-center">
+                <div className="flex items-baseline gap-2">
+                    <h1 className="text-lg font-semibold font-headline whitespace-nowrap">{currentUser.company}</h1>
+                    <span className="text-base font-medium text-muted-foreground">({currentUser.location})</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-tight">{currentUser.address}</p>
+            </div>
 
             <div className="flex flex-1 items-center gap-4 md:gap-2 lg:gap-4">
                 <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
@@ -70,7 +76,7 @@ const AppHeader = () => {
                         <DropdownMenuLabel>
                             {currentUser.name}
                             <div className="text-xs font-normal text-muted-foreground">
-                                {role === 'client' || role === 'inspector' ? currentUser.company : currentUser.role}
+                                {currentUser.role}, {currentUser.company}
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />

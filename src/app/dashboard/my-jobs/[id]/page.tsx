@@ -23,6 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import DocumentViewer from '../components/document-viewer';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -295,29 +296,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             <CardDescription>Upload findings, generate reports, and view final documentation.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                           {reportSubmitted ? (
-                                <div className="relative group aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors">
-                                    <FileText className="w-16 h-16 text-muted-foreground/70" />
-                                    <p className="mt-2 text-sm font-semibold">Inspection_Report_{job.id}.pdf</p>
-                                    <p className="text-xs text-muted-foreground">Submitted on {job.history?.find(h => h.action.includes('submitted'))?.timestamp || 'N/A'}</p>
-                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button>
-                                            <Maximize className="mr-2 h-4 w-4"/>
-                                            View Fullscreen
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
-                                    <FileUp className="w-16 h-16 text-muted-foreground/70" />
-                                    <p className="mt-4 text-sm font-medium text-muted-foreground">No report has been submitted yet.</p>
-                                    {isInspector && (
-                                        <Button variant="outline" className="mt-4">
-                                            <Upload className="mr-2 h-4 w-4" /> Upload Report
-                                        </Button>
-                                    )}
-                                </div>
-                            )}
+                            <DocumentViewer job={job} isInspector={isInspector} reportSubmitted={reportSubmitted} />
                            <div className="mt-6 space-y-2">
                                <h3 className="font-semibold">Attached Job Documents</h3>
                                {job.documents?.map((doc, i) => (

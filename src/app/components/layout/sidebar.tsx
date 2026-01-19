@@ -88,7 +88,11 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get('role') || 'client';
+
+  const validRoles = ['client', 'inspector', 'admin', 'auditor'];
+  const roleParam = searchParams.get('role');
+  const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : 'client';
+  
   const { setJobPostOpen } = useJobPost();
 
   const currentUser = useMemo(() => {

@@ -93,10 +93,15 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                                 )}>
                                 {isCompleted ? <CheckCircle className="w-6 h-6" /> : <span className="text-base font-bold">{index + 1}</span>}
                                 </div>
-                                <p className={cn(
-                                    "font-medium",
-                                    isActive ? "text-foreground" : "text-muted-foreground",
-                                )}>{step}</p>
+                                <div>
+                                    <p className={cn(
+                                        "font-medium",
+                                        isActive ? "text-foreground" : "text-muted-foreground",
+                                    )}>{step}</p>
+                                    {(step === 'Under Audit' || step === 'Audit Approved') && (
+                                        <p className="text-xs text-muted-foreground">(Level III Workflow)</p>
+                                    )}
+                                </div>
                             </li>
                         );
                     })}

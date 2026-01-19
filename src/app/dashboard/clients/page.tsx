@@ -183,8 +183,8 @@ export default function ClientsPage() {
     const handleFormSubmit = (values: z.infer<typeof clientSchema>) => {
         console.log("New Client Data:", values);
         toast({
-            title: "Client Created",
-            description: `${values.name} has been added as a new client.`,
+            title: "Client Company Created",
+            description: `${values.name} has been added. You can now invite users to this company.`,
         });
         setAddClientOpen(false);
     };
@@ -196,7 +196,7 @@ export default function ClientsPage() {
                     <Users/>
                     Client Management
                 </h1>
-                <Button onClick={() => setAddClientOpen(true)}>Add New Client</Button>
+                <Button onClick={() => setAddClientOpen(true)}>Create Client Company</Button>
             </div>
             
             {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}
@@ -204,9 +204,9 @@ export default function ClientsPage() {
             <Dialog open={isAddClientOpen} onOpenChange={setAddClientOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Add New Client</DialogTitle>
+                        <DialogTitle>Create New Client Company</DialogTitle>
                         <DialogDescription>
-                            Enter the details for the new client company.
+                            Create a new client company profile. An initial user can be invited from the client's detail page after creation.
                         </DialogDescription>
                     </DialogHeader>
                     <ClientForm

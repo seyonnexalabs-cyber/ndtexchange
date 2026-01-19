@@ -16,6 +16,7 @@ import { assets, jobs, inspections, technicians, clientAssets, inspectorAssets, 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState, useEffect } from "react";
 
 // --- Client Dashboard ---
 const clientChartData = [
@@ -53,10 +54,19 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'defaul
 };
 
 const ClientDashboard = () => {
-    const upcomingInspections = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
+    const [upcomingInspectionsCount, setUpcomingInspectionsCount] = useState(0);
+    const [overdueJobsCount, setOverdueJobsCount] = useState(0);
+    
     const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date((a as any).date || (a as any).postedDate).getTime() - new Date((b as any).date || (b as any).postedDate).getTime()).reverse().slice(0, 5);
     const isMobile = useIsMobile();
-    const overdueJobs = jobs.filter(j => j.scheduledStartDate && new Date(j.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(j.status));
+    
+    useEffect(() => {
+        const upcoming = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
+        setUpcomingInspectionsCount(upcoming.length);
+
+        const overdue = jobs.filter(j => j.scheduledStartDate && new Date(j.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(j.status));
+        setOverdueJobsCount(overdue.length);
+    }, []);
   
     return (
         <div className="grid gap-6">
@@ -87,7 +97,7 @@ const ClientDashboard = () => {
                         <BellRing className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{upcomingInspections.length}</div>
+                        <div className="text-2xl font-bold">{upcomingInspectionsCount}</div>
                         <p className="text-xs text-muted-foreground">Due within 30 days</p>
                     </CardContent>
                 </Card>
@@ -97,7 +107,7 @@ const ClientDashboard = () => {
                         <AlarmClock className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-destructive">{overdueJobs.length}</div>
+                        <div className="text-2xl font-bold text-destructive">{overdueJobsCount}</div>
                         <p className="text-xs text-destructive/80">Require immediate attention</p>
                     </CardContent>
                 </Card>

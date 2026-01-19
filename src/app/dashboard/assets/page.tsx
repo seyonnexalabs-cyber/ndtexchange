@@ -388,20 +388,32 @@ export default function AssetsPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Building/>
                     Asset Management
                 </h1>
-                <div className="flex gap-2">
-                     <Button variant="outline" onClick={() => setScanOpen(true)}>
+                <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+                    <Button onClick={() => setScanOpen(true)} className="w-full sm:w-auto">
                         <QrCode className="mr-2 h-4 w-4"/>
-                        Scan QR
+                        Scan Asset
                     </Button>
-                    <Button onClick={() => setAddAssetOpen(true)}>Add New Asset</Button>
+                    {role === 'client' && (
+                        <Button variant="outline" onClick={() => setAddAssetOpen(true)} className="w-full sm:w-auto">
+                            Add New Asset
+                        </Button>
+                    )}
                 </div>
             </div>
-            <ClientAssetsView />
+            
+            {role === 'client' ? <ClientAssetsView /> : (
+                 <div className="text-center p-10 border rounded-lg mt-8">
+                    <QrCode className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>
+                    <p className="mt-2 text-muted-foreground">Click "Scan Asset" to find an asset and view its details.</p>
+                </div>
+            )}
+
 
              <Dialog open={isAddAssetOpen} onOpenChange={setAddAssetOpen}>
                 <DialogContent>

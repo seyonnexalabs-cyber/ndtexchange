@@ -637,6 +637,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     </ul>
                                 ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
                             </div>
+                            <Separator />
+                            <div>
+                                <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-muted-foreground" /> Auditor</h4>
+                                {(jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto') ? (
+                                    <p className="text-sm text-muted-foreground pl-2">Alex Chen (NDT Auditors LLC)</p>
+                                ) : <p className="text-sm text-muted-foreground pl-2">No auditor required for standard workflow.</p>}
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

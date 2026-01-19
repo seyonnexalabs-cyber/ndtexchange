@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { inspections, NDTTechniques, clientAssets } from '@/lib/placeholder-data';
+import { inspections, NDTTechniques, clientAssets, Inspection } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ClipboardList, Filter, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -16,13 +18,24 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const statusFilters = ['Scheduled', 'Completed', 'Requires Review'];
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Scheduled': 'secondary',
+    'Completed': 'success',
+    'Requires Review': 'destructive'
+};
 
 export default function InspectionsPage() {
     const isMobile = useIsMobile();
+    const searchParams = useSearchParams();
     const [searchQuery, setSearchQuery] = React.useState('');
     const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
     const [statusFilter, setStatusFilter] = React.useState<string>('all');
     
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+
     const filteredInspections = useMemo(() => {
         return inspections.filter(inspection => {
             const searchMatch = !searchQuery ||
@@ -131,13 +144,18 @@ export default function InspectionsPage() {
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="text-base">{inspection.assetName}</CardTitle>
-                                    <Badge variant={inspection.status === 'Completed' ? 'success' : inspection.status === 'Scheduled' ? 'secondary' : 'destructive'}>{inspection.status}</Badge>
+                                    <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                 </div>
                                 <CardDescription>{inspection.technique} by {inspection.inspector}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground">Date: {inspection.date}</p>
                             </CardContent>
+                             <CardFooter>
+                                <Button asChild variant="outline" size="sm" className="w-full">
+                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
+                                </Button>
+                            </CardFooter>
                         </Card>
                     ))}
                 </div>
@@ -151,6 +169,7 @@ export default function InspectionsPage() {
                                 <TableHead>Inspector</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -161,7 +180,12 @@ export default function InspectionsPage() {
                                     <TableCell>{inspection.inspector}</TableCell>
                                     <TableCell>{inspection.date}</TableCell>
                                     <TableCell>
-                                        <Badge variant={inspection.status === 'Completed' ? 'success' : inspection.status === 'Scheduled' ? 'secondary' : 'destructive'}>{inspection.status}</Badge>
+                                        <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -180,3 +204,5 @@ export default function InspectionsPage() {
         </div>
     );
 }
+
+    

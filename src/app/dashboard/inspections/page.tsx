@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -9,7 +8,7 @@ import { inspections, NDTTechniques, clientAssets, Inspection } from '@/lib/plac
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ClipboardList, Filter, X } from 'lucide-react';
+import { ClipboardList, Filter, X, Eye } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -28,9 +27,10 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'defaul
 export default function InspectionsPage() {
     const isMobile = useIsMobile();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'admin';
     const [searchQuery, setSearchQuery] = React.useState('');
     const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = React.useState<string>('all');
+    const [statusFilter, setStatusFilter] = React.useState<string>(role === 'auditor' ? 'Requires Review' : 'all');
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -38,31 +38,42 @@ export default function InspectionsPage() {
     }
 
     const filteredInspections = useMemo(() => {
-        return inspections.filter(inspection => {
+        let relevantInspections = inspections;
+        // If the user is an auditor, this page becomes their dedicated queue
+        if (role === 'auditor') {
+            relevantInspections = inspections.filter(i => i.status === 'Requires Review');
+        }
+
+        return relevantInspections.filter(inspection => {
             const searchMatch = !searchQuery ||
                 inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase());
             
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
-            const statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
+            const statusMatch = role === 'auditor' ? inspection.status === 'Requires Review' : (statusFilter === 'all' || inspection.status === statusFilter);
 
             return searchMatch && techniqueMatch && statusMatch;
         });
-    }, [searchQuery, selectedTechniques, statusFilter]);
+    }, [searchQuery, selectedTechniques, statusFilter, role]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
 
-    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || statusFilter !== 'all';
+    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'all' && role !== 'auditor');
+
+    const pageTitle = role === 'auditor' ? 'Audit Queue' : 'All Inspections';
+    const pageIcon = role === 'auditor' ? <Eye /> : <ClipboardList />;
+    const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspections found';
+    const emptyStateDescription = role === 'auditor' ? 'There are no reports currently awaiting your review.' : 'There are no inspections matching your current filters.';
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <ClipboardList />
-                    All Inspections
+                    {pageIcon}
+                    {pageTitle}
                 </h1>
             </div>
 
@@ -101,7 +112,7 @@ export default function InspectionsPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select value={statusFilter} onValueChange={setStatusFilter} disabled={role === 'auditor'}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
@@ -126,7 +137,7 @@ export default function InspectionsPage() {
                             </button>
                         </Badge>
                     ))}
-                    {statusFilter !== 'all' && (
+                    {statusFilter !== 'all' && role !== 'auditor' && (
                         <Badge variant="secondary">
                             Status: {statusFilter}
                              <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
@@ -134,7 +145,7 @@ export default function InspectionsPage() {
                             </button>
                         </Badge>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedTechniques([]); setStatusFilter('all'); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedTechniques([]); setStatusFilter(role === 'auditor' ? 'Requires Review' : 'all'); }}>Clear All</Button>
                 </div>
             )}
             
@@ -154,7 +165,7 @@ export default function InspectionsPage() {
                             </CardContent>
                              <CardFooter>
                                 <Button asChild variant="outline" size="sm" className="w-full">
-                                    <Link href={constructUrl(`/dashboard/my-jobs/${inspection.jobId}`)}>Audit Report</Link>
+                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -185,7 +196,7 @@ export default function InspectionsPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/my-jobs/${inspection.jobId}`)}>Audit Report</Link>
+                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -197,13 +208,11 @@ export default function InspectionsPage() {
 
              {filteredInspections.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
-                    <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h2 className="mt-4 text-xl font-headline">No inspections found</h2>
-                    <p className="mt-2 text-muted-foreground">There are no inspections matching your current filters.</p>
+                    <div className="mx-auto h-12 w-12 text-muted-foreground">{pageIcon}</div>
+                    <h2 className="mt-4 text-xl font-headline">{emptyStateTitle}</h2>
+                    <p className="mt-2 text-muted-foreground">{emptyStateDescription}</p>
                 </div>
             )}
         </div>
     );
 }
-
-    

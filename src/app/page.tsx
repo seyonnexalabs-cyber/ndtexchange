@@ -150,7 +150,7 @@ export default function Home() {
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Review job data and reports in a secure, read-only environment that prevents data leakage.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Review job data and reports in a secure, read-only environment that prevents data leakage and screenshots.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Track the entire inspection process from job posting to final report approval.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Verify technician certifications and equipment calibration records for full compliance.</span></li>
                                 </ul>

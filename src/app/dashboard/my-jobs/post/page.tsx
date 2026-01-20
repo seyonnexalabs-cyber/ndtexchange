@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -354,6 +354,9 @@ export default function PostJobPage() {
                                             <FormControl>
                                                 <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
                                             </FormControl>
+                                            <FormDescription>
+                                                You can upload multiple files. Max 10MB per file.
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}

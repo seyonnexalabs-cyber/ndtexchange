@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info, AlarmClock, Maximize } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -311,6 +311,9 @@ export default function FindJobsPage() {
                                             <FormControl>
                                                 <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={e => field.onChange(e.target.files)} />
                                             </FormControl>
+                                            <FormDescription>
+                                                You can upload multiple files. Max 10MB per file.
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}

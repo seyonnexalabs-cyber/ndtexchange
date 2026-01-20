@@ -541,12 +541,15 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <p className="text-sm text-muted-foreground">
                                             Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
                                         </p>
-                                        <div className="flex items-center gap-4 p-4 border rounded-md">
-                                            <Input id="clarification-docs" type="file" multiple accept={ACCEPTED_FILE_TYPES} className="flex-grow" />
-                                            <Button variant="secondary">
-                                                <Upload className="mr-2 h-4 w-4" />
-                                                Upload
-                                            </Button>
+                                        <div className="p-4 border rounded-md space-y-2">
+                                            <div className="flex items-center gap-4">
+                                                <Input id="clarification-docs" type="file" multiple accept={ACCEPTED_FILE_TYPES} className="flex-grow" />
+                                                <Button variant="secondary">
+                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    Upload
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">Max 10MB per file.</p>
                                         </div>
                                     </div>
                                 </>

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { LifeBuoy } from 'lucide-react';
 import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
@@ -125,6 +125,9 @@ export default function SupportPage() {
                     <FormControl>
                       <Input type="file" accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files?.[0])} />
                     </FormControl>
+                    <FormDescription>
+                        Max file size: 10MB.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

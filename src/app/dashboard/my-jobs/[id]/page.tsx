@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -535,7 +535,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                              <div>
                                                  <div className="flex items-baseline gap-2">
                                                     <p className="font-semibold">{message.user}</p>
-                                                    <p className="text-xs text-muted-foreground">{message.role} &amp;bull; {message.timestamp}</p>
+                                                    <p className="text-xs text-muted-foreground">{message.role} &amp;bull; {format(new Date(message.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
                                                  </div>
                                                  <p className="text-sm text-muted-foreground">{message.message}</p>
                                              </div>

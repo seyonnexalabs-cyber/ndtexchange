@@ -5,6 +5,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -44,7 +46,9 @@ export default function JobHistory({ history }: { history?: JobUpdate[] }) {
                                     <p className="text-sm font-medium">{entry.user}</p>
                                     <p className="text-sm text-muted-foreground">{entry.action}</p>
                                 </div>
-                                <p className="text-xs text-muted-foreground/80 shrink-0">{entry.timestamp}</p>
+                                <p className="text-xs text-muted-foreground/80 shrink-0">
+                                    {format(new Date(entry.timestamp), GLOBAL_DATETIME_FORMAT)}
+                                </p>
                             </div>
                            
                             {entry.documentName && (

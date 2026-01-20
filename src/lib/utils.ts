@@ -6,3 +6,4 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const GLOBAL_DATE_FORMAT = "dd-MMM-yyyy";
+export const GLOBAL_DATETIME_FORMAT = "dd-MMM-yyyy p";

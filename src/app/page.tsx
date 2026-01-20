@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import InspectionLifecycleAnimation from '@/app/components/inspection-lifecycle';
+import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
@@ -85,14 +85,14 @@ export default function Home() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
-                        How It Works: The Inspection Lifecycle
+                        How It Works: A Collaborative Workflow
                     </h2>
-                    <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                        From job creation to final approval, our platform streamlines every step of the inspection process into a transparent and efficient workflow.
+                    <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                        Our platform orchestrates a seamless workflow between asset owners, service providers, and auditors, ensuring transparency and efficiency at every stage.
                     </p>
                 </div>
                 <div className="mt-12">
-                    <InspectionLifecycleAnimation />
+                    <UserActivityDiagram />
                 </div>
             </div>
         </section>

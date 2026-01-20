@@ -92,16 +92,7 @@ const allMenuItems = [
   { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
   
   // Auditor
-  {
-    id: 'auditing',
-    label: 'Auditing',
-    icon: Eye,
-    roles: ['auditor'],
-    children: [
-      { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList, roles: ['auditor'] },
-      { id: 'compliance-reports', href: '/dashboard/compliance', label: 'Compliance', icon: FileText, roles: ['auditor'] },
-    ]
-  },
+  { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList, roles: ['auditor'] },
 ];
 
 const AppSidebar = () => {
@@ -137,7 +128,7 @@ const AppSidebar = () => {
         // Admin
         'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 
         // Auditor
-        'Auditing',
+        'Audit Queue',
         // Common across multiple roles
         'Reports', 'Calendar',
         // Common last items

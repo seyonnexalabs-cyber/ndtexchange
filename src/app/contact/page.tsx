@@ -19,10 +19,10 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-headline font-bold">
-                Your First 30 Days are on Us
+                Flexible Plans for Every Role
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                Sign up today and get your first 30 days of NDT Exchange completely free. No credit card required. Full access to all features to grow your business.
+                All our plans come with a 30-day free trial. No credit card required. Full access to all features to grow your business and ensure asset integrity.
               </p>
             </div>
           </div>
@@ -33,43 +33,43 @@ export default function ContactPage() {
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               <PricingCard
                 plan="Client"
-                price="Contact Us"
+                price="Custom"
                 description="For asset owners managing critical infrastructure."
                 features={[
-                  "Manage Assets & Documents",
-                  "Post Jobs to Marketplace",
-                  "Award Bids & Track Progress",
-                  "Generate Historical Reports",
-                  "Usage-based storage & users",
-                  "Standard Support"
+                  "Full Asset Lifecycle Management",
+                  "Secure Document & Data Vault",
+                  "Post jobs to a global marketplace",
+                  "Transparent bidding & awarding process",
+                  "Advanced historical reporting",
+                  "Flexible usage-based pricing",
                 ]}
                 isFeatured={false}
               />
               <PricingCard
                 plan="Service Provider"
-                price="Contact Us"
+                price="Custom"
                 description="For NDT companies providing inspection services."
                 features={[
-                  "Find & Bid on Jobs",
-                  "Manage Technicians & Equipment",
-                  "Digital Report Generation",
-                  "Client Communication Tools",
-                  "Usage-based storage & users",
-                  "Priority Support"
+                  "Access to exclusive job marketplace",
+                  "Submit competitive digital bids",
+                  "Team & equipment management tools",
+                  "Streamlined digital reporting",
+                  "Direct client communication channels",
+                  "Priority email & phone support",
                 ]}
                 isFeatured={true}
               />
               <PricingCard
                 plan="Enterprise"
                 price="Custom"
-                description="For large organizations with unique requirements."
+                description="For large organizations with advanced integration, security, and support needs."
                 features={[
-                  "All Provider Features",
-                  "Custom Integrations (API)",
-                  "Advanced Security & SSO",
-                  "Auditor & Regulator access tools",
-                  "Dedicated Account Manager",
-                  "24/7 Premium Support"
+                  "All Client & Provider features",
+                  "Full API access for custom integrations",
+                  "Single Sign-On (SSO) capabilities",
+                  "Dedicated Auditor & Regulator portals",
+                  "A dedicated Account Manager",
+                  "24/7/365 Premium Support",
                 ]}
                 isFeatured={false}
               />

@@ -209,4 +209,31 @@
             color: hsl(var(--muted-foreground));
         }
     }
+
+    .walking-man-container {
+        position: absolute;
+        top: 0;
+        left: 5%;
+        right: 5%;
+        height: 32px;
+        z-index: 5;
+        pointer-events: none;
+    }
+    
+    .walking-man {
+        position: absolute;
+        color: hsl(var(--primary));
+        animation: walk-across var(--animation-duration) linear infinite;
+    }
+    
+    @keyframes walk-across {
+        from {
+            left: 0%;
+            transform: translateX(0%);
+        }
+        to {
+            left: 100%;
+            transform: translateX(-100%);
+        }
+    }
 }

@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { jobs, NDTTechniques, Job } from '@/lib/placeholder-data';
+import { jobs, NDTTechniques, Job, JobDocument } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,7 @@ export default function FindJobsPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
     const { searchQuery } = useSearch();
+    const [viewerDoc, setViewerDoc] = useState<JobDocument | null>(null);
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -225,9 +226,7 @@ export default function FindJobsPage() {
                                                 <FileText className="w-4 h-4 text-muted-foreground" />
                                                 <span className="text-sm font-medium">{doc.name}</span>
                                             </div>
-                                            <Button variant="ghost" size="sm" asChild>
-                                                <a href={doc.url} download>Download</a>
-                                            </Button>
+                                            <Button variant="ghost" size="sm" onClick={() => setViewerDoc(doc)}>View</Button>
                                         </div>
                                     ))
                                 ) : (
@@ -330,6 +329,19 @@ export default function FindJobsPage() {
                                 </DialogFooter>
                             </form>
                         </Form>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={!!viewerDoc} onOpenChange={(open) => !open && setViewerDoc(null)}>
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Secure Viewer: {viewerDoc?.name}</DialogTitle>
+                        <DialogDescription>For demonstration purposes. Downloads are disabled.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-grow bg-muted/50 rounded-lg flex flex-col items-center justify-center p-8 text-center">
+                        <FileText className="w-24 h-24 text-muted-foreground/50"/>
+                        <h3 className="text-lg font-bold mt-4">{viewerDoc?.name}</h3>
+                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
                     </div>
                 </DialogContent>
             </Dialog>

@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, FileText, User, Calendar, HardHat, Building, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Scheduled': 'secondary',
@@ -26,10 +27,16 @@ export default function InspectionDetailPage() {
     const { id } = params;
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const [viewerDocName, setViewerDocName] = React.useState<string | null>(null);
 
     const inspection = useMemo(() => inspections.find(i => i.id === id), [id]);
     const job = useMemo(() => jobs.find(j => j.assetIds?.includes(inspection?.assetId ?? '')), [inspection]);
     const provider = useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
+
+    const inspectionDocs = [
+        { name: 'calibration_record.pdf' },
+        { name: 'technician_certs.pdf' }
+    ];
 
     if (!inspection || !job) {
         notFound();
@@ -87,20 +94,15 @@ export default function InspectionDetailPage() {
                            </div>
                            <div className="mt-4 space-y-2">
                                <h3 className="font-semibold">Attached Documents</h3>
-                               <div className="flex items-center justify-between p-2 border rounded-md">
-                                    <div className="flex items-center gap-2">
-                                        <FileText className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-sm font-medium">calibration_record.pdf</span>
+                               {inspectionDocs.map(doc => (
+                                   <div key={doc.name} className="flex items-center justify-between p-2 border rounded-md">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{doc.name}</span>
+                                        </div>
+                                        <Button variant="ghost" size="sm" onClick={() => setViewerDocName(doc.name)}>View</Button>
                                     </div>
-                                    <Button variant="ghost" size="sm">Download</Button>
-                                </div>
-                                <div className="flex items-center justify-between p-2 border rounded-md">
-                                    <div className="flex items-center gap-2">
-                                        <FileText className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-sm font-medium">technician_certs.pdf</span>
-                                    </div>
-                                    <Button variant="ghost" size="sm">Download</Button>
-                                </div>
+                               ))}
                            </div>
                         </CardContent>
                     </Card>
@@ -188,6 +190,19 @@ export default function InspectionDetailPage() {
                     </Card>
                 </div>
             </div>
+            <Dialog open={!!viewerDocName} onOpenChange={(open) => !open && setViewerDocName(null)}>
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Secure Viewer: {viewerDocName}</DialogTitle>
+                        <DialogDescription>For demonstration purposes. Downloads are disabled.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-grow bg-muted/50 rounded-lg flex flex-col items-center justify-center p-8 text-center">
+                        <FileText className="w-24 h-24 text-muted-foreground/50"/>
+                        <h3 className="text-lg font-bold mt-4">{viewerDocName}</h3>
+                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

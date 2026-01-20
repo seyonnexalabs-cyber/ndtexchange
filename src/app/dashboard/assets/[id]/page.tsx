@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 
 const assetIcons = {
@@ -31,6 +32,13 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
+    const [viewerDoc, setViewerDoc] = React.useState<{name: string, icon: React.ElementType} | null>(null);
+
+    const assetDocs = [
+        { name: 'P&ID-101.pdf', icon: FileText },
+        { name: 'installation_photo.jpg', icon: ImageIcon },
+        { name: 'fabrication_cert.pdf', icon: Paperclip },
+    ];
 
     if (!asset) {
         notFound();
@@ -143,27 +151,15 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                     <CardDescription>Drawings, photos, certificates, and sketches associated with this asset.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
-                                   <div className="flex items-center justify-between p-3 border rounded-md">
-                                       <div className="flex items-center gap-3">
-                                           <FileText className="w-5 h-5 text-muted-foreground" />
-                                           <span className="font-medium">P&ID-101.pdf</span>
-                                       </div>
-                                       <Button variant="ghost" size="sm">Download</Button>
-                                   </div>
-                                    <div className="flex items-center justify-between p-3 border rounded-md">
-                                       <div className="flex items-center gap-3">
-                                           <ImageIcon className="w-5 h-5 text-muted-foreground" />
-                                           <span className="font-medium">installation_photo.jpg</span>
-                                       </div>
-                                       <Button variant="ghost" size="sm">Download</Button>
-                                   </div>
-                                    <div className="flex items-center justify-between p-3 border rounded-md">
-                                       <div className="flex items-center gap-3">
-                                           <Paperclip className="w-5 h-5 text-muted-foreground" />
-                                           <span className="font-medium">fabrication_cert.pdf</span>
-                                       </div>
-                                       <Button variant="ghost" size="sm">Download</Button>
-                                   </div>
+                                   {assetDocs.map((doc, index) => (
+                                     <div key={index} className="flex items-center justify-between p-3 border rounded-md">
+                                         <div className="flex items-center gap-3">
+                                             <doc.icon className="w-5 h-5 text-muted-foreground" />
+                                             <span className="font-medium">{doc.name}</span>
+                                         </div>
+                                         <Button variant="ghost" size="sm" onClick={() => setViewerDoc(doc)}>View</Button>
+                                     </div>
+                                   ))}
                                    <Button className="mt-2 w-full" variant="outline">Upload Document</Button>
                                 </CardContent>
                             </Card>
@@ -223,6 +219,19 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     </Card>
                 </div>
             </div>
+             <Dialog open={!!viewerDoc} onOpenChange={(open) => !open && setViewerDoc(null)}>
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Secure Viewer: {viewerDoc?.name}</DialogTitle>
+                        <DialogDescription>For demonstration purposes. Downloads are disabled.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-grow bg-muted/50 rounded-lg flex flex-col items-center justify-center p-8 text-center">
+                        {viewerDoc && <viewerDoc.icon className="w-24 h-24 text-muted-foreground/50"/>}
+                        <h3 className="text-lg font-bold mt-4">{viewerDoc?.name}</h3>
+                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

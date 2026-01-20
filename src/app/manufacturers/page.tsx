@@ -244,6 +244,21 @@ export default function ManufacturersPage() {
             </div>
         </section>
 
+        <section className="bg-card py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-headline font-semibold text-primary">
+              Ready to Join NDT Exchange?
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Experience the future of asset integrity management. Start your 30-day free trial today. No credit card required, full access to all features.
+            </p>
+            <div className="mt-8">
+              <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Link href="/contact">Start Your Free Trial</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
 
       <PublicFooter />

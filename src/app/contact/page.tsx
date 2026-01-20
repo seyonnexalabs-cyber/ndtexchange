@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export default function ContactPage() {
   return (
@@ -166,7 +167,7 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
         </ul>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" variant={isFeatured ? 'default' : 'outline'} asChild>
+        <Button className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} variant={isFeatured ? 'default' : 'outline'} asChild>
           <Link href="#contact-form">Start Your 30-Day Free Trial</Link>
         </Button>
       </CardFooter>

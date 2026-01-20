@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -542,7 +542,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                             Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
                                         </p>
                                         <div className="flex items-center gap-4 p-4 border rounded-md">
-                                            <Input id="clarification-docs" type="file" multiple className="flex-grow" />
+                                            <Input id="clarification-docs" type="file" multiple accept={ACCEPTED_FILE_TYPES} className="flex-grow" />
                                             <Button variant="secondary">
                                                 <Upload className="mr-2 h-4 w-4" />
                                                 Upload

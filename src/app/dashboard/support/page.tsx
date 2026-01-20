@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { LifeBuoy } from 'lucide-react';
+import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
 
 const supportSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters.'),
@@ -122,7 +123,7 @@ export default function SupportPage() {
                   <FormItem>
                     <FormLabel>Attach a File (Optional)</FormLabel>
                     <FormControl>
-                      <Input type="file" onChange={(e) => field.onChange(e.target.files?.[0])} />
+                      <Input type="file" accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files?.[0])} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

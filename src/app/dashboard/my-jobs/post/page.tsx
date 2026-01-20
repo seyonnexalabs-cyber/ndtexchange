@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
-import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Calendar as CalendarIcon, PlusCircle, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -352,7 +352,7 @@ export default function PostJobPage() {
                                         <FormItem>
                                             <FormLabel>Attach Documents</FormLabel>
                                             <FormControl>
-                                                <Input type="file" multiple onChange={(e) => field.onChange(e.target.files)} />
+                                                <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

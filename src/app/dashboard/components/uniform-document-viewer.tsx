@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Shield } from 'lucide-react';
+import { FileText, Shield, ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type ViewerDocument = {
@@ -55,22 +55,25 @@ export default function UniformDocumentViewer({
                         </div>
                         <ScrollArea className="flex-grow border rounded-md">
                            <div className="space-y-2 p-2">
-                                {documents.map(doc => (
-                                    <button
-                                        key={doc.name}
-                                        onClick={() => setSelectedDoc(doc)}
-                                        className={cn(
-                                            "w-full flex items-center gap-3 rounded-md border p-3 text-left transition-colors",
-                                            selectedDoc?.name === doc.name ? "bg-accent text-accent-foreground" : "hover:bg-muted"
-                                        )}
-                                    >
-                                        <FileText className="w-5 h-5" />
-                                        <div>
-                                            <p className="text-sm font-medium">{doc.name}</p>
-                                            {doc.source && <p className="text-xs">{doc.source}</p>}
-                                        </div>
-                                    </button>
-                                ))}
+                                {documents.map(doc => {
+                                    const isImage = doc.name.match(/\.(jpg|jpeg|png)$/i);
+                                    return (
+                                        <button
+                                            key={doc.name}
+                                            onClick={() => setSelectedDoc(doc)}
+                                            className={cn(
+                                                "w-full flex items-center gap-3 rounded-md border p-3 text-left transition-colors",
+                                                selectedDoc?.name === doc.name ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                                            )}
+                                        >
+                                            {isImage ? <ImageIcon className="w-5 h-5 shrink-0" /> : <FileText className="w-5 h-5 shrink-0" />}
+                                            <div>
+                                                <p className="text-sm font-medium truncate">{doc.name}</p>
+                                                {doc.source && <p className="text-xs">{doc.source}</p>}
+                                            </div>
+                                        </button>
+                                    )
+                                })}
                                 {documents.length === 0 && (
                                     <div className="text-center text-muted-foreground py-10">
                                         No documents available.
@@ -82,7 +85,10 @@ export default function UniformDocumentViewer({
                     <div className="md:col-span-3 bg-muted/50 rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
                         {selectedDoc ? (
                              <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center">
-                                <FileText className="w-24 h-24 text-muted-foreground/50"/>
+                                {selectedDoc.name.match(/\.(jpg|jpeg|png)$/i) 
+                                    ? <ImageIcon className="w-24 h-24 text-muted-foreground/50"/> 
+                                    : <FileText className="w-24 h-24 text-muted-foreground/50"/>
+                                }
                                 <h3 className="text-lg font-bold mt-4">{selectedDoc.name}</h3>
                                 <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
                             </div>

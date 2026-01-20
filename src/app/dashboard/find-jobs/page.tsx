@@ -20,7 +20,7 @@ import { useSearch } from '@/app/components/layout/search-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import UniformDocumentViewer from '@/app/dashboard/components/uniform-document-viewer';
 
 const bidSchema = z.object({
@@ -307,9 +307,9 @@ export default function FindJobsPage() {
                                     name="quote"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Upload Quotation (PDF)</FormLabel>
+                                            <FormLabel>Upload Quotation / Documents</FormLabel>
                                             <FormControl>
-                                                <Input type="file" accept=".pdf" onChange={e => field.onChange(e.target.files?.[0])} />
+                                                <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={e => field.onChange(e.target.files)} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

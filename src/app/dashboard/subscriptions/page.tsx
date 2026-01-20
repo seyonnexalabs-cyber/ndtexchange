@@ -45,7 +45,9 @@ const getContactEmailForSubscription = (subscription: Subscription) => {
     return client?.contactEmail || '';
 };
 
-const SubscriptionsDesktopView = () => (
+type MailtoDetails = { link: string; text: string; variant: 'destructive' | 'secondary' | 'default' | 'outline' | 'ghost' | 'link' | null | undefined };
+
+const SubscriptionsDesktopView = ({ getMailtoLink }: { getMailtoLink: (sub: Subscription) => MailtoDetails }) => (
     <Card>
         <Table>
             <TableHeader>
@@ -63,8 +65,9 @@ const SubscriptionsDesktopView = () => (
                 {subscriptions.map(sub => {
                     const userLimit = planUserLimits[sub.plan];
                     const storageLimit = planStorageLimits[sub.plan];
-                    const contactEmail = getContactEmailForSubscription(sub);
-                    const showContactButton = (sub.status === 'Payment Failed' || sub.status === 'Past Due') && contactEmail;
+                    
+                    const { link, text, variant } = getMailtoLink(sub);
+                    const showContactButton = sub.status !== 'Active' && link !== '#';
 
                     return (
                         <TableRow key={sub.id}>
@@ -86,10 +89,10 @@ const SubscriptionsDesktopView = () => (
                             </TableCell>
                             <TableCell className="text-right">
                                 {showContactButton ? (
-                                    <Button asChild variant="destructive">
-                                        <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that your NDT Exchange subscription payment is currently ${sub.status.toLowerCase()}. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
+                                    <Button asChild variant={variant} size="sm">
+                                        <Link href={link}>
                                             <Mail className="mr-2 h-4 w-4" />
-                                            Contact User
+                                            {text}
                                         </Link>
                                     </Button>
                                 ) : (
@@ -104,13 +107,14 @@ const SubscriptionsDesktopView = () => (
     </Card>
 );
 
-const SubscriptionsMobileView = () => (
+const SubscriptionsMobileView = ({ getMailtoLink }: { getMailtoLink: (sub: Subscription) => MailtoDetails }) => (
     <div className="space-y-4">
         {subscriptions.map(sub => {
             const userLimit = planUserLimits[sub.plan];
             const storageLimit = planStorageLimits[sub.plan];
-            const contactEmail = getContactEmailForSubscription(sub);
-            const showContactButton = (sub.status === 'Payment Failed' || sub.status === 'Past Due') && contactEmail;
+            
+            const { link, text, variant } = getMailtoLink(sub);
+            const showContactButton = sub.status !== 'Active' && link !== '#';
 
             return (
                 <Card key={sub.id}>
@@ -139,10 +143,10 @@ const SubscriptionsMobileView = () => (
                     </CardContent>
                     <CardFooter className="flex justify-end">
                          {showContactButton ? (
-                            <Button asChild variant="destructive" size="sm">
-                                <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that your NDT Exchange subscription payment is currently ${sub.status.toLowerCase()}. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
+                            <Button asChild variant={variant} size="sm">
+                                <Link href={link}>
                                     <Mail className="mr-2 h-4 w-4" />
-                                    Contact User
+                                    {text}
                                 </Link>
                             </Button>
                         ) : (
@@ -205,6 +209,48 @@ export default function SubscriptionsPage() {
     const isMobile = useIsMobile();
     const [activeTab, setActiveTab] = useState("subscriptions");
 
+    const getMailtoLink = (sub: Subscription): MailtoDetails => {
+        const contactEmail = getContactEmailForSubscription(sub);
+        if (!contactEmail) return { link: '#', text: 'Manage', variant: 'secondary' };
+
+        let subject = '';
+        let body = '';
+        let text = 'Contact User';
+        let variant: MailtoDetails['variant'] = 'secondary';
+
+        switch (sub.status) {
+            case 'Trialing':
+                subject = `Your NDT Exchange Trial is Ending Soon`;
+                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT Exchange. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${sub.endDate}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT Exchange Team`;
+                text = 'Encourage Upgrade';
+                variant = 'default';
+                break;
+            case 'Past Due':
+                subject = `Action Required: Your NDT Exchange Subscription is Past Due`;
+                body = `Dear ${sub.companyName} team,\n\nOur records indicate that your NDT Exchange subscription payment is currently past due. To avoid any service interruption, please contact us to resolve this issue.\n\nThank you,\nThe NDT Exchange Team`;
+                text = 'Resolve Issue';
+                variant = 'destructive';
+                break;
+            case 'Payment Failed':
+                subject = `Urgent: NDT Exchange Subscription Payment Failed`;
+                body = `Dear ${sub.companyName} team,\n\nWe were unable to process the payment for your NDT Exchange subscription. Please update your payment information or contact us immediately to avoid service disruption.\n\nThank you,\nThe NDT Exchange Team`;
+                text = 'Resolve Issue';
+                variant = 'destructive';
+                break;
+            case 'Canceled':
+                subject = `Regarding Your Canceled NDT Exchange Subscription`;
+                body = `Dear ${sub.companyName} team,\n\nWe noticed your subscription to NDT Exchange has been canceled. We'd appreciate any feedback you have, and we'd love to welcome you back. Please let us know if there's anything we can do to help.\n\nThank you,\nThe NDT Exchange Team`;
+                text = 'Contact User';
+                variant = 'secondary';
+                break;
+            default:
+                return { link: '#', text: 'Manage', variant: 'secondary' };
+        }
+
+        const link = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        return { link, text, variant };
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -221,7 +267,7 @@ export default function SubscriptionsPage() {
                     <TabsTrigger value="payment-history">Payment History</TabsTrigger>
                 </TabsList>
                 <TabsContent value="subscriptions">
-                     {isMobile ? <SubscriptionsMobileView /> : <SubscriptionsDesktopView />}
+                     {isMobile ? <SubscriptionsMobileView getMailtoLink={getMailtoLink} /> : <SubscriptionsDesktopView getMailtoLink={getMailtoLink} />}
                 </TabsContent>
                 <TabsContent value="payment-history">
                     {isMobile ? <PaymentHistoryMobileView /> : <PaymentHistoryDesktopView />}

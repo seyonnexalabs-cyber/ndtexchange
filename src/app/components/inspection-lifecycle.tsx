@@ -18,8 +18,8 @@ const lifecycleStages = [
 const InspectionLifecycleAnimation = () => {
     return (
         <div className="relative pt-12">
-            <div className="walking-man-container">
-                <PersonStanding className="w-8 h-8 walking-man" />
+            <div className="progress-pulse-container">
+                <div className="progress-pulse"></div>
             </div>
             <div className="w-full overflow-x-auto px-4 pb-4">
                 <div className="flex items-center justify-center flex-wrap md:flex-nowrap gap-y-4 lifecycle-container">

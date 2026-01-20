@@ -210,23 +210,28 @@
         }
     }
 
-    .walking-man-container {
+    .progress-pulse-container {
         position: absolute;
-        top: 0;
+        top: 2rem;
         left: 5%;
         right: 5%;
-        height: 32px;
+        height: 10px;
         z-index: 5;
         pointer-events: none;
+        transform: translateY(-50%);
     }
     
-    .walking-man {
+    .progress-pulse {
         position: absolute;
-        color: hsl(var(--primary));
-        animation: walk-across var(--animation-duration) linear infinite;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: hsl(var(--primary));
+        box-shadow: 0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary));
+        animation: pulse-walk var(--animation-duration) linear infinite;
     }
     
-    @keyframes walk-across {
+    @keyframes pulse-walk {
       /* At stage 1 */
       0%, 15% { left: 0%; transform: translateX(0%); }
       /* Move to stage 2 */

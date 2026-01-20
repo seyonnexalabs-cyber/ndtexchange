@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -336,12 +337,12 @@ const SubscriptionSettings = () => {
         // Use a fixed start date for consistent demonstration
         const trialStartDate = new Date('2024-07-01');
         const endDate = new Date(trialStartDate);
-        endDate.setDate(endDate.getDate() + 365);
+        endDate.setDate(endDate.getDate() + 30);
         
         const today = new Date();
         const daysElapsed = Math.max(0, Math.floor((today.getTime() - trialStartDate.getTime()) / (1000 * 3600 * 24)));
-        const progress = Math.min((daysElapsed / 365) * 100, 100);
-        const daysRemaining = Math.max(0, 365 - daysElapsed);
+        const progress = Math.min((daysElapsed / 30) * 100, 100);
+        const daysRemaining = Math.max(0, 30 - daysElapsed);
 
         setTrialDetails({
             endDate,
@@ -377,7 +378,7 @@ const SubscriptionSettings = () => {
                 </div>
                 <div className="text-sm text-muted-foreground">
                     <p>
-                        Your 365-day free trial gives you full access to all platform features. After the trial period ends, you will be prompted to choose a paid plan to continue using the service. You can add a payment method at any time.
+                        Your 30-day free trial gives you full access to all platform features. After the trial period ends, you will be prompted to choose a paid plan to continue using the service. You can add a payment method at any time.
                     </p>
                 </div>
             </CardContent>

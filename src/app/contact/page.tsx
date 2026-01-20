@@ -19,10 +19,10 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-headline font-bold">
-                Your First 365 Days are on Us
+                Your First 30 Days are on Us
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                Sign up today and get your first 365 days of NDT Exchange completely free. No credit card required. Full access to all features to grow your business.
+                Sign up today and get your first 30 days of NDT Exchange completely free. No credit card required. Full access to all features to grow your business.
               </p>
             </div>
           </div>
@@ -73,7 +73,7 @@ export default function ContactPage() {
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                All plans are billed annually after your first 365 days. Contact us for detailed pricing. Auditor access is typically managed via Client or Enterprise accounts.
+                All plans are billed annually after your first 30 days. NDT Exchange is a platform for connecting professionals; we do not process payments for jobs. Contact us for detailed pricing. Auditor access is typically managed via Client or Enterprise accounts.
              </p>
           </div>
         </section>
@@ -165,7 +165,7 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
       </CardContent>
       <CardFooter>
         <Button className="w-full" variant={isFeatured ? 'default' : 'outline'} asChild>
-          <Link href="#contact-form">Start Your 365-Day Free Trial</Link>
+          <Link href="#contact-form">Start Your 30-Day Free Trial</Link>
         </Button>
       </CardFooter>
     </Card>

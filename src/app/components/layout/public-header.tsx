@@ -12,6 +12,7 @@ export default function PublicHeader() {
 
   const navLinks = [
     { href: '/#features', label: 'Features' },
+    { href: '/#asset-management', label: 'Asset Management' },
     { href: '/#techniques', label: 'Techniques' },
     { href: '/about', label: 'About' },
     { href: '/manufacturers', label: 'Manufacturers' },

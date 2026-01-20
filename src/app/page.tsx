@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio, TestTube, Lightbulb, Building, UserCheck } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio, TestTube, Lightbulb, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -123,7 +123,7 @@ export default function Home() {
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Protect Intellectual Property:</strong> Centralize all asset data, reports, and documentation in a secure-by-design vault that prevents data leakage.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Protect Intellectual Property:</strong> Centralize all asset data, reports, and documentation in a secure-by-design vault that prevents data leakage and unauthorized screenshots.</span></li>
                                 </ul>
                             </CardContent>
                         </Card>
@@ -157,7 +157,7 @@ export default function Home() {
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality and safety.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final approval.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance and data integrity.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance, data integrity, and preventing screenshots.</span></li>
                                 </ul>
                             </CardContent>
                         </Card>
@@ -166,8 +166,50 @@ export default function Home() {
             </div>
         </section>
 
+        <section id="asset-management" className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-headline font-semibold text-primary">
+                The Ultimate Asset Integrity Hub
+              </h2>
+              <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                Go beyond simple NDT. Our platform provides a complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+              <FeatureCard
+                icon={<FolderKanban className="w-8 h-8 text-primary" />}
+                title="Centralized Document Vault"
+                description="Securely store and manage all asset-related documents like P&IDs, historical reports, and fabrication certificates in one easy-to-access vault."
+                cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<History className="w-8 h-8 text-primary" />}
+                title="Complete Lifecycle History"
+                description="Gain a full, tamper-proof audit trail of every inspection, repair, and status change, providing unparalleled traceability for compliance and decision-making."
+                cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<CalendarCheck className="w-8 h-8 text-primary" />}
+                title="Automated Scheduling & Alerts"
+                description="Stay ahead of maintenance with automated reminders for upcoming inspections. Prevent costly oversights and ensure your assets are always in compliance."
+                cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<QrCode className="w-8 h-8 text-primary" />}
+                title="QR Code Asset Tagging"
+                description="Instantly access an asset's full history and documentation in the field by scanning a simple QR code, streamlining on-site work for your team and providers."
+                cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+            </div>
+          </div>
+        </section>
 
-        <section id="techniques" className="py-20 bg-card">
+        <section id="techniques" className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-headline font-semibold text-primary">

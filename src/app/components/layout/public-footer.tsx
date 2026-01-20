@@ -4,6 +4,7 @@ import { ShieldCheck } from 'lucide-react';
 export default function PublicFooter() {
     const platformLinks = [
         { href: '/#features', label: 'Features' },
+        { href: '/#asset-management', label: 'Asset Management' },
         { href: '/#techniques', label: 'Techniques' },
         { href: '/login', label: 'Login / Dashboard' },
         { href: '/contact', label: 'Pricing & Contact' },

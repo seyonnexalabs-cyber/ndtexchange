@@ -332,6 +332,12 @@ const SubscriptionSettings = () => {
         progress: 0,
         daysRemaining: 0,
     });
+    const [usageDetails] = useState({
+        storage: 1.2,
+        storageLimit: 5,
+        users: 3,
+        userLimit: 5,
+    });
 
     useEffect(() => {
         // Use a fixed start date for consistent demonstration
@@ -350,6 +356,9 @@ const SubscriptionSettings = () => {
             daysRemaining,
         });
     }, []);
+
+    const storageProgress = (usageDetails.storage / usageDetails.storageLimit) * 100;
+    const userProgress = (usageDetails.users / usageDetails.userLimit) * 100;
 
     return (
         <Card>
@@ -376,6 +385,33 @@ const SubscriptionSettings = () => {
                         <Progress value={trialDetails.progress} />
                     </div>
                 </div>
+                
+                <Separator />
+
+                <div className="space-y-4">
+                    <h4 className="font-semibold">Usage this billing cycle</h4>
+                    <div>
+                        <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                            <span>Data Storage</span>
+                            <span>{usageDetails.storage} GB / {usageDetails.storageLimit} GB used</span>
+                        </div>
+                        <Progress value={storageProgress} />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Storage includes all uploaded documents, inspection data, and asset photos.
+                        </p>
+                    </div>
+                    <div>
+                        <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                            <span>Team Members</span>
+                            <span>{usageDetails.users} / {usageDetails.userLimit} users</span>
+                        </div>
+                        <Progress value={userProgress} />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Your plan includes up to {usageDetails.userLimit} users. Contact us to add more.
+                        </p>
+                    </div>
+                </div>
+
                 <div className="text-sm text-muted-foreground">
                     <p>
                         Your 30-day free trial gives you full access to all platform features. After the trial period ends, you will be prompted to choose a paid plan to continue using the service. You can add a payment method at any time.

@@ -89,8 +89,15 @@ export default function InspectionDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                           <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                                <p className="text-muted-foreground">Inspection Report Viewer (PDF/Digital)</p>
+                           <div className="relative aspect-video bg-muted/50 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
+                                <FileText className="w-24 h-24 text-muted-foreground/50" />
+                                <h3 className="text-lg font-bold mt-4">Inspection Report for {inspection.assetName}</h3>
+                                <p className="text-sm text-muted-foreground">The digital report will be displayed here for audit.</p>
+                                <div 
+                                    className="absolute inset-0 bg-transparent"
+                                    onContextMenu={(e) => e.preventDefault()}
+                                    style={{ userSelect: 'none', pointerEvents: 'none' }}
+                                />
                            </div>
                            <div className="mt-4 space-y-2">
                                <h3 className="font-semibold">Attached Documents</h3>

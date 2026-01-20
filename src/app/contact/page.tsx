@@ -40,6 +40,7 @@ export default function ContactPage() {
                   "Post Jobs to Marketplace",
                   "Award Bids & Track Progress",
                   "Generate Historical Reports",
+                  "Usage-based storage & users",
                   "Standard Support"
                 ]}
                 isFeatured={false}
@@ -53,6 +54,7 @@ export default function ContactPage() {
                   "Manage Technicians & Equipment",
                   "Digital Report Generation",
                   "Client Communication Tools",
+                  "Usage-based storage & users",
                   "Priority Support"
                 ]}
                 isFeatured={true}
@@ -73,7 +75,7 @@ export default function ContactPage() {
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                All plans are billed annually after your first 30 days. NDT Exchange is a platform for connecting professionals; we do not process payments for jobs. Contact us for detailed pricing. Auditor access is typically managed via Client or Enterprise accounts.
+                All plans are billed annually after your 30-day free trial. Pricing is usage-based, determined by factors like data storage and number of users. We do not process payments for jobs. Contact us for a detailed quote tailored to your needs. Auditor access is typically managed via Client or Enterprise accounts.
              </p>
           </div>
         </section>

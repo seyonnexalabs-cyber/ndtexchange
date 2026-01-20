@@ -36,10 +36,10 @@ export default function Home() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">
-                The Future of Non-Destructive Testing
+                Connecting Asset Integrity with NDT Expertise
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/90">
-                Connect with certified inspectors, manage your assets, and ensure compliance with our all-in-one NDT platform.
+                The premier digital ecosystem where asset owners ensure operational continuity and certified NDT professionals find new opportunities to grow their business.
               </p>
               <div className="mt-10">
                 <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
@@ -77,7 +77,7 @@ export default function Home() {
               />
               <FeatureCard
                 icon={<ShieldCheck className="w-8 h-8 text-destructive" />}
-                title="Fortress-Level Security"
+                title="Secure Workflows"
                 description="Experience unparalleled data security. Our platform features role-based access, a secure document viewer that prevents unauthorized downloads and screenshots, and comprehensive audit trails for every action. Maintain compliance and protect your sensitive intellectual property with confidence."
                 cardClass="hover:border-destructive/20"
                 iconContainerClass="bg-destructive/10"
@@ -121,9 +121,9 @@ export default function Home() {
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Easily post job requests to a marketplace of vetted NDT professionals.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Review bids, compare provider qualifications, and award jobs with confidence.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Centralize documents in a secure digital vault that prevents unauthorized downloads or screenshots.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Protect Intellectual Property:</strong> Centralize all asset data, reports, and documentation in a secure-by-design vault that prevents data leakage.</span></li>
                                 </ul>
                             </CardContent>
                         </Card>
@@ -138,9 +138,9 @@ export default function Home() {
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Access a marketplace of inspection jobs that match your certifications and location.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Manage your technicians, equipment, and certifications efficiently.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Utilize digital reporting tools to deliver high-quality, consistent results.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Grow Your Business:</strong> Access a steady stream of inspection jobs from qualified asset owners looking for your specific expertise and certifications.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Optimize Your Operations:</strong> Manage your team, equipment, and certifications all in one place, reducing administrative overhead and improving efficiency.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Deliver Excellence:</strong> Use professional digital reporting tools to provide high-quality, consistent deliverables that impress clients.</span></li>
                                 </ul>
                             </CardContent>
                         </Card>
@@ -150,14 +150,14 @@ export default function Home() {
                                    <div className="bg-accent/10 p-4 rounded-full w-fit">
                                         <Globe className="w-8 h-8 text-accent" />
                                     </div>
-                                    <CardTitle className="text-2xl font-headline">For Auditors</CardTitle>
+                                    <CardTitle className="text-2xl font-headline">For Auditors & Regulators</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Review job data and reports in a secure, read-only environment that prevents data leakage and screenshots.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Track the entire inspection process from job posting to final report approval.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Verify technician certifications and equipment calibration records for full compliance.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality and safety.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final approval.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance and data integrity.</span></li>
                                 </ul>
                             </CardContent>
                         </Card>

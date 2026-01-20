@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -8,9 +9,9 @@ const lifecycleStages = [
     { icon: Gavel, title: '2. Bidding' },
     { icon: Award, title: '3. Award Job' },
     { icon: Search, title: '4. Inspect' },
-    { icon: FileText, title: '5. Report' },
-    { icon: ShieldCheck, title: '6. Audit' },
-    { icon: UserCheck, title: '7. Review' },
+    { icon: FileText, title: '5. Submit Report' },
+    { icon: ShieldCheck, title: '6. Audit (As Required)' },
+    { icon: UserCheck, title: '7. Client Review' },
     { icon: CheckCircle, title: '8. Complete' },
 ];
 

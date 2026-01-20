@@ -1,13 +1,14 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { subscriptions, Subscription } from "@/lib/placeholder-data";
+import { subscriptions, Subscription, clientData } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, Database, MoreVertical } from "lucide-react";
+import { DollarSign, Users, Database, MoreVertical, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import Link from 'next/link';
 
 const statusStyles: { [key in Subscription['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Active: 'success',
@@ -31,6 +32,11 @@ const planStorageLimits = {
     'Free Trial': 5,
 };
 
+const getContactEmailForSubscription = (subscription: Subscription) => {
+    const client = clientData.find(c => c.id === subscription.companyId);
+    return client?.contactEmail || '';
+};
+
 const DesktopView = () => (
     <Card>
         <Table>
@@ -49,6 +55,8 @@ const DesktopView = () => (
                 {subscriptions.map(sub => {
                     const userLimit = planUserLimits[sub.plan];
                     const storageLimit = planStorageLimits[sub.plan];
+                    const contactEmail = getContactEmailForSubscription(sub);
+
                     return (
                         <TableRow key={sub.id}>
                             <TableCell className="font-medium">{sub.companyName}</TableCell>
@@ -68,7 +76,16 @@ const DesktopView = () => (
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
-                                <Button variant="ghost" size="sm">Manage</Button>
+                                {sub.status === 'Payment Failed' && contactEmail ? (
+                                    <Button asChild variant="destructive">
+                                        <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment Failed for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that the recent subscription payment for your NDT Exchange account has failed. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
+                                            <Mail className="mr-2 h-4 w-4" />
+                                            Contact User
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <Button variant="ghost" size="sm">Manage</Button>
+                                )}
                             </TableCell>
                         </TableRow>
                     );
@@ -83,6 +100,8 @@ const MobileView = () => (
         {subscriptions.map(sub => {
             const userLimit = planUserLimits[sub.plan];
             const storageLimit = planStorageLimits[sub.plan];
+            const contactEmail = getContactEmailForSubscription(sub);
+
             return (
                 <Card key={sub.id}>
                     <CardHeader>
@@ -109,7 +128,16 @@ const MobileView = () => (
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
-                         <Button variant="ghost" size="sm">Manage Subscription</Button>
+                         {sub.status === 'Payment Failed' && contactEmail ? (
+                            <Button asChild variant="destructive" size="sm">
+                                <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment Failed for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that the recent subscription payment for your NDT Exchange account has failed. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
+                                    <Mail className="mr-2 h-4 w-4" />
+                                    Contact User
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button variant="ghost" size="sm">Manage Subscription</Button>
+                        )}
                     </CardFooter>
                 </Card>
             )

@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
-import { cn } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Calendar as CalendarIcon, PlusCircle, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -167,7 +167,7 @@ export default function PostJobPage() {
                                                 )}
                                                 >
                                                 {field.value ? (
-                                                    format(field.value, "PPP")
+                                                    format(field.value, GLOBAL_DATE_FORMAT)
                                                 ) : (
                                                     <span>Pick a date</span>
                                                 )}
@@ -206,7 +206,7 @@ export default function PostJobPage() {
                                                 )}
                                                 >
                                                 {field.value ? (
-                                                    format(field.value, "PPP")
+                                                    format(field.value, GLOBAL_DATE_FORMAT)
                                                 ) : (
                                                     <span>Pick a date</span>
                                                 )}
@@ -245,7 +245,7 @@ export default function PostJobPage() {
                                                 )}
                                                 >
                                                 {field.value ? (
-                                                    format(field.value, "PPP")
+                                                    format(field.value, GLOBAL_DATE_FORMAT)
                                                 ) : (
                                                     <span>Pick a date</span>
                                                 )}

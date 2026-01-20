@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 
@@ -137,7 +137,7 @@ const AssetForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (va
                                 )}
                                 >
                                 {field.value ? (
-                                    format(field.value, "PPP")
+                                    format(field.value, GLOBAL_DATE_FORMAT)
                                 ) : (
                                     <span>Pick a date</span>
                                 )}
@@ -244,7 +244,7 @@ const ClientAssetsView = () => {
                                         <CardDescription>{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-                                        <span>Next: {asset.nextInspection}</span>
+                                        <span>Next: {format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</span>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8">

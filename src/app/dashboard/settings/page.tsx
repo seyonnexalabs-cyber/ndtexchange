@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
 const userDetails = {
@@ -393,7 +394,7 @@ const SubscriptionSettings = () => {
                     </div>
                     <div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>Trial ends on {format(trialDetails.endDate, "PPP")}</span>
+                            <span>Trial ends on {format(trialDetails.endDate, GLOBAL_DATE_FORMAT)}</span>
                             <span>{trialDetails.daysRemaining} days remaining</span>
                         </div>
                         <Progress value={trialDetails.progress} />

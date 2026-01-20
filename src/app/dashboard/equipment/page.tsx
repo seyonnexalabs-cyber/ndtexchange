@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -132,7 +132,7 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                                 )}
                                 >
                                 {field.value ? (
-                                    format(field.value, "PPP")
+                                    format(field.value, GLOBAL_DATE_FORMAT)
                                 ) : (
                                     <span>Pick a date</span>
                                 )}
@@ -191,7 +191,7 @@ const DesktopView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Insp
                         <TableCell>
                             <Badge variant={asset.status === 'Calibrated' ? 'success' : asset.status === 'In Service' ? 'default' : 'destructive'}>{asset.status}</Badge>
                         </TableCell>
-                        <TableCell>{asset.nextCalibration}</TableCell>
+                        <TableCell>{asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</TableCell>
                         <TableCell className="text-right">
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -226,7 +226,7 @@ const MobileView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Inspe
                     <Badge variant={asset.status === 'Calibrated' ? 'success' : 'default'} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>Cal Due: {asset.nextCalibration}</span>
+                    <span>Cal Due: {asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">

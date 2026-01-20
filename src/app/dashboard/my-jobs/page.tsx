@@ -8,7 +8,8 @@ import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersH
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { format } from 'date-fns';
 
 
 const equipmentIcons = {
@@ -136,18 +137,18 @@ export default function MyJobsPage() {
                                     </div>
                                      <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2" />
-                                        <span>Posted: {job.postedDate}</span>
+                                        <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
                                     </div>
                                      {job.bidExpiryDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <AlarmClock className="w-4 h-4 mr-2" />
-                                            <span>Bids Expire: {job.bidExpiryDate}</span>
+                                            <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
                                         </div>
                                     )}
                                     {job.scheduledStartDate && (
                                         <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
                                             <Calendar className="w-4 h-4 mr-2" />
-                                            <span>Inspection: {job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}` : ''}</span>
+                                            <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
                                         </div>
                                     )}
 

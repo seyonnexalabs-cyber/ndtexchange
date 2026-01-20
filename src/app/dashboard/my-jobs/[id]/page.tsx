@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +27,7 @@ import DocumentViewer from '../components/document-viewer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobHistory from '../components/job-history';
+import { format } from 'date-fns';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -164,7 +165,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
                         <CheckCircle className="w-8 h-8" />
                         <div>
                             <p className="font-bold">Report Approved</p>
-                            <p className="text-sm">The report was approved by the auditor on 2024-07-22.</p>
+                            <p className="text-sm">The report was approved by the auditor on 22-Jul-2024.</p>
                         </div>
                     </div>
                 </CardContent>
@@ -402,7 +403,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 <div className="flex items-center gap-6 w-full sm:w-auto">
                                    <div className="text-left sm:text-right flex-grow">
                                         <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
-                                        <p className="text-xs text-muted-foreground">Submitted on {bid.submittedDate}</p>
+                                        <p className="text-xs text-muted-foreground">Submitted on {format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</p>
                                     </div>
                                     {isClient && <Button onClick={() => handleAwardBid(bid.id, bid.providerId)}>Award Job</Button>}
                                 </div>
@@ -469,7 +470,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4 mr-2" />
-                                <span>Posted: {jobDetails.postedDate}</span>
+                                <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span>
                             </div>
                              <div className="border-t pt-4">
                                 <h3 className="font-semibold text-lg">Job Description</h3>

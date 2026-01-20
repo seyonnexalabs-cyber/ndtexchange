@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { useSearch } from '@/app/components/layout/search-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
@@ -171,18 +173,18 @@ export default function FindJobsPage() {
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4 mr-2" />
-                                <span>Posted: {job.postedDate}</span>
+                                <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
                             </div>
                             {job.scheduledStartDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <Calendar className="w-4 h-4 mr-2" />
-                                    <span>Target: {job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}` : ''}</span>
+                                    <span>Target: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
                                 </div>
                             )}
                             {job.bidExpiryDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <AlarmClock className="w-4 h-4 mr-2" />
-                                    <span>Bids Expire: {job.bidExpiryDate}</span>
+                                    <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
                                 </div>
                             )}
                         </CardContent>

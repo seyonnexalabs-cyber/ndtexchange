@@ -17,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -226,11 +226,11 @@ export default function JobCostAnalysisReportPage() {
                                                 {field.value.from ? (
                                                     field.value.to ? (
                                                     <>
-                                                        {format(field.value.from, "LLL dd, y")} -{" "}
-                                                        {format(field.value.to, "LLL dd, y")}
+                                                        {format(field.value.from, GLOBAL_DATE_FORMAT)} -{" "}
+                                                        {format(field.value.to, GLOBAL_DATE_FORMAT)}
                                                     </>
                                                     ) : (
-                                                    format(field.value.from, "LLL dd, y")
+                                                    format(field.value.from, GLOBAL_DATE_FORMAT)
                                                     )
                                                 ) : (
                                                     <span>Pick a date range</span>
@@ -325,7 +325,7 @@ export default function JobCostAnalysisReportPage() {
                                     <TableCell><Badge variant="secondary">{job!.technique}</Badge></TableCell>
                                     <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
                                     <TableCell>{job!.duration}</TableCell>
-                                    <TableCell>{job!.scheduledEndDate}</TableCell>
+                                    <TableCell>{job!.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT): ''}</TableCell>
                                 </TableRow>
                             ))}
                              {filteredJobs.length === 0 && (

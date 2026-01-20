@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { addDays, startOfWeek, format, isSameDay, addWeeks, subWeeks, eachDayOfInterval, parseISO } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -203,7 +203,7 @@ export default function CalendarPage() {
                                 <CalendarIcon className="w-4 h-4 mr-3 text-muted-foreground" />
                                 <div>
                                     <p className="font-semibold">Scheduled Dates</p>
-                                    <p className="text-muted-foreground">{job.scheduledStartDate}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${job.scheduledEndDate}` : ''}</p>
+                                    <p className="text-muted-foreground">{format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</p>
                                 </div>
                             </div>
                         )}
@@ -217,13 +217,13 @@ export default function CalendarPage() {
                 </>
             );
         } else {
-             const resourceData = selectedEvent.data as { resource: Technician | InspectorAsset, jobs: Job[] };
+             const resourceData = event.data as { resource: Technician | InspectorAsset, jobs: Job[] };
              const resourceType = selectedEvent.type === 'technician' ? 'Technician' : 'Equipment';
              return (
                 <>
                     <DialogHeader>
                         <DialogTitle className="font-headline text-xl">{resourceData.resource.name}</DialogTitle>
-                        <DialogDescription>{resourceType} Schedule for {format(selectedEvent.date, 'PPP')}</DialogDescription>
+                        <DialogDescription>{resourceType} Schedule for {format(selectedEvent.date, GLOBAL_DATE_FORMAT)}</DialogDescription>
                     </DialogHeader>
                     {selectedEvent.isClash && (
                         <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm font-medium">

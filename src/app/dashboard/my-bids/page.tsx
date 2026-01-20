@@ -23,6 +23,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
@@ -74,7 +76,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Date Submitted</span>
-                                <span className="font-medium">{bid.submittedDate}</span>
+                                <span className="font-medium">{format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</span>
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
@@ -121,7 +123,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                             <TableCell className="font-medium">{bid.job?.title}</TableCell>
                             <TableCell>{bid.job?.client}</TableCell>
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
-                            <TableCell>{bid.submittedDate}</TableCell>
+                            <TableCell>{format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</TableCell>
                             <TableCell>
                                 <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
                             </TableCell>

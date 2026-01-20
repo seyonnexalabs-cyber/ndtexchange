@@ -14,6 +14,8 @@ import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
 
 
 const subscriptionStatusStyles: { [key in Subscription['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -109,7 +111,7 @@ const SubscriptionsDesktopView = ({
                             <TableCell className="font-medium">{sub.companyName}</TableCell>
                             <TableCell>{sub.plan}</TableCell>
                             <TableCell><Badge variant={subscriptionStatusStyles[sub.status]}>{sub.status}</Badge></TableCell>
-                            <TableCell>{sub.startDate}</TableCell>
+                            <TableCell>{format(new Date(sub.startDate), GLOBAL_DATE_FORMAT)}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     <span>{sub.userCount} / {userLimit}</span>
@@ -182,7 +184,7 @@ const SubscriptionsMobileView = ({
                                 className="absolute top-4 right-4 h-5 w-5"
                             />
                         </div>
-                        <CardDescription>{sub.plan} Plan - Started: {sub.startDate}</CardDescription>
+                        <CardDescription>{sub.plan} Plan - Started: {format(new Date(sub.startDate), GLOBAL_DATE_FORMAT)}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -234,7 +236,7 @@ const PaymentHistoryDesktopView = () => (
             <TableBody>
                 {payments.map(payment => (
                     <TableRow key={payment.id}>
-                        <TableCell>{payment.date}</TableCell>
+                        <TableCell>{format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</TableCell>
                         <TableCell className="font-medium">{payment.companyName}</TableCell>
                         <TableCell>${payment.amount.toLocaleString()}</TableCell>
                         <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
@@ -255,7 +257,7 @@ const PaymentHistoryMobileView = () => (
                         <CardTitle>{payment.companyName}</CardTitle>
                         <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
                     </div>
-                    <CardDescription>Payment on {payment.date}</CardDescription>
+                    <CardDescription>Payment on {format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>
@@ -284,7 +286,7 @@ export default function SubscriptionsPage() {
         switch (sub.status) {
             case 'Trialing':
                 subject = `Your NDT Exchange Trial is Ending Soon`;
-                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT Exchange. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${sub.endDate}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT Exchange Team`;
+                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT Exchange. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${sub.endDate ? format(new Date(sub.endDate), GLOBAL_DATE_FORMAT): ''}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT Exchange Team`;
                 text = 'Encourage Upgrade';
                 variant = 'default';
                 break;

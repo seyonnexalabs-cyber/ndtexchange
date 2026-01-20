@@ -14,6 +14,8 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
 const assetIcons = {
@@ -87,7 +89,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                                         <div className="font-medium">{inspection.technique}</div>
                                                         <Badge variant={inspection.status === 'Completed' ? 'success' : 'secondary'}>{inspection.status}</Badge>
                                                     </div>
-                                                    <div className="text-sm text-muted-foreground mt-2">Date: {inspection.date}</div>
+                                                    <div className="text-sm text-muted-foreground mt-2">Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</div>
                                                     <div className="text-sm text-muted-foreground">Inspector: {inspection.inspector}</div>
                                                     <div className="mt-2 flex justify-end">
                                                         <Button variant="outline" size="sm">View Report</Button>
@@ -112,7 +114,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                             <TableBody>
                                                 {assetInspections.map(inspection => (
                                                     <TableRow key={inspection.id}>
-                                                        <TableCell>{inspection.date}</TableCell>
+                                                        <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
                                                         <TableCell>{inspection.technique}</TableCell>
                                                         <TableCell>{inspection.inspector}</TableCell>
                                                         <TableCell>
@@ -214,7 +216,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                 <Calendar className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                 <div>
                                     <p className="font-semibold">Next Inspection</p>
-                                    <p className="text-muted-foreground">{asset.nextInspection}</p>
+                                    <p className="text-muted-foreground">{format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</p>
                                 </div>
                             </div>
                         </CardContent>

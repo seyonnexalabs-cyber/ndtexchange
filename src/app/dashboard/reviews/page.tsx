@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { Review } from '@/lib/placeholder-data';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -58,7 +60,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                         <CardContent>
                             <StarRating rating={review.rating} />
                             <p className="text-sm text-muted-foreground mt-2">{review.comment}</p>
-                            <p className="text-xs text-muted-foreground mt-2">{review.date}</p>
+                            <p className="text-xs text-muted-foreground mt-2">{format(new Date(review.date), GLOBAL_DATE_FORMAT)}</p>
                         </CardContent>
                         {review.status === 'Pending' && (
                             <CardFooter className="flex justify-end gap-2">

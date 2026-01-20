@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
 const reportSchema = z.object({
@@ -154,11 +154,11 @@ export default function AssetHistoryReportPage() {
                                                 {field.value.from ? (
                                                     field.value.to ? (
                                                     <>
-                                                        {format(field.value.from, "LLL dd, y")} -{" "}
-                                                        {format(field.value.to, "LLL dd, y")}
+                                                        {format(field.value.from, GLOBAL_DATE_FORMAT)} -{" "}
+                                                        {format(field.value.to, GLOBAL_DATE_FORMAT)}
                                                     </>
                                                     ) : (
-                                                    format(field.value.from, "LLL dd, y")
+                                                    format(field.value.from, GLOBAL_DATE_FORMAT)
                                                     )
                                                 ) : (
                                                     <span>Pick a date range</span>
@@ -218,7 +218,7 @@ export default function AssetHistoryReportPage() {
                                     <TableCell>
                                          <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
                                     </TableCell>
-                                    <TableCell>{inspection.date}</TableCell>
+                                    <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
                                 </TableRow>
                             ))}
                              {filteredInspections.length === 0 && (

@@ -17,6 +17,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
 
 // --- Client Dashboard ---
 const clientChartData = [
@@ -131,7 +133,7 @@ const ClientDashboard = () => {
                                                     <div className="font-medium">{inspection.technique} on {inspection.assetName}</div>
                                                     <Badge variant="outline">Inspection Report</Badge>
                                                 </div>
-                                                <div className="text-sm text-muted-foreground mt-2">Date: {inspection.date}</div>
+                                                <div className="text-sm text-muted-foreground mt-2">Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</div>
                                                 <div className="text-sm text-muted-foreground">Status: <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge></div>
                                             </Card>
                                         )
@@ -143,8 +145,8 @@ const ClientDashboard = () => {
                                                     <div className="font-medium">{job.title}</div>
                                                     <Badge variant="outline">Job Posted</Badge>
                                                 </div>
-                                                <div className="text-sm text-muted-foreground mt-2">Posted: {job.postedDate}</div>
-                                                {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {job.scheduledStartDate}</div>}
+                                                <div className="text-sm text-muted-foreground mt-2">Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</div>
+                                                {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}</div>}
                                                 <div className="text-sm text-muted-foreground mt-1">Status: <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></div>
                                             </Card>
                                         )
@@ -170,7 +172,7 @@ const ClientDashboard = () => {
                                     <TableRow key={`insp-${inspection.id}`}>
                                         <TableCell><Badge variant="outline">Inspection Report</Badge></TableCell>
                                         <TableCell className="font-medium">{inspection.technique} on {inspection.assetName}</TableCell>
-                                        <TableCell>{inspection.date}</TableCell>
+                                        <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
                                         <TableCell><Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge></TableCell>
                                     </TableRow>
                                     )
@@ -180,7 +182,7 @@ const ClientDashboard = () => {
                                     <TableRow key={`job-${job.id}`}>
                                         <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{job.scheduledStartDate ? `Sch: ${job.scheduledStartDate}` : `Post: ${job.postedDate}`}</TableCell>
+                                        <TableCell>{job.scheduledStartDate ? `Sch: ${format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}` : `Post: ${format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}`}</TableCell>
                                         <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
                                     </TableRow>
                                     )
@@ -287,7 +289,7 @@ const InspectorDashboard = () => {
                                         </div>
                                         <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
                                         <div className="text-sm text-muted-foreground">Location: {job.location}</div>
-                                        {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {job.scheduledStartDate}</div>}
+                                        {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}</div>}
                                     </Card>
                                 ))}
                                 {upcomingJobs.length === 0 && <div className="text-center text-muted-foreground py-4">No upcoming jobs.</div>}
@@ -307,7 +309,7 @@ const InspectorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
-                                        <TableCell>{job.scheduledStartDate || "Not Scheduled"}</TableCell>
+                                        <TableCell>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : "Not Scheduled"}</TableCell>
                                         <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
                                     </TableRow>
                                 ))}
@@ -456,7 +458,7 @@ const AuditorDashboard = () => {
                                         <Badge variant={job.status === 'Report Submitted' ? 'destructive' : 'secondary'}>{job.status === 'Report Submitted' ? 'Awaiting Review' : 'Under Audit'}</Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-2">Technique: {job.technique}</div>
-                                    <div className="text-sm text-muted-foreground">Submitted: {job.scheduledStartDate || job.postedDate}</div>
+                                    <div className="text-sm text-muted-foreground">Submitted: {format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</div>
                                 </Card>
                             ))}
                             {auditQueue.length === 0 && <div className="text-center text-muted-foreground py-4">The audit queue is empty.</div>}
@@ -476,7 +478,7 @@ const AuditorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
-                                        <TableCell>{job.scheduledStartDate || job.postedDate}</TableCell>
+                                        <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
                                         <TableCell><Badge variant="destructive">Awaiting Review</Badge></TableCell>
                                     </TableRow>
                                 ))}
@@ -484,7 +486,7 @@ const AuditorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
-                                        <TableCell>{job.scheduledStartDate || job.postedDate}</TableCell>
+                                        <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
                                         <TableCell><Badge variant="secondary">Under Audit</Badge></TableCell>
                                     </TableRow>
                                 ))}

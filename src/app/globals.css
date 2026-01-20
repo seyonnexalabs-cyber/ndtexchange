@@ -159,7 +159,6 @@
         --animation-duration: 10s;
     }
 
-    /* This is the key part for activating the colors */
     .lifecycle-item .lifecycle-icon-wrapper {
         animation: icon-wrapper-active var(--animation-duration) ease-in-out infinite;
         animation-delay: inherit;
@@ -170,6 +169,12 @@
         animation-delay: inherit;
         transition: color 0.3s ease-in-out;
     }
+    .lifecycle-item .lifecycle-arrow > svg {
+        animation: arrow-active var(--animation-duration) ease-in-out infinite;
+        animation-delay: inherit;
+        transition: all 0.2s ease-in-out;
+    }
+
 
     .lifecycle-item:nth-child(1) { animation-delay: calc(var(--animation-duration) * 0 / var(--stage-count)); }
     .lifecycle-item:nth-child(2) { animation-delay: calc(var(--animation-duration) * 1 / var(--stage-count)); }
@@ -181,32 +186,39 @@
     .lifecycle-item:nth-child(8) { animation-delay: calc(var(--animation-duration) * 7 / var(--stage-count)); }
 
     @keyframes icon-wrapper-active {
-        0%, 100% {
+        0%, 12.4%, 100% {
             border-color: hsl(var(--border));
             background-color: hsl(var(--card));
             transform: scale(1);
         }
-        5%, 15% {
+        0.1%, 10% {
             border-color: hsl(var(--primary));
             background-color: hsl(var(--primary) / 0.1);
-            transform: scale(1.1);
-        }
-        20% {
-            border-color: hsl(var(--border));
-            background-color: hsl(var(--card));
-            transform: scale(1);
+            transform: scale(1.05);
         }
     }
 
     @keyframes icon-active {
-        0%, 100% {
+        0%, 12.4%, 100% {
             color: hsl(var(--muted-foreground));
         }
-        5%, 15% {
+        0.1%, 10% {
             color: hsl(var(--primary));
         }
-        20% {
-            color: hsl(var(--muted-foreground));
+    }
+
+    @keyframes arrow-active {
+        0%, 10%, 100% {
+            color: hsl(var(--muted-foreground) / 0.3);
+            transform: translateX(0);
+        }
+        10.1%, 12.4% {
+            color: hsl(var(--accent));
+            transform: translateX(4px);
+        }
+        12.5% {
+             color: hsl(var(--muted-foreground) / 0.3);
+            transform: translateX(0);
         }
     }
 }

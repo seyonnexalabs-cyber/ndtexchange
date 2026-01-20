@@ -10,12 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from "react";
-// New imports
+import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -316,6 +313,26 @@ export default function SubscriptionsPage() {
         const link = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         return { link, text, variant };
     };
+    
+    const bulkMailSummary = useMemo(() => {
+        if (!isBulkMailOpen) return null;
+
+        const summary = {
+            'Trialing': { count: 0, template: 'Trial Ending Reminder' },
+            'Past Due': { count: 0, template: 'Past Due Notice' },
+            'Payment Failed': { count: 0, template: 'Payment Failed Notice' },
+            'Canceled': { count: 0, template: 'Canceled Subscription Win-back' },
+        };
+
+        selectedSubscriptions.forEach(subId => {
+            const sub = subscriptions.find(s => s.id === subId);
+            if (sub && sub.status in summary) {
+                summary[sub.status as keyof typeof summary].count++;
+            }
+        });
+
+        return summary;
+    }, [isBulkMailOpen, selectedSubscriptions]);
 
     const handleBulkEmailSend = () => {
         if (selectedSubscriptions.length === 0) {
@@ -327,8 +344,8 @@ export default function SubscriptionsPage() {
             return;
         }
         toast({
-            title: "Bulk Email Sent",
-            description: `Emails have been queued for ${selectedSubscriptions.length} selected subscription(s).`
+            title: "Mail Merge Initiated",
+            description: `A mail merge has been initiated for ${selectedSubscriptions.length} companies.`
         });
         setBulkMailOpen(false);
         setSelectedSubscriptions([]);
@@ -382,31 +399,34 @@ export default function SubscriptionsPage() {
                 </TabsContent>
             </Tabs>
             
-            <Dialog open={isBulkMailOpen} onOpenChange={setBulkMailOpen}>
+             <Dialog open={isBulkMailOpen} onOpenChange={setBulkMailOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Send Bulk Email</DialogTitle>
+                        <DialogTitle>Confirm Mail Merge</DialogTitle>
                         <DialogDescription>
-                            Select a template to send to the {selectedSubscriptions.length} selected companies. The template will be customized for each recipient.
+                            You are about to send status-specific emails to {selectedSubscriptions.length} selected companies. Please review the summary below.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
-                        <Label htmlFor="template-select">Email Template</Label>
-                        <Select>
-                            <SelectTrigger id="template-select">
-                                <SelectValue placeholder="Select a template..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="trial-ending">Trial Ending Reminder</SelectItem>
-                                <SelectItem value="past-due">Past Due Notice</SelectItem>
-                                <SelectItem value="payment-failed">Payment Failed Notice</SelectItem>
-                                <SelectItem value="win-back">Canceled Subscription Win-back</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <h4 className="font-semibold">Email Breakdown:</h4>
+                        {bulkMailSummary && Object.entries(bulkMailSummary).map(([status, data]) => {
+                            if (data.count === 0) return null;
+                            return (
+                                <div key={status} className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">{data.template}:</span>
+                                    <span className="font-medium">{data.count} companies</span>
+                                </div>
+                            )
+                        })}
+                         {bulkMailSummary && Object.values(bulkMailSummary).every(v => v.count === 0) && (
+                            <p className="text-sm text-muted-foreground text-center">
+                                No companies selected with a status that has a bulk email template.
+                            </p>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setBulkMailOpen(false)}>Cancel</Button>
-                        <Button onClick={handleBulkEmailSend}>Send Emails</Button>
+                        <Button onClick={handleBulkEmailSend} disabled={bulkMailSummary && Object.values(bulkMailSummary).every(v => v.count === 0)}>Confirm & Send</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

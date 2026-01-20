@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -10,6 +11,9 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarMenuBadge,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -31,12 +35,20 @@ import {
   Star,
   PlusCircle,
   LifeBuoy,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+
 
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
@@ -62,7 +74,7 @@ const allMenuItems = [
   { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
   
   // Admin / Auditor Specific
-  { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin', 'auditor'] },
+  { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin'] },
 
   // Inspector
   { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
@@ -80,7 +92,16 @@ const allMenuItems = [
   { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
   
   // Auditor
-  { id: 'compliance', href: '/dashboard/compliance', label: 'Compliance', icon: Eye, roles: ['auditor'] },
+  {
+    id: 'auditing',
+    label: 'Auditing',
+    icon: Eye,
+    roles: ['auditor'],
+    children: [
+      { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList, roles: ['auditor'] },
+      { id: 'compliance-reports', href: '/dashboard/compliance', label: 'Compliance', icon: FileText, roles: ['auditor'] },
+    ]
+  },
 ];
 
 const AppSidebar = () => {
@@ -116,7 +137,7 @@ const AppSidebar = () => {
         // Admin
         'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 
         // Auditor
-        'Compliance',
+        'Auditing',
         // Common across multiple roles
         'Reports', 'Calendar',
         // Common last items
@@ -145,16 +166,18 @@ const AppSidebar = () => {
   const activeItem = useMemo(() => {
     if (!pathname || !menuItems.length) return null;
 
+    const allItems = menuItems.flatMap(item => item.children ? [item, ...item.children] : [item]);
+
     if (pathname === '/dashboard') {
-        return menuItems.find(item => item.href === '/dashboard');
+        return allItems.find(item => item.href === '/dashboard');
     }
     
-    const matchingItems = menuItems.filter(
+    const matchingItems = allItems.filter(
       (item) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
     );
 
     if (matchingItems.length === 0) {
-      return menuItems.find(item => item.href === pathname);
+      return allItems.find(item => item.href === pathname);
     }
     if (matchingItems.length === 1) return matchingItems[0];
     
@@ -189,7 +212,46 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((item) => (
+          {menuItems.map((item) => {
+            const hasChildren = item.children && item.children.length > 0;
+            if (hasChildren) {
+              const isChildActive = item.children!.some(child => child.id === activeItem?.id);
+              return (
+                <Collapsible key={item.id} asChild>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={isChildActive}
+                        tooltip={{ children: item.label }}
+                        className="w-full group"
+                      >
+                         <div className="flex items-center gap-2">
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </div>
+                        <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.children!.map((child) => (
+                          <SidebarMenuSubItem key={child.id}>
+                            <SidebarMenuSubButton asChild isActive={child.id === activeItem?.id}>
+                              <Link href={child.href ? constructUrl(child.href) : '#'}>
+                                <child.icon />
+                                <span>{child.label}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            }
+
+            return (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton
                   asChild
@@ -203,8 +265,8 @@ const AppSidebar = () => {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            )
-          )}
+            );
+          })}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border">

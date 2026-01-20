@@ -1,4 +1,5 @@
 
+
 import { serviceProviders } from './service-providers-data';
 
 export type Asset = {
@@ -139,6 +140,17 @@ export type Payment = {
   amount: number;
   date: string;
   status: 'Succeeded' | 'Failed';
+};
+
+export type JobPayment = {
+    id: string;
+    jobId: string;
+    jobTitle: string;
+    amount: number;
+    client: string;
+    provider: string;
+    paidOn: string;
+    status: 'Paid' | 'Pending';
 };
 
 
@@ -333,11 +345,19 @@ export const payments: Payment[] = [
   { id: 'PAY-007', subscriptionId: 'SUB-003', companyName: 'MISTRAS Group', amount: 299, date: '2024-06-01', status: 'Succeeded' },
 ];
 
+export const jobPayments: JobPayment[] = [
+    { id: 'JP-001', jobId: 'JOB-003', jobTitle: 'Annual UT Thickness Survey', amount: 15000, client: 'Marine Tankers Ltd.', provider: 'MISTRAS Group', paidOn: '2024-06-30', status: 'Paid' },
+    { id: 'JP-002', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', amount: 4800, client: 'Global Energy Corp.', provider: 'TEAM, Inc.', paidOn: '2024-07-05', status: 'Paid' },
+    { id: 'JP-003', jobId: 'JOB-007', jobTitle: 'Eddy Current on Heat Exchanger Tubes', amount: 15000, client: 'Chemical Plant C', provider: 'MISTRAS Group', paidOn: '2024-07-12', status: 'Pending' },
+    { id: 'JP-004', jobId: 'JOB-008', jobTitle: 'Emergency Repair Verification', amount: 6500, client: 'Global Energy Corp.', provider: 'TEAM, Inc.', paidOn: '2024-07-15', status: 'Pending' },
+];
+
 
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };
 
     
+
 
 
 

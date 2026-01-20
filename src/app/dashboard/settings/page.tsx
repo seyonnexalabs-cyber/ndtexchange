@@ -414,7 +414,7 @@ const SubscriptionSettings = () => {
 
                 <div className="text-sm text-muted-foreground">
                     <p>
-                        Your 30-day free trial gives you full access to all platform features. After the trial period ends, you will be prompted to choose a paid plan to continue using the service. You can add a payment method at any time.
+                        Your 30-day free trial gives you full access to all platform features. Your subscription covers platform hosting, while data storage is a key component of our usage-based pricing. After the trial period ends, you will be prompted to choose a paid plan to continue using the service.
                     </p>
                 </div>
             </CardContent>

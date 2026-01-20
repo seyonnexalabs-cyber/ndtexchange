@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -21,6 +20,9 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
 
 const userDetails = {
@@ -341,7 +343,9 @@ const SubscriptionSettings = () => {
 
     useEffect(() => {
         // Use a fixed start date for consistent demonstration
-        const trialStartDate = new Date('2024-07-01');
+        const trialStartDate = new Date();
+        trialStartDate.setDate(trialStartDate.getDate() - 25); // Set to 25 days ago to show the alert
+        
         const endDate = new Date(trialStartDate);
         endDate.setDate(endDate.getDate() + 30);
         
@@ -369,6 +373,16 @@ const SubscriptionSettings = () => {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+                 {trialDetails.daysRemaining < 10 && (
+                    <Alert className="border-amber-500/50 text-amber-900 bg-amber-500/10 [&>svg]:text-amber-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Your free trial is ending soon!</AlertTitle>
+                        <AlertDescription>
+                            You have {trialDetails.daysRemaining} days left. Please contact us to upgrade to a paid plan and avoid any interruption in service.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 <div className="rounded-lg border p-4 space-y-4">
                     <div className="flex justify-between items-center">
                         <div>
@@ -414,12 +428,17 @@ const SubscriptionSettings = () => {
 
                 <div className="text-sm text-muted-foreground">
                     <p>
-                        Your 30-day free trial gives you full access to all platform features. Your subscription covers platform hosting, while data storage is a key component of our usage-based pricing. After the trial period ends, you will be prompted to choose a paid plan to continue using the service.
+                        Your 30-day free trial gives you full access to all platform features. After the trial period ends, you will need to upgrade to a paid plan. Your subscription covers platform hosting costs, while data storage and user count are key components of our usage-based pricing.
+                    </p>
+                     <p className="mt-2 font-semibold">
+                       Note: NDT Exchange does not process payments directly through the platform. Our team will work with you to handle invoicing and payment.
                     </p>
                 </div>
             </CardContent>
             <CardFooter className="gap-2">
-                <Button>Manage Subscription</Button>
+                 <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                    <Link href="/contact">Upgrade to a Paid Plan</Link>
+                </Button>
                 <Button variant="outline">View Billing History</Button>
             </CardFooter>
         </Card>

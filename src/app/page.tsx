@@ -297,7 +297,7 @@ export default function Home() {
 function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass }: { icon: React.ReactNode, title: string, description: string, isHighlighted?: boolean, iconContainerClass?: string, cardClass?:string }) {
   return (
     <Card className={cn(
-        "text-center transition-all border-2 border-transparent hover:shadow-lg hover:-translate-y-1",
+        "text-center transition-all hover:shadow-lg hover:-translate-y-1",
         isHighlighted && "border-accent bg-accent/5",
         cardClass,
     )}>

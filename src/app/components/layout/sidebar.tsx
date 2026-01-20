@@ -36,6 +36,7 @@ import {
   PlusCircle,
   LifeBuoy,
   ChevronRight,
+  DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -90,6 +91,7 @@ const allMenuItems = [
   { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star, roles: ['admin'] },
   { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
   { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: DollarSign, roles: ['admin'] },
   
   // Auditor
   { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList, roles: ['auditor'] },
@@ -126,7 +128,7 @@ const AppSidebar = () => {
         // Inspector
         'Find Jobs', 'My Bids', 'Technicians', 'Equipment', 
         // Admin
-        'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 
+        'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 'Subscriptions', 
         // Auditor
         'Audit Queue',
         // Common across multiple roles
@@ -157,7 +159,7 @@ const AppSidebar = () => {
   const activeItem = useMemo(() => {
     if (!pathname || !menuItems.length) return null;
 
-    const allItems = menuItems.flatMap(item => item.children ? [item, ...item.children] : [item]);
+    const allItems = menuItems.flatMap(item => (item as any).children ? [(item as any), ...(item as any).children] : [item]);
 
     if (pathname === '/dashboard') {
         return allItems.find(item => item.href === '/dashboard');
@@ -203,10 +205,10 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((item) => {
+          {menuItems.map((item: any) => {
             const hasChildren = item.children && item.children.length > 0;
             if (hasChildren) {
-              const isChildActive = item.children!.some(child => child.id === activeItem?.id);
+              const isChildActive = item.children!.some((child: any) => child.id === activeItem?.id);
               return (
                 <Collapsible key={item.id} asChild>
                   <SidebarMenuItem>
@@ -225,7 +227,7 @@ const AppSidebar = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.children!.map((child) => (
+                        {item.children!.map((child: any) => (
                           <SidebarMenuSubItem key={child.id}>
                             <SidebarMenuSubButton asChild isActive={child.id === activeItem?.id}>
                               <Link href={child.href ? constructUrl(child.href) : '#'}>

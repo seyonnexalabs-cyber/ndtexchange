@@ -120,6 +120,18 @@ export type PlatformUser = {
     status: 'Active' | 'Invited' | 'Disabled';
 };
 
+export type Subscription = {
+  id: string;
+  companyId: string;
+  companyName: string;
+  plan: 'Free Trial' | 'Client' | 'Provider' | 'Enterprise';
+  status: 'Active' | 'Trialing' | 'Past Due' | 'Canceled';
+  startDate: string;
+  endDate?: string;
+  userCount: number;
+  dataUsageGB: number; // in GB
+};
+
 
 export const clientAssets: Asset[] = [
     { id: 'ASSET-001', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15' },
@@ -292,10 +304,20 @@ export const allUsers: PlatformUser[] = [
      { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Applus+', status: 'Disabled' },
 ];
 
+export const subscriptions: Subscription[] = [
+    { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Enterprise', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2 },
+    { id: 'SUB-002', companyId: 'client-02', companyName: 'Marine Tankers Ltd.', plan: 'Client', status: 'Trialing', startDate: '2024-07-05', endDate: '2024-08-04', userCount: 5, dataUsageGB: 2.1 },
+    { id: 'SUB-003', companyId: 'provider-01', companyName: 'MISTRAS Group', plan: 'Provider', status: 'Active', startDate: '2024-03-20', userCount: 50, dataUsageGB: 45.8 },
+    { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Provider', status: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5 },
+    { id: 'SUB-005', companyId: 'client-03', companyName: 'Energy Transfer', plan: 'Client', status: 'Canceled', startDate: '2024-02-01', endDate: '2024-05-01', userCount: 10, dataUsageGB: 8.7 },
+    { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Provider', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1 },
+];
+
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };
 
     
+
 
 
 

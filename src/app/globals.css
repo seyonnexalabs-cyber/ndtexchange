@@ -142,6 +142,28 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 174 63% 45%;
   }
+
+  @keyframes highlight-stage {
+    0%, 12.5%, 100% {
+      transform: scale(1);
+      border-color: hsl(var(--border));
+    }
+    2.5%, 10% {
+      transform: scale(1.05);
+      border-color: hsl(var(--accent));
+    }
+  }
+
+  @keyframes highlight-icon {
+    0%, 12.5%, 100% {
+      background-color: hsl(var(--primary) / 0.1);
+      color: hsl(var(--primary));
+    }
+    2.5%, 10% {
+      background-color: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
+    }
+  }
 }
 
 @layer base {
@@ -150,5 +172,17 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .stage-card {
+    animation: highlight-stage 14s infinite;
+  }
+  .icon-container {
+    animation: highlight-icon 14s infinite;
+  }
+  .animated-light-pulse {
+    filter: drop-shadow(0 0 4px hsl(var(--accent)));
   }
 }

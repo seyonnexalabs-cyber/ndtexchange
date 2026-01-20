@@ -74,7 +74,7 @@ export default function Home() {
               <FeatureCard
                 icon={<ShieldCheck className="w-8 h-8 text-accent" />}
                 title="Secure Workflows & Compliance"
-                description="Manage the entire inspection process, from scheduling to digital reporting, with role-based access and audit logs to ensure compliance."
+                description="Our secure viewer prevents downloads and screenshots, while role-based access and audit logs ensure total compliance."
                 isHighlighted={true}
               />
             </div>
@@ -118,7 +118,7 @@ export default function Home() {
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Easily post job requests to a marketplace of vetted NDT professionals.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Review bids, compare provider qualifications, and award jobs with confidence.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Centralize all your asset data, inspection reports, and compliance documentation.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Centralize documents in a secure digital vault that prevents unauthorized downloads or screenshots.</span></li>
                                 </ul>
                             </CardContent>
                         </Card>
@@ -150,7 +150,7 @@ export default function Home() {
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Secure, read-only access to review job data and final inspection reports.</span></li>
+                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Review job data and reports in a secure, read-only environment that prevents data leakage.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Track the entire inspection process from job posting to final report approval.</span></li>
                                     <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span>Verify technician certifications and equipment calibration records for full compliance.</span></li>
                                 </ul>

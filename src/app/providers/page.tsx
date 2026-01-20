@@ -162,6 +162,12 @@ export default function ProvidersPage() {
                                 </div>
                             )}
                         </div>
+                        <div className="mt-16 text-center text-sm text-muted-foreground max-w-4xl mx-auto p-4 border rounded-lg bg-card">
+                            <p className="font-semibold">Disclaimer</p>
+                            <p className="mt-2">
+                                The service providers listed in this directory are for informational purposes only. NDT Exchange does not endorse or recommend any specific provider. Users are encouraged to perform their own due diligence before engaging with any service provider. All company names and logos are the property of their respective owners.
+                            </p>
+                        </div>
                     </div>
                 </section>
             </main>

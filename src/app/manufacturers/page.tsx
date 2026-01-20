@@ -235,6 +235,12 @@ export default function ManufacturersPage() {
                         )
                     })}
                 </div>
+                 <div className="mt-16 text-center text-sm text-muted-foreground max-w-4xl mx-auto p-4 border rounded-lg bg-card">
+                    <p className="font-semibold">Disclaimer</p>
+                    <p className="mt-2">
+                        The manufacturers and links listed on this page are provided for informational purposes only. NDT Exchange is an independent platform and is not affiliated with, endorsed by, or sponsored by any of the companies listed. All company names, logos, and trademarks are the property of their respective owners.
+                    </p>
+                </div>
             </div>
         </section>
 

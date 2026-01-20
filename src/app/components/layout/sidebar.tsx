@@ -37,6 +37,7 @@ import {
   LifeBuoy,
   ChevronRight,
   DollarSign,
+  History,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -95,6 +96,7 @@ const allMenuItems = [
   
   // Auditor
   { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList, roles: ['auditor'] },
+  { id: 'audit-history', href: '/dashboard/audit-history', label: 'Audit History', icon: History, roles: ['auditor'] },
 ];
 
 const AppSidebar = () => {
@@ -130,7 +132,7 @@ const AppSidebar = () => {
         // Admin
         'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 'Subscriptions', 
         // Auditor
-        'Audit Queue',
+        'Audit Queue', 'Audit History',
         // Common across multiple roles
         'Reports', 'Calendar',
         // Common last items

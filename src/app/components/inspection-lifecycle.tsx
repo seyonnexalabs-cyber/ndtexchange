@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FilePlus2, Gavel, Award, Search, FileText, ShieldCheck, CheckCircle, ChevronRight } from 'lucide-react';
+import { FilePlus2, Gavel, Award, Search, FileText, ShieldCheck, CheckCircle, ChevronRight, UserCheck } from 'lucide-react';
 
 const lifecycleStages = [
     { icon: FilePlus2, title: '1. Post Job' },
@@ -9,8 +9,9 @@ const lifecycleStages = [
     { icon: Award, title: '3. Award Job' },
     { icon: Search, title: '4. Inspect' },
     { icon: FileText, title: '5. Report' },
-    { icon: ShieldCheck, title: '6. Review' },
-    { icon: CheckCircle, title: '7. Complete' },
+    { icon: ShieldCheck, title: '6. Audit' },
+    { icon: UserCheck, title: '7. Review' },
+    { icon: CheckCircle, title: '8. Complete' },
 ];
 
 const InspectionLifecycleAnimation = () => {

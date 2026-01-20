@@ -155,8 +155,8 @@
 
 @layer components {
     .lifecycle-container {
-        --stage-count: 7;
-        --animation-duration: 8s;
+        --stage-count: 8;
+        --animation-duration: 10s;
     }
 
     /* This is the key part for activating the colors */
@@ -178,6 +178,7 @@
     .lifecycle-item:nth-child(5) { animation-delay: calc(var(--animation-duration) * 4 / var(--stage-count)); }
     .lifecycle-item:nth-child(6) { animation-delay: calc(var(--animation-duration) * 5 / var(--stage-count)); }
     .lifecycle-item:nth-child(7) { animation-delay: calc(var(--animation-duration) * 6 / var(--stage-count)); }
+    .lifecycle-item:nth-child(8) { animation-delay: calc(var(--animation-duration) * 7 / var(--stage-count)); }
 
     @keyframes icon-wrapper-active {
         0%, 100% {
@@ -185,12 +186,12 @@
             background-color: hsl(var(--card));
             transform: scale(1);
         }
-        5%, 20% {
+        5%, 15% {
             border-color: hsl(var(--primary));
             background-color: hsl(var(--primary) / 0.1);
             transform: scale(1.1);
         }
-        25% {
+        20% {
             border-color: hsl(var(--border));
             background-color: hsl(var(--card));
             transform: scale(1);
@@ -201,10 +202,10 @@
         0%, 100% {
             color: hsl(var(--muted-foreground));
         }
-        5%, 20% {
+        5%, 15% {
             color: hsl(var(--primary));
         }
-        25% {
+        20% {
             color: hsl(var(--muted-foreground));
         }
     }

@@ -12,9 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, FileText, User, Calendar, HardHat, Building, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronLeft, FileText, User, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Scheduled': 'secondary',
@@ -27,16 +28,19 @@ export default function InspectionDetailPage() {
     const { id } = params;
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const [viewerDocName, setViewerDocName] = React.useState<string | null>(null);
+    const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
     const inspection = useMemo(() => inspections.find(i => i.id === id), [id]);
     const job = useMemo(() => jobs.find(j => j.assetIds?.includes(inspection?.assetId ?? '')), [inspection]);
     const provider = useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
 
-    const inspectionDocs = [
-        { name: 'calibration_record.pdf' },
-        { name: 'technician_certs.pdf' }
-    ];
+    const allDocuments: ViewerDocument[] = React.useMemo(() => {
+        const docs: ViewerDocument[] = [];
+        docs.push({ name: `Inspection_Report_${inspection?.id}.pdf`, source: 'Provider (Main Report)' });
+        docs.push({ name: 'calibration_record.pdf', source: 'Provider' });
+        docs.push({ name: 'technician_certs.pdf', source: 'Provider' });
+        return docs;
+    }, [inspection]);
 
     if (!inspection || !job) {
         notFound();
@@ -89,28 +93,23 @@ export default function InspectionDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                           <div className="relative aspect-video bg-muted/50 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
-                                <FileText className="w-24 h-24 text-muted-foreground/50" />
-                                <h3 className="text-lg font-bold mt-4">Inspection Report for {inspection.assetName}</h3>
-                                <p className="text-sm text-muted-foreground">The digital report will be displayed here for audit.</p>
-                                <div 
-                                    className="absolute inset-0 bg-transparent"
-                                    onContextMenu={(e) => e.preventDefault()}
-                                    style={{ userSelect: 'none', pointerEvents: 'none' }}
-                                />
-                           </div>
-                           <div className="mt-4 space-y-2">
-                               <h3 className="font-semibold">Attached Documents</h3>
-                               {inspectionDocs.map(doc => (
-                                   <div key={doc.name} className="flex items-center justify-between p-2 border rounded-md">
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-sm font-medium">{doc.name}</span>
+                           <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
+                                    <Button onClick={() => setIsViewerOpen(true)} disabled={allDocuments.length === 0}>
+                                        <Maximize className="mr-2 h-4 w-4" />
+                                        View All Documents
+                                    </Button>
+                                </div>
+                                <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
+                                    {allDocuments.map((doc) => (
+                                        <div key={doc.name} className="flex items-center gap-2 p-2">
+                                            <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                            <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
                                         </div>
-                                        <Button variant="ghost" size="sm" onClick={() => setViewerDocName(doc.name)}>View</Button>
-                                    </div>
-                               ))}
-                           </div>
+                                    ))}
+                                </ScrollArea>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -197,20 +196,13 @@ export default function InspectionDetailPage() {
                     </Card>
                 </div>
             </div>
-            <Dialog open={!!viewerDocName} onOpenChange={(open) => !open && setViewerDocName(null)}>
-                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-                    <DialogHeader>
-                        <DialogTitle>Secure Viewer: {viewerDocName}</DialogTitle>
-                        <DialogDescription>For demonstration purposes. Downloads are disabled.</DialogDescription>
-                    </DialogHeader>
-                    <div className="flex-grow bg-muted/50 rounded-lg flex flex-col items-center justify-center p-8 text-center">
-                        <FileText className="w-24 h-24 text-muted-foreground/50"/>
-                        <h3 className="text-lg font-bold mt-4">{viewerDocName}</h3>
-                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <UniformDocumentViewer 
+                isOpen={isViewerOpen}
+                onOpenChange={setIsViewerOpen}
+                documents={allDocuments}
+                title={`Documents for Inspection ${inspection.id}`}
+                description="Securely view all reports and documents associated with this inspection."
+            />
         </div>
     );
 }
-    

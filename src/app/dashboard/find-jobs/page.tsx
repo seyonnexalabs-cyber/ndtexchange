@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -9,7 +8,7 @@ import { jobs, NDTTechniques, Job, JobDocument } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info, AlarmClock } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info, AlarmClock, Maximize } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -22,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import UniformDocumentViewer from '@/app/dashboard/components/uniform-document-viewer';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
@@ -36,7 +36,7 @@ export default function FindJobsPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
     const { searchQuery } = useSearch();
-    const [viewerDoc, setViewerDoc] = useState<JobDocument | null>(null);
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -220,15 +220,10 @@ export default function FindJobsPage() {
                              <h3 className="font-semibold text-lg">Job Documents</h3>
                              <div className="space-y-2">
                                 {selectedJob?.documents && selectedJob.documents.length > 0 ? (
-                                    selectedJob.documents.map((doc, index) => (
-                                        <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-sm font-medium">{doc.name}</span>
-                                            </div>
-                                            <Button variant="ghost" size="sm" onClick={() => setViewerDoc(doc)}>View</Button>
-                                        </div>
-                                    ))
+                                    <Button variant="outline" className="w-full" onClick={() => setIsViewerOpen(true)}>
+                                        <Maximize className="mr-2 h-4 w-4" />
+                                        View All Job Documents ({selectedJob.documents.length})
+                                    </Button>
                                 ) : (
                                     <p className="text-sm text-muted-foreground text-center py-4">No documents were attached to this job.</p>
                                 )}
@@ -332,19 +327,16 @@ export default function FindJobsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
-            <Dialog open={!!viewerDoc} onOpenChange={(open) => !open && setViewerDoc(null)}>
-                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-                    <DialogHeader>
-                        <DialogTitle>Secure Viewer: {viewerDoc?.name}</DialogTitle>
-                        <DialogDescription>For demonstration purposes. Downloads are disabled.</DialogDescription>
-                    </DialogHeader>
-                    <div className="flex-grow bg-muted/50 rounded-lg flex flex-col items-center justify-center p-8 text-center">
-                        <FileText className="w-24 h-24 text-muted-foreground/50"/>
-                        <h3 className="text-lg font-bold mt-4">{viewerDoc?.name}</h3>
-                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            
+            {selectedJob && (
+                 <UniformDocumentViewer 
+                    isOpen={isViewerOpen}
+                    onOpenChange={setIsViewerOpen}
+                    documents={selectedJob.documents?.map(d => ({...d, source: 'Client'})) || []}
+                    title={`Documents for ${selectedJob.title}`}
+                    description="Securely view all documents associated with this job."
+                />
+            )}
         </div>
     );
 }

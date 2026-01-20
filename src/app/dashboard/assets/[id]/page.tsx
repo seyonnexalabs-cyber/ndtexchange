@@ -9,14 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft } from "lucide-react";
+import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const assetIcons = {
@@ -32,12 +33,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
-    const [viewerDoc, setViewerDoc] = React.useState<{name: string, icon: React.ElementType} | null>(null);
+    const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
-    const assetDocs = [
-        { name: 'P&ID-101.pdf', icon: FileText },
-        { name: 'installation_photo.jpg', icon: ImageIcon },
-        { name: 'fabrication_cert.pdf', icon: Paperclip },
+    const assetDocs: ViewerDocument[] = [
+        { name: 'P&ID-101.pdf', source: 'Asset Documentation'},
+        { name: 'installation_photo.jpg', source: 'Asset Documentation' },
+        { name: 'fabrication_cert.pdf', source: 'Asset Documentation' },
     ];
 
     if (!asset) {
@@ -150,17 +151,28 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                     <CardTitle>Documents</CardTitle>
                                     <CardDescription>Drawings, photos, certificates, and sketches associated with this asset.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid gap-4">
-                                   {assetDocs.map((doc, index) => (
-                                     <div key={index} className="flex items-center justify-between p-3 border rounded-md">
-                                         <div className="flex items-center gap-3">
-                                             <doc.icon className="w-5 h-5 text-muted-foreground" />
-                                             <span className="font-medium">{doc.name}</span>
-                                         </div>
-                                         <Button variant="ghost" size="sm" onClick={() => setViewerDoc(doc)}>View</Button>
-                                     </div>
-                                   ))}
-                                   <Button className="mt-2 w-full" variant="outline">Upload Document</Button>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-semibold">Available Documents ({assetDocs.length})</h3>
+                                            <Button onClick={() => setIsViewerOpen(true)} disabled={assetDocs.length === 0}>
+                                                <Maximize className="mr-2 h-4 w-4" />
+                                                View All Documents
+                                            </Button>
+                                        </div>
+                                        <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
+                                            {assetDocs.map((doc) => (
+                                                <div key={doc.name} className="flex items-center gap-2 p-2">
+                                                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                    <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
+                                                </div>
+                                            ))}
+                                             {assetDocs.length === 0 && (
+                                                <div className="text-center text-muted-foreground py-4">No documents found.</div>
+                                            )}
+                                        </ScrollArea>
+                                    </div>
+                                    <Button className="mt-4 w-full" variant="outline">Upload Document</Button>
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -219,19 +231,13 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     </Card>
                 </div>
             </div>
-             <Dialog open={!!viewerDoc} onOpenChange={(open) => !open && setViewerDoc(null)}>
-                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-                    <DialogHeader>
-                        <DialogTitle>Secure Viewer: {viewerDoc?.name}</DialogTitle>
-                        <DialogDescription>For demonstration purposes. Downloads are disabled.</DialogDescription>
-                    </DialogHeader>
-                    <div className="flex-grow bg-muted/50 rounded-lg flex flex-col items-center justify-center p-8 text-center">
-                        {viewerDoc && <viewerDoc.icon className="w-24 h-24 text-muted-foreground/50"/>}
-                        <h3 className="text-lg font-bold mt-4">{viewerDoc?.name}</h3>
-                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <UniformDocumentViewer 
+                isOpen={isViewerOpen}
+                onOpenChange={setIsViewerOpen}
+                documents={assetDocs}
+                title={`Documents for ${asset.name}`}
+                description="Securely view all documents associated with this asset."
+            />
         </div>
     );
 }

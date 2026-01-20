@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -23,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import DocumentViewer from '../components/document-viewer';
+import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobHistory from '../components/job-history';
@@ -241,6 +240,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
     const [tempSelectedTechs, setTempSelectedTechs] = useState<string[]>([]);
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
+
+    const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     
     // Re-initialize state if id changes
     useEffect(() => {
@@ -250,6 +251,24 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             setJobBids(JSON.parse(JSON.stringify(bids.filter(b => b.jobId === id))));
         }
     }, [id]);
+
+    const allDocuments: ViewerDocument[] = React.useMemo(() => {
+        if (!jobDetails) return [];
+        const docs: ViewerDocument[] = [];
+        jobDetails.documents?.forEach(doc => {
+            docs.push({ ...doc, source: 'Client' });
+        });
+
+        if (['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status)) {
+            docs.push({ name: `Inspection_Report_${jobDetails.id}.pdf`, source: 'Provider' });
+        }
+        
+        if ((jobDetails.status === 'Audit Approved' || jobDetails.status === 'Under Audit') && (jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto')) {
+             docs.push({ name: `Audit_Findings_${jobDetails.id}.pdf`, source: 'Auditor' });
+        }
+        return docs;
+    }, [jobDetails]);
+
 
     if (!jobDetails) {
         notFound();
@@ -489,7 +508,30 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             <CardDescription>View all documents and reports associated with this job.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DocumentViewer job={jobDetails} />
+                            {allDocuments.length === 0 ? (
+                                <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
+                                    <FileUp className="w-16 h-16 text-muted-foreground/70" />
+                                    <p className="mt-4 text-sm font-medium text-muted-foreground">No documents have been uploaded for this job yet.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
+                                        <Button onClick={() => setIsViewerOpen(true)}>
+                                            <Maximize className="mr-2 h-4 w-4" />
+                                            View All Documents
+                                        </Button>
+                                    </div>
+                                    <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
+                                        {allDocuments.map((doc) => (
+                                            <div key={doc.name} className="flex items-center gap-2 p-2">
+                                                <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
+                                            </div>
+                                        ))}
+                                    </ScrollArea>
+                                </div>
+                            )}
                             
                             {isClient && (
                                 <>
@@ -691,6 +733,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </DialogContent>
             </Dialog>
 
+            <UniformDocumentViewer 
+                isOpen={isViewerOpen}
+                onOpenChange={setIsViewerOpen}
+                documents={allDocuments}
+                title={`Documents for ${jobDetails.title}`}
+                description="Securely view all documents associated with this job."
+            />
         </div>
     );
 }

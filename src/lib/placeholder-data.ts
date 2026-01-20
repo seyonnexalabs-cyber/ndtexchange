@@ -125,7 +125,7 @@ export type Subscription = {
   companyId: string;
   companyName: string;
   plan: 'Free Trial' | 'Client' | 'Provider' | 'Enterprise';
-  status: 'Active' | 'Trialing' | 'Past Due' | 'Canceled';
+  status: 'Active' | 'Trialing' | 'Past Due' | 'Canceled' | 'Payment Failed';
   startDate: string;
   endDate?: string;
   userCount: number;
@@ -311,12 +311,14 @@ export const subscriptions: Subscription[] = [
     { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Provider', status: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5 },
     { id: 'SUB-005', companyId: 'client-03', companyName: 'Energy Transfer', plan: 'Client', status: 'Canceled', startDate: '2024-02-01', endDate: '2024-05-01', userCount: 10, dataUsageGB: 8.7 },
     { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Provider', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1 },
+    { id: 'SUB-007', companyId: 'client-04', companyName: 'State DOT', plan: 'Client', status: 'Payment Failed', startDate: '2024-04-15', userCount: 8, dataUsageGB: 12.3 },
 ];
 
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };
 
     
+
 
 
 

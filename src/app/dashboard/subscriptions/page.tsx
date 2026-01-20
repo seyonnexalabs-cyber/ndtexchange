@@ -14,6 +14,7 @@ const statusStyles: { [key in Subscription['status']]: 'success' | 'default' | '
     Trialing: 'default',
     'Past Due': 'destructive',
     Canceled: 'outline',
+    'Payment Failed': 'destructive',
 };
 
 const planUserLimits = {

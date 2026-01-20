@@ -1,8 +1,7 @@
-
 'use client';
 
 import React from 'react';
-import { FilePlus2, Gavel, Award, Search, FileText, ShieldCheck, CheckCircle, ChevronRight, UserCheck, PersonStanding } from 'lucide-react';
+import { FilePlus2, Gavel, Award, Search, FileText, ShieldCheck, CheckCircle, ChevronRight, UserCheck } from 'lucide-react';
 
 const lifecycleStages = [
     { icon: FilePlus2, title: '1. Post Job' },
@@ -17,10 +16,7 @@ const lifecycleStages = [
 
 const InspectionLifecycleAnimation = () => {
     return (
-        <div className="relative pt-12">
-            <div className="progress-pulse-container">
-                <div className="progress-pulse"></div>
-            </div>
+        <div>
             <div className="w-full overflow-x-auto px-4 pb-4">
                 <div className="flex items-center justify-center flex-wrap md:flex-nowrap gap-y-4 lifecycle-container">
 

@@ -99,70 +99,6 @@ export default function Home() {
                 <div className="mt-12">
                     <UserActivityDiagram />
                 </div>
-
-                <div className="mt-20">
-                    <div className="text-center mb-12">
-                        <h3 className="text-3xl font-headline font-semibold text-primary">
-                            Built for Every Role in Asset Integrity
-                        </h3>
-                        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                            Our platform creates a transparent and efficient ecosystem for every stakeholder.
-                        </p>
-                    </div>
-                    <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                        <Card className="p-2">
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-accent/10 p-4 rounded-full w-fit">
-                                        <Building className="w-8 h-8 text-accent" />
-                                    </div>
-                                    <CardTitle className="text-2xl font-headline">For Asset Owners</CardTitle>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Protect Intellectual Property:</strong> Centralize all asset data, reports, and documentation in a secure-by-design vault that prevents data leakage and unauthorized screenshots.</span></li>
-                                </ul>
-                            </CardContent>
-                        </Card>
-                        <Card className="p-2">
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                   <div className="bg-accent/10 p-4 rounded-full w-fit">
-                                        <UserCheck className="w-8 h-8 text-accent" />
-                                    </div>
-                                    <CardTitle className="text-2xl font-headline">For NDT Providers</CardTitle>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Grow Your Business:</strong> Access a steady stream of inspection jobs from qualified asset owners looking for your specific expertise and certifications.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Optimize Your Operations:</strong> Manage your team, equipment, and certifications all in one place, reducing administrative overhead and improving efficiency.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Deliver Excellence:</strong> Use professional digital reporting tools to provide high-quality, consistent deliverables that impress clients.</span></li>
-                                </ul>
-                            </CardContent>
-                        </Card>
-                         <Card className="p-2">
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                   <div className="bg-accent/10 p-4 rounded-full w-fit">
-                                        <Globe className="w-8 h-8 text-accent" />
-                                    </div>
-                                    <CardTitle className="text-2xl font-headline">For Auditors & Regulators</CardTitle>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality and safety.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final approval.</span></li>
-                                    <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance, data integrity, and preventing screenshots.</span></li>
-                                </ul>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -297,7 +233,7 @@ export default function Home() {
 function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass }: { icon: React.ReactNode, title: string, description: string, isHighlighted?: boolean, iconContainerClass?: string, cardClass?:string }) {
   return (
     <Card className={cn(
-        "text-center transition-all hover:shadow-lg hover:-translate-y-1",
+        "text-center transition-all hover:shadow-lg hover:-translate-y-1 border",
         isHighlighted && "border-accent bg-accent/5",
         cardClass,
     )}>

@@ -1,21 +1,29 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { subscriptions, Subscription, clientData } from "@/lib/placeholder-data";
+import { subscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, Database, MoreVertical, Mail } from "lucide-react";
+import { DollarSign, Users, Database, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from "react";
 
-const statusStyles: { [key in Subscription['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
+const subscriptionStatusStyles: { [key in Subscription['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Active: 'success',
     Trialing: 'default',
     'Past Due': 'destructive',
     Canceled: 'outline',
     'Payment Failed': 'destructive',
+};
+
+const paymentStatusStyles: { [key in Payment['status']]: 'success' | 'destructive' } = {
+    Succeeded: 'success',
+    Failed: 'destructive',
 };
 
 const planUserLimits = {
@@ -37,7 +45,7 @@ const getContactEmailForSubscription = (subscription: Subscription) => {
     return client?.contactEmail || '';
 };
 
-const DesktopView = () => (
+const SubscriptionsDesktopView = () => (
     <Card>
         <Table>
             <TableHeader>
@@ -56,12 +64,13 @@ const DesktopView = () => (
                     const userLimit = planUserLimits[sub.plan];
                     const storageLimit = planStorageLimits[sub.plan];
                     const contactEmail = getContactEmailForSubscription(sub);
+                    const showContactButton = (sub.status === 'Payment Failed' || sub.status === 'Past Due') && contactEmail;
 
                     return (
                         <TableRow key={sub.id}>
                             <TableCell className="font-medium">{sub.companyName}</TableCell>
                             <TableCell>{sub.plan}</TableCell>
-                            <TableCell><Badge variant={statusStyles[sub.status]}>{sub.status}</Badge></TableCell>
+                            <TableCell><Badge variant={subscriptionStatusStyles[sub.status]}>{sub.status}</Badge></TableCell>
                             <TableCell>{sub.startDate}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
@@ -76,9 +85,9 @@ const DesktopView = () => (
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
-                                {sub.status === 'Payment Failed' && contactEmail ? (
+                                {showContactButton ? (
                                     <Button asChild variant="destructive">
-                                        <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment Failed for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that the recent subscription payment for your NDT Exchange account has failed. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
+                                        <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that your NDT Exchange subscription payment is currently ${sub.status.toLowerCase()}. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
                                             <Mail className="mr-2 h-4 w-4" />
                                             Contact User
                                         </Link>
@@ -95,19 +104,20 @@ const DesktopView = () => (
     </Card>
 );
 
-const MobileView = () => (
+const SubscriptionsMobileView = () => (
     <div className="space-y-4">
         {subscriptions.map(sub => {
             const userLimit = planUserLimits[sub.plan];
             const storageLimit = planStorageLimits[sub.plan];
             const contactEmail = getContactEmailForSubscription(sub);
+            const showContactButton = (sub.status === 'Payment Failed' || sub.status === 'Past Due') && contactEmail;
 
             return (
                 <Card key={sub.id}>
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <CardTitle>{sub.companyName}</CardTitle>
-                            <Badge variant={statusStyles[sub.status]}>{sub.status}</Badge>
+                            <Badge variant={subscriptionStatusStyles[sub.status]}>{sub.status}</Badge>
                         </div>
                         <CardDescription>{sub.plan} Plan - Started: {sub.startDate}</CardDescription>
                     </CardHeader>
@@ -128,9 +138,9 @@ const MobileView = () => (
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
-                         {sub.status === 'Payment Failed' && contactEmail ? (
+                         {showContactButton ? (
                             <Button asChild variant="destructive" size="sm">
-                                <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment Failed for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that the recent subscription payment for your NDT Exchange account has failed. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
+                                <Link href={`mailto:${contactEmail}?subject=Action Required: Subscription Payment for NDT Exchange&body=Dear ${sub.companyName} team,%0D%0A%0D%0AOur records indicate that your NDT Exchange subscription payment is currently ${sub.status.toLowerCase()}. To avoid any service interruption, please contact us to resolve this issue.%0D%0A%0D%0AThank you,%0D%0AThe NDT Exchange Team`}>
                                     <Mail className="mr-2 h-4 w-4" />
                                     Contact User
                                 </Link>
@@ -145,9 +155,55 @@ const MobileView = () => (
     </div>
 );
 
+const PaymentHistoryDesktopView = () => (
+    <Card>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Payment Date</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Subscription ID</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {payments.map(payment => (
+                    <TableRow key={payment.id}>
+                        <TableCell>{payment.date}</TableCell>
+                        <TableCell className="font-medium">{payment.companyName}</TableCell>
+                        <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                        <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
+                        <TableCell className="font-mono text-xs">{payment.subscriptionId}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    </Card>
+);
+
+const PaymentHistoryMobileView = () => (
+    <div className="space-y-4">
+        {payments.map(payment => (
+            <Card key={payment.id}>
+                <CardHeader>
+                    <div className="flex justify-between items-start">
+                        <CardTitle>{payment.companyName}</CardTitle>
+                        <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
+                    </div>
+                    <CardDescription>Payment on {payment.date}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>
+                </CardContent>
+            </Card>
+        ))}
+    </div>
+);
 
 export default function SubscriptionsPage() {
     const isMobile = useIsMobile();
+    const [activeTab, setActiveTab] = useState("subscriptions");
 
     return (
         <div>
@@ -156,10 +212,21 @@ export default function SubscriptionsPage() {
                     <DollarSign/>
                     Subscription Management
                 </h1>
-                <Button>Create Subscription</Button>
+                {activeTab === 'subscriptions' && <Button>Create Subscription</Button>}
             </div>
             
-            {isMobile ? <MobileView /> : <DesktopView />}
+            <Tabs defaultValue="subscriptions" onValueChange={setActiveTab} className="w-full">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+                    <TabsTrigger value="payment-history">Payment History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="subscriptions">
+                     {isMobile ? <SubscriptionsMobileView /> : <SubscriptionsDesktopView />}
+                </TabsContent>
+                <TabsContent value="payment-history">
+                    {isMobile ? <PaymentHistoryMobileView /> : <PaymentHistoryDesktopView />}
+                </TabsContent>
+            </Tabs>
 
         </div>
     );

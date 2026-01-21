@@ -65,7 +65,7 @@ export type Inspection = {
 };
 
 export type EquipmentHistory = {
-    event: 'Created' | 'Updated' | 'Checked Out' | 'Checked In' | 'Set to Available' | 'Set to Calibration Due' | 'Set to Out of Service';
+    event: 'Created' | 'Updated' | 'Checked Out' | 'Checked In' | 'Set to Available' | 'Set to Calibration Due' | 'Set to Out of Service' | 'Checked Out for Service';
     timestamp: string;
     user: string;
     notes?: string;
@@ -75,7 +75,7 @@ export type InspectorAsset = {
     id: string;
     name: string;
     type: string;
-    status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service';
+    status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service' | 'Under Service';
     nextCalibration: string;
     history?: EquipmentHistory[];
 };
@@ -412,6 +412,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

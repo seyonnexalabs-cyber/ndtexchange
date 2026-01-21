@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -8,18 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as allEquipment, InspectorAsset } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' } = {
+const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
     'Available': 'success',
     'In Use': 'default',
     'Calibration Due': 'destructive',
-    'Out of Service': 'outline'
+    'Out of Service': 'outline',
+    'Under Service': 'secondary'
 };
 
 const historyEventIcons = {
@@ -30,6 +32,7 @@ const historyEventIcons = {
     'Set to Available': <Info className="h-4 w-4" />,
     'Set to Calibration Due': <Info className="h-4 w-4" />,
     'Set to Out of Service': <Info className="h-4 w-4" />,
+    'Checked Out for Service': <Send className="h-4 w-4" />,
 }
 
 

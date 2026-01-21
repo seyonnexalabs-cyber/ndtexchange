@@ -522,13 +522,11 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChe
                                 <DropdownMenuContent align="end">
                                      {asset.status === 'Available' ? (
                                         <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger onSelect={(e) => e.preventDefault()}><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
+                                            <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
+                                            <DropdownMenuSubContent>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
+                                            </DropdownMenuSubContent>
                                         </DropdownMenuSub>
                                     ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
@@ -580,13 +578,11 @@ const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChec
                         <DropdownMenuContent align="end">
                              {asset.status === 'Available' ? (
                                 <DropdownMenuSub>
-                                    <DropdownMenuSubTrigger onSelect={(e) => e.preventDefault()}><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
-                                    <DropdownMenuPortal>
-                                        <DropdownMenuSubContent>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
-                                        </DropdownMenuSubContent>
-                                    </DropdownMenuPortal>
+                                    <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
+                                    <DropdownMenuSubContent>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
+                                    </DropdownMenuSubContent>
                                 </DropdownMenuSub>
                             ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
@@ -937,4 +933,3 @@ export default function EquipmentPage() {
         </div>
     );
 }
-

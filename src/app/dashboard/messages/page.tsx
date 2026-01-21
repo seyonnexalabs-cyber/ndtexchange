@@ -1,6 +1,6 @@
 'use client';
 
-import { jobs, Job, JobMessage, allUsers, PlatformUser } from '@/lib/placeholder-data';
+import { jobs as initialJobs, Job, JobMessage, allUsers, PlatformUser } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -21,7 +21,7 @@ export default function MessagesPage() {
     const role = searchParams.get('role') || 'client';
     
     // Using state to manage jobs data to allow for in-memory message updates
-    const [jobsData, setJobsData] = useState(jobs);
+    const [jobsData, setJobsData] = useState(initialJobs);
 
     const currentUser = useMemo(() => {
         const userMap: { [key: string]: PlatformUser | undefined } = {
@@ -125,7 +125,7 @@ export default function MessagesPage() {
                                     key={job.id}
                                     onClick={() => setSelectedJob(job)}
                                     className={cn(
-                                        "block w-full text-left p-2 rounded-lg border transition-colors",
+                                        "block w-full text-left p-3 rounded-lg border transition-colors",
                                         isSelected ? "bg-primary/10" : "hover:bg-primary/5"
                                     )}
                                 >
@@ -134,7 +134,7 @@ export default function MessagesPage() {
                                         {role === 'client' ? provider?.name : job.client}
                                     </p>
                                     <p className="text-xs text-muted-foreground truncate mt-1">
-                                        {isMyMessage(lastMessage) ? 'You' : lastMessage.user}: {lastMessage.message}
+                                        <span className="font-medium">{isMyMessage(lastMessage) ? 'You' : lastMessage.user.split(' ')[0]}:</span> {lastMessage.message}
                                     </p>
                                 </button>
                             )
@@ -162,11 +162,11 @@ export default function MessagesPage() {
                             </Button>
                             <div className="w-full">
                                 <p className="font-semibold">{selectedJob.title}</p>
-                                <p className="text-sm text-muted-foreground">
+                                <div className="text-sm text-muted-foreground">
                                     {selectedJob.client}
                                     {selectedJob.providerId && ` - ${serviceProviders.find(p => p.id === selectedJob.providerId)?.name}`}
                                     <Badge variant="outline" className="ml-2">{selectedJob.technique}</Badge>
-                                </p>
+                                </div>
                             </div>
                         </div>
 
@@ -182,7 +182,7 @@ export default function MessagesPage() {
                                                     <AvatarFallback>{getAvatarFallback(message.user)}</AvatarFallback>
                                                 </Avatar>
                                             )}
-                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
+                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-accent/10 border' )}>
                                                 <p className="text-sm">{message.message}</p>
                                                 <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}

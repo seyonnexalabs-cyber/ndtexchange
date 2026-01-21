@@ -13,9 +13,11 @@ import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 
 type UserType = 'client' | 'inspector' | 'auditor';
+type InspectorPlan = 'operations' | 'marketplace';
 
 export default function LoginPage() {
   const [userType, setUserType] = useState<UserType>('client');
+  const [inspectorPlan, setInspectorPlan] = useState<InspectorPlan>('marketplace');
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -33,7 +35,12 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (agreedToTerms) {
-      router.push(`/dashboard?role=${userType}`);
+      const params = new URLSearchParams();
+      params.set('role', userType);
+      if (userType === 'inspector') {
+        params.set('plan', inspectorPlan);
+      }
+      router.push(`/dashboard?${params.toString()}`);
     }
   };
 
@@ -111,6 +118,35 @@ export default function LoginPage() {
                     </div>
                 </RadioGroup>
                 </div>
+                 {userType === 'inspector' && (
+                    <div className="space-y-2 pt-2 animate-in fade-in-0 duration-300">
+                        <Label>Select Your Plan</Label>
+                        <RadioGroup
+                            defaultValue={inspectorPlan}
+                            className="grid grid-cols-2 gap-2"
+                            onValueChange={(value: InspectorPlan) => setInspectorPlan(value)}
+                        >
+                            <div>
+                                <RadioGroupItem value="operations" id="operations" className="peer sr-only" />
+                                <Label
+                                    htmlFor="operations"
+                                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer"
+                                >
+                                    Operations Only
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="marketplace" id="marketplace" className="peer sr-only" />
+                                <Label
+                                    htmlFor="marketplace"
+                                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer"
+                                >
+                                    Marketplace Access
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                )}
                 <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="m@example.com" required />

@@ -91,8 +91,13 @@ const inspectorMenu = [
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
-      { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel },
-      { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search },
+    ]
+  },
+  {
+    title: 'Marketplace',
+    items: [
+        { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search },
+        { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel },
     ]
   },
   {
@@ -182,6 +187,7 @@ const AppSidebar = () => {
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
+  const planParam = searchParams.get('plan');
 
   useEffect(() => {
     // If there is no role or the role is not a valid one, redirect to login
@@ -199,14 +205,32 @@ const AppSidebar = () => {
 
   const menuItems = useMemo(() => {
     if (!role) return [];
+    
+    let menu;
     switch (role) {
-      case 'client': return clientMenu;
-      case 'inspector': return inspectorMenu;
-      case 'admin': return adminMenu;
-      case 'auditor': return auditorMenu;
-      default: return [];
+      case 'client':
+        menu = clientMenu;
+        break;
+      case 'inspector':
+        if (planParam === 'operations') {
+          // For "Operations Only" plan, filter out the "Marketplace" group
+          menu = inspectorMenu.filter(group => group.title !== 'Marketplace');
+        } else {
+          // For "Marketplace" plan (or default), show all items
+          menu = inspectorMenu;
+        }
+        break;
+      case 'admin':
+        menu = adminMenu;
+        break;
+      case 'auditor':
+        menu = auditorMenu;
+        break;
+      default:
+        menu = [];
     }
-  }, [role]);
+    return menu;
+  }, [role, planParam]);
 
   const activeItem = useMemo(() => {
     if (!pathname || !menuItems.length) return null;

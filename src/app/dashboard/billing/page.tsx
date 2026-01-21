@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 function PricingCard({ plan, price, description, features, isFeatured }: { plan: string; price: string; description: string; features: string[], isFeatured: boolean }) {
+  const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan`;
   return (
     <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
       <CardHeader className="text-center">
@@ -30,7 +31,7 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
       </CardContent>
       <CardFooter>
         <Button asChild className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} variant={isFeatured ? 'default' : 'outline'}>
-          <Link href="/contact">Contact Sales</Link>
+          <Link href={mailtoHref}>Contact Sales</Link>
         </Button>
       </CardFooter>
     </Card>

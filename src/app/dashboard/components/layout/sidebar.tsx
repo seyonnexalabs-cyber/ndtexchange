@@ -80,7 +80,6 @@ const allMenuItems = [
   { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
   { id: 'messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector', 'auditor']},
   { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  { id: 'billing', href: '/dashboard/billing', label: 'Billing', icon: CreditCard, roles: ['client', 'inspector', 'admin', 'auditor'] },
   
   // Admin / Auditor Specific
   { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin'] },
@@ -142,7 +141,7 @@ const AppSidebar = () => {
         // Auditor
         'Audit Queue', 'Audit History',
         // Common across multiple roles
-        'Reports', 'Calendar', 'Messages', 'Payments', 'Billing',
+        'Reports', 'Calendar', 'Messages', 'Payments',
         // Common last items
         'Support',
         'Settings'

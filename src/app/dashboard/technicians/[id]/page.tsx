@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
-import { notFound, useSearchParams, useParams } from "next/navigation";
+import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { technicians, jobs, Technician, Job } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
-import { ChevronLeft, User, Briefcase, Star, HardHat } from "lucide-react";
+import { ChevronLeft, User, Briefcase, Star, HardHat, Edit } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -40,6 +40,7 @@ export default function TechnicianDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
+    const router = useRouter();
     const isMobile = useIsMobile();
     
     const technician = useMemo(() => technicians.find(t => t.id === id), [id]);
@@ -64,6 +65,12 @@ export default function TechnicianDetailPage() {
         const queryString = newParams.toString();
         return queryString ? `${pathname}?${queryString}` : pathname;
     }
+    
+    const handleEditRedirect = () => {
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.set('edit', technician.id);
+        router.push(`/dashboard/technicians?${newParams.toString()}`);
+    }
 
     return (
         <div>
@@ -74,8 +81,9 @@ export default function TechnicianDetailPage() {
                         Back to Technicians
                     </Link>
                 </Button>
-                <Button asChild>
-                    <Link href={constructUrl(`/dashboard/technicians?edit=${technician.id}`)}>Edit Profile</Link>
+                <Button onClick={handleEditRedirect}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
                 </Button>
             </div>
             

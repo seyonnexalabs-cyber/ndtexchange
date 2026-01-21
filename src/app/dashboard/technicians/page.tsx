@@ -249,7 +249,7 @@ export default function TechniciansPage() {
     const router = useRouter();
     const { toast } = useToast();
     
-    const [dialogState, setDialogState] = useState<'closed' | 'add' | 'edit'>('closed');
+    const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
     const [technicianList, setTechnicianList] = useState(initialTechnicians);
 
@@ -260,38 +260,23 @@ export default function TechniciansPage() {
 
     const handleAddClick = () => {
         setEditingTechnician(null);
-        setDialogState('add');
+        setIsFormOpen(true);
     };
 
     const handleEditClick = (technician: Technician) => {
         setEditingTechnician(technician);
-        setDialogState('edit');
+        setIsFormOpen(true);
     };
     
     const closeDialog = () => {
-        setDialogState('closed');
+        setIsFormOpen(false);
         setEditingTechnician(null);
-        // Clean up URL by removing the 'edit' parameter
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete('edit');
-        router.replace(`/dashboard/technicians?${newParams.toString()}`, { scroll: false });
     }
     
-    useEffect(() => {
-        const editId = searchParams.get('edit');
-        if (editId && (!editingTechnician || editingTechnician.id !== editId)) {
-            const technicianToEdit = technicianList.find(t => t.id === editId);
-            if (technicianToEdit) {
-                handleEditClick(technicianToEdit);
-            }
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, technicianList]);
-
     const handleFormSubmit = (values: TechnicianFormValues) => {
-        const isEditing = dialogState === 'edit';
+        const isEditing = !!editingTechnician;
 
-        if (isEditing && editingTechnician) {
+        if (isEditing) {
             setTechnicianList(prev => prev.map(tech => 
                 tech.id === editingTechnician.id ? { ...tech, ...values, certifications: values.certifications as any } : tech
             ));
@@ -329,12 +314,12 @@ export default function TechniciansPage() {
             
             {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} />}
 
-            <Dialog open={dialogState !== 'closed'} onOpenChange={(isOpen) => !isOpen && closeDialog()}>
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{dialogState === 'edit' ? 'Edit Technician' : 'Add New Technician'}</DialogTitle>
+                        <DialogTitle>{editingTechnician ? 'Edit Technician' : 'Add New Technician'}</DialogTitle>
                         <DialogDescription>
-                             {dialogState === 'edit' 
+                             {editingTechnician
                                 ? "Update the technician's details below."
                                 : "Enter the details for the new technician to add them to your roster."
                             }

@@ -82,7 +82,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
                             <Button variant="outline" size="sm" asChild>
-                                <Link href={constructUrl(`/dashboard/find-jobs`)}>View Job</Link>
+                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Job</Link>
                             </Button>
                              {bid.status === 'Submitted' && (
                                 <DropdownMenu>
@@ -193,7 +193,7 @@ export default function MyBidsPage() {
     const myBids = useMemo(() => {
         // This is a client-side simulation. In a real app, you'd fetch this data.
         return bids
-            .filter(bid => bid.providerId === 'inspector-provider')
+            .filter(bid => bid.providerId === 'provider-03')
             .map(bid => ({
                 ...bid,
                 job: jobs.find(job => job.id === bid.jobId),
@@ -396,5 +396,3 @@ export default function MyBidsPage() {
         </div>
     );
 }
-
-    

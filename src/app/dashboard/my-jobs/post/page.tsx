@@ -23,40 +23,52 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import * as React from 'react';
 
-
-const jobSchema = z.object({
+const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   location: z.string().min(2, 'Location is required.'),
   technique: z.enum(['UT', 'PAUT', 'TOFD', 'RT', 'CR', 'DR', 'CT', 'MT', 'PT', 'VT', 'RVI', 'ET', 'ACFM', 'RFT', 'MFL', 'AE', 'LT', 'IR', 'APR', 'GWT']),
   description: z.string().optional(),
-  assets: z.array(z.string()).refine(value => value.some(item => item), {
-    message: "You have to select at least one asset.",
-  }),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
   bidExpiryDate: z.date().optional(),
   scheduledStartDate: z.date().optional(),
   scheduledEndDate: z.date().optional(),
-}).refine(data => {
-    if (data.scheduledStartDate && data.scheduledEndDate) {
-        return data.scheduledEndDate >= data.scheduledStartDate;
-    }
-    return true;
-}, {
-    message: "End date cannot be before start date.",
-    path: ["scheduledEndDate"],
 });
+
 
 export default function PostJobPage() {
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
     const router = useRouter();
     const { toast } = useToast();
 
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
-    }
+    const jobSchema = React.useMemo(() => {
+      let schema = baseSchema;
+      if (role === 'client') {
+        schema = schema.extend({
+          assets: z.array(z.string()).refine(value => value.some(item => item), {
+            message: "You have to select at least one asset.",
+          }),
+        });
+      } else { // inspector
+        schema = schema.extend({
+          clientName: z.string().min(2, "Client Name is required."),
+          assetDescription: z.string().min(10, "Asset Description must be at least 10 characters."),
+        });
+      }
+
+      return schema.refine(data => {
+        if (data.scheduledStartDate && data.scheduledEndDate) {
+            return data.scheduledEndDate >= data.scheduledStartDate;
+        }
+        return true;
+      }, {
+          message: "End date cannot be before start date.",
+          path: ["scheduledEndDate"],
+      });
+    }, [role]);
 
     const form = useForm<z.infer<typeof jobSchema>>({
         resolver: zodResolver(jobSchema),
@@ -66,18 +78,28 @@ export default function PostJobPage() {
             technique: 'UT',
             description: '',
             assets: [],
+            clientName: '',
+            assetDescription: '',
             workflow: 'standard',
         },
     });
 
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+
     function onSubmit(values: z.infer<typeof jobSchema>) {
         console.log('New Job Submitted:', values);
         toast({
-            title: 'Job Posted Successfully',
-            description: `${values.title} is now live on the marketplace.`,
+            title: 'Job Created Successfully',
+            description: `${values.title} is now ready to be managed.`,
         });
         router.push(constructUrl('/dashboard/my-jobs'));
     }
+
+    const isClient = role === 'client';
+    const isInspector = role === 'inspector';
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -85,9 +107,14 @@ export default function PostJobPage() {
                 <div>
                      <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <PlusCircle />
-                        Post a New Job
+                        {isClient ? 'Post a New Job' : 'Create Internal Job'}
                     </h1>
-                    <p className="text-muted-foreground mt-1">Fill out the details to create a new job listing on the marketplace.</p>
+                    <p className="text-muted-foreground mt-1">
+                        {isClient 
+                            ? 'Fill out the details to create a new job listing on the marketplace.'
+                            : 'Create a job for your own records and internal assignments.'
+                        }
+                    </p>
                 </div>
                 <Button asChild variant="outline">
                     <Link href={constructUrl('/dashboard/my-jobs')}>
@@ -115,6 +142,21 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
+                                {isInspector && (
+                                    <FormField
+                                        control={form.control}
+                                        name="clientName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Client Name</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Enter your client's company name" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
                                 <FormField
                                     control={form.control}
                                     name="location"
@@ -150,45 +192,47 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="bidExpiryDate"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                        <FormLabel>Bid Expiry Date</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                                >
-                                                {field.value ? (
-                                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                            <CalendarComponent
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                initialFocus
-                                            />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {isClient && (
+                                  <FormField
+                                      control={form.control}
+                                      name="bidExpiryDate"
+                                      render={({ field }) => (
+                                          <FormItem className="flex flex-col">
+                                          <FormLabel>Bid Expiry Date</FormLabel>
+                                          <Popover>
+                                              <PopoverTrigger asChild>
+                                              <FormControl>
+                                                  <Button
+                                                  variant={"outline"}
+                                                  className={cn(
+                                                      "w-full pl-3 text-left font-normal",
+                                                      !field.value && "text-muted-foreground"
+                                                  )}
+                                                  >
+                                                  {field.value ? (
+                                                      format(field.value, GLOBAL_DATE_FORMAT)
+                                                  ) : (
+                                                      <span>Pick a date</span>
+                                                  )}
+                                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                  </Button>
+                                              </FormControl>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-auto p-0" align="start">
+                                              <CalendarComponent
+                                                  mode="single"
+                                                  selected={field.value}
+                                                  onSelect={field.onChange}
+                                                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                  initialFocus
+                                              />
+                                              </PopoverContent>
+                                          </Popover>
+                                          <FormMessage />
+                                          </FormItem>
+                                      )}
+                                  />
+                                )}
                                 <FormField
                                     control={form.control}
                                     name="scheduledStartDate"
@@ -269,67 +313,85 @@ export default function PostJobPage() {
                                 />
                             </div>
                             
-                            <FormField
-                                control={form.control}
-                                name="assets"
-                                render={() => (
-                                <FormItem>
-                                    <FormLabel>Select Asset(s)</FormLabel>
-                                    <ScrollArea className="h-60 w-full rounded-md border p-4">
-                                        {clientAssets.map((asset, index) => (
-                                        <FormField
-                                            key={asset.id}
-                                            control={form.control}
-                                            name="assets"
-                                            render={({ field }) => {
-                                            const image = PlaceHolderImages.find(p => p.id === `asset${index + 1}`);
-                                            return (
-                                                <FormItem
-                                                key={asset.id}
-                                                className="flex flex-row items-center space-x-3 space-y-0 mb-3"
-                                                >
-                                                <FormControl>
-                                                    <Checkbox
-                                                    checked={field.value?.includes(asset.id)}
-                                                    onCheckedChange={(checked) => {
-                                                        return checked
-                                                        ? field.onChange([...(field.value || []), asset.id])
-                                                        : field.onChange(
-                                                            field.value?.filter(
-                                                                (value) => value !== asset.id
-                                                            )
-                                                            )
-                                                    }}
-                                                    />
-                                                </FormControl>
-                                                <FormLabel className="font-normal flex items-center gap-3 w-full cursor-pointer">
-                                                    {image && (
-                                                        <div className="relative w-16 h-12 rounded-md overflow-hidden shrink-0">
-                                                            <Image
-                                                                src={image.imageUrl}
-                                                                alt={asset.name}
-                                                                fill
-                                                                sizes="64px"
-                                                                className="object-cover"
-                                                                data-ai-hint={image.imageHint}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    <div>
-                                                        <p className="font-semibold leading-tight">{asset.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{asset.location}</p>
-                                                    </div>
-                                                </FormLabel>
-                                                </FormItem>
-                                            )
-                                            }}
-                                        />
-                                        ))}
-                                    </ScrollArea>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
+                            {isClient && (
+                              <FormField
+                                  control={form.control}
+                                  name="assets"
+                                  render={() => (
+                                  <FormItem>
+                                      <FormLabel>Select Asset(s)</FormLabel>
+                                      <ScrollArea className="h-60 w-full rounded-md border p-4">
+                                          {clientAssets.map((asset, index) => (
+                                          <FormField
+                                              key={asset.id}
+                                              control={form.control}
+                                              name="assets"
+                                              render={({ field }) => {
+                                              const image = PlaceHolderImages.find(p => p.id === `asset${index + 1}`);
+                                              return (
+                                                  <FormItem
+                                                  key={asset.id}
+                                                  className="flex flex-row items-center space-x-3 space-y-0 mb-3"
+                                                  >
+                                                  <FormControl>
+                                                      <Checkbox
+                                                      checked={field.value?.includes(asset.id)}
+                                                      onCheckedChange={(checked) => {
+                                                          return checked
+                                                          ? field.onChange([...(field.value || []), asset.id])
+                                                          : field.onChange(
+                                                              field.value?.filter(
+                                                                  (value) => value !== asset.id
+                                                              )
+                                                              )
+                                                      }}
+                                                      />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal flex items-center gap-3 w-full cursor-pointer">
+                                                      {image && (
+                                                          <div className="relative w-16 h-12 rounded-md overflow-hidden shrink-0">
+                                                              <Image
+                                                                  src={image.imageUrl}
+                                                                  alt={asset.name}
+                                                                  fill
+                                                                  sizes="64px"
+                                                                  className="object-cover"
+                                                                  data-ai-hint={image.imageHint}
+                                                              />
+                                                          </div>
+                                                      )}
+                                                      <div>
+                                                          <p className="font-semibold leading-tight">{asset.name}</p>
+                                                          <p className="text-xs text-muted-foreground">{asset.location}</p>
+                                                      </div>
+                                                  </FormLabel>
+                                                  </FormItem>
+                                              )
+                                              }}
+                                          />
+                                          ))}
+                                      </ScrollArea>
+                                      <FormMessage />
+                                  </FormItem>
+                                  )}
+                              />
+                            )}
+
+                            {isInspector && (
+                              <FormField
+                                  control={form.control}
+                                  name="assetDescription"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>Asset Description</FormLabel>
+                                          <FormControl>
+                                              <Textarea placeholder="Describe the asset(s) to be inspected, e.g., '10-inch diameter carbon steel pipe rack, approx. 200 feet long'." {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+                            )}
                             
                             <FormField
                                 control={form.control}
@@ -407,7 +469,7 @@ export default function PostJobPage() {
 
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-                                <Button type="submit">Post Job</Button>
+                                <Button type="submit">{isClient ? 'Post Job' : 'Create Job'}</Button>
                             </div>
                         </form>
                     </Form>

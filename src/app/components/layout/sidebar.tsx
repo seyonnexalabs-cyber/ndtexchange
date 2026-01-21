@@ -91,6 +91,7 @@ const inspectorMenu = [
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Create Job', icon: PlusCircle },
     ]
   },
   {

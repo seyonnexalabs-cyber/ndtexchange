@@ -50,6 +50,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { useMessages } from '@/app/components/layout/messages-provider';
 
 
 const userDetails = {
@@ -74,6 +75,7 @@ const allMenuItems = [
   // Common across roles but handled differently or with different data
   { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
   { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector', 'auditor']},
   { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign, roles: ['client', 'inspector', 'admin', 'auditor'] },
   
   // Admin / Auditor Specific
@@ -104,6 +106,7 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setMessagesOpen } = useMessages();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
@@ -135,7 +138,7 @@ const AppSidebar = () => {
         // Auditor
         'Audit Queue', 'Audit History',
         // Common across multiple roles
-        'Reports', 'Calendar', 'Payments',
+        'Reports', 'Calendar', 'Messages', 'Payments',
         // Common last items
         'Support',
         'Settings'
@@ -245,6 +248,20 @@ const AppSidebar = () => {
                   </SidebarMenuItem>
                 </Collapsible>
               );
+            }
+            
+            if (item.id === 'messages') {
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      onClick={() => setMessagesOpen(true)}
+                      tooltip={{ children: item.label }}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
             }
 
             return (

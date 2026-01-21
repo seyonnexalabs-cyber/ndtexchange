@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 
 const roleStyles: { [key: string]: string } = {
   client: 'bg-role-client text-role-client-foreground',
@@ -27,21 +27,22 @@ export default function MessagesPage() {
     const isMobile = useIsMobile();
     const role = searchParams.get('role') || 'client';
     
-    const conversations = useMemo(() => jobs.filter(job => job.messages && job.messages.length > 0).sort((a,b) => new Date(b.messages![b.messages!.length - 1].timestamp).getTime() - new Date(a.messages![a.messages!.length - 1].timestamp).getTime()), []);
+    const conversations = useMemo(() => supportThreads.sort((a,b) => new Date(b.messages[b.messages.length - 1].timestamp).getTime() - new Date(a.messages[a.messages.length - 1].timestamp).getTime()), []);
     
-    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+    const [selectedThread, setSelectedThread] = useState<SupportThread | null>(null);
 
     useEffect(() => {
         // Set a default selection on desktop view if no job is selected
-        if (!isMobile && !selectedJob && conversations.length > 0) {
-            setSelectedJob(conversations[0]);
+        if (!isMobile && !selectedThread && conversations.length > 0) {
+            setSelectedThread(conversations[0]);
         }
-    }, [isMobile, selectedJob, conversations]);
+    }, [isMobile, selectedThread, conversations]);
 
 
-    const isMyMessage = (message: JobMessage) => {
-        if (!role || !message.role) return false;
-        return message.role.toLowerCase() === role;
+    const isMyMessage = (message: SupportMessage) => {
+        if (!role || !message.userId) return false;
+        // This is a simulation, in a real app you'd check against the current user's ID
+        return !message.isAdmin;
     }
 
     return (
@@ -49,7 +50,7 @@ export default function MessagesPage() {
             {/* Conversation List Column */}
             <div className={cn(
                 "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
-                selectedJob && "hidden md:flex" // Hide on mobile when a chat is selected
+                selectedThread && "hidden md:flex" // Hide on mobile when a chat is selected
             )}>
                  <div className="p-4 border-b">
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
@@ -59,28 +60,28 @@ export default function MessagesPage() {
                  </div>
                 <ScrollArea className="flex-1">
                     <div className="p-2 space-y-1">
-                        {conversations.map(job => {
-                            const lastMessage = job.messages![job.messages!.length - 1];
-                            const isSelected = selectedJob?.id === job.id;
+                        {conversations.map(thread => {
+                            const lastMessage = thread.messages![thread.messages!.length - 1];
+                            const isSelected = selectedThread?.id === thread.id;
                             return (
                                 <button
-                                    key={job.id}
-                                    onClick={() => setSelectedJob(job)}
+                                    key={thread.id}
+                                    onClick={() => setSelectedThread(thread)}
                                     className={cn(
                                         "block w-full text-left p-4 rounded-lg border transition-colors",
-                                        isSelected ? "bg-accent" : "hover:bg-muted"
+                                        isSelected ? "bg-muted" : "hover:bg-muted/50"
                                     )}
                                 >
                                     <div className="flex items-start gap-4">
                                         <Avatar>
-                                            <AvatarFallback>{job.client.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                            <AvatarFallback>{thread.userCompany.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-grow overflow-hidden min-w-0">
                                             <div className="flex justify-between items-baseline">
-                                                <p className="font-semibold text-base truncate">{job.title}</p>
+                                                <p className="font-semibold text-base truncate">{thread.userCompany}</p>
                                                 <p className="text-sm text-muted-foreground shrink-0 ml-2">{format(new Date(lastMessage.timestamp), 'p')}</p>
                                             </div>
-                                            <p className="text-sm text-muted-foreground truncate">{job.client}</p>
+                                            <p className="text-sm text-muted-foreground truncate">{thread.subject}</p>
                                             <p className="text-sm text-muted-foreground truncate mt-1">{isMyMessage(lastMessage) ? 'You' : lastMessage.user}: {lastMessage.message}</p>
                                         </div>
                                     </div>
@@ -99,32 +100,32 @@ export default function MessagesPage() {
             {/* Chat View Column */}
             <div className={cn(
                 "flex-1 flex-col",
-                selectedJob ? "flex" : "hidden md:flex" // Show when selected, or on desktop if nothing is selected
+                selectedThread ? "flex" : "hidden md:flex" // Show when selected, or on desktop if nothing is selected
             )}>
-                {selectedJob ? (
+                {selectedThread ? (
                    <>
                         {/* Chat Header */}
                         <div className="flex items-center gap-3 p-4 border-b">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedJob(null)}>
+                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedThread(null)}>
                                 <ChevronLeft />
                             </Button>
                              <Avatar>
-                                <AvatarFallback>{selectedJob.client.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                <AvatarFallback>{selectedThread.userCompany.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-semibold">{selectedJob.title}</p>
+                                <p className="font-semibold">{selectedThread.userCompany}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    {selectedJob?.client} & {serviceProviders.find(p => p.id === selectedJob?.providerId)?.name || 'Provider'}
+                                    Support Thread
                                 </p>
                             </div>
                         </div>
 
                         {/* Messages */}
-                        <ScrollArea className="flex-1 p-6 bg-muted/20">
+                        <ScrollArea className="flex-1 p-6 bg-muted/50">
                             <div className="space-y-6">
-                                {selectedJob.messages?.map((message, index) => {
+                                {selectedThread.messages?.map((message, index) => {
                                     const myMessage = isMyMessage(message);
-                                    const messageStyle = roleStyles[message.role.toLowerCase()] || 'bg-background border';
+                                    const messageStyle = roleStyles[message.isAdmin ? 'admin' : 'client'] || 'bg-card border';
                                     return (
                                         <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
                                             {!myMessage && (
@@ -153,7 +154,7 @@ export default function MessagesPage() {
                         </div>
                    </>
                 ) : (
-                    <div className="flex-1 hidden md:flex flex-col items-center justify-center text-center p-8">
+                    <div className="flex-1 hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/30">
                         <MessageSquare className="w-16 h-16 text-muted-foreground/50" />
                         <h2 className="mt-4 text-xl font-semibold">Select a conversation</h2>
                         <p className="text-muted-foreground">Choose a conversation from the list to start chatting.</p>

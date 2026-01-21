@@ -173,6 +173,23 @@
   body {
     @apply bg-background text-foreground;
   }
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .printable-area, .printable-area * {
+      visibility: visible;
+    }
+    .printable-area {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .non-printable {
+        display: none;
+    }
+  }
 }
 
 @layer components {

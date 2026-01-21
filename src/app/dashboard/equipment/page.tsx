@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, InspectorAsset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -313,25 +313,37 @@ export default function EquipmentPage() {
 
              <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
                 <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>QR Code for {qrCodeData?.name}</DialogTitle>
-                        <DialogDescription>
-                           Scan this code to quickly access equipment details for ID: {qrCodeData?.id}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex items-center justify-center p-4">
-                        {qrCodeData && (
-                            <Image 
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeData.id)}`}
-                                alt={`QR Code for ${qrCodeData.name}`}
-                                width={200}
-                                height={200}
-                            />
-                        )}
+                    <div className="printable-area">
+                        <DialogHeader>
+                            <DialogTitle>QR Code for {qrCodeData?.name}</DialogTitle>
+                            <DialogDescription>
+                               Scan this code to quickly access equipment details for ID: {qrCodeData?.id}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center justify-center p-6 gap-4">
+                            {qrCodeData && (
+                                <>
+                                    <Image 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCodeData.id)}`}
+                                        alt={`QR Code for ${qrCodeData.name}`}
+                                        width={250}
+                                        height={250}
+                                    />
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{qrCodeData.name}</p>
+                                        <p className="font-mono text-muted-foreground">{qrCodeData.id}</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="non-printable">
                         <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
                             Close
+                        </Button>
+                        <Button type="button" onClick={() => window.print()}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
                         </Button>
                     </DialogFooter>
                 </DialogContent>

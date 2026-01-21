@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
+import { Textarea } from "@/components/ui/textarea";
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -33,6 +34,7 @@ const assetSchema = z.object({
     newLocation: z.string().optional(),
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
     nextInspection: z.date(),
+    notes: z.string().optional(),
     documents: z.any().optional(),
 }).refine(data => {
     if (data.location === '__add_new__') {
@@ -52,6 +54,7 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
             type: 'Tank',
             status: 'Operational',
             nextInspection: new Date(),
+            notes: '',
         }
     });
 
@@ -197,6 +200,19 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                             </PopoverContent>
                         </Popover>
                         <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Notes / Comments (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Add any additional details or comments about the asset..." {...field} />
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -381,6 +397,7 @@ export default function AssetsPage() {
             location: finalLocation,
             status: values.status,
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
+            notes: values.notes,
         };
         
         setCurrentAssets(prevAssets => {

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -335,7 +336,7 @@ const AppSidebar = () => {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border flex flex-col gap-4">
         {planDetails && (
-          <div className="p-3 rounded-lg bg-muted/50 border animate-plan-flash">
+          <div className="p-3 rounded-lg bg-muted/50 border plan-shine-effect">
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>
             {planDetails.expiry !== 'N/A' && (

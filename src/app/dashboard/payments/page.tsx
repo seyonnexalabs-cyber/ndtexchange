@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,7 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobPayments, JobPayment, jobs, Job, serviceProviders } from "@/lib/placeholder-data";
+import { jobPayments, JobPayment, jobs, Job } from "@/lib/placeholder-data";
+import { serviceProviders } from '@/lib/service-providers-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Calendar as CalendarIcon } from "lucide-react";
@@ -270,7 +272,7 @@ const PaymentsPage = () => {
 
         toast({
             title: "Payment Recorded",
-            description: `A payment of $${values.amount.toLocaleString()} for job "${job.title}" has been recorded.`,
+            description: `A payment of $${"\\${values.amount.toLocaleString()}"} for job "${"\\${job.title}"}" has been recorded.`,
         });
         setIsRecordPaymentOpen(false);
         console.log("Recorded Payment: ", values);
@@ -398,5 +400,3 @@ const PaymentsPage = () => {
 };
 
 export default PaymentsPage;
-
-    

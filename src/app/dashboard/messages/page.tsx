@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
@@ -134,7 +134,7 @@ export default function MessagesPage() {
                                                     <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                                 </Avatar>
                                             )}
-                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-accent/20' )}>
+                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background' )}>
                                                 <p className="text-sm">{message.message}</p>
                                                 <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}

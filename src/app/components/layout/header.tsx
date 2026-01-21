@@ -11,7 +11,6 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { useSearch } from './search-provider';
 import { useQRScanner } from './qr-scanner-provider';
-import { useMessages } from './messages-provider';
 
 
 const userDetails = {
@@ -27,7 +26,6 @@ const AppHeader = () => {
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
-    const { setMessagesOpen } = useMessages();
     
     const currentUser = useMemo(() => {
         return userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -73,9 +71,11 @@ const AppHeader = () => {
                     <span className="sr-only">Scan QR Code</span>
                 </Button>
 
-                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMessagesOpen(true)}>
-                    <MessageSquare className="h-5 w-5" />
-                    <span className="sr-only">Messages</span>
+                <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                    <Link href={constructUrl('/dashboard/messages')}>
+                        <MessageSquare className="h-5 w-5" />
+                        <span className="sr-only">Messages</span>
+                    </Link>
                 </Button>
 
                 <Button variant="ghost" size="icon" className="relative h-9 w-9">

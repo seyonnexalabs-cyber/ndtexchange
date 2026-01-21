@@ -40,7 +40,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
-import { useMessages } from '@/app/components/layout/messages-provider';
 
 
 const userDetails = {
@@ -73,7 +72,7 @@ const clientMenu = [
     items: [
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
-      { id: 'messages', label: 'Messages', icon: MessageSquare },
+      { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
   },
@@ -108,7 +107,7 @@ const inspectorMenu = [
     items: [
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
-      { id: 'messages', label: 'Messages', icon: MessageSquare },
+      { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
   },
@@ -162,7 +161,7 @@ const auditorMenu = [
   {
     title: 'Tools',
     items: [
-      { id: 'messages', label: 'Messages', icon: MessageSquare },
+      { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
   },
@@ -180,7 +179,6 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setMessagesOpen } = useMessages();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
@@ -269,20 +267,6 @@ const AppSidebar = () => {
                 {group.title}
               </h3>
               {group.items.map((item: any) => {
-                if (item.id === 'messages') {
-                    return (
-                      <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton
-                          onClick={() => setMessagesOpen(true)}
-                          tooltip={{ children: item.label }}
-                        >
-                          <item.icon />
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                }
-
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton

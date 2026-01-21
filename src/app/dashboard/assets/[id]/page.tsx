@@ -15,7 +15,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -27,6 +27,13 @@ const assetIcons = {
     'Vessel': <TankIcon className="w-8 h-8 text-muted-foreground" />,
     'Weld Joint': <WeldIcon className="w-8 h-8 text-muted-foreground" />,
 };
+
+const DetailItem = ({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) => (
+    <div className={cn("flex flex-col gap-1", className)}>
+        <p className="font-semibold text-muted-foreground">{label}</p>
+        <div className="font-medium text-foreground">{value}</div>
+    </div>
+);
 
 export default function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
@@ -183,7 +190,21 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                     <CardDescription>Full details and specifications for this asset.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-muted-foreground">Detailed specifications will be shown here.</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                                        <DetailItem label="Asset ID" value={asset.id} />
+                                        <DetailItem label="Asset Type" value={asset.type} />
+                                        <DetailItem label="Location" value={asset.location} />
+                                        <DetailItem label="Status" value={<Badge variant={
+                                            asset.status === 'Operational' ? 'success' :
+                                            asset.status === 'Requires Inspection' ? 'destructive' :
+                                            asset.status === 'Under Repair' ? 'secondary' : 'outline'
+                                        }>{asset.status}</Badge>} />
+                                        {asset.manufacturer && <DetailItem label="Manufacturer" value={asset.manufacturer} />}
+                                        {asset.model && <DetailItem label="Model" value={asset.model} />}
+                                        {asset.serialNumber && <DetailItem label="Serial Number" value={asset.serialNumber} />}
+                                        {asset.installationDate && <DetailItem label="Installation Date" value={format(new Date(asset.installationDate), GLOBAL_DATE_FORMAT)} />}
+                                        {asset.notes && <DetailItem label="Notes" value={asset.notes} className="md:col-span-2" />}
+                                    </div>
                                 </CardContent>
                             </Card>
                         </TabsContent>

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 export default function ContactPage() {
   return (
@@ -45,6 +46,7 @@ export default function ContactPage() {
                   "Flexible usage-based pricing",
                 ]}
                 isFeatured={false}
+                theme="client"
               />
               <PricingCard
                 plan="Service Provider"
@@ -59,6 +61,7 @@ export default function ContactPage() {
                   "Priority email & phone support",
                 ]}
                 isFeatured={false}
+                theme="inspector"
               />
               <PricingCard
                 plan="Auditor"
@@ -73,6 +76,7 @@ export default function ContactPage() {
                   "Access managed via Client accounts",
                 ]}
                 isFeatured={false}
+                theme="auditor"
               />
               <PricingCard
                 plan="Enterprise"
@@ -87,6 +91,7 @@ export default function ContactPage() {
                   "24/7/365 Premium Support",
                 ]}
                 isFeatured={true}
+                theme="admin"
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
@@ -159,9 +164,41 @@ export default function ContactPage() {
   );
 }
 
-function PricingCard({ plan, price, description, features, isFeatured }: { plan: string; price: string; description: string; features: string[], isFeatured: boolean }) {
+function PricingCard({ plan, price, description, features, isFeatured, theme }: {
+  plan: string;
+  price: string;
+  description: string;
+  features: string[];
+  isFeatured: boolean;
+  theme: 'client' | 'inspector' | 'auditor' | 'admin';
+}) {
+  const themeStyles: { [key: string]: React.CSSProperties } = {
+    client: {
+      '--primary': '215 50% 48%',
+      '--accent': '174 63% 45%',
+      '--accent-foreground': '0 0% 98%',
+    } as React.CSSProperties,
+    inspector: {
+      '--primary': '225 60% 48%',
+      '--accent': '35 95% 55%',
+      '--accent-foreground': '225 10% 20%',
+    } as React.CSSProperties,
+    auditor: {
+      '--primary': '270 50% 55%',
+      '--accent': '150 70% 65%',
+      '--accent-foreground': '270 15% 25%',
+    } as React.CSSProperties,
+    admin: {
+      '--primary': '0 0% 9%',
+      '--accent': '0 0% 50%',
+      '--accent-foreground': '0 0% 98%',
+    } as React.CSSProperties,
+  };
+
+  const style = themeStyles[theme];
+
   return (
-    <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
+    <Card style={style} className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
         <CardDescription>{description}</CardDescription>

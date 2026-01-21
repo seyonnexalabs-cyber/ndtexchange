@@ -41,6 +41,24 @@
       "description": "Industrial piping inside a cooling tower.",
       "imageUrl": "https://images.unsplash.com/photo-1517436026573-2c3031035252?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb29saW5nJTIwdG93ZXIlMjBwaXBlc3xlbnwwfHx8fDE3MjM2MzMxODF8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cooling tower pipes"
+    },
+    {
+      "id": "asset7",
+      "description": "Condensate storage tank at a power plant.",
+      "imageUrl": "https://images.unsplash.com/photo-1764875471704-95de704ee3a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdG9yYWdlJTIwdGFua3xlbnwwfHx8fDE3NjkwMDIyMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "storage tank"
+    },
+    {
+      "id": "asset8",
+      "description": "Process piping at a chemical facility.",
+      "imageUrl": "https://images.unsplash.com/photo-1634921490820-4f6df705223c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8MTc2ODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chemical plant"
+    },
+    {
+      "id": "asset9",
+      "description": "A large gantry crane at a port.",
+      "imageUrl": "https://images.unsplash.com/photo-1682945941609-1f4581558346?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnYW50cnklMjBjcmFuZXxlbnwwfHx8fDE3NjkwMDIyMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gantry crane"
     }
   ]
 }

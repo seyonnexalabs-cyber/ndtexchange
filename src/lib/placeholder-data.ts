@@ -58,7 +58,7 @@ export type Inspection = {
     jobId: string;
     assetName: string;
     assetId: string;
-    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT';
+    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'ET';
     inspector: string;
     date: string;
     status: 'Scheduled' | 'Completed' | 'Requires Review';
@@ -168,8 +168,11 @@ export const clientAssets: Asset[] = [
     { id: 'ASSET-006', name: 'Cooling Tower Piping', type: 'Piping', location: 'Refinery A', status: 'Operational', nextInspection: '2025-02-20' },
     { id: 'ASSET-002', name: 'Main Steam Piping', type: 'Piping', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-07-20' },
     { id: 'ASSET-003', name: 'Pressure Vessel PV-203', type: 'Vessel', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-01-10' },
-    { id: 'ASSET-004', name: 'Overhead Crane C-01', type: 'Crane', location: 'Under Repair', nextInspection: '2024-08-01' },
+    { id: 'ASSET-004', name: 'Overhead Crane C-01', type: 'Crane', location: 'Refinery A', status: 'Under Repair', nextInspection: '2024-08-01' },
     { id: 'ASSET-005', name: 'Structural Weld SW-05', type: 'Weld Joint', location: 'Bridge E', status: 'Operational', nextInspection: '2024-11-22' },
+    { id: 'ASSET-007', name: 'Condensate Storage Tank', type: 'Tank', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-08-30' },
+    { id: 'ASSET-008', name: 'Process Piping Unit 5', type: 'Piping', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-03-01' },
+    { id: 'ASSET-009', name: 'Gantry Crane G-02', type: 'Crane', location: 'Port Terminal F', status: 'Operational', nextInspection: '2024-12-01' },
 ];
 
 export const inspectorAssets: InspectorAsset[] = [
@@ -227,6 +230,9 @@ export const technicians: Technician[] = [
     { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', providerId: 'provider-01' },
     { id: 'TECH-04', name: 'David Lee', level: 'Level I', certifications: ['MT', 'PT'], status: 'Available', providerId: 'provider-02' },
     { id: 'TECH-05', name: 'Maria Garcia', level: 'Level II', certifications: ['UT', 'RT'], status: 'On Assignment', providerId: 'provider-03' },
+    { id: 'TECH-06', name: 'Frank Miller', level: 'Level II', certifications: ['ET', 'ACFM', 'RFT'], status: 'Available', providerId: 'provider-02' },
+    { id: 'TECH-07', name: 'Samantha Wu', level: 'Level III', certifications: ['VT', 'RVI', 'IR'], status: 'On Assignment', providerId: 'provider-04' },
+    { id: 'TECH-08', name: 'James Wilson', level: 'Level II', certifications: ['UT', 'MT', 'PAUT'], status: 'Available', providerId: 'provider-03' },
 ];
 
 const today = new Date();
@@ -240,6 +246,8 @@ const yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
 const nextWeek = new Date(today);
 nextWeek.setDate(nextWeek.getDate() + 7);
+const nextMonth = new Date(today);
+nextMonth.setMonth(nextMonth.getMonth() + 1);
 
 
 export const jobs: Job[] = [
@@ -310,22 +318,47 @@ export const jobs: Job[] = [
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3' },
     { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'level3' },
     { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { 
+        id: 'JOB-009', 
+        title: 'APR Inspection of Boiler Tubes', 
+        client: 'Chemical Plant C',
+        location: 'Plaquemine, LA', 
+        technique: 'APR', 
+        status: 'Posted', 
+        postedDate: '2024-07-12',
+        bidExpiryDate: nextMonth.toISOString().split('T')[0],
+        assetIds: ['ASSET-008'], 
+        workflow: 'auto',
+        documents: [ { name: 'Boiler_Tube_Diagram.pdf', url: '#' } ],
+        history: [ { user: 'New Client User', timestamp: '2024-07-12 11:00 AM', action: 'Created and posted job.', statusChange: 'Posted' } ]
+    },
+    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'In Progress', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['TECH-07'], assetIds: ['ASSET-009'], workflow: 'standard' },
+    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['TECH-04', 'TECH-06'], assetIds: ['ASSET-007'], workflow: 'standard' },
+    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['TECH-03'], workflow: 'level3' },
 ];
 
 export const bids: Bid[] = [
     { id: 'BID-001', jobId: 'JOB-001', providerId: 'provider-01', amount: 12500, status: 'Submitted', submittedDate: '2024-06-29' },
+    { id: 'BID-001A', jobId: 'JOB-001', providerId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01' },
     { id: 'BID-002', jobId: 'JOB-002', providerId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-26' },
     { id: 'BID-003', jobId: 'JOB-005', providerId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
     { id: 'BID-004', jobId: 'JOB-006', providerId: 'provider-02', amount: 22000, status: 'Rejected', submittedDate: '2024-07-04' },
-    { id: 'BID-005', jobId: 'JOB-007', providerId: 'provider-01', amount: 15000, status: 'Withdrawn', submittedDate: '2024-07-06' },
+    { id: 'BID-004A', jobId: 'JOB-006', providerId: 'provider-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04' },
+    { id: 'BID-005', jobId: 'JOB-007', providerId: 'provider-01', amount: 15000, status: 'Awarded', submittedDate: '2024-07-06' },
+    { id: 'BID-009', jobId: 'JOB-009', providerId: 'provider-05', amount: 9500, status: 'Submitted', submittedDate: '2024-07-13' },
+    { id: 'BID-011', jobId: 'JOB-011', providerId: 'provider-02', amount: 18000, status: 'Awarded', submittedDate: '2024-06-05' },
+    { id: 'BID-012', jobId: 'JOB-012', providerId: 'provider-01', amount: 35000, status: 'Awarded', submittedDate: '2024-05-05' },
 ];
 
 
 export const inspections: Inspection[] = [
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },
-    { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'VT', inspector: 'Pending', date: '2024-07-20', status: 'Scheduled' },
+    { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Carlos Ray', date: '2024-06-21', status: 'Requires Review' },
     { id: 'INSP-004', jobId: 'JOB-007', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'ET', inspector: 'Aisha Khan', date: yesterday.toISOString().split('T')[0], status: 'Requires Review' },
+    { id: 'INSP-005', jobId: 'JOB-010', assetName: 'Gantry Crane G-02', assetId: 'ASSET-009', technique: 'VT', inspector: 'Samantha Wu', date: '2024-07-14', status: 'Completed' },
+    { id: 'INSP-006', jobId: 'JOB-011', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'UT', inspector: 'Frank Miller', date: '2024-06-21', status: 'Completed' },
+    { id: 'INSP-007', jobId: 'JOB-012', assetName: 'Turbine Blades Set 1', assetId: 'N/A', technique: 'RT', inspector: 'Ben Carter', date: '2024-05-25', status: 'Completed' },
 ];
 
 export const NDTTechniques = [
@@ -353,16 +386,21 @@ export const NDTTechniques = [
 
 export const clientData: Client[] = [
     { id: 'client-01', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000 },
-    { id: 'client-02', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 75000 },
+    { id: 'client-02', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
     { id: 'client-03', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
-    { id: 'client-04', name: 'State DOT', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
+    { id: 'client-04', name: 'State Department of Transportation', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
     { id: 'auditor-01', name: 'NDT Auditors LLC', contactPerson: 'Alex Chen', contactEmail: 'alex.c@ndtauditors.gov', activeJobs: 0, totalSpend: 0 },
+    { id: 'client-05', name: 'Chemical Plant C', contactPerson: 'New Client User', contactEmail: 'contact@chemc.com', activeJobs: 2, totalSpend: 24500 },
+    { id: 'client-06', name: 'Power Generation LLC', contactPerson: 'Power Admin', contactEmail: 'admin@powergen.com', activeJobs: 2, totalSpend: 56500 },
+    { id: 'client-07', name: 'Port Authority', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
 ];
 
 export const reviews: Review[] = [
   { id: 'REV-001', jobId: 'JOB-003', providerId: 'provider-03', clientId: 'client-02', rating: 5, comment: 'Excellent and thorough service. The report was detailed and delivered on time.', date: '2024-06-20', status: 'Approved' },
   { id: 'REV-002', jobId: 'JOB-002', providerId: 'provider-03', clientId: 'client-01', rating: 4, comment: 'Good work, but the inspector was a bit late on the first day.', date: '2024-07-01', status: 'Pending' },
   { id: 'REV-003', jobId: 'JOB-004', providerId: 'provider-01', clientId: 'client-03', rating: 5, comment: 'Top-notch professionals. Ben Carter and his team are the best in the business.', date: '2024-07-15', status: 'Approved' },
+  { id: 'REV-004', jobId: 'JOB-011', providerId: 'provider-02', clientId: 'client-02', rating: 4, comment: 'The team was efficient and professional. Found some areas we need to monitor, which was very helpful.', date: '2024-07-01', status: 'Approved' },
+  { id: 'REV-005', jobId: 'JOB-012', providerId: 'provider-01', clientId: 'client-06', rating: 5, comment: 'Extremely high-quality digital radiography work. The clarity of the images was exceptional.', date: '2024-06-10', status: 'Pending' },
 ];
 
 export const allUsers: PlatformUser[] = [
@@ -382,7 +420,9 @@ export const allUsers: PlatformUser[] = [
         };
     }),
      { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited' },
-     { id: 'user-tech-06', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Applus+', status: 'Disabled' },
+     { id: 'user-tech-09', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Applus+', status: 'Disabled' },
+     { id: 'user-client-06', name: 'New Client User', email: 'contact@chemc.com', role: 'Client', company: 'Chemical Plant C', status: 'Active' },
+     { id: 'user-client-07', name: 'Power Admin', email: 'admin@powergen.com', role: 'Client', company: 'Power Generation LLC', status: 'Active' },
 ];
 
 export const subscriptions: Subscription[] = [
@@ -394,6 +434,7 @@ export const subscriptions: Subscription[] = [
     { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Provider', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1 },
     { id: 'SUB-007', companyId: 'client-04', companyName: 'State DOT', plan: 'Client', status: 'Payment Failed', startDate: '2024-04-15', userCount: 8, dataUsageGB: 12.3 },
     { id: 'SUB-008', companyId: 'auditor-01', companyName: 'NDT Auditors LLC', plan: 'Enterprise', status: 'Active', startDate: '2024-01-01', userCount: 2, dataUsageGB: 1.5 },
+    { id: 'SUB-009', companyId: 'client-05', companyName: 'Chemical Plant C', plan: 'Client', status: 'Active', startDate: '2024-07-10', userCount: 3, dataUsageGB: 0.5 },
 ];
 
 export const payments: Payment[] = [
@@ -404,6 +445,7 @@ export const payments: Payment[] = [
   { id: 'PAY-005', subscriptionId: 'SUB-007', companyName: 'State DOT', amount: 99, date: '2024-07-01', status: 'Failed' },
   { id: 'PAY-006', subscriptionId: 'SUB-001', companyName: 'Global Energy Corp.', amount: 499, date: '2024-06-01', status: 'Succeeded' },
   { id: 'PAY-007', subscriptionId: 'SUB-003', companyName: 'MISTRAS Group', amount: 299, date: '2024-06-01', status: 'Succeeded' },
+  { id: 'PAY-008', subscriptionId: 'SUB-009', companyName: 'Chemical Plant C', amount: 99, date: '2024-07-10', status: 'Succeeded' },
 ];
 
 export const jobPayments: JobPayment[] = [
@@ -413,6 +455,9 @@ export const jobPayments: JobPayment[] = [
     { id: 'JP-003', jobId: 'JOB-007', jobTitle: 'Eddy Current on Heat Exchanger Tubes', amount: 15000, payer: 'Chemical Plant C', payee: 'MISTRAS Group', payeeType: 'Provider', paidOn: '2024-07-12', status: 'Pending' },
     { id: 'JP-003A', jobId: 'JOB-007', jobTitle: 'Eddy Current on Heat Exchanger Tubes', amount: 1200, payer: 'Chemical Plant C', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-07-13', status: 'Pending' },
     { id: 'JP-004', jobId: 'JOB-008', jobTitle: 'Emergency Repair Verification', amount: 6500, payer: 'Global Energy Corp.', payee: 'TEAM, Inc.', payeeType: 'Provider', paidOn: '2024-07-15', status: 'Pending' },
+    { id: 'JP-005', jobId: 'JOB-011', jobTitle: 'Tank Floor Corrosion Mapping', amount: 18000, payer: 'Marine Tankers Ltd.', payee: 'Applus+', payeeType: 'Provider', paidOn: '2024-07-02', status: 'Paid' },
+    { id: 'JP-006', jobId: 'JOB-012', jobTitle: 'Advanced RT of Turbine Blades', amount: 35000, payer: 'Power Generation LLC', payee: 'MISTRAS Group', payeeType: 'Provider', paidOn: '2024-06-15', status: 'Paid' },
+    { id: 'JP-006A', jobId: 'JOB-012', jobTitle: 'Advanced RT of Turbine Blades', amount: 2500, payer: 'Power Generation LLC', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-06-16', status: 'Paid' },
 ];
 
 
@@ -420,6 +465,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

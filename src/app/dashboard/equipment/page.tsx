@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -478,7 +478,7 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 
-const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onCheckInClick, onServiceOutClick, constructUrl }: { 
+const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
     equipment: InspectorAsset[], 
     onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
@@ -544,7 +544,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChe
     </Card>
 );
 
-const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onCheckInClick, onServiceOutClick, constructUrl }: { 
+const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
     equipment: InspectorAsset[], 
     onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
@@ -930,5 +930,3 @@ export default function EquipmentPage() {
         </div>
     );
 }
-
-    

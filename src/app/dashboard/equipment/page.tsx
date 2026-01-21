@@ -475,12 +475,10 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChe
                                      {asset.status === 'Available' ? (
                                         <DropdownMenuSub>
                                             <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
+                                            <DropdownMenuSubContent>
+                                                <DropdownMenuItem onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
+                                            </DropdownMenuSubContent>
                                         </DropdownMenuSub>
                                     ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
                                         <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
@@ -533,12 +531,10 @@ const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChec
                              {asset.status === 'Available' ? (
                                 <DropdownMenuSub>
                                     <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
-                                    <DropdownMenuPortal>
-                                        <DropdownMenuSubContent>
-                                            <DropdownMenuItem onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
-                                        </DropdownMenuSubContent>
-                                    </DropdownMenuPortal>
+                                    <DropdownMenuSubContent>
+                                        <DropdownMenuItem onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
+                                    </DropdownMenuSubContent>
                                 </DropdownMenuSub>
                             ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
                                 <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>

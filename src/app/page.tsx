@@ -13,6 +13,14 @@ import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
+  const industryImages = {
+    oilgas: PlaceHolderImages.find(p => p.id === 'industry-oilgas'),
+    powergen: PlaceHolderImages.find(p => p.id === 'industry-powergen'),
+    chemical: PlaceHolderImages.find(p => p.id === 'industry-chemical'),
+    manufacturing: PlaceHolderImages.find(p => p.id === 'industry-manufacturing'),
+    aerospace: PlaceHolderImages.find(p => p.id === 'industry-aerospace'),
+    infrastructure: PlaceHolderImages.find(p => p.id === 'industry-infrastructure'),
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -147,46 +155,46 @@ export default function Home() {
             </div>
             <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               <FeatureCard
-                icon={<Fuel className="w-8 h-8 text-primary" />}
                 title="Oil & Gas"
                 description="Manage pipelines, refineries, and offshore platforms with confidence, ensuring compliance and preventing costly downtime."
                 cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
+                imageUrl={industryImages.oilgas?.imageUrl}
+                imageHint={industryImages.oilgas?.imageHint}
               />
               <FeatureCard
-                icon={<Zap className="w-8 h-8 text-primary" />}
                 title="Power Generation"
                 description="Oversee the integrity of boilers, turbines, and cooling systems in nuclear, fossil fuel, and renewable energy facilities."
                  cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
+                imageUrl={industryImages.powergen?.imageUrl}
+                imageHint={industryImages.powergen?.imageHint}
               />
               <FeatureCard
-                icon={<FlaskConical className="w-8 h-8 text-primary" />}
                 title="Chemical Processing"
                 description="Ensure the safety and reliability of pressure vessels, storage tanks, and complex piping systems in chemical plants."
                  cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
+                imageUrl={industryImages.chemical?.imageUrl}
+                imageHint={industryImages.chemical?.imageHint}
               />
               <FeatureCard
-                icon={<Factory className="w-8 h-8 text-primary" />}
                 title="Manufacturing"
                 description="Maintain the quality and safety of production lines, from raw material processing to final assembly, with thorough NDT."
                  cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
+                imageUrl={industryImages.manufacturing?.imageUrl}
+                imageHint={industryImages.manufacturing?.imageHint}
               />
               <FeatureCard
-                icon={<Plane className="w-8 h-8 text-primary" />}
                 title="Aerospace & Defense"
                 description="Meet the stringent requirements of the aerospace industry by managing inspections for airframes, engines, and components."
                  cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
+                imageUrl={industryImages.aerospace?.imageUrl}
+                imageHint={industryImages.aerospace?.imageHint}
               />
               <FeatureCard
-                icon={<Landmark className="w-8 h-8 text-primary" />}
                 title="Public Infrastructure"
                 description="Ensure the longevity and safety of public assets like bridges, railways, and municipal water systems through regular integrity checks."
                  cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
+                imageUrl={industryImages.infrastructure?.imageUrl}
+                imageHint={industryImages.infrastructure?.imageHint}
               />
             </div>
           </div>
@@ -356,20 +364,42 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass }: { icon: React.ReactNode, title: string, description: string, isHighlighted?: boolean, iconContainerClass?: string, cardClass?:string }) {
+function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass, imageUrl, imageHint }: { 
+    icon?: React.ReactNode, 
+    title: string, 
+    description: string, 
+    isHighlighted?: boolean, 
+    iconContainerClass?: string, 
+    cardClass?:string,
+    imageUrl?: string,
+    imageHint?: string,
+}) {
   return (
     <Card className={cn(
-        "text-center transition-all hover:shadow-lg hover:-translate-y-1 border",
+        "flex flex-col text-center transition-all hover:shadow-lg hover:-translate-y-1 border",
         isHighlighted && "border-accent bg-accent/5",
         cardClass,
     )}>
+        {imageUrl && (
+            <div className="relative h-40 w-full">
+                <Image
+                    src={imageUrl}
+                    alt={title}
+                    fill
+                    className="object-cover rounded-t-lg"
+                    data-ai-hint={imageHint}
+                />
+            </div>
+        )}
       <CardHeader>
-        <div className={cn("mx-auto p-4 rounded-full w-fit", iconContainerClass || 'bg-accent/10')}>
-          {icon}
-        </div>
+        {!imageUrl && icon && (
+             <div className={cn("mx-auto p-4 rounded-full w-fit", iconContainerClass || 'bg-accent/10')}>
+                {icon}
+            </div>
+        )}
         <CardTitle className="mt-4 font-headline">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow">
         <p className="text-muted-foreground">{description}</p>
       </CardContent>
     </Card>

@@ -59,6 +59,42 @@
       "description": "A large gantry crane at a port.",
       "imageUrl": "https://images.unsplash.com/photo-1682945941609-1f4581558346?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnYW50cnklMjBjcmFuZXxlbnwwfHx8fDE3NjkwMDIyMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "gantry crane"
+    },
+    {
+      "id": "industry-oilgas",
+      "description": "An oil refinery at sunset.",
+      "imageUrl": "https://images.unsplash.com/photo-1602056820935-316884c035f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxvaWwlMjByZWZpbmVyeXxlbnwwfHx8fDE3Njg5OTk0MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "oil refinery"
+    },
+    {
+      "id": "industry-powergen",
+      "description": "A power plant with cooling towers.",
+      "imageUrl": "https://images.unsplash.com/photo-1613685877679-57222e9e8170?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwb3dlciUyMHBsYW50fGVufDB8fHx8MTc2ODk3NjczMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "power plant"
+    },
+    {
+      "id": "industry-chemical",
+      "description": "A chemical processing plant with complex piping.",
+      "imageUrl": "https://images.unsplash.com/photo-1560885036-3adb13b6308c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8MTc2ODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chemical plant"
+    },
+    {
+      "id": "industry-manufacturing",
+      "description": "The interior of a modern manufacturing facility.",
+      "imageUrl": "https://images.unsplash.com/photo-1705147217444-b770c692f8e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmYWN0b3J5JTIwaW50ZXJpb3J8ZW58MHx8fHwxNzY4OTYyNzc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "factory interior"
+    },
+    {
+      "id": "industry-aerospace",
+      "description": "A close-up of a jet engine turbine.",
+      "imageUrl": "https://images.unsplash.com/photo-1598621961279-557cec9ba744?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxqZXQlMjBlbmdpbmV8ZW58MHx8fHwxNzY5MDE0ODIwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jet engine"
+    },
+    {
+      "id": "industry-infrastructure",
+      "description": "The structural detail of a large suspension bridge.",
+      "imageUrl": "https://images.unsplash.com/photo-1699539517781-619d3e497752?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxicmlkZ2UlMjBzdHJ1Y3R1cmV8ZW58MHx8fHwxNzY5MDE0ODIwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bridge structure"
     }
   ]
 }

@@ -49,34 +49,34 @@ export default function ContactPage() {
                 theme="client"
               />
               <PricingCard
-                plan="Service Provider"
-                price="Custom"
-                description="For NDT companies providing inspection services."
+                plan="Provider Operations"
+                price="$49"
+                description="Digitize your internal operations and team management."
                 features={[
-                  "Access to exclusive job marketplace",
-                  "Submit competitive digital bids",
-                  "Team & equipment management tools",
-                  "Streamlined digital reporting",
-                  "Direct client communication channels",
-                  "Priority email & phone support",
+                  "Technician Roster Management",
+                  "Equipment Inventory & Calibration Tracking",
+                  "QR Code Generation for Equipment",
+                  "Internal Job & Schedule Management",
+                  "Standard Digital Reporting Tools",
+                  "Email & Community Support",
                 ]}
                 isFeatured={false}
                 theme="inspector"
               />
               <PricingCard
-                plan="Auditor"
-                price="By Invite"
-                description="For independent auditors and regulatory bodies."
+                plan="Provider Marketplace"
+                price="$149"
+                description="Includes Operations, plus full marketplace access."
                 features={[
-                  "Participate in client workflows",
-                  "Secure, read-only document viewer",
-                  "Provide expert Level III review",
-                  "Tamper-proof audit trails",
-                  "Direct communication channels",
-                  "Access managed via Client accounts",
+                  "All Provider Operations features",
+                  "Access to Exclusive Job Marketplace",
+                  "Submit Unlimited Competitive Bids",
+                  "Public Company Profile",
+                  "Direct Client Communication",
+                  "Priority Email & Phone Support",
                 ]}
-                isFeatured={false}
-                theme="auditor"
+                isFeatured={true}
+                theme="inspector"
               />
               <PricingCard
                 plan="Enterprise"
@@ -90,7 +90,7 @@ export default function ContactPage() {
                   "A dedicated Account Manager",
                   "24/7/365 Premium Support",
                 ]}
-                isFeatured={true}
+                isFeatured={false}
                 theme="admin"
               />
             </div>

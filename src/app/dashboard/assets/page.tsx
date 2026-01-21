@@ -398,19 +398,28 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
 
 
 export default function AssetsPage() {
-    const [currentAssets, setCurrentAssets] = useState<Asset[]>(initialClientAssets);
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
+
+    // This would come from a user session/context in a real app
+    // For this demo, we'll map the client role to a specific company ID
+    const currentUserCompanyId = 'client-01'; // 'Global Energy Corp.'
+
+    const [currentAssets, setCurrentAssets] = useState<Asset[]>(() =>
+        initialClientAssets.filter(asset => asset.companyId === currentUserCompanyId)
+    );
+    
     const [isAddAssetOpen, setAddAssetOpen] = useState(false);
     const { setScanOpen } = useQRScanner();
     const { toast } = useToast();
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const role = searchParams.get('role') || 'client';
-
+    
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
         const finalLocation = values.location === '__add_new__' ? values.newLocation! : values.location;
 
         const newAsset: Asset = {
-            id: `ASSET-${String(currentAssets.length + 1).padStart(3, '0')}`,
+            id: `ASSET-${String(initialClientAssets.length + 1).padStart(3, '0')}`,
+            companyId: currentUserCompanyId,
             name: values.name,
             type: values.type,
             location: finalLocation,
@@ -501,5 +510,3 @@ export default function AssetsPage() {
         </div>
     );
 }
-
-    

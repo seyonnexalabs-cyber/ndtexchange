@@ -70,21 +70,21 @@ export default function MessagesPage() {
                                     key={thread.id}
                                     onClick={() => setSelectedThread(thread)}
                                     className={cn(
-                                        "block w-full text-left p-4 rounded-lg border transition-colors",
-                                        isSelected ? "bg-primary/10" : "hover:bg-accent/5"
+                                        "block w-full text-left p-3 rounded-lg border transition-colors",
+                                        isSelected ? "bg-primary/10" : "hover:bg-primary/5"
                                     )}
                                 >
-                                    <div className="flex items-start gap-4">
+                                    <div className="flex items-start gap-3">
                                         <Avatar>
                                             <AvatarFallback>{thread.userCompany.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-grow overflow-hidden min-w-0">
                                             <div className="flex justify-between items-baseline">
-                                                <p className="font-semibold text-base truncate">{thread.userCompany}</p>
-                                                <p className="text-sm text-muted-foreground shrink-0 ml-2">{format(new Date(lastMessage.timestamp), 'p')}</p>
+                                                <p className="font-semibold text-sm truncate">{thread.userCompany}</p>
+                                                <p className="text-xs text-muted-foreground shrink-0 ml-2">{format(new Date(lastMessage.timestamp), 'p')}</p>
                                             </div>
-                                            <p className="text-sm text-muted-foreground truncate">{thread.subject}</p>
-                                            <p className="text-sm text-muted-foreground truncate mt-1">{isMyMessage(lastMessage) ? 'You' : lastMessage.user}: {lastMessage.message}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
+                                            <p className="text-xs text-muted-foreground truncate mt-1">{isMyMessage(lastMessage) ? 'You' : lastMessage.user}: {lastMessage.message}</p>
                                         </div>
                                     </div>
                                 </button>
@@ -123,7 +123,7 @@ export default function MessagesPage() {
                         </div>
 
                         {/* Messages */}
-                        <ScrollArea className="flex-1 p-6 bg-accent/5">
+                         <ScrollArea className="flex-1 p-6 bg-accent/5">
                             <div className="space-y-6">
                                 {selectedThread.messages?.map((message, index) => {
                                     const myMessage = isMyMessage(message);
@@ -134,7 +134,7 @@ export default function MessagesPage() {
                                                     <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                                 </Avatar>
                                             )}
-                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background' )}>
+                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
                                                 <p className="text-sm">{message.message}</p>
                                                 <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}

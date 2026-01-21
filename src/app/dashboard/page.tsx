@@ -12,19 +12,20 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets, jobs, inspections, technicians, clientAssets, inspectorAssets, Job, Inspection } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets, Job, Inspection, allUsers } from "@/lib/placeholder-data";
+import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
 
 // --- Client Dashboard ---
 const clientChartData = [
-  { status: "Operational", key: "operational", count: assets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
-  { status: "Requires Inspection", key: "inspection", count: assets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
-  { status: "Under Repair", key: "repair", count: assets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
+  { status: "Operational", key: "operational", count: clientAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
+  { status: "Requires Inspection", key: "inspection", count: clientAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
+  { status: "Under Repair", key: "repair", count: clientAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
 ];
 
 const clientChartConfig = {
@@ -56,19 +57,25 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'defaul
 };
 
 const ClientDashboard = () => {
-    const [upcomingInspectionsCount, setUpcomingInspectionsCount] = useState(0);
-    const [overdueJobsCount, setOverdueJobsCount] = useState(0);
-    
-    const recentActivities = [...inspections, ...jobs].sort((a,b) => new Date((a as any).date || (a as any).postedDate).getTime() - new Date((b as any).date || (b as any).postedDate).getTime()).reverse().slice(0, 5);
     const isMobile = useIsMobile();
     
-    useEffect(() => {
-        const upcoming = inspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled');
-        setUpcomingInspectionsCount(upcoming.length);
-
-        const overdue = jobs.filter(j => j.scheduledStartDate && new Date(j.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(j.status));
-        setOverdueJobsCount(overdue.length);
-    }, []);
+    // Filter data specifically for the client
+    const clientJobs = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
+    const clientJobIds = useMemo(() => clientJobs.map(j => j.id), [clientJobs]);
+    const clientInspections = useMemo(() => inspections.filter(i => clientJobIds.includes(i.jobId)), [clientJobIds]);
+    
+    // Calculate card metrics directly
+    const totalAssetsCount = clientAssets.length;
+    const activeJobsCount = clientJobs.filter(j => ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Client Review'].includes(j.status)).length;
+    const upcomingInspectionsCount = clientInspections.filter(i => new Date(i.date) > new Date() && i.status === 'Scheduled').length;
+    const overdueJobsCount = clientJobs.filter(j => j.scheduledStartDate && new Date(j.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(j.status)).length;
+    
+    const recentActivities = useMemo(() => 
+        [...clientInspections, ...clientJobs]
+            .sort((a, b) => new Date((b as any).date || (b as any).postedDate).getTime() - new Date((a as any).date || (a as any).postedDate).getTime())
+            .slice(0, 5), 
+        [clientInspections, clientJobs]
+    );
   
     return (
         <div className="grid gap-6">
@@ -79,8 +86,8 @@ const ClientDashboard = () => {
                         <Building className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{assets.length}</div>
-                        <p className="text-xs text-muted-foreground">+2 since last month</p>
+                        <div className="text-2xl font-bold">{totalAssetsCount}</div>
+                        <p className="text-xs text-muted-foreground">Managed by your company</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -89,8 +96,8 @@ const ClientDashboard = () => {
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'In Progress' || j.status === 'Posted').length}</div>
-                        <p className="text-xs text-muted-foreground">+1 open this week</p>
+                        <div className="text-2xl font-bold">{activeJobsCount}</div>
+                        <p className="text-xs text-muted-foreground">Posted or in progress</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -232,11 +239,14 @@ const ClientDashboard = () => {
 
 // --- Inspector Dashboard ---
 const InspectorDashboard = () => {
-    const assignedJobs = jobs.filter(j => j.technicianIds && j.technicianIds.length > 0);
-    const activeJobs = assignedJobs.filter(j => j.status === 'In Progress').length;
-    const upcomingJobs = assignedJobs.filter(j => ['Assigned', 'Scheduled'].includes(j.status));
-    const equipmentCalibrationDue = inspectorAssets.filter(e => e.status === 'Calibration Due');
     const isMobile = useIsMobile();
+    
+    // Filter data specifically for the inspector's company
+    const providerJobs = useMemo(() => jobs.filter(j => j.providerId === 'provider-03'), []);
+    
+    const activeJobs = useMemo(() => providerJobs.filter(j => j.status === 'In Progress').length, [providerJobs]);
+    const upcomingJobs = useMemo(() => providerJobs.filter(j => ['Assigned', 'Scheduled'].includes(j.status)), [providerJobs]);
+    const equipmentCalibrationDue = useMemo(() => inspectorAssets.filter(e => e.status === 'Calibration Due'), []);
 
     return (
         <div className="grid gap-6">
@@ -346,7 +356,7 @@ const AdminDashboard = () => {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{technicians.length + 4 /* clients */}</div>
+                        <div className="text-2xl font-bold">{allUsers.length}</div>
                         <p className="text-xs text-muted-foreground">+5 this month</p>
                     </CardContent>
                 </Card>
@@ -356,7 +366,7 @@ const AdminDashboard = () => {
                         <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
+                        <div className="text-2xl font-bold">{serviceProviders.length}</div>
                         <p className="text-xs text-muted-foreground">+2 new this month</p>
                     </CardContent>
                 </Card>

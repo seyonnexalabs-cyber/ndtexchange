@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -7,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Star } from "lucide-react";
+import { Users, MoreVertical, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useState } from "react";
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const technicianSchema = z.object({
   name: z.string().min(2, "Name is required."),
@@ -32,10 +31,10 @@ const technicianSchema = z.object({
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
 
-const TechnicianForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; }) => {
+const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues> }) => {
     const form = useForm<TechnicianFormValues>({
         resolver: zodResolver(technicianSchema),
-        defaultValues: {
+        defaultValues: defaultValues || {
             name: '',
             level: 'Level I',
             certifications: [],
@@ -103,7 +102,7 @@ const TechnicianForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit
                                         checked={field.value?.includes(item.id)}
                                         onCheckedChange={(checked) => {
                                         return checked
-                                            ? field.onChange([...field.value, item.id])
+                                            ? field.onChange([...(field.value || []), item.id])
                                             : field.onChange(
                                                 field.value?.filter(
                                                 (value) => value !== item.id
@@ -127,14 +126,14 @@ const TechnicianForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit
                 />
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Add Technician</Button>
+                    <Button type="submit">Save Changes</Button>
                 </DialogFooter>
             </form>
         </Form>
     );
 };
 
-const DesktopView = ({ constructUrl, technicians }: { constructUrl: (path: string) => string; technicians: Technician[] }) => (
+const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: Technician[]; onEditClick: (technician: Technician) => void; }) => (
     <Card>
         <CardHeader>
             <CardTitle>Technician Roster</CardTitle>
@@ -170,9 +169,22 @@ const DesktopView = ({ constructUrl, technicians }: { constructUrl: (path: strin
                                 <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                                <Button asChild variant="ghost" size="sm">
-                                    <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem asChild>
+                                            <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onEditClick(tech)}>
+                                            <Edit className="mr-2 h-4 w-4"/>
+                                            Edit
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -182,7 +194,7 @@ const DesktopView = ({ constructUrl, technicians }: { constructUrl: (path: strin
     </Card>
 );
 
-const MobileView = ({ constructUrl, technicians }: { constructUrl: (path: string) => string; technicians: Technician[] }) => (
+const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: Technician[]; onEditClick: (technician: Technician) => void; }) => (
     <div className="space-y-4">
         {technicians.map(tech => (
             <Card key={tech.id}>
@@ -207,9 +219,23 @@ const MobileView = ({ constructUrl, technicians }: { constructUrl: (path: string
                     </div>
                 </CardContent>
                  <CardFooter className="flex justify-end">
-                    <Button asChild variant="ghost" size="sm">
-                        <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                                Options
+                                <MoreVertical className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                                <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEditClick(tech)}>
+                                <Edit className="mr-2 h-4 w-4"/>
+                                Edit
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </CardFooter>
             </Card>
         ))}
@@ -220,32 +246,75 @@ const MobileView = ({ constructUrl, technicians }: { constructUrl: (path: string
 export default function TechniciansPage() {
     const isMobile = useIsMobile();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const { toast } = useToast();
-    const [isAddTechnicianOpen, setAddTechnicianOpen] = useState(false);
+    
+    const [dialogState, setDialogState] = useState<'closed' | 'add' | 'edit'>('closed');
+    const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
     const [technicianList, setTechnicianList] = useState(initialTechnicians);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
+        params.delete('edit'); // Clean up edit param
         return `${base}?${params.toString()}`;
     }
 
+    const handleAddClick = () => {
+        setEditingTechnician(null);
+        setDialogState('add');
+    };
+
+    const handleEditClick = (technician: Technician) => {
+        setEditingTechnician(technician);
+        setDialogState('edit');
+    };
+    
+    const closeDialog = () => {
+        setDialogState('closed');
+        setEditingTechnician(null);
+        // Clean up URL
+        const newUrl = constructUrl('/dashboard/technicians');
+        router.replace(newUrl, { scroll: false });
+    }
+    
+    useEffect(() => {
+        const editId = searchParams.get('edit');
+        if (editId) {
+            const technicianToEdit = technicianList.find(t => t.id === editId);
+            if (technicianToEdit) {
+                handleEditClick(technicianToEdit);
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     const handleFormSubmit = (values: TechnicianFormValues) => {
-        const newTechnician: Technician = {
-            id: `TECH-${String(technicianList.length + 1).padStart(2, '0')}`,
-            name: values.name,
-            level: values.level,
-            certifications: values.certifications as any,
-            status: 'Available',
-            providerId: 'provider-03', // This would be dynamic in a real app
-        };
+        const isEditing = dialogState === 'edit';
 
-        setTechnicianList(prev => [newTechnician, ...prev]);
-
-        toast({
-            title: "Technician Added",
-            description: `${values.name} has been added to your roster.`,
-        });
-        setAddTechnicianOpen(false);
+        if (isEditing && editingTechnician) {
+            setTechnicianList(prev => prev.map(tech => 
+                tech.id === editingTechnician.id ? { ...tech, ...values, certifications: values.certifications as any } : tech
+            ));
+            toast({
+                title: "Technician Updated",
+                description: `${values.name}'s profile has been updated.`,
+            });
+        } else {
+             const newTechnician: Technician = {
+                id: `TECH-${String(technicianList.length + 1).padStart(2, '0')}`,
+                name: values.name,
+                level: values.level,
+                certifications: values.certifications as any,
+                status: 'Available',
+                providerId: 'provider-03', // This would be dynamic in a real app
+            };
+            setTechnicianList(prev => [newTechnician, ...prev]);
+            toast({
+                title: "Technician Added",
+                description: `${values.name} has been added to your roster.`,
+            });
+        }
+        closeDialog();
     };
 
     return (
@@ -255,22 +324,30 @@ export default function TechniciansPage() {
                     <Users/>
                     Technicians
                 </h1>
-                <Button onClick={() => setAddTechnicianOpen(true)}>Add New Technician</Button>
+                <Button onClick={handleAddClick}>Add New Technician</Button>
             </div>
             
-            {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianList} /> : <DesktopView constructUrl={constructUrl} technicians={technicianList} />}
+            {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} />}
 
-            <Dialog open={isAddTechnicianOpen} onOpenChange={setAddTechnicianOpen}>
+            <Dialog open={dialogState !== 'closed'} onOpenChange={(isOpen) => !isOpen && closeDialog()}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Add New Technician</DialogTitle>
+                        <DialogTitle>{dialogState === 'edit' ? 'Edit Technician' : 'Add New Technician'}</DialogTitle>
                         <DialogDescription>
-                            Enter the details for the new technician to add them to your roster.
+                             {dialogState === 'edit' 
+                                ? "Update the technician's details below."
+                                : "Enter the details for the new technician to add them to your roster."
+                            }
                         </DialogDescription>
                     </DialogHeader>
                     <TechnicianForm
                         onSubmit={handleFormSubmit}
-                        onCancel={() => setAddTechnicianOpen(false)}
+                        onCancel={closeDialog}
+                        defaultValues={editingTechnician ? {
+                            name: editingTechnician.name,
+                            level: editingTechnician.level,
+                            certifications: editingTechnician.certifications,
+                        } : undefined}
                     />
                 </DialogContent>
             </Dialog>

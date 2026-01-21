@@ -64,7 +64,9 @@ export default function TechnicianDetailPage() {
                         Back to Technicians
                     </Link>
                 </Button>
-                <Button>Edit Profile</Button>
+                <Button asChild>
+                    <Link href={constructUrl(`/dashboard/technicians?edit=${technician.id}`)}>Edit Profile</Link>
+                </Button>
             </div>
             
             <div className="grid gap-6 lg:grid-cols-3">

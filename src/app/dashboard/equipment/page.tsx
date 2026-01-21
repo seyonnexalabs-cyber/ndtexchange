@@ -600,7 +600,11 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
 
 
 export default function EquipmentPage() {
-    const [equipment, setEquipment] = useState<InspectorAsset[]>(initialEquipment);
+    // In a real app, this would come from a user session.
+    // For this demo, we assume the inspector is from TEAM, Inc. (provider-03)
+    const usersProviderId = 'provider-03';
+    
+    const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId));
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const [dialogState, setDialogState] = useState<'closed' | 'add' | 'edit'>('closed');
     const [editingEquipment, setEditingEquipment] = useState<Partial<InspectorAsset> | undefined>(undefined);
@@ -631,7 +635,7 @@ export default function EquipmentPage() {
         });
     }, [equipment, searchQuery, statusFilter]);
 
-    const jobsForCheckout = useMemo(() => jobs.filter(j => ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), []);
+    const jobsForCheckout = useMemo(() => jobs.filter(j => j.providerId === usersProviderId && ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), [usersProviderId]);
 
     const handleEditClick = (equipment: InspectorAsset) => {
         setTimeout(() => {
@@ -665,6 +669,7 @@ export default function EquipmentPage() {
                 const newEquipment: InspectorAsset = {
                     ...values,
                     id: newId,
+                    providerId: usersProviderId,
                     nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
                     history: [historyEntry],
                 };
@@ -952,6 +957,7 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
 
 
 

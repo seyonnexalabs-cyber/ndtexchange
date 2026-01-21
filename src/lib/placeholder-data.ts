@@ -80,6 +80,7 @@ export type InspectorAsset = {
     id: string;
     name: string;
     type: string;
+    providerId: string;
     status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service' | 'Under Service';
     nextCalibration: string;
     history?: EquipmentHistory[];
@@ -185,6 +186,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'UTM-1000', 
         name: 'Olympus 45MG', 
         type: 'UT Equipment', 
+        providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: '2025-01-05',
         history: [
@@ -197,6 +199,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'PA-Probe-5MHz', 
         name: '5L64-A2 Probe', 
         type: 'PAUT Probe', 
+        providerId: 'provider-03',
         status: 'In Use', 
         nextCalibration: '2024-12-11',
         history: [
@@ -208,6 +211,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'CAL-BLK-01', 
         name: 'IIW Type 1 Block', 
         type: 'Calibration Block', 
+        providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: 'N/A',
         history: [
@@ -218,6 +222,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'YOKE-02', 
         name: 'Parker B-300S', 
         type: 'Yoke', 
+        providerId: 'provider-03',
         status: 'Calibration Due', 
         nextCalibration: '2024-07-30',
         history: [
@@ -470,6 +475,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

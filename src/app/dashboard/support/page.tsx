@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSearchParams } from 'next/navigation';
-import { allUsers, supportThreads, SupportThread, SupportMessage } from '@/lib/placeholder-data';
+import { allUsers, supportThreads, SupportThread, SupportMessage, PlatformUser } from '@/lib/placeholder-data';
 import { format } from 'date-fns';
 
 const supportSchema = z.object({
@@ -48,17 +48,17 @@ export default function SupportPage() {
 
   const handleStartChat = () => {
     if (!currentUser) return;
-    let thread = supportThreads.find(t => t.userId === currentUser.id);
+    let thread = supportThreads.find(t => t.userCompany === currentUser.company);
     if (!thread) {
       thread = {
-        id: `SUPPORT-NEW-${currentUser.id}`,
+        id: `SUPPORT-NEW-${currentUser.company.replace(/\s+/g, '-')}`,
         userId: currentUser.id,
         userName: currentUser.name,
         userCompany: currentUser.company,
         subject: 'General Support',
         status: 'Open',
         messages: [
-            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: new Date().toISOString(), message: `Welcome to NDT Exchange Support, ${currentUser.name}! How can I help you today?` },
+            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: new Date().toISOString(), message: `Welcome to NDT Exchange Support! How can we help the team at ${currentUser.company} today?` },
         ],
       };
     }

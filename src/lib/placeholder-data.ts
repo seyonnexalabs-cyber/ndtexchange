@@ -170,6 +170,54 @@ export type JobPayment = {
 };
 
 
+export type SupportMessage = {
+    user: string;
+    userId: string;
+    isAdmin: boolean;
+    timestamp: string;
+    message: string;
+};
+
+export type SupportThread = {
+    id: string;
+    userId: string;
+    userName: string;
+    userCompany: string;
+    subject: string;
+    status: 'Open' | 'Closed';
+    messages: SupportMessage[];
+};
+
+export const supportThreads: SupportThread[] = [
+    {
+        id: 'SUPPORT-001',
+        userId: 'user-client-01',
+        userName: 'John Doe',
+        userCompany: 'Global Energy Corp.',
+        subject: 'General Support',
+        status: 'Open',
+        messages: [
+            { userId: 'user-client-01', user: 'John Doe', isAdmin: false, timestamp: '2024-07-15T10:00:00Z', message: "Hi, I have a question about billing." },
+            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: '2024-07-15T10:01:00Z', message: "Hello John, I can help with that. What's your question?" },
+            { userId: 'user-client-01', user: 'John Doe', isAdmin: false, timestamp: '2024-07-15T10:02:30Z', message: "I was wondering when the invoice for last month's subscription is due." },
+        ]
+    },
+    {
+        id: 'SUPPORT-002',
+        userId: 'user-tech-05',
+        userName: 'Maria Garcia',
+        userCompany: 'TEAM, Inc.',
+        subject: 'Technical Issue',
+        status: 'Open',
+        messages: [
+            { userId: 'user-tech-05', user: 'Maria Garcia', isAdmin: false, timestamp: '2024-07-16T14:20:00Z', message: "I can't seem to check out the UTM-1000 equipment, it gives me an error." },
+            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: '2024-07-16T14:21:00Z', message: "Hi Maria, I'm looking into this. Can you confirm the status of the equipment on the inventory page?" },
+            { userId: 'user-TECH-01', user: 'Carlos Ray', isAdmin: false, timestamp: '2024-07-16T14:25:00Z', message: "I'm seeing the same issue on my end. It says 'Available' but the checkout fails." }
+        ]
+    }
+];
+
+
 export const clientAssets: Asset[] = [
     { id: 'ASSET-001', companyId: 'client-02', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-A1B2C3D4', installationDate: '2018-05-20' },
     { id: 'ASSET-006', companyId: 'client-01', name: 'Cooling Tower Piping', type: 'Piping', location: 'Refinery A', status: 'Operational', nextInspection: '2025-02-20', manufacturer: 'FlowLine Pipes', serialNumber: 'SN-E5F6G7H8', installationDate: '2019-11-10' },
@@ -471,50 +519,6 @@ export const jobPayments: JobPayment[] = [
     { id: 'JP-006A', jobId: 'JOB-012', jobTitle: 'Advanced RT of Turbine Blades', amount: 2500, payer: 'Power Generation LLC', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-06-16', status: 'Paid' },
 ];
 
-export type SupportMessage = {
-    user: string;
-    userId: string;
-    isAdmin: boolean;
-    timestamp: string;
-    message: string;
-};
-
-export type SupportThread = {
-    id: string;
-    userId: string;
-    userName: string;
-    userCompany: string;
-    subject: string;
-    status: 'Open' | 'Closed';
-    messages: SupportMessage[];
-};
-
-export const supportThreads: SupportThread[] = [
-    {
-        id: 'SUPPORT-001',
-        userId: 'user-client-01',
-        userName: 'John Doe',
-        userCompany: 'Global Energy Corp.',
-        subject: 'General Support',
-        status: 'Open',
-        messages: [
-            { userId: 'user-client-01', user: 'John Doe', isAdmin: false, timestamp: '2024-07-15T10:00:00Z', message: "Hi, I have a question about billing." },
-            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: '2024-07-15T10:01:00Z', message: "Hello John, I can help with that. What's your question?" },
-            { userId: 'user-client-01', user: 'John Doe', isAdmin: false, timestamp: '2024-07-15T10:02:30Z', message: "I was wondering when the invoice for last month's subscription is due." },
-        ]
-    },
-    {
-        id: 'SUPPORT-002',
-        userId: 'user-tech-05',
-        userName: 'Maria Garcia',
-        userCompany: 'TEAM, Inc.',
-        subject: 'Technical Issue',
-        status: 'Open',
-        messages: [
-            { userId: 'user-tech-05', user: 'Maria Garcia', isAdmin: false, timestamp: '2024-07-16T14:20:00Z', message: "I can't seem to check out the UTM-1000 equipment, it gives me an error." },
-        ]
-    }
-];
 
 
 // Rename 'assets' to 'clientAssets' for clarity

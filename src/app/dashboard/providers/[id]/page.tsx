@@ -35,6 +35,7 @@ export default function ProviderDetailPage() {
     const { id } = params;
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
+    const role = searchParams.get('role');
     
     const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
     const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === id), [id]);
@@ -52,12 +53,12 @@ export default function ProviderDetailPage() {
         <div>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl("/dashboard/providers")}>
+                    <Link href={constructUrl(role === 'admin' ? "/dashboard/providers" : "/dashboard/find-providers")}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to Providers
                     </Link>
                 </Button>
-                <Button>Edit Provider</Button>
+                {role === 'admin' && <Button>Edit Provider</Button>}
             </div>
             
             <div className="flex items-center gap-4 mb-6">

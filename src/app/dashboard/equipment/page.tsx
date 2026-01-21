@@ -531,8 +531,8 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
 
                                     <DropdownMenuSeparator />
                                     
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2" /> Edit</DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -585,8 +585,8 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2"/> Edit</DropdownMenuItem>
-                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -641,36 +641,42 @@ export default function EquipmentPage() {
     };
 
     const handleFormSubmit = (values: EquipmentFormValues) => {
-        const historyEntry = {
-            event: dialogState === 'add' ? 'Created' : 'Updated',
-            user: 'Jane Smith', // In a real app, this would be the current user
-            timestamp: new Date().toISOString(),
-            notes: dialogState === 'add' ? 'Item created in inventory.' : 'Item details updated.'
-        };
-
-        if(dialogState === 'add') {
-             toast({
-                title: "Equipment Added",
-                description: `${values.name} has been added to your inventory.`,
-            });
-            const newEquipment: InspectorAsset = {
-                ...values,
-                nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
-                history: [historyEntry],
-            };
-            setEquipment(prev => [newEquipment, ...prev]);
-        } else {
-            toast({
-                title: "Equipment Updated",
-                description: `${values.name} has been successfully updated.`,
-            });
-            setEquipment(prev => prev.map(eq => eq.id === values.id ? {
-                ...values,
-                 nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
-                 history: [historyEntry, ...(eq.history || [])],
-            } : eq));
-        }
+        const isAdding = dialogState === 'add';
+        
+        // Close the dialog immediately
         setDialogState('closed');
+
+        // Defer the state updates and toast
+        setTimeout(() => {
+            const historyEvent = isAdding ? 'Created' : 'Updated';
+            const historyNotes = isAdding ? 'Item created in inventory.' : 'Item details updated.';
+            const historyEntry: EquipmentHistory = {
+                event: historyEvent,
+                user: 'Jane Smith',
+                timestamp: new Date().toISOString(),
+                notes: historyNotes
+            };
+
+            if(isAdding) {
+                const newEquipment: InspectorAsset = {
+                    ...values,
+                    nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
+                    history: [historyEntry],
+                };
+                setEquipment(prev => [newEquipment, ...prev]);
+            } else {
+                setEquipment(prev => prev.map(eq => eq.id === values.id ? {
+                    ...values,
+                     nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
+                     history: [historyEntry, ...(eq.history || [])],
+                } : eq));
+            }
+
+            toast({
+                title: isAdding ? "Equipment Added" : "Equipment Updated",
+                description: `${values.name} has been ${isAdding ? 'added to' : 'updated in'} your inventory.`,
+            });
+        }, 50);
     };
 
      const handleCheckOutClick = (equipment: InspectorAsset) => {
@@ -930,3 +936,4 @@ export default function EquipmentPage() {
         </div>
     );
 }
+

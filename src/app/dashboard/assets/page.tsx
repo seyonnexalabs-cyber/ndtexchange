@@ -1,7 +1,7 @@
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { clientAssets, jobs } from "@/lib/placeholder-data";
+import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, Building, QrCode, Calendar as CalendarIcon, Printer } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -179,19 +179,19 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-6 h-6 text-muted-foreground" />,
 };
 
-const ClientAssetsView = () => {
+const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { searchQuery } = useSearch();
 
     const filteredAssets = useMemo(() => {
-        if (!searchQuery) return clientAssets;
-        return clientAssets.filter(asset => 
+        if (!searchQuery) return assets;
+        return assets.filter(asset => 
             asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             asset.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
             asset.location.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery]);
+    }, [searchQuery, assets]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -205,7 +205,7 @@ const ClientAssetsView = () => {
             }
             acc[asset.location].push(asset);
             return acc;
-        }, {} as Record<string, typeof clientAssets>);
+        }, {} as Record<string, typeof initialClientAssets>);
     }, [filteredAssets]);
 
     return (
@@ -220,7 +220,7 @@ const ClientAssetsView = () => {
                     <h2 className="text-xl font-semibold mb-4">{location}</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {locationAssets.map((asset) => {
-                            const imageIndex = clientAssets.findIndex(a => a.id === asset.id);
+                            const imageIndex = initialClientAssets.findIndex(a => a.id === asset.id);
                             const image = PlaceHolderImages.find(p => p.id === `asset${imageIndex + 1}`);
                             return (
                                 <Card key={asset.id} className="flex flex-col">
@@ -308,6 +308,7 @@ const ClientAssetsView = () => {
 
 
 export default function AssetsPage() {
+    const [currentAssets, setCurrentAssets] = useState<Asset[]>(initialClientAssets);
     const [isAddAssetOpen, setAddAssetOpen] = useState(false);
     const { setScanOpen } = useQRScanner();
     const { toast } = useToast();
@@ -316,7 +317,17 @@ export default function AssetsPage() {
     const role = searchParams.get('role') || 'client';
 
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
-        console.log("New Asset Data:", values);
+        const newAsset: Asset = {
+            id: `ASSET-${String(currentAssets.length + 1).padStart(3, '0')}`,
+            name: values.name,
+            type: values.type,
+            location: values.location,
+            status: values.status,
+            nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
+        };
+        
+        setCurrentAssets(prevAssets => [newAsset, ...prevAssets]);
+
         toast({
             title: "Asset Created",
             description: `${values.name} has been added to your asset list.`,
@@ -344,7 +355,7 @@ export default function AssetsPage() {
                 </div>
             </div>
             
-            {role === 'client' ? <ClientAssetsView /> : (
+            {role === 'client' ? <ClientAssetsView assets={currentAssets} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
                     <QrCode className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>

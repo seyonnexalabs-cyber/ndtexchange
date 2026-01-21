@@ -61,7 +61,10 @@ type CheckOutFormValues = z.infer<typeof checkOutSchema>;
 const serviceOutSchema = z.object({
   serviceType: z.enum(['Calibration', 'Repair', 'Maintenance'], { required_error: "Please select a service type." }),
   vendor: z.string().min(2, "Vendor name is required."),
+  serviceOrderNumber: z.string().optional(),
   expectedReturnDate: z.date().optional(),
+  vendorContactPerson: z.string().optional(),
+  vendorContactEmail: z.string().email({ message: "Please enter a valid email." }).optional().or(z.literal('')),
   notes: z.string().optional(),
 });
 type ServiceOutFormValues = z.infer<typeof serviceOutSchema>;
@@ -316,6 +319,10 @@ const ServiceOutForm = ({
         defaultValues: {
             serviceType: 'Calibration',
             notes: '',
+            vendor: '',
+            serviceOrderNumber: '',
+            vendorContactPerson: '',
+            vendorContactEmail: '',
         }
     });
 
@@ -354,6 +361,19 @@ const ServiceOutForm = ({
                                 <Input placeholder="e.g., Acme Calibration Services" {...field} />
                             </FormControl>
                             <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="serviceOrderNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Service Order / RMA Number (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., SO-12345" {...field} />
+                            </FormControl>
+                             <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -398,6 +418,34 @@ const ServiceOutForm = ({
                         </FormItem>
                     )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="vendorContactPerson"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Contact Person (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="John Smith" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="vendorContactEmail"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Contact Email (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input type="email" placeholder="contact@acme.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                  <FormField
                     control={form.control}
                     name="notes"
@@ -474,7 +522,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChe
                                 <DropdownMenuContent align="end">
                                      {asset.status === 'Available' ? (
                                         <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
+                                            <DropdownMenuSubTrigger onSelect={(e) => e.preventDefault()}><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
                                             <DropdownMenuPortal>
                                                 <DropdownMenuSubContent>
                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
@@ -532,7 +580,7 @@ const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChec
                         <DropdownMenuContent align="end">
                              {asset.status === 'Available' ? (
                                 <DropdownMenuSub>
-                                    <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
+                                    <DropdownMenuSubTrigger onSelect={(e) => e.preventDefault()}><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
                                     <DropdownMenuPortal>
                                         <DropdownMenuSubContent>
                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
@@ -686,7 +734,9 @@ export default function EquipmentPage() {
              const formValues = values as ServiceOutFormValues;
             notes = [
                 `Service: ${formValues.serviceType} with ${formValues.vendor}`,
+                formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`,
                 formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`,
+                formValues.vendorContactPerson && `Contact: ${formValues.vendorContactPerson}${formValues.vendorContactEmail ? ` (${formValues.vendorContactEmail})` : ''}`,
                 formValues.notes,
             ].filter(Boolean).join('. ');
             newStatus = 'Under Service';
@@ -887,3 +937,4 @@ export default function EquipmentPage() {
         </div>
     );
 }
+

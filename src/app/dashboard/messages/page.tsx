@@ -75,7 +75,7 @@ export default function MessagesPage() {
                                         <Avatar>
                                             <AvatarFallback>{job.client.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                         </Avatar>
-                                        <div className="flex-grow overflow-hidden">
+                                        <div className="flex-grow overflow-hidden min-w-0">
                                             <div className="flex justify-between items-baseline">
                                                 <p className="font-semibold text-base truncate">{job.title}</p>
                                                 <p className="text-sm text-muted-foreground shrink-0 ml-2">{format(new Date(lastMessage.timestamp), 'p')}</p>
@@ -132,7 +132,7 @@ export default function MessagesPage() {
                                                     <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                                 </Avatar>
                                             )}
-                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", messageStyle)}>
+                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? roleStyles[role] : messageStyle )}>
                                                 <p className="text-sm">{message.message}</p>
                                                 <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}

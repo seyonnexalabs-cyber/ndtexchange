@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock } from "lucide-react";
+import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -243,14 +243,16 @@ const InspectorDashboard = () => {
     
     // Filter data specifically for the inspector's company
     const providerJobs = useMemo(() => jobs.filter(j => j.providerId === 'provider-03'), []);
+    const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === 'provider-03'), []);
     
     const activeJobs = useMemo(() => providerJobs.filter(j => j.status === 'In Progress').length, [providerJobs]);
     const upcomingJobs = useMemo(() => providerJobs.filter(j => ['Assigned', 'Scheduled'].includes(j.status)), [providerJobs]);
     const equipmentCalibrationDue = useMemo(() => inspectorAssets.filter(e => e.status === 'Calibration Due'), []);
+    const availableTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'Available'), [providerTechnicians]);
 
     return (
         <div className="grid gap-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
@@ -273,6 +275,16 @@ const InspectorDashboard = () => {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Available Technicians</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{availableTechnicians.length} / {providerTechnicians.length}</div>
+                        <p className="text-xs text-muted-foreground">Ready for assignment</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Calibration Alerts</CardTitle>
                         <BellRing className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -282,7 +294,7 @@ const InspectorDashboard = () => {
                     </CardContent>
                 </Card>
             </div>
-             <div className="grid gap-6 md:grid-cols-1">
+             <div className="grid gap-6 md:grid-cols-2">
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">My Upcoming Jobs</CardTitle>
@@ -327,6 +339,44 @@ const InspectorDashboard = () => {
                             </TableBody>
                         </Table>
                         )}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Available Technicians</CardTitle>
+                        <CardDescription>Team members ready for new assignments.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Level</TableHead>
+                                    <TableHead>Certs</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {availableTechnicians.slice(0, 5).map(tech => (
+                                    <TableRow key={tech.id}>
+                                        <TableCell className="font-medium">{tech.name}</TableCell>
+                                        <TableCell>{tech.level}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {tech.certifications.slice(0, 2).map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
+                                                {tech.certifications.length > 2 && <Badge variant="outline">+{tech.certifications.length - 2}</Badge>}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {availableTechnicians.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center">
+                                            No technicians are currently available.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
              </div>

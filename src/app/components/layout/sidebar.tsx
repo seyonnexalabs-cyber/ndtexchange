@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -334,9 +335,9 @@ const AppSidebar = () => {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-border flex flex-col gap-4">
+      <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
         {planDetails && (
-          <div className="p-3 rounded-lg bg-muted/50 border plan-shine-effect">
+          <div>
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>
             {planDetails.expiry !== 'N/A' && (
@@ -344,8 +345,12 @@ const AppSidebar = () => {
                 Expires on {format(new Date(planDetails.expiry), GLOBAL_DATE_FORMAT)}
               </p>
             )}
+             <Link href={constructUrl('/dashboard/billing')} className="text-xs text-primary hover:underline font-medium mt-2 block">
+                Manage Subscription
+            </Link>
           </div>
         )}
+        {planDetails && <SidebarSeparator className="my-1 mx-0" />}
          <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
                 <AvatarFallback>{currentUser.fallback}</AvatarFallback>

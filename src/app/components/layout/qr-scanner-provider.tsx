@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import jsQR from 'jsqr';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
 interface QRScannerContextType {
@@ -166,33 +167,56 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
     );
 };
 
+const ConfirmationDialog = ({ assetId, onConfirm, onCancel }: { assetId: string | null, onConfirm: (id: string) => void, onCancel: () => void }) => {
+    const asset = clientAssets.find(a => a.id === assetId);
+
+    if (!assetId || !asset) {
+        return null;
+    }
+
+    return (
+        <AlertDialog open={!!assetId} onOpenChange={(open) => !open && onCancel()}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Asset Found</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Asset "{asset.name}" ({assetId}) was found. Would you like to navigate to its details page?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onConfirm(assetId)}>Go to Asset</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+};
+
 
 export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
   const [isScanOpen, setScanOpen] = useState(false);
+  const [confirmationAssetId, setConfirmationAssetId] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
 
   const handleQrScan = (id: string) => {
-      toast({
-        title: "QR Code Scanned",
-        description: `Processing Asset ID: ${id}`,
-      });
-      setScanOpen(false); // Close the dialog immediately after a successful scan
+      setScanOpen(false); // Close the scanning dialog
 
       const assetExists = clientAssets.some(asset => asset.id === id);
       if (!assetExists) {
-          setTimeout(() => {
-            toast({
-                variant: 'destructive',
-                title: "Asset Not Found",
-                description: `No asset with ID "${id}" could be found.`,
-            });
-          }, 500); // Delay toast to allow dialog to close
+          toast({
+              variant: 'destructive',
+              title: "Asset Not Found",
+              description: `No asset with ID "${id}" could be found.`,
+          });
           return;
       }
-
+      setConfirmationAssetId(id);
+  };
+  
+  const handleConfirmRedirect = (id: string) => {
       const constructUrl = (base: string) => {
           const params = new URLSearchParams(searchParams.toString());
           return `${base}?${params.toString()}`;
@@ -209,17 +233,20 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
           if (hasAccess) {
               router.push(constructUrl(`/dashboard/assets/${id}`));
           } else {
-               setTimeout(() => {
-                toast({
+               toast({
                     variant: 'destructive',
                     title: "Access Denied",
                     description: `Your company does not have a work history for asset "${id}".`,
                 });
-               }, 500);
           }
       } else { // For client or other roles, allow access
           router.push(constructUrl(`/dashboard/assets/${id}`));
       }
+      setConfirmationAssetId(null);
+  };
+
+  const handleCancelRedirect = () => {
+    setConfirmationAssetId(null);
   };
 
 
@@ -230,6 +257,11 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
           isOpen={isScanOpen}
           onOpenChange={setScanOpen}
           onScan={handleQrScan}
+      />
+      <ConfirmationDialog
+        assetId={confirmationAssetId}
+        onConfirm={handleConfirmRedirect}
+        onCancel={handleCancelRedirect}
       />
     </QRScannerContext.Provider>
   );

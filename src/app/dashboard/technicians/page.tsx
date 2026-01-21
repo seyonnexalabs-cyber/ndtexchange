@@ -8,8 +8,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, FileText, Star } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
-const DesktopView = () => (
+const DesktopView = ({ constructUrl }: { constructUrl: (path: string) => string }) => (
     <Card>
         <CardHeader>
             <CardTitle>Technician Roster</CardTitle>
@@ -45,7 +47,9 @@ const DesktopView = () => (
                                 <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                                <Button variant="ghost" size="sm">View Profile</Button>
+                                <Button asChild variant="ghost" size="sm">
+                                    <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -55,7 +59,7 @@ const DesktopView = () => (
     </Card>
 );
 
-const MobileView = () => (
+const MobileView = ({ constructUrl }: { constructUrl: (path: string) => string }) => (
     <div className="space-y-4">
         {technicians.map(tech => (
             <Card key={tech.id}>
@@ -80,7 +84,9 @@ const MobileView = () => (
                     </div>
                 </CardContent>
                  <CardFooter className="flex justify-end">
-                    <Button variant="ghost" size="sm">View Profile</Button>
+                    <Button asChild variant="ghost" size="sm">
+                        <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
+                    </Button>
                 </CardFooter>
             </Card>
         ))}
@@ -90,6 +96,12 @@ const MobileView = () => (
 
 export default function TechniciansPage() {
     const isMobile = useIsMobile();
+    const searchParams = useSearchParams();
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     return (
         <div>
@@ -101,10 +113,8 @@ export default function TechniciansPage() {
                 <Button>Add New Technician</Button>
             </div>
             
-            {isMobile ? <MobileView /> : <DesktopView />}
+            {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}
 
         </div>
     );
 }
-
-    

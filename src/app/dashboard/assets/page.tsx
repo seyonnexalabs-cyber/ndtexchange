@@ -255,7 +255,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                                 <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/assets/${asset.id}`)}>View Details</Link></DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                                 <DropdownMenuItem>Edit</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Delete</DropdownMenuItem>
+                                                <DropdownMenuItem>Archive</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </CardFooter>

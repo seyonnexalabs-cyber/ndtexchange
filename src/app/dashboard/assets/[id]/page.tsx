@@ -71,7 +71,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className='flex gap-2 self-start sm:self-center'>
                     <Button>Edit Asset</Button>
-                    <Button variant="destructive">Delete Asset</Button>
+                    <Button variant="outline">Archive Asset</Button>
                 </div>
             </div>
 

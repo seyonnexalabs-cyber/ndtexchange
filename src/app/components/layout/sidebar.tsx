@@ -310,7 +310,7 @@ const AppSidebar = () => {
         <SidebarMenu>
           {menuItems.map((group, groupIndex) => (
             <div key={group.title}>
-              <h3 className="px-3 py-2 text-xs font-bold uppercase text-card-foreground/70 tracking-wider">
+              <h3 className="px-3 py-1 text-sm font-semibold tracking-wide text-card-foreground/90">
                 {group.title}
               </h3>
               {group.items.map((item: any) => {
@@ -330,7 +330,7 @@ const AppSidebar = () => {
                   </SidebarMenuItem>
                 );
               })}
-              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-2" />}
+              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1" />}
             </div>
           ))}
         </SidebarMenu>

@@ -11,11 +11,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { LifeBuoy, MessageSquare, Send } from 'lucide-react';
-import { ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
-import { useState } from 'react';
+import { ACCEPTED_FILE_TYPES, cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSearchParams } from 'next/navigation';
+import { allUsers, supportThreads, SupportThread, SupportMessage } from '@/lib/placeholder-data';
+import { format } from 'date-fns';
 
 const supportSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters.'),
@@ -27,6 +30,61 @@ const supportSchema = z.object({
 export default function SupportPage() {
   const { toast } = useToast();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const role = searchParams.get('role') || 'client';
+
+  const currentUser = useMemo(() => {
+    const userMap: { [key: string]: PlatformUser | undefined } = {
+      client: allUsers.find(u => u.id === 'user-client-01'),
+      inspector: allUsers.find(u => u.id === 'user-tech-05'),
+      auditor: allUsers.find(u => u.id === 'user-auditor-01'),
+      admin: allUsers.find(u => u.id === 'user-admin-01'),
+    };
+    return userMap[role] || userMap.client;
+  }, [role]);
+
+  const [currentThread, setCurrentThread] = useState<SupportThread | null>(null);
+  const [newMessage, setNewMessage] = useState('');
+
+  const handleStartChat = () => {
+    if (!currentUser) return;
+    let thread = supportThreads.find(t => t.userId === currentUser.id);
+    if (!thread) {
+      thread = {
+        id: `SUPPORT-NEW-${currentUser.id}`,
+        userId: currentUser.id,
+        userName: currentUser.name,
+        userCompany: currentUser.company,
+        subject: 'General Support',
+        status: 'Open',
+        messages: [
+            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: new Date().toISOString(), message: `Welcome to NDT Exchange Support, ${currentUser.name}! How can I help you today?` },
+        ],
+      };
+    }
+    setCurrentThread(thread);
+    setIsChatOpen(true);
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !currentUser || !currentThread) return;
+
+    const message: SupportMessage = {
+      userId: currentUser.id,
+      user: currentUser.name,
+      isAdmin: currentUser.role === 'Admin',
+      timestamp: new Date().toISOString(),
+      message: newMessage.trim(),
+    };
+    
+    const updatedThread = {
+        ...currentThread,
+        messages: [...currentThread.messages, message]
+    };
+
+    setCurrentThread(updatedThread);
+    setNewMessage('');
+  };
   
   const form = useForm<z.infer<typeof supportSchema>>({
     resolver: zodResolver(supportSchema),
@@ -46,12 +104,6 @@ export default function SupportPage() {
     form.reset();
   };
 
-  const mockMessages = [
-      { user: 'Support Agent', message: 'Welcome to NDT Exchange Support! My name is Alex. How can I help you today?', isAgent: true },
-      { user: 'You', message: "I'm having trouble uploading a document on the job posting page.", isAgent: false },
-      { user: 'Support Agent', message: 'I can certainly help with that. Could you please provide the job ID and the name of the file you\'re trying to upload?', isAgent: true },
-  ]
-
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
@@ -70,7 +122,7 @@ export default function SupportPage() {
                 <CardDescription>Need immediate assistance? Our support agents are available to help you in real-time.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Button onClick={() => setIsChatOpen(true)}>Start Live Chat</Button>
+                <Button onClick={handleStartChat}>Start Live Chat</Button>
             </CardContent>
         </Card>
       
@@ -169,27 +221,35 @@ export default function SupportPage() {
           </DialogHeader>
           <ScrollArea className="flex-1 p-6 bg-muted/30">
             <div className="space-y-6">
-                {mockMessages.map((message, index) => (
-                    <div key={index} className={cn("flex items-end gap-3", !message.isAgent && "justify-end")}>
-                        {message.isAgent && (
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback>S</AvatarFallback>
-                            </Avatar>
-                        )}
-                        <div className={cn("max-w-xs rounded-lg p-3", message.isAgent ? "bg-background border" : "bg-primary text-primary-foreground")}>
-                            <p className="text-sm">{message.message}</p>
-                            <p className="text-xs mt-2 opacity-80">
-                                {message.user}
-                            </p>
+                {currentThread?.messages.map((message, index) => {
+                     const myMessage = message.userId === currentUser?.id;
+                     return (
+                        <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
+                            {!myMessage && (
+                                <Avatar className="h-8 w-8">
+                                    <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                            )}
+                            <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
+                                <p className="text-sm">{message.message}</p>
+                                <p className="text-xs mt-2 opacity-80">
+                                    {message.user} · {format(new Date(message.timestamp), 'p')}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
           </ScrollArea>
           <DialogFooter className="p-4 border-t bg-background">
             <div className="flex w-full items-center gap-2">
-                <Input placeholder="Type your message..." />
-                <Button><Send className="h-4 w-4" /></Button>
+                <Input 
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                />
+                <Button onClick={handleSendMessage} disabled={!newMessage.trim()}><Send className="h-4 w-4" /></Button>
             </div>
           </DialogFooter>
         </DialogContent>

@@ -39,6 +39,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     const { id } = React.use(params);
     const asset = useMemo(() => assets.find(a => a.id === id), [id]);
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
     const isMobile = useIsMobile();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
@@ -80,6 +81,8 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         }
     };
 
+    const isClient = role === 'client';
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mb-6 gap-4">
@@ -96,10 +99,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     </h1>
                     <p className="text-muted-foreground">{asset.id}</p>
                 </div>
-                <div className='flex gap-2 self-start sm:self-center'>
-                    <Button>Edit Asset</Button>
-                    <Button variant="outline">Archive Asset</Button>
-                </div>
+                {isClient && (
+                    <div className='flex gap-2 self-start sm:self-center'>
+                        <Button>Edit Asset</Button>
+                        <Button variant="outline">Archive Asset</Button>
+                    </div>
+                )}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-3">
@@ -202,7 +207,9 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                             )}
                                         </ScrollArea>
                                     </div>
-                                    <Button className="mt-4 w-full" variant="outline">Upload Document</Button>
+                                    {isClient && (
+                                        <Button className="mt-4 w-full" variant="outline">Upload Document</Button>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>

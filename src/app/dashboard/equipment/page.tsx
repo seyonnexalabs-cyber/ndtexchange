@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -530,7 +531,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChe
 
                                     <DropdownMenuSeparator />
                                     
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={()={() => onEditClick(asset)}}><Edit className="mr-2" /> Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2" /> Edit</DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                 </DropdownMenuContent>

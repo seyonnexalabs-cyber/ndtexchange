@@ -40,6 +40,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
 const userDetails = {
@@ -270,6 +272,24 @@ const AppSidebar = () => {
     return `${base}?${params.toString()}`;
   }
 
+  const getPlanDetails = () => {
+    if (!role) return null;
+    switch (role) {
+      case 'client':
+        return { name: 'Client Pro', expiry: '2025-01-15' };
+      case 'inspector':
+        return { name: planParam === 'operations' ? 'Provider Operations' : 'Provider Marketplace', expiry: '2025-01-15' };
+      case 'auditor':
+        return { name: 'Auditor Access', expiry: 'N/A' };
+      case 'admin':
+        return { name: 'Platform Admin', expiry: 'N/A' };
+      default:
+        return null;
+    }
+  };
+
+  const planDetails = getPlanDetails();
+
   if (!role) {
     return null; // Render nothing while redirecting
   }
@@ -313,7 +333,18 @@ const AppSidebar = () => {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-border">
+      <SidebarFooter className="p-4 border-t border-border flex flex-col gap-4">
+        {planDetails && (
+          <div className="p-3 rounded-lg bg-muted/50">
+            <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
+            <p className="font-semibold text-sm">{planDetails.name}</p>
+            {planDetails.expiry !== 'N/A' && (
+              <p className="text-xs text-card-foreground/70 mt-1">
+                Expires on {format(new Date(planDetails.expiry), GLOBAL_DATE_FORMAT)}
+              </p>
+            )}
+          </div>
+        )}
          <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
                 <AvatarFallback>{currentUser.fallback}</AvatarFallback>

@@ -580,7 +580,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                              <div>
                                                  <div className="flex items-baseline gap-2">
                                                     <p className="font-semibold">{message.user}</p>
-                                                    <p className="text-xs text-muted-foreground">{message.role} &amp;bull; {format(new Date(message.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
+                                                    <p className="text-xs text-muted-foreground">{message.role} · {format(new Date(message.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
                                                  </div>
                                                  <p className="text-sm text-muted-foreground">{message.message}</p>
                                              </div>

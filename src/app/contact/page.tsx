@@ -50,7 +50,7 @@ export default function ContactPage() {
               />
               <PricingCard
                 plan="Provider Operations"
-                price="$49"
+                price="From $49"
                 description="Digitize your internal operations and team management."
                 features={[
                   "Technician Roster Management",
@@ -65,7 +65,7 @@ export default function ContactPage() {
               />
               <PricingCard
                 plan="Provider Marketplace"
-                price="$149"
+                price="From $149"
                 description="Includes Operations, plus full marketplace access."
                 features={[
                   "All Provider Operations features",
@@ -95,7 +95,7 @@ export default function ContactPage() {
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                All plans are billed annually after your 30-day free trial. Pricing is usage-based. Contact us for a detailed quote tailored to your needs. Auditor access is by invitation from Client accounts.
+                The prices shown are starting points. Your final subscription cost is usage-based, determined by factors like the number of users and data storage needs. All plans are billed annually after a 30-day free trial. Contact our sales team for a detailed quote tailored to your business. Auditor access is by invitation from Client accounts.
              </p>
           </div>
         </section>
@@ -196,6 +196,7 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
   };
 
   const style = themeStyles[theme];
+  const isPrefixed = price.startsWith("From ");
 
   return (
     <Card style={style} className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
@@ -203,8 +204,18 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
         <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
         <CardDescription>{description}</CardDescription>
         <div className="pt-4">
-            <span className="text-4xl font-bold">{price}</span>
-             {price !== "Custom" && price !== "Contact Us" && price !== "By Invite" && <span className="text-sm text-muted-foreground">/mo</span>}
+          {isPrefixed ? (
+            <div className="flex items-baseline justify-center gap-x-1">
+              <span className="text-xl font-semibold text-muted-foreground">From</span>
+              <span className="text-4xl font-bold">{price.replace('From ', '')}</span>
+              <span className="text-sm text-muted-foreground self-end">/mo</span>
+            </div>
+          ) : (
+            <>
+              <span className="text-4xl font-bold">{price}</span>
+              {price !== "Custom" && price !== "By Invite" && <span className="text-sm text-muted-foreground">/mo</span>}
+            </>
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex-grow">

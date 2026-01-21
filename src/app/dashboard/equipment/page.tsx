@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -10,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -520,20 +519,18 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChe
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                     {asset.status === 'Available' ? (
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
-                                            <DropdownMenuSubContent>
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuSub>
+                                    {asset.status === 'Available' ? (
+                                        <>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                        </>
                                     ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                                     )}
 
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2" /> Edit</DropdownMenuItem>
                                     <DropdownMenuSeparator />
+                                    
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={()={() => onEditClick(asset)}}><Edit className="mr-2" /> Edit</DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -576,20 +573,19 @@ const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onChec
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                             {asset.status === 'Available' ? (
-                                <DropdownMenuSub>
-                                    <DropdownMenuSubTrigger><LogOut className="mr-2 h-4 w-4"/>Check Out</DropdownMenuSubTrigger>
-                                    <DropdownMenuSubContent>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}>For Job</DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}>For Service</DropdownMenuItem>
-                                    </DropdownMenuSubContent>
-                                </DropdownMenuSub>
+                            {asset.status === 'Available' ? (
+                                <>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                </>
                             ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                             )}
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2"/> Edit</DropdownMenuItem>
+
                             <DropdownMenuSeparator />
-                             <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
+
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -933,3 +929,5 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
+    

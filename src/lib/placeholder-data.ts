@@ -68,7 +68,7 @@ export type InspectorAsset = {
     id: string;
     name: string;
     type: string;
-    status: 'Calibrated' | 'Calibration Due' | 'In Service';
+    status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service';
     nextCalibration: string;
 };
 
@@ -165,9 +165,9 @@ export const clientAssets: Asset[] = [
 ];
 
 export const inspectorAssets: InspectorAsset[] = [
-    { id: 'UTM-1000', name: 'Olympus 45MG', type: 'UT Equipment', status: 'Calibrated', nextCalibration: '2025-01-05' },
-    { id: 'PA-Probe-5MHz', name: '5L64-A2 Probe', type: 'PAUT Probe', status: 'In Service', nextCalibration: '2024-12-11' },
-    { id: 'CAL-BLK-01', name: 'IIW Type 1 Block', type: 'Calibration Block', status: 'In Service', nextCalibration: 'N/A' },
+    { id: 'UTM-1000', name: 'Olympus 45MG', type: 'UT Equipment', status: 'Available', nextCalibration: '2025-01-05' },
+    { id: 'PA-Probe-5MHz', name: '5L64-A2 Probe', type: 'PAUT Probe', status: 'In Use', nextCalibration: '2024-12-11' },
+    { id: 'CAL-BLK-01', name: 'IIW Type 1 Block', type: 'Calibration Block', status: 'Available', nextCalibration: 'N/A' },
     { id: 'YOKE-02', name: 'Parker B-300S', type: 'Yoke', status: 'Calibration Due', nextCalibration: '2024-07-30' },
 ];
 
@@ -362,6 +362,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

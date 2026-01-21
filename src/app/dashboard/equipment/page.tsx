@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, InspectorAsset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -26,13 +26,15 @@ import { useToast } from "@/hooks/use-toast";
 const equipmentIcons = {
     'UTM-1000': <RadioTower className="w-6 h-6 text-muted-foreground" />,
     'PA-Probe-5MHz': <SlidersHorizontal className="w-6 h-6 text-muted-foreground" />,
+    'CAL-BLK-01': <Wrench className="w-6 h-6 text-muted-foreground" />,
+    'YOKE-02': <Wrench className="w-6 h-6 text-muted-foreground" />,
 };
 
 const equipmentSchema = z.object({
   id: z.string().min(2, "ID is required."),
   name: z.string().min(2, "Name must be at least 2 characters."),
   type: z.string().min(2, "Type must be at least 2 characters."),
-  status: z.enum(['Calibrated', 'Calibration Due', 'In Service']),
+  status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service']),
   nextCalibration: z.date(),
 });
 
@@ -45,7 +47,7 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
             id: '',
             name: "",
             type: "",
-            status: "In Service",
+            status: "Available",
             ...defaultValues,
             nextCalibration: defaultValues?.nextCalibration || new Date(),
         }
@@ -106,9 +108,10 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="Calibrated">Calibrated</SelectItem>
+                                <SelectItem value="Available">Available</SelectItem>
+                                <SelectItem value="In Use">In Use</SelectItem>
                                 <SelectItem value="Calibration Due">Calibration Due</SelectItem>
-                                <SelectItem value="In Service">In Service</SelectItem>
+                                <SelectItem value="Out of Service">Out of Service</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage />
@@ -166,7 +169,21 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
 };
 
 
-const DesktopView = ({ equipment, onEditClick, onQrClick }: { equipment: InspectorAsset[], onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
+const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' } = {
+    'Available': 'success',
+    'In Use': 'default',
+    'Calibration Due': 'destructive',
+    'Out of Service': 'outline'
+};
+
+
+const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn }: { 
+    equipment: InspectorAsset[], 
+    onEditClick: (equipment: InspectorAsset) => void, 
+    onQrClick: (data: {id: string, name: string}) => void,
+    onCheckOut: (id: string) => void,
+    onCheckIn: (id: string) => void,
+}) => (
     <Card>
         <Table>
             <TableHeader>
@@ -189,7 +206,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick }: { equipment: Inspect
                         </TableCell>
                         <TableCell>{asset.type}</TableCell>
                         <TableCell>
-                            <Badge variant={asset.status === 'Calibrated' ? 'success' : asset.status === 'In Service' ? 'default' : 'destructive'}>{asset.status}</Badge>
+                            <Badge variant={statusVariants[asset.status]}>{asset.status}</Badge>
                         </TableCell>
                         <TableCell>{asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</TableCell>
                         <TableCell className="text-right">
@@ -200,6 +217,9 @@ const DesktopView = ({ equipment, onEditClick, onQrClick }: { equipment: Inspect
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOut(asset.id)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
+                                    {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckIn(asset.id)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onEditClick(asset)}>Edit</DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -212,7 +232,13 @@ const DesktopView = ({ equipment, onEditClick, onQrClick }: { equipment: Inspect
     </Card>
 );
 
-const MobileView = ({ equipment, onEditClick, onQrClick }: { equipment: InspectorAsset[], onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
+const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn }: { 
+    equipment: InspectorAsset[], 
+    onEditClick: (equipment: InspectorAsset) => void, 
+    onQrClick: (data: {id: string, name: string}) => void,
+    onCheckOut: (id: string) => void,
+    onCheckIn: (id: string) => void,
+}) => (
      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {equipment.map(asset => (
             <Card key={asset.id}>
@@ -223,7 +249,7 @@ const MobileView = ({ equipment, onEditClick, onQrClick }: { equipment: Inspecto
                 <CardContent>
                     <p className="text-sm text-muted-foreground">{asset.type}</p>
                      <p className="text-xs font-mono text-muted-foreground">{asset.id}</p>
-                    <Badge variant={asset.status === 'Calibrated' ? 'success' : 'default'} className="mt-2">{asset.status}</Badge>
+                    <Badge variant={statusVariants[asset.status]} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
                     <span>Cal Due: {asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
@@ -234,6 +260,9 @@ const MobileView = ({ equipment, onEditClick, onQrClick }: { equipment: Inspecto
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOut(asset.id)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
+                            {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckIn(asset.id)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onEditClick(asset)}>Edit</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -302,6 +331,16 @@ export default function EquipmentPage() {
         }
         setDialogState('closed');
     };
+
+     const handleCheckOut = (id: string) => {
+        setEquipment(prev => prev.map(eq => eq.id === id ? { ...eq, status: 'In Use' } : eq));
+        toast({ title: "Equipment Checked Out", description: "Status set to 'In Use'." });
+    };
+
+    const handleCheckIn = (id: string) => {
+        setEquipment(prev => prev.map(eq => eq.id === id ? { ...eq, status: 'Available' } : eq));
+        toast({ title: "Equipment Checked In", description: "Status set to 'Available'." });
+    };
     
     const isDialogOpen = dialogState !== 'closed';
     const closeDialog = () => setDialogState('closed');
@@ -330,9 +369,10 @@ export default function EquipmentPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="Calibrated">Calibrated</SelectItem>
+                            <SelectItem value="Available">Available</SelectItem>
+                            <SelectItem value="In Use">In Use</SelectItem>
                             <SelectItem value="Calibration Due">Calibration Due</SelectItem>
-                            <SelectItem value="In Service">In Service</SelectItem>
+                            <SelectItem value="Out of Service">Out of Service</SelectItem>
                         </SelectContent>
                     </Select>
                      <Button variant="outline">
@@ -344,8 +384,20 @@ export default function EquipmentPage() {
 
             {filteredEquipment.length > 0 ? (
                 isMobile ? 
-                    <MobileView equipment={filteredEquipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} /> : 
-                    <DesktopView equipment={filteredEquipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} />
+                    <MobileView 
+                        equipment={filteredEquipment} 
+                        onEditClick={handleEditClick} 
+                        onQrClick={setQrCodeData}
+                        onCheckIn={handleCheckIn}
+                        onCheckOut={handleCheckOut}
+                    /> : 
+                    <DesktopView 
+                        equipment={filteredEquipment} 
+                        onEditClick={handleEditClick} 
+                        onQrClick={setQrCodeData}
+                        onCheckIn={handleCheckIn}
+                        onCheckOut={handleCheckOut}
+                    />
             ) : (
                 <div className="text-center p-10 border rounded-lg">
                     <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />

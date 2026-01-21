@@ -7,10 +7,17 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
-function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false }: { plan: string; price: string; description: string; features: string[], isFeatured?: boolean, isCurrent?: boolean }) {
-  const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
-  
+function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
+    plan: string; 
+    price: string; 
+    description: string; 
+    features: string[], 
+    isFeatured?: boolean, 
+    isCurrent?: boolean,
+    onUpgradeClick: (plan: string, price: string) => void
+}) {
   return (
     <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "", isCurrent && "bg-muted")}>
       <CardHeader className="text-center">
@@ -33,8 +40,13 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
         </ul>
       </CardContent>
       <CardFooter>
-        <Button asChild className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} variant={isCurrent ? 'outline' : isFeatured ? 'default' : 'outline'} disabled={isCurrent}>
-            {isCurrent ? <Link href="#">This is your current plan</Link> : <Link href={mailtoHref}>Contact Sales to Upgrade</Link>}
+        <Button 
+            className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} 
+            variant={isCurrent ? 'outline' : isFeatured ? 'default' : 'outline'} 
+            disabled={isCurrent}
+            onClick={() => !isCurrent && onUpgradeClick(plan, price)}
+        >
+            {isCurrent ? "This is your current plan" : (price === 'Custom' ? 'Contact Sales' : 'Proceed to Payment')}
         </Button>
       </CardFooter>
     </Card>
@@ -42,7 +54,7 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
 }
 
 
-const ClientPlans = () => (
+const ClientPlans = ({ onUpgradeClick }: { onUpgradeClick: (plan: string, price: string) => void }) => (
     <>
         <PricingCard
             plan="Client Basic"
@@ -57,6 +69,7 @@ const ClientPlans = () => (
                 "Email Support",
             ]}
             isCurrent={true}
+            onUpgradeClick={onUpgradeClick}
         />
         <PricingCard
             plan="Client Pro"
@@ -71,6 +84,7 @@ const ClientPlans = () => (
                 "Team management up to 10 users",
             ]}
             isFeatured={true}
+            onUpgradeClick={onUpgradeClick}
         />
         <PricingCard
             plan="Enterprise"
@@ -84,11 +98,12 @@ const ClientPlans = () => (
                 "A dedicated Account Manager",
                 "24/7/365 Premium Support",
             ]}
+            onUpgradeClick={onUpgradeClick}
         />
     </>
 );
 
-const ProviderPlans = () => (
+const ProviderPlans = ({ onUpgradeClick }: { onUpgradeClick: (plan: string, price: string) => void }) => (
     <>
         <PricingCard
             plan="Provider Starter"
@@ -102,6 +117,7 @@ const ProviderPlans = () => (
                 "Direct client communication",
             ]}
             isCurrent={true}
+            onUpgradeClick={onUpgradeClick}
         />
         <PricingCard
             plan="Provider Growth"
@@ -116,6 +132,7 @@ const ProviderPlans = () => (
                 "Priority email & phone support",
             ]}
             isFeatured={true}
+            onUpgradeClick={onUpgradeClick}
         />
         <PricingCard
             plan="Enterprise"
@@ -129,6 +146,7 @@ const ProviderPlans = () => (
                 "A dedicated Account Manager",
                 "24/7/365 Premium Support",
             ]}
+             onUpgradeClick={onUpgradeClick}
         />
     </>
 );
@@ -157,22 +175,36 @@ const AuditorView = ({ constructUrl }: { constructUrl: (url: string) => string }
 export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+    const { toast } = useToast();
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
+    const handleUpgradeClick = (plan: string, price: string) => {
+        if (price === "Custom") {
+             const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
+             window.location.href = mailtoHref;
+        } else {
+            toast({
+                title: "Redirecting to Payment Gateway...",
+                description: `You are being redirected to complete your purchase for the ${plan} plan.`,
+            });
+            // In a real app, this would be a router.push('/payment-gateway') or similar.
+        }
+    };
+
   const renderPlansByRole = () => {
     switch(role) {
         case 'client':
-            return <ClientPlans />;
+            return <ClientPlans onUpgradeClick={handleUpgradeClick} />;
         case 'inspector':
-            return <ProviderPlans />;
+            return <ProviderPlans onUpgradeClick={handleUpgradeClick} />;
         case 'auditor':
             return <AuditorView constructUrl={constructUrl} />;
         default:
-             return <ClientPlans />; // Default to client view
+             return <ClientPlans onUpgradeClick={handleUpgradeClick} />; // Default to client view
     }
   }
 

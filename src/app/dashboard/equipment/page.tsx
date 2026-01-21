@@ -7,7 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets as initialEquipment, InspectorAsset } from "@/lib/placeholder-data";
+import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Textarea } from "@/components/ui/textarea";
 
 
 const equipmentIcons = {
@@ -43,6 +44,19 @@ const equipmentSchema = z.object({
 });
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
+
+const checkInSchema = z.object({
+  condition: z.enum(['Good', 'Damaged', 'Requires Calibration'], { required_error: "Please select the equipment's condition." }),
+  hoursUsed: z.coerce.number().min(0, "Hours must be 0 or more.").optional(),
+  notes: z.string().optional(),
+});
+type CheckInFormValues = z.infer<typeof checkInSchema>;
+
+const checkOutSchema = z.object({
+  jobId: z.string().min(1, 'Please select a job.'),
+  notes: z.string().optional(),
+});
+type CheckOutFormValues = z.infer<typeof checkOutSchema>;
 
 const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (values: EquipmentFormValues) => void, defaultValues?: Partial<EquipmentFormValues>, onCancel: () => void }) => {
     const form = useForm<EquipmentFormValues>({
@@ -173,6 +187,114 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
 };
 
 
+const CheckInOutForm = ({ 
+    action, 
+    onSubmit, 
+    onCancel,
+    jobsForCheckout,
+ }: { 
+    action: 'check-in' | 'check-out';
+    onSubmit: (values: CheckInFormValues | CheckOutFormValues) => void;
+    onCancel: () => void;
+    jobsForCheckout: Job[];
+}) => {
+    const isCheckIn = action === 'check-in';
+    const form = useForm({
+        resolver: zodResolver(isCheckIn ? checkInSchema : checkOutSchema),
+        defaultValues: isCheckIn 
+            ? { condition: 'Good', hoursUsed: 0, notes: '' } 
+            : { jobId: '', notes: '' },
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {isCheckIn ? (
+                    <>
+                        <FormField
+                            control={form.control}
+                            name="condition"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Condition</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a condition" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Good">Good</SelectItem>
+                                        <SelectItem value="Damaged">Damaged</SelectItem>
+                                        <SelectItem value="Requires Calibration">Requires Calibration</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="hoursUsed"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Hours Used (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 8" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </>
+                ) : (
+                    <FormField
+                        control={form.control}
+                        name="jobId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Assign to Job</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a job" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {jobsForCheckout.map(job => (
+                                            <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+                 <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Notes (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="e.g., Casing is cracked, returned early..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">{isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out'}</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
+
 const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' } = {
     'Available': 'success',
     'In Use': 'default',
@@ -181,12 +303,12 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 
-const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn, constructUrl }: { 
+const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onCheckInClick, constructUrl }: { 
     equipment: InspectorAsset[], 
     onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
-    onCheckOut: (id: string) => void,
-    onCheckIn: (id: string) => void,
+    onCheckOutClick: (equipment: InspectorAsset) => void,
+    onCheckInClick: (equipment: InspectorAsset) => void,
     constructUrl: (base: string) => string;
 }) => (
     <Card>
@@ -222,8 +344,8 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn,
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOut(asset.id)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
-                                    {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckIn(asset.id)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
+                                    {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
+                                    {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
                                     <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2" /> Edit</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
@@ -238,12 +360,12 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn,
     </Card>
 );
 
-const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn, constructUrl }: { 
+const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOutClick, onCheckInClick, constructUrl }: { 
     equipment: InspectorAsset[], 
     onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
-    onCheckOut: (id: string) => void,
-    onCheckIn: (id: string) => void,
+    onCheckOutClick: (equipment: InspectorAsset) => void,
+    onCheckInClick: (equipment: InspectorAsset) => void,
     constructUrl: (base: string) => string;
 }) => (
      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -267,8 +389,8 @@ const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn, 
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOut(asset.id)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
-                            {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckIn(asset.id)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
+                            {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
+                            {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2"/> Edit</DropdownMenuItem>
                             <DropdownMenuSeparator />
                              <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
@@ -294,6 +416,8 @@ export default function EquipmentPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     
+    const [transactionState, setTransactionState] = useState<{ action: 'check-in' | 'check-out' | null; equipment: InspectorAsset | null }>({ action: null, equipment: null });
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -311,6 +435,7 @@ export default function EquipmentPage() {
         });
     }, [equipment, searchQuery, statusFilter]);
 
+    const jobsForCheckout = useMemo(() => jobs.filter(j => ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), []);
 
     const handleEditClick = (equipment: InspectorAsset) => {
         setEditingEquipment(equipment);
@@ -327,6 +452,7 @@ export default function EquipmentPage() {
             event: dialogState === 'add' ? 'Created' : 'Updated',
             user: 'Jane Smith', // In a real app, this would be the current user
             timestamp: new Date().toISOString(),
+            notes: dialogState === 'add' ? 'Item created in inventory.' : 'Item details updated.'
         };
 
         if(dialogState === 'add') {
@@ -354,32 +480,75 @@ export default function EquipmentPage() {
         setDialogState('closed');
     };
 
-     const handleCheckOut = (id: string) => {
-        setEquipment(prev => prev.map(eq => eq.id === id ? { 
-            ...eq, 
-            status: 'In Use',
-            history: [
-                { event: 'Checked Out', user: 'Jane Smith', timestamp: new Date().toISOString() },
-                ...(eq.history || [])
-            ]
-        } : eq));
-        toast({ title: "Equipment Checked Out", description: "Status set to 'In Use'." });
+     const handleCheckOutClick = (equipment: InspectorAsset) => {
+        setTransactionState({ action: 'check-out', equipment });
     };
 
-    const handleCheckIn = (id: string) => {
-        setEquipment(prev => prev.map(eq => eq.id === id ? { 
-            ...eq, 
-            status: 'Available',
-            history: [
-                { event: 'Checked In', user: 'Jane Smith', timestamp: new Date().toISOString() },
-                ...(eq.history || [])
-            ]
-        } : eq));
-        toast({ title: "Equipment Checked In", description: "Status set to 'Available'." });
+    const handleCheckInClick = (equipment: InspectorAsset) => {
+        setTransactionState({ action: 'check-in', equipment });
     };
     
-    const isDialogOpen = dialogState !== 'closed';
-    const closeDialog = () => setDialogState('closed');
+    const handleTransactionSubmit = (values: CheckInFormValues | CheckOutFormValues) => {
+        const { action, equipment } = transactionState;
+        if (!equipment || !action) return;
+
+        let notes = '';
+        let newStatus: InspectorAsset['status'] = equipment.status;
+
+        if (action === 'check-in') {
+            const formValues = values as CheckInFormValues;
+            notes = [
+                formValues.notes,
+                `Condition: ${formValues.condition}`,
+                formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`
+            ].filter(Boolean).join('. ');
+
+            switch (formValues.condition) {
+                case 'Damaged':
+                    newStatus = 'Out of Service';
+                    break;
+                case 'Requires Calibration':
+                    newStatus = 'Calibration Due';
+                    break;
+                default:
+                    newStatus = 'Available';
+                    break;
+            }
+        } else { // check-out
+            const formValues = values as CheckOutFormValues;
+            const jobTitle = jobs.find(j => j.id === formValues.jobId)?.title || formValues.jobId;
+            notes = [
+                formValues.notes,
+                `Job: ${jobTitle}`
+            ].filter(Boolean).join('. ');
+            newStatus = 'In Use';
+        }
+
+        const newHistoryEntry: EquipmentHistory = {
+            event: action === 'check-in' ? 'Checked In' : 'Checked Out',
+            user: 'Jane Smith',
+            timestamp: new Date().toISOString(),
+            notes: notes,
+        };
+
+        setEquipment(prev => prev.map(eq =>
+            eq.id === equipment.id
+                ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] }
+                : eq
+        ));
+
+        toast({
+            title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`,
+            description: `${equipment.name} status has been updated to '${newStatus}'.`,
+        });
+
+        setTransactionState({ action: null, equipment: null });
+    };
+
+    const isAddEditDialogOpen = dialogState !== 'closed';
+    const closeAddEditDialog = () => setDialogState('closed');
+    const isTransactionDialogOpen = transactionState.action !== null;
+    const closeTransactionDialog = () => setTransactionState({ action: null, equipment: null });
 
     return (
         <div>
@@ -424,16 +593,16 @@ export default function EquipmentPage() {
                         equipment={filteredEquipment} 
                         onEditClick={handleEditClick} 
                         onQrClick={setQrCodeData}
-                        onCheckIn={handleCheckIn}
-                        onCheckOut={handleCheckOut}
+                        onCheckInClick={handleCheckInClick}
+                        onCheckOutClick={handleCheckOutClick}
                         constructUrl={constructUrl}
                     /> : 
                     <DesktopView 
                         equipment={filteredEquipment} 
                         onEditClick={handleEditClick} 
                         onQrClick={setQrCodeData}
-                        onCheckIn={handleCheckIn}
-                        onCheckOut={handleCheckOut}
+                        onCheckInClick={handleCheckInClick}
+                        onCheckOutClick={handleCheckOutClick}
                         constructUrl={constructUrl}
                     />
             ) : (
@@ -483,7 +652,7 @@ export default function EquipmentPage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {if(!open) closeDialog()}}>
+            <Dialog open={isAddEditDialogOpen} onOpenChange={(open) => {if(!open) closeAddEditDialog()}}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{dialogState === 'add' ? 'Add New Equipment' : `Edit ${editingEquipment?.name}`}</DialogTitle>
@@ -493,7 +662,7 @@ export default function EquipmentPage() {
                     </DialogHeader>
                    <EquipmentForm 
                         onSubmit={handleFormSubmit}
-                        onCancel={closeDialog}
+                        onCancel={closeAddEditDialog}
                         defaultValues={dialogState === 'edit' ? {
                             ...editingEquipment,
                             nextCalibration: editingEquipment?.nextCalibration === 'N/A' ? new Date() : new Date(editingEquipment!.nextCalibration!)
@@ -501,7 +670,23 @@ export default function EquipmentPage() {
                    />
                 </DialogContent>
             </Dialog>
+
+             <Dialog open={isTransactionDialogOpen} onOpenChange={(open) => {if(!open) closeTransactionDialog()}}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="capitalize">{transactionState.action} Equipment</DialogTitle>
+                        <DialogDescription>Record details for {transactionState.equipment?.name}.</DialogDescription>
+                    </DialogHeader>
+                   {transactionState.action && (
+                        <CheckInOutForm
+                            action={transactionState.action}
+                            onSubmit={handleTransactionSubmit}
+                            onCancel={closeTransactionDialog}
+                            jobsForCheckout={jobsForCheckout}
+                        />
+                   )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
-

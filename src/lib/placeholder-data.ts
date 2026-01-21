@@ -180,9 +180,9 @@ export const inspectorAssets: InspectorAsset[] = [
         status: 'Available', 
         nextCalibration: '2025-01-05',
         history: [
-            { event: 'Created', user: 'Admin', timestamp: '2023-01-05T10:00:00Z' },
-            { event: 'Checked In', user: 'Jane Smith', timestamp: '2024-06-25T14:00:00Z', notes: 'Returned from Job-003' },
-            { event: 'Checked Out', user: 'Jane Smith', timestamp: '2024-06-10T08:00:00Z', notes: 'Assigned to Job-003' },
+            { event: 'Created', user: 'Admin', timestamp: '2023-01-05T10:00:00Z', notes: 'Item created in inventory.' },
+            { event: 'Checked In', user: 'Jane Smith', timestamp: '2024-06-25T14:00:00Z', notes: 'Condition: Good. Job: Annual UT Thickness Survey.' },
+            { event: 'Checked Out', user: 'Jane Smith', timestamp: '2024-06-10T08:00:00Z', notes: 'Job: Annual UT Thickness Survey' },
         ]
     },
     { 
@@ -192,8 +192,8 @@ export const inspectorAssets: InspectorAsset[] = [
         status: 'In Use', 
         nextCalibration: '2024-12-11',
         history: [
-             { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-07-01T09:30:00Z', notes: 'Assigned to Job-004' },
-             { event: 'Created', user: 'Admin', timestamp: '2023-02-10T11:00:00Z' }
+             { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
+             { event: 'Created', user: 'Admin', timestamp: '2023-02-10T11:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
     { 
@@ -203,7 +203,7 @@ export const inspectorAssets: InspectorAsset[] = [
         status: 'Available', 
         nextCalibration: 'N/A',
         history: [
-            { event: 'Created', user: 'Admin', timestamp: '2023-01-15T16:00:00Z' }
+            { event: 'Created', user: 'Admin', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
     { 
@@ -214,9 +214,9 @@ export const inspectorAssets: InspectorAsset[] = [
         nextCalibration: '2024-07-30',
         history: [
             { event: 'Set to Calibration Due', user: 'System', timestamp: '2024-07-15T00:00:00Z', notes: 'Automatic status change based on calibration date.' },
-            { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Returned from Job-002' },
-            { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-06-21T09:00:00Z', notes: 'Assigned to Job-002' },
-            { event: 'Created', user: 'Admin', timestamp: '2023-03-01T12:00:00Z' }
+            { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },
+            { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-06-21T09:00:00Z', notes: 'Job: MT Inspection on Crane Hooks' },
+            { event: 'Created', user: 'Admin', timestamp: '2023-03-01T12:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
 ];
@@ -412,6 +412,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

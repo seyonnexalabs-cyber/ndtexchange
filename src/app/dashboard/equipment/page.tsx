@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -522,18 +522,18 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
                                 <DropdownMenuContent align="end">
                                     {asset.status === 'Available' ? (
                                         <>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
                                         </>
                                     ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                                     )}
 
                                     <DropdownMenuSeparator />
                                     
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -576,18 +576,18 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
                         <DropdownMenuContent align="end">
                             {asset.status === 'Available' ? (
                                 <>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
                                 </>
                             ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                             )}
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
                             <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </CardFooter>
@@ -631,8 +631,10 @@ export default function EquipmentPage() {
     const jobsForCheckout = useMemo(() => jobs.filter(j => ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), []);
 
     const handleEditClick = (equipment: InspectorAsset) => {
-        setEditingEquipment(equipment);
-        setDialogState('edit');
+        setTimeout(() => {
+            setEditingEquipment(equipment);
+            setDialogState('edit');
+        }, 50);
     };
 
     const handleAddClick = () => {
@@ -643,10 +645,8 @@ export default function EquipmentPage() {
     const handleFormSubmit = (values: EquipmentFormValues) => {
         const isAdding = dialogState === 'add';
         
-        // Close the dialog immediately
         setDialogState('closed');
 
-        // Defer the state updates and toast
         setTimeout(() => {
             const historyEvent = isAdding ? 'Created' : 'Updated';
             const historyNotes = isAdding ? 'Item created in inventory.' : 'Item details updated.';
@@ -680,16 +680,28 @@ export default function EquipmentPage() {
     };
 
      const handleCheckOutClick = (equipment: InspectorAsset) => {
-        setTransactionState({ action: 'check-out', equipment });
+        setTimeout(() => {
+            setTransactionState({ action: 'check-out', equipment });
+        }, 50);
     };
 
     const handleCheckInClick = (equipment: InspectorAsset) => {
-        setTransactionState({ action: 'check-in', equipment });
+        setTimeout(() => {
+            setTransactionState({ action: 'check-in', equipment });
+        }, 50);
     };
     
     const handleServiceOutClick = (equipment: InspectorAsset) => {
-        setTransactionState({ action: 'service-out', equipment });
+        setTimeout(() => {
+            setTransactionState({ action: 'service-out', equipment });
+        }, 50);
     };
+    
+    const handleQrClick = (data: { id: string, name: string }) => {
+        setTimeout(() => {
+            setQrCodeData(data);
+        }, 50);
+    }
 
     const handleTransactionSubmit = (values: CheckInFormValues | CheckOutFormValues | ServiceOutFormValues) => {
         const { action, equipment } = transactionState;
@@ -750,10 +762,8 @@ export default function EquipmentPage() {
             notes: notes,
         };
 
-        // Close the dialog immediately to prevent focus issues.
         setTransactionState({ action: null, equipment: null });
 
-        // Defer the state update that causes the main page re-render.
         setTimeout(() => {
             setEquipment(prev => prev.map(eq =>
                 eq.id === equipment.id
@@ -822,7 +832,7 @@ export default function EquipmentPage() {
                     <MobileView 
                         equipment={filteredEquipment} 
                         onEditClick={handleEditClick} 
-                        onQrClick={setQrCodeData}
+                        onQrClick={handleQrClick}
                         onCheckInClick={handleCheckInClick}
                         onCheckOutClick={handleCheckOutClick}
                         onServiceOutClick={handleServiceOutClick}
@@ -831,7 +841,7 @@ export default function EquipmentPage() {
                     <DesktopView 
                         equipment={filteredEquipment} 
                         onEditClick={handleEditClick} 
-                        onQrClick={setQrCodeData}
+                        onQrClick={handleQrClick}
                         onCheckInClick={handleCheckInClick}
                         onCheckOutClick={handleCheckOutClick}
                         onServiceOutClick={handleServiceOutClick}
@@ -936,4 +946,5 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
 

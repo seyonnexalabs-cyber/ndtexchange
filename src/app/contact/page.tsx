@@ -32,7 +32,7 @@ export default function ContactPage() {
 
         <section id="pricing" className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               <PricingCard
                 plan="Client"
                 price="Custom"
@@ -79,23 +79,23 @@ export default function ContactPage() {
                 theme="inspector"
               />
               <PricingCard
-                plan="Enterprise"
-                price="Custom"
-                description="For large organizations with advanced needs."
+                plan="Auditor / Regulator"
+                price="By Invite"
+                description="For independent Level III auditors and regulatory bodies."
                 features={[
-                  "All Client & Provider features",
-                  "Full API access for integrations",
-                  "Single Sign-On (SSO) capabilities",
-                  "Grant and manage auditor access",
-                  "A dedicated Account Manager",
-                  "24/7/365 Premium Support",
+                    "Secure, read-only access to job data",
+                    "Participate in Level III review workflows",
+                    "Tamper-proof audit trail of inspection lifecycle",
+                    "Provide expert oversight and ensure compliance",
+                    "Direct communication with clients",
+                    "Access via client invitation",
                 ]}
                 isFeatured={false}
-                theme="admin"
+                theme="auditor"
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                All plans are billed annually after your 30-day free trial. Pricing is usage-based. Contact us for a detailed quote tailored to your needs. Auditor access is by invitation from Client or Enterprise accounts.
+                All plans are billed annually after your 30-day free trial. Pricing is usage-based. Contact us for a detailed quote tailored to your needs. Auditor access is by invitation from Client accounts.
              </p>
           </div>
         </section>

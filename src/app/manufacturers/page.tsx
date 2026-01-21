@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const manufacturers = [
   {
@@ -185,15 +187,30 @@ const colorClasses = {
 }
 
 export default function ManufacturersPage() {
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-manufacturers');
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
 
       <main className="flex-grow">
-        <section className="py-20 md:py-24 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="relative py-20 md:py-32">
+          <div className="absolute inset-0">
+            {heroImage && (
+              <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={heroImage.imageHint}
+                priority
+              />
+            )}
+            <div className="absolute inset-0 bg-primary/60" />
+          </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                 Leading NDT Equipment Manufacturers
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">

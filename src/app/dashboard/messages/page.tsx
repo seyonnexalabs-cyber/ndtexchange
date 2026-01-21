@@ -12,7 +12,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
+
+const roleStyles: { [key: string]: string } = {
+  client: 'bg-role-client text-role-client-foreground',
+  inspector: 'bg-role-inspector text-role-inspector-foreground',
+  auditor: 'bg-role-auditor text-role-auditor-foreground',
+  admin: 'bg-role-admin text-role-admin-foreground',
+};
+
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
@@ -116,6 +124,7 @@ export default function MessagesPage() {
                             <div className="space-y-6">
                                 {selectedJob.messages?.map((message, index) => {
                                     const myMessage = isMyMessage(message);
+                                    const messageStyle = roleStyles[message.role.toLowerCase()] || 'bg-background border';
                                     return (
                                         <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
                                             {!myMessage && (
@@ -123,15 +132,9 @@ export default function MessagesPage() {
                                                     <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                                 </Avatar>
                                             )}
-                                            <div className={cn(
-                                                "max-w-xs md:max-w-md rounded-lg p-3",
-                                                myMessage ? "bg-primary text-primary-foreground" : "bg-background border"
-                                            )}>
+                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", messageStyle)}>
                                                 <p className="text-sm">{message.message}</p>
-                                                <p className={cn(
-                                                    "text-xs mt-2",
-                                                    myMessage ? "text-primary-foreground/70" : "text-muted-foreground"
-                                                )}>
+                                                <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}
                                                 </p>
                                             </div>

@@ -701,18 +701,22 @@ export default function EquipmentPage() {
             notes: notes,
         };
 
-        setEquipment(prev => prev.map(eq =>
-            eq.id === equipment.id
-                ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] }
-                : eq
-        ));
-
-        toast({
-            title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`,
-            description: `${equipment.name} status has been updated to '${newStatus}'.`,
-        });
-
+        // Close the dialog immediately to prevent focus issues.
         setTransactionState({ action: null, equipment: null });
+
+        // Defer the state update that causes the main page re-render.
+        setTimeout(() => {
+            setEquipment(prev => prev.map(eq =>
+                eq.id === equipment.id
+                    ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] }
+                    : eq
+            ));
+
+            toast({
+                title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`,
+                description: `${equipment.name} status has been updated to '${newStatus}'.`,
+            });
+        }, 50);
     };
 
     const isAddEditDialogOpen = dialogState !== 'closed';

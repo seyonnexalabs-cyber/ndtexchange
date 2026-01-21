@@ -6,12 +6,15 @@ import { CheckCircle, CreditCard, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
-function PricingCard({ plan, price, description, features, isFeatured }: { plan: string; price: string; description: string; features: string[], isFeatured: boolean }) {
-  const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan`;
+function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false }: { plan: string; price: string; description: string; features: string[], isFeatured?: boolean, isCurrent?: boolean }) {
+  const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
+  
   return (
-    <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
+    <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "", isCurrent && "bg-muted")}>
       <CardHeader className="text-center">
+        {isCurrent && <div className="text-sm font-bold text-primary">CURRENT PLAN</div>}
         <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
         <CardDescription>{description}</CardDescription>
         <div className="pt-4">
@@ -30,8 +33,8 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
         </ul>
       </CardContent>
       <CardFooter>
-        <Button asChild className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} variant={isFeatured ? 'default' : 'outline'}>
-          <Link href={mailtoHref}>Contact Sales</Link>
+        <Button asChild className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} variant={isCurrent ? 'outline' : isFeatured ? 'default' : 'outline'} disabled={isCurrent}>
+            {isCurrent ? <Link href="#">This is your current plan</Link> : <Link href={mailtoHref}>Contact Sales to Upgrade</Link>}
         </Button>
       </CardFooter>
     </Card>
@@ -39,13 +42,139 @@ function PricingCard({ plan, price, description, features, isFeatured }: { plan:
 }
 
 
+const ClientPlans = () => (
+    <>
+        <PricingCard
+            plan="Client Basic"
+            price="$99"
+            description="For asset owners with smaller-scale needs."
+            features={[
+                "Up to 100 managed assets",
+                "Secure Document & Data Vault (10GB)",
+                "Post jobs to the marketplace",
+                "Transparent bidding process",
+                "Standard historical reporting",
+                "Email Support",
+            ]}
+            isCurrent={true}
+        />
+        <PricingCard
+            plan="Client Pro"
+            price="$299"
+            description="For growing organizations managing more assets."
+            features={[
+                "Up to 500 managed assets",
+                "Secure Document & Data Vault (50GB)",
+                "All Client Basic features",
+                "Advanced analytics & cost analysis",
+                "Priority email & phone support",
+                "Team management up to 10 users",
+            ]}
+            isFeatured={true}
+        />
+        <PricingCard
+            plan="Enterprise"
+            price="Custom"
+            description="For large organizations with advanced needs."
+            features={[
+                "Unlimited assets & users",
+                "Full API access for integrations",
+                "Single Sign-On (SSO)",
+                "Dedicated Auditor & Regulator portals",
+                "A dedicated Account Manager",
+                "24/7/365 Premium Support",
+            ]}
+        />
+    </>
+);
+
+const ProviderPlans = () => (
+    <>
+        <PricingCard
+            plan="Provider Starter"
+            price="$49"
+            description="For individual inspectors or small teams."
+            features={[
+                "Access to job marketplace",
+                "Submit up to 10 bids per month",
+                "Manage up to 5 technicians",
+                "Digital reporting tools",
+                "Direct client communication",
+            ]}
+            isCurrent={true}
+        />
+        <PricingCard
+            plan="Provider Growth"
+            price="$149"
+            description="For established NDT companies."
+            features={[
+                "Unlimited bids",
+                "Manage up to 25 technicians",
+                "Advanced equipment management",
+                "Calendar & scheduling tools",
+                "Company performance analytics",
+                "Priority email & phone support",
+            ]}
+            isFeatured={true}
+        />
+        <PricingCard
+            plan="Enterprise"
+            price="Custom"
+            description="For large service providers with complex needs."
+            features={[
+                "All Provider Growth features",
+                "Full API access for integrations",
+                "Multi-location management",
+                "Custom branding on reports",
+                "A dedicated Account Manager",
+                "24/7/365 Premium Support",
+            ]}
+        />
+    </>
+);
+
+const AuditorView = ({ constructUrl }: { constructUrl: (url: string) => string }) => (
+    <Card className="col-span-1 md:col-span-2 lg:col-span-3">
+        <CardHeader>
+            <CardTitle>Auditor & Regulator Access</CardTitle>
+            <CardDescription>Your access is managed through Client or Enterprise accounts.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <p className="text-muted-foreground">
+                As an auditor, your firm is typically granted access to specific jobs or assets by a Client company that holds an Enterprise plan. There is no separate subscription plan for auditors. If a client needs to grant you access, they can do so through their Enterprise account settings.
+            </p>
+        </CardContent>
+         <CardFooter>
+            <Button asChild variant="outline">
+                <Link href={constructUrl("/dashboard/settings")}>
+                    Back to Settings
+                </Link>
+            </Button>
+        </CardFooter>
+    </Card>
+);
+
 export default function BillingPage() {
     const searchParams = useSearchParams();
+    const role = searchParams.get('role') || 'client';
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+  const renderPlansByRole = () => {
+    switch(role) {
+        case 'client':
+            return <ClientPlans />;
+        case 'inspector':
+            return <ProviderPlans />;
+        case 'auditor':
+            return <AuditorView constructUrl={constructUrl} />;
+        default:
+             return <ClientPlans />; // Default to client view
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -67,48 +196,7 @@ export default function BillingPage() {
       
       <section id="pricing" className="py-8">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <PricingCard
-              plan="Client"
-              price="Custom"
-              description="For asset owners managing critical infrastructure."
-              features={[
-                "Full Asset Lifecycle Management",
-                "Secure Document & Data Vault",
-                "Post jobs to a global marketplace",
-                "Transparent bidding & awarding process",
-                "Advanced historical reporting",
-                "Flexible usage-based pricing",
-              ]}
-              isFeatured={false}
-            />
-            <PricingCard
-              plan="Service Provider"
-              price="Custom"
-              description="For NDT companies providing inspection services."
-              features={[
-                "Access to exclusive job marketplace",
-                "Submit competitive digital bids",
-                "Team & equipment management tools",
-                "Streamlined digital reporting",
-                "Direct client communication channels",
-                "Priority email & phone support",
-              ]}
-              isFeatured={true}
-            />
-            <PricingCard
-              plan="Enterprise"
-              price="Custom"
-              description="For large organizations with advanced integration, security, and support needs."
-              features={[
-                "All Client & Provider features",
-                "Full API access for custom integrations",
-                "Single Sign-On (SSO) capabilities",
-                "Dedicated Auditor & Regulator portals",
-                "A dedicated Account Manager",
-                "24/7/365 Premium Support",
-              ]}
-              isFeatured={false}
-            />
+            {renderPlansByRole()}
           </div>
            <p className="text-center text-muted-foreground mt-8 text-sm">
               All plans are billed annually. Pricing is usage-based, determined by factors like platform hosting, data storage, and number of users. We do not process payments for jobs. Contact our sales team for a detailed quote tailored to your needs.

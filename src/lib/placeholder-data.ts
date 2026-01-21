@@ -64,12 +64,20 @@ export type Inspection = {
     status: 'Scheduled' | 'Completed' | 'Requires Review';
 };
 
+export type EquipmentHistory = {
+    event: 'Created' | 'Updated' | 'Checked Out' | 'Checked In' | 'Set to Available' | 'Set to Calibration Due' | 'Set to Out of Service';
+    timestamp: string;
+    user: string;
+    notes?: string;
+};
+
 export type InspectorAsset = {
     id: string;
     name: string;
     type: string;
     status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service';
     nextCalibration: string;
+    history?: EquipmentHistory[];
 };
 
 export type Technician = {
@@ -165,10 +173,52 @@ export const clientAssets: Asset[] = [
 ];
 
 export const inspectorAssets: InspectorAsset[] = [
-    { id: 'UTM-1000', name: 'Olympus 45MG', type: 'UT Equipment', status: 'Available', nextCalibration: '2025-01-05' },
-    { id: 'PA-Probe-5MHz', name: '5L64-A2 Probe', type: 'PAUT Probe', status: 'In Use', nextCalibration: '2024-12-11' },
-    { id: 'CAL-BLK-01', name: 'IIW Type 1 Block', type: 'Calibration Block', status: 'Available', nextCalibration: 'N/A' },
-    { id: 'YOKE-02', name: 'Parker B-300S', type: 'Yoke', status: 'Calibration Due', nextCalibration: '2024-07-30' },
+    { 
+        id: 'UTM-1000', 
+        name: 'Olympus 45MG', 
+        type: 'UT Equipment', 
+        status: 'Available', 
+        nextCalibration: '2025-01-05',
+        history: [
+            { event: 'Created', user: 'Admin', timestamp: '2023-01-05T10:00:00Z' },
+            { event: 'Checked In', user: 'Jane Smith', timestamp: '2024-06-25T14:00:00Z', notes: 'Returned from Job-003' },
+            { event: 'Checked Out', user: 'Jane Smith', timestamp: '2024-06-10T08:00:00Z', notes: 'Assigned to Job-003' },
+        ]
+    },
+    { 
+        id: 'PA-Probe-5MHz', 
+        name: '5L64-A2 Probe', 
+        type: 'PAUT Probe', 
+        status: 'In Use', 
+        nextCalibration: '2024-12-11',
+        history: [
+             { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-07-01T09:30:00Z', notes: 'Assigned to Job-004' },
+             { event: 'Created', user: 'Admin', timestamp: '2023-02-10T11:00:00Z' }
+        ]
+    },
+    { 
+        id: 'CAL-BLK-01', 
+        name: 'IIW Type 1 Block', 
+        type: 'Calibration Block', 
+        status: 'Available', 
+        nextCalibration: 'N/A',
+        history: [
+            { event: 'Created', user: 'Admin', timestamp: '2023-01-15T16:00:00Z' }
+        ]
+    },
+    { 
+        id: 'YOKE-02', 
+        name: 'Parker B-300S', 
+        type: 'Yoke', 
+        status: 'Calibration Due', 
+        nextCalibration: '2024-07-30',
+        history: [
+            { event: 'Set to Calibration Due', user: 'System', timestamp: '2024-07-15T00:00:00Z', notes: 'Automatic status change based on calibration date.' },
+            { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Returned from Job-002' },
+            { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-06-21T09:00:00Z', notes: 'Assigned to Job-002' },
+            { event: 'Created', user: 'Admin', timestamp: '2023-03-01T12:00:00Z' }
+        ]
+    },
 ];
 
 export const technicians: Technician[] = [
@@ -362,6 +412,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

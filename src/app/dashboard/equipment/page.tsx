@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, InspectorAsset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -17,11 +18,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from "@/lib/utils";
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
 
 const equipmentIcons = {
     'UTM-1000': <RadioTower className="w-6 h-6 text-muted-foreground" />,
@@ -177,12 +181,13 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 
-const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn }: { 
+const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn, constructUrl }: { 
     equipment: InspectorAsset[], 
     onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
     onCheckOut: (id: string) => void,
     onCheckIn: (id: string) => void,
+    constructUrl: (base: string) => string;
 }) => (
     <Card>
         <Table>
@@ -219,9 +224,10 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn 
                                 <DropdownMenuContent align="end">
                                     {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOut(asset.id)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
                                     {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckIn(asset.id)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
+                                    <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2" /> Edit</DropdownMenuItem>
                                     <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onEditClick(asset)}>Edit</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -232,12 +238,13 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn 
     </Card>
 );
 
-const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn }: { 
+const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn, constructUrl }: { 
     equipment: InspectorAsset[], 
     onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
     onCheckOut: (id: string) => void,
     onCheckIn: (id: string) => void,
+    constructUrl: (base: string) => string;
 }) => (
      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {equipment.map(asset => (
@@ -262,9 +269,10 @@ const MobileView = ({ equipment, onEditClick, onQrClick, onCheckOut, onCheckIn }
                         <DropdownMenuContent align="end">
                             {asset.status === 'Available' && <DropdownMenuItem onClick={() => onCheckOut(asset.id)}><LogOut className="mr-2"/> Check Out</DropdownMenuItem>}
                             {asset.status === 'In Use' && <DropdownMenuItem onClick={() => onCheckIn(asset.id)}><LogIn className="mr-2"/> Check In</DropdownMenuItem>}
+                            <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2"/> Edit</DropdownMenuItem>
                             <DropdownMenuSeparator />
+                             <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2"/>View History</Link></DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEditClick(asset)}>Edit</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </CardFooter>
@@ -281,9 +289,15 @@ export default function EquipmentPage() {
     const [editingEquipment, setEditingEquipment] = useState<Partial<InspectorAsset> | undefined>(undefined);
     const isMobile = useIsMobile();
     const { toast } = useToast();
+    const searchParams = useSearchParams();
     
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     const filteredEquipment = useMemo(() => {
         return equipment.filter(item => {
@@ -309,6 +323,12 @@ export default function EquipmentPage() {
     };
 
     const handleFormSubmit = (values: EquipmentFormValues) => {
+        const historyEntry = {
+            event: dialogState === 'add' ? 'Created' : 'Updated',
+            user: 'Jane Smith', // In a real app, this would be the current user
+            timestamp: new Date().toISOString(),
+        };
+
         if(dialogState === 'add') {
              toast({
                 title: "Equipment Added",
@@ -316,7 +336,8 @@ export default function EquipmentPage() {
             });
             const newEquipment: InspectorAsset = {
                 ...values,
-                nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+                nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
+                history: [historyEntry],
             };
             setEquipment(prev => [newEquipment, ...prev]);
         } else {
@@ -326,19 +347,34 @@ export default function EquipmentPage() {
             });
             setEquipment(prev => prev.map(eq => eq.id === values.id ? {
                 ...values,
-                 nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+                 nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
+                 history: [historyEntry, ...(eq.history || [])],
             } : eq));
         }
         setDialogState('closed');
     };
 
      const handleCheckOut = (id: string) => {
-        setEquipment(prev => prev.map(eq => eq.id === id ? { ...eq, status: 'In Use' } : eq));
+        setEquipment(prev => prev.map(eq => eq.id === id ? { 
+            ...eq, 
+            status: 'In Use',
+            history: [
+                { event: 'Checked Out', user: 'Jane Smith', timestamp: new Date().toISOString() },
+                ...(eq.history || [])
+            ]
+        } : eq));
         toast({ title: "Equipment Checked Out", description: "Status set to 'In Use'." });
     };
 
     const handleCheckIn = (id: string) => {
-        setEquipment(prev => prev.map(eq => eq.id === id ? { ...eq, status: 'Available' } : eq));
+        setEquipment(prev => prev.map(eq => eq.id === id ? { 
+            ...eq, 
+            status: 'Available',
+            history: [
+                { event: 'Checked In', user: 'Jane Smith', timestamp: new Date().toISOString() },
+                ...(eq.history || [])
+            ]
+        } : eq));
         toast({ title: "Equipment Checked In", description: "Status set to 'Available'." });
     };
     
@@ -390,6 +426,7 @@ export default function EquipmentPage() {
                         onQrClick={setQrCodeData}
                         onCheckIn={handleCheckIn}
                         onCheckOut={handleCheckOut}
+                        constructUrl={constructUrl}
                     /> : 
                     <DesktopView 
                         equipment={filteredEquipment} 
@@ -397,6 +434,7 @@ export default function EquipmentPage() {
                         onQrClick={setQrCodeData}
                         onCheckIn={handleCheckIn}
                         onCheckOut={handleCheckOut}
+                        constructUrl={constructUrl}
                     />
             ) : (
                 <div className="text-center p-10 border rounded-lg">
@@ -466,3 +504,4 @@ export default function EquipmentPage() {
         </div>
     );
 }
+

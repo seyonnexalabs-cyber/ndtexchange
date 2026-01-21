@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientAssets } from '@/lib/placeholder-data';
+import { jobs, clientAssets, inspectorAssets } from '@/lib/placeholder-data';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,11 @@ export const useQRScanner = () => {
   return context;
 };
 
+interface ConfirmationState {
+  id: string;
+  type: 'asset' | 'equipment';
+  name: string;
+}
 
 const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onScan: (id: string) => void }) => {
     const [scannedId, setScannedId] = useState('');
@@ -126,9 +131,9 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
         }}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Scan Asset QR Code</DialogTitle>
+                    <DialogTitle>Scan QR Code</DialogTitle>
                     <DialogDescription>
-                        Point your camera at a QR code. If scanning is not working, you can enter the Asset ID manually.
+                        Point your camera at a QR code. If scanning is not working, you can enter the ID manually.
                     </DialogDescription>
                 </DialogHeader>
                  <form onSubmit={handleSubmit}>
@@ -151,7 +156,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
 
 
                         <Input 
-                            placeholder="Enter Asset ID manually (e.g., ASSET-001)"
+                            placeholder="Enter Asset or Equipment ID manually"
                             value={scannedId}
                             onChange={(e) => setScannedId(e.target.value)}
                             autoFocus={hasCameraPermission === false}
@@ -159,7 +164,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-                        <Button type="submit">Find Asset</Button>
+                        <Button type="submit">Find Item</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
@@ -167,88 +172,104 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
     );
 };
 
-const ConfirmationDialog = ({ assetId, onConfirm, onCancel }: { assetId: string | null, onConfirm: (id: string) => void, onCancel: () => void }) => {
-    const asset = clientAssets.find(a => a.id === assetId);
-
-    if (!assetId || !asset) {
+const ConfirmationDialog = ({ item, onConfirm, onCancel }: { item: ConfirmationState | null, onConfirm: (id: string, type: 'asset' | 'equipment') => void, onCancel: () => void }) => {
+    if (!item) {
         return null;
     }
+    
+    const typeName = item.type.charAt(0).toUpperCase() + item.type.slice(1);
 
     return (
-        <AlertDialog open={!!assetId} onOpenChange={(open) => !open && onCancel()}>
+        <AlertDialog open={!!item} onOpenChange={(open) => !open && onCancel()}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Asset Found</AlertDialogTitle>
+                    <AlertDialogTitle>{typeName} Found</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Asset "{asset.name}" ({assetId}) was found. Would you like to navigate to its details page?
+                        {typeName} "{item.name}" ({item.id}) was found. Would you like to navigate to its details page?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onConfirm(assetId)}>Go to Asset</AlertDialogAction>
+                    <AlertDialogAction onClick={() => onConfirm(item.id, item.type)}>Go to {typeName}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     );
 };
 
-
 export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
   const [isScanOpen, setScanOpen] = useState(false);
-  const [confirmationAssetId, setConfirmationAssetId] = useState<string | null>(null);
+  const [confirmationState, setConfirmationState] = useState<ConfirmationState | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
 
   const handleQrScan = (id: string) => {
-      setScanOpen(false); // Close the scanning dialog
+      setScanOpen(false);
 
-      const assetExists = clientAssets.some(asset => asset.id === id);
-      if (!assetExists) {
-          toast({
-              variant: 'destructive',
-              title: "Asset Not Found",
-              description: `No asset with ID "${id}" could be found.`,
-          });
+      const asset = clientAssets.find(asset => asset.id === id);
+      if (asset) {
+          setConfirmationState({ id, type: 'asset', name: asset.name });
           return;
       }
-      setConfirmationAssetId(id);
+
+      const equipment = inspectorAssets.find(equip => equip.id === id);
+      if (equipment) {
+          setConfirmationState({ id, type: 'equipment', name: equipment.name });
+          return;
+      }
+
+      toast({
+          variant: 'destructive',
+          title: "Item Not Found",
+          description: `No asset or equipment with ID "${id}" could be found.`,
+      });
   };
   
-  const handleConfirmRedirect = (id: string) => {
+  const handleConfirmRedirect = (id: string, type: 'asset' | 'equipment') => {
       const constructUrl = (base: string) => {
           const params = new URLSearchParams(searchParams.toString());
           return `${base}?${params.toString()}`;
       }
 
-      if (role === 'inspector') {
-          // For this simulation, we'll assume the inspector belongs to provider-03 (TEAM, Inc.)
-          const inspectorProviderId = 'provider-03';
-          
-          const hasAccess = jobs.some(job => 
-              job.assetIds?.includes(id) && job.providerId === inspectorProviderId
-          );
+      if (type === 'asset') {
+            if (role === 'inspector') {
+                const inspectorProviderId = 'provider-03';
+                const hasAccess = jobs.some(job => 
+                    job.assetIds?.includes(id) && job.providerId === inspectorProviderId
+                );
 
-          if (hasAccess) {
-              router.push(constructUrl(`/dashboard/assets/${id}`));
+                if (hasAccess) {
+                    router.push(constructUrl(`/dashboard/assets/${id}`));
+                } else {
+                    toast({
+                            variant: 'destructive',
+                            title: "Access Denied",
+                            description: `Your company does not have a work history for asset "${id}".`,
+                        });
+                }
+            } else {
+                router.push(constructUrl(`/dashboard/assets/${id}`));
+            }
+      } else if (type === 'equipment') {
+          if (role === 'inspector') {
+                router.push(constructUrl(`/dashboard/equipment/${id}`));
           } else {
-               toast({
-                    variant: 'destructive',
-                    title: "Access Denied",
-                    description: `Your company does not have a work history for asset "${id}".`,
-                });
+              toast({
+                  variant: 'destructive',
+                  title: "Access Denied",
+                  description: `Only inspectors can view equipment details.`,
+              });
           }
-      } else { // For client or other roles, allow access
-          router.push(constructUrl(`/dashboard/assets/${id}`));
       }
-      setConfirmationAssetId(null);
+      
+      setConfirmationState(null);
   };
 
   const handleCancelRedirect = () => {
-    setConfirmationAssetId(null);
+    setConfirmationState(null);
   };
-
 
   return (
     <QRScannerContext.Provider value={{ setScanOpen }}>
@@ -259,7 +280,7 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
           onScan={handleQrScan}
       />
       <ConfirmationDialog
-        assetId={confirmationAssetId}
+        item={confirmationState}
         onConfirm={handleConfirmRedirect}
         onCancel={handleCancelRedirect}
       />

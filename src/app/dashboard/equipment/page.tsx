@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
+import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 
 
 const equipmentIcons = {
@@ -606,6 +607,7 @@ export default function EquipmentPage() {
     const isMobile = useIsMobile();
     const { toast } = useToast();
     const searchParams = useSearchParams();
+    const { setScanOpen } = useQRScanner();
     
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -801,7 +803,13 @@ export default function EquipmentPage() {
                     <Wrench/>
                     Equipment
                 </h1>
-                 <Button onClick={handleAddClick}>Add New Equipment</Button>
+                 <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setScanOpen(true)}>
+                        <QrCode className="mr-2 h-4 w-4"/>
+                        Scan QR
+                    </Button>
+                    <Button onClick={handleAddClick}>Add New Equipment</Button>
+                </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -825,10 +833,6 @@ export default function EquipmentPage() {
                             <SelectItem value="Out of Service">Out of Service</SelectItem>
                         </SelectContent>
                     </Select>
-                     <Button variant="outline">
-                        <QrCode className="mr-2 h-4 w-4"/>
-                        Scan QR
-                    </Button>
                 </div>
             </div>
 
@@ -948,6 +952,7 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
 
 
 

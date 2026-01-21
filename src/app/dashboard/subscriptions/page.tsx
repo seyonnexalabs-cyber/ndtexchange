@@ -31,14 +31,14 @@ const paymentStatusStyles: { [key in Payment['status']]: 'success' | 'destructiv
     Failed: 'destructive',
 };
 
-const planUserLimits = {
+const planUserLimits: {[key: string]: number} = {
     'Client': 10,
     'Provider': 50,
     'Enterprise': 200,
     'Free Trial': 5,
 };
 
-const planStorageLimits = {
+const planStorageLimits: {[key: string]: number} = {
     'Client': 20,
     'Provider': 100,
     'Enterprise': 500,
@@ -87,8 +87,8 @@ const SubscriptionsDesktopView = ({
             </TableHeader>
             <TableBody>
                 {allSubscriptions.map(sub => {
-                    const userLimit = planUserLimits[sub.plan];
-                    const storageLimit = planStorageLimits[sub.plan];
+                    const userLimit = planUserLimits[sub.plan] || 1;
+                    const storageLimit = planStorageLimits[sub.plan] || 1;
                     
                     const { link, text, variant } = getMailtoLink(sub);
                     const showContactButton = sub.status !== 'Active' && link !== '#';
@@ -157,8 +157,8 @@ const SubscriptionsMobileView = ({
 }) => (
     <div className="space-y-4">
         {allSubscriptions.map(sub => {
-            const userLimit = planUserLimits[sub.plan];
-            const storageLimit = planStorageLimits[sub.plan];
+            const userLimit = planUserLimits[sub.plan] || 1;
+            const storageLimit = planStorageLimits[sub.plan] || 1;
             
             const { link, text, variant } = getMailtoLink(sub);
             const showContactButton = sub.status !== 'Active' && link !== '#';
@@ -319,7 +319,7 @@ export default function SubscriptionsPage() {
     const bulkMailSummary = useMemo(() => {
         if (!isBulkMailOpen) return null;
 
-        const summary = {
+        const summary: {[key: string]: {count: number, template: string}} = {
             'Trialing': { count: 0, template: 'Trial Ending Reminder' },
             'Past Due': { count: 0, template: 'Past Due Notice' },
             'Payment Failed': { count: 0, template: 'Payment Failed Notice' },
@@ -355,22 +355,25 @@ export default function SubscriptionsPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <DollarSign/>
-                    Subscription Management
-                </h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <DollarSign/>
+                        Subscription Management
+                    </h1>
+                </div>
                 {activeTab === 'subscriptions' && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                          <Button
                             variant="outline"
                             disabled={selectedSubscriptions.length === 0}
                             onClick={() => setBulkMailOpen(true)}
+                            className="w-full sm:w-auto"
                         >
                             <Mail className="mr-2 h-4 w-4" />
                             Send Bulk Email ({selectedSubscriptions.length})
                         </Button>
-                        <Button>Create Subscription</Button>
+                        <Button className="w-full sm:w-auto">Create Subscription</Button>
                     </div>
                 )}
             </div>

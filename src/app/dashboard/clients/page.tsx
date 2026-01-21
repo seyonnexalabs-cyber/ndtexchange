@@ -191,12 +191,14 @@ export default function ClientsPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Users/>
-                    Client Management
-                </h1>
-                <Button onClick={() => setAddClientOpen(true)}>Create Client Company</Button>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <Users/>
+                        Client Management
+                    </h1>
+                </div>
+                <Button onClick={() => setAddClientOpen(true)} className="w-full sm:w-auto">Create Client Company</Button>
             </div>
             
             {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}

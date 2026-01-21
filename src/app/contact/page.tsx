@@ -174,13 +174,13 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
 }) {
   const themeStyles: { [key: string]: React.CSSProperties } = {
     client: {
-      '--primary': '215 50% 48%',
-      '--accent': '174 63% 45%',
+      '--primary': '225 60% 48%',
+      '--accent': '170 70% 40%',
       '--accent-foreground': '0 0% 98%',
     } as React.CSSProperties,
     inspector: {
-      '--primary': '225 60% 48%',
-      '--accent': '170 70% 40%',
+      '--primary': '215 50% 48%',
+      '--accent': '174 63% 45%',
       '--accent-foreground': '0 0% 98%',
     } as React.CSSProperties,
     auditor: {

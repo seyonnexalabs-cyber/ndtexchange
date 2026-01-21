@@ -341,6 +341,11 @@ const SubscriptionSettings = () => {
         users: 3,
         userLimit: 5,
     });
+    const searchParams = useSearchParams();
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     useEffect(() => {
         // Use a fixed start date for consistent demonstration
@@ -438,7 +443,7 @@ const SubscriptionSettings = () => {
             </CardContent>
             <CardFooter className="gap-2">
                  <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Link href="/contact">Upgrade to a Paid Plan</Link>
+                    <Link href={constructUrl("/dashboard/billing")}>Upgrade to a Paid Plan</Link>
                 </Button>
                 <Button variant="outline">View Billing History</Button>
             </CardFooter>

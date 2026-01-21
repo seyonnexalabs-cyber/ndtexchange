@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import {
@@ -173,10 +175,6 @@ const AppSidebar = () => {
         return allItems.find(item => item.href === '/dashboard');
     }
     
-    // Exact match first
-    const exactMatch = allItems.find(item => item.href === pathname);
-    if(exactMatch) return exactMatch;
-
     const matchingItems = allItems.filter(
       (item) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
     );

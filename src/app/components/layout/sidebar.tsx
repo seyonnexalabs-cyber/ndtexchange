@@ -9,9 +9,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarMenuBadge,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
+  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -33,22 +31,15 @@ import {
   Star,
   PlusCircle,
   LifeBuoy,
-  ChevronRight,
-  DollarSign,
-  History,
   CreditCard,
+  History,
+  DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 import { useMessages } from '@/app/components/layout/messages-provider';
 
 
@@ -60,48 +51,130 @@ const userDetails = {
   common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT Exchange' },
 };
 
-const allMenuItems = [
-  // Common
-  { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy, roles: ['client', 'inspector', 'auditor'] },
-  
-  // Client
-  { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building, roles: ['client'] },
-  { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle, roles: ['client'] },
-  { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
-  { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: ShieldCheck, roles: ['client'] },
-  { id: 'find-auditors', href: '/dashboard/find-auditors', label: 'Find Auditors', icon: Eye, roles: ['client'] },
-  
-  // Common across roles but handled differently or with different data
-  { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
-  { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, roles: ['client', 'inspector'] },
-  { id: 'messages', label: 'Messages', icon: MessageSquare, roles: ['client', 'inspector', 'auditor']},
-  { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign, roles: ['client', 'inspector', 'admin', 'auditor'] },
-  
-  // Admin / Auditor Specific
-  { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList, roles: ['admin'] },
-
-  // Inspector
-  { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search, roles: ['inspector'] },
-  { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel, roles: ['inspector'] },
-  { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['inspector'] },
-  { id: 'technicians', href: '/dashboard/technicians', label: 'Technicians', icon: Users, roles: ['inspector'] },
-  { id: 'equipment', href: '/dashboard/equipment', label: 'Equipment', icon: Wrench, roles: ['inspector'] },
-  
-  // Admin
-  { id: 'clients', href: '/dashboard/clients', label: 'Clients', icon: Users, roles: ['admin'] },
-  { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: ShieldCheck, roles: ['admin'] },
-  { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase, roles: ['admin'] },
-  { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star, roles: ['admin'] },
-  { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, roles: ['admin'] },
-  { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
-  { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: DollarSign, roles: ['admin'] },
-  
-  // Auditor
-  { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList, roles: ['auditor'] },
-  { id: 'audit-history', href: '/dashboard/audit-history', label: 'Audit History', icon: History, roles: ['auditor'] },
+const clientMenu = [
+  {
+    title: 'Workspace',
+    items: [
+      { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building },
+      { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
+    ]
+  },
+  {
+    title: 'Marketplace',
+    items: [
+      { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: ShieldCheck },
+      { id: 'find-auditors', href: '/dashboard/find-auditors', label: 'Find Auditors', icon: Eye },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
+    ]
+  },
+  {
+    title: 'Tools',
+    items: [
+      { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
+      { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
+      { id: 'messages', label: 'Messages', icon: MessageSquare },
+      { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
+    ]
+  },
+  {
+    title: 'Account',
+    items: [
+      { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy },
+      { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ]
+  }
 ];
+
+const inspectorMenu = [
+    {
+    title: 'Workspace',
+    items: [
+      { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
+      { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel },
+      { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search },
+    ]
+  },
+  {
+    title: 'Company',
+    items: [
+      { id: 'technicians', href: '/dashboard/technicians', label: 'Technicians', icon: Users },
+      { id: 'equipment', href: '/dashboard/equipment', label: 'Equipment', icon: Wrench },
+    ]
+  },
+  {
+    title: 'Tools',
+    items: [
+      { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
+      { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
+      { id: 'messages', label: 'Messages', icon: MessageSquare },
+      { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
+    ]
+  },
+   {
+    title: 'Account',
+    items: [
+      { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy },
+      { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ]
+  }
+];
+
+const adminMenu = [
+  {
+    title: 'Platform',
+    items: [
+      { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
+      { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star },
+    ]
+  },
+  {
+    title: 'Management',
+    items: [
+      { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users },
+      { id: 'clients', href: '/dashboard/clients', label: 'Clients', icon: Building },
+      { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: ShieldCheck },
+      { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
+      { id: 'inspections', href: '/dashboard/inspections', label: 'Inspections', icon: ClipboardList },
+      { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
+      { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
+    ]
+  },
+  {
+    title: 'Account',
+    items: [
+      { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ]
+  }
+];
+
+const auditorMenu = [
+   {
+    title: 'Workspace',
+    items: [
+      { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList },
+      { id: 'audit-history', href: '/dashboard/audit-history', label: 'Audit History', icon: History },
+    ]
+  },
+  {
+    title: 'Tools',
+    items: [
+      { id: 'messages', label: 'Messages', icon: MessageSquare },
+      { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
+    ]
+  },
+  {
+    title: 'Account',
+    items: [
+      { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy },
+      { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ]
+  }
+];
+
 
 const AppSidebar = () => {
   const pathname = usePathname();
@@ -127,46 +200,20 @@ const AppSidebar = () => {
   }, [role]);
 
   const menuItems = useMemo(() => {
-    // A bit of sorting to keep a sensible order
-    const labelOrder = [
-        'Dashboard', 
-        // Client
-        'My Assets', 'My Jobs', 'Find Providers', 'Find Auditors', 'Post New Job',
-        // Inspector
-        'Find Jobs', 'My Bids', 'Technicians', 'Equipment', 
-        // Admin
-        'Clients', 'Providers', 'All Jobs', 'Reviews', 'Analytics', 'Inspections', 'Users', 'Subscriptions', 
-        // Auditor
-        'Audit Queue', 'Audit History',
-        // Common across multiple roles
-        'Reports', 'Calendar', 'Messages', 'Payments',
-        // Common last items
-        'Support',
-        'Settings'
-    ];
-
     if (!role) return [];
-
-    const filteredItems = allMenuItems.filter(item => {
-        return item.roles.includes(role);
-    });
-
-    return filteredItems
-        .sort((a, b) => {
-            const aIndex = labelOrder.indexOf(a.label);
-            const bIndex = labelOrder.indexOf(b.label);
-            if (aIndex === -1 && bIndex === -1) return a.label.localeCompare(b.label);
-            if (aIndex === -1) return 1;
-            if (bIndex === -1) return -1;
-            return aIndex - bIndex;
-        });
-
+    switch (role) {
+      case 'client': return clientMenu;
+      case 'inspector': return inspectorMenu;
+      case 'admin': return adminMenu;
+      case 'auditor': return auditorMenu;
+      default: return [];
+    }
   }, [role]);
 
   const activeItem = useMemo(() => {
     if (!pathname || !menuItems.length) return null;
 
-    const allItems = menuItems.flatMap(item => (item as any).children ? [(item as any), ...(item as any).children] : [item]);
+    const allItems = menuItems.flatMap(group => group.items);
 
     if (pathname === '/dashboard') {
         return allItems.find(item => item.href === '/dashboard');
@@ -216,75 +263,45 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((item: any) => {
-            const hasChildren = item.children && item.children.length > 0;
-            if (hasChildren) {
-              const isChildActive = item.children!.some((child: any) => child.id === activeItem?.id);
-              return (
-                <Collapsible key={item.id} asChild>
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        isActive={isChildActive}
-                        tooltip={{ children: item.label }}
-                        className="w-full group"
-                      >
-                         <div className="flex items-center gap-2">
+          {menuItems.map((group, groupIndex) => (
+            <div key={group.title}>
+              <h3 className="px-3 py-2 text-xs font-bold uppercase text-card-foreground/70 tracking-wider">
+                {group.title}
+              </h3>
+              {group.items.map((item: any) => {
+                if (item.id === 'messages') {
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          onClick={() => setMessagesOpen(true)}
+                          tooltip={{ children: item.label }}
+                        >
                           <item.icon />
                           <span>{item.label}</span>
-                        </div>
-                        <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90" />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.children!.map((child: any) => (
-                          <SidebarMenuSubItem key={child.id}>
-                            <SidebarMenuSubButton asChild isActive={child.id === activeItem?.id}>
-                              <Link href={child.href ? constructUrl(child.href) : '#'}>
-                                <child.icon />
-                                <span>{child.label}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
-              );
-            }
-            
-            if (item.id === 'messages') {
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                }
+
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
-                      onClick={() => setMessagesOpen(true)}
+                      asChild
+                      isActive={item.id === activeItem?.id}
                       tooltip={{ children: item.label }}
                     >
-                      <item.icon />
-                      <span>{item.label}</span>
+                      <Link href={item.href ? constructUrl(item.href) : '#'}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                        {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
-            }
-
-            return (
-              <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={item.id === activeItem?.id}
-                  tooltip={{ children: item.label }}
-                >
-                  <Link href={item.href ? constructUrl(item.href) : '#'}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                    {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+              })}
+              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-2" />}
+            </div>
+          ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border">

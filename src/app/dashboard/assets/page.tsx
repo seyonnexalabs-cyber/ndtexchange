@@ -16,35 +16,50 @@ import { useSearch } from "@/app/components/layout/search-provider";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
     type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
-    location: z.string().min(2, 'Location is required.'),
+    location: z.string({ required_error: 'Please select a location or add a new one.'}),
+    newLocation: z.string().optional(),
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
     nextInspection: z.date(),
+    documents: z.any().optional(),
+}).refine(data => {
+    if (data.location === '__add_new__') {
+        return data.newLocation && data.newLocation.length > 2;
+    }
+    return true;
+}, {
+    message: 'New location name must be at least 3 characters.',
+    path: ['newLocation'],
 });
 
-const AssetForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: z.infer<typeof assetSchema>) => void }) => {
+const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSubmit: (values: z.infer<typeof assetSchema>) => void, assets: Asset[] }) => {
     const form = useForm<z.infer<typeof assetSchema>>({
         resolver: zodResolver(assetSchema),
         defaultValues: {
             name: '',
             type: 'Tank',
-            location: '',
             status: 'Operational',
             nextInspection: new Date(),
         }
     });
+
+    const [showNewLocation, setShowNewLocation] = useState(false);
+    const uniqueLocations = useMemo(() => {
+        const allLocations = assets.map(asset => asset.location);
+        return [...new Set(allLocations)];
+    }, [assets]);
 
     return (
         <Form {...form}>
@@ -113,13 +128,37 @@ const AssetForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (va
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Location</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Refinery A, Section 2" {...field} />
-                            </FormControl>
+                            <Select onValueChange={(value) => {
+                                field.onChange(value);
+                                setShowNewLocation(value === '__add_new__');
+                            }} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger><SelectValue placeholder="Select an existing location" /></SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {uniqueLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                                    <SelectItem value="__add_new__">+ Add a new location</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+                 {showNewLocation && (
+                    <FormField
+                        control={form.control}
+                        name="newLocation"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>New Location Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Warehouse B, Section 3" {...field} autoFocus />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <FormField
                     control={form.control}
                     name="nextInspection"
@@ -158,6 +197,22 @@ const AssetForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (va
                             </PopoverContent>
                         </Popover>
                         <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="documents"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Attach Documents (Optional)</FormLabel>
+                            <FormControl>
+                                <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
+                            </FormControl>
+                            <FormDescription>
+                                Attach initial drawings, photos, or certificates.
+                            </FormDescription>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -317,21 +372,41 @@ export default function AssetsPage() {
     const role = searchParams.get('role') || 'client';
 
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
+        const finalLocation = values.location === '__add_new__' ? values.newLocation! : values.location;
+
         const newAsset: Asset = {
             id: `ASSET-${String(currentAssets.length + 1).padStart(3, '0')}`,
             name: values.name,
             type: values.type,
-            location: values.location,
+            location: finalLocation,
             status: values.status,
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
         };
         
-        setCurrentAssets(prevAssets => [newAsset, ...prevAssets]);
+        setCurrentAssets(prevAssets => {
+            const newAssets = [newAsset, ...prevAssets];
+            // Sort by location then name to keep things organized
+            newAssets.sort((a, b) => {
+                if (a.location < b.location) return -1;
+                if (a.location > b.location) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            return newAssets;
+        });
 
         toast({
             title: "Asset Created",
             description: `${values.name} has been added to your asset list.`,
         });
+
+        if (values.documents && values.documents.length > 0) {
+            console.log("Uploaded documents: ", values.documents);
+            toast({
+                title: "Documents Attached",
+                description: `${values.documents.length} document(s) were attached to the new asset. (This is a simulation)`,
+            });
+        }
+
         setAddAssetOpen(false);
     };
 
@@ -373,6 +448,7 @@ export default function AssetsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <AssetForm
+                        assets={currentAssets}
                         onSubmit={handleFormSubmit}
                         onCancel={() => setAddAssetOpen(false)}
                     />

@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -36,7 +36,7 @@ const equipmentIcons = {
 };
 
 const equipmentSchema = z.object({
-  id: z.string().min(2, "ID is required."),
+  id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
   type: z.string().min(2, "Type must be at least 2 characters."),
   status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
@@ -74,31 +74,32 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
     const form = useForm<EquipmentFormValues>({
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
-            id: '',
             name: "",
             type: "",
             status: "Available",
             ...defaultValues,
-            nextCalibration: defaultValues?.nextCalibration || new Date(),
+            nextCalibration: defaultValues?.nextCalibration ? new Date(defaultValues.nextCalibration) : new Date(),
         }
     });
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="id"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Equipment ID</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., UTM-1001" {...field} disabled={!!defaultValues?.id}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {defaultValues?.id && (
+                    <FormField
+                        control={form.control}
+                        name="id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Equipment ID</FormLabel>
+                                <FormControl>
+                                    <Input {...field} readOnly className="bg-muted cursor-not-allowed" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
                     name="name"
@@ -522,18 +523,18 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
                                 <DropdownMenuContent align="end">
                                     {asset.status === 'Available' ? (
                                         <>
-                                            <DropdownMenuItem onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
                                         </>
                                     ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                                        <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                                     )}
 
                                     <DropdownMenuSeparator />
                                     
-                                    <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -576,18 +577,18 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
                         <DropdownMenuContent align="end">
                             {asset.status === 'Available' ? (
                                 <>
-                                    <DropdownMenuItem onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
                                 </>
                             ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                                <DropdownMenuItem onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                             )}
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
                             <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </CardFooter>
@@ -645,7 +646,7 @@ export default function EquipmentPage() {
     const handleFormSubmit = (values: EquipmentFormValues) => {
         const isAdding = dialogState === 'add';
         
-        setDialogState('closed');
+        closeAddEditDialog();
 
         setTimeout(() => {
             const historyEvent = isAdding ? 'Created' : 'Updated';
@@ -658,14 +659,17 @@ export default function EquipmentPage() {
             };
 
             if(isAdding) {
+                const newId = `EQ-${Date.now().toString().slice(-6)}`;
                 const newEquipment: InspectorAsset = {
                     ...values,
+                    id: newId,
                     nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
                     history: [historyEntry],
                 };
                 setEquipment(prev => [newEquipment, ...prev]);
             } else {
                 setEquipment(prev => prev.map(eq => eq.id === values.id ? {
+                    ...(eq as InspectorAsset),
                     ...values,
                      nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
                      history: [historyEntry, ...(eq.history || [])],
@@ -705,66 +709,67 @@ export default function EquipmentPage() {
 
     const handleTransactionSubmit = (values: CheckInFormValues | CheckOutFormValues | ServiceOutFormValues) => {
         const { action, equipment } = transactionState;
-        if (!equipment || !action) return;
-
-        let notes = '';
-        let newStatus: InspectorAsset['status'] = equipment.status;
-        let historyEvent: EquipmentHistory['event'];
-
-        if (action === 'check-in') {
-            const formValues = values as CheckInFormValues;
-            notes = [
-                formValues.notes,
-                `Condition: ${formValues.condition}`,
-                formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`
-            ].filter(Boolean).join('. ');
-
-            switch (formValues.condition) {
-                case 'Damaged':
-                    newStatus = 'Out of Service';
-                    break;
-                case 'Requires Calibration':
-                    newStatus = 'Calibration Due';
-                    break;
-                default:
-                    newStatus = 'Available';
-                    break;
-            }
-            historyEvent = 'Checked In';
-
-        } else if (action === 'check-out') {
-            const formValues = values as CheckOutFormValues;
-            const jobTitle = jobs.find(j => j.id === formValues.jobId)?.title || formValues.jobId;
-            notes = [
-                formValues.notes,
-                `Job: ${jobTitle}`
-            ].filter(Boolean).join('. ');
-            newStatus = 'In Use';
-            historyEvent = 'Checked Out';
-        } else { // service-out
-             const formValues = values as ServiceOutFormValues;
-            notes = [
-                `Service: ${formValues.serviceType} with ${formValues.vendor}`,
-                formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`,
-                formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`,
-                formValues.vendorContactPerson && `Contact: ${formValues.vendorContactPerson}${formValues.vendorContactEmail ? ` (${formValues.vendorContactEmail})` : ''}`,
-                formValues.notes,
-            ].filter(Boolean).join('. ');
-            newStatus = 'Under Service';
-            historyEvent = 'Checked Out for Service';
-        }
-
-
-        const newHistoryEntry: EquipmentHistory = {
-            event: historyEvent!,
-            user: 'Jane Smith',
-            timestamp: new Date().toISOString(),
-            notes: notes,
-        };
-
-        setTransactionState({ action: null, equipment: null });
+        
+        closeTransactionDialog();
 
         setTimeout(() => {
+            if (!equipment || !action) return;
+
+            let notes = '';
+            let newStatus: InspectorAsset['status'] = equipment.status;
+            let historyEvent: EquipmentHistory['event'];
+
+            if (action === 'check-in') {
+                const formValues = values as CheckInFormValues;
+                notes = [
+                    formValues.notes,
+                    `Condition: ${formValues.condition}`,
+                    formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`
+                ].filter(Boolean).join('. ');
+
+                switch (formValues.condition) {
+                    case 'Damaged':
+                        newStatus = 'Out of Service';
+                        break;
+                    case 'Requires Calibration':
+                        newStatus = 'Calibration Due';
+                        break;
+                    default:
+                        newStatus = 'Available';
+                        break;
+                }
+                historyEvent = 'Checked In';
+
+            } else if (action === 'check-out') {
+                const formValues = values as CheckOutFormValues;
+                const jobTitle = jobs.find(j => j.id === formValues.jobId)?.title || formValues.jobId;
+                notes = [
+                    formValues.notes,
+                    `Job: ${jobTitle}`
+                ].filter(Boolean).join('. ');
+                newStatus = 'In Use';
+                historyEvent = 'Checked Out';
+            } else { // service-out
+                 const formValues = values as ServiceOutFormValues;
+                notes = [
+                    `Service: ${formValues.serviceType} with ${formValues.vendor}`,
+                    formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`,
+                    formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`,
+                    formValues.vendorContactPerson && `Contact: ${formValues.vendorContactPerson}${formValues.vendorContactEmail ? ` (${formValues.vendorContactEmail})` : ''}`,
+                    formValues.notes,
+                ].filter(Boolean).join('. ');
+                newStatus = 'Under Service';
+                historyEvent = 'Checked Out for Service';
+            }
+
+
+            const newHistoryEntry: EquipmentHistory = {
+                event: historyEvent!,
+                user: 'Jane Smith',
+                timestamp: new Date().toISOString(),
+                notes: notes,
+            };
+
             setEquipment(prev => prev.map(eq =>
                 eq.id === equipment.id
                     ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] }
@@ -894,7 +899,7 @@ export default function EquipmentPage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isAddEditDialogOpen} onOpenChange={(open) => {if(!open) closeAddEditDialog()}}>
+            <Dialog open={isAddEditDialogOpen} onOpenChange={closeAddEditDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{dialogState === 'add' ? 'Add New Equipment' : `Edit ${editingEquipment?.name}`}</DialogTitle>
@@ -905,15 +910,12 @@ export default function EquipmentPage() {
                    <EquipmentForm 
                         onSubmit={handleFormSubmit}
                         onCancel={closeAddEditDialog}
-                        defaultValues={dialogState === 'edit' ? {
-                            ...editingEquipment,
-                            nextCalibration: editingEquipment?.nextCalibration === 'N/A' ? new Date() : new Date(editingEquipment!.nextCalibration!)
-                        } : undefined}
+                        defaultValues={dialogState === 'edit' ? editingEquipment : undefined}
                    />
                 </DialogContent>
             </Dialog>
 
-             <Dialog open={isTransactionDialogOpen} onOpenChange={(open) => {if(!open) closeTransactionDialog()}}>
+             <Dialog open={isTransactionDialogOpen} onOpenChange={closeTransactionDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{transactionDialogTitle}</DialogTitle>
@@ -946,5 +948,6 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
 
 

@@ -257,6 +257,12 @@ const InspectorDashboard = () => {
     const activeJobs = useMemo(() => providerJobs.filter(j => j.status === 'In Progress'), [providerJobs]);
     const upcomingJobs = useMemo(() => providerJobs.filter(j => ['Assigned', 'Scheduled'].includes(j.status)), [providerJobs]);
     
+    const activeAndUpcomingJobs = useMemo(() =>
+        providerJobs
+            .filter(j => ['In Progress', 'Assigned', 'Scheduled'].includes(j.status))
+            .sort((a, b) => new Date(a.scheduledStartDate || a.postedDate).getTime() - new Date(b.scheduledStartDate || b.postedDate).getTime())
+    , [providerJobs]);
+
     // Technician Stats
     const availableTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'Available'), [providerTechnicians]);
     const onAssignmentTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'On Assignment'), [providerTechnicians]);
@@ -396,6 +402,71 @@ const InspectorDashboard = () => {
                     </CardFooter>
                 </Card>
             </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        Active & Upcoming Jobs
+                    </CardTitle>
+                    <CardDescription>A list of your current and scheduled jobs.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isMobile ? (
+                        <div className="space-y-4">
+                            {activeAndUpcomingJobs.map(job => (
+                                <Card key={job.id} className="p-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="font-medium">{job.title}</div>
+                                        <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
+                                    {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Date: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}</div>}
+                                    <CardFooter className="p-0 pt-4 flex justify-end">
+                                        <Button asChild variant="ghost" size="sm">
+                                           <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                            {activeAndUpcomingJobs.length === 0 && <div className="text-center text-muted-foreground py-4">No active or upcoming jobs.</div>}
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Client</TableHead>
+                                    <TableHead>Scheduled Date</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {activeAndUpcomingJobs.map(job => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell>{job.client}</TableCell>
+                                        <TableCell>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'Not Scheduled'}</TableCell>
+                                        <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
+                                        <TableCell className="text-right">
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {activeAndUpcomingJobs.length === 0 && (
+                                     <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">
+                                            No active or upcoming jobs.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 };

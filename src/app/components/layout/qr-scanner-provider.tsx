@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import jsQR from 'jsqr';
 
 
 interface QRScannerContextType {
@@ -28,9 +29,9 @@ export const useQRScanner = () => {
 const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onScan: (id: string) => void }) => {
     const [scannedId, setScannedId] = useState('');
     const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const { toast } = useToast();
-    const [isScanningSupported, setIsScanningSupported] = useState(true);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -57,6 +58,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
                 setHasCameraPermission(true);
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
+                    videoRef.current.play(); // Start playing the video stream
                 }
             } catch (error) {
                 console.error('Error accessing camera:', error);
@@ -69,30 +71,30 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
                 return;
             }
             
-            // Check for BarcodeDetector support
-            if (!('BarcodeDetector' in window)) {
-                setIsScanningSupported(false);
-                return;
-            }
-            setIsScanningSupported(true);
-
-            const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
-
-            const scanFrame = async () => {
-                if (videoRef.current && barcodeDetector && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-                    try {
-                        const barcodes = await barcodeDetector.detect(videoRef.current);
-                        if (barcodes.length > 0) {
-                            const scannedValue = barcodes[0].rawValue;
-                            onScan(scannedValue);
-                            // Cleanup will be handled by the effect unmounting when dialog closes
-                            return; 
+            const scanFrame = () => {
+                if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA && canvasRef.current) {
+                    const canvas = canvasRef.current;
+                    const context = canvas.getContext('2d');
+                    
+                    if (context) {
+                        canvas.height = videoRef.current.videoHeight;
+                        canvas.width = videoRef.current.videoWidth;
+                        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                        
+                        try {
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                                inversionAttempts: "dontInvert",
+                            });
+    
+                            if (code) {
+                                onScan(code.data);
+                                return; // Stop scanning once a code is found
+                            }
+                        } catch (e) {
+                            console.error('QR code detection failed:', e);
+                            // This might happen with cross-origin video, but shouldn't with a local stream.
                         }
-                    } catch (e) {
-                        console.error('Barcode detection failed:', e);
-                        setIsScanningSupported(false); // Assume it's not supported if detection fails.
-                        cleanup();
-                        return;
                     }
                 }
                 animationFrameId = requestAnimationFrame(scanFrame);
@@ -132,21 +134,16 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
                     <div className="space-y-4 py-4">
                         <div className="relative overflow-hidden rounded-md">
                             <video ref={videoRef} className="w-full aspect-video bg-muted" autoPlay muted playsInline />
-                            {hasCameraPermission && <div className="absolute inset-0 border-8 border-white/20 rounded-md" />}
+                            {/* Hidden canvas for processing frames */}
+                            <canvas ref={canvasRef} style={{ display: 'none' }} />
+                            {hasCameraPermission && <div className="absolute inset-0 border-8 border-white/20 rounded-md pointer-events-none" />}
                         </div>
                     
-                        {hasCameraPermission === false ? (
+                        {hasCameraPermission === false && (
                             <Alert variant="destructive">
                                 <AlertTitle>Camera Access Required</AlertTitle>
                                 <AlertDescription>
                                     Please allow camera access to use this feature.
-                                </AlertDescription>
-                            </Alert>
-                        ) : !isScanningSupported && (
-                            <Alert variant="destructive">
-                                <AlertTitle>Scanning Not Supported</AlertTitle>
-                                <AlertDescription>
-                                    Your browser doesn't support real-time QR code scanning. Please enter the ID manually.
                                 </AlertDescription>
                             </Alert>
                         )}

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets, InspectorAsset } from "@/lib/placeholder-data";
+import { inspectorAssets as initialEquipment, InspectorAsset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -166,7 +166,7 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
 };
 
 
-const DesktopView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
+const DesktopView = ({ equipment, onEditClick, onQrClick }: { equipment: InspectorAsset[], onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
     <Card>
         <Table>
             <TableHeader>
@@ -180,7 +180,7 @@ const DesktopView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Insp
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {inspectorAssets.map(asset => (
+                {equipment.map(asset => (
                     <TableRow key={asset.id}>
                         <TableCell className="font-mono text-xs">{asset.id}</TableCell>
                         <TableCell className="font-medium flex items-center gap-3">
@@ -212,9 +212,9 @@ const DesktopView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Insp
     </Card>
 );
 
-const MobileView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
+const MobileView = ({ equipment, onEditClick, onQrClick }: { equipment: InspectorAsset[], onEditClick: (equipment: InspectorAsset) => void, onQrClick: (data: {id: string, name: string}) => void }) => (
      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {inspectorAssets.map(asset => (
+        {equipment.map(asset => (
             <Card key={asset.id}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-lg font-semibold">{asset.name}</CardTitle>
@@ -246,6 +246,7 @@ const MobileView = ({ onEditClick, onQrClick }: { onEditClick: (equipment: Inspe
 
 
 export default function EquipmentPage() {
+    const [equipment, setEquipment] = useState<InspectorAsset[]>(initialEquipment);
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const [dialogState, setDialogState] = useState<'closed' | 'add' | 'edit'>('closed');
     const [editingEquipment, setEditingEquipment] = useState<Partial<InspectorAsset> | undefined>(undefined);
@@ -268,13 +269,20 @@ export default function EquipmentPage() {
                 title: "Equipment Added",
                 description: `${values.name} has been added to your inventory.`,
             });
-            console.log("New Equipment Data:", values);
+            const newEquipment: InspectorAsset = {
+                ...values,
+                nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+            };
+            setEquipment(prev => [newEquipment, ...prev]);
         } else {
             toast({
                 title: "Equipment Updated",
                 description: `${values.name} has been successfully updated.`,
             });
-            console.log("Updated Equipment Data:", values);
+            setEquipment(prev => prev.map(eq => eq.id === values.id ? {
+                ...values,
+                 nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+            } : eq));
         }
         setDialogState('closed');
     };
@@ -299,8 +307,8 @@ export default function EquipmentPage() {
             </div>
             
             {isMobile ? 
-                <MobileView onEditClick={handleEditClick} onQrClick={setQrCodeData} /> : 
-                <DesktopView onEditClick={handleEditClick} onQrClick={setQrCodeData} />
+                <MobileView equipment={equipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} /> : 
+                <DesktopView equipment={equipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} />
             }
 
              <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
@@ -350,5 +358,3 @@ export default function EquipmentPage() {
         </div>
     );
 }
-
-    

@@ -72,6 +72,7 @@ const allMenuItems = [
   { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle, roles: ['client'] },
   { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase, roles: ['client'] },
   { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: ShieldCheck, roles: ['client'] },
+  { id: 'find-auditors', href: '/dashboard/find-auditors', label: 'Find Auditors', icon: Eye, roles: ['client'] },
   
   // Common across roles but handled differently or with different data
   { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText, roles: ['client', 'inspector', 'admin'] },
@@ -131,7 +132,7 @@ const AppSidebar = () => {
     const labelOrder = [
         'Dashboard', 
         // Client
-        'My Assets', 'My Jobs', 'Find Providers', 'Post New Job',
+        'My Assets', 'My Jobs', 'Find Providers', 'Find Auditors', 'Post New Job',
         // Inspector
         'Find Jobs', 'My Bids', 'Technicians', 'Equipment', 
         // Admin

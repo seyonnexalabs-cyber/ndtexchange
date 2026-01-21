@@ -358,7 +358,26 @@ export const jobs: Job[] = [
         ]
     },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
-    { id: 'JOB-004', title: 'Pipeline Weld Inspections', client: 'Energy Transfer', providerId: 'provider-01', location: 'Midland, TX', technique: 'PAUT', status: 'In Progress', postedDate: '2024-07-01', scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-01', 'TECH-03'], equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], assetIds: ['ASSET-002'], workflow: 'level3' },
+    { 
+        id: 'JOB-004', 
+        title: 'Pipeline Weld Inspections', 
+        client: 'Energy Transfer', 
+        providerId: 'provider-01', 
+        location: 'Midland, TX', 
+        technique: 'PAUT', 
+        status: 'In Progress', 
+        postedDate: '2024-07-01', 
+        scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], 
+        scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], 
+        technicianIds: ['TECH-01', 'TECH-03'], 
+        equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], 
+        assetIds: ['ASSET-002'], 
+        workflow: 'level3',
+        messages: [
+            { user: 'Ben Carter', role: 'Inspector', timestamp: '2024-07-01T11:00:00Z', message: 'Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.'},
+            { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-07-01T11:05:00Z', message: 'Confirmed. I have the procedure documents ready.'},
+        ]
+    },
     { 
         id: 'JOB-005', 
         title: 'VT of Bridge Structural Welds', 

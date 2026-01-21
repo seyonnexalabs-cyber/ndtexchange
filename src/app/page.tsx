@@ -21,6 +21,19 @@ export default function Home() {
     aerospace: PlaceHolderImages.find(p => p.id === 'industry-aerospace'),
     infrastructure: PlaceHolderImages.find(p => p.id === 'industry-infrastructure'),
   }
+  const techImages = {
+    ut: PlaceHolderImages.find(p => p.id === 'tech-ut'),
+    rt: PlaceHolderImages.find(p => p.id === 'tech-rt'),
+    mt: PlaceHolderImages.find(p => p.id === 'tech-mt'),
+    pt: PlaceHolderImages.find(p => p.id === 'tech-pt'),
+    vt: PlaceHolderImages.find(p => p.id === 'tech-vt'),
+    ae: PlaceHolderImages.find(p => p.id === 'tech-ae'),
+    apr: PlaceHolderImages.find(p => p.id === 'tech-apr'),
+    et: PlaceHolderImages.find(p => p.id === 'tech-et'),
+    lt: PlaceHolderImages.find(p => p.id === 'tech-lt'),
+    ir: PlaceHolderImages.find(p => p.id === 'tech-ir'),
+    other: PlaceHolderImages.find(p => p.id === 'tech-other'),
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -291,64 +304,75 @@ export default function Home() {
             </div>
             <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <FeatureCard
-                icon={<Waves className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.ut?.imageUrl}
+                imageHint={techImages.ut?.imageHint}
                 title="Ultrasonic Testing (UT)"
                 description="Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods."
                 isHighlighted
               />
               <FeatureCard
-                icon={<Scan className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.rt?.imageUrl}
+                imageHint={techImages.rt?.imageHint}
                 title="Radiographic Testing (RT)"
                 description="Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities."
                 isHighlighted
               />
                <FeatureCard
-                icon={<Magnet className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.mt?.imageUrl}
+                imageHint={techImages.mt?.imageHint}
                 title="Magnetic Particle Testing (MT)"
                 description="Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field."
               />
                <FeatureCard
-                icon={<Droplets className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.pt?.imageUrl}
+                imageHint={techImages.pt?.imageHint}
                 title="Penetrant Testing (PT)"
                 description="Locating surface-breaking defects in non-porous materials using a liquid penetrant and developer."
               />
                <FeatureCard
-                icon={<Eye className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.vt?.imageUrl}
+                imageHint={techImages.vt?.imageHint}
                 title="Visual & Optical Testing (VT/RVI)"
                 description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
                 isHighlighted
               />
               <FeatureCard
-                icon={<Ear className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.ae?.imageUrl}
+                imageHint={techImages.ae?.imageHint}
                 title="Acoustic Emission (AE)"
                 description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
                 isHighlighted
               />
                <FeatureCard
-                icon={<Radio className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.apr?.imageUrl}
+                imageHint={techImages.apr?.imageHint}
                 title="Acoustic Pulse Reflectometry (APR)"
                 description="A non-invasive method for detecting blockages and defects in tubes by analyzing reflected sound waves."
                 isHighlighted
               />
                <FeatureCard
-                icon={<Radio className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.et?.imageUrl}
+                imageHint={techImages.et?.imageHint}
                 title="Electromagnetic Testing (ET)"
                 description="Using principles of electromagnetism to detect flaws, such as Eddy Current, Alternating Current Field Measurement (ACFM), and Remote Field Testing (RFT)."
                 isHighlighted
               />
                <FeatureCard
-                icon={<TestTube className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.lt?.imageUrl}
+                imageHint={techImages.lt?.imageHint}
                 title="Leak Testing (LT)"
                 description="Detecting and locating leaks in pressure-containing components using methods like bubble testing, pressure change, or mass spectrometry."
               />
               <FeatureCard
-                icon={<Thermometer className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.ir?.imageUrl}
+                imageHint={techImages.ir?.imageHint}
                 title="Infrared & Thermal Testing (IR)"
                 description="Detecting variations in temperature to identify material defects, electrical issues, or insulation gaps."
                 isHighlighted
               />
                <FeatureCard
-                icon={<Lightbulb className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.other?.imageUrl}
+                imageHint={techImages.other?.imageHint}
                 title="Other NDT Methods"
                 description="Support for a variety of other methods including Guided Wave, Laser Testing (Shearography), and Neutron Radiography."
                 isHighlighted

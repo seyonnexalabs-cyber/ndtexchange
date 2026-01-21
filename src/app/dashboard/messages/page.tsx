@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const roleStyles: { [key: string]: string } = {
   client: 'bg-role-client text-role-client-foreground',

@@ -180,8 +180,8 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
     } as React.CSSProperties,
     inspector: {
       '--primary': '225 60% 48%',
-      '--accent': '35 95% 55%',
-      '--accent-foreground': '225 10% 20%',
+      '--accent': '170 70% 40%',
+      '--accent-foreground': '0 0% 98%',
     } as React.CSSProperties,
     auditor: {
       '--primary': '270 50% 55%',

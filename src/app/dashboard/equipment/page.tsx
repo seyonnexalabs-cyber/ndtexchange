@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -252,6 +252,22 @@ export default function EquipmentPage() {
     const [editingEquipment, setEditingEquipment] = useState<Partial<InspectorAsset> | undefined>(undefined);
     const isMobile = useIsMobile();
     const { toast } = useToast();
+    
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    const filteredEquipment = useMemo(() => {
+        return equipment.filter(item => {
+            const searchMatch = !searchQuery ||
+                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.id.toLowerCase().includes(searchQuery.toLowerCase());
+
+            const statusMatch = statusFilter === 'all' || item.status === statusFilter;
+
+            return searchMatch && statusMatch;
+        });
+    }, [equipment, searchQuery, statusFilter]);
+
 
     const handleEditClick = (equipment: InspectorAsset) => {
         setEditingEquipment(equipment);
@@ -297,19 +313,47 @@ export default function EquipmentPage() {
                     <Wrench/>
                     Equipment
                 </h1>
-                 <div className="flex gap-2">
+                 <Button onClick={handleAddClick}>Add New Equipment</Button>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <Input
+                    placeholder="Search by name or ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-grow"
+                />
+                <div className="flex gap-2">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="Calibrated">Calibrated</SelectItem>
+                            <SelectItem value="Calibration Due">Calibration Due</SelectItem>
+                            <SelectItem value="In Service">In Service</SelectItem>
+                        </SelectContent>
+                    </Select>
                      <Button variant="outline">
                         <QrCode className="mr-2 h-4 w-4"/>
                         Scan QR
                     </Button>
-                    <Button onClick={handleAddClick}>Add New Equipment</Button>
                 </div>
             </div>
-            
-            {isMobile ? 
-                <MobileView equipment={equipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} /> : 
-                <DesktopView equipment={equipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} />
-            }
+
+            {filteredEquipment.length > 0 ? (
+                isMobile ? 
+                    <MobileView equipment={filteredEquipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} /> : 
+                    <DesktopView equipment={filteredEquipment} onEditClick={handleEditClick} onQrClick={setQrCodeData} />
+            ) : (
+                <div className="text-center p-10 border rounded-lg">
+                    <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h2 className="mt-4 text-xl font-headline">No Equipment Found</h2>
+                    <p className="mt-2 text-muted-foreground">No equipment matches your current search or filter criteria.</p>
+                </div>
+            )}
+
 
              <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
                 <DialogContent className="sm:max-w-md">

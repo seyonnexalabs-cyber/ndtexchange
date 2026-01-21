@@ -1,6 +1,6 @@
 'use client';
 
-import { jobs, Job, JobMessage } from '@/lib/placeholder-data';
+import { jobs, Job, JobMessage, supportThreads, SupportThread, SupportMessage, allUsers, PlatformUser } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -14,14 +14,6 @@ import { cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 
-const roleStyles: { [key: string]: string } = {
-  client: 'bg-role-client text-role-client-foreground',
-  inspector: 'bg-role-inspector text-role-inspector-foreground',
-  auditor: 'bg-role-auditor text-role-auditor-foreground',
-  admin: 'bg-role-admin text-role-admin-foreground',
-};
-
-
 export default function MessagesPage() {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
@@ -31,18 +23,28 @@ export default function MessagesPage() {
     
     const [selectedThread, setSelectedThread] = useState<SupportThread | null>(null);
 
+     const currentUser = useMemo(() => {
+        const userMap: { [key: string]: PlatformUser | undefined } = {
+        client: allUsers.find(u => u.id === 'user-client-01'),
+        inspector: allUsers.find(u => u.id === 'user-tech-05'),
+        auditor: allUsers.find(u => u.id === 'user-auditor-01'),
+        admin: allUsers.find(u => u.id === 'user-admin-01'),
+        };
+        return userMap[role] || userMap.client;
+    }, [role]);
+
     useEffect(() => {
-        // Set a default selection on desktop view if no job is selected
         if (!isMobile && !selectedThread && conversations.length > 0) {
-            setSelectedThread(conversations[0]);
+            const userCompany = currentUser?.company;
+            const userThread = conversations.find(c => c.userCompany === userCompany);
+            setSelectedThread(userThread || conversations[0]);
         }
-    }, [isMobile, selectedThread, conversations]);
+    }, [isMobile, selectedThread, conversations, currentUser]);
 
 
     const isMyMessage = (message: SupportMessage) => {
-        if (!role || !message.userId) return false;
-        // This is a simulation, in a real app you'd check against the current user's ID
-        return !message.isAdmin;
+        if (!currentUser || !message.userId) return false;
+        return message.userId === currentUser.id;
     }
 
     return (
@@ -69,7 +71,7 @@ export default function MessagesPage() {
                                     onClick={() => setSelectedThread(thread)}
                                     className={cn(
                                         "block w-full text-left p-4 rounded-lg border transition-colors",
-                                        isSelected ? "bg-muted" : "hover:bg-muted/50"
+                                        isSelected ? "bg-primary/10" : "hover:bg-accent/5"
                                     )}
                                 >
                                     <div className="flex items-start gap-4">
@@ -121,11 +123,10 @@ export default function MessagesPage() {
                         </div>
 
                         {/* Messages */}
-                        <ScrollArea className="flex-1 p-6 bg-muted/50">
+                        <ScrollArea className="flex-1 p-6 bg-accent/5">
                             <div className="space-y-6">
                                 {selectedThread.messages?.map((message, index) => {
                                     const myMessage = isMyMessage(message);
-                                    const messageStyle = roleStyles[message.isAdmin ? 'admin' : 'client'] || 'bg-card border';
                                     return (
                                         <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
                                             {!myMessage && (
@@ -133,7 +134,7 @@ export default function MessagesPage() {
                                                     <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                                 </Avatar>
                                             )}
-                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? roleStyles[role] : messageStyle )}>
+                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-accent/20' )}>
                                                 <p className="text-sm">{message.message}</p>
                                                 <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}

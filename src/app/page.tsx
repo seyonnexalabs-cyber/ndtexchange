@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio, TestTube, Lightbulb, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio, TestTube, Lightbulb, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode, Fuel, Zap, FlaskConical, Factory, Plane, Landmark } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -99,7 +99,69 @@ export default function Home() {
                 <div className="mt-12">
                     <UserActivityDiagram />
                 </div>
-                 <div className="text-center mt-16">
+            </div>
+        </section>
+
+        <section id="industries" className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-headline font-semibold text-primary">
+                Serving Critical Industries
+              </h2>
+              <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                Our platform is engineered to meet the demanding asset integrity needs of the world's most critical sectors.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <FeatureCard
+                icon={<Fuel className="w-8 h-8 text-primary" />}
+                title="Oil & Gas"
+                description="Manage pipelines, refineries, and offshore platforms with confidence, ensuring compliance and preventing costly downtime."
+                cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<Zap className="w-8 h-8 text-primary" />}
+                title="Power Generation"
+                description="Oversee the integrity of boilers, turbines, and cooling systems in nuclear, fossil fuel, and renewable energy facilities."
+                 cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<FlaskConical className="w-8 h-8 text-primary" />}
+                title="Chemical Processing"
+                description="Ensure the safety and reliability of pressure vessels, storage tanks, and complex piping systems in chemical plants."
+                 cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<Factory className="w-8 h-8 text-primary" />}
+                title="Manufacturing"
+                description="Maintain the quality and safety of production lines, from raw material processing to final assembly, with thorough NDT."
+                 cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<Plane className="w-8 h-8 text-primary" />}
+                title="Aerospace & Defense"
+                description="Meet the stringent requirements of the aerospace industry by managing inspections for airframes, engines, and components."
+                 cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+              <FeatureCard
+                icon={<Landmark className="w-8 h-8 text-primary" />}
+                title="Public Infrastructure"
+                description="Ensure the longevity and safety of public assets like bridges, railways, and municipal water systems through regular integrity checks."
+                 cardClass="hover:border-primary/20"
+                iconContainerClass="bg-primary/10"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20">
+             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                 <div className="text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
                         Built for Every Role in Asset Integrity
                     </h2>

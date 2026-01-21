@@ -246,7 +246,6 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
 export default function TechniciansPage() {
     const isMobile = useIsMobile();
     const searchParams = useSearchParams();
-    const router = useRouter();
     const { toast } = useToast();
     
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -314,7 +313,7 @@ export default function TechniciansPage() {
             
             {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} />}
 
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <Dialog open={isFormOpen} onOpenChange={(open) => {if (!open) closeDialog()}}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{editingTechnician ? 'Edit Technician' : 'Add New Technician'}</DialogTitle>

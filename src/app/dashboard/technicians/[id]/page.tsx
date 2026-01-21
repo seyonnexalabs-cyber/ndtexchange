@@ -40,7 +40,6 @@ export default function TechnicianDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
-    const router = useRouter();
     const isMobile = useIsMobile();
     
     const technician = useMemo(() => technicians.find(t => t.id === id), [id]);
@@ -66,12 +65,6 @@ export default function TechnicianDetailPage() {
         return queryString ? `${pathname}?${queryString}` : pathname;
     }
     
-    const handleEditRedirect = () => {
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.set('edit', technician.id);
-        router.push(`/dashboard/technicians?${newParams.toString()}`);
-    }
-
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -80,10 +73,6 @@ export default function TechnicianDetailPage() {
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to Technicians
                     </Link>
-                </Button>
-                <Button onClick={handleEditRedirect}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Profile
                 </Button>
             </div>
             

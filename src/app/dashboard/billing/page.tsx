@@ -172,6 +172,28 @@ const AuditorView = ({ constructUrl }: { constructUrl: (url: string) => string }
     </Card>
 );
 
+const AdminView = ({ constructUrl }: { constructUrl: (url: string) => string }) => (
+    <Card className="col-span-1 md:col-span-2 lg:col-span-3">
+        <CardHeader>
+            <CardTitle>Platform Subscription Management</CardTitle>
+            <CardDescription>You are viewing this page as a platform administrator.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <p className="text-muted-foreground">
+                As an administrator, you manage the subscription plans for all users on the platform. This page is typically for clients and providers to manage their own subscriptions. To manage all platform subscriptions, please visit the <Link href={constructUrl("/dashboard/subscriptions")} className="text-primary underline">Subscription Management</Link> page.
+            </p>
+        </CardContent>
+         <CardFooter>
+            <Button asChild variant="outline">
+                <Link href={constructUrl("/dashboard/settings")}>
+                    Back to Settings
+                </Link>
+            </Button>
+        </CardFooter>
+    </Card>
+);
+
+
 export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
@@ -203,6 +225,8 @@ export default function BillingPage() {
             return <ProviderPlans onUpgradeClick={handleUpgradeClick} />;
         case 'auditor':
             return <AuditorView constructUrl={constructUrl} />;
+        case 'admin':
+            return <AdminView constructUrl={constructUrl} />;
         default:
              return <ClientPlans onUpgradeClick={handleUpgradeClick} />; // Default to client view
     }

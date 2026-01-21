@@ -103,10 +103,17 @@ export default {
             height: '0',
           },
         },
+        'plan-flash': {
+          '50%': {
+            backgroundColor: 'hsl(var(--accent) / 0.15)',
+            borderColor: 'hsl(var(--accent) / 0.2)',
+           }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'plan-flash': 'plan-flash 1.5s ease-out'
       },
     },
   },

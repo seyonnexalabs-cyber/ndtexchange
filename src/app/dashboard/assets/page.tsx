@@ -35,6 +35,7 @@ const assetSchema = z.object({
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
     nextInspection: z.date(),
     notes: z.string().optional(),
+    thumbnail: z.any().optional(),
     documents: z.any().optional(),
 }).refine(data => {
     if (data.location === '__add_new__') {
@@ -218,10 +219,26 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                 />
                 <FormField
                     control={form.control}
+                    name="thumbnail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Thumbnail Image (Optional)</FormLabel>
+                            <FormControl>
+                                <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
+                            </FormControl>
+                            <FormDescription>
+                                This image will be used as the display card for the asset.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
                     name="documents"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Attach Documents (Optional)</FormLabel>
+                            <FormLabel>Attach Additional Documents (Optional)</FormLabel>
                             <FormControl>
                                 <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
                             </FormControl>
@@ -415,6 +432,14 @@ export default function AssetsPage() {
             title: "Asset Created",
             description: `${values.name} has been added to your asset list.`,
         });
+        
+        if (values.thumbnail) {
+            console.log("Uploaded thumbnail: ", values.thumbnail);
+            toast({
+                title: "Thumbnail Attached",
+                description: `A thumbnail was attached to the new asset. (This is a simulation)`,
+            });
+        }
 
         if (values.documents && values.documents.length > 0) {
             console.log("Uploaded documents: ", values.documents);
@@ -474,3 +499,5 @@ export default function AssetsPage() {
         </div>
     );
 }
+
+    

@@ -20,6 +20,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 // --- Client Dashboard ---
 const clientChartData = [
@@ -240,146 +241,161 @@ const ClientDashboard = () => {
 // --- Inspector Dashboard ---
 const InspectorDashboard = () => {
     const isMobile = useIsMobile();
+    const searchParams = useSearchParams();
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
     
     // Filter data specifically for the inspector's company
     const providerJobs = useMemo(() => jobs.filter(j => j.providerId === 'provider-03'), []);
     const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === 'provider-03'), []);
-    
-    const activeJobs = useMemo(() => providerJobs.filter(j => j.status === 'In Progress').length, [providerJobs]);
+    const providerEquipment = useMemo(() => inspectorAssets, []);
+
+    // Job Stats
+    const activeJobs = useMemo(() => providerJobs.filter(j => j.status === 'In Progress'), [providerJobs]);
     const upcomingJobs = useMemo(() => providerJobs.filter(j => ['Assigned', 'Scheduled'].includes(j.status)), [providerJobs]);
-    const equipmentCalibrationDue = useMemo(() => inspectorAssets.filter(e => e.status === 'Calibration Due'), []);
+    
+    // Technician Stats
     const availableTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'Available'), [providerTechnicians]);
+    const onAssignmentTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'On Assignment'), [providerTechnicians]);
+
+    // Equipment Stats
+    const availableEquipment = useMemo(() => providerEquipment.filter(e => e.status === 'Available'), [providerEquipment]);
+    const inUseEquipment = useMemo(() => providerEquipment.filter(e => e.status === 'In Use'), [providerEquipment]);
+    const calibrationDue = useMemo(() => providerEquipment.filter(e => e.status === 'Calibration Due'), [providerEquipment]);
+    const outOfServiceEquipment = useMemo(() => providerEquipment.filter(e => ['Out of Service', 'Under Service'].includes(e.status)), [providerEquipment]);
+
 
     return (
         <div className="grid gap-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+            <div className="grid gap-6 lg:grid-cols-3">
+                {/* Jobs Section */}
+                <Card className="flex flex-col">
+                    <CardHeader>
+                        <CardTitle className="font-headline flex items-center gap-2">
+                            <Briefcase className="h-5 w-5 text-primary" />
+                            Jobs Overview
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{activeJobs}</div>
-                        <p className="text-xs text-muted-foreground">Currently on assignment</p>
+                    <CardContent className="flex-grow space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-center">
+                            <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{activeJobs.length}</p>
+                                <p className="text-xs text-muted-foreground">Active</p>
+                            </div>
+                            <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{upcomingJobs.length}</p>
+                                <p className="text-xs text-muted-foreground">Upcoming</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-sm mb-2">Next Upcoming Job:</h4>
+                            {upcomingJobs.length > 0 ? (
+                                <div className="text-sm text-muted-foreground">
+                                    <p className="font-medium text-foreground">{upcomingJobs[0].title}</p>
+                                    <p>Client: {upcomingJobs[0].client}</p>
+                                    <p>Date: {upcomingJobs[0].scheduledStartDate ? format(new Date(upcomingJobs[0].scheduledStartDate), GLOBAL_DATE_FORMAT) : 'Not Scheduled'}</p>
+                                </div>
+                            ) : <p className="text-sm text-muted-foreground">No upcoming jobs.</p>}
+                        </div>
                     </CardContent>
+                    <CardFooter>
+                        <Button asChild variant="outline" className="w-full">
+                           <Link href={constructUrl('/dashboard/my-jobs')}>Manage All Jobs</Link>
+                        </Button>
+                    </CardFooter>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Upcoming Jobs</CardTitle>
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+
+                 {/* Technicians Section */}
+                <Card className="flex flex-col">
+                    <CardHeader>
+                        <CardTitle className="font-headline flex items-center gap-2">
+                            <Users className="h-5 w-5 text-primary" />
+                            Technician Status
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{upcomingJobs.length}</div>
-                        <p className="text-xs text-muted-foreground">Assigned or scheduled</p>
+                    <CardContent className="flex-grow space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-center">
+                            <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{availableTechnicians.length}</p>
+                                <p className="text-xs text-muted-foreground">Available</p>
+                            </div>
+                            <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{onAssignmentTechnicians.length}</p>
+                                <p className="text-xs text-muted-foreground">On Assignment</p>
+                            </div>
+                        </div>
+                         <div>
+                            <h4 className="font-semibold text-sm mb-2">Available Technicians:</h4>
+                            {availableTechnicians.length > 0 ? (
+                                <ul className="space-y-1 text-sm text-muted-foreground">
+                                    {availableTechnicians.slice(0, 3).map(tech => (
+                                        <li key={tech.id} className="flex justify-between">
+                                            <span>{tech.name}</span>
+                                            <span>{tech.level}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <p className="text-sm text-muted-foreground">No technicians available.</p>}
+                        </div>
                     </CardContent>
+                    <CardFooter>
+                        <Button asChild variant="outline" className="w-full">
+                           <Link href={constructUrl('/dashboard/technicians')}>Manage Technicians</Link>
+                        </Button>
+                    </CardFooter>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Available Technicians</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+
+                 {/* Equipment Section */}
+                <Card className="flex flex-col">
+                    <CardHeader>
+                        <CardTitle className="font-headline flex items-center gap-2">
+                            <Wrench className="h-5 w-5 text-primary" />
+                            Equipment Status
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{availableTechnicians.length} / {providerTechnicians.length}</div>
-                        <p className="text-xs text-muted-foreground">Ready for assignment</p>
+                    <CardContent className="flex-grow space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-center">
+                             <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{availableEquipment.length}</p>
+                                <p className="text-xs text-muted-foreground">Available</p>
+                            </div>
+                             <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{inUseEquipment.length}</p>
+                                <p className="text-xs text-muted-foreground">In Use</p>
+                            </div>
+                            <div className="p-2 border rounded-lg border-destructive/50 bg-destructive/10">
+                                <p className="text-2xl font-bold text-destructive">{calibrationDue.length}</p>
+                                <p className="text-xs text-destructive/80">Calibration Due</p>
+                            </div>
+                            <div className="p-2 border rounded-lg">
+                                <p className="text-2xl font-bold">{outOfServiceEquipment.length}</p>
+                                <p className="text-xs text-muted-foreground">Out of Service</p>
+                            </div>
+                        </div>
+                         <div>
+                            <h4 className="font-semibold text-sm mb-2">Needs Attention:</h4>
+                            {calibrationDue.length > 0 ? (
+                                 <ul className="space-y-1 text-sm text-muted-foreground">
+                                    {calibrationDue.slice(0, 2).map(equip => (
+                                        <li key={equip.id} className="flex justify-between">
+                                            <span>{equip.name}</span>
+                                            <span className="text-destructive font-medium">Due: {format(new Date(equip.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <p className="text-sm text-muted-foreground">All equipment is up to date.</p>}
+                        </div>
                     </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Calibration Alerts</CardTitle>
-                        <BellRing className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{equipmentCalibrationDue.length}</div>
-                        <p className="text-xs text-muted-foreground">Equipment due for calibration</p>
-                    </CardContent>
+                    <CardFooter>
+                         <Button asChild variant="outline" className="w-full">
+                           <Link href={constructUrl('/dashboard/equipment')}>Manage Equipment</Link>
+                        </Button>
+                    </CardFooter>
                 </Card>
             </div>
-             <div className="grid gap-6 md:grid-cols-2">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">My Upcoming Jobs</CardTitle>
-                        <CardDescription>Your next scheduled assignments.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {isMobile ? (
-                            <div className="space-y-4">
-                                {upcomingJobs.slice(0,5).map(job => (
-                                    <Card key={job.id} className="p-4">
-                                        <div className="flex justify-between items-start">
-                                            <div className="font-medium">{job.title}</div>
-                                            <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
-                                        </div>
-                                        <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
-                                        <div className="text-sm text-muted-foreground">Location: {job.location}</div>
-                                        {job.scheduledStartDate && <div className="text-sm text-muted-foreground mt-1">Scheduled: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}</div>}
-                                    </Card>
-                                ))}
-                                {upcomingJobs.length === 0 && <div className="text-center text-muted-foreground py-4">No upcoming jobs.</div>}
-                            </div>
-                        ) : (
-                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Job Title</TableHead>
-                                    <TableHead>Client</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {upcomingJobs.slice(0,5).map(job => (
-                                    <TableRow key={job.id}>
-                                        <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{job.client}</TableCell>
-                                        <TableCell>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : "Not Scheduled"}</TableCell>
-                                        <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
-                                    </TableRow>
-                                ))}
-                                {upcomingJobs.length === 0 && <TableRow><TableCell colSpan={4} className="text-center">No upcoming jobs.</TableCell></TableRow>}
-                            </TableBody>
-                        </Table>
-                        )}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Available Technicians</CardTitle>
-                        <CardDescription>Team members ready for new assignments.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Level</TableHead>
-                                    <TableHead>Certs</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {availableTechnicians.slice(0, 5).map(tech => (
-                                    <TableRow key={tech.id}>
-                                        <TableCell className="font-medium">{tech.name}</TableCell>
-                                        <TableCell>{tech.level}</TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-wrap gap-1">
-                                                {tech.certifications.slice(0, 2).map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
-                                                {tech.certifications.length > 2 && <Badge variant="outline">+{tech.certifications.length - 2}</Badge>}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {availableTechnicians.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="text-center">
-                                            No technicians are currently available.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-             </div>
         </div>
     );
 };

@@ -38,7 +38,7 @@ export type Job = {
     client: string;
     providerId?: string; // The service provider company awarded the job
     location: string;
-    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR' | 'APR';
+    technique: 'UT' | 'PAUT' | 'TOFD' | 'RT' | 'CR' | 'DR' | 'CT' | 'MT' | 'PT' | 'VT' | 'RVI' | 'ET' | 'ACFM' | 'RFT' | 'MFL' | 'AE' | 'LT' | 'IR' | 'APR' | 'GWT';
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid';
     postedDate: string;
     bidExpiryDate?: string;
@@ -84,7 +84,7 @@ export type Technician = {
     id: string;
     name: string;
     level: 'Level I' | 'Level II' | 'Level III';
-    certifications: ('UT' | 'MT' | 'PT' | 'RT' | 'VT' | 'PAUT' | 'TOFD' | 'ET' | 'AE' | 'LT' | 'IR')[];
+    certifications: ('UT' | 'PAUT' | 'TOFD' | 'RT' | 'CR' | 'DR' | 'CT' | 'MT' | 'PT' | 'VT' | 'RVI' | 'ET' | 'ACFM' | 'RFT' | 'MFL' | 'AE' | 'LT' | 'IR' | 'APR' | 'GWT')[];
     status: 'Available' | 'On Assignment';
     providerId: string;
 };
@@ -333,14 +333,22 @@ export const NDTTechniques = [
   { "id": "PAUT", "name": "Phased Array UT" },
   { "id": "TOFD", "name": "Time-of-Flight Diffraction" },
   { "id": "RT", "name": "Radiographic Testing" },
+  { "id": "CR", "name": "Computed Radiography" },
+  { "id": "DR", "name": "Digital Radiography" },
+  { "id": "CT", "name": "Computed Tomography" },
   { "id": "MT", "name": "Magnetic Particle Testing" },
   { "id": "PT", "name": "Penetrant Testing" },
   { "id": "VT", "name": "Visual Testing" },
+  { "id": "RVI", "name": "Remote Visual Inspection" },
   { "id": "ET", "name": "Electromagnetic Testing" },
+  { "id": "ACFM", "name": "AC Field Measurement" },
+  { "id": "RFT", "name": "Remote Field Testing" },
+  { "id": "MFL", "name": "Magnetic Flux Leakage" },
   { "id": "AE", "name": "Acoustic Emission" },
   { "id": "LT", "name": "Leak Testing" },
   { "id": "IR", "name": "Infrared/Thermal Testing" },
-  { "id": "APR", "name": "Acoustic Pulse Reflectometry" }
+  { "id": "APR", "name": "Acoustic Pulse Reflectometry" },
+  { "id": "GWT", "name": "Guided Wave Testing" }
 ];
 
 export const clientData: Client[] = [
@@ -412,6 +420,7 @@ export const jobPayments: JobPayment[] = [
 export { clientAssets as assets };
 
     
+
 
 
 

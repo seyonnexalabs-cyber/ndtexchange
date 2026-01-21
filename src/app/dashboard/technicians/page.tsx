@@ -254,18 +254,8 @@ export default function TechniciansPage() {
     const [technicianList, setTechnicianList] = useState(initialTechnicians);
 
     const constructUrl = (base: string) => {
-        const [pathname, baseQuery] = base.split('?');
-        const newParams = new URLSearchParams(searchParams.toString());
-
-        if (baseQuery) {
-            const baseParams = new URLSearchParams(baseQuery);
-            baseParams.forEach((value, key) => {
-                newParams.set(key, value);
-            });
-        }
-
-        const queryString = newParams.toString();
-        return queryString ? `${pathname}?${queryString}` : pathname;
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
     }
 
     const handleAddClick = () => {
@@ -281,21 +271,22 @@ export default function TechniciansPage() {
     const closeDialog = () => {
         setDialogState('closed');
         setEditingTechnician(null);
-        // Clean up URL
-        const newUrl = constructUrl('/dashboard/technicians');
-        router.replace(newUrl, { scroll: false });
+        // Clean up URL by removing the 'edit' parameter
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.delete('edit');
+        router.replace(`/dashboard/technicians?${newParams.toString()}`, { scroll: false });
     }
     
     useEffect(() => {
         const editId = searchParams.get('edit');
-        if (editId) {
+        if (editId && (!editingTechnician || editingTechnician.id !== editId)) {
             const technicianToEdit = technicianList.find(t => t.id === editId);
             if (technicianToEdit) {
                 handleEditClick(technicianToEdit);
             }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams]);
+    }, [searchParams, technicianList]);
 
     const handleFormSubmit = (values: TechnicianFormValues) => {
         const isEditing = dialogState === 'edit';

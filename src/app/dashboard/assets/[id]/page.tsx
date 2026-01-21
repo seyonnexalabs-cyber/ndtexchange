@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
 import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize } from "lucide-react";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
@@ -41,24 +41,44 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
+    const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
 
-    const assetDocs: ViewerDocument[] = [
-        { name: 'P&ID-101.pdf', source: 'Asset Documentation'},
-        { name: 'installation_photo.jpg', source: 'Asset Documentation' },
-        { name: 'fabrication_cert.pdf', source: 'Asset Documentation' },
-    ];
+    const image = React.useMemo(() => PlaceHolderImages.find(p => p.id.startsWith('asset') && asset?.id.endsWith(p.id.slice(-1))), [asset]);
+
+    const allDocuments: ViewerDocument[] = React.useMemo(() => {
+        const docs: ViewerDocument[] = [
+            { name: 'P&ID-101.pdf', source: 'Asset Documentation', url: '' },
+            { name: 'installation_photo.jpg', source: 'Asset Documentation', url: 'https://picsum.photos/seed/install/800/600' },
+            { name: 'fabrication_cert.pdf', source: 'Asset Documentation', url: '' },
+        ];
+        if (image) {
+            docs.unshift({ name: image.description, source: 'Asset Thumbnail', url: image.imageUrl });
+        }
+        return docs;
+    }, [image]);
 
     if (!asset) {
         notFound();
     }
     
-    const image = PlaceHolderImages.find(p => p.id.startsWith('asset') && asset.id.endsWith(p.id.slice(-1)));
     const assetInspections = inspections.filter(i => i.assetId === asset.id);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const handleOpenViewer = (docName: string) => {
+        setInitialDoc(docName);
+        setIsViewerOpen(true);
+    };
+
+    const handleCloseViewer = (open: boolean) => {
+        setIsViewerOpen(open);
+        if (!open) {
+            setInitialDoc(null);
+        }
+    };
 
     return (
         <div>
@@ -161,20 +181,23 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                 <CardContent>
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
-                                            <h3 className="font-semibold">Available Documents ({assetDocs.length})</h3>
-                                            <Button onClick={() => setIsViewerOpen(true)} disabled={assetDocs.length === 0}>
+                                            <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
+                                            <Button onClick={() => handleOpenViewer(allDocuments[0]?.name)} disabled={allDocuments.length === 0}>
                                                 <Maximize className="mr-2 h-4 w-4" />
                                                 View All Documents
                                             </Button>
                                         </div>
                                         <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
-                                            {assetDocs.map((doc) => (
-                                                <div key={doc.name} className="flex items-center gap-2 p-2">
-                                                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                                                    <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
-                                                </div>
-                                            ))}
-                                             {assetDocs.length === 0 && (
+                                            {allDocuments.map((doc) => {
+                                                 const isImage = doc.name.match(/\.(jpg|jpeg|png)$/i);
+                                                 return (
+                                                    <button key={doc.name} onClick={() => handleOpenViewer(doc.name)} className="w-full flex items-center gap-2 p-2 text-left hover:bg-muted rounded-md">
+                                                        {isImage ? <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" /> : <FileText className="w-4 h-4 text-muted-foreground shrink-0" />}
+                                                        <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
+                                                    </button>
+                                                )
+                                            })}
+                                             {allDocuments.length === 0 && (
                                                 <div className="text-center text-muted-foreground py-4">No documents found.</div>
                                             )}
                                         </ScrollArea>
@@ -214,9 +237,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                      <Card>
                         <CardHeader className="p-0">
                             {image && (
-                                <div className="relative h-48 w-full">
+                                <button onClick={() => handleOpenViewer(image.description)} className="relative h-48 w-full block group">
                                     <Image src={image.imageUrl} alt={asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
-                                </div>
+                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Maximize className="w-8 h-8 text-white" />
+                                    </div>
+                                </button>
                             )}
                             <div className="p-6">
                                 <CardTitle>Asset Summary</CardTitle>
@@ -254,8 +280,9 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             </div>
             <UniformDocumentViewer 
                 isOpen={isViewerOpen}
-                onOpenChange={setIsViewerOpen}
-                documents={assetDocs}
+                onOpenChange={handleCloseViewer}
+                documents={allDocuments}
+                initialSelectedDocumentName={initialDoc}
                 title={`Documents for ${asset.name}`}
                 description="Securely view all documents associated with this asset."
             />

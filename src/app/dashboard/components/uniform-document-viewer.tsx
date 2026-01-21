@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText, Shield, ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export type ViewerDocument = {
     name: string;
     source?: string;
+    url?: string;
 };
 
 interface UniformDocumentViewerProps {
@@ -18,6 +20,7 @@ interface UniformDocumentViewerProps {
     documents: ViewerDocument[];
     title: string;
     description: string;
+    initialSelectedDocumentName?: string | null;
 }
 
 export default function UniformDocumentViewer({
@@ -26,16 +29,20 @@ export default function UniformDocumentViewer({
     documents,
     title,
     description,
+    initialSelectedDocumentName,
 }: UniformDocumentViewerProps) {
     const [selectedDoc, setSelectedDoc] = React.useState<ViewerDocument | null>(null);
 
     React.useEffect(() => {
         if (isOpen && documents.length > 0) {
-            setSelectedDoc(documents[0]);
+            const initialDoc = initialSelectedDocumentName
+                ? documents.find(d => d.name === initialSelectedDocumentName)
+                : null;
+            setSelectedDoc(initialDoc || documents[0]);
         } else if (!isOpen) {
             setSelectedDoc(null);
         }
-    }, [isOpen, documents]);
+    }, [isOpen, documents, initialSelectedDocumentName]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -84,13 +91,16 @@ export default function UniformDocumentViewer({
                     </div>
                     <div className="md:col-span-3 bg-muted/50 rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
                         {selectedDoc ? (
-                             <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center">
-                                {selectedDoc.name.match(/\.(jpg|jpeg|png)$/i) 
-                                    ? <ImageIcon className="w-24 h-24 text-muted-foreground/50"/> 
-                                    : <FileText className="w-24 h-24 text-muted-foreground/50"/>
-                                }
-                                <h3 className="text-lg font-bold mt-4">{selectedDoc.name}</h3>
-                                <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center relative">
+                                {selectedDoc.url && selectedDoc.name.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                                    <Image src={selectedDoc.url} alt={selectedDoc.name} fill style={{ objectFit: 'contain' }} />
+                                ) : (
+                                    <div className="p-8">
+                                        <FileText className="w-24 h-24 text-muted-foreground/50 mx-auto"/>
+                                        <h3 className="text-lg font-bold mt-4">{selectedDoc.name}</h3>
+                                        <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="text-center">
@@ -100,7 +110,7 @@ export default function UniformDocumentViewer({
                         <div 
                             className="absolute inset-0 bg-transparent"
                             onContextMenu={(e) => e.preventDefault()}
-                            style={{ userSelect: 'none', pointerEvents: 'none' }}
+                            style={{ userSelect: 'none' }}
                          />
                     </div>
                 </div>

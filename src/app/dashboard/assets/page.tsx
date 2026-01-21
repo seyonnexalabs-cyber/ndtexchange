@@ -10,7 +10,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, cloneElement } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useSearch } from "@/app/components/layout/search-provider";
 import { useForm } from 'react-hook-form';
@@ -313,9 +313,11 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                             return (
                                 <Card key={asset.id} className="flex flex-col">
                                     <CardHeader className="p-0">
-                                        <div className="relative h-48 w-full">
-                                            {image && (
+                                        <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
+                                            {image ? (
                                                 <Image src={image.imageUrl} alt={asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                            ) : (
+                                                cloneElement(assetIcons[asset.type], { className: 'w-16 h-16 text-muted-foreground/50' })
                                             )}
                                         </div>
                                     </CardHeader>

@@ -16,7 +16,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Bid, Job } from '@/lib/placeholder-data';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useSearchParams } from 'next/navigation';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
@@ -44,7 +45,7 @@ const statusStyles: { [key in Bid['status']]: 'success' | 'default' | 'secondary
 
 type MappedBid = Bid & { job: Job | undefined };
 
-const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bid: MappedBid) => void, onWithdraw: (bid: MappedBid) => void }) => {
+const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[], onEdit: (bid: MappedBid) => void, onWithdraw: (bid: MappedBid) => void, constructUrl: (path: string) => string }) => {
     const isMobile = useIsMobile();
 
     if (bids.length === 0) {
@@ -81,7 +82,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
                             <Button variant="outline" size="sm" asChild>
-                                <Link href={`/dashboard/find-jobs?role=inspector`}>View Job</Link>
+                                <Link href={constructUrl(`/dashboard/find-jobs`)}>View Job</Link>
                             </Button>
                              {bid.status === 'Submitted' && (
                                 <DropdownMenu>
@@ -138,7 +139,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => onEdit(bid)}><Edit className="mr-2 h-4 w-4" /> Edit Bid</DropdownMenuItem>
                                             <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/my-jobs/${bid.jobId}?role=inspector`}>View Job Details</Link>
+                                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Job Details</Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onWithdraw(bid)}><Trash2 className="mr-2 h-4 w-4" /> Withdraw Bid</DropdownMenuItem>
@@ -146,7 +147,7 @@ const BidsList = ({ bids, onEdit, onWithdraw }: { bids: MappedBid[], onEdit: (bi
                                     </DropdownMenu>
                                 ) : (
                                     <Button variant="outline" size="sm" asChild>
-                                        <Link href={`/dashboard/my-jobs/${bid.jobId}?role=inspector`}>{bid.status === 'Awarded' ? 'View Job' : 'View Details'}</Link>
+                                        <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>{bid.status === 'Awarded' ? 'View Job' : 'View Details'}</Link>
                                     </Button>
                                 )}
                             </TableCell>
@@ -163,6 +164,7 @@ export default function MyBidsPage() {
     const [editingBid, setEditingBid] = useState<MappedBid | null>(null);
     const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
     const [bids, setBids] = useState(initialBids);
+    const searchParams = useSearchParams();
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -172,6 +174,21 @@ export default function MyBidsPage() {
       control: form.control,
       name: 'proposedTechnique',
     });
+
+    const constructUrl = (base: string) => {
+        const [pathname, baseQuery] = base.split('?');
+        const newParams = new URLSearchParams(searchParams.toString());
+
+        if (baseQuery) {
+            const baseParams = new URLSearchParams(baseQuery);
+            baseParams.forEach((value, key) => {
+                newParams.set(key, value);
+            });
+        }
+
+        const queryString = newParams.toString();
+        return queryString ? `${pathname}?${queryString}` : pathname;
+    }
 
     const myBids = useMemo(() => {
         // This is a client-side simulation. In a real app, you'd fetch this data.
@@ -226,7 +243,7 @@ export default function MyBidsPage() {
                     My Bids
                 </h1>
                 <Button asChild>
-                   <a href="/dashboard/find-jobs?role=inspector">Find New Jobs</a>
+                   <Link href={constructUrl("/dashboard/find-jobs")}>Find New Jobs</Link>
                 </Button>
             </div>
 
@@ -237,13 +254,13 @@ export default function MyBidsPage() {
                     <TabsTrigger value="archived">Archived ({archivedBids.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="active">
-                    <BidsList bids={activeBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} />
+                    <BidsList bids={activeBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
                 </TabsContent>
                 <TabsContent value="awarded">
-                    <BidsList bids={awardedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} />
+                    <BidsList bids={awardedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
                 </TabsContent>
                 <TabsContent value="archived">
-                    <BidsList bids={archivedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} />
+                    <BidsList bids={archivedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
                 </TabsContent>
             </Tabs>
 

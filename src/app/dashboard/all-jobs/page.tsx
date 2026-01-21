@@ -40,8 +40,18 @@ export default function AllJobsPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     
     const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+        const [pathname, baseQuery] = base.split('?');
+        const newParams = new URLSearchParams(searchParams.toString());
+
+        if (baseQuery) {
+            const baseParams = new URLSearchParams(baseQuery);
+            baseParams.forEach((value, key) => {
+                newParams.set(key, value);
+            });
+        }
+
+        const queryString = newParams.toString();
+        return queryString ? `${pathname}?${queryString}` : pathname;
     }
 
     const filteredJobs = useMemo(() => {

@@ -254,9 +254,18 @@ export default function TechniciansPage() {
     const [technicianList, setTechnicianList] = useState(initialTechnicians);
 
     const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete('edit'); // Clean up edit param
-        return `${base}?${params.toString()}`;
+        const [pathname, baseQuery] = base.split('?');
+        const newParams = new URLSearchParams(searchParams.toString());
+
+        if (baseQuery) {
+            const baseParams = new URLSearchParams(baseQuery);
+            baseParams.forEach((value, key) => {
+                newParams.set(key, value);
+            });
+        }
+
+        const queryString = newParams.toString();
+        return queryString ? `${pathname}?${queryString}` : pathname;
     }
 
     const handleAddClick = () => {

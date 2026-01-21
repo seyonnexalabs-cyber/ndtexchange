@@ -51,8 +51,18 @@ export default function TechnicianDetailPage() {
     }
 
     const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+        const [pathname, baseQuery] = base.split('?');
+        const newParams = new URLSearchParams(searchParams.toString());
+
+        if (baseQuery) {
+            const baseParams = new URLSearchParams(baseQuery);
+            baseParams.forEach((value, key) => {
+                newParams.set(key, value);
+            });
+        }
+
+        const queryString = newParams.toString();
+        return queryString ? `${pathname}?${queryString}` : pathname;
     }
 
     return (

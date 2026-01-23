@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { technicians, jobs, Technician, Job } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit } from "lucide-react";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
@@ -49,6 +49,13 @@ export default function TechnicianDetailPage() {
     if (!technician) {
         notFound();
     }
+    
+    const highestLevel = useMemo(() => {
+        if (!technician.certifications.length) return 'N/A';
+        const levels = ['Level I', 'Level II', 'Level III'];
+        const highestIndex = Math.max(...technician.certifications.map(c => levels.indexOf(c.level)));
+        return levels[highestIndex];
+    }, [technician.certifications]);
 
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -86,7 +93,7 @@ export default function TechnicianDetailPage() {
                                 </Avatar>
                                 <div>
                                     <h1 className="text-2xl font-headline font-bold">{technician.name}</h1>
-                                    <p className="text-muted-foreground">{technician.level} Inspector</p>
+                                    <p className="text-muted-foreground">{highestLevel} Inspector</p>
                                     <p className="text-sm text-muted-foreground">{provider?.name}</p>
                                 </div>
                             </div>
@@ -100,11 +107,22 @@ export default function TechnicianDetailPage() {
                             <CardTitle className="flex items-center gap-2"><Star /> Certifications</CardTitle>
                         </CardHeader>
                         <CardContent>
-                             <div className="flex flex-wrap gap-2">
-                                {technician.certifications.map(cert => (
-                                    <Badge key={cert} variant="secondary">{cert}</Badge>
-                                ))}
-                            </div>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Method</TableHead>
+                                        <TableHead>Level</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {technician.certifications.map((cert, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium">{cert.method}</TableCell>
+                                            <TableCell>{cert.level}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </CardContent>
                     </Card>
                 </div>

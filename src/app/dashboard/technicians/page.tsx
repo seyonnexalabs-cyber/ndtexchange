@@ -1,16 +1,18 @@
+
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { technicians as initialTechnicians, NDTTechniques, Technician } from "@/lib/placeholder-data";
+import { technicians as initialTechnicians, NDTTechniques, Technician, Certification } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, MoreVertical, Edit } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -85,6 +87,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () =>
                     render={() => (
                     <FormItem>
                         <FormLabel>NDT Certifications</FormLabel>
+                        <FormDescription>The level selected above will be applied to all checked methods.</FormDescription>
                         <ScrollArea className="h-40 w-full rounded-md border p-4">
                         {NDTTechniques.map((item) => (
                             <FormField
@@ -144,7 +147,6 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                 <TableHeader>
                     <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Level</TableHead>
                         <TableHead>Certifications</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -159,10 +161,9 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                                 </Avatar>
                                 {tech.name}
                             </TableCell>
-                            <TableCell>{tech.level}</TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1">
-                                    {tech.certifications.map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
+                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
                                 </div>
                             </TableCell>
                             <TableCell>
@@ -196,49 +197,55 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
 
 const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: Technician[]; onEditClick: (technician: Technician) => void; }) => (
     <div className="space-y-4">
-        {technicians.map(tech => (
-            <Card key={tech.id}>
-                <CardHeader>
-                    <div className="flex items-start justify-between">
-                         <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <CardTitle>{tech.name}</CardTitle>
-                                <CardDescription>{tech.level}</CardDescription>
+        {technicians.map(tech => {
+            const highestLevel = (tech.certifications.length > 0)
+                ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
+                : 'N/A';
+
+            return (
+                <Card key={tech.id}>
+                    <CardHeader>
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle>{tech.name}</CardTitle>
+                                    <CardDescription>{highestLevel} Inspector</CardDescription>
+                                </div>
                             </div>
+                            <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                         </div>
-                        <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <h4 className="text-sm font-semibold mb-2">Certifications</h4>
-                    <div className="flex flex-wrap gap-1">
-                        {tech.certifications.map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
-                    </div>
-                </CardContent>
-                 <CardFooter className="flex justify-end">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                                Options
-                                <MoreVertical className="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                                <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEditClick(tech)}>
-                                <Edit className="mr-2 h-4 w-4"/>
-                                Edit
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </CardFooter>
-            </Card>
-        ))}
+                    </CardHeader>
+                    <CardContent>
+                        <h4 className="text-sm font-semibold mb-2">Certifications</h4>
+                        <div className="flex flex-wrap gap-1">
+                            {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
+                        </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                    Options
+                                    <MoreVertical className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                    <Link href={constructUrl(`/dashboard/technicians/${tech.id}`)}>View Profile</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onEditClick(tech)}>
+                                    <Edit className="mr-2 h-4 w-4"/>
+                                    Edit
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </CardFooter>
+                </Card>
+            )
+        })}
     </div>
 );
 
@@ -275,9 +282,14 @@ export default function TechniciansPage() {
     const handleFormSubmit = (values: TechnicianFormValues) => {
         const isEditing = !!editingTechnician;
 
+        const newCertifications: Certification[] = values.certifications.map(certMethod => ({
+            method: certMethod,
+            level: values.level,
+        }));
+
         if (isEditing) {
             setTechnicianList(prev => prev.map(tech => 
-                tech.id === editingTechnician.id ? { ...tech, ...values, certifications: values.certifications as any } : tech
+                tech.id === editingTechnician.id ? { ...tech, name: values.name, certifications: newCertifications } : tech
             ));
             toast({
                 title: "Technician Updated",
@@ -287,8 +299,7 @@ export default function TechniciansPage() {
              const newTechnician: Technician = {
                 id: `TECH-${String(technicianList.length + 1).padStart(2, '0')}`,
                 name: values.name,
-                level: values.level,
-                certifications: values.certifications as any,
+                certifications: newCertifications,
                 status: 'Available',
                 providerId: 'provider-03', // This would be dynamic in a real app
             };
@@ -329,8 +340,8 @@ export default function TechniciansPage() {
                         onCancel={closeDialog}
                         defaultValues={editingTechnician ? {
                             name: editingTechnician.name,
-                            level: editingTechnician.level,
-                            certifications: editingTechnician.certifications,
+                            level: (['Level I', 'Level II', 'Level III'] as const)[Math.max(...editingTechnician.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))],
+                            certifications: editingTechnician.certifications.map(c => c.method),
                         } : undefined}
                     />
                 </DialogContent>

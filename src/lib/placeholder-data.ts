@@ -87,11 +87,15 @@ export type InspectorAsset = {
     history?: EquipmentHistory[];
 };
 
+export type Certification = {
+  method: string;
+  level: 'Level I' | 'Level II' | 'Level III';
+};
+
 export type Technician = {
     id: string;
     name: string;
-    level: 'Level I' | 'Level II' | 'Level III';
-    certifications: ('UT' | 'PAUT' | 'TOFD' | 'RT' | 'CR' | 'DR' | 'CT' | 'MT' | 'PT' | 'VT' | 'RVI' | 'ET' | 'ACFM' | 'RFT' | 'MFL' | 'AE' | 'LT' | 'IR' | 'APR' | 'GWT')[];
+    certifications: Certification[];
     status: 'Available' | 'On Assignment';
     providerId: string;
 };
@@ -284,14 +288,14 @@ export const inspectorAssets: InspectorAsset[] = [
 ];
 
 export const technicians: Technician[] = [
-    { id: 'TECH-01', name: 'Carlos Ray', level: 'Level II', certifications: ['UT', 'MT', 'PT'], status: 'Available', providerId: 'provider-03' },
-    { id: 'TECH-02', name: 'Aisha Khan', level: 'Level II', certifications: ['RT', 'VT', 'ET'], status: 'On Assignment', providerId: 'provider-01' },
-    { id: 'TECH-03', name: 'Ben Carter', level: 'Level III', certifications: ['UT', 'PAUT', 'TOFD', 'AE'], status: 'Available', providerId: 'provider-01' },
-    { id: 'TECH-04', name: 'David Lee', level: 'Level I', certifications: ['MT', 'PT'], status: 'Available', providerId: 'provider-02' },
-    { id: 'TECH-05', name: 'Maria Garcia', level: 'Level II', certifications: ['UT', 'RT'], status: 'On Assignment', providerId: 'provider-03' },
-    { id: 'TECH-06', name: 'Frank Miller', level: 'Level II', certifications: ['ET', 'ACFM', 'RFT'], status: 'Available', providerId: 'provider-02' },
-    { id: 'TECH-07', name: 'Samantha Wu', level: 'Level III', certifications: ['VT', 'RVI', 'IR'], status: 'On Assignment', providerId: 'provider-04' },
-    { id: 'TECH-08', name: 'James Wilson', level: 'Level II', certifications: ['UT', 'MT', 'PAUT'], status: 'Available', providerId: 'provider-03' },
+    { id: 'TECH-01', name: 'Carlos Ray', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], status: 'Available', providerId: 'provider-03' },
+    { id: 'TECH-02', name: 'Aisha Khan', certifications: [{method: 'RT', level: 'Level II'}, {method: 'VT', level: 'Level II'}, {method: 'ET', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-01' },
+    { id: 'TECH-03', name: 'Ben Carter', certifications: [{method: 'UT', level: 'Level III'}, {method: 'PAUT', level: 'Level III'}, {method: 'TOFD', level: 'Level II'}, {method: 'AE', level: 'Level II'}], status: 'Available', providerId: 'provider-01' },
+    { id: 'TECH-04', name: 'David Lee', certifications: [{method: 'MT', level: 'Level I'}, {method: 'PT', level: 'Level I'}], status: 'Available', providerId: 'provider-02' },
+    { id: 'TECH-05', name: 'Maria Garcia', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-03' },
+    { id: 'TECH-06', name: 'Frank Miller', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], status: 'Available', providerId: 'provider-02' },
+    { id: 'TECH-07', name: 'Samantha Wu', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-04' },
+    { id: 'TECH-08', name: 'James Wilson', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], status: 'Available', providerId: 'provider-03' },
 ];
 
 const today = new Date();
@@ -492,7 +496,7 @@ export const allUsers: PlatformUser[] = [
             id: `user-${t.id}`,
             name: t.name,
             email: `${t.name.toLowerCase().replace(' ', '.')}@provider.com`,
-            role: `Inspector (${t.level})`,
+            role: `Inspector (${t.certifications[0]?.level || 'Level I'})`,
             company: provider?.name || `Unknown Provider`,
             status: 'Active' as 'Active' | 'Invited' | 'Disabled',
         };

@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Filter, X, Eye } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useSearch } from '@/app/components/layout/search-provider';
 
 const statusFilters = ['Scheduled', 'Completed', 'Requires Review'];
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -33,23 +33,17 @@ export default function InspectionsPage() {
     const role = searchParams.get('role');
 
     useEffect(() => {
-        // This page is for Auditors only. Redirect other roles.
         if (role && role !== 'auditor') {
-            if (role === 'admin') {
-                // Admins should use the All Jobs page for oversight.
-                router.replace('/dashboard/all-jobs');
-            } else {
-                // Other roles (client, inspector) go to their main dashboard.
-                const params = new URLSearchParams(searchParams.toString());
-                router.replace(`/dashboard?${params.toString()}`);
-            }
+            const params = new URLSearchParams(searchParams.toString());
+            const redirectPath = role === 'admin' ? '/dashboard/all-jobs' : '/dashboard';
+            router.replace(`${redirectPath}?${params.toString()}`);
         }
     }, [role, router, searchParams]);
 
     const isMobile = useIsMobile();
-    const [searchQuery, setSearchQuery] = React.useState('');
+    const { searchQuery } = useSearch();
     const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = React.useState<string>('Requires Review');
+    const [statusFilter, setStatusFilter] = React.useState<string>(role === 'admin' ? 'all' : 'Requires Review');
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -59,8 +53,8 @@ export default function InspectionsPage() {
     const augmentedAndFilteredInspections = useMemo(() => {
         let filtered = inspections;
         
-        // The default "all" for an auditor is their actionable queue.
-        if (statusFilter === 'all') {
+        // For auditors, default "all" is their actionable queue.
+        if (role === 'auditor' && statusFilter === 'all') {
             filtered = inspections.filter(i => i.status === 'Requires Review');
         }
 
@@ -86,55 +80,53 @@ export default function InspectionsPage() {
             
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
-            const statusMatch = statusFilter === 'all' ? inspection.status === 'Requires Review' : inspection.status === statusFilter;
+            let statusMatch = true;
+            if (role === 'admin' && statusFilter !== 'all') {
+                statusMatch = inspection.status === statusFilter;
+            } else if (role === 'auditor') {
+                statusMatch = statusFilter === 'all' ? inspection.status === 'Requires Review' : inspection.status === statusFilter;
+            }
 
             return searchMatch && techniqueMatch && statusMatch;
         });
-    }, [searchQuery, selectedTechniques, statusFilter]);
+    }, [searchQuery, selectedTechniques, statusFilter, role]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
+    
+    const isAuditor = role === 'auditor';
+    const pageTitle = isAuditor ? 'Audit Queue' : 'Inspection Reports';
+    const pageDescription = isAuditor ? 'Review and approve submitted inspection reports.' : 'View all inspection reports across the platform.';
+    const emptyStateTitle = isAuditor ? 'Audit Queue is Empty' : 'No Reports Found';
+    const emptyStateDescription = isAuditor ? 'There are no reports currently awaiting your review.' : 'No inspection reports match the current filters.';
+    const buttonText = isAuditor ? 'Audit Report' : 'View Report';
+    const hasActiveFilters = selectedTechniques.length > 0 || (role === 'admin' && statusFilter !== 'all') || (role === 'auditor' && statusFilter !== 'Requires Review');
 
-    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'Requires Review');
-
-    // Page is only for auditors, so text is static.
-    const pageTitle = 'Audit Queue';
-    const pageDescription = 'Review and approve submitted inspection reports.';
-    const pageIcon = <Eye />;
-    const emptyStateTitle = 'Audit Queue is Empty';
-    const emptyStateDescription = 'There are no reports currently awaiting your review.';
-    const buttonText = 'Audit Report';
 
     // Render a redirecting state while the redirect happens
-    if (role && role !== 'auditor') {
+    if (role && !isAuditor && role !== 'admin') {
         return (
            <div className="text-center p-10">
                <h1 className="text-2xl font-headline">Redirecting...</h1>
-               <p className="mt-4 text-muted-foreground">This page is intended for auditors. You are being redirected.</p>
+               <p className="mt-4 text-muted-foreground">You are being redirected to the appropriate page.</p>
            </div>
        );
-   }
+    }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        {pageIcon}
+                        <Eye />
                         {pageTitle}
                     </h1>
                     <p className="text-muted-foreground mt-1">{pageDescription}</p>
                 </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <Input 
-                    placeholder="Search by asset or inspector name..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow"
-                />
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-4">
                  <div className="flex gap-2">
                     <Popover>
                         <PopoverTrigger asChild>
@@ -188,15 +180,23 @@ export default function InspectionsPage() {
                             </button>
                         </Badge>
                     ))}
-                    {(statusFilter !== 'all') && (
+                    {(statusFilter !== 'all' && role === 'admin') && (
                         <Badge variant="secondary">
+                            Status: {statusFilter}
+                             <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    )}
+                    {(statusFilter !== 'Requires Review' && role === 'auditor') && (
+                         <Badge variant="secondary">
                             Status: {statusFilter}
                              <button onClick={() => setStatusFilter('Requires Review')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3" />
                             </button>
                         </Badge>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedTechniques([]); setStatusFilter('Requires Review'); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedTechniques([]); setStatusFilter(isAuditor ? 'Requires Review' : 'all'); }}>Clear All</Button>
                 </div>
             )}
             
@@ -273,7 +273,7 @@ export default function InspectionsPage() {
 
              {augmentedAndFilteredInspections.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
-                    <div className="mx-auto h-12 w-12 text-muted-foreground">{pageIcon}</div>
+                    <div className="mx-auto h-12 w-12 text-muted-foreground"><Eye /></div>
                     <h2 className="mt-4 text-xl font-headline">{emptyStateTitle}</h2>
                     <p className="mt-2 text-muted-foreground">{emptyStateDescription}</p>
                 </div>

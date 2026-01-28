@@ -12,7 +12,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +26,8 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useSearch } from "@/app/components/layout/search-provider";
+import { Input } from "@/components/ui/input";
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -181,7 +182,7 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
 
 const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void }) => {
     const isMobile = useIsMobile();
-    const [searchQuery, setSearchQuery] = useState('');
+    const { searchQuery } = useSearch();
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
@@ -221,7 +222,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
         setSelectedCompanies(prev => prev.includes(company) ? prev.filter(c => c !== company) : [...prev, company]);
     };
 
-    const hasActiveFilters = searchQuery || selectedRoles.length > 0 || statusFilter !== 'all' || selectedCompanies.length > 0;
+    const hasActiveFilters = selectedRoles.length > 0 || statusFilter !== 'all' || selectedCompanies.length > 0;
     
     if (isMobile) {
         return (
@@ -272,13 +273,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
 
     return (
         <>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <Input 
-                    placeholder="Search name, email, company..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow"
-                />
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-4">
                  <div className="flex gap-2">
                      <Popover>
                         <PopoverTrigger asChild>
@@ -374,7 +369,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                             </button>
                         </Badge>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedRoles([]); setStatusFilter('all'); setSelectedCompanies([]); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedRoles([]); setStatusFilter('all'); setSelectedCompanies([]); }}>Clear All</Button>
                 </div>
             )}
             <Card>

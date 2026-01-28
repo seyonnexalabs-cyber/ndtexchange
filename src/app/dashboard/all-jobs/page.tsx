@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -16,6 +15,7 @@ import { serviceProviders } from "@/lib/service-providers-data";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { useSearch } from "@/app/components/layout/search-provider";
 
 
 const statusFilters = ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'];
@@ -37,7 +37,7 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
 
 export default function AllJobsPage() {
     const searchParams = useSearchParams();
-    const [searchQuery, setSearchQuery] = useState('');
+    const { searchQuery } = useSearch();
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useIsMobile();
@@ -80,7 +80,7 @@ export default function AllJobsPage() {
         setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
     };
 
-    const hasActiveFilters = searchQuery || selectedProviders.length > 0 || selectedStatuses.length > 0;
+    const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0;
 
     return (
         <div>
@@ -91,13 +91,7 @@ export default function AllJobsPage() {
                 </h1>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <Input 
-                    placeholder="Search by job title, client, or ID..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow"
-                />
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-4">
                  <div className="flex gap-2">
                     <Popover>
                         <PopoverTrigger asChild>
@@ -138,7 +132,7 @@ export default function AllJobsPage() {
                                 <div className="space-y-2">
                                     <h4 className="font-medium leading-none">Filter by Status</h4>
                                 </div>
-                                <div className="grid gap-2">
+                                <div className="grid gap-2 max-h-60 overflow-y-auto">
                                     {statusFilters.map(status => (
                                         <div key={status} className="flex items-center space-x-2">
                                             <Checkbox
@@ -175,7 +169,7 @@ export default function AllJobsPage() {
                             </button>
                         </Badge>
                     ))}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedProviders([]); setSelectedStatuses([]); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedProviders([]); setSelectedStatuses([]); }}>Clear All</Button>
                 </div>
             )}
             

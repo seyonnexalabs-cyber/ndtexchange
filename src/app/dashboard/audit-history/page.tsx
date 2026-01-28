@@ -11,11 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { History, Filter, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useSearch } from '@/app/components/layout/search-provider';
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Scheduled': 'secondary',
@@ -36,7 +36,7 @@ const historyStatusVariants: Record<string, 'success' | 'default' | 'secondary' 
 export default function AuditHistoryPage() {
     const isMobile = useIsMobile();
     const searchParams = useSearchParams();
-    const [searchQuery, setSearchQuery] = React.useState('');
+    const { searchQuery } = useSearch();
     const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
     
     const constructUrl = (base: string) => {
@@ -74,7 +74,7 @@ export default function AuditHistoryPage() {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
 
-    const hasActiveFilters = searchQuery || selectedTechniques.length > 0;
+    const hasActiveFilters = selectedTechniques.length > 0;
 
     const pageTitle = 'Audit History';
     const pageIcon = <History />;
@@ -90,13 +90,7 @@ export default function AuditHistoryPage() {
                 </h1>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <Input 
-                    placeholder="Search by asset name or inspector..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow"
-                />
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-4">
                  <div className="flex gap-2">
                     <Popover>
                         <PopoverTrigger asChild>
@@ -139,7 +133,7 @@ export default function AuditHistoryPage() {
                             </button>
                         </Badge>
                     ))}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedTechniques([]); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedTechniques([]); }}>Clear All</Button>
                 </div>
             )}
             

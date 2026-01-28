@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSearch } from "@/app/components/layout/search-provider";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
@@ -720,8 +721,7 @@ export default function EquipmentPage() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const { setScanOpen } = useQRScanner();
-    
-    const [searchQuery, setSearchQuery] = useState('');
+    const { searchQuery } = useSearch();
     const [statusFilter, setStatusFilter] = useState('all');
     
     const [transactionState, setTransactionState] = useState<{ action: 'check-in' | 'check-out' | 'service-out' | null; equipment: InspectorAsset | null }>({ action: null, equipment: null });
@@ -929,13 +929,7 @@ export default function EquipmentPage() {
                 </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <Input
-                    placeholder="Search by name or ID..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow"
-                />
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-6">
                 <div className="flex gap-2">
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">

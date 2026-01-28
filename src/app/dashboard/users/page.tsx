@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -127,9 +126,15 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
     const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
 
     const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);
+
+    const uniqueCompanies = useMemo(() => {
+        const companies = new Set(allUsers.filter(u => u.company !== 'NDT Exchange').map(u => u.company));
+        return Array.from(companies).sort();
+    }, []);
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -139,12 +144,12 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                 user.company.toLowerCase().includes(searchQuery.toLowerCase());
             
             const roleMatch = selectedRoles.length === 0 || selectedRoles.includes(user.role);
-
+            const companyMatch = selectedCompanies.length === 0 || selectedCompanies.includes(user.company);
             const statusMatch = statusFilter === 'all' || user.status === statusFilter;
 
-            return searchMatch && roleMatch && statusMatch;
+            return searchMatch && roleMatch && statusMatch && companyMatch;
         });
-    }, [users, searchQuery, selectedRoles, statusFilter]);
+    }, [users, searchQuery, selectedRoles, statusFilter, selectedCompanies]);
 
     const uniqueRoles = useMemo(() => {
         const roles = new Set(allUsers.filter(u => u.company !== 'NDT Exchange').map(u => u.role));
@@ -155,7 +160,11 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
         setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
     };
 
-    const hasActiveFilters = searchQuery || selectedRoles.length > 0 || statusFilter !== 'all';
+    const handleCompanyChange = (company: string) => {
+        setSelectedCompanies(prev => prev.includes(company) ? prev.filter(c => c !== company) : [...prev, company]);
+    };
+
+    const hasActiveFilters = searchQuery || selectedRoles.length > 0 || statusFilter !== 'all' || selectedCompanies.length > 0;
     
     if (isMobile) {
         return (
@@ -214,6 +223,33 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                     className="flex-grow"
                 />
                  <div className="flex gap-2">
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Company ({selectedCompanies.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64">
+                             <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Filter by Company</h4>
+                                </div>
+                                <div className="grid gap-2">
+                                    {uniqueCompanies.map(company => (
+                                        <div key={company} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`company-${company.replace(/\s+/g, '-')}`}
+                                                checked={selectedCompanies.includes(company)}
+                                                onCheckedChange={() => handleCompanyChange(company)}
+                                            />
+                                            <Label htmlFor={`company-${company.replace(/\s+/g, '-')}`}>{company}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
@@ -257,6 +293,14 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
              {hasActiveFilters && (
                 <div className="mb-4 flex items-center flex-wrap gap-2">
                     <span className="text-sm font-medium">Active Filters:</span>
+                    {selectedCompanies.map(company => (
+                        <Badge key={company} variant="secondary">
+                            {company}
+                            <button onClick={() => handleCompanyChange(company)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
                     {selectedRoles.map(role => (
                         <Badge key={role} variant="secondary">
                             {role}
@@ -273,7 +317,7 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                             </button>
                         </Badge>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedRoles([]); setStatusFilter('all'); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedRoles([]); setStatusFilter('all'); setSelectedCompanies([]); }}>Clear All</Button>
                 </div>
             )}
             <Card>
@@ -449,5 +493,3 @@ export default function UsersPage() {
 
     
 }
-
-    

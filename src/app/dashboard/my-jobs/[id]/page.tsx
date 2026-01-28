@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -226,6 +227,47 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
     );
 };
 
+const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }: { 
+    status: Job['status'], 
+    workflow: Job['workflow'],
+    isClient: boolean, 
+    onApprove: () => void, 
+    onReject: () => void 
+}) => {
+    const showStandardReview = isClient && status === 'Report Submitted' && workflow === 'standard';
+    const showAuditedReview = isClient && status === 'Audit Approved';
+
+    if (!showStandardReview && !showAuditedReview) {
+        return null;
+    }
+
+    const title = showAuditedReview ? 'Final Review' : 'Report Review';
+    const description = showAuditedReview
+        ? 'The audited report is ready for your final approval.'
+        : 'The provider has submitted the report. Please review and take action.';
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><FileText /> {title}</CardTitle>
+                <CardDescription>{description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <p className="text-sm text-muted-foreground">Review the submitted report and documents. Approve the report to proceed, or request revisions from the provider.</p>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+                <Button variant="destructive" onClick={onReject}>
+                    <XCircle className="mr-2"/>
+                    Request Revisions
+                </Button>
+                 <Button className="bg-green-600 hover:bg-green-700" onClick={onApprove}>
+                    <CheckCircle className="mr-2"/>
+                    {showAuditedReview ? 'Approve & Complete Job' : 'Approve Report'}
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
     const { id } = React.use(params);
@@ -354,21 +396,38 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         });
     };
 
-    const handleApprove = () => {
+    const handleAuditorApprove = () => {
         toast({
-            title: "Report Approved",
-            description: `The inspection report for this job has been approved.`,
+            title: "Report Approved by Auditor",
+            description: `The inspection report has been approved. The client will now perform the final review.`,
         });
         handleStatusChange('Audit Approved');
     }
 
-    const handleReject = () => {
+    const handleAuditorReject = () => {
         toast({
             variant: "destructive",
-            title: "Revisions Requested",
+            title: "Revisions Requested by Auditor",
             description: `The report has been sent back to the provider for revisions.`,
         });
-        // In a real app, update status in the backend.
+        handleStatusChange('Assigned');
+    }
+
+    const handleClientApprove = () => {
+        toast({
+            title: "Job Approved!",
+            description: `You have approved the report. The job is now ready for completion.`,
+        });
+        handleStatusChange('Client Approved');
+    }
+
+    const handleClientReject = () => {
+        toast({
+            variant: "destructive",
+            title: "Revisions Requested by Client",
+            description: `The report has been sent back to the provider for revisions.`,
+        });
+        handleStatusChange('Assigned'); // Go back to assigned for simplicity
     }
 
     const handleReviewSubmit = () => {
@@ -749,13 +808,21 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </Card>
                         )}
 
+                        <ClientReviewActions
+                            status={jobDetails.status}
+                            workflow={jobDetails.workflow}
+                            isClient={isClient}
+                            onApprove={handleClientApprove}
+                            onReject={handleClientReject}
+                        />
+
                         <AuditorActions 
                             status={jobDetails.status} 
                             workflow={jobDetails.workflow} 
                             isAuditor={isAuditor}
                             reportSubmitted={reportSubmitted}
-                            onApprove={handleApprove}
-                            onReject={handleReject}
+                            onApprove={handleAuditorApprove}
+                            onReject={handleAuditorReject}
                         />
                     </div>
 

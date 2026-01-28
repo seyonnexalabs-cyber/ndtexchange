@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -24,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
 const userDetails = {
@@ -42,6 +44,63 @@ const companyProfileSchema = z.object({
   companyName: z.string().min(3, 'Company name must be at least 3 characters.'),
   companyAddress: z.string().optional(),
 });
+
+const inviteSchema = z.object({
+  name: z.string().min(2, "Name is required."),
+  email: z.string().email("Please provide a valid email address."),
+});
+
+
+const InviteMemberForm = ({ onCancel, onSubmit, companyName }: { onCancel: () => void; onSubmit: (values: any) => void; companyName: string }) => {
+  const form = useForm<z.infer<typeof inviteSchema>>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: { name: '', email: '' },
+  });
+
+  const handleSubmit = (values: z.infer<typeof inviteSchema>) => {
+    onSubmit({
+      ...values,
+      company: companyName,
+    });
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Jane Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="jane.doe@company.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <DialogFooter className="pt-4">
+          <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button type="submit">Send Invitation</Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+};
 
 
 const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = false }: { companyName: string, companyAddress?: string, isReadOnly?: boolean }) => {
@@ -104,7 +163,7 @@ const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = fals
   );
 };
 
-const TeamManagementSettings = ({ companyName }: { companyName: string }) => {
+const TeamManagementSettings = ({ companyName, onInviteClick }: { companyName: string, onInviteClick: () => void }) => {
     const teamMembers = allUsers.filter(user => user.company === companyName);
 
     return (
@@ -114,7 +173,7 @@ const TeamManagementSettings = ({ companyName }: { companyName: string }) => {
                     <CardTitle>Team Management</CardTitle>
                     <CardDescription>Manage users who have access to your company's account.</CardDescription>
                 </div>
-                <Button>Invite Member</Button>
+                <Button onClick={onInviteClick}>Invite Member</Button>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -455,6 +514,7 @@ const SubscriptionSettings = () => {
 export default function SettingsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
     
     const currentUser = useMemo(() => {
         const details = userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -477,6 +537,15 @@ export default function SettingsPage() {
         });
         console.log(data);
     };
+
+    const handleInviteSubmit = (values: z.infer<typeof inviteSchema>) => {
+        toast({
+            title: 'Invitation Sent',
+            description: `${values.name} has been invited to join ${currentUser.company}.`,
+        });
+        console.log("New Invitation:", values);
+        setIsInviteOpen(false);
+    }
 
   return (
     <div className="space-y-6">
@@ -558,7 +627,7 @@ export default function SettingsPage() {
         <TabsContent value="team">
             {role === 'admin' ? 
                 <AdminTeamManagement /> : 
-                <TeamManagementSettings companyName={currentUser.company} />
+                <TeamManagementSettings companyName={currentUser.company} onInviteClick={() => setIsInviteOpen(true)} />
             }
         </TabsContent>
         <TabsContent value="subscription">
@@ -579,6 +648,22 @@ export default function SettingsPage() {
             </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite New Team Member</DialogTitle>
+            <DialogDescription>
+              Invite a new user to join {currentUser.company}. They will receive an email to set up their account.
+            </DialogDescription>
+          </DialogHeader>
+          <InviteMemberForm
+            onCancel={() => setIsInviteOpen(false)}
+            onSubmit={handleInviteSubmit}
+            companyName={currentUser.company}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

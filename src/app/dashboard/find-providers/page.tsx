@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -36,15 +37,35 @@ const StarRating = ({ rating }: { rating: number }) => {
 export default function FindProvidersPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+    const [sortBy, setSortBy] = useState('rating-desc');
     const searchParams = useSearchParams();
 
     const filteredProviders = useMemo(() => {
-        return serviceProviders.filter(provider => {
+        let providers = serviceProviders.filter(provider => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques.includes(tech));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => provider.industries.includes(i));
             return techniqueMatch && industryMatch;
         });
-    }, [selectedTechniques, selectedIndustries]);
+        
+        switch (sortBy) {
+            case 'rating-desc':
+                providers.sort((a, b) => b.rating - a.rating);
+                break;
+            case 'rating-asc':
+                providers.sort((a, b) => a.rating - b.rating);
+                break;
+            case 'name-asc':
+                providers.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'name-desc':
+                 providers.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            default:
+                break;
+        }
+
+        return providers;
+    }, [selectedTechniques, selectedIndustries, sortBy]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => 
@@ -141,6 +162,17 @@ export default function FindProvidersPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
+                            <SelectItem value="rating-asc">Rating: Low to High</SelectItem>
+                            <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                            <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
             

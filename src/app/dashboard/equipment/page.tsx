@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -7,9 +6,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
+import { inspectorAssets as initialEquipment, jobs, NDTTechniques, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send, ChevronsUpDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -27,19 +26,22 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
     'UT': <RadioTower className="w-6 h-6 text-muted-foreground" />,
     'PAUT': <SlidersHorizontal className="w-6 h-6 text-muted-foreground" />,
-    'Calibration': <Wrench className="w-6 h-6 text-muted-foreground" />,
     'MT': <Wrench className="w-6 h-6 text-muted-foreground" />,
+    'Calibration': <Wrench className="w-6 h-6 text-muted-foreground" />,
+    'APR': <RadioTower className="w-6 h-6 text-muted-foreground" />,
 };
 
 const equipmentSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
-  techniques: z.string().min(2, "At least one technique is required."),
+  techniques: z.array(z.string()).min(1, "At least one technique is required."),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   serialNumber: z.string().optional(),
@@ -79,7 +81,7 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
             name: "",
-            techniques: "",
+            techniques: [],
             manufacturer: "",
             model: "",
             serialNumber: "",
@@ -120,17 +122,65 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                         </FormItem>
                     )}
                 />
-                <FormField
+                 <FormField
                     control={form.control}
                     name="techniques"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                             <FormLabel>Technique(s)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., UT, PAUT" {...field} />
-                            </FormControl>
-                             <FormDescription>
-                                Enter one or more techniques, separated by commas.
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn(
+                                        "w-full justify-between",
+                                        !field.value?.length && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value?.length > 0
+                                        ? `${field.value.length} selected`
+                                        : "Select techniques"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <ScrollArea className="h-48">
+                                    <div className="p-2">
+                                        {NDTTechniques.map((tech) => (
+                                        <div
+                                            key={tech.id}
+                                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"
+                                        >
+                                            <Checkbox
+                                            id={`tech-${tech.id}`}
+                                            checked={field.value?.includes(tech.id)}
+                                            onCheckedChange={(checked) => {
+                                                return checked
+                                                ? field.onChange([...(field.value || []), tech.id])
+                                                : field.onChange(
+                                                    field.value?.filter(
+                                                        (value) => value !== tech.id
+                                                    )
+                                                    );
+                                            }}
+                                            />
+                                            <label
+                                            htmlFor={`tech-${tech.id}`}
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full"
+                                            >
+                                            {tech.name} ({tech.id})
+                                            </label>
+                                        </div>
+                                        ))}
+                                    </div>
+                                    </ScrollArea>
+                                </PopoverContent>
+                            </Popover>
+                            <FormDescription>
+                                Select all applicable NDT methods for this equipment.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -697,7 +747,7 @@ export default function EquipmentPage() {
 
     const handleEditClick = (equipment: InspectorAsset) => {
         setTimeout(() => {
-            setEditingEquipment({ ...equipment, techniques: equipment.techniques.join(', ') });
+            setEditingEquipment(equipment);
             setDialogState('edit');
         }, 50);
     };
@@ -722,7 +772,7 @@ export default function EquipmentPage() {
                 notes: historyNotes
             };
 
-            const techniquesArray = values.techniques.split(',').map(t => t.trim().toUpperCase());
+            const techniquesArray = values.techniques;
 
             if(isAdding) {
                 const newId = `EQ-${Date.now().toString().slice(-6)}`;
@@ -1019,3 +1069,5 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
+    

@@ -30,6 +30,8 @@ import { auditFirmIndustries } from '@/lib/auditors-data';
 const providerSchema = z.object({
   name: z.string().min(2, "Company name is required."),
   location: z.string().min(2, "Location is required."),
+  contactPerson: z.string().min(2, "Contact person name is required."),
+  contactEmail: z.string().email("Please enter a valid email address."),
   description: z.string().min(10, "Description must be at least 10 characters."),
   techniques: z.array(z.string()).min(1, "Select at least one technique."),
   industries: z.array(z.string()).min(1, "Select at least one industry."),
@@ -41,6 +43,8 @@ const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
         defaultValues: {
             name: '',
             location: '',
+            contactPerson: '',
+            contactEmail: '',
             description: '',
             techniques: [],
             industries: [],
@@ -69,6 +73,30 @@ const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
                             <FormItem>
                                 <FormLabel>Location</FormLabel>
                                 <FormControl><Input placeholder="City, State/Country" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="contactPerson"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Contact Name</FormLabel>
+                                <FormControl><Input placeholder="e.g., Jane Smith" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="contactEmail"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Contact Email</FormLabel>
+                                <FormControl><Input type="email" placeholder="e.g., contact@acme.com" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}

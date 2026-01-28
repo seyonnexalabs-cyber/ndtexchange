@@ -18,6 +18,7 @@ export default function PublicHeader() {
   const navLinks = [
     { href: '/platform-features', label: 'Features' },
     { href: '/asset-management', label: 'Asset Management' },
+    { href: '/provider-tools', label: 'Provider Tools' },
     { href: '/#techniques', label: 'Techniques' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact Us' },

@@ -72,29 +72,9 @@ export default function PlatformFeaturesPage() {
                                 </div>
                                 <h2 className="mt-6 text-3xl font-headline font-semibold text-accent">For NDT Providers (Inspectors)</h2>
                                 <p className="mt-4 text-lg text-muted-foreground">Move beyond spreadsheets. Our platform provides a dedicated suite of tools to manage your team and equipment, improving efficiency and ensuring your resources are always ready.</p>
-                                <div className="mt-8 w-full space-y-6">
-                                     <FeatureCard
-                                        icon={<Users className="w-8 h-8 text-accent" />}
-                                        title="Technician Roster Management"
-                                        description="Maintain a central database of your inspectors, their qualifications, and certifications. Track availability and assign the right person to the right job."
-                                        cardClass="text-left bg-card hover:border-accent/20"
-                                        iconContainerClass="bg-accent/10"
-                                    />
-                                     <FeatureCard
-                                        icon={<Wrench className="w-8 h-8 text-accent" />}
-                                        title="Equipment & Calibration Tracking"
-                                        description="Log all your NDT equipment, from UT machines to yokes. Track calibration schedules with automated reminders to prevent costly non-compliance."
-                                        cardClass="text-left bg-card hover:border-accent/20"
-                                        iconContainerClass="bg-accent/10"
-                                    />
-                                     <FeatureCard
-                                        icon={<QrCode className="w-8 h-8 text-accent" />}
-                                        title="QR Code Equipment Tagging"
-                                        description="Generate unique QR codes for each piece of equipment. Scan in the field to instantly view status, calibration records, and checkout history."
-                                        cardClass="text-left bg-card hover:border-accent/20"
-                                        iconContainerClass="bg-accent/10"
-                                    />
-                                </div>
+                                <Button size="lg" asChild className="mt-8 bg-accent hover:bg-accent/90 text-accent-foreground">
+                                    <Link href="/provider-tools">Explore Provider Tools</Link>
+                                </Button>
                             </div>
                         </div>
                     </div>

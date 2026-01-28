@@ -7,7 +7,7 @@ import { serviceProviders } from "@/lib/service-providers-data";
 import { auditFirms } from "@/lib/auditors-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Users, Filter, X } from "lucide-react";
+import { Users, Filter, X, MoreVertical } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +18,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -120,19 +122,12 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
     );
 }
 
-const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
+const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users: PlatformUser[], companyAdmins: Set<string>, onSetCompanyAdmin: (user: PlatformUser) => void }) => {
     const isMobile = useIsMobile();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    
-    const companyAdmins = useMemo(() => {
-        const admins = new Set<string>();
-        clientData.forEach(c => admins.add(c.contactPerson));
-        serviceProviders.forEach(p => admins.add(p.contactPerson));
-        auditFirms.forEach(a => admins.add(a.contactPerson));
-        return admins;
-    }, []);
+    const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
 
     const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);
 
@@ -193,7 +188,15 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end">
-                            <Button variant="ghost" size="sm">Manage</Button>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">Manage</Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setUserToPromote(user)} disabled={isCompanyAdmin(user)}>Make Company Admin</DropdownMenuItem>
+                                    <DropdownMenuItem>Disable User</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </CardFooter>
                     </Card>
                 ))}
@@ -304,7 +307,22 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                                     <Badge variant={statusStyles[user.status]}>{user.status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                   <Button variant="ghost" size="sm">Manage</Button>
+                                   <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem
+                                                onClick={() => setUserToPromote(user)}
+                                                disabled={isCompanyAdmin(user)}
+                                            >
+                                                Make Company Admin
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>Disable User</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -318,6 +336,27 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                     </TableBody>
                 </Table>
             </Card>
+            <AlertDialog open={!!userToPromote} onOpenChange={(open) => !open && setUserToPromote(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Admin Change</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to make {userToPromote?.name} the new admin for {userToPromote?.company}? The current admin will lose their administrative rights.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setUserToPromote(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            if (userToPromote) {
+                                onSetCompanyAdmin(userToPromote);
+                            }
+                            setUserToPromote(null);
+                        }}>
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };
@@ -325,8 +364,16 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
 
 export default function UsersPage() {
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-    const [users, setUsers] = useState(allUsers.filter(u => u.company !== 'NDT Exchange'));
+    const [users, setUsers] = useState(() => allUsers.filter(u => u.company !== 'NDT Exchange'));
     const { toast } = useToast();
+    
+    const [companyAdmins, setCompanyAdmins] = useState(() => {
+        const admins = new Set<string>();
+        clientData.forEach(c => admins.add(c.contactPerson));
+        serviceProviders.forEach(p => admins.add(p.contactPerson));
+        auditFirms.forEach(a => admins.add(a.contactPerson));
+        return admins;
+    });
 
     const handleAddUser = (values: z.infer<typeof userSchema>) => {
         const newUser: PlatformUser = {
@@ -345,6 +392,33 @@ export default function UsersPage() {
         });
     };
 
+    const handleSetCompanyAdmin = (userToMakeAdmin: PlatformUser) => {
+        const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
+        const company = allCompanies.find(c => c.name === userToMakeAdmin.company);
+
+        if (!company) return;
+
+        const currentAdminName = company.contactPerson;
+
+        // Update the static data for demonstration purposes
+        company.contactPerson = userToMakeAdmin.name;
+
+        // Update the state
+        setCompanyAdmins(prevAdmins => {
+            const newAdmins = new Set(prevAdmins);
+            if (currentAdminName) {
+                newAdmins.delete(currentAdminName);
+            }
+            newAdmins.add(userToMakeAdmin.name);
+            return newAdmins;
+        });
+
+        toast({
+            title: "Administrator Changed",
+            description: `${userToMakeAdmin.name} is now the admin for ${userToMakeAdmin.company}.`,
+        });
+    };
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -357,7 +431,7 @@ export default function UsersPage() {
                 <Button className="w-full sm:w-auto" onClick={() => setIsAddUserOpen(true)}>Add User</Button>
             </div>
             
-            <PlatformUsersView users={users} />
+            <PlatformUsersView users={users} companyAdmins={companyAdmins} onSetCompanyAdmin={handleSetCompanyAdmin} />
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
                 <DialogContent>
@@ -375,3 +449,5 @@ export default function UsersPage() {
 
     
 }
+
+    

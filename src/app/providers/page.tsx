@@ -1,7 +1,6 @@
 
 
 'use client';
-import type { Metadata } from 'next';
 import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,11 +18,6 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-
-export const metadata: Metadata = {
-    title: 'NDT Service Provider Directory | NDT Exchange',
-    description: 'Browse our directory of leading NDT companies from around the world. Filter by technique to find the right partner for your inspection needs.',
-};
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (

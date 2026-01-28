@@ -220,7 +220,10 @@ export default function AllJobsPage() {
                         <Card key={job.id}>
                             <CardHeader>
                                 <div className="flex justify-between items-start">
-                                    <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                    <div>
+                                        <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                        <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                    </div>
                                     <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                 </div>
                                 <CardDescription>{job.client} - {job.technique}</CardDescription>
@@ -255,6 +258,7 @@ export default function AllJobsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Job Title</TableHead>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Technique</TableHead>
                                 <TableHead>Location</TableHead>
@@ -267,6 +271,7 @@ export default function AllJobsPage() {
                             {filteredJobs.map(job => (
                                 <TableRow key={job.id}>
                                     <TableCell className="font-medium">{job.title}</TableCell>
+                                    <TableCell className="font-mono text-xs">{job.id}</TableCell>
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
                                     <TableCell>{job.location}</TableCell>

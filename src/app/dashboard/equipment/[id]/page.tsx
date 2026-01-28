@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as allEquipment, InspectorAsset } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -88,12 +88,39 @@ export default function EquipmentDetailPage() {
                                 </div>
                             </div>
                             <div className="flex items-start">
-                                <Info className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <SlidersHorizontal className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                 <div>
                                     <p className="font-semibold">Type</p>
                                     <p className="text-muted-foreground">{equipment.type}</p>
                                 </div>
                             </div>
+                             {equipment.manufacturer && (
+                                <div className="flex items-start">
+                                    <Building className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                    <div>
+                                        <p className="font-semibold">Manufacturer</p>
+                                        <p className="text-muted-foreground">{equipment.manufacturer}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {equipment.model && (
+                                <div className="flex items-start">
+                                    <Wrench className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                    <div>
+                                        <p className="font-semibold">Model</p>
+                                        <p className="text-muted-foreground">{equipment.model}</p>
+                                    </div>
+                                </div>
+                            )}
+                             {equipment.serialNumber && (
+                                <div className="flex items-start">
+                                    <Tag className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                    <div>
+                                        <p className="font-semibold">Serial Number</p>
+                                        <p className="text-muted-foreground">{equipment.serialNumber}</p>
+                                    </div>
+                                </div>
+                            )}
                              <div className="flex items-start">
                                 <Calendar className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                 <div>

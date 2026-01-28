@@ -84,6 +84,9 @@ export type InspectorAsset = {
     providerId: string;
     status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service' | 'Under Service';
     nextCalibration: string;
+    manufacturer?: string;
+    model?: string;
+    serialNumber?: string;
     history?: EquipmentHistory[];
     isPublic?: boolean;
 };
@@ -239,6 +242,9 @@ export const inspectorAssets: InspectorAsset[] = [
     { 
         id: 'UTM-1000', 
         name: 'Olympus 45MG', 
+        manufacturer: 'Olympus',
+        model: '45MG',
+        serialNumber: 'SN-45MG-12345',
         type: 'UT Equipment', 
         providerId: 'provider-03',
         status: 'Available', 
@@ -253,6 +259,9 @@ export const inspectorAssets: InspectorAsset[] = [
     { 
         id: 'PA-Probe-5MHz', 
         name: '5L64-A2 Probe', 
+        manufacturer: 'Olympus',
+        model: '5L64-A2',
+        serialNumber: 'SN-PROBE-67890',
         type: 'PAUT Probe', 
         providerId: 'provider-03',
         status: 'In Use', 
@@ -266,6 +275,7 @@ export const inspectorAssets: InspectorAsset[] = [
     { 
         id: 'CAL-BLK-01', 
         name: 'IIW Type 1 Block', 
+        manufacturer: 'Generic',
         type: 'Calibration Block', 
         providerId: 'provider-03',
         status: 'Available', 
@@ -278,6 +288,9 @@ export const inspectorAssets: InspectorAsset[] = [
     { 
         id: 'YOKE-02', 
         name: 'Parker B-300S', 
+        manufacturer: 'Parker Research Corp',
+        model: 'B-300S',
+        serialNumber: 'SN-YOKE-ABCDE',
         type: 'Yoke', 
         providerId: 'provider-03',
         status: 'Calibration Due', 

@@ -40,6 +40,9 @@ const equipmentSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
   type: z.string().min(2, "Type must be at least 2 characters."),
+  manufacturer: z.string().optional(),
+  model: z.string().optional(),
+  serialNumber: z.string().optional(),
   status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
   nextCalibration: z.date(),
 });
@@ -77,6 +80,9 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
         defaultValues: {
             name: "",
             type: "",
+            manufacturer: "",
+            model: "",
+            serialNumber: "",
             status: "Available",
             ...defaultValues,
             nextCalibration: defaultValues?.nextCalibration ? new Date(defaultValues.nextCalibration) : new Date(),
@@ -127,6 +133,49 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                         </FormItem>
                     )}
                 />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="manufacturer"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Manufacturer (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Olympus" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="model"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Model (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 45MG" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <FormField
+                    control={form.control}
+                    name="serialNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Serial Number (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., SN-12345" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <FormField
                     control={form.control}
                     name="status"
@@ -957,6 +1006,7 @@ export default function EquipmentPage() {
         </div>
     );
 }
+
 
 
 

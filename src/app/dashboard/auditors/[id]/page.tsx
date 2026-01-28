@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -83,7 +84,7 @@ export default function AuditorDetailPage() {
                             <CardTitle>Auditor Profile</CardTitle>
                             <CardDescription>Company information and areas of specialty.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                             <div>
                                 <h3 className="font-semibold text-sm mb-1">Rating</h3>
                                 <StarRating rating={auditor.rating} />
@@ -93,10 +94,18 @@ export default function AuditorDetailPage() {
                                 <p className="text-sm text-muted-foreground">{auditor.description}</p>
                             </div>
                             <div>
-                                <h4 className="text-sm font-semibold mb-2">Specialties</h4>
+                                <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {auditor.specialties.map(tech => (
-                                        <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
+                                    {auditor.services.map(service => (
+                                        <Badge key={service} variant="secondary" shape="rounded">{service}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                             <div className="mt-4">
+                                <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {auditor.industries.map(industry => (
+                                        <Badge key={industry} variant="outline" shape="rounded">{industry}</Badge>
                                     ))}
                                 </div>
                             </div>

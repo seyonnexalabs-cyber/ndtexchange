@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -166,7 +167,10 @@ export default function TechnicianDetailPage() {
                                     {assignedJobs.map(job => (
                                         <Card key={job.id} className="p-4">
                                             <div className="flex justify-between items-start">
-                                                <p className="font-semibold">{job.title}</p>
+                                                <div>
+                                                    <p className="font-semibold">{job.title}</p>
+                                                    <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                                </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                             </div>
                                             <p className="text-sm text-muted-foreground mt-1">{job.client}</p>
@@ -182,6 +186,7 @@ export default function TechnicianDetailPage() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
+                                            <TableHead>Job ID</TableHead>
                                             <TableHead>Job Title</TableHead>
                                             <TableHead>Client</TableHead>
                                             <TableHead>Date</TableHead>
@@ -191,6 +196,7 @@ export default function TechnicianDetailPage() {
                                     <TableBody>
                                         {assignedJobs.map(job => (
                                             <TableRow key={job.id}>
+                                                <TableCell className="font-mono text-xs">{job.id}</TableCell>
                                                 <TableCell className="font-medium">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className="hover:underline">{job.title}</Link>
                                                 </TableCell>

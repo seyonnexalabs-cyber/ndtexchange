@@ -257,8 +257,8 @@ export default function AllJobsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Job Title</TableHead>
                                 <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Technique</TableHead>
                                 <TableHead>Location</TableHead>
@@ -270,8 +270,8 @@ export default function AllJobsPage() {
                         <TableBody>
                             {filteredJobs.map(job => (
                                 <TableRow key={job.id}>
-                                    <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell className="font-mono text-xs">{job.id}</TableCell>
+                                    <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
                                     <TableCell>{job.location}</TableCell>

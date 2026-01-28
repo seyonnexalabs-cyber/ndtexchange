@@ -118,6 +118,7 @@ export default function ClientDetailPage() {
                                             <div className="flex items-start justify-between">
                                                 <div>
                                                     <p className="font-semibold">{job.title}</p>
+                                                    <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
                                                     <p className="text-sm text-muted-foreground">{job.technique}</p>
                                                 </div>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
@@ -134,6 +135,7 @@ export default function ClientDetailPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead>Job ID</TableHead>
                                         <TableHead>Job Title</TableHead>
                                         <TableHead>Technique</TableHead>
                                         <TableHead>Status</TableHead>
@@ -143,6 +145,7 @@ export default function ClientDetailPage() {
                                 <TableBody>
                                     {clientJobs.map(job => (
                                         <TableRow key={job.id}>
+                                            <TableCell className="font-mono text-xs">{job.id}</TableCell>
                                             <TableCell className="font-medium">{job.title}</TableCell>
                                             <TableCell>{job.technique}</TableCell>
                                             <TableCell>

@@ -68,6 +68,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                 <CardTitle className="text-lg font-semibold leading-tight">{bid.job?.title}</CardTitle>
                                 <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
                             </div>
+                            <p className="text-xs text-muted-foreground font-mono">{bid.job?.id}</p>
                              <CardDescription className="flex items-center pt-1"><Building className="w-4 h-4 mr-2"/> {bid.job?.client}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -110,6 +111,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Job ID</TableHead>
                         <TableHead>Job Title</TableHead>
                         <TableHead>Client</TableHead>
                         <TableHead>Bid Amount</TableHead>
@@ -121,6 +123,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                 <TableBody>
                     {bids.map(bid => (
                         <TableRow key={bid.id}>
+                            <TableCell className="font-mono text-xs">{bid.job?.id}</TableCell>
                             <TableCell className="font-medium">{bid.job?.title}</TableCell>
                             <TableCell>{bid.job?.client}</TableCell>
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>

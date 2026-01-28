@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -13,7 +14,7 @@ import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Max
 import Image from "next/image";
 import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';

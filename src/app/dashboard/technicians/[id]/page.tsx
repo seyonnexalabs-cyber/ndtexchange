@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -11,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { technicians, jobs, Technician, Job } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit } from "lucide-react";
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 

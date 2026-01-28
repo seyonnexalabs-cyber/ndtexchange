@@ -15,7 +15,7 @@ import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { GLOBAL_DATE_FORMAT } from "@/lib/utils";

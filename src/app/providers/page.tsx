@@ -8,6 +8,7 @@ import { Star, MapPin, X } from 'lucide-react';
 import Link from 'next/link';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { NDTTechniques } from '@/lib/placeholder-data';
+import { auditFirmIndustries } from '@/lib/auditors-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,6 +18,7 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 export const metadata: Metadata = {
@@ -42,64 +44,100 @@ const StarRating = ({ rating }: { rating: number }) => {
 export default function ProvidersPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
     const selectedTechniques = React.useMemo(() => {
         const techniques = searchParams?.techniques;
-        if (Array.isArray(techniques)) {
-            return techniques;
-        }
-        if (typeof techniques === 'string') {
-            return [techniques];
-        }
+        if (Array.isArray(techniques)) return techniques;
+        if (typeof techniques === 'string') return [techniques];
+        return [];
+    }, [searchParams]);
+
+    const selectedIndustries = React.useMemo(() => {
+        const industries = searchParams?.industries;
+        if (Array.isArray(industries)) return industries;
+        if (typeof industries === 'string') return [industries];
         return [];
     }, [searchParams]);
 
     const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
 
     const filteredProviders = useMemo(() => {
-        if (selectedTechniques.length === 0) {
-            return serviceProviders;
-        }
-        return serviceProviders.filter(provider => 
-            selectedTechniques.every(tech => provider.techniques.includes(tech))
-        );
-    }, [selectedTechniques]);
+        return serviceProviders.filter(provider => {
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques.includes(tech));
+            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => provider.industries.includes(ind));
+            return techniqueMatch && industryMatch;
+        });
+    }, [selectedTechniques, selectedIndustries]);
+    
+    const createQueryString = (params: Record<string, string[]>) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, values]) => {
+            values.forEach(value => searchParams.append(key, value));
+        });
+        return searchParams.toString();
+    };
 
     const filterForm = (
         <form>
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="outline">
-                        Filter by Technique ({selectedTechniques.length})
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                    <div className="grid gap-4">
-                        <div className="space-y-2">
-                            <h4 className="font-medium leading-none">Techniques</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Select the techniques you require.
-                            </p>
+            <div className="flex gap-2">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline">
+                            Technique ({selectedTechniques.length})
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-medium leading-none">Techniques</h4>
+                                <p className="text-sm text-muted-foreground">Select the techniques you require.</p>
+                            </div>
+                             <ScrollArea className="grid gap-2 max-h-60 p-1">
+                                {NDTTechniques.map(tech => (
+                                    <div key={tech.id} className="flex items-center space-x-2 p-1">
+                                        <Checkbox 
+                                            id={`tech-${tech.id}`} 
+                                            name="techniques"
+                                            value={tech.id}
+                                            defaultChecked={selectedTechniques.includes(tech.id)}
+                                        />
+                                        <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
+                                    </div>
+                                ))}
+                            </ScrollArea>
                         </div>
-                        <div className="grid gap-2 max-h-60 overflow-y-auto p-1">
-                            {NDTTechniques.map(tech => (
-                                <div key={tech.id} className="flex items-center space-x-2">
-                                     <Checkbox 
-                                        id={`tech-${tech.id}`} 
-                                        name="techniques"
-                                        value={tech.id}
-                                        defaultChecked={selectedTechniques.includes(tech.id)}
-                                     />
-                                    <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
-                                </div>
-                            ))}
+                    </PopoverContent>
+                </Popover>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline">
+                            Industry ({selectedIndustries.length})
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-medium leading-none">Industries</h4>
+                                <p className="text-sm text-muted-foreground">Select the industries you operate in.</p>
+                            </div>
+                             <ScrollArea className="grid gap-2 max-h-60 p-1">
+                                {auditFirmIndustries.map(ind => (
+                                    <div key={ind} className="flex items-center space-x-2 p-1">
+                                        <Checkbox 
+                                            id={`ind-${ind.replace(/\s+/g, '-')}`} 
+                                            name="industries"
+                                            value={ind}
+                                            defaultChecked={selectedIndustries.includes(ind)}
+                                        />
+                                        <Label htmlFor={`ind-${ind.replace(/\s+/g, '-')}`}>{ind}</Label>
+                                    </div>
+                                ))}
+                            </ScrollArea>
                         </div>
-                        <div className="flex justify-between">
-                            <Button type="submit">Apply Filters</Button>
-                             <Button variant="ghost" asChild>
-                                <Link href="/providers">Clear</Link>
-                            </Button>
-                        </div>
-                    </div>
-                </PopoverContent>
-            </Popover>
+                    </PopoverContent>
+                </Popover>
+                <Button type="submit">Apply</Button>
+                 <Button variant="ghost" asChild>
+                    <Link href="/providers">Clear</Link>
+                </Button>
+            </div>
         </form>
     );
 
@@ -141,13 +179,29 @@ export default function ProvidersPage({ searchParams }: { searchParams?: { [key:
                             {filterForm}
                         </div>
                         
-                         {selectedTechniques.length > 0 && (
+                         {(selectedTechniques.length > 0 || selectedIndustries.length > 0) && (
                             <div className="mb-4 flex items-center flex-wrap gap-2">
                                 <span className="text-sm font-medium">Active Filters:</span>
                                 {selectedTechniques.map(techId => (
                                     <Badge key={techId} variant="secondary">
                                         {NDTTechniques.find(t => t.id === techId)?.name}
-                                        <Link href={`/providers?${new URLSearchParams(selectedTechniques.filter(t => t !== techId).map(t => ['techniques', t])).toString()}`}>
+                                        <Link href={`/providers?${createQueryString({
+                                            techniques: selectedTechniques.filter(t => t !== techId),
+                                            industries: selectedIndustries
+                                        })}`}>
+                                          <button className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                              <X className="h-3 w-3" />
+                                          </button>
+                                        </Link>
+                                    </Badge>
+                                ))}
+                                {selectedIndustries.map(ind => (
+                                    <Badge key={ind} variant="outline">
+                                        {ind}
+                                        <Link href={`/providers?${createQueryString({
+                                            techniques: selectedTechniques,
+                                            industries: selectedIndustries.filter(i => i !== ind)
+                                        })}`}>
                                           <button className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                               <X className="h-3 w-3" />
                                           </button>

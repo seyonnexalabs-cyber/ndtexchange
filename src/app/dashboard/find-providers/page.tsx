@@ -9,12 +9,14 @@ import { Star, MapPin, X, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { NDTTechniques } from '@/lib/placeholder-data';
+import { auditFirmIndustries } from '@/lib/auditors-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -33,16 +35,16 @@ const StarRating = ({ rating }: { rating: number }) => {
 
 export default function FindProvidersPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
+    const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
 
     const filteredProviders = useMemo(() => {
-        if (selectedTechniques.length === 0) {
-            return serviceProviders;
-        }
-        return serviceProviders.filter(provider => 
-            selectedTechniques.every(tech => provider.techniques.includes(tech))
-        );
-    }, [selectedTechniques]);
+        return serviceProviders.filter(provider => {
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques.includes(tech));
+            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => provider.industries.includes(i));
+            return techniqueMatch && industryMatch;
+        });
+    }, [selectedTechniques, selectedIndustries]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => 
@@ -51,11 +53,27 @@ export default function FindProvidersPage() {
                 : [...prev, techniqueId]
         );
     };
+
+    const handleIndustryChange = (industry: string) => {
+        setSelectedIndustries(prev => 
+            prev.includes(industry)
+                ? prev.filter(t => t !== industry)
+                : [...prev, industry]
+        );
+    };
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const clearFilters = () => {
+        setSelectedTechniques([]);
+        setSelectedIndustries([]);
+    };
+
+    const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0;
+
 
     return (
         <div>
@@ -64,38 +82,69 @@ export default function FindProvidersPage() {
                     <ShieldCheck />
                     Find Service Providers
                 </h1>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline">
-                            Filter by Technique ({selectedTechniques.length})
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80">
-                        <div className="grid gap-4">
-                            <div className="space-y-2">
-                                <h4 className="font-medium leading-none">Techniques</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Select the techniques you require.
-                                </p>
+                <div className="flex gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline">
+                                Filter by Technique ({selectedTechniques.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                            <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Techniques</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        Select the techniques you require.
+                                    </p>
+                                </div>
+                                <ScrollArea className="grid gap-2 max-h-60 p-1">
+                                    {NDTTechniques.map(tech => (
+                                        <div key={tech.id} className="flex items-center space-x-2 p-1">
+                                             <Checkbox 
+                                                id={`tech-${tech.id}`} 
+                                                checked={selectedTechniques.includes(tech.id)}
+                                                onCheckedChange={() => handleTechniqueChange(tech.id)}
+                                             />
+                                            <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
+                                        </div>
+                                    ))}
+                                </ScrollArea>
                             </div>
-                            <div className="grid gap-2 max-h-60 overflow-y-auto p-1">
-                                {NDTTechniques.map(tech => (
-                                    <div key={tech.id} className="flex items-center space-x-2">
-                                         <Checkbox 
-                                            id={`tech-${tech.id}`} 
-                                            checked={selectedTechniques.includes(tech.id)}
-                                            onCheckedChange={() => handleTechniqueChange(tech.id)}
-                                         />
-                                        <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
-                                    </div>
-                                ))}
+                        </PopoverContent>
+                    </Popover>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline">
+                                Filter by Industry ({selectedIndustries.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                            <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Industries</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        Select the industries you operate in.
+                                    </p>
+                                </div>
+                                <ScrollArea className="grid gap-2 max-h-60 p-1">
+                                    {auditFirmIndustries.map(spec => (
+                                        <div key={spec} className="flex items-center space-x-2 p-1">
+                                             <Checkbox 
+                                                id={`ind-${spec.replace(/\s+/g, '-')}`} 
+                                                checked={selectedIndustries.includes(spec)}
+                                                onCheckedChange={() => handleIndustryChange(spec)}
+                                             />
+                                            <Label htmlFor={`ind-${spec.replace(/\s+/g, '-')}`}>{spec}</Label>
+                                        </div>
+                                    ))}
+                                </ScrollArea>
                             </div>
-                        </div>
-                    </PopoverContent>
-                </Popover>
+                        </PopoverContent>
+                    </Popover>
+                </div>
             </div>
             
-             {selectedTechniques.length > 0 && (
+             {hasActiveFilters && (
                 <div className="mb-4 flex items-center flex-wrap gap-2">
                     <span className="text-sm font-medium">Active Filters:</span>
                     {selectedTechniques.map(techId => (
@@ -106,7 +155,15 @@ export default function FindProvidersPage() {
                             </button>
                         </Badge>
                     ))}
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedTechniques([])}>Clear All</Button>
+                    {selectedIndustries.map(spec => (
+                        <Badge key={spec} variant="outline">
+                            {spec}
+                            <button onClick={() => handleIndustryChange(spec)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+                    <Button variant="ghost" size="sm" onClick={clearFilters}>Clear All</Button>
                 </div>
             )}
 
@@ -126,13 +183,21 @@ export default function FindProvidersPage() {
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent className="flex-grow">
+                        <CardContent className="flex-grow space-y-4">
                             <StarRating rating={provider.rating} />
-                            <p className="mt-4 text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
-                            <div className="mt-4">
+                            <p className="text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
+                            <div>
                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
-                                <div className="flex flex-wrap gap-1.5 min-h-16">
+                                <div className="flex flex-wrap gap-1.5 min-h-[50px]">
                                     {provider.techniques.map(tech => (
+                                        <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                             <div>
+                                <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {provider.industries.map(tech => (
                                         <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
                                     ))}
                                 </div>

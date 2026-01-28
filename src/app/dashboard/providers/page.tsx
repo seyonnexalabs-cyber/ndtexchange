@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -5,12 +6,164 @@ import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, MapPin, Star, MoreVertical } from "lucide-react";
+import { ShieldCheck, MapPin, Star, MoreVertical, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { NDTTechniques } from '@/lib/placeholder-data';
+import { auditFirmIndustries } from '@/lib/auditors-data';
+
+
+const providerSchema = z.object({
+  name: z.string().min(2, "Company name is required."),
+  location: z.string().min(2, "Location is required."),
+  description: z.string().min(10, "Description must be at least 10 characters."),
+  techniques: z.array(z.string()).min(1, "Select at least one technique."),
+  industries: z.array(z.string()).min(1, "Select at least one industry."),
+});
+
+const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof providerSchema>) => void; }) => {
+    const form = useForm<z.infer<typeof providerSchema>>({
+        resolver: zodResolver(providerSchema),
+        defaultValues: {
+            name: '',
+            location: '',
+            description: '',
+            techniques: [],
+            industries: [],
+        },
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Company Name</FormLabel>
+                                <FormControl><Input placeholder="e.g., Acme Inspection" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Location</FormLabel>
+                                <FormControl><Input placeholder="City, State/Country" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Company Description</FormLabel>
+                            <FormControl><Textarea placeholder="Briefly describe the company and its services." {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="techniques"
+                        render={() => (
+                        <FormItem>
+                            <FormLabel>Techniques Offered</FormLabel>
+                            <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                {NDTTechniques.map((tech) => (
+                                <FormField
+                                    key={`tech-${tech.id}`}
+                                    control={form.control}
+                                    name="techniques"
+                                    render={({ field }) => {
+                                    return (
+                                        <FormItem key={tech.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value?.includes(tech.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormLabel className="font-normal text-sm">{tech.name}</FormLabel>
+                                        </FormItem>
+                                    )
+                                    }}
+                                />
+                                ))}
+                            </ScrollArea>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="industries"
+                        render={() => (
+                        <FormItem>
+                            <FormLabel>Industry Focus</FormLabel>
+                            <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                {auditFirmIndustries.map((industry) => (
+                                <FormField
+                                    key={industry}
+                                    control={form.control}
+                                    name="industries"
+                                    render={({ field }) => {
+                                    return (
+                                        <FormItem key={industry} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value?.includes(industry)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked ? field.onChange([...(field.value || []), industry]) : field.onChange(field.value?.filter((value) => value !== industry));
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormLabel className="font-normal text-sm">{industry}</FormLabel>
+                                        </FormItem>
+                                    )
+                                    }}
+                                />
+                                ))}
+                            </ScrollArea>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Create Provider</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -114,11 +267,22 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
 export default function ProvidersPage() {
     const isMobile = useIsMobile();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
+    const [isAddProviderOpen, setAddProviderOpen] = useState(false);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const handleFormSubmit = (values: z.infer<typeof providerSchema>) => {
+        console.log("New Provider Data:", values);
+        toast({
+            title: "Provider Company Created",
+            description: `${values.name} has been added. You can now invite users to this company.`,
+        });
+        setAddProviderOpen(false);
+    };
 
     return (
         <div>
@@ -129,10 +293,25 @@ export default function ProvidersPage() {
                         Provider Management
                     </h1>
                 </div>
-                <Button className="w-full sm:w-auto">Add New Provider</Button>
+                <Button className="w-full sm:w-auto" onClick={() => setAddProviderOpen(true)}>Add New Provider</Button>
             </div>
             
             {isMobile ? <MobileView constructUrl={constructUrl}/> : <DesktopView constructUrl={constructUrl}/>}
+
+            <Dialog open={isAddProviderOpen} onOpenChange={setAddProviderOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create New Service Provider</DialogTitle>
+                        <DialogDescription>
+                            Create a new provider company profile. An initial user can be invited after creation.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <ProviderForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setAddProviderOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -11,8 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
-import { technicians } from "@/lib/placeholder-data";
-import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
+import { technicians, inspectorAssets, InspectorAsset } from "@/lib/placeholder-data";
+import { ChevronLeft, MapPin, Star, Users, Wrench } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -31,6 +31,14 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
+const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
+    'Available': 'success',
+    'In Use': 'default',
+    'Calibration Due': 'destructive',
+    'Out of Service': 'outline',
+    'Under Service': 'secondary',
+};
+
 export default function ProviderDetailPage() {
     const params = useParams();
     const { id } = params;
@@ -40,6 +48,7 @@ export default function ProviderDetailPage() {
     
     const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
     const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === id), [id]);
+    const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
 
     if (!provider) {
         notFound();
@@ -79,6 +88,7 @@ export default function ProviderDetailPage() {
                 <TabsList className="mb-4">
                     <TabsTrigger value="details">Details</TabsTrigger>
                     <TabsTrigger value="technicians">Technicians</TabsTrigger>
+                    <TabsTrigger value="equipment">Equipment</TabsTrigger>
                 </TabsList>
                 <TabsContent value="details">
                      <Card>
@@ -175,6 +185,61 @@ export default function ProviderDetailPage() {
                            {providerTechnicians.length === 0 && (
                                 <div className="text-center text-muted-foreground py-10">
                                     No technicians found for this provider.
+                                </div>
+                           )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                 <TabsContent value="equipment">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Wrench /> Public Equipment
+                            </CardTitle>
+                            <CardDescription>
+                                A selection of publicly listed equipment from {provider.name}.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           {isMobile ? (
+                                <div className="space-y-4">
+                                    {publicEquipment.map(equip => (
+                                        <Card key={equip.id} className="p-4">
+                                             <div className="flex items-start justify-between">
+                                                <div>
+                                                    <p className="font-semibold">{equip.name}</p>
+                                                    <p className="text-sm text-muted-foreground">{equip.type}</p>
+                                                </div>
+                                                <Badge variant={statusVariants[equip.status]}>{equip.status}</Badge>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                           ) : (
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Equipment Name</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {publicEquipment.map(equip => (
+                                        <TableRow key={equip.id}>
+                                            <TableCell className="font-medium">{equip.name}</TableCell>
+                                            <TableCell>{equip.type}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={statusVariants[equip.status]}>{equip.status}</Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                           )}
+                           {publicEquipment.length === 0 && (
+                                <div className="text-center text-muted-foreground py-10">
+                                    This provider has not listed any public equipment.
                                 </div>
                            )}
                         </CardContent>

@@ -85,6 +85,7 @@ export type InspectorAsset = {
     status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service' | 'Under Service';
     nextCalibration: string;
     history?: EquipmentHistory[];
+    isPublic?: boolean;
 };
 
 export type Certification = {
@@ -242,6 +243,7 @@ export const inspectorAssets: InspectorAsset[] = [
         providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: '2025-01-05',
+        isPublic: true,
         history: [
             { event: 'Created', user: 'Admin', timestamp: '2023-01-05T10:00:00Z', notes: 'Item created in inventory.' },
             { event: 'Checked In', user: 'Jane Smith', timestamp: '2024-06-25T14:00:00Z', notes: 'Condition: Good. Job: Annual UT Thickness Survey.' },
@@ -255,6 +257,7 @@ export const inspectorAssets: InspectorAsset[] = [
         providerId: 'provider-03',
         status: 'In Use', 
         nextCalibration: '2024-12-11',
+        isPublic: true,
         history: [
              { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
              { event: 'Created', user: 'Admin', timestamp: '2023-02-10T11:00:00Z', notes: 'Item created in inventory.' }
@@ -267,6 +270,7 @@ export const inspectorAssets: InspectorAsset[] = [
         providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: 'N/A',
+        isPublic: false,
         history: [
             { event: 'Created', user: 'Admin', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
         ]
@@ -278,6 +282,7 @@ export const inspectorAssets: InspectorAsset[] = [
         providerId: 'provider-03',
         status: 'Calibration Due', 
         nextCalibration: '2024-07-30',
+        isPublic: false,
         history: [
             { event: 'Set to Calibration Due', user: 'System', timestamp: '2024-07-15T00:00:00Z', notes: 'Automatic status change based on calibration date.' },
             { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },

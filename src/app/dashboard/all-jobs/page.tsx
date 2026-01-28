@@ -9,7 +9,6 @@ import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -37,7 +36,7 @@ export default function AllJobsPage() {
     const searchParams = useSearchParams();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -63,17 +62,21 @@ export default function AllJobsPage() {
             
             const providerMatch = selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
             
-            const statusMatch = statusFilter === 'all' || job.status === statusFilter;
+            const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
 
             return searchMatch && providerMatch && statusMatch;
         });
-    }, [searchQuery, selectedProviders, statusFilter]);
+    }, [searchQuery, selectedProviders, selectedStatuses]);
 
     const handleProviderChange = (providerId: string) => {
         setSelectedProviders(prev => prev.includes(providerId) ? prev.filter(id => id !== providerId) : [...prev, providerId]);
     };
     
-    const hasActiveFilters = searchQuery || selectedProviders.length > 0 || statusFilter !== 'all';
+    const handleStatusChange = (status: string) => {
+        setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
+    };
+
+    const hasActiveFilters = searchQuery || selectedProviders.length > 0 || selectedStatuses.length > 0;
 
     return (
         <div>
@@ -119,17 +122,33 @@ export default function AllJobsPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                            <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            {statusFilters.map(status => (
-                                <SelectItem key={status} value={status}>{status}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Status ({selectedStatuses.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64">
+                             <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Filter by Status</h4>
+                                </div>
+                                <div className="grid gap-2">
+                                    {statusFilters.map(status => (
+                                        <div key={status} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`status-${status}`}
+                                                checked={selectedStatuses.includes(status)}
+                                                onCheckedChange={() => handleStatusChange(status)}
+                                            />
+                                            <Label htmlFor={`status-${status}`}>{status}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                  </div>
             </div>
 
@@ -144,15 +163,15 @@ export default function AllJobsPage() {
                             </button>
                         </Badge>
                     ))}
-                    {statusFilter !== 'all' && (
-                        <Badge variant="secondary">
-                            Status: {statusFilter}
-                             <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                    {selectedStatuses.map(status => (
+                        <Badge key={status} variant="secondary">
+                            Status: {status}
+                             <button onClick={() => handleStatusChange(status)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3" />
                             </button>
                         </Badge>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedProviders([]); setStatusFilter('all'); }}>Clear All</Button>
+                    ))}
+                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedProviders([]); setSelectedStatuses([]); }}>Clear All</Button>
                 </div>
             )}
             

@@ -7,13 +7,14 @@ import { serviceProviders } from "@/lib/service-providers-data";
 import { auditFirms } from "@/lib/auditors-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Users, Filter, X, MoreVertical } from "lucide-react";
+import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,8 +38,8 @@ const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | '
 const userSchema = z.object({
   name: z.string().min(2, "Name is required."),
   email: z.string().email(),
-  company: z.string().min(1, "Please select a company."),
-  role: z.string().min(1, "Please select a role."),
+  role: z.string({required_error: "Please select a role."}),
+  company: z.string({required_error: "Please select a company."}),
   isCompanyAdmin: z.boolean().default(false),
 });
 
@@ -48,12 +49,24 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
         defaultValues: { name: '', email: '', isCompanyAdmin: false },
     });
 
+    const selectedRole = form.watch("role");
+
+    useEffect(() => {
+        form.resetField("company");
+    }, [selectedRole, form]);
+
     const companies = useMemo(() => {
-        const clients = clientData.map(c => ({ value: c.name, label: `${c.name} (Client)` }));
-        const providers = serviceProviders.map(p => ({ value: p.name, label: `${p.name} (Provider)` }));
-        const auditors = auditFirms.map(f => ({ value: f.name, label: `${f.name} (Auditor)` }));
-        return [...clients, ...providers, ...auditors];
-    }, []);
+        switch (selectedRole) {
+            case "Client":
+                return clientData.map(c => ({ value: c.name, label: c.name }));
+            case "Inspector":
+                return serviceProviders.map(p => ({ value: p.name, label: p.name }));
+            case "Auditor":
+                return auditFirms.map(a => ({ value: a.name, label: a.name }));
+            default:
+                return [];
+        }
+    }, [selectedRole]);
 
     const roles = ['Client', 'Inspector', 'Auditor'];
 
@@ -82,22 +95,6 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
                         </FormItem>
                     )}
                 />
-                 <FormField
-                    control={form.control}
-                    name="company"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Company</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {companies.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
                 <FormField
                     control={form.control}
                     name="role"
@@ -114,6 +111,66 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
                         </FormItem>
                     )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="company"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Company</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn(
+                                        "w-full justify-between",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    disabled={!selectedRole}
+                                    >
+                                    {field.value
+                                        ? companies.find(
+                                            (company) => company.value === field.value
+                                        )?.label
+                                        : "Select a company"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search company..." />
+                                    <CommandEmpty>No company found.</CommandEmpty>
+                                    <CommandGroup>
+                                    {companies.map((company) => (
+                                        <CommandItem
+                                        value={company.label}
+                                        key={company.value}
+                                        onSelect={() => {
+                                            form.setValue("company", company.value)
+                                        }}
+                                        >
+                                        <Check
+                                            className={cn(
+                                            "mr-2 h-4 w-4",
+                                            company.value === field.value
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                        />
+                                        {company.label}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
                 <FormField
                     control={form.control}
                     name="isCompanyAdmin"

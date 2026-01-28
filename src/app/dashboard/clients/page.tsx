@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -21,9 +22,10 @@ import { useToast } from "@/hooks/use-toast";
 
 
 const clientSchema = z.object({
-    name: z.string().min(3, 'Company name must be at least 3 characters.'),
-    contactPerson: z.string().min(2, 'Contact person name is required.'),
-    contactEmail: z.string().email('Please enter a valid email address.'),
+  name: z.string().min(3, 'Company name must be at least 3 characters.'),
+  location: z.string().min(2, "Location is required."),
+  contactPerson: z.string().min(2, 'Contact person name is required.'),
+  contactEmail: z.string().email('Please enter a valid email address.'),
 });
 
 const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: z.infer<typeof clientSchema>) => void }) => {
@@ -31,6 +33,7 @@ const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (v
         resolver: zodResolver(clientSchema),
         defaultValues: {
             name: '',
+            location: '',
             contactPerson: '',
             contactEmail: '',
         }
@@ -38,47 +41,60 @@ const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (v
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Company Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Global Energy Corp." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="contactPerson"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Primary Contact Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., John Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="contactEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Contact Email</FormLabel>
-                            <FormControl>
-                                <Input type="email" placeholder="e.g., contact@company.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <DialogFooter>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Company Name</FormLabel>
+                                <FormControl><Input placeholder="e.g., Global Energy Corp." {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Location</FormLabel>
+                                <FormControl><Input placeholder="City, State/Country" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="contactPerson"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Contact Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., John Doe" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="contactEmail"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Contact Email</FormLabel>
+                                <FormControl>
+                                    <Input type="email" placeholder="e.g., contact@company.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <DialogFooter className="pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                     <Button type="submit">Create Client</Button>
                 </DialogFooter>

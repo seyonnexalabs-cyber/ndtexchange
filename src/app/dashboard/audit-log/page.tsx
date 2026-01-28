@@ -145,7 +145,7 @@ export default function AuditLogPage() {
                 <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4">
                     <TabsTrigger value="user-management" className="gap-2"><User /> User Management</TabsTrigger>
                     <TabsTrigger value="job-activity" className="gap-2"><Briefcase /> Job Activity</TabsTrigger>
-                    <TabsTrigger value="billing" className="gap-2"><DollarSign /> Billing & Subscriptions</TabsTrigger>
+                    <TabsTrigger value="billing" className="gap-2"><DollarSign /> Billing Events</TabsTrigger>
                 </TabsList>
                 <TabsContent value="user-management">
                    <UserLog />

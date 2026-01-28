@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ShieldCheck, Search, Users, Globe, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Globe, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -218,6 +218,12 @@ export default function Home() {
                       />
                   );
               })}
+              <FeatureCard
+                icon={<PlusCircle className="w-8 h-8 text-primary" />}
+                iconContainerClass="bg-primary/10"
+                title="And More..."
+                description="Our platform continuously expands to include more specialized and advanced NDT methods as new providers join the exchange."
+              />
             </div>
           </div>
         </section>

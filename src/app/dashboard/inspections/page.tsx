@@ -65,6 +65,7 @@ export default function InspectionsPage() {
     const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'all' && role !== 'auditor');
 
     const pageTitle = role === 'auditor' ? 'Audit Queue' : 'All Inspections';
+    const pageDescription = role === 'auditor' ? 'Review and approve submitted inspection reports.' : 'An overview of all inspection reports submitted on the platform.';
     const pageIcon = role === 'auditor' ? <Eye /> : <ClipboardList />;
     const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspections found';
     const emptyStateDescription = role === 'auditor' ? 'There are no reports currently awaiting your review.' : 'There are no inspections matching your current filters.';
@@ -72,10 +73,13 @@ export default function InspectionsPage() {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    {pageIcon}
-                    {pageTitle}
-                </h1>
+                <div>
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        {pageIcon}
+                        {pageTitle}
+                    </h1>
+                    <p className="text-muted-foreground mt-1">{pageDescription}</p>
+                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-4">

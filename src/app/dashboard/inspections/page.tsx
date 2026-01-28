@@ -17,6 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 const statusFilters = ['Scheduled', 'Completed', 'Requires Review'];
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -70,10 +72,6 @@ export default function InspectionsPage() {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
             const statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
-
-            if (role === 'auditor') {
-                return searchMatch && techniqueMatch;
-            }
 
             return searchMatch && techniqueMatch && statusMatch;
         });
@@ -195,7 +193,7 @@ export default function InspectionsPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">Date: {inspection.date}</p>
+                                <p className="text-sm text-muted-foreground">Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</p>
                             </CardContent>
                              <CardFooter>
                                 <Button asChild variant="outline" size="sm" className="w-full">
@@ -231,7 +229,7 @@ export default function InspectionsPage() {
                                             }
                                         </div>
                                     </TableCell>
-                                    <TableCell>{inspection.date}</TableCell>
+                                    <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
                                     <TableCell>
                                         <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                     </TableCell>

@@ -32,7 +32,6 @@ export default function Home() {
     et: PlaceHolderImages.find(p => p.id === 'tech-et'),
     lt: PlaceHolderImages.find(p => p.id === 'tech-lt'),
     ir: PlaceHolderImages.find(p => p.id === 'tech-ir'),
-    other: PlaceHolderImages.find(p => p.id === 'tech-other'),
   }
 
   return (
@@ -371,10 +370,15 @@ export default function Home() {
                 isHighlighted
               />
                <FeatureCard
-                imageUrl={techImages.other?.imageUrl}
-                imageHint={techImages.other?.imageHint}
-                title="Other NDT Methods"
-                description="Support for a variety of other methods including Guided Wave, Laser Testing (Shearography), and Neutron Radiography."
+                icon={<Waves className="w-8 h-8 text-accent" />}
+                title="Guided Wave Testing (GWT)"
+                description="An advanced ultrasonic method for inspecting long lengths of pipes and structures from a single test location, ideal for corrosion screening."
+                isHighlighted
+              />
+              <FeatureCard
+                icon={<Magnet className="w-8 h-8 text-accent" />}
+                title="Magnetic Flux Leakage (MFL)"
+                description="A fast, non-contact method for detecting corrosion and pitting in ferromagnetic materials, commonly used on tank floors and pipelines."
                 isHighlighted
               />
             </div>

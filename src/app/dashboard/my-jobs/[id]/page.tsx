@@ -506,7 +506,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             <Card>
                 <CardHeader>
                     <CardTitle>Bids Received ({submittedBids.length})</CardTitle>
-                    <CardDescription>Review the bids below and award the job to a provider.</CardDescription>
+                    {isClient && <CardDescription>Review the bids below and award the job to a provider.</CardDescription>}
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {submittedBids.map(bid => {
@@ -623,7 +623,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </CardContent>
                         </Card>
 
-                        {isClient && <BidsSection />}
+                        {(isClient || isAdmin) && <BidsSection />}
 
                         <Card>
                             <CardHeader>
@@ -964,4 +964,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
+    
+
     

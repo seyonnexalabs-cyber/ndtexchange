@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { inspections, NDTTechniques, jobs, technicians, Technician } from '@/lib/placeholder-data';
+import { inspections as initialInspections, NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -42,9 +42,9 @@ export default function InspectionsPage() {
 
     const augmentedAndFilteredInspections = useMemo(() => {
         // First, apply role-based filtering if needed.
-        let filtered = inspections;
+        let filtered = initialInspections;
         if (role === 'auditor') {
-            filtered = inspections.filter(i => i.status === 'Requires Review');
+            filtered = initialInspections.filter(i => i.status === 'Requires Review');
         }
 
         // Augment with job and technician data
@@ -83,11 +83,11 @@ export default function InspectionsPage() {
 
     const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'all' && role !== 'auditor');
 
-    const pageTitle = role === 'auditor' ? 'Audit Queue' : 'All Inspections';
-    const pageDescription = role === 'auditor' ? 'Review and approve submitted inspection reports.' : 'An overview of all inspection reports submitted on the platform.';
+    const pageTitle = role === 'auditor' ? 'Audit Queue' : 'All Inspection Reports';
+    const pageDescription = role === 'auditor' ? 'Review and approve submitted inspection reports.' : 'A detailed log of all submitted inspection reports across the platform.';
     const pageIcon = role === 'auditor' ? <Eye /> : <ClipboardList />;
-    const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspections found';
-    const emptyStateDescription = role === 'auditor' ? 'There are no reports currently awaiting your review.' : 'There are no inspections matching your current filters.';
+    const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspection reports found';
+    const emptyStateDescription = role === 'auditor' ? 'There are no reports currently awaiting your review.' : 'There are no inspection reports matching your current filters.';
     const buttonText = role === 'auditor' ? 'Audit Report' : 'View Report';
 
     return (

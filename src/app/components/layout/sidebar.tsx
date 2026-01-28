@@ -148,6 +148,7 @@ const adminMenu = [
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: ShieldCheck },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
+      { id: 'inspections', href: '/dashboard/inspections', label: 'Inspection Reports', icon: ClipboardList },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]

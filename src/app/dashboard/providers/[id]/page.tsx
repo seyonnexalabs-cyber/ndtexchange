@@ -191,11 +191,14 @@ export default function ProviderDetailPage() {
                                 <div className="space-y-4">
                                     {publicEquipment.map(equip => (
                                         <Card key={equip.id} className="p-4">
-                                             <div className="flex items-start justify-between">
-                                                <div>
-                                                    <p className="font-semibold">{equip.name}</p>
-                                                    <p className="text-sm text-muted-foreground">{equip.type}</p>
-                                                </div>
+                                             <div className="space-y-1">
+                                                <p className="font-semibold">{equip.name}</p>
+                                                <p className="text-sm text-muted-foreground">Type: {equip.type}</p>
+                                                {(equip.manufacturer || equip.model) && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {equip.manufacturer}{equip.manufacturer && equip.model && ' - '}{equip.model}
+                                                    </p>
+                                                )}
                                             </div>
                                         </Card>
                                     ))}
@@ -206,6 +209,8 @@ export default function ProviderDetailPage() {
                                     <TableRow>
                                         <TableHead>Equipment Name</TableHead>
                                         <TableHead>Type</TableHead>
+                                        <TableHead>Manufacturer</TableHead>
+                                        <TableHead>Model</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -213,6 +218,8 @@ export default function ProviderDetailPage() {
                                         <TableRow key={equip.id}>
                                             <TableCell className="font-medium">{equip.name}</TableCell>
                                             <TableCell>{equip.type}</TableCell>
+                                            <TableCell>{equip.manufacturer || 'N/A'}</TableCell>
+                                            <TableCell>{equip.model || 'N/A'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

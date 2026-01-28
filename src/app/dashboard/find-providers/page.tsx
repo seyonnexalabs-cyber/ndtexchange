@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Star, MapPin, X, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { NDTTechniques } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSearchParams } from 'next/navigation';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -114,14 +114,9 @@ export default function FindProvidersPage() {
                     <Card key={provider.id}>
                         <CardHeader>
                             <div className="flex items-center gap-4">
-                                <Image 
-                                    src={provider.logoUrl} 
-                                    alt={`${provider.name} logo`} 
-                                    width={64} 
-                                    height={64} 
-                                    className="rounded-md border p-1"
-                                    data-ai-hint={`${provider.name} logo`}
-                                />
+                                <Avatar className="h-16 w-16">
+                                    <AvatarFallback className="text-xl">{provider.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                </Avatar>
                                 <div>
                                     <CardTitle className="font-headline">{provider.name}</CardTitle>
                                     <CardDescription className="flex items-center gap-1.5 mt-1">

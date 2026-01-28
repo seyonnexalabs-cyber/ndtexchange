@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, MapPin, Star, MoreVertical } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -48,13 +48,9 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
                     {serviceProviders.map(provider => (
                         <TableRow key={provider.id}>
                             <TableCell className="font-medium flex items-center gap-3">
-                                <Image 
-                                    src={provider.logoUrl} 
-                                    alt={`${provider.name} logo`} 
-                                    width={40} 
-                                    height={40} 
-                                    className="rounded-md border p-0.5"
-                                />
+                                <Avatar className="h-10 w-10">
+                                    <AvatarFallback>{provider.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
                                 {provider.name}
                             </TableCell>
                             <TableCell>{provider.location}</TableCell>
@@ -84,13 +80,9 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
             <Card key={provider.id}>
                 <CardHeader>
                     <div className="flex items-center gap-3">
-                        <Image 
-                            src={provider.logoUrl} 
-                            alt={`${provider.name} logo`} 
-                            width={48} 
-                            height={48} 
-                            className="rounded-md border p-1"
-                        />
+                        <Avatar className="h-12 w-12">
+                            <AvatarFallback className="text-lg">{provider.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
                         <div>
                             <CardTitle>{provider.name}</CardTitle>
                             <CardDescription className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {provider.location}</CardDescription>

@@ -1,7 +1,7 @@
 export type AuditFirm = {
     id: string;
     name: string;
-    logoUrl: string;
+    logoUrl?: string;
     location: string;
     rating: number;
     specialties: string[];
@@ -16,7 +16,6 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-01',
         name: 'NDT Auditors LLC',
-        logoUrl: 'https://picsum.photos/seed/auditors/200/200',
         location: 'Washington, D.C., USA',
         rating: 4.9,
         specialties: ['Compliance Audits', 'Level III Services', 'Oil & Gas', 'Power Generation'],
@@ -25,7 +24,6 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-02',
         name: 'Aero-Compliance Partners',
-        logoUrl: 'https://picsum.photos/seed/aerocompliance/200/200',
         location: 'Seattle, WA, USA',
         rating: 4.8,
         specialties: ['Aerospace & Defense', 'Procedure Development', 'Level III Services', 'Manufacturing'],

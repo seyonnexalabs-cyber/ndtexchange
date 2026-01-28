@@ -2,7 +2,7 @@
 export type NDTServiceProvider = {
     id: string;
     name: string;
-    logoUrl: string;
+    logoUrl?: string;
     location: string;
     rating: number;
     techniques: string[];
@@ -13,7 +13,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-01',
         name: 'MISTRAS Group',
-        logoUrl: 'https://picsum.photos/seed/mistras/200/200',
         location: 'Princeton Jct, NJ, USA (Global)',
         rating: 4.8,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'AE', 'VT', 'MT', 'PT', 'IR'],
@@ -22,7 +21,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-02',
         name: 'Applus+',
-        logoUrl: 'https://picsum.photos/seed/applus/200/200',
         location: 'Barcelona, Spain (Global)',
         rating: 4.7,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'LT'],
@@ -31,7 +29,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-03',
         name: 'TEAM, Inc.',
-        logoUrl: 'https://picsum.photos/seed/team/200/200',
         location: 'Sugar Land, TX, USA (Global)',
         rating: 4.5,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'IR'],
@@ -40,7 +37,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-04',
         name: 'TÜV Rheinland',
-        logoUrl: 'https://picsum.photos/seed/tuv/200/200',
         location: 'Cologne, Germany (Global)',
         rating: 4.9,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'LT', 'TOFD'],
@@ -49,7 +45,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-05',
         name: 'Intertek',
-        logoUrl: 'https://picsum.photos/seed/intertek/200/200',
         location: 'London, UK (Global)',
         rating: 4.6,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT'],
@@ -58,7 +53,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-06',
         name: 'Acuren',
-        logoUrl: 'https://picsum.photos/seed/acuren/200/200',
         location: 'St. John, Canada (North America)',
         rating: 4.7,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'IR'],
@@ -67,7 +61,6 @@ export const serviceProviders: NDTServiceProvider[] = [
      {
         id: 'provider-07',
         name: 'Dekra',
-        logoUrl: 'https://picsum.photos/seed/dekra/200/200',
         location: 'Stuttgart, Germany (Global)',
         rating: 4.8,
         techniques: ['UT', 'RT', 'MT', 'PT', 'VT', 'ET', 'LT'],
@@ -76,7 +69,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-08',
         name: 'Bureau Veritas',
-        logoUrl: 'https://picsum.photos/seed/bureauveritas/200/200',
         location: 'Paris, France (Global)',
         rating: 4.7,
         techniques: ['UT', 'PAUT', 'RT', 'MT', 'PT', 'VT', 'ET'],
@@ -85,7 +77,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-09',
         name: 'Blue Horizon Services',
-        logoUrl: 'https://picsum.photos/seed/bluehoriz/200/200',
         location: 'Abu Dhabi, UAE',
         rating: 4.6,
         techniques: ['PAUT', 'TOFD', 'AE', 'GWT', 'VT'],
@@ -94,7 +85,6 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-10',
         name: 'Arise Global',
-        logoUrl: 'https://picsum.photos/seed/ariseglobal/200/200',
         location: 'Singapore',
         rating: 4.7,
         techniques: ['AE', 'APR', 'ACFM', 'Corrosion Mapping', 'GWT', 'MFL', 'DR', 'HTHA', 'PAUT', 'PEC', 'RVI', 'SRUT', 'TOFD', 'Tube Inspection', 'Automated UT'],

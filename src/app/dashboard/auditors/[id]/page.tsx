@@ -3,12 +3,12 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { auditFirms } from "@/lib/auditors-data";
 import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -52,13 +52,9 @@ export default function AuditorDetailPage() {
             </div>
             
             <div className="flex items-center gap-4 mb-6">
-                 <Image 
-                    src={auditor.logoUrl} 
-                    alt={`${auditor.name} logo`} 
-                    width={80} 
-                    height={80} 
-                    className="rounded-lg border p-1"
-                />
+                <Avatar className="h-20 w-20">
+                    <AvatarFallback className="text-3xl">{auditor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
                 <div>
                     <h1 className="text-2xl font-headline font-bold">{auditor.name}</h1>
                     <p className="text-muted-foreground flex items-center gap-1.5 pt-1">

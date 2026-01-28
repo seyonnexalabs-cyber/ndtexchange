@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -93,7 +92,7 @@ export default function PublicHeader() {
           ))}
            <DropdownMenu>
                 <DropdownMenuTrigger className={cn(
-                    "flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary focus:outline-none",
+                    "flex items-center gap-1 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 focus:outline-none",
                     isManagementActive && "font-bold"
                 )}>
                     Management

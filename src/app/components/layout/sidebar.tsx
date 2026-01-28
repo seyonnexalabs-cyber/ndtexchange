@@ -137,6 +137,7 @@ const adminMenu = [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
       { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star },
+      { id: 'audit-log', href: '/dashboard/audit-log', label: 'Audit Log', icon: History },
     ]
   },
   {

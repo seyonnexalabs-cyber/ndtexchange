@@ -365,7 +365,7 @@ export const jobs: Job[] = [
             { name: 'Previous Inspection Report.pdf', url: '#' },
         ],
         history: [
-            { user: 'John Doe', timestamp: '2024-06-28 10:00 AM', action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
+            { user: 'John Doe', timestamp: '2024-06-28T10:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
         ]
     },
     { 
@@ -384,15 +384,15 @@ export const jobs: Job[] = [
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
         history: [
-            { user: 'Carlos Ray', timestamp: '2024-06-22 09:00 AM', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
-            { user: 'Carlos Ray', timestamp: '2024-06-20 08:00 AM', action: 'Scheduled job.', details: 'Start: 2024-06-21', statusChange: 'Scheduled' },
-            { user: 'John Doe', timestamp: '2024-06-19 03:00 PM', action: 'Awarded job to provider "TEAM, Inc.".', statusChange: 'Assigned' },
-            { user: 'John Doe', timestamp: '2024-06-18 10:00 AM', action: 'Created and posted job.', statusChange: 'Posted' },
+            { user: 'Carlos Ray', timestamp: '2024-06-22T09:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
+            { user: 'Carlos Ray', timestamp: '2024-06-20T08:00:00Z', action: 'Scheduled job.', details: 'Start: 2024-06-21', statusChange: 'Scheduled' },
+            { user: 'John Doe', timestamp: '2024-06-19T15:00:00Z', action: 'Awarded job to provider "TEAM, Inc.".', statusChange: 'Assigned' },
+            { user: 'John Doe', timestamp: '2024-06-18T10:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' },
         ],
         messages: [
-            { user: 'John Doe', role: 'Client', timestamp: '2024-06-20 02:15 PM', message: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.' },
-            { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-06-20 03:00 PM', message: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.' },
-            { user: 'John Doe', role: 'Client', timestamp: '2024-06-22 10:00 AM', message: 'Thanks for the report. What was the outcome on that secondary hook?' },
+            { user: 'John Doe', role: 'Client', timestamp: '2024-06-20T14:15:00Z', message: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.' },
+            { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-06-20T15:00:00Z', message: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.' },
+            { user: 'John Doe', role: 'Client', timestamp: '2024-06-22T10:00:00Z', message: 'Thanks for the report. What was the outcome on that secondary hook?' },
         ]
     },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
@@ -446,7 +446,7 @@ export const jobs: Job[] = [
         assetIds: ['ASSET-008'], 
         workflow: 'auto',
         documents: [ { name: 'Boiler_Tube_Diagram.pdf', url: '#' } ],
-        history: [ { user: 'New Client User', timestamp: '2024-07-12 11:00 AM', action: 'Created and posted job.', statusChange: 'Posted' } ]
+        history: [ { user: 'New Client User', timestamp: '2024-07-12T11:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' } ]
     },
     { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'In Progress', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['TECH-07'], assetIds: ['ASSET-009'], workflow: 'standard' },
     { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['TECH-04', 'TECH-06'], assetIds: ['ASSET-007'], workflow: 'standard' },
@@ -578,20 +578,57 @@ export const jobPayments: JobPayment[] = [
 ];
 
 
-export type AdminActivity = {
+export type UserAuditLog = {
   id: string;
-  adminName: string;
-  action: 'User Invited' | 'User Disabled' | 'Admin Promotion';
+  timestamp: string;
+  actorName: string; 
+  actorCompany: string;
+  action: 'User Invited' | 'User Disabled' | 'User Enabled' | 'Admin Promotion' | 'Admin Demotion';
   targetUserName: string;
   targetCompany: string;
-  timestamp: string;
   details?: string;
 };
 
-export const adminActivityLog: AdminActivity[] = [
-  { id: 'ACT-001', adminName: 'Admin User', action: 'Admin Promotion', targetUserName: 'Ben Carter', targetCompany: 'MISTRAS Group', timestamp: '2024-07-28T10:00:00Z', details: 'Promoted to Company Admin, replacing old admin.' },
-  { id: 'ACT-002', adminName: 'Admin User', action: 'User Disabled', targetUserName: 'Steven Shaw', targetCompany: 'TEAM, Inc.', timestamp: '2024-07-27T15:30:00Z' },
-  { id: 'ACT-003', adminName: 'Admin User', action: 'User Invited', targetUserName: 'New User', targetCompany: 'Global Energy Corp.', timestamp: '2024-07-26T11:00:00Z', details: 'Invited as Client.' },
+export type JobAuditLog = {
+  id: string;
+  timestamp: string;
+  jobId: string;
+  jobTitle: string;
+  actorName: string;
+  actorRole: 'Client' | 'Provider' | 'Admin';
+  action: 'Job Created' | 'Bid Placed' | 'Job Awarded' | 'Status Changed' | 'Resource Assigned' | 'Report Submitted';
+  details: string; 
+};
+
+export type BillingAuditLog = {
+  id: string;
+  timestamp: string;
+  companyName: string;
+  action: 'Subscription Started' | 'Subscription Canceled' | 'Payment Succeeded' | 'Payment Failed' | 'Plan Changed';
+  details: string;
+};
+
+
+export const userAuditLog: UserAuditLog[] = [
+  { id: 'ACT-001', timestamp: '2024-07-28T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'Admin Promotion', targetUserName: 'Ben Carter', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
+  { id: 'ACT-002', timestamp: '2024-07-27T15:30:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Disabled', targetUserName: 'Steven Shaw', targetCompany: 'TEAM, Inc.', details: '' },
+  { id: 'ACT-003', timestamp: '2024-07-26T11:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'New User', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+  { id: 'ACT-004', timestamp: '2024-07-25T09:20:00Z', actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'New Finance Person', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+];
+
+export const jobAuditLog: JobAuditLog[] = [
+    { id: 'JLOG-001', timestamp: '2024-06-28T10:00:00Z', jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'John Doe', actorRole: 'Client', action: 'Job Created', details: 'Job posted to marketplace.' },
+    { id: 'JLOG-002', timestamp: '2024-06-29T11:30:00Z', jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'Ben Carter', actorRole: 'Provider', action: 'Bid Placed', details: 'Bid for $12,500 submitted by MISTRAS Group.' },
+    { id: 'JLOG-003', timestamp: '2024-06-19T15:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to TEAM, Inc. for $4,800.' },
+    { id: 'JLOG-004', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'Carlos Ray', actorRole: 'Provider', action: 'Report Submitted', details: 'Inspection report uploaded.' },
+    { id: 'JLOG-005', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'System', actorRole: 'Admin', action: 'Status Changed', details: 'Status changed to Report Submitted.' },
+];
+
+export const billingAuditLog: BillingAuditLog[] = [
+    { id: 'BLOG-001', timestamp: '2024-07-10T00:00:00Z', companyName: 'Chemical Plant C', action: 'Subscription Started', details: 'Started on Client plan.' },
+    { id: 'BLOG-002', timestamp: '2024-07-01T00:00:00Z', companyName: 'Applus+', action: 'Payment Failed', details: 'Monthly payment of $299 failed.' },
+    { id: 'BLOG-003', timestamp: '2024-07-01T00:00:00Z', companyName: 'MISTRAS Group', action: 'Payment Succeeded', details: 'Monthly payment of $299 succeeded.' },
+    { id: 'BLOG-004', timestamp: '2024-05-01T00:00:00Z', companyName: 'Energy Transfer', action: 'Subscription Canceled', details: 'Client plan was canceled.' },
 ];
 
 

@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench } from "lucide-react";
+import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -13,14 +13,14 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets, Job, Inspection, allUsers } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets, Job, Inspection, allUsers, adminActivityLog } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 // --- Client Dashboard ---
@@ -547,6 +547,47 @@ const AdminDashboard = () => {
                             <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
                         </BarChart>
                     </ChartContainer>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2">
+                        <History className="h-5 w-5 text-primary" />
+                        Recent Admin Activity
+                    </CardTitle>
+                    <CardDescription>
+                        A log of recent user management changes.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Action</TableHead>
+                                <TableHead>Target User</TableHead>
+                                <TableHead>Company</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Performed By</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {adminActivityLog.map(log => (
+                                <TableRow key={log.id}>
+                                    <TableCell>
+                                        <Badge variant={
+                                            log.action === 'Admin Promotion' ? 'default' :
+                                            log.action === 'User Disabled' ? 'destructive' :
+                                            'secondary'
+                                        }>{log.action}</Badge>
+                                    </TableCell>
+                                    <TableCell className="font-medium">{log.targetUserName}</TableCell>
+                                    <TableCell>{log.targetCompany}</TableCell>
+                                    <TableCell>{format(new Date(log.timestamp), GLOBAL_DATETIME_FORMAT)}</TableCell>
+                                    <TableCell>{log.adminName}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>

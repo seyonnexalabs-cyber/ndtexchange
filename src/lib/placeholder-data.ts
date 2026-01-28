@@ -578,6 +578,22 @@ export const jobPayments: JobPayment[] = [
 ];
 
 
+export type AdminActivity = {
+  id: string;
+  adminName: string;
+  action: 'User Invited' | 'User Disabled' | 'Admin Promotion';
+  targetUserName: string;
+  targetCompany: string;
+  timestamp: string;
+  details?: string;
+};
+
+export const adminActivityLog: AdminActivity[] = [
+  { id: 'ACT-001', adminName: 'Admin User', action: 'Admin Promotion', targetUserName: 'Ben Carter', targetCompany: 'MISTRAS Group', timestamp: '2024-07-28T10:00:00Z', details: 'Promoted to Company Admin, replacing old admin.' },
+  { id: 'ACT-002', adminName: 'Admin User', action: 'User Disabled', targetUserName: 'Steven Shaw', targetCompany: 'TEAM, Inc.', timestamp: '2024-07-27T15:30:00Z' },
+  { id: 'ACT-003', adminName: 'Admin User', action: 'User Invited', targetUserName: 'New User', targetCompany: 'Global Energy Corp.', timestamp: '2024-07-26T11:00:00Z', details: 'Invited as Client.' },
+];
+
 
 // Rename 'assets' to 'clientAssets' for clarity
 export { clientAssets as assets };

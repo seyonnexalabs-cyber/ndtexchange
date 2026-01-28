@@ -82,4 +82,22 @@ export const serviceProviders: NDTServiceProvider[] = [
         techniques: ['UT', 'PAUT', 'RT', 'MT', 'PT', 'VT', 'ET'],
         description: 'A world leader in laboratory testing, inspection, and certification services, with a strong presence in the industrial and infrastructure sectors.'
     },
+    {
+        id: 'provider-09',
+        name: 'Blue Horiz',
+        logoUrl: 'https://picsum.photos/seed/bluehoriz/200/200',
+        location: 'Houston, TX, USA',
+        rating: 4.6,
+        techniques: ['PAUT', 'TOFD', 'AE', 'GWT', 'VT'],
+        description: 'Specialists in advanced ultrasonic and acoustic emission technologies for complex industrial assets.'
+    },
+    {
+        id: 'provider-10',
+        name: 'Arise Global',
+        logoUrl: 'https://picsum.photos/seed/ariseglobal/200/200',
+        location: 'Singapore',
+        rating: 4.7,
+        techniques: ['UT', 'RT', 'MT', 'PT', 'VT', 'ET'],
+        description: 'A leading inspection and certification provider in Southeast Asia, offering comprehensive NDT services across multiple industries.'
+    }
 ];

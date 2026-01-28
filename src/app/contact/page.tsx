@@ -1,3 +1,4 @@
+'use client';
 
 import type { Metadata } from 'next';
 import PublicHeader from '@/app/components/layout/public-header';
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useState } from 'react';
 
 export const metadata: Metadata = {
   title: 'Contact & Pricing | NDT Exchange',
@@ -22,6 +24,11 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
+  const [showCustomSubject, setShowCustomSubject] = useState(false);
+
+  const handleSubjectChange = (value: string) => {
+    setShowCustomSubject(value === 'other');
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -159,9 +166,25 @@ export default function ContactPage() {
                             </Select>
                         </div>
                          <div className="space-y-2">
-                            <Label htmlFor="subject">Subject</Label>
-                            <Input id="subject" placeholder="e.g., Pricing Inquiry" />
+                            <Label htmlFor="subject-select">Subject</Label>
+                            <Select onValueChange={handleSubjectChange}>
+                                <SelectTrigger id="subject-select">
+                                    <SelectValue placeholder="Select a subject" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pricing">Pricing Inquiry</SelectItem>
+                                    <SelectItem value="support">Technical Support</SelectItem>
+                                    <SelectItem value="general">General Question</SelectItem>
+                                    <SelectItem value="other">Other...</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
+                        {showCustomSubject && (
+                            <div className="space-y-2 animate-in fade-in duration-300">
+                                <Label htmlFor="custom-subject">Custom Subject</Label>
+                                <Input id="custom-subject" placeholder="Please specify your subject" autoFocus />
+                            </div>
+                        )}
                          <div className="space-y-2">
                             <Label htmlFor="message">Message</Label>
                             <Textarea id="message" placeholder="How can we help you?" className="min-h-[150px]" />

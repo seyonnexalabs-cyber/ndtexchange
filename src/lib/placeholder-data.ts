@@ -508,6 +508,7 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active' },
     { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active' },
     { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active' },
+    { id: 'user-auditor-02', name: 'Brenda Vance', email: 'brenda.v@ndtauditors.gov', role: 'Senior Auditor', company: 'NDT Auditors LLC', status: 'Active' },
     ...technicians.map(t => {
         const provider = serviceProviders.find(p => p.id === t.providerId);
         return {

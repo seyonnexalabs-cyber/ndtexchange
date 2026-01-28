@@ -9,6 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { auditFirms } from "@/lib/auditors-data";
 import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { allUsers } from "@/lib/placeholder-data";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -30,6 +34,11 @@ export default function AuditorDetailPage() {
     const searchParams = useSearchParams();
     
     const auditor = useMemo(() => auditFirms.find(p => p.id === id), [id]);
+
+    const auditorTeam = useMemo(() => {
+        if (!auditor) return [];
+        return allUsers.filter(user => user.company === auditor.name);
+    }, [auditor]);
 
     if (!auditor) {
         notFound();
@@ -63,30 +72,76 @@ export default function AuditorDetailPage() {
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Auditor Profile</CardTitle>
-                    <CardDescription>Company information and areas of specialty.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div>
-                        <h3 className="font-semibold text-sm mb-1">Rating</h3>
-                        <StarRating rating={auditor.rating} />
-                    </div>
-                     <div>
-                        <h3 className="font-semibold text-sm mb-1">About</h3>
-                        <p className="text-sm text-muted-foreground">{auditor.description}</p>
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-semibold mb-2">Specialties</h4>
-                        <div className="flex flex-wrap gap-1.5">
-                            {auditor.specialties.map(tech => (
-                                <Badge key={tech} variant="outline">{tech}</Badge>
-                            ))}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="details">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="team">Team Members</TabsTrigger>
+                </TabsList>
+                <TabsContent value="details">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Auditor Profile</CardTitle>
+                            <CardDescription>Company information and areas of specialty.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <h3 className="font-semibold text-sm mb-1">Rating</h3>
+                                <StarRating rating={auditor.rating} />
+                            </div>
+                             <div>
+                                <h3 className="font-semibold text-sm mb-1">About</h3>
+                                <p className="text-sm text-muted-foreground">{auditor.description}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold mb-2">Specialties</h4>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {auditor.specialties.map(tech => (
+                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="team">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Users /> Team Members</CardTitle>
+                            <CardDescription>Auditors and staff from {auditor.name}.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Role</TableHead>
+                                        <TableHead>Email</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {auditorTeam.map(user => (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-medium flex items-center gap-3">
+                                                 <Avatar>
+                                                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                 </Avatar>
+                                                {user.name}
+                                            </TableCell>
+                                            <TableCell>{user.role}</TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {auditorTeam.length === 0 && (
+                                <div className="text-center text-muted-foreground py-10">
+                                    No team members are publicly listed for this firm.
+                                </div>
+                           )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -111,7 +112,7 @@ export default function FindProvidersPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredProviders.map(provider => (
-                    <Card key={provider.id}>
+                    <Card key={provider.id} className="flex flex-col">
                         <CardHeader>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-16 w-16">
@@ -125,12 +126,12 @@ export default function FindProvidersPage() {
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex-grow">
                             <StarRating rating={provider.rating} />
                             <p className="mt-4 text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
                             <div className="mt-4">
                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="flex flex-wrap gap-1.5 min-h-16">
                                     {provider.techniques.map(tech => (
                                         <Badge key={tech} variant="outline">{tech}</Badge>
                                     ))}

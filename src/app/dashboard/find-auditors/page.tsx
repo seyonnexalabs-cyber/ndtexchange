@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -110,7 +111,7 @@ export default function FindAuditorsPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredAuditors.map(firm => (
-                    <Card key={firm.id}>
+                    <Card key={firm.id} className="flex flex-col">
                         <CardHeader>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-16 w-16">
@@ -124,12 +125,12 @@ export default function FindAuditorsPage() {
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex-grow">
                             <StarRating rating={firm.rating} />
                             <p className="mt-4 text-sm text-muted-foreground h-20 overflow-hidden">{firm.description}</p>
                             <div className="mt-4">
                                 <h4 className="text-sm font-semibold mb-2">Specialties</h4>
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="flex flex-wrap gap-1.5 min-h-16">
                                     {firm.specialties.map(tech => (
                                         <Badge key={tech} variant="outline">{tech}</Badge>
                                     ))}

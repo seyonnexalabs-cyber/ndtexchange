@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 
 const technicianSchema = z.object({
   name: z.string().min(2, "Name is required."),
@@ -136,7 +137,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () =>
     );
 };
 
-const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; highestLevel: string; })[]; onEditClick: (technician: Technician) => void; }) => (
+const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; })[]; onEditClick: (technician: Technician) => void; }) => (
     <Card>
         <CardHeader>
             <CardTitle>Technician Roster</CardTitle>
@@ -147,7 +148,6 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                 <TableHeader>
                     <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Level</TableHead>
                         <TableHead>Jobs Completed</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Certifications</TableHead>
@@ -163,18 +163,19 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                                 </Avatar>
                                 {tech.name}
                             </TableCell>
-                            <TableCell>
-                                <Badge shape="rounded" variant={tech.highestLevel === 'Level III' ? 'default' : tech.highestLevel === 'Level II' ? 'success' : 'secondary'}>
-                                    {tech.highestLevel}
-                                </Badge>
-                            </TableCell>
                             <TableCell>{tech.completedJobs}</TableCell>
                             <TableCell>
                                 <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1">
-                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="outline" shape="rounded">{cert.method}</Badge>)}
+                                    {tech.certifications.map((cert, i) => (
+                                        <Badge key={i} variant="secondary" shape="rounded">
+                                            {cert.method}
+                                            <Separator orientation="vertical" className="h-3 mx-1 bg-muted-foreground/30" />
+                                            {cert.level}
+                                        </Badge>
+                                    ))}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -203,7 +204,7 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
     </Card>
 );
 
-const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; highestLevel: string; })[]; onEditClick: (technician: Technician) => void; }) => (
+const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; })[]; onEditClick: (technician: Technician) => void; }) => (
     <div className="space-y-4">
         {technicians.map(tech => {
             return (
@@ -216,11 +217,6 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                                 </Avatar>
                                 <div>
                                     <CardTitle>{tech.name}</CardTitle>
-                                    <CardDescription>
-                                        <Badge shape="rounded" variant={tech.highestLevel === 'Level III' ? 'default' : tech.highestLevel === 'Level II' ? 'success' : 'secondary'}>
-                                            {tech.highestLevel} Inspector
-                                        </Badge>
-                                    </CardDescription>
                                 </div>
                             </div>
                             <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
@@ -233,7 +229,13 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                         </div>
                         <h4 className="text-sm font-semibold mb-2">Certifications</h4>
                         <div className="flex flex-wrap gap-1">
-                            {tech.certifications.map((cert, i) => <Badge key={i} variant="outline" shape="rounded">{cert.method}</Badge>)}
+                            {tech.certifications.map((cert, i) => (
+                                <Badge key={i} variant="secondary" shape="rounded">
+                                    {cert.method}
+                                    <Separator orientation="vertical" className="h-3 mx-1 bg-muted-foreground/30" />
+                                    {cert.level}
+                                </Badge>
+                            ))}
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
@@ -276,10 +278,7 @@ export default function TechniciansPage() {
             const completedJobs = jobs.filter(job => 
                 job.technicianIds?.includes(tech.id) && (job.status === 'Completed' || job.status === 'Paid')
             ).length;
-            const highestLevel = (tech.certifications.length > 0)
-                ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
-                : 'N/A';
-            return { ...tech, completedJobs, highestLevel };
+            return { ...tech, completedJobs };
         });
     }, [technicianList]);
 

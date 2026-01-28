@@ -98,6 +98,6 @@ export const serviceProviders: NDTServiceProvider[] = [
         location: 'Singapore',
         rating: 4.7,
         techniques: ['UT', 'RT', 'MT', 'PT', 'VT', 'ET'],
-        description: 'A leading inspection and certification provider in Southeast Asia, offering comprehensive NDT services across multiple industries.'
+        description: "A leading inspection and certification provider in Southeast Asia. Headquarters: 34 Toh Guan Road East, #01-12/13 Enterprise Hub, Singapore 608579. Email: ask@ariseglobal.com, Phone: +65 6559 4677."
     }
 ];

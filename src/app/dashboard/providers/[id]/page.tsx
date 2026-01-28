@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -16,6 +15,8 @@ import { ChevronLeft, MapPin, Star, Users, Wrench } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -53,129 +54,111 @@ export default function ProviderDetailPage() {
     }
 
     return (
-        <div>
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl(role === 'admin' ? "/dashboard/providers" : "/dashboard/find-providers")}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back to Providers
-                    </Link>
-                </Button>
-                {role === 'admin' && <Button>Edit Provider</Button>}
-            </div>
-            
-            <div className="flex items-center gap-4 mb-6">
-                 <Avatar className="h-20 w-20">
-                    {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
-                    <AvatarFallback className="text-3xl">{provider.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <h1 className="text-2xl font-headline font-bold">{provider.name}</h1>
-                    <p className="text-muted-foreground flex items-center gap-1.5 pt-1">
-                        <MapPin className="w-4 h-4"/> {provider.location}
-                    </p>
+        <TooltipProvider>
+            <div>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                    <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
+                        <Link href={constructUrl(role === 'admin' ? "/dashboard/providers" : "/dashboard/find-providers")}>
+                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            Back to Providers
+                        </Link>
+                    </Button>
+                    {role === 'admin' && <Button>Edit Provider</Button>}
                 </div>
-            </div>
+                
+                <div className="flex items-center gap-4 mb-6">
+                    <Avatar className="h-20 w-20">
+                        {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
+                        <AvatarFallback className="text-3xl">{provider.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h1 className="text-2xl font-headline font-bold">{provider.name}</h1>
+                        <p className="text-muted-foreground flex items-center gap-1.5 pt-1">
+                            <MapPin className="w-4 h-4"/> {provider.location}
+                        </p>
+                    </div>
+                </div>
 
-            <Tabs defaultValue="details">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                    <TabsTrigger value="technicians">Technicians</TabsTrigger>
-                    <TabsTrigger value="equipment">Equipment</TabsTrigger>
-                </TabsList>
-                <TabsContent value="details">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Provider Details</CardTitle>
-                            <CardDescription>Company information and offered services.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div>
-                                <h3 className="font-semibold text-sm mb-1">Rating</h3>
-                                <StarRating rating={provider.rating} />
-                            </div>
-                             <div>
-                                <h3 className="font-semibold text-sm mb-1">About</h3>
-                                <p className="text-sm text-muted-foreground">{provider.description}</p>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {provider.techniques.map(tech => (
-                                        <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
-                                    ))}
+                <Tabs defaultValue="details">
+                    <TabsList className="mb-4">
+                        <TabsTrigger value="details">Details</TabsTrigger>
+                        <TabsTrigger value="technicians">Technicians</TabsTrigger>
+                        <TabsTrigger value="equipment">Equipment</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="details">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Provider Details</CardTitle>
+                                <CardDescription>Company information and offered services.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div>
+                                    <h3 className="font-semibold text-sm mb-1">Rating</h3>
+                                    <StarRating rating={provider.rating} />
                                 </div>
-                            </div>
-                            <div className="mt-4">
-                                <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {provider.industries.map(industry => (
-                                        <Badge key={industry} variant="outline" shape="rounded">{industry}</Badge>
-                                    ))}
+                                <div>
+                                    <h3 className="font-semibold text-sm mb-1">About</h3>
+                                    <p className="text-sm text-muted-foreground">{provider.description}</p>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="technicians">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Users /> Technician Roster
-                            </CardTitle>
-                            <CardDescription>
-                                Technicians employed by {provider.name}.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           {isMobile ? (
-                                <div className="space-y-4">
-                                    {providerTechnicians.map(tech => {
-                                        return (
-                                            <Card key={tech.id} className="p-4">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar>
-                                                            <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="font-semibold">{tech.name}</p>
+                                <div>
+                                    <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {provider.techniques.map(techAcronym => {
+                                            const technique = allNdtTechniques.find(t => t.id.toUpperCase() === techAcronym);
+                                            return (
+                                                <Tooltip key={techAcronym}>
+                                                    <TooltipTrigger>
+                                                        <Badge variant="secondary" shape="rounded">{techAcronym}</Badge>
+                                                    </TooltipTrigger>
+                                                    {technique && (
+                                                        <TooltipContent className="max-w-xs">
+                                                            <p className="font-bold">{technique.title}</p>
+                                                            <p>{technique.description}</p>
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {provider.industries.map(industry => (
+                                            <Badge key={industry} variant="outline" shape="rounded">{industry}</Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="technicians">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users /> Technician Roster
+                                </CardTitle>
+                                <CardDescription>
+                                    Technicians employed by {provider.name}.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                            {isMobile ? (
+                                    <div className="space-y-4">
+                                        {providerTechnicians.map(tech => {
+                                            return (
+                                                <Card key={tech.id} className="p-4">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar>
+                                                                <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold">{tech.name}</p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex flex-wrap gap-1 mt-3">
-                                                    {tech.certifications.map((cert, i) => (
-                                                        <Badge key={i} variant="secondary" shape="rounded">
-                                                            {cert.method}
-                                                            <Separator orientation="vertical" className="h-3 mx-1.5 bg-muted-foreground/30" />
-                                                            {cert.level}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            </Card>
-                                        );
-                                    })}
-                                </div>
-                           ) : (
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Certifications</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {providerTechnicians.map(tech => {
-                                        return (
-                                            <TableRow key={tech.id}>
-                                                <TableCell className="font-medium flex items-center gap-3">
-                                                    <Avatar>
-                                                    <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                    </Avatar>
-                                                    {tech.name}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-wrap gap-1">
+                                                    <div className="flex flex-wrap gap-1 mt-3">
                                                         {tech.certifications.map((cert, i) => (
                                                             <Badge key={i} variant="secondary" shape="rounded">
                                                                 {cert.method}
@@ -184,85 +167,118 @@ export default function ProviderDetailPage() {
                                                             </Badge>
                                                         ))}
                                                     </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                           )}
-                           {providerTechnicians.length === 0 && (
-                                <div className="text-center text-muted-foreground py-10">
-                                    No technicians found for this provider.
-                                </div>
-                           )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                 <TabsContent value="equipment">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Wrench /> Public Equipment
-                            </CardTitle>
-                            <CardDescription>
-                                A selection of publicly listed equipment from {provider.name}.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           {isMobile ? (
-                                <div className="space-y-4">
-                                    {publicEquipment.map(equip => (
-                                        <Card key={equip.id} className="p-4">
-                                             <div className="space-y-1">
-                                                <p className="font-semibold">{equip.name}</p>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
-                                                </div>
-                                                {(equip.manufacturer || equip.model) && (
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {equip.manufacturer}{equip.manufacturer && equip.model && ' - '}{equip.model}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </div>
-                           ) : (
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Equipment Name</TableHead>
-                                        <TableHead>Technique(s)</TableHead>
-                                        <TableHead>Manufacturer</TableHead>
-                                        <TableHead>Model</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {publicEquipment.map(equip => (
-                                        <TableRow key={equip.id}>
-                                            <TableCell className="font-medium">{equip.name}</TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>{equip.manufacturer || 'N/A'}</TableCell>
-                                            <TableCell>{equip.model || 'N/A'}</TableCell>
+                                                </Card>
+                                            );
+                                        })}
+                                    </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Certifications</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                           )}
-                           {publicEquipment.length === 0 && (
-                                <div className="text-center text-muted-foreground py-10">
-                                    This provider has not listed any public equipment.
-                                </div>
-                           )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
-        </div>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {providerTechnicians.map(tech => {
+                                            return (
+                                                <TableRow key={tech.id}>
+                                                    <TableCell className="font-medium flex items-center gap-3">
+                                                        <Avatar>
+                                                        <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        {tech.name}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {tech.certifications.map((cert, i) => (
+                                                                <Badge key={i} variant="secondary" shape="rounded">
+                                                                    {cert.method}
+                                                                    <Separator orientation="vertical" className="h-3 mx-1.5 bg-muted-foreground/30" />
+                                                                    {cert.level}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            )}
+                            {providerTechnicians.length === 0 && (
+                                    <div className="text-center text-muted-foreground py-10">
+                                        No technicians found for this provider.
+                                    </div>
+                            )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="equipment">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Wrench /> Public Equipment
+                                </CardTitle>
+                                <CardDescription>
+                                    A selection of publicly listed equipment from {provider.name}.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                            {isMobile ? (
+                                    <div className="space-y-4">
+                                        {publicEquipment.map(equip => (
+                                            <Card key={equip.id} className="p-4">
+                                                <div className="space-y-1">
+                                                    <p className="font-semibold">{equip.name}</p>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                                                    </div>
+                                                    {(equip.manufacturer || equip.model) && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {equip.manufacturer}{equip.manufacturer && equip.model && ' - '}{equip.model}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Equipment Name</TableHead>
+                                            <TableHead>Technique(s)</TableHead>
+                                            <TableHead>Manufacturer</TableHead>
+                                            <TableHead>Model</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {publicEquipment.map(equip => (
+                                            <TableRow key={equip.id}>
+                                                <TableCell className="font-medium">{equip.name}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>{equip.manufacturer || 'N/A'}</TableCell>
+                                                <TableCell>{equip.model || 'N/A'}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
+                            {publicEquipment.length === 0 && (
+                                    <div className="text-center text-muted-foreground py-10">
+                                        This provider has not listed any public equipment.
+                                    </div>
+                            )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </TooltipProvider>
     );
 }

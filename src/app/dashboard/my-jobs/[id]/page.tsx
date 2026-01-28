@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -29,6 +27,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobHistory from '../components/job-history';
 import { format } from 'date-fns';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -486,396 +486,408 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const isReviewable = isClient && (jobDetails.status === 'Completed' || jobDetails.status === 'Paid');
     const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
     const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
-
+    const technique = allNdtTechniques.find(t => t.id.toUpperCase() === jobDetails.technique);
 
     return (
-        <div>
-            <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl(isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to {isAuditor ? "Inspections" : "My Jobs"}
-                </Link>
-            </Button>
+        <TooltipProvider>
+            <div>
+                <Button asChild variant="outline" size="sm" className="mb-4">
+                    <Link href={constructUrl(isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs")}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back to {isAuditor ? "Inspections" : "My Jobs"}
+                    </Link>
+                </Button>
 
-             <Accordion type="single" collapsible className="w-full mb-6">
-                <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-4">
-                                <span>Job Lifecycle</span>
-                                <Badge variant={jobStatusVariants[jobDetails.status]}>{jobDetails.status}</Badge>
-                            </div>
-                            <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[jobDetails.status]}</span>
-                        </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                         <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} onStatusChange={handleStatusChange} />
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-            
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-2xl font-headline flex items-center gap-3">
-                                        <Briefcase />
-                                        {jobDetails.title}
-                                    </CardTitle>
-                                    <CardDescription>for {jobDetails.client}</CardDescription>
+                <Accordion type="single" collapsible className="w-full mb-6">
+                    <AccordionItem value="item-1" className="border-b-0">
+                        <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-4">
+                                    <span>Job Lifecycle</span>
+                                    <Badge variant={jobStatusVariants[jobDetails.status]}>{jobDetails.status}</Badge>
                                 </div>
-                                <Badge>{jobDetails.technique}</Badge>
+                                <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[jobDetails.status]}</span>
                             </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center text-sm text-muted-foreground">
-                                <MapPin className="w-4 h-4 mr-2" />
-                                <span>{jobDetails.location}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                                <Calendar className="w-4 h-4 mr-2" />
-                                <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                            </div>
-                             <div className="border-t pt-4">
-                                <h3 className="font-semibold text-lg">Job Description</h3>
-                                <p className="mt-2 text-muted-foreground">
-                                    Full job description will be displayed here, including scope of work, technical requirements, and any client specifications.
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {isClient && <BidsSection />}
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">Documents & Reports</CardTitle>
-                            <CardDescription>View all documents and reports associated with this job.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {allDocuments.length === 0 ? (
-                                <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
-                                    <FileUp className="w-16 h-16 text-muted-foreground/70" />
-                                    <p className="mt-4 text-sm font-medium text-muted-foreground">No documents have been uploaded for this job yet.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
-                                        <Button onClick={() => setIsViewerOpen(true)}>
-                                            <Maximize className="mr-2 h-4 w-4" />
-                                            View All Documents
-                                        </Button>
-                                    </div>
-                                    <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
-                                        {allDocuments.map((doc) => (
-                                            <div key={doc.name} className="flex items-center gap-2 p-2">
-                                                <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                                                <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
-                                            </div>
-                                        ))}
-                                    </ScrollArea>
-                                </div>
-                            )}
-                            
-                            {isClient && (
-                                <>
-                                    <Separator className="my-6" />
-                                    <div className="space-y-4">
-                                        <h3 className="font-semibold">Upload Clarification Documents</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
-                                        </p>
-                                        <div className="p-4 border rounded-md space-y-2">
-                                            <div className="flex items-center gap-4">
-                                                <Input id="clarification-docs" type="file" multiple accept={ACCEPTED_FILE_TYPES} className="flex-grow" />
-                                                <Button variant="secondary">
-                                                    <Upload className="mr-2 h-4 w-4" />
-                                                    Upload
-                                                </Button>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">Max 10MB per file.</p>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                        {isInspector && (
-                            <CardFooter className="flex justify-end gap-2">
-                                <Button disabled={reportSubmitted}>
-                                    {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
-                                </Button>
-                            </CardFooter>
-                        )}
-                    </Card>
-                    
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication</CardTitle>
-                            <CardDescription>Review messages and exchange information about the job.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
-                                {jobDetails.messages && jobDetails.messages.length > 0 ? (
-                                    jobDetails.messages.map((message, index) => (
-                                         <div key={index} className="flex gap-4">
-                                             <Avatar>
-                                                <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                             </Avatar>
-                                             <div>
-                                                 <div className="flex items-baseline gap-2">
-                                                    <p className="font-semibold">{message.user}</p>
-                                                    <p className="text-xs text-muted-foreground">{message.role} · {format(new Date(message.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
-                                                 </div>
-                                                 <p className="text-sm text-muted-foreground">{message.message}</p>
-                                             </div>
-                                         </div>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
-                                )}
-                            </div>
-                            <div className="mt-6 space-y-2">
-                                <Label htmlFor="new-message">Your Message</Label>
-                                <Textarea id="new-message" placeholder="Type your message here..." />
-                                <div className="flex justify-end">
-                                    <Button>Send Message</Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><History /> Job History</CardTitle>
-                            <CardDescription>A chronological log of all events and status changes for this job.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <JobHistory history={jobDetails.history} />
-                        </CardContent>
-                    </Card>
-
-                    {isReviewable && !reviewSubmitted && (
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                            <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} onStatusChange={handleStatusChange} />
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+                
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Leave a Review</CardTitle>
-                                <CardDescription>Share your experience with the service provider for this job.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label>Overall Rating</Label>
-                                    <div className="flex items-center gap-1 mt-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star
-                                                key={star}
-                                                className={cn(
-                                                    "h-8 w-8 cursor-pointer transition-colors",
-                                                    (hoverRating || rating) >= star
-                                                    ? "fill-amber-400 text-amber-400"
-                                                    : "fill-muted-foreground/30 text-muted-foreground/30"
-                                                )}
-                                                onClick={() => setRating(star)}
-                                                onMouseEnter={() => setHoverRating(star)}
-                                                onMouseLeave={() => setHoverRating(0)}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label htmlFor="review-comment">Comments</Label>
-                                    <Textarea
-                                        id="review-comment"
-                                        placeholder="Describe your experience with the provider..."
-                                        className="mt-2 min-h-[120px]"
-                                        value={reviewComment}
-                                        onChange={(e) => setReviewComment(e.target.value)}
-                                    />
-                                </div>
-                            </CardContent>
-                            <CardFooter>
-                                <Button onClick={handleReviewSubmit}>{hasBeenSubmittedOnce ? 'Update Review' : 'Submit Review'}</Button>
-                            </CardFooter>
-                        </Card>
-                    )}
-
-                    {isReviewable && reviewSubmitted && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Your Review</CardTitle>
-                                <CardDescription>
-                                    Thank you for your feedback! Your review is now pending approval.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label>Your Rating</Label>
-                                    <div className="flex items-center gap-1 mt-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star
-                                                key={star}
-                                                className={cn(
-                                                    "h-6 w-6",
-                                                    rating >= star
-                                                    ? "fill-amber-400 text-amber-400"
-                                                    : "fill-muted-foreground/30 text-muted-foreground/30"
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                                {reviewComment && (
+                                <div className="flex justify-between items-start">
                                     <div>
-                                        <Label>Your Comments</Label>
-                                        <p className="text-sm text-muted-foreground mt-2 p-3 bg-muted/50 rounded-md border">{reviewComment}</p>
+                                        <CardTitle className="text-2xl font-headline flex items-center gap-3">
+                                            <Briefcase />
+                                            {jobDetails.title}
+                                        </CardTitle>
+                                        <CardDescription>for {jobDetails.client}</CardDescription>
+                                    </div>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Badge>{jobDetails.technique}</Badge>
+                                        </TooltipTrigger>
+                                        {technique && (
+                                            <TooltipContent className="max-w-xs">
+                                                <p className="font-bold">{technique.title}</p>
+                                                <p>{technique.description}</p>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <MapPin className="w-4 h-4 mr-2" />
+                                    <span>{jobDetails.location}</span>
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <Calendar className="w-4 h-4 mr-2" />
+                                    <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                </div>
+                                <div className="border-t pt-4">
+                                    <h3 className="font-semibold text-lg">Job Description</h3>
+                                    <p className="mt-2 text-muted-foreground">
+                                        Full job description will be displayed here, including scope of work, technical requirements, and any client specifications.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {isClient && <BidsSection />}
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">Documents & Reports</CardTitle>
+                                <CardDescription>View all documents and reports associated with this job.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {allDocuments.length === 0 ? (
+                                    <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
+                                        <FileUp className="w-16 h-16 text-muted-foreground/70" />
+                                        <p className="mt-4 text-sm font-medium text-muted-foreground">No documents have been uploaded for this job yet.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
+                                            <Button onClick={() => setIsViewerOpen(true)}>
+                                                <Maximize className="mr-2 h-4 w-4" />
+                                                View All Documents
+                                            </Button>
+                                        </div>
+                                        <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
+                                            {allDocuments.map((doc) => (
+                                                <div key={doc.name} className="flex items-center gap-2 p-2">
+                                                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                    <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
+                                                </div>
+                                            ))}
+                                        </ScrollArea>
                                     </div>
                                 )}
+                                
+                                {isClient && (
+                                    <>
+                                        <Separator className="my-6" />
+                                        <div className="space-y-4">
+                                            <h3 className="font-semibold">Upload Clarification Documents</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
+                                            </p>
+                                            <div className="p-4 border rounded-md space-y-2">
+                                                <div className="flex items-center gap-4">
+                                                    <Input id="clarification-docs" type="file" multiple accept={ACCEPTED_FILE_TYPES} className="flex-grow" />
+                                                    <Button variant="secondary">
+                                                        <Upload className="mr-2 h-4 w-4" />
+                                                        Upload
+                                                    </Button>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">Max 10MB per file.</p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </CardContent>
-                            <CardFooter>
-                                <Button variant="outline" onClick={() => setReviewSubmitted(false)}>Edit Review</Button>
-                            </CardFooter>
+                            {isInspector && (
+                                <CardFooter className="flex justify-end gap-2">
+                                    <Button disabled={reportSubmitted}>
+                                        {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
+                                    </Button>
+                                </CardFooter>
+                            )}
                         </Card>
-                    )}
-
-                     <AuditorActions 
-                        status={jobDetails.status} 
-                        workflow={jobDetails.workflow} 
-                        isAuditor={isAuditor}
-                        reportSubmitted={reportSubmitted}
-                        onApprove={handleApprove}
-                        onReject={handleReject}
-                    />
-                </div>
-
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Assigned Resources</CardTitle>
-                            <CardDescription>Manage technicians and equipment for this job. Assignments are locked once the inspection is in progress.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" /> Technicians</h4>
-                                    {isInspector && (
-                                        <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
-                                            <PlusCircle className="mr-2 h-4 w-4" /> Manage
-                                        </Button>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication</CardTitle>
+                                <CardDescription>Review messages and exchange information about the job.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
+                                    {jobDetails.messages && jobDetails.messages.length > 0 ? (
+                                        jobDetails.messages.map((message, index) => (
+                                            <div key={index} className="flex gap-4">
+                                                <Avatar>
+                                                    <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <p className="font-semibold">{message.user}</p>
+                                                        <p className="text-xs text-muted-foreground">{message.role} · {format(new Date(message.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{message.message}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
                                     )}
                                 </div>
-                                {assignedTechnicians.length > 0 ? (
-                                    <ul className="space-y-2 pl-2">
-                                        {assignedTechnicians.map(tech => (
-                                            <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} - {tech.level}</li>
-                                        ))}
-                                    </ul>
-                                ) : <p className="text-sm text-muted-foreground pl-2">No technicians assigned.</p>}
-                            </div>
-                            <Separator />
-                            <div>
-                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-muted-foreground" /> Equipment</h4>
-                                     {isInspector && (
-                                        <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
-                                            <PlusCircle className="mr-2 h-4 w-4" /> Manage
-                                        </Button>
-                                     )}
+                                <div className="mt-6 space-y-2">
+                                    <Label htmlFor="new-message">Your Message</Label>
+                                    <Textarea id="new-message" placeholder="Type your message here..." />
+                                    <div className="flex justify-end">
+                                        <Button>Send Message</Button>
+                                    </div>
                                 </div>
-                                 {assignedEquipment.length > 0 ? (
-                                    <ul className="space-y-2 pl-2">
-                                        {assignedEquipment.map(equip => (
-                                            <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
-                                                <span>{equip.name}</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {equip.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
-                            </div>
-                            <Separator />
-                            <div>
-                                <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-muted-foreground" /> Auditor</h4>
-                                {(jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto') ? (
-                                    <p className="text-sm text-muted-foreground pl-2">Alex Chen (NDT Auditors LLC)</p>
-                                ) : <p className="text-sm text-muted-foreground pl-2">No auditor required for standard workflow.</p>}
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><History /> Job History</CardTitle>
+                                <CardDescription>A chronological log of all events and status changes for this job.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <JobHistory history={jobDetails.history} />
+                            </CardContent>
+                        </Card>
+
+                        {isReviewable && !reviewSubmitted && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Leave a Review</CardTitle>
+                                    <CardDescription>Share your experience with the service provider for this job.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <Label>Overall Rating</Label>
+                                        <div className="flex items-center gap-1 mt-2">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    className={cn(
+                                                        "h-8 w-8 cursor-pointer transition-colors",
+                                                        (hoverRating || rating) >= star
+                                                        ? "fill-amber-400 text-amber-400"
+                                                        : "fill-muted-foreground/30 text-muted-foreground/30"
+                                                    )}
+                                                    onClick={() => setRating(star)}
+                                                    onMouseEnter={() => setHoverRating(star)}
+                                                    onMouseLeave={() => setHoverRating(0)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="review-comment">Comments</Label>
+                                        <Textarea
+                                            id="review-comment"
+                                            placeholder="Describe your experience with the provider..."
+                                            className="mt-2 min-h-[120px]"
+                                            value={reviewComment}
+                                            onChange={(e) => setReviewComment(e.target.value)}
+                                        />
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <Button onClick={handleReviewSubmit}>{hasBeenSubmittedOnce ? 'Update Review' : 'Submit Review'}</Button>
+                                </CardFooter>
+                            </Card>
+                        )}
+
+                        {isReviewable && reviewSubmitted && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Your Review</CardTitle>
+                                    <CardDescription>
+                                        Thank you for your feedback! Your review is now pending approval.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <Label>Your Rating</Label>
+                                        <div className="flex items-center gap-1 mt-2">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    className={cn(
+                                                        "h-6 w-6",
+                                                        rating >= star
+                                                        ? "fill-amber-400 text-amber-400"
+                                                        : "fill-muted-foreground/30 text-muted-foreground/30"
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {reviewComment && (
+                                        <div>
+                                            <Label>Your Comments</Label>
+                                            <p className="text-sm text-muted-foreground mt-2 p-3 bg-muted/50 rounded-md border">{reviewComment}</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                                <CardFooter>
+                                    <Button variant="outline" onClick={() => setReviewSubmitted(false)}>Edit Review</Button>
+                                </CardFooter>
+                            </Card>
+                        )}
+
+                        <AuditorActions 
+                            status={jobDetails.status} 
+                            workflow={jobDetails.workflow} 
+                            isAuditor={isAuditor}
+                            reportSubmitted={reportSubmitted}
+                            onApprove={handleApprove}
+                            onReject={handleReject}
+                        />
+                    </div>
+
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Assigned Resources</CardTitle>
+                                <CardDescription>Manage technicians and equipment for this job. Assignments are locked once the inspection is in progress.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" /> Technicians</h4>
+                                        {isInspector && (
+                                            <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
+                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {assignedTechnicians.length > 0 ? (
+                                        <ul className="space-y-2 pl-2">
+                                            {assignedTechnicians.map(tech => (
+                                                <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} - {tech.level}</li>
+                                            ))}
+                                        </ul>
+                                    ) : <p className="text-sm text-muted-foreground pl-2">No technicians assigned.</p>}
+                                </div>
+                                <Separator />
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-muted-foreground" /> Equipment</h4>
+                                        {isInspector && (
+                                            <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
+                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {assignedEquipment.length > 0 ? (
+                                        <ul className="space-y-2 pl-2">
+                                            {assignedEquipment.map(equip => (
+                                                <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                                                    <span>{equip.name}</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {equip.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
+                                </div>
+                                <Separator />
+                                <div>
+                                    <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-muted-foreground" /> Auditor</h4>
+                                    {(jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto') ? (
+                                        <p className="text-sm text-muted-foreground pl-2">Alex Chen (NDT Auditors LLC)</p>
+                                    ) : <p className="text-sm text-muted-foreground pl-2">No auditor required for standard workflow.</p>}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
+
+                {/* Technician Assignment Dialog */}
+                <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Assign Technicians</DialogTitle>
+                            <DialogDescription>Select the technicians to assign to this job.</DialogDescription>
+                        </DialogHeader>
+                        <ScrollArea className="max-h-64 p-1">
+                            <div className="space-y-2 p-3">
+                            {technicians.map(tech => (
+                                <div key={tech.id} className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id={`tech-${tech.id}`} 
+                                        checked={tempSelectedTechs.includes(tech.id)}
+                                        onCheckedChange={(checked) => {
+                                            setTempSelectedTechs(prev => checked ? [...prev, tech.id] : prev.filter(id => id !== tech.id))
+                                        }}
+                                    />
+                                    <Label htmlFor={`tech-${tech.id}`} className="flex-grow">{tech.name} <span className="text-muted-foreground">({tech.level})</span></Label>
+                                    <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
+                                </div>
+                            ))}
+                            </div>
+                        </ScrollArea>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setIsTechDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleAssignTechs}>Assign Technicians</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Equipment Assignment Dialog */}
+                <Dialog open={isEquipDialogOpen} onOpenChange={setIsEquipDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Assign Equipment</DialogTitle>
+                            <DialogDescription>Select the equipment to assign to this job.</DialogDescription>
+                        </DialogHeader>
+                        <ScrollArea className="max-h-64 p-1">
+                            <div className="space-y-2 p-3">
+                            {inspectorAssets.map(equip => (
+                                <div key={equip.id} className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id={`equip-${equip.id}`}
+                                        checked={tempSelectedEquip.includes(equip.id)}
+                                        onCheckedChange={(checked) => {
+                                            setTempSelectedEquip(prev => checked ? [...prev, equip.id] : prev.filter(id => id !== equip.id))
+                                        }}
+                                    />
+                                    <Label htmlFor={`equip-${equip.id}`} className="flex-grow">{equip.name} <span className="text-muted-foreground">({equip.techniques.join(', ')})</span></Label>
+                                    <Badge variant={equip.status === 'Available' ? 'success' : 'secondary'}>{equip.status}</Badge>
+                                </div>
+                            ))}
+                            </div>
+                        </ScrollArea>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setIsEquipDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleAssignEquip}>Assign Equipment</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <UniformDocumentViewer 
+                    isOpen={isViewerOpen}
+                    onOpenChange={setIsViewerOpen}
+                    documents={allDocuments}
+                    title={`Documents for ${jobDetails.title}`}
+                    description="Securely view all documents associated with this job."
+                />
             </div>
-
-            {/* Technician Assignment Dialog */}
-            <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Assign Technicians</DialogTitle>
-                        <DialogDescription>Select the technicians to assign to this job.</DialogDescription>
-                    </DialogHeader>
-                    <ScrollArea className="max-h-64 p-1">
-                        <div className="space-y-2 p-3">
-                        {technicians.map(tech => (
-                            <div key={tech.id} className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`tech-${tech.id}`} 
-                                    checked={tempSelectedTechs.includes(tech.id)}
-                                    onCheckedChange={(checked) => {
-                                        setTempSelectedTechs(prev => checked ? [...prev, tech.id] : prev.filter(id => id !== tech.id))
-                                    }}
-                                />
-                                <Label htmlFor={`tech-${tech.id}`} className="flex-grow">{tech.name} <span className="text-muted-foreground">({tech.level})</span></Label>
-                                <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
-                            </div>
-                        ))}
-                        </div>
-                    </ScrollArea>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsTechDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleAssignTechs}>Assign Technicians</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Equipment Assignment Dialog */}
-            <Dialog open={isEquipDialogOpen} onOpenChange={setIsEquipDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Assign Equipment</DialogTitle>
-                        <DialogDescription>Select the equipment to assign to this job.</DialogDescription>
-                    </DialogHeader>
-                     <ScrollArea className="max-h-64 p-1">
-                        <div className="space-y-2 p-3">
-                        {inspectorAssets.map(equip => (
-                            <div key={equip.id} className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`equip-${equip.id}`}
-                                    checked={tempSelectedEquip.includes(equip.id)}
-                                    onCheckedChange={(checked) => {
-                                        setTempSelectedEquip(prev => checked ? [...prev, equip.id] : prev.filter(id => id !== equip.id))
-                                    }}
-                                />
-                                <Label htmlFor={`equip-${equip.id}`} className="flex-grow">{equip.name} <span className="text-muted-foreground">({equip.techniques.join(', ')})</span></Label>
-                                <Badge variant={equip.status === 'Available' ? 'success' : 'secondary'}>{equip.status}</Badge>
-                            </div>
-                        ))}
-                        </div>
-                    </ScrollArea>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsEquipDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleAssignEquip}>Assign Equipment</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <UniformDocumentViewer 
-                isOpen={isViewerOpen}
-                onOpenChange={setIsViewerOpen}
-                documents={allDocuments}
-                title={`Documents for ${jobDetails.title}`}
-                description="Securely view all documents associated with this job."
-            />
-        </div>
+        </TooltipProvider>
     );
 }

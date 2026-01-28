@@ -1,6 +1,5 @@
 
 'use client';
-import type { Metadata } from 'next';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,11 +11,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-
-export const metadata: Metadata = {
-    title: 'Login | NDT Exchange',
-    description: 'Sign in to your NDT Exchange account. Select your role as a Client, Service Provider, or Auditor to access your dashboard.',
-};
 
 type UserType = 'client' | 'inspector' | 'auditor';
 type InspectorPlan = 'operations' | 'marketplace';

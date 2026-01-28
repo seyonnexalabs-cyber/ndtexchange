@@ -1,6 +1,5 @@
 
 'use client';
-import type { Metadata } from 'next';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Shield, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-export const metadata: Metadata = {
-    title: 'Admin Login | NDT Exchange',
-    description: 'Platform administration access for NDT Exchange staff.',
-};
 
 export default function AdminLoginPage() {
   const router = useRouter();

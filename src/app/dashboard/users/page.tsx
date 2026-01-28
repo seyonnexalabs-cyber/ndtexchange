@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -23,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -125,10 +125,8 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     
-    const platformUsers = useMemo(() => {
+    const filteredUsers = useMemo(() => {
         return users.filter(user => {
-            if (user.role.toLowerCase().includes('admin')) return false;
-
             const searchMatch = !searchQuery ||
                 user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -143,7 +141,7 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
     }, [users, searchQuery, selectedRoles, statusFilter]);
 
     const uniqueRoles = useMemo(() => {
-        const roles = new Set(allUsers.filter(u => !u.role.toLowerCase().includes('admin')).map(u => u.role));
+        const roles = new Set(allUsers.map(u => u.role));
         return Array.from(roles);
     }, []);
 
@@ -156,8 +154,8 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
     if (isMobile) {
         return (
             <div className="space-y-4">
-                {platformUsers.map(user => (
-                    <Card key={user.id}>
+                {filteredUsers.map(user => (
+                    <Card key={user.id} className={cn(user.role.toLowerCase().includes('admin') && 'bg-accent/10')}>
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <Avatar>
@@ -277,8 +275,8 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {platformUsers.map(user => (
-                            <TableRow key={user.id}>
+                        {filteredUsers.map(user => (
+                            <TableRow key={user.id} className={cn(user.role.toLowerCase().includes('admin') && 'bg-accent/10')}>
                                 <TableCell className="font-medium flex items-center gap-3">
                                     <Avatar>
                                         <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -296,7 +294,7 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                                 </TableCell>
                             </TableRow>
                         ))}
-                         {platformUsers.length === 0 && (
+                         {filteredUsers.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                                     No users found matching your filters.

@@ -16,7 +16,7 @@ export default function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '/#features', label: 'Features' },
+    { href: '/platform-features', label: 'Features' },
     { href: '/asset-management', label: 'Asset Management' },
     { href: '/#techniques', label: 'Techniques' },
     { href: '/about', label: 'About' },

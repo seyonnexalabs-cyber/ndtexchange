@@ -192,42 +192,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        <section id="features" className="py-20 bg-card">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-headline font-semibold text-primary">
-                A Powerful, Unified Platform
-              </h2>
-              <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                NDT Exchange is more than a marketplace; it's a comprehensive ecosystem designed to manage the entire lifecycle of asset integrity, offering unparalleled security, efficiency, and connectivity for every stakeholder.
-              </p>
-            </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              <FeatureCard
-                icon={<Building className="w-8 h-8 text-primary" />}
-                title="Comprehensive Asset Hub"
-                description="Centralize your asset data in one secure hub. Track components, store historical inspection reports, manage documentation like drawings and certificates, and schedule future inspections with ease. Get a complete, 360-degree view of your asset's health and history."
-                cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
-              />
-              <FeatureCard
-                icon={<Search className="w-8 h-8 text-accent" />}
-                title="Dynamic NDT Marketplace"
-                description="Tap into a dynamic marketplace to find certified NDT professionals or post job requests to a network of vetted providers. Our intelligent matching system helps you connect with the right expertise for your specific needs, ensuring quality and reliability."
-                cardClass="hover:border-accent/20"
-                iconContainerClass="bg-accent/10"
-              />
-              <FeatureCard
-                icon={<ShieldCheck className="w-8 h-8 text-destructive" />}
-                title="Secure Workflows"
-                description="Experience unparalleled data security. Our platform features role-based access, a secure document viewer that prevents unauthorized downloads and screenshots, and comprehensive audit trails for every action. Maintain compliance and protect your sensitive intellectual property with confidence."
-                cardClass="hover:border-destructive/20"
-                iconContainerClass="bg-destructive/10"
-              />
-            </div>
-          </div>
-        </section>
         
         <section id="techniques" className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,0 +1,124 @@
+
+import type { Metadata } from 'next';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import Image from 'next/image';
+import PublicHeader from '@/app/components/layout/public-header';
+import PublicFooter from '@/app/components/layout/public-footer';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { FeatureCard } from '@/app/components/feature-card';
+import { Building, HardHat, Users, Wrench, QrCode } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Platform Features | NDT Exchange',
+  description: 'Explore the powerful, purpose-built tools for asset owners and NDT service providers. Manage assets, teams, and equipment all in one unified platform.',
+};
+
+export default function PlatformFeaturesPage() {
+    const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
+
+    return (
+        <div className="flex flex-col min-h-screen bg-background">
+            <PublicHeader />
+
+            <main className="flex-grow">
+                {/* Hero Section */}
+                <section className="relative py-20 md:py-32">
+                    <div className="absolute inset-0">
+                        {heroImage && (
+                            <Image
+                                src={heroImage.imageUrl}
+                                alt={heroImage.description}
+                                fill
+                                className="object-cover"
+                                data-ai-hint={heroImage.imageHint}
+                                priority
+                            />
+                        )}
+                        <div className="absolute inset-0 bg-primary/60" />
+                    </div>
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+                        <div className="max-w-3xl mx-auto text-center">
+                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
+                                A Unified Platform for Total Asset Integrity
+                            </h1>
+                            <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
+                                Powerful, purpose-built tools for both asset owners and service providers to streamline operations, ensure compliance, and grow their business.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Features Section */}
+                <section className="py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid gap-16 lg:grid-cols-2 lg:gap-x-12">
+                            {/* Client Features */}
+                            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                                <div className="bg-primary/10 text-primary p-4 rounded-full w-fit">
+                                    <Building className="w-10 h-10" />
+                                </div>
+                                <h2 className="mt-6 text-3xl font-headline font-semibold text-primary">For Asset Owners (Clients)</h2>
+                                <p className="mt-4 text-lg text-muted-foreground">Go beyond simple NDT. Our platform provides a complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.</p>
+                                <Button size="lg" asChild className="mt-8">
+                                    <Link href="/asset-management">Explore Asset Management</Link>
+                                </Button>
+                            </div>
+                            
+                            {/* Provider Features */}
+                            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                               <div className="bg-accent/10 text-accent p-4 rounded-full w-fit">
+                                    <HardHat className="w-10 h-10" />
+                                </div>
+                                <h2 className="mt-6 text-3xl font-headline font-semibold text-accent">For NDT Providers (Inspectors)</h2>
+                                <p className="mt-4 text-lg text-muted-foreground">Move beyond spreadsheets. Our platform provides a dedicated suite of tools to manage your team and equipment, improving efficiency and ensuring your resources are always ready.</p>
+                                <div className="mt-8 w-full space-y-6">
+                                     <FeatureCard
+                                        icon={<Users className="w-8 h-8 text-accent" />}
+                                        title="Technician Roster Management"
+                                        description="Maintain a central database of your inspectors, their qualifications, and certifications. Track availability and assign the right person to the right job."
+                                        cardClass="text-left bg-card hover:border-accent/20"
+                                        iconContainerClass="bg-accent/10"
+                                    />
+                                     <FeatureCard
+                                        icon={<Wrench className="w-8 h-8 text-accent" />}
+                                        title="Equipment & Calibration Tracking"
+                                        description="Log all your NDT equipment, from UT machines to yokes. Track calibration schedules with automated reminders to prevent costly non-compliance."
+                                        cardClass="text-left bg-card hover:border-accent/20"
+                                        iconContainerClass="bg-accent/10"
+                                    />
+                                     <FeatureCard
+                                        icon={<QrCode className="w-8 h-8 text-accent" />}
+                                        title="QR Code Equipment Tagging"
+                                        description="Generate unique QR codes for each piece of equipment. Scan in the field to instantly view status, calibration records, and checkout history."
+                                        cardClass="text-left bg-card hover:border-accent/20"
+                                        iconContainerClass="bg-accent/10"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                {/* CTA Section */}
+                <section className="py-20 bg-card">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 className="text-3xl font-headline font-semibold text-primary">
+                      Ready to Take Control?
+                    </h2>
+                    <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                      Experience the future of asset integrity management. Start your 30-day free trial today.
+                    </p>
+                    <div className="mt-8">
+                      <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        <Link href="/contact">Start Your Free Trial</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+            </main>
+
+            <PublicFooter />
+        </div>
+    );
+}

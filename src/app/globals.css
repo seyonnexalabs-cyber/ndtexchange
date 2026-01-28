@@ -97,25 +97,25 @@
     --card-foreground: 220 20% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 15%;
-    --primary: 220 30% 35%;      /* Dark Slate Blue */
+    --primary: 225 60% 48%;      /* Indigo */
     --primary-foreground: 0 0% 98%;
     --secondary: 220 20% 94%;
     --secondary-foreground: 220 20% 15%;
     --muted: 220 20% 94%;
     --muted-foreground: 220 15% 45%;
-    --accent: 35 80% 55%;         /* Gold/Amber */
+    --accent: 195 85% 55%;      /* Sky Blue */
     --accent-foreground: 220 20% 9%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 220 30% 35%;
+    --ring: 225 60% 48%;
 
     /* Chart Colors */
-    --chart-1: 220 30% 35%;
-    --chart-2: 35 80% 55%;
-    --chart-3: 220 30% 55%;
-    --chart-4: 35 80% 75%;
+    --chart-1: 225 60% 48%;
+    --chart-2: 195 85% 55%;
+    --chart-3: 225 60% 68%;
+    --chart-4: 195 85% 75%;
     --chart-5: 220 20% 50%;
   }
 

@@ -1,10 +1,11 @@
+
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { jobs, bids, serviceProviders, NDTTechniques, allUsers } from '@/lib/placeholder-data';
 import { useMemo } from 'react';
-import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck } from 'lucide-react';
 
 
@@ -126,7 +127,9 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis />
                                 <ChartTooltip content={<ChartTooltipContent />} />
-                                <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+                                <Bar dataKey="count" fill="var(--color-count)" radius={4}>
+                                    <LabelList position="top" offset={4} className="fill-foreground" fontSize={12} />
+                                </Bar>
                             </BarChart>
                         </ChartContainer>
                     </CardContent>
@@ -142,7 +145,15 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis tickFormatter={(value) => `$${value/1000}k`}/>
                                 <ChartTooltip content={<ChartTooltipContent />} />
-                                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
+                                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4}>
+                                    <LabelList
+                                        position="top"
+                                        offset={4}
+                                        className="fill-foreground"
+                                        fontSize={12}
+                                        formatter={(value: number) => `$${(value / 1000).toFixed(1)}k`}
+                                    />
+                                </Bar>
                             </BarChart>
                         </ChartContainer>
                     </CardContent>
@@ -175,6 +186,7 @@ export default function AnalyticsPage() {
                                     <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
                             </Pie>
+                            <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center"/>} className="mt-4" />
                         </PieChart>
                         </ChartContainer>
                     </CardContent>

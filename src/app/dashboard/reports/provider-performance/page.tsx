@@ -12,7 +12,8 @@ import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star, DollarSign } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,7 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 
@@ -172,7 +173,8 @@ export default function ProviderPerformanceReportPage() {
                                             key={provider.id}
                                             control={form.control}
                                             name="providerIds"
-                                            render={({ field }) => (
+                                            render={({ field }) => {
+                                            return (
                                                 <FormItem
                                                 key={provider.id}
                                                 className="flex flex-row items-start space-x-3 space-y-0 mb-2"
@@ -341,6 +343,7 @@ export default function ProviderPerformanceReportPage() {
                                 <XAxis dataKey="jobsAwarded" type="number" hide />
                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel />} />
                                 <Bar dataKey="jobsAwarded" layout="vertical" radius={4}>
+                                    <LabelList dataKey="jobsAwarded" position="right" offset={8} className="fill-foreground" fontSize={12} />
                                     {performanceData.map((entry) => (
                                         <Cell key={`cell-${entry.providerId}`} fill={cn(chartConfig[entry.providerName]?.color)} />
                                     ))}
@@ -361,6 +364,14 @@ export default function ProviderPerformanceReportPage() {
                                 <XAxis dataKey="avgJobCost" type="number" hide />
                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
                                 <Bar dataKey="avgJobCost" layout="vertical" radius={4}>
+                                    <LabelList
+                                        dataKey="avgJobCost"
+                                        position="right"
+                                        offset={8}
+                                        className="fill-foreground"
+                                        fontSize={12}
+                                        formatter={(value: number) => `$${value.toLocaleString(undefined, {maximumFractionDigits: 0})}`}
+                                    />
                                     {performanceData.map((entry) => (
                                         <Cell key={`cell-${entry.providerId}`} fill={cn(chartConfig[entry.providerName]?.color)} />
                                     ))}

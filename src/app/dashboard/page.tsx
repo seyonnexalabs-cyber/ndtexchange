@@ -6,6 +6,8 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
@@ -227,6 +229,10 @@ const ClientDashboard = () => {
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                             </Pie>
+                            <ChartLegend
+                                content={<ChartLegendContent nameKey="key" />}
+                                className="-mt-4"
+                             />
                         </PieChart>
                         </ChartContainer>
                     </CardContent>

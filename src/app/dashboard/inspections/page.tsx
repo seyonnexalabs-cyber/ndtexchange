@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -39,23 +38,33 @@ export default function InspectionsPage() {
     }
 
     const filteredInspections = useMemo(() => {
-        let relevantInspections = inspections;
-        // If the user is an auditor, this page becomes their dedicated queue
+        let filtered = inspections;
+
+        // First, apply role-based filtering.
         if (role === 'auditor') {
-            relevantInspections = inspections.filter(i => i.status === 'Requires Review');
+            // For auditors, this page is strictly their review queue.
+            filtered = filtered.filter(i => i.status === 'Requires Review');
+        }
+        // For admins, no role-based filtering is needed; they see everything.
+
+        // Then, apply filters from the UI
+        if (searchQuery) {
+            filtered = filtered.filter(inspection => 
+                inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase())
+            );
         }
 
-        return relevantInspections.filter(inspection => {
-            const searchMatch = !searchQuery ||
-                inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase());
-            
-            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
-            
-            const statusMatch = role === 'auditor' ? inspection.status === 'Requires Review' : (statusFilter === 'all' || inspection.status === statusFilter);
-
-            return searchMatch && techniqueMatch && statusMatch;
-        });
+        if (selectedTechniques.length > 0) {
+            filtered = filtered.filter(inspection => selectedTechniques.includes(inspection.technique));
+        }
+        
+        if (statusFilter !== 'all') {
+            // This filter is disabled for auditors, but this check is safe either way.
+            filtered = filtered.filter(inspection => inspection.status === statusFilter);
+        }
+        
+        return filtered;
     }, [searchQuery, selectedTechniques, statusFilter, role]);
 
     const handleTechniqueChange = (techniqueId: string) => {

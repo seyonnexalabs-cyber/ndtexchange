@@ -15,7 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { allUsers } from '@/lib/placeholder-data';
+import { allUsers, clientData } from '@/lib/placeholder-data';
+import { serviceProviders } from '@/lib/service-providers-data';
+import { auditFirms } from '@/lib/auditors-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -165,6 +167,9 @@ const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = fals
 
 const TeamManagementSettings = ({ companyName, onInviteClick }: { companyName: string, onInviteClick: () => void }) => {
     const teamMembers = allUsers.filter(user => user.company === companyName);
+    
+    const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
+    const companyAdminName = allCompanies.find(c => c.name === companyName)?.contactPerson;
 
     return (
         <Card>
@@ -186,23 +191,27 @@ const TeamManagementSettings = ({ companyName, onInviteClick }: { companyName: s
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {teamMembers.map(user => (
-                            <TableRow key={user.id}>
-                                <TableCell className="font-medium flex items-center gap-3">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarFallback className="text-lg font-bold font-headline">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                    </Avatar>
-                                    {user.name}
-                                </TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                   <Button variant="ghost" size="sm">Manage</Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {teamMembers.map(user => {
+                            const isAdmin = user.name === companyAdminName;
+                            return (
+                                <TableRow key={user.id}>
+                                    <TableCell className="font-medium flex items-center gap-3">
+                                        <Avatar className="h-9 w-9">
+                                            <AvatarFallback className="text-lg font-bold font-headline">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                        </Avatar>
+                                        {user.name}
+                                        {isAdmin && <Badge variant="outline">Admin</Badge>}
+                                    </TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                       <Button variant="ghost" size="sm" disabled={isAdmin}>Manage</Button>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
                     </TableBody>
                 </Table>
             </CardContent>

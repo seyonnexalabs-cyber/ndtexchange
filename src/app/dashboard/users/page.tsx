@@ -2,7 +2,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { allUsers, PlatformUser } from "@/lib/placeholder-data";
+import { allUsers, PlatformUser, clientData } from "@/lib/placeholder-data";
+import { serviceProviders } from "@/lib/service-providers-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X } from "lucide-react";
@@ -15,6 +16,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -23,14 +30,102 @@ const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | '
     Disabled: 'destructive',
 };
 
-const PlatformUsersView = () => {
+const userSchema = z.object({
+  name: z.string().min(2, "Name is required."),
+  email: z.string().email(),
+  company: z.string().min(1, "Please select a company."),
+  role: z.string().min(1, "Please select a role."),
+});
+
+const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof userSchema>) => void; }) => {
+    const form = useForm<z.infer<typeof userSchema>>({
+        resolver: zodResolver(userSchema),
+        defaultValues: { name: '', email: '' },
+    });
+
+    const companies = useMemo(() => {
+        const clients = clientData.map(c => ({ value: c.name, label: `${c.name} (Client)` }));
+        const providers = serviceProviders.map(p => ({ value: p.name, label: `${p.name} (Provider)` }));
+        // Add Auditor firms too
+        return [...clients, ...providers];
+    }, []);
+
+    const roles = ['Client', 'Inspector', 'Auditor'];
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl><Input type="email" placeholder="john.doe@example.com" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="company"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Company</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {companies.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Role</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Send Invitation</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+}
+
+const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
     const isMobile = useIsMobile();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     
     const platformUsers = useMemo(() => {
-        return allUsers.filter(user => {
+        return users.filter(user => {
             if (user.role.toLowerCase().includes('admin')) return false;
 
             const searchMatch = !searchQuery ||
@@ -44,7 +139,7 @@ const PlatformUsersView = () => {
 
             return searchMatch && roleMatch && statusMatch;
         });
-    }, [searchQuery, selectedRoles, statusFilter]);
+    }, [users, searchQuery, selectedRoles, statusFilter]);
 
     const uniqueRoles = useMemo(() => {
         const roles = new Set(allUsers.filter(u => !u.role.toLowerCase().includes('admin')).map(u => u.role));
@@ -216,6 +311,27 @@ const PlatformUsersView = () => {
 
 
 export default function UsersPage() {
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [users, setUsers] = useState(allUsers);
+    const { toast } = useToast();
+
+    const handleAddUser = (values: z.infer<typeof userSchema>) => {
+        const newUser: PlatformUser = {
+            id: `user-${Date.now()}`,
+            name: values.name,
+            email: values.email,
+            company: values.company,
+            role: values.role,
+            status: 'Invited',
+        };
+        setUsers(prev => [newUser, ...prev]);
+        setIsAddUserOpen(false);
+        toast({
+            title: 'User Invited',
+            description: `An invitation email has been sent to ${values.email}.`,
+        });
+    };
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -225,10 +341,23 @@ export default function UsersPage() {
                         User Management
                     </h1>
                 </div>
-                <Button className="w-full sm:w-auto">Add User</Button>
+                <Button className="w-full sm:w-auto" onClick={() => setIsAddUserOpen(true)}>Add User</Button>
             </div>
             
-            <PlatformUsersView />
+            <PlatformUsersView users={users} />
+
+            <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Invite New User</DialogTitle>
+                        <DialogDescription>
+                            The user will receive an email to set up their account and password.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} />
+                </DialogContent>
+            </Dialog>
         </div>
     );
-}
+
+    

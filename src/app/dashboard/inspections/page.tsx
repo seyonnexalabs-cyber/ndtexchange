@@ -41,13 +41,11 @@ export default function InspectionsPage() {
     }
 
     const augmentedAndFilteredInspections = useMemo(() => {
-        // First, apply role-based filtering if needed.
         let filtered = initialInspections;
         if (role === 'auditor') {
             filtered = initialInspections.filter(i => i.status === 'Requires Review');
         }
 
-        // Augment with job and technician data
         const augmented = filtered.map(inspection => {
             const job = jobs.find(j => j.id === inspection.jobId);
             const assignedTechnicians = job?.technicianIds
@@ -60,7 +58,6 @@ export default function InspectionsPage() {
             };
         });
 
-        // Then, apply UI filters
         return augmented.filter(inspection => {
             const searchMatch = !searchQuery ||
                 inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,7 +68,13 @@ export default function InspectionsPage() {
             
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
-            const statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
+            let statusMatch = true;
+            if (role === 'admin' && statusFilter === 'all') {
+                // For admin's default view, "All Reports" should only show items that are actual reports.
+                statusMatch = ['Completed', 'Requires Review'].includes(inspection.status);
+            } else {
+                statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
+            }
 
             return searchMatch && techniqueMatch && statusMatch;
         });
@@ -81,9 +84,9 @@ export default function InspectionsPage() {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
 
-    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'all' && role !== 'auditor');
+    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'all');
 
-    const pageTitle = role === 'auditor' ? 'Audit Queue' : 'All Inspection Reports';
+    const pageTitle = role === 'auditor' ? 'Audit Queue' : 'Inspection Reports';
     const pageDescription = role === 'auditor' ? 'Review and approve submitted inspection reports.' : 'A detailed log of all submitted inspection reports across the platform.';
     const pageIcon = role === 'auditor' ? <Eye /> : <ClipboardList />;
     const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspection reports found';
@@ -162,10 +165,10 @@ export default function InspectionsPage() {
                             </button>
                         </Badge>
                     ))}
-                    {statusFilter !== 'all' && role !== 'auditor' && (
+                    {statusFilter !== 'all' && (
                         <Badge variant="secondary">
                             Status: {statusFilter}
-                             <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                             <button onClick={() => setStatusFilter(role === 'auditor' ? 'Requires Review' : 'all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3" />
                             </button>
                         </Badge>

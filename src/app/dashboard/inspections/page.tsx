@@ -3,13 +3,13 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
-import { inspections as initialInspections, NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useMemo, useEffect } from 'react';
+import { inspections, NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ClipboardList, Filter, X, Eye } from 'lucide-react';
+import { Filter, X, Eye } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -28,12 +28,28 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'defaul
 };
 
 export default function InspectionsPage() {
-    const isMobile = useIsMobile();
+    const router = useRouter();
     const searchParams = useSearchParams();
-    const role = searchParams.get('role') || 'admin';
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        // This page is for Auditors only. Redirect other roles.
+        if (role && role !== 'auditor') {
+            if (role === 'admin') {
+                // Admins should use the All Jobs page for oversight.
+                router.replace('/dashboard/all-jobs');
+            } else {
+                // Other roles (client, inspector) go to their main dashboard.
+                const params = new URLSearchParams(searchParams.toString());
+                router.replace(`/dashboard?${params.toString()}`);
+            }
+        }
+    }, [role, router, searchParams]);
+
+    const isMobile = useIsMobile();
     const [searchQuery, setSearchQuery] = React.useState('');
     const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = React.useState<string>(role === 'auditor' ? 'Requires Review' : 'all');
+    const [statusFilter, setStatusFilter] = React.useState<string>('Requires Review');
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -41,10 +57,11 @@ export default function InspectionsPage() {
     }
 
     const augmentedAndFilteredInspections = useMemo(() => {
-        let filtered = initialInspections;
-        if (role === 'auditor' && statusFilter === 'all') {
-            // For auditor's default view, 'all' should mean what requires their action
-            filtered = initialInspections.filter(i => i.status === 'Requires Review');
+        let filtered = inspections;
+        
+        // The default "all" for an auditor is their actionable queue.
+        if (statusFilter === 'all') {
+            filtered = inspections.filter(i => i.status === 'Requires Review');
         }
 
         const augmented = filtered.map(inspection => {
@@ -69,24 +86,35 @@ export default function InspectionsPage() {
             
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
-            const statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
+            const statusMatch = statusFilter === 'all' ? inspection.status === 'Requires Review' : inspection.status === statusFilter;
 
             return searchMatch && techniqueMatch && statusMatch;
         });
-    }, [searchQuery, selectedTechniques, statusFilter, role]);
+    }, [searchQuery, selectedTechniques, statusFilter]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
 
-    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== (role === 'auditor' ? 'Requires Review' : 'all'));
+    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'Requires Review');
 
-    const pageTitle = role === 'auditor' ? 'Audit Queue' : 'Inspection Reports';
-    const pageDescription = role === 'auditor' ? 'Review and approve submitted inspection reports.' : 'A detailed log of all submitted inspection reports across the platform.';
-    const pageIcon = role === 'auditor' ? <Eye /> : <ClipboardList />;
-    const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspection reports found';
-    const emptyStateDescription = role === 'auditor' ? 'There are no reports currently awaiting your review.' : 'There are no inspection reports matching your current filters.';
-    const buttonText = role === 'auditor' ? 'Audit Report' : 'View Report';
+    // Page is only for auditors, so text is static.
+    const pageTitle = 'Audit Queue';
+    const pageDescription = 'Review and approve submitted inspection reports.';
+    const pageIcon = <Eye />;
+    const emptyStateTitle = 'Audit Queue is Empty';
+    const emptyStateDescription = 'There are no reports currently awaiting your review.';
+    const buttonText = 'Audit Report';
+
+    // Render a redirecting state while the redirect happens
+    if (role && role !== 'auditor') {
+        return (
+           <div className="text-center p-10">
+               <h1 className="text-2xl font-headline">Redirecting...</h1>
+               <p className="mt-4 text-muted-foreground">This page is intended for auditors. You are being redirected.</p>
+           </div>
+       );
+   }
 
     return (
         <div>
@@ -163,12 +191,12 @@ export default function InspectionsPage() {
                     {(statusFilter !== 'all') && (
                         <Badge variant="secondary">
                             Status: {statusFilter}
-                             <button onClick={() => setStatusFilter(role === 'auditor' ? 'Requires Review' : 'all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                             <button onClick={() => setStatusFilter('Requires Review')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3" />
                             </button>
                         </Badge>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedTechniques([]); setStatusFilter(role === 'auditor' ? 'Requires Review' : 'all'); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setSelectedTechniques([]); setStatusFilter('Requires Review'); }}>Clear All</Button>
                 </div>
             )}
             

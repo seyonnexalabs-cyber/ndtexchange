@@ -26,6 +26,7 @@ const clientSchema = z.object({
   location: z.string().min(2, "Location is required."),
   contactPerson: z.string().min(2, 'Contact person name is required.'),
   contactEmail: z.string().email('Please enter a valid email address.'),
+  contactPhone: z.string().optional(),
 });
 
 const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: z.infer<typeof clientSchema>) => void }) => {
@@ -36,6 +37,7 @@ const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (v
             location: '',
             contactPerson: '',
             contactEmail: '',
+            contactPhone: '',
         }
     });
 
@@ -94,6 +96,19 @@ const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (v
                         )}
                     />
                 </div>
+                <FormField
+                    control={form.control}
+                    name="contactPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Contact Phone (Optional)</FormLabel>
+                            <FormControl>
+                                <Input type="tel" placeholder="e.g., (555) 123-4567" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                     <Button type="submit">Create Client</Button>

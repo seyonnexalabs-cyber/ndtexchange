@@ -27,6 +27,7 @@ const auditorSchema = z.object({
   location: z.string().min(2, "Location is required."),
   contactPerson: z.string().min(2, "Contact person name is required."),
   contactEmail: z.string().email("Please enter a valid email address."),
+  contactPhone: z.string().optional(),
   description: z.string().min(10, "Description must be at least 10 characters."),
   services: z.array(z.string()).min(1, "Select at least one service."),
   industries: z.array(z.string()).min(1, "Select at least one industry."),
@@ -40,6 +41,7 @@ const AuditorForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
             location: '',
             contactPerson: '',
             contactEmail: '',
+            contactPhone: '',
             description: '',
             services: [],
             industries: [],
@@ -97,6 +99,17 @@ const AuditorForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
                         )}
                     />
                 </div>
+                 <FormField
+                    control={form.control}
+                    name="contactPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Contact Phone (Optional)</FormLabel>
+                            <FormControl><Input type="tel" placeholder="e.g., (555) 123-4567" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="description"

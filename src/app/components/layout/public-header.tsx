@@ -15,8 +15,11 @@ export default function PublicHeader() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
+  const mainNavLinks = [
     { href: '/#techniques', label: 'Techniques' },
+  ];
+  
+  const trailingNavLinks = [
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact Us' },
   ];
@@ -76,7 +79,7 @@ export default function PublicHeader() {
           NDT Exchange
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => (
+          {mainNavLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -120,6 +123,18 @@ export default function PublicHeader() {
                     ))}
                 </DropdownMenuContent>
             </DropdownMenu>
+            {trailingNavLinks.map((link) => (
+                <Link
+                key={link.label}
+                href={link.href}
+                className={cn(
+                    "text-sm font-medium text-foreground hover:text-primary",
+                    pathname === link.href && "font-bold"
+                )}
+                >
+                {link.label}
+                </Link>
+            ))}
         </nav>
         <div className="flex items-center space-x-2">
            <div className="md:hidden">
@@ -136,11 +151,14 @@ export default function PublicHeader() {
                         <SheetDescription>Navigation Menu</SheetDescription>
                     </SheetHeader>
                     <div className="mt-8 flex flex-col items-start space-y-4">
-                        {navLinks.map((link) => (
+                        {mainNavLinks.map((link) => (
                            <MobileNavLink key={link.label} href={link.href}>{link.label}</MobileNavLink>
                         ))}
                         <MobileManagementAccordion />
                         <MobileResourcesAccordion />
+                        {trailingNavLinks.map((link) => (
+                           <MobileNavLink key={link.label} href={link.href}>{link.label}</MobileNavLink>
+                        ))}
                     </div>
                      <div className="mt-8 pt-6 border-t">
                       <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>

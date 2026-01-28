@@ -67,6 +67,22 @@ export default function PrivacyPage() {
               We do not sell your personal information to third parties. We may disclose your information to third-party service providers who assist us in operating our website and conducting our business, so long as those parties agree to keep this information confidential.
             </p>
 
+            <h2 className="text-2xl font-headline text-foreground pt-4">6. Data Retention and Integrity</h2>
+            <p>
+                To ensure a complete and tamper-proof audit trail for all platform activities, core records are not permanently deleted from our system. Instead, they are marked as inactive. For example:
+            </p>
+            <ul className="list-disc list-inside space-y-2 pl-4">
+                <li>
+                    <strong>Assets</strong> that are no longer in service are marked as "Decommissioned."
+                </li>
+                <li>
+                    <strong>User profiles</strong> for individuals who have left a company are marked as "Disabled."
+                </li>
+            </ul>
+            <p>
+                This practice ensures that historical data related to jobs, inspections, and reports remains intact for compliance, auditing, and analytical purposes, reinforcing the reliability and integrity of your records.
+            </p>
+
           </div>
         </div>
       </main>

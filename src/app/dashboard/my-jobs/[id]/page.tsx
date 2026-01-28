@@ -25,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import JobHistory from '../components/job-history';
+import JobActivityLog from '../components/job-history';
 import { format } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
@@ -624,6 +624,16 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         
                         <Card>
                             <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><History /> Job Activity Log</CardTitle>
+                                <CardDescription>A detailed, chronological log of all events for this job.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <JobActivityLog history={jobDetails.history} />
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication</CardTitle>
                                 <CardDescription>Review messages and exchange information about the job.</CardDescription>
                             </CardHeader>
@@ -655,16 +665,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <Button>Send Message</Button>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><History /> Job History</CardTitle>
-                                <CardDescription>A chronological log of all events and status changes for this job.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <JobHistory history={jobDetails.history} />
                             </CardContent>
                         </Card>
 

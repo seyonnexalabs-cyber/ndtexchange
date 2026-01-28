@@ -24,12 +24,11 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
 };
 
 
-export default function JobHistory({ history }: { history?: JobUpdate[] }) {
+export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
     if (!history || history.length === 0) {
-        return <p className="text-sm text-muted-foreground text-center py-4">No history available for this job.</p>
+        return <p className="text-sm text-muted-foreground text-center py-4">No activity log available for this job.</p>
     }
     
-    // Ensure history is sorted with the latest first
     const sortedHistory = [...history].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return (
@@ -50,6 +49,9 @@ export default function JobHistory({ history }: { history?: JobUpdate[] }) {
                                             <p className="text-xs text-muted-foreground">{userDetails.role}, {userDetails.company}</p>
                                         )}
                                         <p className="text-sm text-muted-foreground mt-1">{entry.action}</p>
+                                        {entry.details && (
+                                            <p className="text-xs text-muted-foreground/80 mt-1 italic">"{entry.details}"</p>
+                                        )}
                                     </div>
                                     <p className="text-xs text-muted-foreground/80 shrink-0">
                                         {format(new Date(entry.timestamp), GLOBAL_DATETIME_FORMAT)}

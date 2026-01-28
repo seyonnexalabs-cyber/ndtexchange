@@ -15,14 +15,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
-import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 
 
 const reportSchema = z.object({
@@ -124,13 +124,15 @@ export default function ProviderPerformanceReportPage() {
         return { totalProviders, totalSpend, overallAvgRating };
     }, [performanceData]);
 
-    const chartConfig: ChartConfig = performanceData.reduce((acc, provider, index) => {
-        acc[provider.providerName] = { 
-            label: provider.providerName,
-            color: `hsl(var(--chart-${(index % 5) + 1}))`
-        };
-        return acc;
-    }, {} as ChartConfig);
+    const chartConfig: ChartConfig = React.useMemo(() => (
+      performanceData.reduce((acc, provider, index) => {
+          acc[provider.providerName] = { 
+              label: provider.providerName,
+              color: `hsl(var(--chart-${(index % 5) + 1}))`
+          };
+          return acc;
+      }, {} as ChartConfig)
+    ), [performanceData]);
 
     return (
         <div className="space-y-6">
@@ -183,12 +185,13 @@ export default function ProviderPerformanceReportPage() {
                                                     <Checkbox
                                                     checked={field.value?.includes(provider.id)}
                                                     onCheckedChange={(checked) => {
-                                                        const newValues = checked
-                                                        ? [...(field.value || []), provider.id]
-                                                        : field.value?.filter(
-                                                            (value) => value !== provider.id
-                                                            );
-                                                        field.onChange(newValues);
+                                                        return checked
+                                                        ? field.onChange([...(field.value || []), provider.id])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                                (value) => value !== provider.id
+                                                            )
+                                                            )
                                                     }}
                                                     />
                                                 </FormControl>
@@ -196,10 +199,12 @@ export default function ProviderPerformanceReportPage() {
                                                     {provider.name}
                                                 </FormLabel>
                                                 </FormItem>
-                                            )}
+                                            )
+                                            }}
                                         />
                                         ))}
                                     </ScrollArea>
+                                    <FormMessage />
                                 </FormItem>
                                 )}
                             />
@@ -247,6 +252,7 @@ export default function ProviderPerformanceReportPage() {
                                             />
                                             </PopoverContent>
                                         </Popover>
+                                         <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -341,7 +347,7 @@ export default function ProviderPerformanceReportPage() {
                                 <CartesianGrid horizontal={false} />
                                 <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
                                 <XAxis dataKey="jobsAwarded" type="number" hide />
-                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel />} />
+                                <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel />} />
                                 <Bar dataKey="jobsAwarded" layout="vertical" radius={4}>
                                     <LabelList dataKey="jobsAwarded" position="right" offset={8} className="fill-foreground" fontSize={12} />
                                     {performanceData.map((entry) => (
@@ -362,7 +368,7 @@ export default function ProviderPerformanceReportPage() {
                                 <CartesianGrid horizontal={false} />
                                 <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
                                 <XAxis dataKey="avgJobCost" type="number" hide />
-                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
+                                <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
                                 <Bar dataKey="avgJobCost" layout="vertical" radius={4}>
                                     <LabelList
                                         dataKey="avgJobCost"
@@ -384,3 +390,4 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
+

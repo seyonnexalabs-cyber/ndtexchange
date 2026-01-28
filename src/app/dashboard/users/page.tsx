@@ -179,13 +179,12 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
     );
 }
 
-const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users: PlatformUser[], companyAdmins: Set<string>, onSetCompanyAdmin: (user: PlatformUser) => void }) => {
+const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void }) => {
     const isMobile = useIsMobile();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
-    const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
 
     const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);
 
@@ -260,8 +259,8 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                                     <Button variant="ghost" size="sm">Manage</Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setUserToPromote(user)} disabled={isCompanyAdmin(user)}>Make Company Admin</DropdownMenuItem>
-                                    <DropdownMenuItem>Disable User</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onPromoteUser(user)} disabled={isCompanyAdmin(user)}>Make Company Admin</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onDisableUser(user)}>Disable User</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </CardFooter>
@@ -417,12 +416,14 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem
-                                                onClick={() => setUserToPromote(user)}
+                                                onClick={() => onPromoteUser(user)}
                                                 disabled={isCompanyAdmin(user) || user.status !== 'Active'}
                                             >
                                                 Make Company Admin
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>Disable User</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => onDisableUser(user)} disabled={user.status === 'Disabled'}>
+                                                Disable User
+                                            </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
@@ -438,27 +439,6 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                     </TableBody>
                 </Table>
             </Card>
-            <AlertDialog open={!!userToPromote} onOpenChange={(open) => !open && setUserToPromote(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Admin Change</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to make {userToPromote?.name} the new admin for {userToPromote?.company}? The current admin will lose their administrative rights.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setUserToPromote(null)}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
-                            if (userToPromote) {
-                                onSetCompanyAdmin(userToMakeAdmin);
-                            }
-                            setUserToPromote(null);
-                        }}>
-                            Confirm
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </>
     );
 };
@@ -476,6 +456,10 @@ export default function UsersPage() {
         auditFirms.forEach(a => admins.add(a.contactPerson));
         return admins;
     });
+
+    const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
+    const [userToDisable, setUserToDisable] = useState<PlatformUser | null>(null);
+    const [showAdminDisableError, setShowAdminDisableError] = useState(false);
 
     const handleAddUser = (values: z.infer<typeof userSchema>) => {
         const newUser: PlatformUser = {
@@ -496,30 +480,60 @@ export default function UsersPage() {
     };
 
     const handleSetCompanyAdmin = (userToMakeAdmin: PlatformUser) => {
-        const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-        const company = allCompanies.find(c => c.name === userToMakeAdmin.company);
+        setUserToPromote(userToMakeAdmin);
+    };
 
-        if (!company) return;
+    const confirmPromotion = () => {
+        if (!userToPromote) return;
+
+        const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
+        const company = allCompanies.find(c => c.name === userToPromote.company);
+
+        if (!company) {
+            toast({ variant: "destructive", title: "Error", description: "Could not find company to update." });
+            setUserToPromote(null);
+            return;
+        }
 
         const currentAdminName = company.contactPerson;
+        company.contactPerson = userToPromote.name;
 
-        // This is a mock update. In a real app, this would be an API call.
-        company.contactPerson = userToMakeAdmin.name;
-
-        // Update the state
         setCompanyAdmins(prevAdmins => {
             const newAdmins = new Set(prevAdmins);
             if (currentAdminName) {
                 newAdmins.delete(currentAdminName);
             }
-            newAdmins.add(userToMakeAdmin.name);
+            newAdmins.add(userToPromote.name);
             return newAdmins;
         });
 
         toast({
             title: "Administrator Changed",
-            description: `${userToMakeAdmin.name} is now the admin for ${userToMakeAdmin.company}.`,
+            description: `${userToPromote.name} is now the admin for ${userToPromote.company}.`,
         });
+        setUserToPromote(null);
+    };
+
+    const handleDisableClick = (userToDisable: PlatformUser) => {
+        if (companyAdmins.has(userToDisable.name)) {
+            setShowAdminDisableError(true);
+        } else {
+            setUserToDisable(userToDisable);
+        }
+    };
+    
+    const confirmDisableUser = () => {
+        if (!userToDisable) return;
+        setUsers(prevUsers =>
+            prevUsers.map(user =>
+                user.id === userToDisable.id ? { ...user, status: 'Disabled' } : user
+            )
+        );
+        toast({
+            title: "User Disabled",
+            description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
+        });
+        setUserToDisable(null);
     };
 
     return (
@@ -531,10 +545,15 @@ export default function UsersPage() {
                         User Management
                     </h1>
                 </div>
-                <Button className="w-full sm:w-auto" onClick={() => setIsAddUserOpen(true)}>Add User</Button>
+                <Button className="w-full sm:w-auto" onClick={() => setIsAddUserOpen(true)}>Invite User</Button>
             </div>
             
-            <PlatformUsersView users={users} companyAdmins={companyAdmins} onSetCompanyAdmin={handleSetCompanyAdmin} />
+            <PlatformUsersView
+                users={users}
+                companyAdmins={companyAdmins}
+                onPromoteUser={handleSetCompanyAdmin}
+                onDisableUser={handleDisableClick}
+            />
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
                 <DialogContent>
@@ -547,10 +566,53 @@ export default function UsersPage() {
                     <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} />
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={!!userToPromote} onOpenChange={(open) => !open && setUserToPromote(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Admin Change</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to make {userToPromote?.name} the new admin for {userToPromote?.company}? The current admin will lose their administrative rights.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setUserToPromote(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmPromotion}>
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            
+             <AlertDialog open={!!userToDisable} onOpenChange={(open) => !open && setUserToDisable(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to disable this user?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Disabling {userToDisable?.name} will prevent them from accessing the platform. Their records will be maintained. This action can be reversed later.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setUserToDisable(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDisableUser} className="bg-destructive hover:bg-destructive/90">Disable User</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={showAdminDisableError} onOpenChange={setShowAdminDisableError}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Action Prohibited</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You cannot disable a company's sole administrator. Please promote another user from the same company to be the new admin before disabling this account.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setShowAdminDisableError(false)}>OK</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
-
-    
 }
 
-    

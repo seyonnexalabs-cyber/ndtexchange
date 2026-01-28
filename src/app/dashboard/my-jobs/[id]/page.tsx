@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -5,7 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, technicians, inspectorAssets, bids, Bid, Job } from '@/lib/placeholder-data';
+import { jobs, technicians, inspectorAssets, bids, Bid, Job, reviews } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -244,6 +245,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
+    const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(false);
     const [rating, setRating] = React.useState(0);
     const [hoverRating, setHoverRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
@@ -254,6 +256,20 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         if (jobData) {
             setJobDetails(JSON.parse(JSON.stringify(jobData)));
             setJobBids(JSON.parse(JSON.stringify(bids.filter(b => b.jobId === id))));
+            
+            const existingReview = reviews.find(r => r.jobId === id && r.clientId === 'client-01'); // Assuming client-01 for demo
+            if (existingReview) {
+                setRating(existingReview.rating);
+                setReviewComment(existingReview.comment);
+                setReviewSubmitted(true);
+                setHasBeenSubmittedOnce(true);
+            } else {
+                 // Reset review state if navigating to a job without a review
+                setRating(0);
+                setReviewComment("");
+                setReviewSubmitted(false);
+                setHasBeenSubmittedOnce(false);
+            }
         }
     }, [id]);
 
@@ -369,10 +385,13 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             comment: reviewComment,
         });
         toast({
-            title: "Review Submitted!",
+            title: hasBeenSubmittedOnce ? "Review Updated!" : "Review Submitted!",
             description: "Thank you for your feedback.",
         });
         setReviewSubmitted(true);
+        if (!hasBeenSubmittedOnce) {
+            setHasBeenSubmittedOnce(true);
+        }
     };
 
     const BidsSection = () => {
@@ -675,25 +694,46 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button onClick={handleReviewSubmit}>Submit Review</Button>
+                                <Button onClick={handleReviewSubmit}>{hasBeenSubmittedOnce ? 'Update Review' : 'Submit Review'}</Button>
                             </CardFooter>
                         </Card>
                     )}
 
                     {isReviewable && reviewSubmitted && (
-                         <Card>
+                        <Card>
                             <CardHeader>
-                                <CardTitle>Review Submitted</CardTitle>
+                                <CardTitle>Your Review</CardTitle>
+                                <CardDescription>
+                                    Thank you for your feedback! Your review is now pending approval.
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-3 bg-green-600/10 text-green-700 p-4 rounded-md">
-                                    <CheckCircle className="w-8 h-8" />
-                                    <div>
-                                        <p className="font-bold">Thank you for your feedback!</p>
-                                        <p className="text-sm">Your review helps other clients make informed decisions.</p>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label>Your Rating</Label>
+                                    <div className="flex items-center gap-1 mt-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={cn(
+                                                    "h-6 w-6",
+                                                    rating >= star
+                                                    ? "fill-amber-400 text-amber-400"
+                                                    : "fill-muted-foreground/30 text-muted-foreground/30"
+                                                )}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
+                                {reviewComment && (
+                                    <div>
+                                        <Label>Your Comments</Label>
+                                        <p className="text-sm text-muted-foreground mt-2 p-3 bg-muted/50 rounded-md border">{reviewComment}</p>
+                                    </div>
+                                )}
                             </CardContent>
+                            <CardFooter>
+                                <Button variant="outline" onClick={() => setReviewSubmitted(false)}>Edit Review</Button>
+                            </CardFooter>
                         </Card>
                     )}
 

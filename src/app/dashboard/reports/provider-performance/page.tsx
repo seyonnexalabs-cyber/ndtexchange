@@ -1,16 +1,135 @@
+
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, HardHat } from 'lucide-react';
+import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { jobs, bids, reviews, clientData } from '@/lib/placeholder-data';
+import { serviceProviders } from '@/lib/service-providers-data';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star, DollarSign } from 'lucide-react';
+import { parseISO, format } from 'date-fns';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
-export default function ProviderPerformancePage() {
+
+const reportSchema = z.object({
+  providerIds: z.array(z.string()),
+  dateRange: z.object({
+    from: z.date().optional(),
+    to: z.date().optional(),
+  }),
+});
+
+type ProviderPerformanceData = {
+    providerId: string;
+    providerName: string;
+    jobsAwarded: number;
+    avgRating: number;
+    totalSpend: number;
+    avgJobCost: number;
+};
+
+
+export default function ProviderPerformanceReportPage() {
+    const form = useForm<z.infer<typeof reportSchema>>({
+        resolver: zodResolver(reportSchema),
+        defaultValues: {
+          providerIds: [],
+          dateRange: { from: undefined, to: undefined }
+        },
+    });
+    
     const searchParams = useSearchParams();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const filters = form.watch();
+    const clientId = 'client-01'; // For demo, assuming the client is Global Energy Corp.
+
+    const performanceData = React.useMemo(() => {
+        const { providerIds, dateRange } = filters;
+
+        const clientJobs = jobs.filter(job => job.client === clientData.find(c => c.id === clientId)?.name);
+
+        let relevantProviders = serviceProviders.filter(provider => {
+            const hasJobs = clientJobs.some(job => job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status));
+            return hasJobs;
+        });
+
+        if (providerIds.length > 0) {
+            relevantProviders = relevantProviders.filter(p => providerIds.includes(p.id));
+        }
+
+        const data: ProviderPerformanceData[] = relevantProviders.map(provider => {
+            const providerJobs = clientJobs.filter(job => {
+                const jobIsForProvider = job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status);
+                if (!jobIsForProvider) return false;
+
+                const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
+                const dateMatch = !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
+                
+                return dateMatch;
+            });
+            
+            if (providerJobs.length === 0) return null;
+
+            const jobIds = providerJobs.map(j => j.id);
+            const providerReviews = reviews.filter(r => r.providerId === provider.id && r.clientId === clientId);
+            
+            const totalSpend = providerJobs.reduce((acc, job) => {
+                const awardedBid = bids.find(b => b.jobId === job.id && b.status === 'Awarded');
+                return acc + (awardedBid?.amount || 0);
+            }, 0);
+
+            const avgRating = providerReviews.length > 0
+                ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length
+                : 0;
+
+            return {
+                providerId: provider.id,
+                providerName: provider.name,
+                jobsAwarded: providerJobs.length,
+                avgRating: avgRating,
+                totalSpend: totalSpend,
+                avgJobCost: totalSpend / providerJobs.length,
+            };
+        }).filter((p): p is ProviderPerformanceData => p !== null);
+
+        return data;
+
+    }, [filters, clientId]);
+
+     const summaryStats = React.useMemo(() => {
+        const totalProviders = new Set(performanceData.map(p => p.providerId)).size;
+        const totalSpend = performanceData.reduce((acc, p) => acc + p.totalSpend, 0);
+        const overallAvgRating = performanceData.length > 0
+            ? performanceData.reduce((acc, p) => acc + p.avgRating * p.jobsAwarded, 0) / performanceData.reduce((acc, p) => acc + p.jobsAwarded, 0)
+            : 0;
+        
+        return { totalProviders, totalSpend, overallAvgRating };
+    }, [performanceData]);
+
+    const chartConfig: ChartConfig = performanceData.reduce((acc, provider, index) => {
+        acc[provider.providerName] = { 
+            label: provider.providerName,
+            color: `hsl(var(--chart-${(index % 5) + 1}))`
+        };
+        return acc;
+    }, {} as ChartConfig);
 
     return (
         <div className="space-y-6">
@@ -28,10 +147,228 @@ export default function ProviderPerformancePage() {
                     </h1>
                     <p className="text-muted-foreground mt-1">Compare performance metrics for service providers.</p>
                 </div>
+                <Button onClick={() => window.print()}>
+                    <Printer className="mr-2 h-4 w-4"/>
+                    Print / Save as PDF
+                </Button>
             </div>
-             <div className="text-center p-10 border rounded-lg">
-                <h2 className="text-xl font-headline">Coming Soon</h2>
-                <p className="mt-2 text-muted-foreground">This report is currently under development.</p>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Filter /> Report Filters</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                             <FormField
+                                control={form.control}
+                                name="providerIds"
+                                render={() => (
+                                <FormItem>
+                                    <FormLabel>Filter by Provider(s)</FormLabel>
+                                    <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                        {serviceProviders.map((provider) => (
+                                        <FormField
+                                            key={provider.id}
+                                            control={form.control}
+                                            name="providerIds"
+                                            render={({ field }) => (
+                                                <FormItem
+                                                key={provider.id}
+                                                className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                >
+                                                <FormControl>
+                                                    <Checkbox
+                                                    checked={field.value?.includes(provider.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        const newValues = checked
+                                                        ? [...(field.value || []), provider.id]
+                                                        : field.value?.filter(
+                                                            (value) => value !== provider.id
+                                                            );
+                                                        field.onChange(newValues);
+                                                    }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal text-sm">
+                                                    {provider.name}
+                                                </FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        ))}
+                                    </ScrollArea>
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                    control={form.control}
+                                    name="dateRange"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Date range (Job Completion)</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                id="date"
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !field.value.from && "text-muted-foreground"
+                                                )}
+                                                >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {field.value.from ? (
+                                                    field.value.to ? (
+                                                    <>
+                                                        {format(field.value.from, GLOBAL_DATE_FORMAT)} -{" "}
+                                                        {format(field.value.to, GLOBAL_DATE_FORMAT)}
+                                                    </>
+                                                    ) : (
+                                                    format(field.value.from, GLOBAL_DATE_FORMAT)
+                                                    )
+                                                ) : (
+                                                    <span>Pick a date range</span>
+                                                )}
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={field.value.from}
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                numberOfMonths={1}
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="flex items-end">
+                                    <Button type="button" variant="outline" onClick={() => form.reset({ providerIds: [], dateRange: { from: undefined, to: undefined }})}>
+                                        Clear Filters
+                                    </Button>
+                                </div>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
+
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Providers Worked With</CardTitle>
+                        <HardHat className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{summaryStats.totalProviders}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">${summaryStats.totalSpend.toLocaleString()}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Overall Avg. Rating</CardTitle>
+                        <Star className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{summaryStats.overallAvgRating.toFixed(1)} / 5.0</div>
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><BarChart2 /> Performance Details</CardTitle>
+                    <CardDescription>
+                        Found {performanceData.length} provider(s) matching your criteria.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Provider</TableHead>
+                                <TableHead>Jobs Awarded</TableHead>
+                                <TableHead>Avg. Rating</TableHead>
+                                <TableHead>Avg. Job Cost</TableHead>
+                                <TableHead>Total Spend</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {performanceData.map(provider => (
+                                <TableRow key={provider.providerId}>
+                                    <TableCell className="font-medium">{provider.providerName}</TableCell>
+                                    <TableCell>{provider.jobsAwarded}</TableCell>
+                                    <TableCell>{provider.avgRating > 0 ? provider.avgRating.toFixed(1) : 'N/A'}</TableCell>
+                                    <TableCell>${provider.avgJobCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                    <TableCell>${provider.totalSpend.toLocaleString()}</TableCell>
+                                </TableRow>
+                            ))}
+                             {performanceData.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24">
+                                        No provider performance data found for the selected filters.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+
+            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Jobs Awarded by Provider</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                            <BarChart accessibilityLayer data={performanceData} layout="vertical" margin={{ left: 20 }}>
+                                <CartesianGrid horizontal={false} />
+                                <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
+                                <XAxis dataKey="jobsAwarded" type="number" hide />
+                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel />} />
+                                <Bar dataKey="jobsAwarded" layout="vertical" radius={4}>
+                                    {performanceData.map((entry) => (
+                                        <Cell key={`cell-${entry.providerId}`} fill={cn(chartConfig[entry.providerName]?.color)} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Average Job Cost by Provider</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                            <BarChart accessibilityLayer data={performanceData} layout="vertical" margin={{ left: 20 }}>
+                                <CartesianGrid horizontal={false} />
+                                <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
+                                <XAxis dataKey="avgJobCost" type="number" hide />
+                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
+                                <Bar dataKey="avgJobCost" layout="vertical" radius={4}>
+                                    {performanceData.map((entry) => (
+                                        <Cell key={`cell-${entry.providerId}`} fill={cn(chartConfig[entry.providerName]?.color)} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

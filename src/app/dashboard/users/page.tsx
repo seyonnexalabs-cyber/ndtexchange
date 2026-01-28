@@ -4,6 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { allUsers, PlatformUser, clientData } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
+import { auditFirms } from "@/lib/auditors-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X } from "lucide-react";
@@ -46,8 +47,8 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
     const companies = useMemo(() => {
         const clients = clientData.map(c => ({ value: c.name, label: `${c.name} (Client)` }));
         const providers = serviceProviders.map(p => ({ value: p.name, label: `${p.name} (Provider)` }));
-        // Add Auditor firms too
-        return [...clients, ...providers];
+        const auditors = auditFirms.map(f => ({ value: f.name, label: `${f.name} (Auditor)` }));
+        return [...clients, ...providers, ...auditors];
     }, []);
 
     const roles = ['Client', 'Inspector', 'Auditor'];
@@ -361,3 +362,4 @@ export default function UsersPage() {
     );
 
     
+}

@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -243,6 +243,11 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     
+    const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
+    const [rating, setRating] = React.useState(0);
+    const [hoverRating, setHoverRating] = React.useState(0);
+    const [reviewComment, setReviewComment] = React.useState("");
+
     // Re-initialize state if id changes
     useEffect(() => {
         const jobData = jobs.find(j => j.id === id);
@@ -349,6 +354,27 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         // In a real app, update status in the backend.
     }
 
+    const handleReviewSubmit = () => {
+        if (rating === 0) {
+            toast({
+                variant: "destructive",
+                title: "Rating required",
+                description: "Please select a star rating before submitting.",
+            });
+            return;
+        }
+        console.log({
+            jobId: jobDetails.id,
+            rating,
+            comment: reviewComment,
+        });
+        toast({
+            title: "Review Submitted!",
+            description: "Thank you for your feedback.",
+        });
+        setReviewSubmitted(true);
+    };
+
     const BidsSection = () => {
         if (!jobDetails) return null;
         const isClient = role === 'client';
@@ -437,6 +463,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const isInspector = role === 'inspector';
     const isAuditor = role === 'auditor';
     const isClient = role === 'client';
+    const isReviewable = isClient && (jobDetails.status === 'Completed' || jobDetails.status === 'Paid');
     const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
     const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
 
@@ -609,6 +636,66 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             <JobHistory history={jobDetails.history} />
                         </CardContent>
                     </Card>
+
+                    {isReviewable && !reviewSubmitted && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Leave a Review</CardTitle>
+                                <CardDescription>Share your experience with the service provider for this job.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label>Overall Rating</Label>
+                                    <div className="flex items-center gap-1 mt-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={cn(
+                                                    "h-8 w-8 cursor-pointer transition-colors",
+                                                    (hoverRating || rating) >= star
+                                                    ? "fill-amber-400 text-amber-400"
+                                                    : "fill-muted-foreground/30 text-muted-foreground/30"
+                                                )}
+                                                onClick={() => setRating(star)}
+                                                onMouseEnter={() => setHoverRating(star)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label htmlFor="review-comment">Comments</Label>
+                                    <Textarea
+                                        id="review-comment"
+                                        placeholder="Describe your experience with the provider..."
+                                        className="mt-2 min-h-[120px]"
+                                        value={reviewComment}
+                                        onChange={(e) => setReviewComment(e.target.value)}
+                                    />
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button onClick={handleReviewSubmit}>Submit Review</Button>
+                            </CardFooter>
+                        </Card>
+                    )}
+
+                    {isReviewable && reviewSubmitted && (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Review Submitted</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center gap-3 bg-green-600/10 text-green-700 p-4 rounded-md">
+                                    <CheckCircle className="w-8 h-8" />
+                                    <div>
+                                        <p className="font-bold">Thank you for your feedback!</p>
+                                        <p className="text-sm">Your review helps other clients make informed decisions.</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                      <AuditorActions 
                         status={jobDetails.status} 

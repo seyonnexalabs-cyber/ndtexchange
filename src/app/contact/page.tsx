@@ -195,34 +195,10 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
   isFeatured: boolean;
   theme: 'client' | 'inspector' | 'auditor' | 'admin';
 }) {
-  const themeStyles: { [key: string]: React.CSSProperties } = {
-    client: {
-      '--primary': '225 60% 48%',
-      '--accent': '170 70% 40%',
-      '--accent-foreground': '0 0% 98%',
-    } as React.CSSProperties,
-    inspector: {
-      '--primary': '170 70% 40%',
-      '--accent': '225 60% 48%',
-      '--accent-foreground': '0 0% 98%',
-    } as React.CSSProperties,
-    auditor: {
-      '--primary': '270 50% 55%',
-      '--accent': '150 70% 65%',
-      '--accent-foreground': '270 15% 25%',
-    } as React.CSSProperties,
-    admin: {
-      '--primary': '0 0% 9%',
-      '--accent': '0 0% 50%',
-      '--accent-foreground': '0 0% 98%',
-    } as React.CSSProperties,
-  };
-
-  const style = themeStyles[theme];
   const isPrefixed = price.startsWith("From ");
 
   return (
-    <Card style={style} className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
+    <Card className={cn("flex flex-col", `${theme}-theme`, isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
         <CardDescription>{description}</CardDescription>

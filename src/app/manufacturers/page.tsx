@@ -139,58 +139,19 @@ const manufacturers = [
   }
 ];
 
-const colorClasses = {
-    blue: {
-        card: "bg-blue-500/5",
-        iconContainer: "bg-blue-500/10",
-        icon: "text-blue-500"
-    },
-    purple: {
-        card: "bg-purple-500/5",
-        iconContainer: "bg-purple-500/10",
-        icon: "text-purple-500"
-    },
-    amber: {
-        card: "bg-amber-500/5",
-        iconContainer: "bg-amber-500/10",
-        icon: "text-amber-500"
-    },
-    red: {
-        card: "bg-red-500/5",
-        iconContainer: "bg-red-500/10",
-        icon: "text-red-500"
-    },
-    green: {
-        card: "bg-green-500/5",
-        iconContainer: "bg-green-500/10",
-        icon: "text-green-500"
-    },
-    sky: {
-        card: "bg-sky-500/5",
-        iconContainer: "bg-sky-500/10",
-        icon: "text-sky-500"
-    },
-    teal: {
-        card: "bg-teal-500/5",
-        iconContainer: "bg-teal-500/10",
-        icon: "text-teal-500"
-    },
-    lime: {
-        card: "bg-lime-500/5",
-        iconContainer: "bg-lime-500/10",
-        icon: "text-lime-500"
-    },
-    orange: {
-        card: "bg-orange-500/5",
-        iconContainer: "bg-orange-500/10",
-        icon: "text-orange-500"
-    },
-    gray: {
-        card: "bg-gray-500/5",
-        iconContainer: "bg-gray-500/10",
-        icon: "text-gray-500"
-    }
-}
+const techImageMap: { [key: string]: string | undefined } = {
+    "Ultrasonic Testing (UT, PAUT, TOFD)": "tech-ut",
+    "Radiographic Testing (RT, DR, CT)": "tech-rt",
+    "Electromagnetic Testing (ET, ACFM, RFT)": "tech-et",
+    "Magnetic Particle & Penetrant (MT/PT)": "tech-mt",
+    "Visual & Optical Testing (VT / RVI)": "tech-vt",
+    "Acoustic Emission (AE)": "tech-ae",
+    "Acoustic Pulse Reflectometry (APR)": "tech-apr",
+    "Leak Testing (LT)": "tech-lt",
+    "Infrared & Thermal Testing (IR)": "tech-ir",
+    "Other NDT Methods": "tech-other"
+};
+
 
 export default function ManufacturersPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-manufacturers');
@@ -230,16 +191,23 @@ export default function ManufacturersPage() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                     {manufacturers.map((m) => {
-                        const colors = colorClasses[m.color as keyof typeof colorClasses] || colorClasses.gray;
+                        const techImageId = techImageMap[m.technique];
+                        const techImage = PlaceHolderImages.find(p => p.id === techImageId);
                         return (
-                        <Card key={m.technique} className={cn("flex flex-col transition-shadow hover:shadow-lg", colors.card)}>
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                     <div className={cn("p-4 rounded-full w-fit", colors.iconContainer)}>
-                                        {React.cloneElement(m.icon, { className: cn(m.icon.props.className, colors.icon)})}
-                                    </div>
-                                    <CardTitle className="text-xl font-headline">{m.technique}</CardTitle>
+                        <Card key={m.technique} className="flex flex-col transition-shadow hover:shadow-lg">
+                             {techImage && (
+                                <div className="relative h-40 w-full">
+                                    <Image
+                                        src={techImage.imageUrl}
+                                        alt={techImage.description}
+                                        fill
+                                        className="object-cover rounded-t-lg"
+                                        data-ai-hint={techImage.imageHint}
+                                    />
                                 </div>
+                            )}
+                            <CardHeader>
+                                <CardTitle className="text-xl font-headline">{m.technique}</CardTitle>
                             </CardHeader>
                             <CardContent className="flex-grow">
                                 <ul className="space-y-3">

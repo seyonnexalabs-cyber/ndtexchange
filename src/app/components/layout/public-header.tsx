@@ -17,13 +17,17 @@ export default function PublicHeader() {
 
   const navLinks = [
     { href: '/platform-features', label: 'Features' },
-    { href: '/asset-management', label: 'Asset Management' },
-    { href: '/provider-tools', label: 'Provider Tools' },
     { href: '/#techniques', label: 'Techniques' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact Us' },
   ];
 
+  const managementLinks = [
+    { href: '/asset-management', label: 'Client Assets' },
+    { href: '/provider-tools', label: 'Provider Tools' },
+  ];
+  const isManagementActive = managementLinks.some(link => pathname === link.href);
+  
   const resourcesLinks = [
       { href: '/manufacturers', label: 'Manufacturers' },
       { href: '/providers', label: 'Providers' },
@@ -35,6 +39,21 @@ export default function PublicHeader() {
         {children}
     </Link>
   );
+
+  const MobileManagementAccordion = () => (
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="management" className="border-b-0">
+          <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Management</AccordionTrigger>
+          <AccordionContent className="pl-4">
+              <div className="flex flex-col items-start space-y-4 mt-2">
+                {managementLinks.map((link) => (
+                    <MobileNavLink key={link.label} href={link.href}>{link.label}</MobileNavLink>
+                ))}
+              </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+  )
   
   const MobileResourcesAccordion = () => (
       <Accordion type="single" collapsible className="w-full">
@@ -73,6 +92,22 @@ export default function PublicHeader() {
            <DropdownMenu>
                 <DropdownMenuTrigger className={cn(
                     "flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary focus:outline-none",
+                    isManagementActive && "font-bold"
+                )}>
+                    Management
+                    <ChevronDown className="relative top-[1px] h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    {managementLinks.map((link) => (
+                        <DropdownMenuItem key={link.label} asChild>
+                            <Link href={link.href}>{link.label}</Link>
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+           <DropdownMenu>
+                <DropdownMenuTrigger className={cn(
+                    "flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary focus:outline-none",
                     isResourcesActive && "font-bold"
                 )}>
                     Resources
@@ -105,6 +140,7 @@ export default function PublicHeader() {
                         {navLinks.map((link) => (
                            <MobileNavLink key={link.label} href={link.href}>{link.label}</MobileNavLink>
                         ))}
+                        <MobileManagementAccordion />
                         <MobileResourcesAccordion />
                     </div>
                      <div className="mt-8 pt-6 border-t">

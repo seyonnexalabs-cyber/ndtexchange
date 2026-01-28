@@ -294,8 +294,11 @@ export default function MyJobsPage() {
                                         <Card key={job.id}>
                                             <CardHeader>
                                                 <div className="flex justify-between items-start">
-                                                    <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                                    <div className="flex items-center gap-2">
+                                                    <div>
+                                                        <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                                        <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
                                                         {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
                                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                                     </div>
@@ -379,3 +382,5 @@ export default function MyJobsPage() {
         </div>
     );
 }
+
+    

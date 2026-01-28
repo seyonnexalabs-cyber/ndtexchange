@@ -289,6 +289,7 @@ const PaymentsPage = () => {
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Job ID</TableHead>
                         <TableHead>Job Title</TableHead>
                         {role === 'admin' && <TableHead>From (Payer)</TableHead>}
                         {role === 'admin' && <TableHead>To (Payee)</TableHead>}
@@ -303,6 +304,7 @@ const PaymentsPage = () => {
                 <TableBody>
                     {filteredPayments.map(payment => (
                         <TableRow key={payment.id}>
+                            <TableCell className="font-mono text-xs">{payment.jobId}</TableCell>
                             <TableCell className="font-medium">{payment.jobTitle}</TableCell>
                             {role === 'admin' && <TableCell>{payment.payer}</TableCell>}
                             {role === 'admin' && (
@@ -338,6 +340,7 @@ const PaymentsPage = () => {
                             <Badge variant={paymentStatusVariants[payment.status]}>{payment.status}</Badge>
                         </div>
                         <CardDescription>
+                            Job ID: {payment.jobId} <br/>
                             {role === 'client' 
                                 ? `To: ${payment.payee} (${payment.payeeType})` 
                                 : `From: ${payment.payer}`
@@ -401,5 +404,7 @@ const PaymentsPage = () => {
 };
 
 export default PaymentsPage;
+
+    
 
     

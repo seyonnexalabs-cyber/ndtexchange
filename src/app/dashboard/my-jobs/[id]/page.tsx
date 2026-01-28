@@ -368,7 +368,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     <CardContent>
                         <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12">
-                                <AvatarImage src={assignedProvider.logoUrl} alt={assignedProvider.name} />
+                                <AvatarImage src={assignedProvider.logoUrl} alt={`${assignedProvider.name} logo`} />
                                 <AvatarFallback>{assignedProvider.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -411,7 +411,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             <div key={bid.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-12 w-12">
-                                         <AvatarImage src={provider.logoUrl} alt={provider.name} data-ai-hint={`${provider.name} logo`} />
+                                         <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} data-ai-hint={`${provider.name} logo`} />
                                          <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>

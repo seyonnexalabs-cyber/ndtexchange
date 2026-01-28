@@ -4,7 +4,6 @@ import { ShieldCheck } from 'lucide-react';
 
 export default function PublicFooter() {
     const platformLinks = [
-        { href: '/#techniques', label: 'Techniques' },
         { href: '/login', label: 'Login / Dashboard' },
         { href: '/contact', label: 'Contact Us' },
     ];
@@ -15,8 +14,9 @@ export default function PublicFooter() {
     ];
 
     const resourcesLinks = [
-        { href: '/manufacturers', label: 'OEM Directory' },
-        { href: '/providers', label: 'Provider Directory' },
+        { href: '/#techniques', label: 'NDT Techniques' },
+        { href: '/manufacturers', label: 'Manufacturers' },
+        { href: '/providers', label: 'Providers' },
     ];
 
     const companyLinks = [

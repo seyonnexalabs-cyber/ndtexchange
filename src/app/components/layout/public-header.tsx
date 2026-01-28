@@ -14,9 +14,7 @@ export default function PublicHeader() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const mainNavLinks = [
-    { href: '/#techniques', label: 'Techniques' },
-  ];
+  const mainNavLinks: any[] = [];
   
   const trailingNavLinks = [
     { href: '/about', label: 'About' },
@@ -30,10 +28,11 @@ export default function PublicHeader() {
   const isManagementActive = managementLinks.some(link => pathname === link.href);
   
   const resourcesLinks = [
+      { href: '/#techniques', label: 'NDT Techniques' },
       { href: '/manufacturers', label: 'Manufacturers' },
       { href: '/providers', label: 'Providers' },
   ]
-  const isResourcesActive = resourcesLinks.some(link => pathname === link.href);
+  const isResourcesActive = resourcesLinks.some(link => pathname === link.href || (pathname === '/' && link.href.startsWith('/#')));
 
   const MobileNavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
     <Link href={href} onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary">

@@ -12,6 +12,7 @@ import {
 
 const StageCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
     <div className="flex flex-col items-center text-center p-4">
+        {/* The icon container has p-4 (1rem) and the icon is h-8 (2rem), so the container is 4rem tall. The center is at 2rem. */}
         <div className="bg-primary/10 text-primary p-4 rounded-full mb-4">
             <Icon className="w-8 h-8" />
         </div>
@@ -49,16 +50,24 @@ const AssetLifecycleDiagram = () => {
         }
     ];
 
+    // The line and dots are positioned 3rem from the top, which corresponds to the vertical center of the icons.
+    // Card has p-4 (1rem) + icon container p-4 (1rem) + half icon height (1rem) = 3rem.
+    const verticalLinePosition = "top-[3rem]";
+
     return (
         <div className="relative w-full max-w-6xl mx-auto mt-12">
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2" />
-            <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center">
+            {/* The line connecting the dots on desktop */}
+            <div className={`hidden md:block absolute ${verticalLinePosition} left-0 w-full h-0.5 bg-border`} />
+            {/* We align items to the top on desktop to prevent vertical misalignment if card heights differ */}
+            <div className="relative flex flex-col md:flex-row justify-between items-center md:items-start">
                 {stages.map((stage, index) => (
                     <div key={stage.title} className="relative flex flex-col items-center w-full md:w-1/5 py-4 md:py-0">
-                         {/* Connector for mobile */}
+                         {/* Vertical connector for mobile view */}
                         {index < stages.length - 1 && <div className="md:hidden absolute top-full left-1/2 w-0.5 h-12 bg-border -translate-x-1/2" />}
-                        {/* Dot on the line for desktop */}
-                        <div className="hidden md:block absolute top-1/2 left-1/2 w-3 h-3 bg-background border-2 border-primary rounded-full -translate-x-1/2 -translate-y-1/2" />
+                        
+                        {/* Dot on the line for desktop view */}
+                        <div className={`hidden md:block absolute ${verticalLinePosition} left-1/2 w-3 h-3 bg-background border-2 border-primary rounded-full -translate-x-1/2 -translate-y-1/2`} />
+                        
                         <StageCard icon={stage.icon} title={stage.title} description={stage.description} />
                     </div>
                 ))}

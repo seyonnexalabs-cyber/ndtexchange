@@ -15,13 +15,6 @@ import { technicians } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Metadata } from 'next';
-
-// This is a dynamic page, but we can set a template for the title.
-// In a real app with data fetching, you'd generate this dynamically.
-export const metadata: Metadata = {
-    title: 'Provider Details | NDT Exchange',
-};
 
 
 const StarRating = ({ rating }: { rating: number }) => {

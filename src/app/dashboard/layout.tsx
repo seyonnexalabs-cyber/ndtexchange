@@ -1,17 +1,8 @@
-import type { Metadata } from 'next';
 import AppSidebar from '@/app/components/layout/sidebar';
 import AppHeader from '@/app/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SearchProvider } from '@/app/components/layout/search-provider';
 import { QRScannerProvider } from '@/app/components/layout/qr-scanner-provider';
-
-export const metadata: Metadata = {
-  title: {
-    template: '%s | NDT Exchange',
-    default: 'Dashboard | NDT Exchange'
-  },
-  description: 'Manage your NDT operations.',
-};
 
 export default function DashboardLayout({
   children,

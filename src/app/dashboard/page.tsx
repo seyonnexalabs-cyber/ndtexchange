@@ -1,6 +1,5 @@
 
 'use client';
-import type { Metadata } from 'next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench } from "lucide-react";
 import {
@@ -21,10 +20,6 @@ import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-export const metadata: Metadata = {
-  title: 'Dashboard',
-};
 
 // --- Client Dashboard ---
 const clientChartData = [

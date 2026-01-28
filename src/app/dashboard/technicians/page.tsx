@@ -163,14 +163,18 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                                 </Avatar>
                                 {tech.name}
                             </TableCell>
-                            <TableCell>{tech.highestLevel}</TableCell>
+                            <TableCell>
+                                <Badge shape="rounded" variant={tech.highestLevel === 'Level III' ? 'default' : tech.highestLevel === 'Level II' ? 'success' : 'secondary'}>
+                                    {tech.highestLevel}
+                                </Badge>
+                            </TableCell>
                             <TableCell>{tech.completedJobs}</TableCell>
                             <TableCell>
                                 <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1">
-                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method}</Badge>)}
+                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="outline" shape="rounded">{cert.method}</Badge>)}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -212,7 +216,11 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                                 </Avatar>
                                 <div>
                                     <CardTitle>{tech.name}</CardTitle>
-                                    <CardDescription>{tech.highestLevel} Inspector</CardDescription>
+                                    <CardDescription>
+                                        <Badge shape="rounded" variant={tech.highestLevel === 'Level III' ? 'default' : tech.highestLevel === 'Level II' ? 'success' : 'secondary'}>
+                                            {tech.highestLevel} Inspector
+                                        </Badge>
+                                    </CardDescription>
                                 </div>
                             </div>
                             <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
@@ -225,7 +233,7 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                         </div>
                         <h4 className="text-sm font-semibold mb-2">Certifications</h4>
                         <div className="flex flex-wrap gap-1">
-                            {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method}</Badge>)}
+                            {tech.certifications.map((cert, i) => <Badge key={i} variant="outline" shape="rounded">{cert.method}</Badge>)}
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">

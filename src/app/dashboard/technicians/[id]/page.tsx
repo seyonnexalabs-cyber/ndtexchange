@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -96,8 +95,10 @@ export default function TechnicianDetailPage() {
                                 </Avatar>
                                 <div>
                                     <h1 className="text-2xl font-headline font-bold">{technician.name}</h1>
-                                    <p className="text-muted-foreground">{highestLevel} Inspector</p>
-                                    <p className="text-sm text-muted-foreground">{provider?.name}</p>
+                                    <Badge shape="rounded" variant={highestLevel === 'Level III' ? 'default' : highestLevel === 'Level II' ? 'success' : 'secondary'} className="mt-1">
+                                        {highestLevel} Inspector
+                                    </Badge>
+                                    <p className="text-sm text-muted-foreground mt-1">{provider?.name}</p>
                                 </div>
                             </div>
                         </CardHeader>
@@ -126,8 +127,14 @@ export default function TechnicianDetailPage() {
                                 <TableBody>
                                     {technician.certifications.map((cert, index) => (
                                         <TableRow key={index}>
-                                            <TableCell className="font-medium">{cert.method}</TableCell>
-                                            <TableCell>{cert.level}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" shape="rounded">{cert.method}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge shape="rounded" variant={cert.level === 'Level III' ? 'default' : cert.level === 'Level II' ? 'success' : 'secondary'}>
+                                                    {cert.level}
+                                                </Badge>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

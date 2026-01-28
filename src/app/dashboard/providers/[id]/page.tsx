@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -101,7 +100,7 @@ export default function ProviderDetailPage() {
                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
                                 <div className="flex flex-wrap gap-1.5">
                                     {provider.techniques.map(tech => (
-                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
+                                        <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
                                     ))}
                                 </div>
                             </div>

@@ -183,7 +183,7 @@ export default function ProvidersPage({ searchParams }: { searchParams?: { [key:
                                             <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
                                             <div className="flex flex-wrap gap-1.5 min-h-16">
                                                 {provider.techniques.map(tech => (
-                                                    <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
+                                                    <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
                                                 ))}
                                             </div>
                                         </div>

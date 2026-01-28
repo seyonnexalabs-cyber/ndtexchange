@@ -96,7 +96,7 @@ export default function AuditorDetailPage() {
                                 <h4 className="text-sm font-semibold mb-2">Specialties</h4>
                                 <div className="flex flex-wrap gap-1.5">
                                     {auditor.specialties.map(tech => (
-                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
+                                        <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
                                     ))}
                                 </div>
                             </div>

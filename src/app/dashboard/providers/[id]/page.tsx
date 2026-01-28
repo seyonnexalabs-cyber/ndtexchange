@@ -123,6 +123,9 @@ export default function ProviderDetailPage() {
                            {isMobile ? (
                                 <div className="space-y-4">
                                     {providerTechnicians.map(tech => {
+                                        const highestLevel = tech.certifications.length > 0
+                                            ? ['Level I', 'Level II', 'Level III'][Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
+                                            : 'N/A';
                                         return (
                                             <Card key={tech.id} className="p-4">
                                                 <div className="flex items-start justify-between">
@@ -132,6 +135,7 @@ export default function ProviderDetailPage() {
                                                         </Avatar>
                                                         <div>
                                                             <p className="font-semibold">{tech.name}</p>
+                                                            <Badge variant="outline" shape="rounded">{highestLevel}</Badge>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -139,8 +143,6 @@ export default function ProviderDetailPage() {
                                                     {tech.certifications.map(cert => (
                                                         <Badge key={cert.method} variant="secondary" shape="rounded">
                                                             {cert.method}
-                                                            <Separator orientation="vertical" className="h-3 mx-1 bg-muted-foreground/30" />
-                                                            {cert.level}
                                                         </Badge>
                                                     ))}
                                                 </div>
@@ -153,11 +155,15 @@ export default function ProviderDetailPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Name</TableHead>
+                                        <TableHead>Level</TableHead>
                                         <TableHead>Certifications</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {providerTechnicians.map(tech => {
+                                        const highestLevel = tech.certifications.length > 0
+                                            ? ['Level I', 'Level II', 'Level III'][Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
+                                            : 'N/A';
                                         return (
                                             <TableRow key={tech.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
@@ -167,12 +173,13 @@ export default function ProviderDetailPage() {
                                                     {tech.name}
                                                 </TableCell>
                                                 <TableCell>
+                                                     <Badge variant="outline" shape="rounded">{highestLevel}</Badge>
+                                                </TableCell>
+                                                <TableCell>
                                                     <div className="flex flex-wrap gap-1">
                                                         {tech.certifications.map(cert => (
                                                             <Badge key={cert.method} variant="secondary" shape="rounded">
                                                                 {cert.method}
-                                                                <Separator orientation="vertical" className="h-3 mx-1 bg-muted-foreground/30" />
-                                                                {cert.level}
                                                             </Badge>
                                                         ))}
                                                     </div>
@@ -208,7 +215,9 @@ export default function ProviderDetailPage() {
                                         <Card key={equip.id} className="p-4">
                                              <div className="space-y-1">
                                                 <p className="font-semibold">{equip.name}</p>
-                                                <p className="text-sm text-muted-foreground">Type: {equip.type}</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                                                </div>
                                                 {(equip.manufacturer || equip.model) && (
                                                     <p className="text-xs text-muted-foreground">
                                                         {equip.manufacturer}{equip.manufacturer && equip.model && ' - '}{equip.model}
@@ -223,7 +232,7 @@ export default function ProviderDetailPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Equipment Name</TableHead>
-                                        <TableHead>Type</TableHead>
+                                        <TableHead>Technique(s)</TableHead>
                                         <TableHead>Manufacturer</TableHead>
                                         <TableHead>Model</TableHead>
                                     </TableRow>
@@ -232,7 +241,11 @@ export default function ProviderDetailPage() {
                                     {publicEquipment.map(equip => (
                                         <TableRow key={equip.id}>
                                             <TableCell className="font-medium">{equip.name}</TableCell>
-                                            <TableCell>{equip.type}</TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                                                </div>
+                                            </TableCell>
                                             <TableCell>{equip.manufacturer || 'N/A'}</TableCell>
                                             <TableCell>{equip.model || 'N/A'}</TableCell>
                                         </TableRow>

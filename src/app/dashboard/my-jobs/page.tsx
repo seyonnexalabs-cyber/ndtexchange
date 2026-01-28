@@ -16,11 +16,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 
-const equipmentIcons = {
-    'UT Equipment': <RadioTower className="w-4 h-4 text-muted-foreground" />,
-    'PAUT Probe': <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />,
-    'Yoke': <Wrench className="w-4 h-4 text-muted-foreground" />,
-    'Calibration Block': <Wrench className="w-4 h-4 text-muted-foreground" />,
+const equipmentIcons: { [key: string]: React.ReactNode } = {
+    'UT': <RadioTower className="w-4 h-4 text-muted-foreground" />,
+    'PAUT': <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />,
+    'MT': <Wrench className="w-4 h-4 text-muted-foreground" />,
+    'Calibration': <Wrench className="w-4 h-4 text-muted-foreground" />,
 };
 
 type JobView = 'active' | 'completed' | 'upcoming';
@@ -346,7 +346,7 @@ export default function MyJobsPage() {
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {assignedEquipment.map(equip => (
                                                                          <Badge key={equip.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
-                                                                            {equipmentIcons[equip.type as keyof typeof equipmentIcons] || <Wrench className="w-3 h-3"/>}
+                                                                            {equipmentIcons[equip.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-3 h-3"/>}
                                                                             {equip.name}
                                                                         </Badge>
                                                                     ))}

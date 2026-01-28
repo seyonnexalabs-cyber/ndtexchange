@@ -80,7 +80,7 @@ export type EquipmentHistory = {
 export type InspectorAsset = {
     id: string;
     name: string;
-    type: string;
+    techniques: string[];
     providerId: string;
     status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service' | 'Under Service';
     nextCalibration: string;
@@ -245,7 +245,7 @@ export const inspectorAssets: InspectorAsset[] = [
         manufacturer: 'Olympus',
         model: '45MG',
         serialNumber: 'SN-45MG-12345',
-        type: 'UT', 
+        techniques: ['UT'], 
         providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: '2025-01-05',
@@ -258,11 +258,11 @@ export const inspectorAssets: InspectorAsset[] = [
     },
     { 
         id: 'PA-Probe-5MHz', 
-        name: '5L64-A2 Probe', 
+        name: 'OmniScan X3', 
         manufacturer: 'Olympus',
-        model: '5L64-A2',
+        model: 'OmniScan X3',
         serialNumber: 'SN-PROBE-67890',
-        type: 'PAUT', 
+        techniques: ['PAUT', 'TOFD', 'UT'], 
         providerId: 'provider-03',
         status: 'In Use', 
         nextCalibration: '2024-12-11',
@@ -276,7 +276,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'CAL-BLK-01', 
         name: 'IIW Type 1 Block', 
         manufacturer: 'Generic',
-        type: 'Calibration Block', 
+        techniques: ['Calibration'], 
         providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: 'N/A',
@@ -291,7 +291,7 @@ export const inspectorAssets: InspectorAsset[] = [
         manufacturer: 'Parker Research Corp',
         model: 'B-300S',
         serialNumber: 'SN-YOKE-ABCDE',
-        type: 'MT', 
+        techniques: ['MT'], 
         providerId: 'provider-03',
         status: 'Calibration Due', 
         nextCalibration: '2024-07-30',
@@ -301,6 +301,21 @@ export const inspectorAssets: InspectorAsset[] = [
             { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },
             { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-06-21T09:00:00Z', notes: 'Job: MT Inspection on Crane Hooks' },
             { event: 'Created', user: 'Admin', timestamp: '2023-03-01T12:00:00Z', notes: 'Item created in inventory.' }
+        ]
+    },
+    {
+        id: 'APR-G3',
+        name: 'Dolphin G3',
+        manufacturer: 'Talcyon',
+        model: 'Dolphin G3',
+        serialNumber: 'SN-G3-XYZ',
+        techniques: ['APR'],
+        providerId: 'provider-03',
+        status: 'Available',
+        nextCalibration: '2025-03-01',
+        isPublic: true,
+        history: [
+             { event: 'Created', user: 'Admin', timestamp: '2024-05-20T10:00:00Z', notes: 'New advanced equipment added.' }
         ]
     },
 ];

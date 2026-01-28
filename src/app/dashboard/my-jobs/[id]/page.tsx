@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -205,7 +206,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
                         <XCircle className="mr-2"/>
                         Request Revisions
                     </Button>
-                    <Button className="bg-green-600 hover:bg-green-700" onClick={onApprove}>
+                     <Button className="bg-green-600 hover:bg-green-700" onClick={onApprove}>
                         <CheckCircle className="mr-2"/>
                         Approve Report
                     </Button>
@@ -784,7 +785,12 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                  {assignedEquipment.length > 0 ? (
                                     <ul className="space-y-2 pl-2">
                                         {assignedEquipment.map(equip => (
-                                            <li key={equip.id} className="text-sm text-muted-foreground">{equip.name} - {equip.type}</li>
+                                            <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                                                <span>{equip.name}</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {equip.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
+                                                </div>
+                                            </li>
                                         ))}
                                     </ul>
                                 ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
@@ -850,8 +856,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         setTempSelectedEquip(prev => checked ? [...prev, equip.id] : prev.filter(id => id !== equip.id))
                                     }}
                                 />
-                                <Label htmlFor={`equip-${equip.id}`} className="flex-grow">{equip.name} <span className="text-muted-foreground">({equip.type})</span></Label>
-                                <Badge variant={equip.status === 'Calibrated' || equip.status === 'In Service' ? 'success' : 'secondary'}>{equip.status}</Badge>
+                                <Label htmlFor={`equip-${equip.id}`} className="flex-grow">{equip.name} <span className="text-muted-foreground">({equip.techniques.join(', ')})</span></Label>
+                                <Badge variant={equip.status === 'Available' ? 'success' : 'secondary'}>{equip.status}</Badge>
                             </div>
                         ))}
                         </div>

@@ -13,7 +13,7 @@ import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar a
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -29,17 +29,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 
 
-const equipmentIcons = {
-    'UTM-1000': <RadioTower className="w-6 h-6 text-muted-foreground" />,
-    'PA-Probe-5MHz': <SlidersHorizontal className="w-6 h-6 text-muted-foreground" />,
-    'CAL-BLK-01': <Wrench className="w-6 h-6 text-muted-foreground" />,
-    'YOKE-02': <Wrench className="w-6 h-6 text-muted-foreground" />,
+const equipmentIcons: { [key: string]: React.ReactNode } = {
+    'UT': <RadioTower className="w-6 h-6 text-muted-foreground" />,
+    'PAUT': <SlidersHorizontal className="w-6 h-6 text-muted-foreground" />,
+    'Calibration': <Wrench className="w-6 h-6 text-muted-foreground" />,
+    'MT': <Wrench className="w-6 h-6 text-muted-foreground" />,
 };
 
 const equipmentSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
-  type: z.string().min(2, "Type must be at least 2 characters."),
+  techniques: z.string().min(2, "At least one technique is required."),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   serialNumber: z.string().optional(),
@@ -79,7 +79,7 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
             name: "",
-            type: "",
+            techniques: "",
             manufacturer: "",
             model: "",
             serialNumber: "",
@@ -122,13 +122,16 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                 />
                 <FormField
                     control={form.control}
-                    name="type"
+                    name="techniques"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Equipment Type</FormLabel>
+                            <FormLabel>Technique(s)</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g., UT Equipment" {...field} />
+                                <Input placeholder="e.g., UT, PAUT" {...field} />
                             </FormControl>
+                             <FormDescription>
+                                Enter one or more techniques, separated by commas.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -544,7 +547,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
                 <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Technique(s)</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Next Calibration</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -555,10 +558,14 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
                     <TableRow key={asset.id}>
                         <TableCell className="font-mono text-xs">{asset.id}</TableCell>
                         <TableCell className="font-medium flex items-center gap-3">
-                            {equipmentIcons[asset.id as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
+                            {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
                             {asset.name}
                         </TableCell>
-                        <TableCell>{asset.type}</TableCell>
+                        <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                                {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                            </div>
+                        </TableCell>
                         <TableCell>
                             <Badge variant={statusVariants[asset.status]}>{asset.status}</Badge>
                         </TableCell>
@@ -609,11 +616,13 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
             <Card key={asset.id}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-lg font-semibold">{asset.name}</CardTitle>
-                    {equipmentIcons[asset.id as keyof typeof equipmentIcons] || <Wrench className="w-6 h-6 text-muted-foreground" />}
+                    {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-6 h-6 text-muted-foreground" />}
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm text-muted-foreground">{asset.type}</p>
-                     <p className="text-xs font-mono text-muted-foreground">{asset.id}</p>
+                    <div className="flex flex-wrap gap-1">
+                        {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                    </div>
+                     <p className="text-xs font-mono text-muted-foreground mt-2">{asset.id}</p>
                     <Badge variant={statusVariants[asset.status]} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
@@ -688,7 +697,7 @@ export default function EquipmentPage() {
 
     const handleEditClick = (equipment: InspectorAsset) => {
         setTimeout(() => {
-            setEditingEquipment(equipment);
+            setEditingEquipment({ ...equipment, techniques: equipment.techniques.join(', ') });
             setDialogState('edit');
         }, 50);
     };
@@ -713,11 +722,14 @@ export default function EquipmentPage() {
                 notes: historyNotes
             };
 
+            const techniquesArray = values.techniques.split(',').map(t => t.trim().toUpperCase());
+
             if(isAdding) {
                 const newId = `EQ-${Date.now().toString().slice(-6)}`;
                 const newEquipment: InspectorAsset = {
                     ...values,
                     id: newId,
+                    techniques: techniquesArray,
                     providerId: usersProviderId,
                     nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
                     history: [historyEntry],
@@ -727,6 +739,7 @@ export default function EquipmentPage() {
                 setEquipment(prev => prev.map(eq => eq.id === values.id ? {
                     ...(eq as InspectorAsset),
                     ...values,
+                     techniques: techniquesArray,
                      nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
                      history: [historyEntry, ...(eq.history || [])],
                 } : eq));
@@ -1006,10 +1019,3 @@ export default function EquipmentPage() {
         </div>
     );
 }
-
-
-
-
-
-
-

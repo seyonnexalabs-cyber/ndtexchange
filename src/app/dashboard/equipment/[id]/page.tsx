@@ -90,8 +90,10 @@ export default function EquipmentDetailPage() {
                             <div className="flex items-start">
                                 <SlidersHorizontal className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                 <div>
-                                    <p className="font-semibold">Type</p>
-                                    <p className="text-muted-foreground">{equipment.type}</p>
+                                    <p className="font-semibold">Technique(s)</p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        {equipment.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                    </div>
                                 </div>
                             </div>
                              {equipment.manufacturer && (

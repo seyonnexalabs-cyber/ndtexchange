@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, bids, NDTTechniques } from '@/lib/placeholder-data';
+import { jobs, bids, NDTTechniques, clientData } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +54,11 @@ export default function JobCostAnalysisReportPage() {
 
     const filteredJobs = React.useMemo(() => {
         const { providerIds, techniqueIds, dateRange } = filters;
+        // For demo purposes, assume we are logged in as the primary client company
+        const currentClient = clientData.find(c => c.id === 'client-01');
+
         return jobs
+            .filter(job => job.client === currentClient?.name) // Filter for current client's jobs
             .map(job => {
                 const awardedBid = bids.find(bid => bid.jobId === job.id && bid.status === 'Awarded');
                 if (!awardedBid) return null;
@@ -69,7 +73,7 @@ export default function JobCostAnalysisReportPage() {
                 const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
                 const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerId!);
                 const techniqueMatch = techniqueIds.length === 0 || techniqueIds.includes(job.technique);
-                const dateMatch = dateRange?.from && dateRange?.to ? (jobDate >= dateRange.from && jobDate <= dateRange.to) : true;
+                const dateMatch = !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
 
                 return providerMatch && techniqueMatch && dateMatch;
             });

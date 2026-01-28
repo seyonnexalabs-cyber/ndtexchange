@@ -9,10 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { clientData, jobs } from "@/lib/placeholder-data";
-import { ChevronLeft, Mail, Users, Briefcase, DollarSign } from "lucide-react";
+import { clientData, jobs, subscriptions } from "@/lib/placeholder-data";
+import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
 export default function ClientDetailPage() {
@@ -23,6 +25,7 @@ export default function ClientDetailPage() {
     
     const client = useMemo(() => clientData.find(c => c.id === id), [id]);
     const clientJobs = useMemo(() => jobs.filter(j => j.client === client?.name), [client]);
+    const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
 
     if (!client) {
         notFound();
@@ -87,6 +90,12 @@ export default function ClientDetailPage() {
                                     <DollarSign className="w-4 h-4" />
                                     <span>${client.totalSpend.toLocaleString()} Total Spend</span>
                                 </div>
+                                {subscription && (
+                                    <div className="flex items-center gap-3">
+                                        <Calendar className="w-4 h-4" />
+                                        <span>Member Since: {format(new Date(subscription.startDate), GLOBAL_DATE_FORMAT)}</span>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

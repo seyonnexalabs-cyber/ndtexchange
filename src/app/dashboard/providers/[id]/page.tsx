@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -10,13 +11,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
-import { technicians, inspectorAssets, InspectorAsset, Technician } from "@/lib/placeholder-data";
-import { ChevronLeft, MapPin, Star, Users, Wrench } from "lucide-react";
+import { technicians, inspectorAssets, InspectorAsset, Technician, subscriptions } from "@/lib/placeholder-data";
+import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -43,6 +46,7 @@ export default function ProviderDetailPage() {
     const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
     const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === id && t.status !== 'Disabled'), [id]);
     const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
+    const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
 
     if (!provider) {
         notFound();
@@ -96,6 +100,14 @@ export default function ProviderDetailPage() {
                                     <h3 className="font-semibold text-sm mb-1">Rating</h3>
                                     <StarRating rating={provider.rating} />
                                 </div>
+                                 {subscription && (
+                                    <div>
+                                        <h3 className="font-semibold text-sm mb-1">Member Since</h3>
+                                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                            <Calendar className="w-4 h-4" /> {format(new Date(subscription.startDate), GLOBAL_DATE_FORMAT)}
+                                        </p>
+                                    </div>
+                                )}
                                 <div>
                                     <h3 className="font-semibold text-sm mb-1">About</h3>
                                     <p className="text-sm text-muted-foreground">{provider.description}</p>

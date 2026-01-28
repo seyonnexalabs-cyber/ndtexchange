@@ -1,8 +1,7 @@
 
-
-'use client';
+import type { Metadata } from 'next';
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, MapPin, X } from 'lucide-react';
@@ -19,6 +18,12 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
+
+export const metadata: Metadata = {
+    title: 'NDT Service Provider Directory | NDT Exchange',
+    description: 'Browse our directory of leading NDT companies from around the world. Filter by technique to find the right partner for your inspection needs.',
+};
+
 const StarRating = ({ rating }: { rating: number }) => {
     return (
         <div className="flex items-center">
@@ -34,8 +39,18 @@ const StarRating = ({ rating }: { rating: number }) => {
 };
 
 
-export default function ProvidersPage() {
-    const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
+export default function ProvidersPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+    const selectedTechniques = React.useMemo(() => {
+        const techniques = searchParams?.techniques;
+        if (Array.isArray(techniques)) {
+            return techniques;
+        }
+        if (typeof techniques === 'string') {
+            return [techniques];
+        }
+        return [];
+    }, [searchParams]);
+
     const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
 
     const filteredProviders = useMemo(() => {
@@ -47,13 +62,46 @@ export default function ProvidersPage() {
         );
     }, [selectedTechniques]);
 
-    const handleTechniqueChange = (techniqueId: string) => {
-        setSelectedTechniques(prev => 
-            prev.includes(techniqueId)
-                ? prev.filter(t => t !== techniqueId)
-                : [...prev, techniqueId]
-        );
-    };
+    const filterForm = (
+        <form>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline">
+                        Filter by Technique ({selectedTechniques.length})
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                    <div className="grid gap-4">
+                        <div className="space-y-2">
+                            <h4 className="font-medium leading-none">Techniques</h4>
+                            <p className="text-sm text-muted-foreground">
+                                Select the techniques you require.
+                            </p>
+                        </div>
+                        <div className="grid gap-2 max-h-60 overflow-y-auto p-1">
+                            {NDTTechniques.map(tech => (
+                                <div key={tech.id} className="flex items-center space-x-2">
+                                     <Checkbox 
+                                        id={`tech-${tech.id}`} 
+                                        name="techniques"
+                                        value={tech.id}
+                                        defaultChecked={selectedTechniques.includes(tech.id)}
+                                     />
+                                    <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-between">
+                            <Button type="submit">Apply Filters</Button>
+                             <Button variant="ghost" asChild>
+                                <Link href="/providers">Clear</Link>
+                            </Button>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </form>
+    );
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -90,35 +138,7 @@ export default function ProvidersPage() {
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                             <h2 className="text-2xl font-headline font-semibold">Service Provider Directory</h2>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline">
-                                        Filter by Technique ({selectedTechniques.length})
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80">
-                                    <div className="grid gap-4">
-                                        <div className="space-y-2">
-                                            <h4 className="font-medium leading-none">Techniques</h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                Select the techniques you require.
-                                            </p>
-                                        </div>
-                                        <div className="grid gap-2 max-h-60 overflow-y-auto p-1">
-                                            {NDTTechniques.map(tech => (
-                                                <div key={tech.id} className="flex items-center space-x-2">
-                                                     <Checkbox 
-                                                        id={`tech-${tech.id}`} 
-                                                        checked={selectedTechniques.includes(tech.id)}
-                                                        onCheckedChange={() => handleTechniqueChange(tech.id)}
-                                                     />
-                                                    <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
+                            {filterForm}
                         </div>
                         
                          {selectedTechniques.length > 0 && (
@@ -127,12 +147,16 @@ export default function ProvidersPage() {
                                 {selectedTechniques.map(techId => (
                                     <Badge key={techId} variant="secondary">
                                         {NDTTechniques.find(t => t.id === techId)?.name}
-                                        <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                            <X className="h-3 w-3" />
-                                        </button>
+                                        <Link href={`/providers?${new URLSearchParams(selectedTechniques.filter(t => t !== techId).map(t => ['techniques', t])).toString()}`}>
+                                          <button className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                              <X className="h-3 w-3" />
+                                          </button>
+                                        </Link>
                                     </Badge>
                                 ))}
-                                <Button variant="ghost" size="sm" onClick={() => setSelectedTechniques([])}>Clear All</Button>
+                                <Button variant="ghost" size="sm" asChild>
+                                    <Link href="/providers">Clear All</Link>
+                                </Button>
                             </div>
                         )}
 

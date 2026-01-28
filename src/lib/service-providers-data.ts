@@ -84,12 +84,12 @@ export const serviceProviders: NDTServiceProvider[] = [
     },
     {
         id: 'provider-09',
-        name: 'Blue Horiz',
+        name: 'Blue Horizon Services',
         logoUrl: 'https://picsum.photos/seed/bluehoriz/200/200',
-        location: 'Houston, TX, USA',
+        location: 'Abu Dhabi, UAE',
         rating: 4.6,
         techniques: ['PAUT', 'TOFD', 'AE', 'GWT', 'VT'],
-        description: 'Specialists in advanced ultrasonic and acoustic emission technologies for complex industrial assets.'
+        description: 'Specialists in advanced ultrasonic and acoustic emission technologies. Contact: Mr Tawfik Mohamed (ask@bluehoriz.com). Address: Warehouse C3 01, Mussafah South, ICAD 3, Abu Dhabi.'
     },
     {
         id: 'provider-10',

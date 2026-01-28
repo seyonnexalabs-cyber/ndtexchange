@@ -42,7 +42,8 @@ export default function InspectionsPage() {
 
     const augmentedAndFilteredInspections = useMemo(() => {
         let filtered = initialInspections;
-        if (role === 'auditor') {
+        if (role === 'auditor' && statusFilter === 'all') {
+            // For auditor's default view, 'all' should mean what requires their action
             filtered = initialInspections.filter(i => i.status === 'Requires Review');
         }
 
@@ -68,13 +69,7 @@ export default function InspectionsPage() {
             
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
-            let statusMatch = true;
-            if (role === 'admin' && statusFilter === 'all') {
-                // For admin's default view, "All Reports" should only show items that are actual reports.
-                statusMatch = ['Completed', 'Requires Review'].includes(inspection.status);
-            } else {
-                statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
-            }
+            const statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
 
             return searchMatch && techniqueMatch && statusMatch;
         });
@@ -84,7 +79,7 @@ export default function InspectionsPage() {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
 
-    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== 'all');
+    const hasActiveFilters = searchQuery || selectedTechniques.length > 0 || (statusFilter !== (role === 'auditor' ? 'Requires Review' : 'all'));
 
     const pageTitle = role === 'auditor' ? 'Audit Queue' : 'Inspection Reports';
     const pageDescription = role === 'auditor' ? 'Review and approve submitted inspection reports.' : 'A detailed log of all submitted inspection reports across the platform.';
@@ -140,7 +135,7 @@ export default function InspectionsPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
-                    <Select value={statusFilter} onValueChange={setStatusFilter} disabled={role === 'auditor'}>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
@@ -165,7 +160,7 @@ export default function InspectionsPage() {
                             </button>
                         </Badge>
                     ))}
-                    {statusFilter !== 'all' && (
+                    {(statusFilter !== 'all') && (
                         <Badge variant="secondary">
                             Status: {statusFilter}
                              <button onClick={() => setStatusFilter(role === 'auditor' ? 'Requires Review' : 'all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">

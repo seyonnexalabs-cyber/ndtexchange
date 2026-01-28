@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -23,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
+import UniformDocumentViewer, { ViewerDocument } from '../components/uniform-document-viewer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '../components/job-history';
@@ -542,18 +541,24 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const isInspector = role === 'inspector';
     const isAuditor = role === 'auditor';
     const isClient = role === 'client';
+    const isAdmin = role === 'admin';
+
     const isReviewable = isClient && (jobDetails.status === 'Completed' || jobDetails.status === 'Paid');
     const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
     const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
     const technique = allNdtTechniques.find(t => t.id.toUpperCase() === jobDetails.technique);
+    
+    const backLink = isAdmin ? "/dashboard/all-jobs" : isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs";
+    const backText = isAdmin ? "All Jobs" : isAuditor ? "Inspections" : "My Jobs";
+
 
     return (
         <TooltipProvider>
             <div>
                 <Button asChild variant="outline" size="sm" className="mb-4">
-                    <Link href={constructUrl(isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs")}>
+                     <Link href={constructUrl(backLink)}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back to {isAuditor ? "Inspections" : "My Jobs"}
+                        Back to {backText}
                     </Link>
                 </Button>
 
@@ -958,3 +963,4 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
+    

@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -12,8 +13,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
 import { technicians } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Metadata } from 'next';
+
+// This is a dynamic page, but we can set a template for the title.
+// In a real app with data fetching, you'd generate this dynamically.
+export const metadata: Metadata = {
+    title: 'Provider Details | NDT Exchange',
+};
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -62,13 +70,10 @@ export default function ProviderDetailPage() {
             </div>
             
             <div className="flex items-center gap-4 mb-6">
-                 <Image 
-                    src={provider.logoUrl} 
-                    alt={`${provider.name} logo`} 
-                    width={80} 
-                    height={80} 
-                    className="rounded-lg border p-1"
-                />
+                 <Avatar className="h-20 w-20">
+                    {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
+                    <AvatarFallback className="text-3xl">{provider.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
                 <div>
                     <h1 className="text-2xl font-headline font-bold">{provider.name}</h1>
                     <p className="text-muted-foreground flex items-center gap-1.5 pt-1">
@@ -136,7 +141,7 @@ export default function ProviderDetailPage() {
                                                 <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
                                             </div>
                                              <div className="flex flex-wrap gap-1 mt-3">
-                                                {tech.certifications.map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
+                                                {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary">{cert.method}</Badge>)}
                                             </div>
                                         </Card>
                                     ))}
@@ -163,7 +168,7 @@ export default function ProviderDetailPage() {
                                             <TableCell>{tech.level}</TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">
-                                                    {tech.certifications.map(cert => <Badge key={cert} variant="secondary">{cert}</Badge>)}
+                                                    {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary">{cert.method}</Badge>)}
                                                 </div>
                                             </TableCell>
                                             <TableCell>

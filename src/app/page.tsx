@@ -10,6 +10,12 @@ import * as React from 'react';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'NDT Exchange | Asset Integrity & Inspection Marketplace',
+  description: 'The premier digital ecosystem where asset owners ensure operational continuity and certified NDT professionals find new opportunities to grow their business. Start your 30-day free trial today.',
+};
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
@@ -173,6 +179,7 @@ export default function Home() {
                 cardClass="hover:border-primary/20"
                 imageUrl={industryImages.oilgas?.imageUrl}
                 imageHint={industryImages.oilgas?.imageHint}
+                altText={industryImages.oilgas?.description}
               />
               <FeatureCard
                 title="Power Generation"
@@ -180,6 +187,7 @@ export default function Home() {
                  cardClass="hover:border-primary/20"
                 imageUrl={industryImages.powergen?.imageUrl}
                 imageHint={industryImages.powergen?.imageHint}
+                altText={industryImages.powergen?.description}
               />
               <FeatureCard
                 title="Chemical Processing"
@@ -187,6 +195,7 @@ export default function Home() {
                  cardClass="hover:border-primary/20"
                 imageUrl={industryImages.chemical?.imageUrl}
                 imageHint={industryImages.chemical?.imageHint}
+                altText={industryImages.chemical?.description}
               />
               <FeatureCard
                 title="Manufacturing"
@@ -194,6 +203,7 @@ export default function Home() {
                  cardClass="hover:border-primary/20"
                 imageUrl={industryImages.manufacturing?.imageUrl}
                 imageHint={industryImages.manufacturing?.imageHint}
+                altText={industryImages.manufacturing?.description}
               />
               <FeatureCard
                 title="Aerospace & Defense"
@@ -201,6 +211,7 @@ export default function Home() {
                  cardClass="hover:border-primary/20"
                 imageUrl={industryImages.aerospace?.imageUrl}
                 imageHint={industryImages.aerospace?.imageHint}
+                altText={industryImages.aerospace?.description}
               />
               <FeatureCard
                 title="Public Infrastructure"
@@ -208,6 +219,7 @@ export default function Home() {
                  cardClass="hover:border-primary/20"
                 imageUrl={industryImages.infrastructure?.imageUrl}
                 imageHint={industryImages.infrastructure?.imageHint}
+                altText={industryImages.infrastructure?.description}
               />
             </div>
           </div>
@@ -309,6 +321,7 @@ export default function Home() {
                 title="Ultrasonic Testing (UT)"
                 description="Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods."
                 isHighlighted
+                altText={techImages.ut?.description}
               />
               <FeatureCard
                 imageUrl={techImages.rt?.imageUrl}
@@ -316,18 +329,21 @@ export default function Home() {
                 title="Radiographic Testing (RT)"
                 description="Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities."
                 isHighlighted
+                altText={techImages.rt?.description}
               />
                <FeatureCard
                 imageUrl={techImages.mt?.imageUrl}
                 imageHint={techImages.mt?.imageHint}
                 title="Magnetic Particle Testing (MT)"
                 description="Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field."
+                altText={techImages.mt?.description}
               />
                <FeatureCard
                 imageUrl={techImages.pt?.imageUrl}
                 imageHint={techImages.pt?.imageHint}
                 title="Penetrant Testing (PT)"
                 description="Locating surface-breaking defects in non-porous materials using a liquid penetrant and developer."
+                altText={techImages.pt?.description}
               />
                <FeatureCard
                 imageUrl={techImages.vt?.imageUrl}
@@ -335,6 +351,7 @@ export default function Home() {
                 title="Visual & Optical Testing (VT/RVI)"
                 description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
                 isHighlighted
+                altText={techImages.vt?.description}
               />
               <FeatureCard
                 imageUrl={techImages.ae?.imageUrl}
@@ -342,6 +359,7 @@ export default function Home() {
                 title="Acoustic Emission (AE)"
                 description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
                 isHighlighted
+                altText={techImages.ae?.description}
               />
                <FeatureCard
                 imageUrl={techImages.apr?.imageUrl}
@@ -349,6 +367,7 @@ export default function Home() {
                 title="Acoustic Pulse Reflectometry (APR)"
                 description="A non-invasive method for detecting blockages and defects in tubes by analyzing reflected sound waves."
                 isHighlighted
+                altText={techImages.apr?.description}
               />
                <FeatureCard
                 imageUrl={techImages.et?.imageUrl}
@@ -356,12 +375,14 @@ export default function Home() {
                 title="Electromagnetic Testing (ET)"
                 description="Using principles of electromagnetism to detect flaws, such as Eddy Current, Alternating Current Field Measurement (ACFM), and Remote Field Testing (RFT)."
                 isHighlighted
+                altText={techImages.et?.description}
               />
                <FeatureCard
                 imageUrl={techImages.lt?.imageUrl}
                 imageHint={techImages.lt?.imageHint}
                 title="Leak Testing (LT)"
                 description="Detecting and locating leaks in pressure-containing components using methods like bubble testing, pressure change, or mass spectrometry."
+                altText={techImages.lt?.description}
               />
               <FeatureCard
                 imageUrl={techImages.ir?.imageUrl}
@@ -369,6 +390,7 @@ export default function Home() {
                 title="Infrared & Thermal Testing (IR)"
                 description="Detecting variations in temperature to identify material defects, electrical issues, or insulation gaps."
                 isHighlighted
+                altText={techImages.ir?.description}
               />
               <FeatureCard
                 imageUrl={techImages.ut?.imageUrl}
@@ -376,6 +398,7 @@ export default function Home() {
                 title="Guided Wave Testing (GWT)"
                 description="An advanced ultrasonic method for inspecting long lengths of pipes and structures from a single test location, ideal for corrosion screening."
                 isHighlighted
+                altText={techImages.ut?.description}
               />
               <FeatureCard
                 imageUrl={techImages.mt?.imageUrl}
@@ -383,6 +406,7 @@ export default function Home() {
                 title="Magnetic Flux Leakage (MFL)"
                 description="A fast, non-contact method for detecting corrosion and pitting in ferromagnetic materials, commonly used on tank floors and pipelines."
                 isHighlighted
+                altText={techImages.mt?.description}
               />
                <FeatureCard
                 imageUrl={techImages.other?.imageUrl}
@@ -390,6 +414,7 @@ export default function Home() {
                 title="Other Advanced Methods"
                 description="Exploring specialized techniques like Shearography, Neutron Radiography, and other emerging NDT technologies for unique applications."
                 isHighlighted
+                altText={techImages.other?.description}
               />
             </div>
           </div>
@@ -402,7 +427,7 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass, imageUrl, imageHint }: { 
+function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass, imageUrl, imageHint, altText }: { 
     icon?: React.ReactNode, 
     title: string, 
     description: string, 
@@ -411,6 +436,7 @@ function FeatureCard({ icon, title, description, isHighlighted = false, iconCont
     cardClass?:string,
     imageUrl?: string,
     imageHint?: string,
+    altText?: string,
 }) {
   return (
     <Card className={cn(
@@ -422,7 +448,7 @@ function FeatureCard({ icon, title, description, isHighlighted = false, iconCont
             <div className="relative h-40 w-full">
                 <Image
                     src={imageUrl}
-                    alt={title}
+                    alt={altText || title}
                     fill
                     className="object-cover rounded-t-lg"
                     data-ai-hint={imageHint}

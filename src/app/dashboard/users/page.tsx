@@ -228,7 +228,7 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
             const companyMatch = selectedCompanies.length === 0 || selectedCompanies.includes(user.company);
             const statusMatch = statusFilter === 'all' || user.status === statusFilter;
 
-            return searchMatch && roleMatch && statusMatch && companyMatch;
+            return searchMatch && roleMatch && companyMatch && statusMatch;
         });
     }, [users, searchQuery, selectedRoles, statusFilter, selectedCompanies]);
 
@@ -491,6 +491,7 @@ export default function UsersPage() {
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [users, setUsers] = useState(() => allUsers.filter(u => u.company !== 'NDT Exchange'));
     const { toast } = useToast();
+    const [newUserAdminConfirm, setNewUserAdminConfirm] = useState<{values: z.infer<typeof userSchema>, currentAdmin: string} | null>(null);
     
     const [companyAdmins, setCompanyAdmins] = useState(() => {
         const admins = new Set<string>();
@@ -500,7 +501,7 @@ export default function UsersPage() {
         return admins;
     });
 
-    const handleAddUser = (values: z.infer<typeof userSchema>) => {
+    const proceedWithAddUser = (values: z.infer<typeof userSchema>) => {
         const newUser: PlatformUser = {
             id: `user-${Date.now()}`,
             name: values.name,
@@ -520,6 +521,18 @@ export default function UsersPage() {
             title: 'User Invited',
             description: `An invitation email has been sent to ${values.email}.`,
         });
+    };
+
+    const handleAddUser = (values: z.infer<typeof userSchema>) => {
+        if (values.isCompanyAdmin) {
+            const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
+            const company = allCompanies.find(c => c.name === values.company);
+            if (company && company.contactPerson) {
+                setNewUserAdminConfirm({ values, currentAdmin: company.contactPerson });
+                return;
+            }
+        }
+        proceedWithAddUser(values);
     };
 
     const handleSetCompanyAdmin = (userToMakeAdmin: PlatformUser) => {
@@ -574,8 +587,33 @@ export default function UsersPage() {
                     <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} />
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={!!newUserAdminConfirm} onOpenChange={(open) => !open && setNewUserAdminConfirm(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Replace Company Administrator?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You are about to invite {newUserAdminConfirm?.values.name} as the new administrator for {newUserAdminConfirm?.values.company}.
+                            This will replace the current admin, {newUserAdminConfirm?.currentAdmin}. The previous admin will become a regular team member. Are you sure you want to continue?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setNewUserAdminConfirm(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            if (newUserAdminConfirm) {
+                                proceedWithAddUser(newUserAdminConfirm.values);
+                            }
+                            setNewUserAdminConfirm(null);
+                        }}>
+                            Yes, Replace Admin
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 
     
 }
+
+    

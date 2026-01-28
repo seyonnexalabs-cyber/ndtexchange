@@ -315,7 +315,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                     <CardHeader className="p-0">
                                         <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
                                             {image ? (
-                                                <Image src={image.imageUrl} alt={asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                                <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                                             ) : (
                                                 cloneElement(assetIcons[asset.type], { className: 'w-16 h-16 text-muted-foreground/50' })
                                             )}

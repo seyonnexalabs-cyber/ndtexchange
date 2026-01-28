@@ -13,7 +13,7 @@ import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Max
 import Image from "next/image";
 import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { format } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
@@ -245,7 +245,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                         <CardHeader className="p-0">
                             {image && (
                                 <button onClick={() => handleOpenViewer(image.description)} className="relative h-48 w-full block group">
-                                    <Image src={image.imageUrl} alt={asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                    <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Maximize className="w-8 h-8 text-white" />
                                     </div>

@@ -352,7 +352,7 @@ export default function PostJobPage() {
                                                           <div className="relative w-16 h-12 rounded-md overflow-hidden shrink-0">
                                                               <Image
                                                                   src={image.imageUrl}
-                                                                  alt={asset.name}
+                                                                  alt={image.description}
                                                                   fill
                                                                   sizes="64px"
                                                                   className="object-cover"

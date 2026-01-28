@@ -228,51 +228,8 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        <section id="asset-management" className="py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-headline font-semibold text-primary">
-                The Ultimate Asset Integrity Hub
-              </h2>
-              <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                Go beyond simple NDT. Our platform provides a complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.
-              </p>
-            </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-              <FeatureCard
-                icon={<FolderKanban className="w-8 h-8 text-primary" />}
-                title="Centralized Document Vault"
-                description="Securely store and manage all asset-related documents like P&IDs, historical reports, and fabrication certificates in one easy-to-access vault."
-                cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
-              />
-              <FeatureCard
-                icon={<History className="w-8 h-8 text-primary" />}
-                title="Complete Lifecycle History"
-                description="Gain a full, tamper-proof audit trail of every inspection, repair, and status change, providing unparalleled traceability for compliance and decision-making."
-                cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
-              />
-              <FeatureCard
-                icon={<CalendarCheck className="w-8 h-8 text-primary" />}
-                title="Automated Scheduling & Alerts"
-                description="Stay ahead of maintenance with automated reminders for upcoming inspections. Prevent costly oversights and ensure your assets are always in compliance."
-                cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
-              />
-              <FeatureCard
-                icon={<QrCode className="w-8 h-8 text-primary" />}
-                title="QR Code Asset Tagging"
-                description="Instantly access an asset's full history and documentation in the field by scanning a simple QR code, streamlining on-site work for your team and providers."
-                cardClass="hover:border-primary/20"
-                iconContainerClass="bg-primary/10"
-              />
-            </div>
-          </div>
-        </section>
-
-        <section id="techniques" className="py-20 bg-card">
+        
+        <section id="techniques" className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-headline font-semibold text-primary">

@@ -1,6 +1,7 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, Job } from "@/lib/placeholder-data";
+import { jobs, Job, clientData } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X } from "lucide-react";
@@ -39,6 +40,7 @@ export default function AllJobsPage() {
     const searchParams = useSearchParams();
     const { searchQuery } = useSearch();
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
+    const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useIsMobile();
     
@@ -65,22 +67,26 @@ export default function AllJobsPage() {
                 job.id.toLowerCase().includes(searchQuery.toLowerCase());
             
             const providerMatch = selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
-            
+            const clientMatch = selectedClients.length === 0 || selectedClients.includes(job.client);
             const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
 
-            return searchMatch && providerMatch && statusMatch;
+            return searchMatch && providerMatch && statusMatch && clientMatch;
         });
-    }, [searchQuery, selectedProviders, selectedStatuses]);
+    }, [searchQuery, selectedProviders, selectedStatuses, selectedClients]);
 
     const handleProviderChange = (providerId: string) => {
         setSelectedProviders(prev => prev.includes(providerId) ? prev.filter(id => id !== providerId) : [...prev, providerId]);
+    };
+
+    const handleClientChange = (clientName: string) => {
+        setSelectedClients(prev => prev.includes(clientName) ? prev.filter(name => name !== clientName) : [...prev, clientName]);
     };
     
     const handleStatusChange = (status: string) => {
         setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
     };
 
-    const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0;
+    const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0 || selectedClients.length > 0;
 
     return (
         <div>
@@ -93,6 +99,33 @@ export default function AllJobsPage() {
 
             <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-4">
                  <div className="flex gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Client ({selectedClients.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64">
+                             <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Filter by Client</h4>
+                                </div>
+                                <div className="grid gap-2">
+                                    {clientData.map(client => (
+                                        <div key={client.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`client-${client.id}`}
+                                                checked={selectedClients.includes(client.name)}
+                                                onCheckedChange={() => handleClientChange(client.name)}
+                                            />
+                                            <Label htmlFor={`client-${client.id}`}>{client.name}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
@@ -153,6 +186,14 @@ export default function AllJobsPage() {
             {hasActiveFilters && (
                 <div className="mb-4 flex items-center flex-wrap gap-2">
                     <span className="text-sm font-medium">Active Filters:</span>
+                     {selectedClients.map(clientName => (
+                        <Badge key={clientName} variant="secondary">
+                            {clientName}
+                            <button onClick={() => handleClientChange(clientName)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
                     {selectedProviders.map(providerId => (
                         <Badge key={providerId} variant="secondary">
                             {serviceProviders.find(p => p.id === providerId)?.name}
@@ -169,7 +210,7 @@ export default function AllJobsPage() {
                             </button>
                         </Badge>
                     ))}
-                    <Button variant="ghost" size="sm" onClick={() => { setSelectedProviders([]); setSelectedStatuses([]); }}>Clear All</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedProviders([]); setSelectedStatuses([]); setSelectedClients([]); }}>Clear All</Button>
                 </div>
             )}
             

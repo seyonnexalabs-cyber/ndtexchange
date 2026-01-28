@@ -91,32 +91,32 @@
   }
 
   .admin-theme {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 9%;
+    --background: 220 25% 98%;
+    --foreground: 220 20% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card-foreground: 220 20% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 0 0% 9%; /* Black */
+    --popover-foreground: 220 20% 15%;
+    --primary: 220 30% 35%;      /* Dark Slate Blue */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 50%; /* Gray */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 220 20% 15%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 15% 45%;
+    --accent: 35 80% 55%;         /* Gold/Amber */
+    --accent-foreground: 220 20% 9%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 9%;
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 220 30% 35%;
 
     /* Chart Colors */
-    --chart-1: 0 0% 9%;
-    --chart-2: 0 0% 50%;
-    --chart-3: 0 0% 30%;
-    --chart-4: 0 0% 70%;
-    --chart-5: 0 72% 51%;
+    --chart-1: 220 30% 35%;
+    --chart-2: 35 80% 55%;
+    --chart-3: 220 30% 55%;
+    --chart-4: 35 80% 75%;
+    --chart-5: 220 20% 50%;
   }
 
   .dark {

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Star, MapPin, X, Eye } from 'lucide-react';
+import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { auditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/auditors-data';
 import { Badge } from '@/components/ui/badge';
@@ -15,20 +15,6 @@ import { Label } from '@/components/ui/label';
 import { useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-const StarRating = ({ rating }: { rating: number }) => {
-    return (
-        <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-                <Star
-                    key={i}
-                    className={`w-5 h-5 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
-                />
-            ))}
-            <span className="ml-2 text-sm text-muted-foreground">{rating.toFixed(1)}</span>
-        </div>
-    );
-};
 
 
 export default function FindAuditorsPage() {
@@ -181,8 +167,7 @@ export default function FindAuditorsPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow space-y-4">
-                            <StarRating rating={firm.rating} />
-                            <p className="text-sm text-muted-foreground h-20 overflow-hidden">{firm.description}</p>
+                            <p className="text-sm text-muted-foreground pt-2 h-24 overflow-hidden">{firm.description}</p>
                             <div>
                                 <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
                                 <div className="flex flex-wrap gap-1.5 min-h-[50px]">

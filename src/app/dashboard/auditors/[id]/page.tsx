@@ -8,26 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { auditFirms } from "@/lib/auditors-data";
-import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
+import { ChevronLeft, MapPin, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { allUsers } from "@/lib/placeholder-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-
-const StarRating = ({ rating }: { rating: number }) => {
-    return (
-        <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-                <Star
-                    key={i}
-                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
-                />
-            ))}
-            <span className="ml-2 text-xs text-muted-foreground">{rating.toFixed(1)}</span>
-        </div>
-    );
-};
 
 export default function AuditorDetailPage() {
     const params = useParams();
@@ -85,10 +71,6 @@ export default function AuditorDetailPage() {
                             <CardDescription>Company information and areas of specialty.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            <div>
-                                <h3 className="font-semibold text-sm mb-1">Rating</h3>
-                                <StarRating rating={auditor.rating} />
-                            </div>
                              <div>
                                 <h3 className="font-semibold text-sm mb-1">About</h3>
                                 <p className="text-sm text-muted-foreground">{auditor.description}</p>

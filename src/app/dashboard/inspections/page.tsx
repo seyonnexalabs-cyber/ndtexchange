@@ -73,6 +73,7 @@ export default function InspectionsPage() {
         return augmented.filter(inspection => {
             const searchMatch = !searchQuery ||
                 inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                inspection.jobId.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (inspection.assignedTechnicians.length > 0
                     ? inspection.assignedTechnicians.some(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
                     : inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase())
@@ -206,7 +207,10 @@ export default function InspectionsPage() {
                         <Card key={inspection.id}>
                             <CardHeader>
                                 <div className="flex justify-between items-start">
-                                    <CardTitle className="text-base">{inspection.assetName}</CardTitle>
+                                    <div>
+                                        <CardTitle className="text-base">{inspection.assetName}</CardTitle>
+                                        <p className="text-xs text-muted-foreground font-mono">{inspection.jobId}</p>
+                                    </div>
                                     <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                 </div>
                                 <CardDescription>
@@ -235,6 +239,7 @@ export default function InspectionsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Asset Name</TableHead>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Technique</TableHead>
                                 <TableHead>Inspectors</TableHead>
                                 <TableHead>Date</TableHead>
@@ -246,6 +251,7 @@ export default function InspectionsPage() {
                             {augmentedAndFilteredInspections.map(inspection => (
                                 <TableRow key={inspection.id}>
                                     <TableCell className="font-medium">{inspection.assetName}</TableCell>
+                                    <TableCell className="font-mono text-xs">{inspection.jobId}</TableCell>
                                     <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">

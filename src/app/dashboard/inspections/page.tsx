@@ -78,6 +78,7 @@ export default function InspectionsPage() {
     const pageIcon = role === 'auditor' ? <Eye /> : <ClipboardList />;
     const emptyStateTitle = role === 'auditor' ? 'Audit Queue is Empty' : 'No inspections found';
     const emptyStateDescription = role === 'auditor' ? 'There are no reports currently awaiting your review.' : 'There are no inspections matching your current filters.';
+    const buttonText = role === 'auditor' ? 'Audit Report' : 'View Report';
 
     return (
         <div>
@@ -179,7 +180,7 @@ export default function InspectionsPage() {
                             </CardContent>
                              <CardFooter>
                                 <Button asChild variant="outline" size="sm" className="w-full">
-                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
+                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>{buttonText}</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -210,7 +211,7 @@ export default function InspectionsPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>Audit Report</Link>
+                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>{buttonText}</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

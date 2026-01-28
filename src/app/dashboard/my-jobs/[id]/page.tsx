@@ -23,10 +23,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import UniformDocumentViewer, { ViewerDocument } from '../components/uniform-document-viewer';
+import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import JobActivityLog from '../components/job-history';
+import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { format } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
@@ -964,6 +964,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
+    
+
     
 
     

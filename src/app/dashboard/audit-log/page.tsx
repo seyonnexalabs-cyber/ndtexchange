@@ -10,7 +10,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { History, User, Briefcase, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+
+// Client-side only component to prevent hydration mismatch on formatted dates
+const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        // This code runs only on the client, after the component has mounted.
+        setFormattedDate(format(new Date(timestamp), GLOBAL_DATETIME_FORMAT));
+    }, [timestamp]);
+
+    // On the server and during the initial client render, formattedDate is null.
+    // We return a placeholder to prevent the mismatch.
+    return <span className="text-xs">{formattedDate || '...'}</span>;
+};
 
 
 const userActionStyles: { [key in UserAuditLog['action']]: 'default' | 'destructive' | 'secondary' | 'outline' } = {
@@ -39,8 +52,7 @@ const billingActionStyles: { [key in BillingAuditLog['action']]: 'success' | 'de
 };
 
 export default function AuditLogPage() {
-    const isMobile = useIsMobile();
-
+    
     const UserLog = () => (
         <Card>
             <Table>
@@ -56,7 +68,7 @@ export default function AuditLogPage() {
                 <TableBody>
                     {userAuditLog.map(log => (
                         <TableRow key={log.id}>
-                            <TableCell className="text-xs">{format(new Date(log.timestamp), GLOBAL_DATETIME_FORMAT)}</TableCell>
+                            <TableCell className="text-xs"><ClientFormattedDate timestamp={log.timestamp} /></TableCell>
                             <TableCell>{log.actorName}</TableCell>
                             <TableCell><Badge variant={userActionStyles[log.action]}>{log.action}</Badge></TableCell>
                             <TableCell>{log.targetUserName}</TableCell>
@@ -83,7 +95,7 @@ export default function AuditLogPage() {
                 <TableBody>
                     {jobAuditLog.map(log => (
                         <TableRow key={log.id}>
-                            <TableCell className="text-xs">{format(new Date(log.timestamp), GLOBAL_DATETIME_FORMAT)}</TableCell>
+                            <TableCell className="text-xs"><ClientFormattedDate timestamp={log.timestamp} /></TableCell>
                             <TableCell className="font-medium">{log.jobTitle}</TableCell>
                             <TableCell>{log.actorName}</TableCell>
                             <TableCell><Badge variant={jobActionStyles[log.action]}>{log.action}</Badge></TableCell>
@@ -109,7 +121,7 @@ export default function AuditLogPage() {
                 <TableBody>
                     {billingAuditLog.map(log => (
                         <TableRow key={log.id}>
-                            <TableCell className="text-xs">{format(new Date(log.timestamp), GLOBAL_DATETIME_FORMAT)}</TableCell>
+                            <TableCell className="text-xs"><ClientFormattedDate timestamp={log.timestamp} /></TableCell>
                             <TableCell className="font-medium">{log.companyName}</TableCell>
                             <TableCell><Badge variant={billingActionStyles[log.action]}>{log.action}</Badge></TableCell>
                             <TableCell className="text-muted-foreground">{log.details}</TableCell>

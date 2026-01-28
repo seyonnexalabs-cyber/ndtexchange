@@ -13,7 +13,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets, Job, Inspection, allUsers, adminActivityLog } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets, Job, Inspection, allUsers, userAuditLog } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -571,7 +571,7 @@ const AdminDashboard = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {adminActivityLog.map(log => (
+                            {userAuditLog.map(log => (
                                 <TableRow key={log.id}>
                                     <TableCell>
                                         <Badge variant={
@@ -583,7 +583,7 @@ const AdminDashboard = () => {
                                     <TableCell className="font-medium">{log.targetUserName}</TableCell>
                                     <TableCell>{log.targetCompany}</TableCell>
                                     <TableCell>{format(new Date(log.timestamp), GLOBAL_DATETIME_FORMAT)}</TableCell>
-                                    <TableCell>{log.adminName}</TableCell>
+                                    <TableCell>{log.actorName}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

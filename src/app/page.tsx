@@ -32,6 +32,7 @@ export default function Home() {
     et: PlaceHolderImages.find(p => p.id === 'tech-et'),
     lt: PlaceHolderImages.find(p => p.id === 'tech-lt'),
     ir: PlaceHolderImages.find(p => p.id === 'tech-ir'),
+    other: PlaceHolderImages.find(p => p.id === 'tech-other'),
   }
 
   return (
@@ -369,16 +370,25 @@ export default function Home() {
                 description="Detecting variations in temperature to identify material defects, electrical issues, or insulation gaps."
                 isHighlighted
               />
-               <FeatureCard
-                icon={<Waves className="w-8 h-8 text-accent" />}
+              <FeatureCard
+                imageUrl={techImages.ut?.imageUrl}
+                imageHint={techImages.ut?.imageHint}
                 title="Guided Wave Testing (GWT)"
                 description="An advanced ultrasonic method for inspecting long lengths of pipes and structures from a single test location, ideal for corrosion screening."
                 isHighlighted
               />
               <FeatureCard
-                icon={<Magnet className="w-8 h-8 text-accent" />}
+                imageUrl={techImages.mt?.imageUrl}
+                imageHint={techImages.mt?.imageHint}
                 title="Magnetic Flux Leakage (MFL)"
                 description="A fast, non-contact method for detecting corrosion and pitting in ferromagnetic materials, commonly used on tank floors and pipelines."
+                isHighlighted
+              />
+               <FeatureCard
+                imageUrl={techImages.other?.imageUrl}
+                imageHint={techImages.other?.imageHint}
+                title="Other Advanced Methods"
+                description="Exploring specialized techniques like Shearography, Neutron Radiography, and other emerging NDT technologies for unique applications."
                 isHighlighted
               />
             </div>

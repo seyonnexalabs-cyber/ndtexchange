@@ -2,156 +2,19 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Waves, Scan, Magnet, Eye, Thermometer, Ear, Link as LinkIcon, Building, TestTube, Lightbulb, Radio } from 'lucide-react';
+import { Link as LinkIcon, Building } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { ndtTechniques } from '@/lib/ndt-techniques-data';
+import { FeatureCard } from '@/app/components/feature-card';
 
 export const metadata: Metadata = {
   title: 'NDT Equipment Manufacturers Directory | NDT Exchange',
   description: 'A curated list of prominent Original Equipment Manufacturers (OEMs) for various NDT techniques, including UT, RT, ET, MT, PT, and more.',
 };
-
-const manufacturers = [
-  {
-    technique: "Ultrasonic Testing (UT, PAUT, TOFD)",
-    icon: <Waves className="w-8 h-8" />,
-    color: "blue",
-    companies: [
-      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-      { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
-      { name: "Sonatest", url: "https://www.sonatest.com" },
-      { name: "Zetec", url: "https://www.zetec.com" },
-      { name: "Baker Hughes (Waygate Technologies)", url: "https://www.bakerhughes.com/waygate-technologies" },
-      { name: "Proceq (Screening Eagle)", url: "https://www.screeningeagle.com" },
-      { name: "TPAC", url: "https://www.tpac-ndt.com/" },
-      { name: "Imagilent", url: "https://www.imagilent.com/" },
-      { name: "DolphiTech", url: "https://www.dolphitech.com/" },
-      { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
-    ]
-  },
-  {
-    technique: "Radiographic Testing (RT, DR, CT)",
-    icon: <Scan className="w-8 h-8" />,
-    color: "purple",
-    companies: [
-      { name: "Fujifilm", url: "https://www.fujifilm.com/us/en/business/ndt" },
-      { name: "Yxlon (Comet Group)", url: "https://www.yxlon.com" },
-      { name: "Carestream NDT", url: "https://www.carestream.com/ndt" },
-      { name: "VJ Technologies", url: "https://www.vjt.com" },
-      { name: "Nikon Metrology", url: "https://www.nikonmetrology.com/en-gb/products/x-ray-ct-inspection" },
-      { name: "Teledyne ICM", url: "https://www.teledyneicm.com/" },
-      { name: "Rigaku", url: "https://www.rigaku.com/en/products/ct" },
-      { name: "Vidisco", url: "https://www.vidisco.com/" },
-    ]
-  },
-  {
-    technique: "Electromagnetic Testing (ET, ACFM, RFT)",
-    icon: <Radio className="w-8 h-8" />,
-    color: "amber",
-    companies: [
-      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-      { name: "Zetec", url: "https://www.zetec.com" },
-      { name: "Foerster Instruments", url: "https://www.foerstergroup.com" },
-      { name: "UniWest", url: "https://uniwest.com/" },
-      { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
-      { name: "ibg NDT Systems", url: "https://www.ibg-ndt.com/" },
-    ]
-  },
-  {
-    technique: "Magnetic Particle & Penetrant (MT/PT)",
-    icon: <Magnet className="w-8 h-8" />,
-    color: "red",
-    companies: [
-      { name: "Magnaflux", url: "https://www.magnaflux.com" },
-      { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
-      { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
-      { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
-      { name: "Sherwin Inc.", url: "https://sherwininc.com/" },
-    ]
-  },
-  {
-    technique: "Visual & Optical Testing (VT / RVI)",
-    icon: <Eye className="w-8 h-8" />,
-    color: "green",
-    companies: [
-      { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-      { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/waygate-technologies/remote-visual-inspection" },
-      { name: "viZaar", url: "https://www.vizaar.com" },
-      { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
-      { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
-      { name: "Mitcorp", url: "https://www.mitcorp.com.tw/" },
-    ]
-  },
-  {
-    technique: "Acoustic Emission (AE)",
-    icon: <Ear className="w-8 h-8" />,
-    color: "sky",
-    companies: [
-      { name: "MISTRAS Group", url: "https://www.mistrasgroup.com" },
-      { name: "Vallen Systeme", url: "https://www.vallen.de/en/" },
-      { name: "Physical Acoustics Corp (PAC)", url: "https://www.pacndt.com/" },
-      { name: "Score Atlanta Inc.", url: "https://www.score-atl.com/" },
-    ]
-  },
-  {
-    technique: "Acoustic Pulse Reflectometry (APR)",
-    icon: <Waves className="w-8 h-8" />,
-    color: "teal",
-    companies: [
-      { name: "Talcyon", url: "https://www.talcyon.com" },
-    ]
-  },
-  {
-    technique: "Leak Testing (LT)",
-    icon: <TestTube className="w-8 h-8" />,
-    color: "lime",
-    companies: [
-      { name: "Inficon", url: "https://www.inficon.com" },
-      { name: "Pfeiffer Vacuum", url: "https://www.pfeiffer-vacuum.com" },
-      { name: "LACO Technologies", url: "https://www.lacotech.com" },
-      { name: "ATEQ", url: "https://www.ateq-leak-testing.com/" },
-    ]
-  },
-  {
-    technique: "Infrared & Thermal Testing (IR)",
-    icon: <Thermometer className="w-8 h-8" />,
-    color: "orange",
-    companies: [
-        { name: "Teledyne FLIR", url: "https://www.flir.com" },
-        { name: "Fluke Corporation", url: "https://www.fluke.com" },
-        { name: "Testo", url: "https://www.testo.com" },
-    ]
-  },
-  {
-    technique: "Other NDT Methods",
-    icon: <Lightbulb className="w-8 h-8" />,
-    color: "gray",
-    companies: [
-        { name: "GUL (Guided Ultrasonics Ltd.)", url: "https://www.guided-ultrasonics.com/", description: "Guided Wave UT" },
-        { name: "Dantec Dynamics", url: "https://www.dantecdynamics.com/", description: "Laser Shearography" },
-        { name: "Phoenix|x-ray (Waygate)", url: "https://www.bakerhughes.com/waygate-technologies/x-ray-and-ct-solutions/phoenix-x-ray", description: "Neutron Radiography" },
-    ]
-  }
-];
-
-const techImageMap: { [key: string]: string | undefined } = {
-    "Ultrasonic Testing (UT, PAUT, TOFD)": "tech-ut",
-    "Radiographic Testing (RT, DR, CT)": "tech-rt",
-    "Electromagnetic Testing (ET, ACFM, RFT)": "tech-et",
-    "Magnetic Particle & Penetrant (MT/PT)": "tech-mt",
-    "Visual & Optical Testing (VT / RVI)": "tech-vt",
-    "Acoustic Emission (AE)": "tech-ae",
-    "Acoustic Pulse Reflectometry (APR)": "tech-apr",
-    "Leak Testing (LT)": "tech-lt",
-    "Infrared & Thermal Testing (IR)": "tech-ir",
-    "Other NDT Methods": "tech-other"
-};
-
 
 export default function ManufacturersPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-manufacturers');
@@ -190,39 +53,31 @@ export default function ManufacturersPage() {
         <section className="py-20">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    {manufacturers.map((m) => {
-                        const techImageId = techImageMap[m.technique];
-                        const techImage = PlaceHolderImages.find(p => p.id === techImageId);
+                    {ndtTechniques.map((technique) => {
+                        const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
                         return (
-                        <Card key={m.technique} className="flex flex-col transition-shadow hover:shadow-lg">
-                             {techImage && (
-                                <div className="relative h-40 w-full">
-                                    <Image
-                                        src={techImage.imageUrl}
-                                        alt={techImage.description}
-                                        fill
-                                        className="object-cover rounded-t-lg"
-                                        data-ai-hint={techImage.imageHint}
-                                    />
-                                </div>
-                            )}
-                            <CardHeader>
-                                <CardTitle className="text-xl font-headline">{m.technique}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex-grow">
-                                <ul className="space-y-3">
-                                    {m.companies.map(company => (
+                            <FeatureCard
+                                key={technique.id}
+                                imageUrl={techImage?.imageUrl}
+                                imageHint={techImage?.imageHint}
+                                altText={techImage?.description}
+                                title={technique.title}
+                            >
+                                <ul className="space-y-3 text-left">
+                                    {technique.companies.map(company => (
                                         <li key={company.name} className="flex items-center">
-                                            <Link href={company.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-muted-foreground hover:text-primary group">
+                                            <Link href={company.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-muted-foreground hover:text-primary group w-full">
                                                <Building className="w-4 h-4 mr-3 shrink-0" />
                                                <span className="flex-grow">{company.name} {company.description && <span className="text-xs text-muted-foreground/70">({company.description})</span>}</span>
                                                <LinkIcon className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </Link>
                                         </li>
                                     ))}
+                                    {technique.companies.length === 0 && (
+                                        <p className="text-sm text-muted-foreground">No specific OEMs listed for this category.</p>
+                                    )}
                                 </ul>
-                            </CardContent>
-                        </Card>
+                            </FeatureCard>
                         )
                     })}
                 </div>

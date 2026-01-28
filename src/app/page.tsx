@@ -1,16 +1,15 @@
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users, Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Globe, Radio, TestTube, Lightbulb, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode, Fuel, Zap, FlaskConical, Factory, Plane, Landmark } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Search, Users, Globe, Building, UserCheck, FolderKanban, History, CalendarCheck, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { cn } from '@/lib/utils';
-import * as React from 'react';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 import type { Metadata } from 'next';
+import { ndtTechniques } from '@/lib/ndt-techniques-data';
+import { FeatureCard } from '@/app/components/feature-card';
 
 export const metadata: Metadata = {
   title: 'NDT Exchange | Asset Integrity & Inspection Marketplace',
@@ -26,19 +25,6 @@ export default function Home() {
     manufacturing: PlaceHolderImages.find(p => p.id === 'industry-manufacturing'),
     aerospace: PlaceHolderImages.find(p => p.id === 'industry-aerospace'),
     infrastructure: PlaceHolderImages.find(p => p.id === 'industry-infrastructure'),
-  }
-  const techImages = {
-    ut: PlaceHolderImages.find(p => p.id === 'tech-ut'),
-    rt: PlaceHolderImages.find(p => p.id === 'tech-rt'),
-    mt: PlaceHolderImages.find(p => p.id === 'tech-mt'),
-    pt: PlaceHolderImages.find(p => p.id === 'tech-pt'),
-    vt: PlaceHolderImages.find(p => p.id === 'tech-vt'),
-    ae: PlaceHolderImages.find(p => p.id === 'tech-ae'),
-    apr: PlaceHolderImages.find(p => p.id === 'tech-apr'),
-    et: PlaceHolderImages.find(p => p.id === 'tech-et'),
-    lt: PlaceHolderImages.find(p => p.id === 'tech-lt'),
-    ir: PlaceHolderImages.find(p => p.id === 'tech-ir'),
-    other: PlaceHolderImages.find(p => p.id === 'tech-other'),
   }
 
   return (
@@ -104,60 +90,42 @@ export default function Home() {
                     </p>
                 </div>
                 <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3 mt-12">
-                    <Card className="p-2">
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <div className="bg-accent/10 p-4 rounded-full w-fit">
-                                    <Building className="w-8 h-8 text-accent" />
-                                </div>
-                                <CardTitle className="text-2xl font-headline">For Asset Owners (Clients)</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-muted-foreground">
-                            <p>Managing asset integrity is complex and crucial. NDT Exchange simplifies the process of procuring inspection services, giving you confidence and control.</p>
-                            <ul className="space-y-3">
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Protect Intellectual Property:</strong> Centralize all asset data, reports, and documentation in a secure-by-design vault that prevents data leakage.</span></li>
-                            </ul>
-                        </CardContent>
-                    </Card>
-                    <Card className="p-2">
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                               <div className="bg-accent/10 p-4 rounded-full w-fit">
-                                    <UserCheck className="w-8 h-8 text-accent" />
-                                </div>
-                                <CardTitle className="text-2xl font-headline">For NDT Providers (Inspectors)</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-muted-foreground">
-                            <p>Focus on what you do best: providing expert inspection services. Our platform helps you find work, manage your team, and streamline your operations.</p>
-                            <ul className="space-y-3">
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Grow Your Business:</strong> Access a steady stream of inspection jobs from qualified asset owners looking for your specific expertise and certifications.</span></li>
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Optimize Your Operations:</strong> Manage your team, equipment, and certifications all in one place, reducing administrative overhead and improving efficiency.</span></li>
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Deliver Excellence:</strong> Use professional digital reporting tools to provide high-quality, consistent deliverables that impress clients.</span></li>
-                            </ul>
-                        </CardContent>
-                    </Card>
-                     <Card className="p-2">
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                               <div className="bg-accent/10 p-4 rounded-full w-fit">
-                                    <Globe className="w-8 h-8 text-accent" />
-                                </div>
-                                <CardTitle className="text-2xl font-headline">For Auditors & Regulators</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-muted-foreground">
-                            <p>Ensure compliance and maintain oversight with tools designed for transparency and traceability across the inspection lifecycle.</p>
-                            <ul className="space-y-3">
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality and safety.</span></li>
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final approval.</span></li>
-                                <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance and data integrity.</span></li>
-                            </ul>
-                        </CardContent>
-                    </Card>
+                    <FeatureCard
+                        icon={<Building className="w-8 h-8 text-accent" />}
+                        iconContainerClass="bg-accent/10"
+                        title="For Asset Owners (Clients)"
+                        description="Managing asset integrity is complex and crucial. NDT Exchange simplifies the process of procuring inspection services, giving you confidence and control."
+                    >
+                        <ul className="space-y-3 text-left">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Protect Intellectual Property:</strong> Centralize all asset data, reports, and documentation in a secure-by-design vault that prevents data leakage.</span></li>
+                        </ul>
+                    </FeatureCard>
+                    <FeatureCard
+                        icon={<UserCheck className="w-8 h-8 text-accent" />}
+                        iconContainerClass="bg-accent/10"
+                        title="For NDT Providers (Inspectors)"
+                        description="Focus on what you do best: providing expert inspection services. Our platform helps you find work, manage your team, and streamline your operations."
+                    >
+                       <ul className="space-y-3 text-left">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Grow Your Business:</strong> Access a steady stream of inspection jobs from qualified asset owners looking for your specific expertise and certifications.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Optimize Your Operations:</strong> Manage your team, equipment, and certifications all in one place, reducing administrative overhead and improving efficiency.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Deliver Excellence:</strong> Use professional digital reporting tools to provide high-quality, consistent deliverables that impress clients.</span></li>
+                        </ul>
+                    </FeatureCard>
+                    <FeatureCard
+                        icon={<Globe className="w-8 h-8 text-accent" />}
+                        iconContainerClass="bg-accent/10"
+                        title="For Auditors & Regulators"
+                        description="Ensure compliance and maintain oversight with tools designed for transparency and traceability across the inspection lifecycle."
+                    >
+                        <ul className="space-y-3 text-left">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality and safety.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final approval.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-accent mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance and data integrity.</span></li>
+                        </ul>
+                    </FeatureCard>
                 </div>
             </div>
         </section>
@@ -315,107 +283,20 @@ export default function Home() {
               </p>
             </div>
             <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <FeatureCard
-                imageUrl={techImages.ut?.imageUrl}
-                imageHint={techImages.ut?.imageHint}
-                title="Ultrasonic Testing (UT)"
-                description="Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods."
-                isHighlighted
-                altText={techImages.ut?.description}
-              />
-              <FeatureCard
-                imageUrl={techImages.rt?.imageUrl}
-                imageHint={techImages.rt?.imageHint}
-                title="Radiographic Testing (RT)"
-                description="Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities."
-                isHighlighted
-                altText={techImages.rt?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.mt?.imageUrl}
-                imageHint={techImages.mt?.imageHint}
-                title="Magnetic Particle Testing (MT)"
-                description="Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field."
-                altText={techImages.mt?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.pt?.imageUrl}
-                imageHint={techImages.pt?.imageHint}
-                title="Penetrant Testing (PT)"
-                description="Locating surface-breaking defects in non-porous materials using a liquid penetrant and developer."
-                altText={techImages.pt?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.vt?.imageUrl}
-                imageHint={techImages.vt?.imageHint}
-                title="Visual & Optical Testing (VT/RVI)"
-                description="A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas."
-                isHighlighted
-                altText={techImages.vt?.description}
-              />
-              <FeatureCard
-                imageUrl={techImages.ae?.imageUrl}
-                imageHint={techImages.ae?.imageHint}
-                title="Acoustic Emission (AE)"
-                description="Listening for the high-frequency energy waves that materials release when they undergo stress, cracking, or corrosion."
-                isHighlighted
-                altText={techImages.ae?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.apr?.imageUrl}
-                imageHint={techImages.apr?.imageHint}
-                title="Acoustic Pulse Reflectometry (APR)"
-                description="A non-invasive method for detecting blockages and defects in tubes by analyzing reflected sound waves."
-                isHighlighted
-                altText={techImages.apr?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.et?.imageUrl}
-                imageHint={techImages.et?.imageHint}
-                title="Electromagnetic Testing (ET)"
-                description="Using principles of electromagnetism to detect flaws, such as Eddy Current, Alternating Current Field Measurement (ACFM), and Remote Field Testing (RFT)."
-                isHighlighted
-                altText={techImages.et?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.lt?.imageUrl}
-                imageHint={techImages.lt?.imageHint}
-                title="Leak Testing (LT)"
-                description="Detecting and locating leaks in pressure-containing components using methods like bubble testing, pressure change, or mass spectrometry."
-                altText={techImages.lt?.description}
-              />
-              <FeatureCard
-                imageUrl={techImages.ir?.imageUrl}
-                imageHint={techImages.ir?.imageHint}
-                title="Infrared & Thermal Testing (IR)"
-                description="Detecting variations in temperature to identify material defects, electrical issues, or insulation gaps."
-                isHighlighted
-                altText={techImages.ir?.description}
-              />
-              <FeatureCard
-                imageUrl={techImages.ut?.imageUrl}
-                imageHint={techImages.ut?.imageHint}
-                title="Guided Wave Testing (GWT)"
-                description="An advanced ultrasonic method for inspecting long lengths of pipes and structures from a single test location, ideal for corrosion screening."
-                isHighlighted
-                altText={techImages.ut?.description}
-              />
-              <FeatureCard
-                imageUrl={techImages.mt?.imageUrl}
-                imageHint={techImages.mt?.imageHint}
-                title="Magnetic Flux Leakage (MFL)"
-                description="A fast, non-contact method for detecting corrosion and pitting in ferromagnetic materials, commonly used on tank floors and pipelines."
-                isHighlighted
-                altText={techImages.mt?.description}
-              />
-               <FeatureCard
-                imageUrl={techImages.other?.imageUrl}
-                imageHint={techImages.other?.imageHint}
-                title="Other Advanced Methods"
-                description="Exploring specialized techniques like Shearography, Neutron Radiography, and other emerging NDT technologies for unique applications."
-                isHighlighted
-                altText={techImages.other?.description}
-              />
+              {ndtTechniques.map(technique => {
+                  const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
+                  return (
+                      <FeatureCard
+                          key={technique.id}
+                          imageUrl={techImage?.imageUrl}
+                          imageHint={techImage?.imageHint}
+                          altText={techImage?.description}
+                          title={technique.title}
+                          description={technique.description}
+                          isHighlighted={technique.isHighlighted}
+                      />
+                  );
+              })}
             </div>
           </div>
         </section>
@@ -424,48 +305,5 @@ export default function Home() {
 
       <PublicFooter />
     </div>
-  );
-}
-
-function FeatureCard({ icon, title, description, isHighlighted = false, iconContainerClass, cardClass, imageUrl, imageHint, altText }: { 
-    icon?: React.ReactNode, 
-    title: string, 
-    description: string, 
-    isHighlighted?: boolean, 
-    iconContainerClass?: string, 
-    cardClass?:string,
-    imageUrl?: string,
-    imageHint?: string,
-    altText?: string,
-}) {
-  return (
-    <Card className={cn(
-        "flex flex-col text-center transition-all hover:shadow-lg hover:-translate-y-1 border",
-        isHighlighted && "border-accent bg-accent/5",
-        cardClass,
-    )}>
-        {imageUrl && (
-            <div className="relative h-40 w-full">
-                <Image
-                    src={imageUrl}
-                    alt={altText || title}
-                    fill
-                    className="object-cover rounded-t-lg"
-                    data-ai-hint={imageHint}
-                />
-            </div>
-        )}
-      <CardHeader>
-        {!imageUrl && icon && (
-             <div className={cn("mx-auto p-4 rounded-full w-fit", iconContainerClass || 'bg-accent/10')}>
-                {icon}
-            </div>
-        )}
-        <CardTitle className="mt-4 font-headline">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <p className="text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
   );
 }

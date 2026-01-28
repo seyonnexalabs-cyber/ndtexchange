@@ -1,7 +1,4 @@
 
-import { Waves, Scan, Magnet, Droplets, Eye, Thermometer, Ear, Radio, TestTube, Lightbulb } from 'lucide-react';
-import * as React from 'react';
-
 export type NDTCompany = {
     name: string;
     url: string;
@@ -12,89 +9,12 @@ export type NDTTechnique = {
     id: string;
     title: string;
     description: string;
-    icon?: React.ReactNode;
     isHighlighted: boolean;
     imageId: string;
     companies: NDTCompany[];
 };
 
 export const ndtTechniques: NDTTechnique[] = [
-    {
-        id: 'ut',
-        title: 'Ultrasonic Testing (UT)',
-        description: "Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods.",
-        isHighlighted: true,
-        imageId: 'tech-ut',
-        companies: [
-            { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-            { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
-            { name: "Sonatest", url: "https://www.sonatest.com" },
-            { name: "Zetec", url: "https://www.zetec.com" },
-            { name: "Baker Hughes (Waygate Technologies)", url: "https://www.bakerhughes.com/waygate-technologies" },
-            { name: "Proceq (Screening Eagle)", url: "https://www.screeningeagle.com" },
-            { name: "TPAC", url: "https://www.tpac-ndt.com/" },
-            { name: "Imagilent", url: "https://www.imagilent.com/" },
-            { name: "DolphiTech", url: "https://www.dolphitech.com/" },
-            { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
-        ]
-    },
-    {
-        id: 'rt',
-        title: 'Radiographic Testing (RT)',
-        description: "Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities.",
-        isHighlighted: true,
-        imageId: 'tech-rt',
-        companies: [
-            { name: "Fujifilm", url: "https://www.fujifilm.com/us/en/business/ndt" },
-            { name: "Yxlon (Comet Group)", url: "https://www.yxlon.com" },
-            { name: "Carestream NDT", url: "https://www.carestream.com/ndt" },
-            { name: "VJ Technologies", url: "https://www.vjt.com" },
-            { name: "Nikon Metrology", url: "https://www.nikonmetrology.com/en-gb/products/x-ray-ct-inspection" },
-            { name: "Teledyne ICM", url: "https://www.teledyneicm.com/" },
-            { name: "Rigaku", url: "https://www.rigaku.com/en/products/ct" },
-            { name: "Vidisco", url: "https://www.vidisco.com/" },
-        ]
-    },
-    {
-        id: 'mt',
-        title: 'Magnetic Particle Testing (MT)',
-        description: "Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field.",
-        isHighlighted: false,
-        imageId: 'tech-mt',
-        companies: [
-            { name: "Magnaflux", url: "https://www.magnaflux.com" },
-            { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
-            { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
-            { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
-        ]
-    },
-    {
-        id: 'pt',
-        title: 'Penetrant Testing (PT)',
-        description: "Locating surface-breaking defects in non-porous materials using a liquid penetrant and developer.",
-        isHighlighted: false,
-        imageId: 'tech-pt',
-        companies: [
-            { name: "Magnaflux", url: "https://www.magnaflux.com" },
-            { name: "Sherwin Inc.", url: "https://sherwininc.com/" },
-            { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
-        ]
-    },
-    {
-        id: 'vt',
-        title: 'Visual & Optical Testing (VT/RVI)',
-        description: "A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas.",
-        isHighlighted: true,
-        imageId: 'tech-vt',
-        companies: [
-            { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
-            { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/waygate-technologies/remote-visual-inspection" },
-            { name: "viZaar", url: "https://www.vizaar.com" },
-            { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
-            { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
-            { name: "Mitcorp", url: "https://www.mitcorp.com.tw/" },
-        ]
-    },
     {
         id: 'ae',
         title: 'Acoustic Emission (AE)',
@@ -134,16 +54,13 @@ export const ndtTechniques: NDTTechnique[] = [
         ]
     },
     {
-        id: 'lt',
-        title: 'Leak Testing (LT)',
-        description: "Detecting and locating leaks in pressure-containing components using methods like bubble testing, pressure change, or mass spectrometry.",
-        isHighlighted: false,
-        imageId: 'tech-lt',
+        id: 'gwt',
+        title: 'Guided Wave Testing (GWT)',
+        description: "An advanced ultrasonic method for inspecting long lengths of pipes and structures from a single test location, ideal for corrosion screening.",
+        isHighlighted: true,
+        imageId: 'tech-ut',
         companies: [
-            { name: "Inficon", url: "https://www.inficon.com" },
-            { name: "Pfeiffer Vacuum", url: "https://www.pfeiffer-vacuum.com" },
-            { name: "LACO Technologies", url: "https://www.lacotech.com" },
-            { name: "ATEQ", url: "https://www.ateq-leak-testing.com/" },
+            { name: "GUL (Guided Ultrasonics Ltd.)", url: "https://www.guided-ultrasonics.com/" },
         ]
     },
     {
@@ -159,13 +76,16 @@ export const ndtTechniques: NDTTechnique[] = [
         ]
     },
     {
-        id: 'gwt',
-        title: 'Guided Wave Testing (GWT)',
-        description: "An advanced ultrasonic method for inspecting long lengths of pipes and structures from a single test location, ideal for corrosion screening.",
-        isHighlighted: true,
-        imageId: 'tech-ut',
+        id: 'lt',
+        title: 'Leak Testing (LT)',
+        description: "Detecting and locating leaks in pressure-containing components using methods like bubble testing, pressure change, or mass spectrometry.",
+        isHighlighted: false,
+        imageId: 'tech-lt',
         companies: [
-            { name: "GUL (Guided Ultrasonics Ltd.)", url: "https://www.guided-ultrasonics.com/" },
+            { name: "Inficon", url: "https://www.inficon.com" },
+            { name: "Pfeiffer Vacuum", url: "https://www.pfeiffer-vacuum.com" },
+            { name: "LACO Technologies", url: "https://www.lacotech.com" },
+            { name: "ATEQ", url: "https://www.ateq-leak-testing.com/" },
         ]
     },
     {
@@ -179,6 +99,19 @@ export const ndtTechniques: NDTTechnique[] = [
         ]
     },
     {
+        id: 'mt',
+        title: 'Magnetic Particle Testing (MT)',
+        description: "Detecting surface and near-surface flaws in ferromagnetic materials by creating a magnetic field.",
+        isHighlighted: false,
+        imageId: 'tech-mt',
+        companies: [
+            { name: "Magnaflux", url: "https://www.magnaflux.com" },
+            { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
+            { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
+            { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
+        ]
+    },
+    {
         id: 'other',
         title: 'Other Advanced Methods',
         description: "Exploring specialized techniques like Shearography, Neutron Radiography, and other emerging NDT technologies for unique applications.",
@@ -187,6 +120,69 @@ export const ndtTechniques: NDTTechnique[] = [
         companies: [
             { name: "Dantec Dynamics", url: "https://www.dantecdynamics.com/", description: "Laser Shearography" },
             { name: "Phoenix|x-ray (Waygate)", url: "https://www.bakerhughes.com/waygate-technologies/x-ray-and-ct-solutions/phoenix-x-ray", description: "Neutron Radiography" },
+        ]
+    },
+    {
+        id: 'pt',
+        title: 'Penetrant Testing (PT)',
+        description: "Locating surface-breaking defects in non-porous materials using a liquid penetrant and developer.",
+        isHighlighted: false,
+        imageId: 'tech-pt',
+        companies: [
+            { name: "Magnaflux", url: "https://www.magnaflux.com" },
+            { name: "Sherwin Inc.", url: "https://sherwininc.com/" },
+            { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
+        ]
+    },
+    {
+        id: 'rt',
+        title: 'Radiographic Testing (RT)',
+        description: "Viewing a component's internal structure with X-rays or gamma rays to reveal hidden defects and discontinuities.",
+        isHighlighted: true,
+        imageId: 'tech-rt',
+        companies: [
+            { name: "Fujifilm", url: "https://www.fujifilm.com/us/en/business/ndt" },
+            { name: "Yxlon (Comet Group)", url: "https://www.yxlon.com" },
+            { name: "Carestream NDT", url: "https://www.carestream.com/ndt" },
+            { name: "VJ Technologies", url: "https://www.vjt.com" },
+            { name: "Nikon Metrology", url: "https://www.nikonmetrology.com/en-gb/products/x-ray-ct-inspection" },
+            { name: "Teledyne ICM", url: "https://www.teledyneicm.com/" },
+            { name: "Rigaku", url: "https://www.rigaku.com/en/products/ct" },
+            { name: "Vidisco", url: "https://www.vidisco.com/" },
+        ]
+    },
+    {
+        id: 'ut',
+        title: 'Ultrasonic Testing (UT)',
+        description: "Using sound waves to detect internal flaws and measure thickness, including advanced Phased Array (PAUT) and TOFD methods.",
+        isHighlighted: true,
+        imageId: 'tech-ut',
+        companies: [
+            { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
+            { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
+            { name: "Sonatest", url: "https://www.sonatest.com" },
+            { name: "Zetec", url: "https://www.zetec.com" },
+            { name: "Baker Hughes (Waygate Technologies)", url: "https://www.bakerhughes.com/waygate-technologies" },
+            { name: "Proceq (Screening Eagle)", url: "https://www.screeningeagle.com" },
+            { name: "TPAC", url: "https://www.tpac-ndt.com/" },
+            { name: "Imagilent", url: "https://www.imagilent.com/" },
+            { name: "DolphiTech", url: "https://www.dolphitech.com/" },
+            { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
+        ]
+    },
+    {
+        id: 'vt',
+        title: 'Visual & Optical Testing (VT/RVI)',
+        description: "A direct or remote visual examination, using tools like videoscopes and borescopes to access hard-to-reach areas.",
+        isHighlighted: true,
+        imageId: 'tech-vt',
+        companies: [
+            { name: "Evident Scientific (Olympus)", url: "https://www.evidentscientific.com" },
+            { name: "Baker Hughes (Everest VIT)", url: "https://www.bakerhughes.com/waygate-technologies/remote-visual-inspection" },
+            { name: "viZaar", url: "https://www.vizaar.com" },
+            { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
+            { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
+            { name: "Mitcorp", url: "https://www.mitcorp.com.tw/" },
         ]
     }
 ];

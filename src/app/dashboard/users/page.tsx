@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -38,12 +39,13 @@ const userSchema = z.object({
   email: z.string().email(),
   company: z.string().min(1, "Please select a company."),
   role: z.string().min(1, "Please select a role."),
+  isCompanyAdmin: z.boolean().default(false),
 });
 
 const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof userSchema>) => void; }) => {
     const form = useForm<z.infer<typeof userSchema>>({
         resolver: zodResolver(userSchema),
-        defaultValues: { name: '', email: '' },
+        defaultValues: { name: '', email: '', isCompanyAdmin: false },
     });
 
     const companies = useMemo(() => {
@@ -109,6 +111,28 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
                                 </SelectContent>
                             </Select>
                             <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="isCompanyAdmin"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                        <FormControl>
+                            <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel>
+                            Set as Company Administrator
+                            </FormLabel>
+                            <FormDescription>
+                            This user will be able to manage team members for their company.
+                            </FormDescription>
+                        </div>
                         </FormItem>
                     )}
                 />
@@ -429,6 +453,11 @@ export default function UsersPage() {
             status: 'Invited',
         };
         setUsers(prev => [newUser, ...prev]);
+
+        if (values.isCompanyAdmin) {
+            handleSetCompanyAdmin(newUser);
+        }
+
         setIsAddUserOpen(false);
         toast({
             title: 'User Invited',

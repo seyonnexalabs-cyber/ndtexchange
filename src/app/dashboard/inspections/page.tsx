@@ -1,10 +1,11 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { inspections, NDTTechniques, clientAssets, Inspection } from '@/lib/placeholder-data';
+import { inspections, NDTTechniques, jobs, technicians, Technician } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -37,34 +38,45 @@ export default function InspectionsPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const filteredInspections = useMemo(() => {
+    const augmentedAndFilteredInspections = useMemo(() => {
+        // First, apply role-based filtering if needed.
         let filtered = inspections;
-
-        // First, apply role-based filtering.
         if (role === 'auditor') {
-            // For auditors, this page is strictly their review queue.
-            filtered = filtered.filter(i => i.status === 'Requires Review');
+            filtered = inspections.filter(i => i.status === 'Requires Review');
         }
-        // For admins, no role-based filtering is needed; they see everything.
 
-        // Then, apply filters from the UI
-        if (searchQuery) {
-            filtered = filtered.filter(inspection => 
+        // Augment with job and technician data
+        const augmented = filtered.map(inspection => {
+            const job = jobs.find(j => j.id === inspection.jobId);
+            const assignedTechnicians = job?.technicianIds
+                ?.map(techId => technicians.find(t => t.id === techId))
+                .filter((t): t is Technician => !!t) ?? [];
+            return {
+                ...inspection,
+                job,
+                assignedTechnicians
+            };
+        });
+
+        // Then, apply UI filters
+        return augmented.filter(inspection => {
+            const searchMatch = !searchQuery ||
                 inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
+                (inspection.assignedTechnicians.length > 0
+                    ? inspection.assignedTechnicians.some(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    : inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
+            
+            const statusMatch = statusFilter === 'all' || inspection.status === statusFilter;
 
-        if (selectedTechniques.length > 0) {
-            filtered = filtered.filter(inspection => selectedTechniques.includes(inspection.technique));
-        }
-        
-        if (statusFilter !== 'all') {
-            // This filter is disabled for auditors, but this check is safe either way.
-            filtered = filtered.filter(inspection => inspection.status === statusFilter);
-        }
-        
-        return filtered;
+            if (role === 'auditor') {
+                return searchMatch && techniqueMatch;
+            }
+
+            return searchMatch && techniqueMatch && statusMatch;
+        });
     }, [searchQuery, selectedTechniques, statusFilter, role]);
 
     const handleTechniqueChange = (techniqueId: string) => {
@@ -94,7 +106,7 @@ export default function InspectionsPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <Input 
-                    placeholder="Search by asset name or inspector..."
+                    placeholder="Search by asset or inspector name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="flex-grow"
@@ -166,14 +178,21 @@ export default function InspectionsPage() {
             
             {isMobile ? (
                 <div className="space-y-4">
-                    {filteredInspections.map(inspection => (
+                    {augmentedAndFilteredInspections.map(inspection => (
                         <Card key={inspection.id}>
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="text-base">{inspection.assetName}</CardTitle>
                                     <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                 </div>
-                                <CardDescription>{inspection.technique} by {inspection.inspector}</CardDescription>
+                                <CardDescription>
+                                    <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge>
+                                    <span className="mx-1.5">by</span>
+                                    {inspection.assignedTechnicians.length > 0 
+                                        ? inspection.assignedTechnicians.map(t => t.name).join(', ') 
+                                        : inspection.inspector
+                                    }
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground">Date: {inspection.date}</p>
@@ -193,18 +212,25 @@ export default function InspectionsPage() {
                             <TableRow>
                                 <TableHead>Asset Name</TableHead>
                                 <TableHead>Technique</TableHead>
-                                <TableHead>Inspector</TableHead>
+                                <TableHead>Inspectors</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredInspections.map(inspection => (
+                            {augmentedAndFilteredInspections.map(inspection => (
                                 <TableRow key={inspection.id}>
                                     <TableCell className="font-medium">{inspection.assetName}</TableCell>
-                                    <TableCell>{inspection.technique}</TableCell>
-                                    <TableCell>{inspection.inspector}</TableCell>
+                                    <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            {inspection.assignedTechnicians.length > 0 
+                                                ? inspection.assignedTechnicians.map(t => <span key={t.id}>{t.name}</span>)
+                                                : <span>{inspection.inspector}</span>
+                                            }
+                                        </div>
+                                    </TableCell>
                                     <TableCell>{inspection.date}</TableCell>
                                     <TableCell>
                                         <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
@@ -221,7 +247,7 @@ export default function InspectionsPage() {
                 </Card>
             )}
 
-             {filteredInspections.length === 0 && (
+             {augmentedAndFilteredInspections.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
                     <div className="mx-auto h-12 w-12 text-muted-foreground">{pageIcon}</div>
                     <h2 className="mt-4 text-xl font-headline">{emptyStateTitle}</h2>

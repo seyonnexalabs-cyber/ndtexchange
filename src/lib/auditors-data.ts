@@ -1,3 +1,4 @@
+
 export type AuditFirm = {
     id: string;
     name: string;
@@ -6,6 +7,8 @@ export type AuditFirm = {
     services: string[];
     industries: string[];
     description: string;
+    contactPerson: string;
+    contactEmail: string;
 }
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Welding Inspection', 'Vendor Audits'];
@@ -16,6 +19,8 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-01',
         name: 'NDT Auditors LLC',
+        contactPerson: 'Alex Chen',
+        contactEmail: 'alex.c@ndtauditors.gov',
         location: 'Washington, D.C., USA',
         services: ['Compliance Audits', 'Level III Services', 'Procedure Development'],
         industries: ['Oil & Gas', 'Power Generation', 'Infrastructure'],
@@ -24,6 +29,8 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-02',
         name: 'Aero-Compliance Partners',
+        contactPerson: 'Brenda Vance',
+        contactEmail: 'b.vance@aerocompliance.com',
         location: 'Seattle, WA, USA',
         services: ['Procedure Development', 'Level III Services', 'Vendor Audits'],
         industries: ['Aerospace & Defense', 'Manufacturing'],

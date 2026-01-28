@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -125,6 +126,16 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     
+    const companyAdmins = useMemo(() => {
+        const admins = new Set<string>();
+        clientData.forEach(c => admins.add(c.contactPerson));
+        serviceProviders.forEach(p => admins.add(p.contactPerson));
+        auditFirms.forEach(a => admins.add(a.contactPerson));
+        return admins;
+    }, []);
+
+    const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);
+
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
             const searchMatch = !searchQuery ||
@@ -141,7 +152,7 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
     }, [users, searchQuery, selectedRoles, statusFilter]);
 
     const uniqueRoles = useMemo(() => {
-        const roles = new Set(allUsers.map(u => u.role));
+        const roles = new Set(allUsers.filter(u => u.company !== 'NDT Exchange').map(u => u.role));
         return Array.from(roles);
     }, []);
 
@@ -155,7 +166,7 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
         return (
             <div className="space-y-4">
                 {filteredUsers.map(user => (
-                    <Card key={user.id} className={cn(user.role.toLowerCase().includes('admin') && 'bg-accent/10')}>
+                    <Card key={user.id} className={cn(isCompanyAdmin(user) && 'bg-accent/10 border-accent')}>
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <Avatar>
@@ -170,7 +181,7 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                         <CardContent className="space-y-3 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Role</span>
-                                <span className="font-medium">{user.role}</span>
+                                <span className="font-medium">{user.role}{isCompanyAdmin(user) && ' (Admin)'}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Company</span>
@@ -276,12 +287,15 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
                     </TableHeader>
                     <TableBody>
                         {filteredUsers.map(user => (
-                            <TableRow key={user.id} className={cn(user.role.toLowerCase().includes('admin') && 'bg-accent/10')}>
+                            <TableRow key={user.id} className={cn(isCompanyAdmin(user) && 'bg-accent/10')}>
                                 <TableCell className="font-medium flex items-center gap-3">
                                     <Avatar>
                                         <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                     </Avatar>
-                                    {user.name}
+                                    <div>
+                                        {user.name}
+                                        {isCompanyAdmin(user) && <Badge variant="outline" className="ml-2 text-xs">Admin</Badge>}
+                                    </div>
                                 </TableCell>
                                 <TableCell>{user.email}</TableCell>
                                 <TableCell>{user.role}</TableCell>
@@ -311,7 +325,7 @@ const PlatformUsersView = ({ users }: { users: PlatformUser[] }) => {
 
 export default function UsersPage() {
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-    const [users, setUsers] = useState(allUsers);
+    const [users, setUsers] = useState(allUsers.filter(u => u.company !== 'NDT Exchange'));
     const { toast } = useToast();
 
     const handleAddUser = (values: z.infer<typeof userSchema>) => {

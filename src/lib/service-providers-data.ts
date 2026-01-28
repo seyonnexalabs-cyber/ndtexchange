@@ -8,12 +8,16 @@ export type NDTServiceProvider = {
     techniques: string[];
     industries: string[];
     description: string;
+    contactPerson: string;
+    contactEmail: string;
 }
 
 export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-01',
         name: 'MISTRAS Group',
+        contactPerson: 'Ben Carter',
+        contactEmail: 'ben.carter@mistras.com',
         location: 'Princeton Jct, NJ, USA (Global)',
         rating: 4.8,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'AE', 'VT', 'MT', 'PT', 'IR'],
@@ -23,6 +27,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-02',
         name: 'Applus+',
+        contactPerson: 'David Lee',
+        contactEmail: 'david.lee@applus.com',
         location: 'Barcelona, Spain (Global)',
         rating: 4.7,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'LT'],
@@ -32,6 +38,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-03',
         name: 'TEAM, Inc.',
+        contactPerson: 'Maria Garcia',
+        contactEmail: 'maria.garcia@teaminc.com',
         location: 'Sugar Land, TX, USA (Global)',
         rating: 4.5,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'IR'],
@@ -41,6 +49,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-04',
         name: 'TÜV Rheinland',
+        contactPerson: 'Samantha Wu',
+        contactEmail: 'samantha.wu@tuv.com',
         location: 'Cologne, Germany (Global)',
         rating: 4.9,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'LT', 'TOFD'],
@@ -50,6 +60,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-05',
         name: 'Intertek',
+        contactPerson: 'Peter Jones',
+        contactEmail: 'peter.jones@intertek.com',
         location: 'London, UK (Global)',
         rating: 4.6,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT'],
@@ -59,6 +71,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-06',
         name: 'Acuren',
+        contactPerson: 'Sarah Brown',
+        contactEmail: 'sarah.brown@acuren.com',
         location: 'St. John, Canada (North America)',
         rating: 4.7,
         techniques: ['UT', 'PAUT', 'RT', 'ET', 'VT', 'MT', 'PT', 'IR'],
@@ -68,6 +82,8 @@ export const serviceProviders: NDTServiceProvider[] = [
      {
         id: 'provider-07',
         name: 'Dekra',
+        contactPerson: 'Hans Schmidt',
+        contactEmail: 'hans.schmidt@dekra.com',
         location: 'Stuttgart, Germany (Global)',
         rating: 4.8,
         techniques: ['UT', 'RT', 'MT', 'PT', 'VT', 'ET', 'LT'],
@@ -77,6 +93,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-08',
         name: 'Bureau Veritas',
+        contactPerson: 'Juliette Dubois',
+        contactEmail: 'j.dubois@bureauveritas.com',
         location: 'Paris, France (Global)',
         rating: 4.7,
         techniques: ['UT', 'PAUT', 'RT', 'MT', 'PT', 'VT', 'ET'],
@@ -86,15 +104,19 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-09',
         name: 'Blue Horizon Services',
+        contactPerson: 'Tawfik Mohamed',
+        contactEmail: 'ask@bluehoriz.com',
         location: 'Abu Dhabi, UAE',
         rating: 4.6,
-        techniques: ['UT', 'PAUT', 'TOFD', 'AE', 'GWT'],
+        techniques: ['AE', 'APR', 'ACFM', 'GWT', 'MFL', 'DR', 'PAUT', 'ET', 'RVI', 'TOFD', 'UT'],
         industries: ['Oil & Gas', 'Marine'],
         description: "Specialists in advanced ultrasonic and acoustic emission technologies. Headquarters: Warehouse C3 01, Mussafah South, ICAD 3, Abu Dhabi. Email: ask@bluehoriz.com, Phone: +971 24440461. Contact: Mr Tawfik Mohamed."
     },
     {
         id: 'provider-10',
         name: 'Arise Global',
+        contactPerson: 'Chen Wei',
+        contactEmail: 'chen.wei@ariseglobal.com',
         location: 'Singapore',
         rating: 4.7,
         techniques: ['AE', 'APR', 'ACFM', 'GWT', 'MFL', 'DR', 'PAUT', 'ET', 'RVI', 'TOFD', 'UT'],

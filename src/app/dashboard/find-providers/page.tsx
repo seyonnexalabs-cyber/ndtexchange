@@ -133,7 +133,7 @@ export default function FindProvidersPage() {
                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
                                 <div className="flex flex-wrap gap-1.5 min-h-16">
                                     {provider.techniques.map(tech => (
-                                        <Badge key={tech} variant="outline">{tech}</Badge>
+                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
                                     ))}
                                 </div>
                             </div>

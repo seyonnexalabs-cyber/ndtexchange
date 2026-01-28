@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -322,7 +323,7 @@ export default function JobCostAnalysisReportPage() {
                                 <TableRow key={job!.id}>
                                     <TableCell className="font-medium">{job!.title}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job!.providerId)?.name}</TableCell>
-                                    <TableCell><Badge variant="secondary">{job!.technique}</Badge></TableCell>
+                                    <TableCell><Badge variant="secondary" shape="rounded">{job!.technique}</Badge></TableCell>
                                     <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
                                     <TableCell>{job!.duration}</TableCell>
                                     <TableCell>{job!.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT): ''}</TableCell>

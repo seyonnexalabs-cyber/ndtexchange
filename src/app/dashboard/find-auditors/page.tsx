@@ -132,7 +132,7 @@ export default function FindAuditorsPage() {
                                 <h4 className="text-sm font-semibold mb-2">Specialties</h4>
                                 <div className="flex flex-wrap gap-1.5 min-h-16">
                                     {firm.specialties.map(tech => (
-                                        <Badge key={tech} variant="outline">{tech}</Badge>
+                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
                                     ))}
                                 </div>
                             </div>

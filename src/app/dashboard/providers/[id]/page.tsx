@@ -99,7 +99,7 @@ export default function ProviderDetailPage() {
                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
                                 <div className="flex flex-wrap gap-1.5">
                                     {provider.techniques.map(tech => (
-                                        <Badge key={tech} variant="outline">{tech}</Badge>
+                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
                                     ))}
                                 </div>
                             </div>
@@ -134,7 +134,7 @@ export default function ProviderDetailPage() {
                                                 <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
                                             </div>
                                              <div className="flex flex-wrap gap-1 mt-3">
-                                                {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary">{cert.method}</Badge>)}
+                                                {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
                                             </div>
                                         </Card>
                                     ))}
@@ -161,7 +161,7 @@ export default function ProviderDetailPage() {
                                             <TableCell>{tech.level}</TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">
-                                                    {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary">{cert.method}</Badge>)}
+                                                    {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
                                                 </div>
                                             </TableCell>
                                             <TableCell>

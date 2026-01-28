@@ -163,7 +163,7 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1">
-                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
+                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
                                 </div>
                             </TableCell>
                             <TableCell>
@@ -221,7 +221,7 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                     <CardContent>
                         <h4 className="text-sm font-semibold mb-2">Certifications</h4>
                         <div className="flex flex-wrap gap-1">
-                            {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
+                            {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">

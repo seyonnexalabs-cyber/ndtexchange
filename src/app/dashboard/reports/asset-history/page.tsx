@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -213,7 +214,7 @@ export default function AssetHistoryReportPage() {
                             {filteredInspections.map(inspection => (
                                 <TableRow key={inspection.id}>
                                     <TableCell className="font-medium">{inspection.assetName}</TableCell>
-                                    <TableCell><Badge variant="secondary">{inspection.technique}</Badge></TableCell>
+                                    <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
                                     <TableCell>{inspection.inspector}</TableCell>
                                     <TableCell>
                                          <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>

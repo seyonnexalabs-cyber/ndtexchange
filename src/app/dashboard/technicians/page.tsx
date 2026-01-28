@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,14 +27,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from "@/components/ui/separator";
 
 const technicianSchema = z.object({
+  id: z.string().optional(), // For editing
   name: z.string().min(2, "Name is required."),
   level: z.enum(['Level I', 'Level II', 'Level III'], { required_error: "Please select a level." }),
   certifications: z.array(z.string()).min(1, "At least one certification must be selected."),
+  status: z.enum(['Available', 'On Assignment', 'Disabled']).optional(),
 });
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
 
-const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues> }) => {
+const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>, isEditing: boolean }) => {
     const form = useForm<TechnicianFormValues>({
         resolver: zodResolver(technicianSchema),
         defaultValues: defaultValues || {
@@ -60,6 +62,30 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () =>
                         </FormItem>
                     )}
                 />
+                 {isEditing && (
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a status" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Available">Available</SelectItem>
+                                        <SelectItem value="On Assignment">On Assignment</SelectItem>
+                                        <SelectItem value="Disabled">Disabled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <FormField
                     control={form.control}
                     name="level"
@@ -137,6 +163,12 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () =>
     );
 };
 
+const technicianStatusVariants: {[key: string]: 'success' | 'default' | 'outline'} = {
+    'Available': 'success',
+    'On Assignment': 'default',
+    'Disabled': 'outline',
+}
+
 const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; })[]; onEditClick: (technician: Technician) => void; }) => (
     <Card>
         <CardHeader>
@@ -165,7 +197,7 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                             </TableCell>
                             <TableCell>{tech.completedJobs}</TableCell>
                             <TableCell>
-                                <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
+                                <Badge variant={technicianStatusVariants[tech.status]}>{tech.status}</Badge>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1">
@@ -219,7 +251,7 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                                     <CardTitle>{tech.name}</CardTitle>
                                 </div>
                             </div>
-                            <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
+                            <Badge variant={technicianStatusVariants[tech.status]}>{tech.status}</Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -271,7 +303,8 @@ export default function TechniciansPage() {
     
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
-    const [technicianList, setTechnicianList] = useState(initialTechnicians);
+    const [technicianList, setTechnicianList] = useState(() => initialTechnicians.filter(t => t.providerId === 'provider-03'));
+    const [statusFilter, setStatusFilter] = useState('all');
     
     const technicianListWithStats = useMemo(() => {
         return technicianList.map(tech => {
@@ -281,6 +314,12 @@ export default function TechniciansPage() {
             return { ...tech, completedJobs };
         });
     }, [technicianList]);
+
+    const filteredTechnicians = useMemo(() => {
+        return technicianListWithStats.filter(tech => {
+            return statusFilter === 'all' || tech.status === statusFilter;
+        });
+    }, [technicianListWithStats, statusFilter]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -312,7 +351,7 @@ export default function TechniciansPage() {
 
         if (isEditing) {
             setTechnicianList(prev => prev.map(tech => 
-                tech.id === editingTechnician.id ? { ...tech, name: values.name, certifications: newCertifications } : tech
+                tech.id === editingTechnician.id ? { ...tech, name: values.name, certifications: newCertifications, status: values.status || tech.status } : tech
             ));
             toast({
                 title: "Technician Updated",
@@ -337,15 +376,28 @@ export default function TechniciansPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Users/>
                     Technicians
                 </h1>
-                <Button onClick={handleAddClick}>Add New Technician</Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="Available">Available</SelectItem>
+                            <SelectItem value="On Assignment">On Assignment</SelectItem>
+                            <SelectItem value="Disabled">Disabled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={handleAddClick} className="w-full sm:w-auto">Add New Technician</Button>
+                </div>
             </div>
             
-            {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianListWithStats} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={technicianListWithStats} onEditClick={handleEditClick} />}
+            {isMobile ? <MobileView constructUrl={constructUrl} technicians={filteredTechnicians} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={filteredTechnicians} onEditClick={handleEditClick} />}
 
             <Dialog open={isFormOpen} onOpenChange={(open) => {if (!open) closeDialog()}}>
                 <DialogContent>
@@ -365,7 +417,9 @@ export default function TechniciansPage() {
                             name: editingTechnician.name,
                             level: (['Level I', 'Level II', 'Level III'] as const)[Math.max(...editingTechnician.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))],
                             certifications: editingTechnician.certifications.map(c => c.method),
+                            status: editingTechnician.status,
                         } : undefined}
+                        isEditing={!!editingTechnician}
                     />
                 </DialogContent>
             </Dialog>

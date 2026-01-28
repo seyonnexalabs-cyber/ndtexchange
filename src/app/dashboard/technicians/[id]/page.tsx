@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { technicians, jobs, Technician, Job } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
-import { ChevronLeft, User, Briefcase, Star, HardHat, Edit } from "lucide-react";
+import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -31,9 +32,10 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Paid': 'success'
 };
 
-const technicianStatusVariants: { [key in Technician['status']]: 'success' | 'default' } = {
+const technicianStatusVariants: { [key in Technician['status']]: 'success' | 'default' | 'outline' } = {
     'Available': 'success',
     'On Assignment': 'default',
+    'Disabled': 'outline',
 };
 
 
@@ -84,6 +86,16 @@ export default function TechnicianDetailPage() {
                     </Link>
                 </Button>
             </div>
+
+            {technician.status === 'Disabled' && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Technician Inactive</AlertTitle>
+                    <AlertDescription>
+                        This technician is no longer active with the company. Their profile is maintained for historical job records.
+                    </AlertDescription>
+                </Alert>
+            )}
             
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-1 space-y-6">

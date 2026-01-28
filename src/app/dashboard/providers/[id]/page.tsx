@@ -41,7 +41,7 @@ export default function ProviderDetailPage() {
     const role = searchParams.get('role');
     
     const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
-    const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === id), [id]);
+    const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === id && t.status !== 'Disabled'), [id]);
     const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
 
     if (!provider) {

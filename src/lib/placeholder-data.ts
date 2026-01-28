@@ -100,7 +100,7 @@ export type Technician = {
     id: string;
     name: string;
     certifications: Certification[];
-    status: 'Available' | 'On Assignment';
+    status: 'Available' | 'On Assignment' | 'Disabled';
     providerId: string;
 };
 
@@ -276,7 +276,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'CAL-BLK-01', 
         name: 'IIW Type 1 Block', 
         manufacturer: 'Generic',
-        techniques: ['Calibration'], 
+        techniques: ['UT', 'PAUT'], 
         providerId: 'provider-03',
         status: 'Available', 
         nextCalibration: 'N/A',
@@ -329,6 +329,7 @@ export const technicians: Technician[] = [
     { id: 'TECH-06', name: 'Frank Miller', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], status: 'Available', providerId: 'provider-02' },
     { id: 'TECH-07', name: 'Samantha Wu', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-04' },
     { id: 'TECH-08', name: 'James Wilson', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], status: 'Available', providerId: 'provider-03' },
+    { id: 'TECH-09', name: 'Steven Shaw', certifications: [{method: 'RT', level: 'Level II'}], status: 'Disabled', providerId: 'provider-03' },
 ];
 
 const today = new Date();

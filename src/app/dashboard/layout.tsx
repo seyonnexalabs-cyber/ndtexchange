@@ -6,7 +6,10 @@ import { SearchProvider } from '@/app/components/layout/search-provider';
 import { QRScannerProvider } from '@/app/components/layout/qr-scanner-provider';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | NDT Exchange',
+  title: {
+    template: '%s | NDT Exchange',
+    default: 'Dashboard | NDT Exchange'
+  },
   description: 'Manage your NDT operations.',
 };
 

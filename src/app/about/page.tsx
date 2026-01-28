@@ -1,4 +1,5 @@
 
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldCheck, Building, UserCheck, CheckCircle, Globe } from 'lucide-react';
@@ -7,6 +8,11 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+export const metadata: Metadata = {
+  title: 'About Us | NDT Exchange',
+  description: 'Learn about NDT Exchange, the purpose-built digital ecosystem connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.',
+};
 
 export default function AboutPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');

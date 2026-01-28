@@ -1,8 +1,14 @@
 
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+
+export const metadata: Metadata = {
+    title: 'Privacy Policy | NDT Exchange',
+    description: 'Read the NDT Exchange privacy policy to understand how we collect, use, and protect your personal information and data.',
+};
 
 export default function PrivacyPage() {
   return (

@@ -1,4 +1,5 @@
 
+import type { Metadata } from 'next';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,11 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+export const metadata: Metadata = {
+  title: 'Contact & Pricing | NDT Exchange',
+  description: 'Explore flexible plans for every role in the asset integrity industry. Start your 30-day free trial. No credit card required.',
+};
 
 export default function ContactPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');

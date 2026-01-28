@@ -1,8 +1,14 @@
 
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+
+export const metadata: Metadata = {
+    title: 'Terms and Conditions | NDT Exchange',
+    description: 'Review the terms and conditions for using the NDT Exchange platform. Your use of the service is subject to these terms.',
+};
 
 export default function TermsPage() {
   return (

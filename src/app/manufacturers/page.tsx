@@ -1,5 +1,6 @@
 
 import * as React from 'react';
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Waves, Scan, Magnet, Eye, Thermometer, Ear, Link as LinkIcon, Building, TestTube, Lightbulb, Radio } from 'lucide-react';
@@ -9,6 +10,11 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+export const metadata: Metadata = {
+  title: 'NDT Equipment Manufacturers Directory | NDT Exchange',
+  description: 'A curated list of prominent Original Equipment Manufacturers (OEMs) for various NDT techniques, including UT, RT, ET, MT, PT, and more.',
+};
 
 const manufacturers = [
   {

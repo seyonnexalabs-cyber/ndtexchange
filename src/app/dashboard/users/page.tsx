@@ -40,13 +40,12 @@ const userSchema = z.object({
   email: z.string().email(),
   role: z.string({required_error: "Please select a role."}),
   company: z.string({required_error: "Please select a company."}),
-  isCompanyAdmin: z.boolean().default(false),
 });
 
 const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof userSchema>) => void; }) => {
     const form = useForm<z.infer<typeof userSchema>>({
         resolver: zodResolver(userSchema),
-        defaultValues: { name: '', email: '', isCompanyAdmin: false },
+        defaultValues: { name: '', email: '' },
     });
 
     const selectedRole = form.watch("role");
@@ -171,28 +170,6 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
                     )}
                 />
                 
-                <FormField
-                    control={form.control}
-                    name="isCompanyAdmin"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                        <FormControl>
-                            <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                            <FormLabel>
-                            Set as Company Administrator
-                            </FormLabel>
-                            <FormDescription>
-                            This user will be able to manage team members for their company.
-                            </FormDescription>
-                        </div>
-                        </FormItem>
-                    )}
-                />
                  <DialogFooter className="pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                     <Button type="submit">Send Invitation</Button>
@@ -441,7 +418,7 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem
                                                 onClick={() => setUserToPromote(user)}
-                                                disabled={isCompanyAdmin(user)}
+                                                disabled={isCompanyAdmin(user) || user.status !== 'Active'}
                                             >
                                                 Make Company Admin
                                             </DropdownMenuItem>
@@ -473,7 +450,7 @@ const PlatformUsersView = ({ users, companyAdmins, onSetCompanyAdmin }: { users:
                         <AlertDialogCancel onClick={() => setUserToPromote(null)}>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={() => {
                             if (userToPromote) {
-                                onSetCompanyAdmin(userToPromote);
+                                onSetCompanyAdmin(userToMakeAdmin);
                             }
                             setUserToPromote(null);
                         }}>
@@ -491,7 +468,6 @@ export default function UsersPage() {
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [users, setUsers] = useState(() => allUsers.filter(u => u.company !== 'NDT Exchange'));
     const { toast } = useToast();
-    const [newUserAdminConfirm, setNewUserAdminConfirm] = useState<{values: z.infer<typeof userSchema>, currentAdmin: string} | null>(null);
     
     const [companyAdmins, setCompanyAdmins] = useState(() => {
         const admins = new Set<string>();
@@ -501,7 +477,7 @@ export default function UsersPage() {
         return admins;
     });
 
-    const proceedWithAddUser = (values: z.infer<typeof userSchema>) => {
+    const handleAddUser = (values: z.infer<typeof userSchema>) => {
         const newUser: PlatformUser = {
             id: `user-${Date.now()}`,
             name: values.name,
@@ -512,27 +488,11 @@ export default function UsersPage() {
         };
         setUsers(prev => [newUser, ...prev]);
 
-        if (values.isCompanyAdmin) {
-            handleSetCompanyAdmin(newUser);
-        }
-
         setIsAddUserOpen(false);
         toast({
             title: 'User Invited',
             description: `An invitation email has been sent to ${values.email}.`,
         });
-    };
-
-    const handleAddUser = (values: z.infer<typeof userSchema>) => {
-        if (values.isCompanyAdmin) {
-            const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-            const company = allCompanies.find(c => c.name === values.company);
-            if (company && company.contactPerson) {
-                setNewUserAdminConfirm({ values, currentAdmin: company.contactPerson });
-                return;
-            }
-        }
-        proceedWithAddUser(values);
     };
 
     const handleSetCompanyAdmin = (userToMakeAdmin: PlatformUser) => {
@@ -543,7 +503,7 @@ export default function UsersPage() {
 
         const currentAdminName = company.contactPerson;
 
-        // Update the static data for demonstration purposes
+        // This is a mock update. In a real app, this would be an API call.
         company.contactPerson = userToMakeAdmin.name;
 
         // Update the state
@@ -587,29 +547,6 @@ export default function UsersPage() {
                     <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} />
                 </DialogContent>
             </Dialog>
-
-            <AlertDialog open={!!newUserAdminConfirm} onOpenChange={(open) => !open && setNewUserAdminConfirm(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Replace Company Administrator?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            You are about to invite {newUserAdminConfirm?.values.name} as the new administrator for {newUserAdminConfirm?.values.company}.
-                            This will replace the current admin, {newUserAdminConfirm?.currentAdmin}. The previous admin will become a regular team member. Are you sure you want to continue?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setNewUserAdminConfirm(null)}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
-                            if (newUserAdminConfirm) {
-                                proceedWithAddUser(newUserAdminConfirm.values);
-                            }
-                            setNewUserAdminConfirm(null);
-                        }}>
-                            Yes, Replace Admin
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 

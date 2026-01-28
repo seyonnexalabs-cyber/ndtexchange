@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -29,14 +28,6 @@ const StarRating = ({ rating }: { rating: number }) => {
             <span className="ml-2 text-xs text-muted-foreground">{rating.toFixed(1)}</span>
         </div>
     );
-};
-
-const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
-    'Available': 'success',
-    'In Use': 'default',
-    'Calibration Due': 'destructive',
-    'Out of Service': 'outline',
-    'Under Service': 'secondary',
 };
 
 export default function ProviderDetailPage() {
@@ -141,7 +132,6 @@ export default function ProviderDetailPage() {
                                                         <p className="text-sm text-muted-foreground">{tech.level}</p>
                                                     </div>
                                                 </div>
-                                                <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
                                             </div>
                                              <div className="flex flex-wrap gap-1 mt-3">
                                                 {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
@@ -156,7 +146,6 @@ export default function ProviderDetailPage() {
                                         <TableHead>Name</TableHead>
                                         <TableHead>Level</TableHead>
                                         <TableHead>Certifications</TableHead>
-                                        <TableHead>Status</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -173,9 +162,6 @@ export default function ProviderDetailPage() {
                                                 <div className="flex flex-wrap gap-1">
                                                     {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={tech.status === 'Available' ? 'default' : 'outline'}>{tech.status}</Badge>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -210,7 +196,6 @@ export default function ProviderDetailPage() {
                                                     <p className="font-semibold">{equip.name}</p>
                                                     <p className="text-sm text-muted-foreground">{equip.type}</p>
                                                 </div>
-                                                <Badge variant={statusVariants[equip.status]}>{equip.status}</Badge>
                                             </div>
                                         </Card>
                                     ))}
@@ -221,7 +206,6 @@ export default function ProviderDetailPage() {
                                     <TableRow>
                                         <TableHead>Equipment Name</TableHead>
                                         <TableHead>Type</TableHead>
-                                        <TableHead>Status</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -229,9 +213,6 @@ export default function ProviderDetailPage() {
                                         <TableRow key={equip.id}>
                                             <TableCell className="font-medium">{equip.name}</TableCell>
                                             <TableCell>{equip.type}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={statusVariants[equip.status]}>{equip.status}</Badge>
-                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

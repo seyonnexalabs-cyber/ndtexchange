@@ -79,7 +79,7 @@ export const serviceProviders: NDTServiceProvider[] = [
         name: 'Blue Horizon Services',
         location: 'Abu Dhabi, UAE',
         rating: 4.6,
-        techniques: ['PAUT', 'TOFD', 'AE', 'GWT', 'VT'],
+        techniques: ['UT', 'PAUT', 'TOFD', 'AE', 'GWT', 'VT'],
         description: "Specialists in advanced ultrasonic and acoustic emission technologies. Headquarters: Warehouse C3 01, Mussafah South, ICAD 3, Abu Dhabi. Email: ask@bluehoriz.com, Phone: +971 24440461. Contact: Mr Tawfik Mohamed."
     },
     {
@@ -87,7 +87,7 @@ export const serviceProviders: NDTServiceProvider[] = [
         name: 'Arise Global',
         location: 'Singapore',
         rating: 4.7,
-        techniques: ['AE', 'APR', 'ACFM', 'Corrosion Mapping', 'GWT', 'MFL', 'DR', 'HTHA', 'PAUT', 'PEC', 'RVI', 'SRUT', 'TOFD', 'Tube Inspection', 'Automated UT'],
+        techniques: ['AE', 'APR', 'ACFM', 'GWT', 'MFL', 'DR', 'PAUT', 'ET', 'RVI', 'TOFD', 'UT'],
         description: "A leading inspection and certification provider in Southeast Asia. Headquarters: 34 Toh Guan Road East, #01-12/13 Enterprise Hub, Singapore 608579. Email: ask@ariseglobal.com, Phone: +65 6559 4677."
     }
 ];

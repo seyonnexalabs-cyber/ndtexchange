@@ -15,6 +15,7 @@ import { ChevronLeft, User, Briefcase, Star, HardHat, Edit } from "lucide-react"
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -46,6 +47,7 @@ export default function TechnicianDetailPage() {
     const technician = useMemo(() => technicians.find(t => t.id === id), [id]);
     const assignedJobs = useMemo(() => jobs.filter(j => j.technicianIds?.includes(id as string)), [id]);
     const provider = useMemo(() => serviceProviders.find(p => p.id === technician?.providerId), [technician]);
+    const completedJobsCount = useMemo(() => assignedJobs.filter(j => ['Completed', 'Paid'].includes(j.status)).length, [assignedJobs]);
 
     if (!technician) {
         notFound();
@@ -101,6 +103,12 @@ export default function TechnicianDetailPage() {
                         </CardHeader>
                         <CardContent className="text-center">
                              <Badge variant={technicianStatusVariants[technician.status]}>{technician.status}</Badge>
+                             <div className="mt-4 text-sm border-t pt-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">Jobs Completed</span>
+                                    <span className="font-semibold">{completedJobsCount}</span>
+                                </div>
+                             </div>
                         </CardContent>
                     </Card>
                      <Card>

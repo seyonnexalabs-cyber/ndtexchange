@@ -3,7 +3,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { technicians as initialTechnicians, NDTTechniques, Technician, Certification } from "@/lib/placeholder-data";
+import { technicians as initialTechnicians, jobs, NDTTechniques, Technician, Certification } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -136,7 +136,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () =>
     );
 };
 
-const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: Technician[]; onEditClick: (technician: Technician) => void; }) => (
+const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; highestLevel: string; })[]; onEditClick: (technician: Technician) => void; }) => (
     <Card>
         <CardHeader>
             <CardTitle>Technician Roster</CardTitle>
@@ -147,8 +147,10 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                 <TableHeader>
                     <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Certifications</TableHead>
+                        <TableHead>Level</TableHead>
+                        <TableHead>Jobs Completed</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Certifications</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -161,13 +163,15 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                                 </Avatar>
                                 {tech.name}
                             </TableCell>
-                            <TableCell>
-                                <div className="flex flex-wrap gap-1">
-                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
-                                </div>
-                            </TableCell>
+                            <TableCell>{tech.highestLevel}</TableCell>
+                            <TableCell>{tech.completedJobs}</TableCell>
                             <TableCell>
                                 <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-wrap gap-1">
+                                    {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method}</Badge>)}
+                                </div>
                             </TableCell>
                             <TableCell className="text-right">
                                 <DropdownMenu>
@@ -195,13 +199,9 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
     </Card>
 );
 
-const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: Technician[]; onEditClick: (technician: Technician) => void; }) => (
+const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; highestLevel: string; })[]; onEditClick: (technician: Technician) => void; }) => (
     <div className="space-y-4">
         {technicians.map(tech => {
-            const highestLevel = (tech.certifications.length > 0)
-                ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
-                : 'N/A';
-
             return (
                 <Card key={tech.id}>
                     <CardHeader>
@@ -212,16 +212,20 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                                 </Avatar>
                                 <div>
                                     <CardTitle>{tech.name}</CardTitle>
-                                    <CardDescription>{highestLevel} Inspector</CardDescription>
+                                    <CardDescription>{tech.highestLevel} Inspector</CardDescription>
                                 </div>
                             </div>
                             <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
+                        <div className="flex justify-between text-sm mb-4">
+                            <span className="text-muted-foreground">Jobs Completed</span>
+                            <span className="font-bold">{tech.completedJobs}</span>
+                        </div>
                         <h4 className="text-sm font-semibold mb-2">Certifications</h4>
                         <div className="flex flex-wrap gap-1">
-                            {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method} ({cert.level.replace('Level ', '')})</Badge>)}
+                            {tech.certifications.map((cert, i) => <Badge key={i} variant="secondary" shape="rounded">{cert.method}</Badge>)}
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
@@ -258,6 +262,18 @@ export default function TechniciansPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
     const [technicianList, setTechnicianList] = useState(initialTechnicians);
+    
+    const technicianListWithStats = useMemo(() => {
+        return technicianList.map(tech => {
+            const completedJobs = jobs.filter(job => 
+                job.technicianIds?.includes(tech.id) && (job.status === 'Completed' || job.status === 'Paid')
+            ).length;
+            const highestLevel = (tech.certifications.length > 0)
+                ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
+                : 'N/A';
+            return { ...tech, completedJobs, highestLevel };
+        });
+    }, [technicianList]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -322,7 +338,7 @@ export default function TechniciansPage() {
                 <Button onClick={handleAddClick}>Add New Technician</Button>
             </div>
             
-            {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={technicianList} onEditClick={handleEditClick} />}
+            {isMobile ? <MobileView constructUrl={constructUrl} technicians={technicianListWithStats} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={technicianListWithStats} onEditClick={handleEditClick} />}
 
             <Dialog open={isFormOpen} onOpenChange={(open) => {if (!open) closeDialog()}}>
                 <DialogContent>

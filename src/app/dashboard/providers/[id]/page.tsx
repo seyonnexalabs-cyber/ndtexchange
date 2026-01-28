@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -10,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
-import { technicians, inspectorAssets, InspectorAsset } from "@/lib/placeholder-data";
+import { technicians, inspectorAssets, InspectorAsset, Technician } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -120,24 +121,29 @@ export default function ProviderDetailPage() {
                         <CardContent>
                            {isMobile ? (
                                 <div className="space-y-4">
-                                    {providerTechnicians.map(tech => (
-                                        <Card key={tech.id} className="p-4">
-                                             <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar>
-                                                        <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold">{tech.name}</p>
-                                                        <p className="text-sm text-muted-foreground">{tech.level}</p>
+                                    {providerTechnicians.map(tech => {
+                                        const highestLevel = (tech.certifications.length > 0)
+                                            ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
+                                            : 'N/A';
+                                        return (
+                                            <Card key={tech.id} className="p-4">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold">{tech.name}</p>
+                                                            <p className="text-sm text-muted-foreground">{highestLevel}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                             <div className="flex flex-wrap gap-1 mt-3">
-                                                {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
-                                            </div>
-                                        </Card>
-                                    ))}
+                                                <div className="flex flex-wrap gap-1 mt-3">
+                                                    {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
+                                                </div>
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
                            ) : (
                              <Table>
@@ -149,22 +155,27 @@ export default function ProviderDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {providerTechnicians.map(tech => (
-                                        <TableRow key={tech.id}>
-                                            <TableCell className="font-medium flex items-center gap-3">
-                                                <Avatar>
-                                                <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                </Avatar>
-                                                {tech.name}
-                                            </TableCell>
-                                            <TableCell>{tech.level}</TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {providerTechnicians.map(tech => {
+                                        const highestLevel = (tech.certifications.length > 0)
+                                            ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...tech.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))]
+                                            : 'N/A';
+                                        return (
+                                            <TableRow key={tech.id}>
+                                                <TableCell className="font-medium flex items-center gap-3">
+                                                    <Avatar>
+                                                    <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                    </Avatar>
+                                                    {tech.name}
+                                                </TableCell>
+                                                <TableCell>{highestLevel}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {tech.certifications.map(cert => <Badge key={cert.method} variant="secondary" shape="rounded">{cert.method}</Badge>)}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </TableBody>
                             </Table>
                            )}

@@ -85,7 +85,7 @@ const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (v
                         name="contactEmail"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Contact Email</FormLabel>
+                                <FormLabel>Primary Contact Email</FormLabel>
                                 <FormControl>
                                     <Input type="email" placeholder="e.g., contact@company.com" {...field} />
                                 </FormControl>

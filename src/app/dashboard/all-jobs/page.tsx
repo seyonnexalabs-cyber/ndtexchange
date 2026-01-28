@@ -1,18 +1,21 @@
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, technicians, inspectorAssets, Job } from "@/lib/placeholder-data";
+import { jobs, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { serviceProviders } from "@/lib/service-providers-data";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
 
 
 const statusFilters = ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'];
@@ -37,6 +40,7 @@ export default function AllJobsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const isMobile = useIsMobile();
     
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -175,40 +179,77 @@ export default function AllJobsPage() {
                 </div>
             )}
             
-            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                {filteredJobs.map(job => (
-                    <Card key={job.id}>
-                        <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
-                            </div>
-                            <CardDescription>{job.client} - {job.technique}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <div className="flex items-center text-sm text-muted-foreground">
-                                <MapPin className="w-4 h-4 mr-2" />
-                                <span>{job.location}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                                <Calendar className="w-4 h-4 mr-2" />
-                                <span>Posted: {job.postedDate}</span>
-                            </div>
-                            {job.bidExpiryDate && (
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                    <AlarmClock className="w-4 h-4 mr-2" />
-                                    <span>Bids Expire: {job.bidExpiryDate}</span>
+            {isMobile ? (
+                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                    {filteredJobs.map(job => (
+                        <Card key={job.id}>
+                            <CardHeader>
+                                <div className="flex justify-between items-start">
+                                    <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                    <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                 </div>
-                            )}
-                        </CardContent>
-                        <CardFooter>
-                            <Button asChild>
-                                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
+                                <CardDescription>{job.client} - {job.technique}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <MapPin className="w-4 h-4 mr-2" />
+                                    <span>{job.location}</span>
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <Calendar className="w-4 h-4 mr-2" />
+                                    <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                </div>
+                                {job.bidExpiryDate && (
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <AlarmClock className="w-4 h-4 mr-2" />
+                                        <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
+                                    </div>
+                                )}
+                            </CardContent>
+                            <CardFooter>
+                                <Button asChild>
+                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                <Card>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Job Title</TableHead>
+                                <TableHead>Client</TableHead>
+                                <TableHead>Technique</TableHead>
+                                <TableHead>Location</TableHead>
+                                <TableHead>Posted</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredJobs.map(job => (
+                                <TableRow key={job.id}>
+                                    <TableCell className="font-medium">{job.title}</TableCell>
+                                    <TableCell>{job.client}</TableCell>
+                                    <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
+                                    <TableCell>{job.location}</TableCell>
+                                    <TableCell>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Details</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Card>
+            )}
 
              {filteredJobs.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">

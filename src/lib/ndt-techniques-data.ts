@@ -26,6 +26,7 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "Vallen Systeme", url: "https://www.vallen.de/en/" },
             { name: "Physical Acoustics Corp (PAC)", url: "https://www.pacndt.com/" },
             { name: "Score Atlanta Inc.", url: "https://www.score-atl.com/" },
+            { name: "DNV", url: "https://www.dnv.com/services/non-destructive-testing-ndt-3947" },
         ]
     },
     {
@@ -51,6 +52,7 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "UniWest", url: "https://uniwest.com/" },
             { name: "Eddyfi Technologies", url: "https://www.eddyfitechnologies.com" },
             { name: "ibg NDT Systems", url: "https://www.ibg-ndt.com/" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
         ]
     },
     {
@@ -61,6 +63,7 @@ export const ndtTechniques: NDTTechnique[] = [
         imageId: 'tech-ut',
         companies: [
             { name: "GUL (Guided Ultrasonics Ltd.)", url: "https://www.guided-ultrasonics.com/" },
+            { name: "DNV", url: "https://www.dnv.com/services/non-destructive-testing-ndt-3947" },
         ]
     },
     {
@@ -86,6 +89,7 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "Pfeiffer Vacuum", url: "https://www.pfeiffer-vacuum.com" },
             { name: "LACO Technologies", url: "https://www.lacotech.com" },
             { name: "ATEQ", url: "https://www.ateq-leak-testing.com/" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
         ]
     },
     {
@@ -109,6 +113,8 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "Parker Research Corp", url: "https://www.parkerndt.com" },
             { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
             { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
+            { name: "DNV", url: "https://www.dnv.com/services/non-destructive-testing-ndt-3947" },
         ]
     },
     {
@@ -132,6 +138,8 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "Magnaflux", url: "https://www.magnaflux.com" },
             { name: "Sherwin Inc.", url: "https://sherwininc.com/" },
             { name: "Chemetall", url: "https://www.chemetall.com/en/products/non-destructive-testing.php" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
+            { name: "DNV", url: "https://www.dnv.com/services/non-destructive-testing-ndt-3947" },
         ]
     },
     {
@@ -149,6 +157,7 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "Teledyne ICM", url: "https://www.teledyneicm.com/" },
             { name: "Rigaku", url: "https://www.rigaku.com/en/products/ct" },
             { name: "Vidisco", url: "https://www.vidisco.com/" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
         ]
     },
     {
@@ -168,6 +177,8 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "Imagilent", url: "https://www.imagilent.com/" },
             { name: "DolphiTech", url: "https://www.dolphitech.com/" },
             { name: "Karl Deutsch", url: "https://www.karldeutsch.de/en/" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
+            { name: "DNV", url: "https://www.dnv.com/services/non-destructive-testing-ndt-3947" },
         ]
     },
     {
@@ -183,6 +194,8 @@ export const ndtTechniques: NDTTechnique[] = [
             { name: "IT Concepts", url: "https://www.itc-ndt.com/" },
             { name: "Karl Storz", url: "https://www.karlstorz.com/industrial.htm" },
             { name: "Mitcorp", url: "https://www.mitcorp.com.tw/" },
+            { name: "SGS", url: "https://www.sgs.com/en/services/non-destructive-testing-ndt" },
+            { name: "DNV", url: "https://www.dnv.com/services/non-destructive-testing-ndt-3947" },
         ]
     }
 ];

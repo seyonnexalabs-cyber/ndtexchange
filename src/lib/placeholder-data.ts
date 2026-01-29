@@ -334,6 +334,9 @@ export const technicians: Technician[] = [
     { id: 'TECH-10', name: 'Olivia Chen', certifications: [{method: 'PT', level: 'Level II'}, {method: 'VT', level: 'Level II'}], status: 'Available', providerId: 'provider-04' },
     { id: 'TECH-11', name: 'Michael Brown', certifications: [{method: 'UT', level: 'Level I'}, {method: 'MT', level: 'Level I'}], status: 'Available', providerId: 'provider-03' },
     { id: 'TECH-12', name: 'Emily Rodriguez', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'UT', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-01' },
+    { id: 'TECH-13', name: 'Isabelle Laurent', certifications: [{method: 'RT', level: 'Level III'}, {method: 'UT', level: 'Level II'}], status: 'Available', providerId: 'provider-11' },
+    { id: 'TECH-14', name: 'Jean-Pierre', certifications: [{method: 'ET', level: 'Level II'}, {method: 'PT', level: 'Level II'}], status: 'Available', providerId: 'provider-11' },
+    { id: 'TECH-15', name: 'Lars Andersen', certifications: [{method: 'VT', level: 'Level III'}, {method: 'AE', level: 'Level III'}], status: 'Available', providerId: 'provider-12' },
 ];
 
 const today = new Date();
@@ -460,6 +463,9 @@ export const jobs: Job[] = [
     { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['TECH-02'], workflow: 'standard' },
     { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { id: 'JOB-017', title: 'Shutdown Support - PT/MT', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Houston, TX', technique: 'PT', status: 'Scheduled', postedDate: '2024-07-25', scheduledStartDate: nextWeek.toISOString().split('T')[0], scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], assetIds: [], workflow: 'standard' },
+    { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: [], workflow: 'level3' },
+    { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'ET', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: [], workflow: 'standard' },
+    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['TECH-15'], assetIds: [], workflow: 'standard' },
 ];
 
 export const bids: Bid[] = [
@@ -477,6 +483,9 @@ export const bids: Bid[] = [
     { id: 'BID-015', jobId: 'JOB-015', providerId: 'provider-07', amount: 3500, status: 'Awarded', submittedDate: '2024-07-03' },
     { id: 'BID-016', jobId: 'JOB-016', providerId: 'provider-02', amount: 14000, status: 'Submitted', submittedDate: '2024-07-24' },
     { id: 'BID-017', jobId: 'JOB-017', providerId: 'provider-03', amount: 19500, status: 'Awarded', submittedDate: '2024-07-26' },
+    { id: 'BID-018', jobId: 'JOB-018', providerId: 'provider-11', amount: 25000, status: 'Submitted', submittedDate: '2024-07-29' },
+    { id: 'BID-019', jobId: 'JOB-019', providerId: 'provider-11', amount: 18000, status: 'Submitted', submittedDate: '2024-07-30' },
+    { id: 'BID-020', jobId: 'JOB-020', providerId: 'provider-12', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20' },
 ];
 
 
@@ -491,6 +500,7 @@ export const inspections: Inspection[] = [
     { id: 'INSP-008', jobId: 'JOB-014', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'UT', inspector: 'Carlos Ray', date: '2024-07-26', status: 'Scheduled' },
     { id: 'INSP-009', jobId: 'JOB-015', assetName: 'Manufacturing Gearbox', assetId: 'N/A', technique: 'VT', inspector: 'Aisha Khan', date: '2024-07-10', status: 'Completed' },
     { id: 'INSP-010', jobId: 'JOB-017', assetName: 'Various Assets', assetId: 'N/A', technique: 'PT', inspector: 'Pending', date: nextWeek.toISOString().split('T')[0], status: 'Scheduled' },
+    { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'N/A', technique: 'UT', inspector: 'Lars Andersen', date: '2024-07-02', status: 'Completed' },
 ];
 
 export const NDTTechniques = [
@@ -526,6 +536,7 @@ export const clientData: Client[] = [
     { id: 'client-06', name: 'Power Generation LLC', contactPerson: 'Power Admin', contactEmail: 'admin@powergen.com', activeJobs: 2, totalSpend: 56500 },
     { id: 'client-07', name: 'Port Authority', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
     { id: 'client-08', name: 'Manufacturing Solutions Inc.', contactPerson: 'Factory Manager', contactEmail: 'fm@mansol.com', activeJobs: 1, totalSpend: 3500 },
+    { id: 'client-09', name: 'Aviation Maintenance Pros', contactPerson: 'Chuck Yeager', contactEmail: 'chuck@avpros.com', activeJobs: 2, totalSpend: 45000 },
 ];
 
 export const reviews: Review[] = [
@@ -536,6 +547,7 @@ export const reviews: Review[] = [
   { id: 'REV-005', jobId: 'JOB-012', providerId: 'provider-01', clientId: 'client-06', rating: 5, comment: 'Extremely high-quality digital radiography work. The clarity of the images was exceptional.', date: '2024-06-10', status: 'Pending' },
   { id: 'REV-006', jobId: 'JOB-010', providerId: 'provider-04', clientId: 'client-07', rating: 5, comment: 'Very professional and on time.', date: '2024-07-18', status: 'Pending' },
   { id: 'REV-007', jobId: 'JOB-015', providerId: 'provider-07', clientId: 'client-08', rating: 4, comment: 'Good service, would use again.', date: '2024-07-12', status: 'Approved' },
+  { id: 'REV-008', jobId: 'JOB-020', providerId: 'provider-12', clientId: 'client-01', rating: 5, comment: 'DNV provided excellent service. Very knowledgeable and professional.', date: '2024-07-10', status: 'Approved' },
 ];
 
 export const allUsers: PlatformUser[] = [
@@ -560,6 +572,7 @@ export const allUsers: PlatformUser[] = [
      { id: 'user-client-06', name: 'New Client User', email: 'contact@chemc.com', role: 'Client', company: 'Chemical Plant C', status: 'Active' },
      { id: 'user-client-07', name: 'Power Admin', email: 'admin@powergen.com', role: 'Client', company: 'Power Generation LLC', status: 'Active' },
      { id: 'user-client-08', name: 'Factory Manager', email: 'fm@mansol.com', role: 'Client', company: 'Manufacturing Solutions Inc.', status: 'Active' },
+     { id: 'user-client-09', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', company: 'Aviation Maintenance Pros', status: 'Active' },
 ];
 
 export const subscriptions: Subscription[] = [
@@ -574,6 +587,9 @@ export const subscriptions: Subscription[] = [
     { id: 'SUB-009', companyId: 'client-05', companyName: 'Chemical Plant C', plan: 'Client', status: 'Active', startDate: '2024-07-10', userCount: 3, dataUsageGB: 0.5 },
     { id: 'SUB-010', companyId: 'provider-09', companyName: 'Blue Horizon Services', plan: 'Provider', status: 'Active', startDate: '2024-07-20', userCount: 12, dataUsageGB: 4.5 },
     { id: 'SUB-011', companyId: 'client-08', companyName: 'Manufacturing Solutions Inc.', plan: 'Trialing', startDate: '2024-07-15', endDate: '2024-08-14', userCount: 2, dataUsageGB: 0.8 },
+    { id: 'SUB-012', companyId: 'client-09', companyName: 'Aviation Maintenance Pros', plan: 'Enterprise', status: 'Active', startDate: '2024-07-25', userCount: 1, dataUsageGB: 0.1 },
+    { id: 'SUB-013', companyId: 'provider-11', companyName: 'SGS', plan: 'Provider', status: 'Active', startDate: '2024-07-26', userCount: 2, dataUsageGB: 0.3 },
+    { id: 'SUB-014', companyId: 'provider-12', companyName: 'DNV (Det Norske Veritas)', plan: 'Enterprise', status: 'Active', startDate: '2024-06-10', userCount: 1, dataUsageGB: 2.5 },
 ];
 
 export const payments: Payment[] = [
@@ -587,6 +603,9 @@ export const payments: Payment[] = [
   { id: 'PAY-008', subscriptionId: 'SUB-009', companyName: 'Chemical Plant C', amount: 99, date: '2024-07-10', status: 'Succeeded' },
   { id: 'PAY-009', subscriptionId: 'SUB-010', companyName: 'Blue Horizon Services', amount: 299, date: '2024-07-20', status: 'Succeeded' },
   { id: 'PAY-010', subscriptionId: 'SUB-004', companyName: 'Applus+', amount: 299, date: '2024-06-01', status: 'Succeeded' },
+  { id: 'PAY-011', subscriptionId: 'SUB-012', companyName: 'Aviation Maintenance Pros', amount: 499, date: '2024-07-25', status: 'Succeeded' },
+  { id: 'PAY-012', subscriptionId: 'SUB-013', companyName: 'SGS', amount: 299, date: '2024-07-26', status: 'Succeeded' },
+  { id: 'PAY-013', subscriptionId: 'SUB-014', companyName: 'DNV (Det Norske Veritas)', amount: 499, date: '2024-07-10', status: 'Succeeded' },
 ];
 
 export const jobPayments: JobPayment[] = [
@@ -601,6 +620,7 @@ export const jobPayments: JobPayment[] = [
     { id: 'JP-006A', jobId: 'JOB-012', jobTitle: 'Advanced RT of Turbine Blades', amount: 2500, payer: 'Power Generation LLC', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-06-16', status: 'Paid' },
     { id: 'JP-007', jobId: 'JOB-013', jobTitle: 'Acoustic Emission Monitoring of Sphere Tank', amount: 18000, payer: 'Global Energy Corp.', payee: 'Blue Horizon Services', payeeType: 'Provider', paidOn: '2024-07-28', status: 'Pending' },
     { id: 'JP-008', jobId: 'JOB-015', jobTitle: 'Remote Visual Inspection of Gearbox', amount: 3500, payer: 'Manufacturing Solutions Inc.', payee: 'Dekra', payeeType: 'Provider', paidOn: '2024-07-15', status: 'Paid' },
+    { id: 'JP-009', jobId: 'JOB-020', jobTitle: 'Marine Riser Inspection', amount: 32000, payer: 'Global Energy Corp.', payee: 'DNV (Det Norske Veritas)', payeeType: 'Provider', paidOn: '2024-07-15', status: 'Paid' },
 ];
 
 
@@ -642,6 +662,7 @@ export const userAuditLog: UserAuditLog[] = [
   { id: 'ACT-004', timestamp: '2024-07-25T09:20:00Z', actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'New Finance Person', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
   { id: 'ACT-005', timestamp: '2024-07-29T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Enabled', targetUserName: 'Steven Shaw', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
   { id: 'ACT-006', timestamp: '2024-07-30T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Sophia Rodriguez', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
+  { id: 'ACT-007', timestamp: '2024-07-25T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Chuck Yeager', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
 ];
 
 export const jobAuditLog: JobAuditLog[] = [
@@ -652,6 +673,7 @@ export const jobAuditLog: JobAuditLog[] = [
     { id: 'JLOG-005', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'System', actorRole: 'Admin', action: 'Status Changed', details: 'Status changed to Report Submitted.' },
     { id: 'JLOG-006', timestamp: '2024-07-26T10:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT/MT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $19,500.' },
     { id: 'JLOG-007', timestamp: '2024-07-28T09:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT/MT', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Resource Assigned', details: 'Assigned Technicians: Maria Garcia, James Wilson' },
+    { id: 'JLOG-008', timestamp: '2024-06-20T11:00:00Z', jobId: 'JOB-020', jobTitle: 'Marine Riser Inspection', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to DNV (Det Norske Veritas) for $32,000.' },
 ];
 
 export const billingAuditLog: BillingAuditLog[] = [
@@ -661,6 +683,7 @@ export const billingAuditLog: BillingAuditLog[] = [
     { id: 'BLOG-004', timestamp: '2024-05-01T00:00:00Z', companyName: 'Energy Transfer', action: 'Subscription Canceled', details: 'Client plan was canceled.' },
     { id: 'BLOG-005', timestamp: '2024-07-20T00:00:00Z', companyName: 'Blue Horizon Services', action: 'Subscription Started', details: 'Started on Provider plan.' },
     { id: 'BLOG-006', timestamp: '2024-07-21T10:00:00Z', companyName: 'Applus+', action: 'Payment Succeeded', details: 'Manual payment of $299 for past due invoice.' },
+    { id: 'BLOG-007', timestamp: '2024-07-25T00:00:00Z', companyName: 'Aviation Maintenance Pros', action: 'Subscription Started', details: 'Started on Enterprise plan.' },
 ];
 
 

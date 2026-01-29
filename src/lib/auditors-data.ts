@@ -35,5 +35,15 @@ export const auditFirms: AuditFirm[] = [
         services: ['Procedure Development', 'Level III Services', 'Vendor Audits'],
         industries: ['Aerospace & Defense', 'Manufacturing'],
         description: 'Experts in aerospace NDT compliance, offering certified Level III services and procedure development to meet stringent aviation standards.'
+    },
+    {
+        id: 'auditor-firm-03',
+        name: 'Global Compliance Experts',
+        contactPerson: 'Kenji Tanaka',
+        contactEmail: 'k.tanaka@globalcompliance.com',
+        location: 'Tokyo, Japan',
+        services: ['Compliance Audits', 'Vendor Audits', 'Procedure Development'],
+        industries: ['Manufacturing', 'Power Generation', 'Marine'],
+        description: 'A global leader in providing comprehensive compliance and auditing services with a focus on manufacturing and energy sectors.'
     }
 ];

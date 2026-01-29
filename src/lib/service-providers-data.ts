@@ -122,5 +122,27 @@ export const serviceProviders: NDTServiceProvider[] = [
         techniques: ['AE', 'APR', 'ACFM', 'GWT', 'MFL', 'DR', 'PAUT', 'ET', 'RVI', 'TOFD', 'UT'],
         industries: ['Manufacturing', 'Aerospace & Defense'],
         description: "A leading inspection and certification provider in Southeast Asia. Headquarters: 34 Toh Guan Road East, #01-12/13 Enterprise Hub, Singapore 608579. Email: ask@ariseglobal.com, Phone: +65 6559 4677."
+    },
+    {
+        id: 'provider-11',
+        name: 'SGS',
+        contactPerson: 'Isabelle Laurent',
+        contactEmail: 'isabelle.laurent@sgs.com',
+        location: 'Geneva, Switzerland (Global)',
+        rating: 4.8,
+        techniques: ['UT', 'RT', 'MT', 'PT', 'VT', 'ET', 'LT'],
+        industries: ['Manufacturing', 'Infrastructure', 'Oil & Gas'],
+        description: 'The world\'s leading inspection, verification, testing and certification company. Recognized as the global benchmark for quality and integrity.'
+    },
+    {
+        id: 'provider-12',
+        name: 'DNV (Det Norske Veritas)',
+        contactPerson: 'Lars Andersen',
+        contactEmail: 'lars.andersen@dnv.com',
+        location: 'Høvik, Norway (Global)',
+        rating: 4.9,
+        techniques: ['UT', 'AE', 'GWT', 'VT', 'MT', 'PT'],
+        industries: ['Marine', 'Oil & Gas', 'Power Generation'],
+        description: 'An independent expert in assurance and risk management. Driven by its purpose, to safeguard life, property and the environment, DNV empowers its customers and their stakeholders with facts and reliable insights.'
     }
 ];

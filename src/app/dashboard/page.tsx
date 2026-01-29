@@ -9,7 +9,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer, Line, LineChart } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer, Line, LineChart, LabelList } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -164,6 +164,12 @@ const ClientDashboard = () => {
                                 <Tooltip cursor={false} content={<ChartTooltipContent />} />
                                 <Pie data={assetStatusData} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
                                     {assetStatusData.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
+                                     <LabelList
+                                        dataKey="count"
+                                        className="fill-background font-semibold"
+                                        stroke="none"
+                                        fontSize={12}
+                                    />
                                 </Pie>
                                 <ChartLegend content={<ChartLegendContent nameKey="status" />} className="-mt-4" />
                             </PieChart>

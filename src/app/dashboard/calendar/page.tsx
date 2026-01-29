@@ -286,7 +286,7 @@ export default function CalendarPage() {
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-4" align="start">
-                            <CustomDateInput value={currentDate} onChange={(d) => d && setCurrentDate(d)} />
+                            <CustomDateInput value={currentDate || new Date()} onChange={(d) => d && setCurrentDate(d)} />
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -360,8 +360,4 @@ export default function CalendarPage() {
 
         </div>
     );
-
-    
-
-
-
+}

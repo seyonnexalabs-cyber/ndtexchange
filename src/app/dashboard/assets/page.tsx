@@ -1,5 +1,4 @@
 
-
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,10 +21,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { cn, ACCEPTED_FILE_TYPES } from "@/lib/utils";
+import { cn, ACCEPTED_FILE_TYPES, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const assetSchema = z.object({
@@ -55,7 +54,7 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
             name: '',
             type: 'Tank',
             status: 'Operational',
-            nextInspection: format(new Date(), 'dd-MMMM-yyyy'),
+            nextInspection: format(new Date(), GLOBAL_DATE_FORMAT),
             notes: '',
         }
     });
@@ -255,10 +254,10 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                         <FormItem>
                             <FormLabel>Next Inspection Date</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g. 29-January-2026" {...field} />
+                                <Input placeholder="e.g. 29-Jan-2026" {...field} />
                             </FormControl>
                             <FormDescription>
-                                Please use dd-MMMM-yyyy format.
+                                Please use dd-MMM-yyyy format.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -648,9 +647,4 @@ export default function AssetsPage() {
     );
 }
 
-
-
-
-
-
-
+    

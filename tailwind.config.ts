@@ -19,7 +19,7 @@ export default {
       fontFamily: {
         body: ['Noto Sans', 'sans-serif'],
         headline: ['Playfair Display', 'serif'],
-        code: ['monospace'],
+        code: ['Source Code Pro', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',

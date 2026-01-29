@@ -96,7 +96,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                 <TableBody>
                     {reviews.map(review => (
                         <TableRow key={review.id}>
-                            <TableCell className="font-mono text-xs font-medium">{review.job?.id}</TableCell>
+                            <TableCell className="font-mono text-xs font-semibold">{review.job?.id}</TableCell>
                             <TableCell>{review.client?.name}</TableCell>
                             <TableCell>{review.provider?.name}</TableCell>
                             <TableCell><Link className="underline" href={`/dashboard/my-jobs/${review.jobId}?role=admin`}>{review.job?.title}</Link></TableCell>

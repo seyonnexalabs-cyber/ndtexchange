@@ -1,22 +1,224 @@
+
+
 'use client';
 
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { subscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
+import { jobPayments, JobPayment, jobs, Job, subscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
+import { serviceProviders } from '@/lib/service-providers-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, Database, Mail } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Calendar as CalendarIcon, Users, Database, Mail } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState, useMemo } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
+
+const createPaymentSchema = (isClient: boolean, getJobById: (id: string) => Job | undefined) => {
+    return z.object({
+        jobId: z.string({ required_error: "Please select a job." }),
+        payeeType: z.enum(['Provider', 'Auditor']).optional(),
+        amount: z.coerce.number().positive({ message: "Please enter a positive amount." }),
+        paymentDate: z.date({ required_error: "Please select a payment date." }),
+        notes: z.string().optional(),
+    }).refine(data => {
+        if (!isClient || !data.jobId) return true;
+        const job = getJobById(data.jobId);
+        if (job && (job.workflow === 'level3' || job.workflow === 'auto')) {
+            return !!data.payeeType;
+        }
+        return true;
+    }, {
+        message: "Please specify if this payment is for the Provider or Auditor.",
+        path: ["payeeType"],
+    });
+};
+
+type PaymentFormValues = z.infer<ReturnType<typeof createPaymentSchema>>;
+
+const RecordPaymentForm = ({ 
+    jobsForPayment, 
+    role, 
+    onCancel, 
+    onSubmit,
+    allJobs
+}: { 
+    jobsForPayment: Job[], 
+    role: string, 
+    onCancel: () => void, 
+    onSubmit: (values: PaymentFormValues) => void,
+    allJobs: Job[]
+}) => {
+    const paymentSchema = useMemo(() => createPaymentSchema(role === 'client', (id) => allJobs.find(j => j.id === id)), [role, allJobs]);
+    
+    const form = useForm<PaymentFormValues>({
+        resolver: zodResolver(paymentSchema),
+        defaultValues: {
+            paymentDate: new Date(),
+        },
+    });
+
+    const selectedJobId = form.watch('jobId');
+    const selectedJob = allJobs.find(j => j.id === selectedJobId);
+
+    const requiresAuditorOption = role === 'client' && selectedJob && (selectedJob.workflow === 'level3' || selectedJob.workflow === 'auto');
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                 <FormField
+                    control={form.control}
+                    name="jobId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Job</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a job to pay" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {jobsForPayment.length > 0 ? jobsForPayment.map(job => (
+                                        <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+                                    )) : <SelectItem value="none" disabled>No eligible jobs found</SelectItem>}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {requiresAuditorOption && (
+                     <FormField
+                        control={form.control}
+                        name="payeeType"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Payment For</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a payee" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Provider">Service Provider</SelectItem>
+                                        <SelectItem value="Auditor">Auditor</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
+                <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Amount Paid</FormLabel>
+                             <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input type="number" placeholder="5000.00" className="pl-8" {...field} />
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="paymentDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Payment Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, GLOBAL_DATE_FORMAT)
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date > new Date()}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Notes (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="e.g., Final payment via wire transfer" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                 <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Record Payment</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+}
+
+
+const paymentStatusVariants: Record<JobPayment['status'], 'success' | 'outline'> = {
+    'Paid': 'success',
+    'Pending': 'outline',
+};
+
+const userDetails = {
+    client: { company: 'Global Energy Corp.' },
+    inspector: { company: 'TEAM, Inc.' },
+    auditor: { company: 'NDT Auditors LLC' },
+    admin: { company: 'NDT Exchange' },
+};
 
 const subscriptionStatusStyles: { [key in Subscription['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Active: 'success',
@@ -79,7 +281,7 @@ const SubscriptionsDesktopView = ({
                     <TableHead>Company</TableHead>
                     <TableHead>Plan</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Start Date</TableHead>
+                    <TableHead>Subscription ID</TableHead>
                     <TableHead>Users</TableHead>
                     <TableHead>Data Usage</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -111,7 +313,7 @@ const SubscriptionsDesktopView = ({
                             <TableCell className="font-medium">{sub.companyName}</TableCell>
                             <TableCell>{sub.plan}</TableCell>
                             <TableCell><Badge variant={subscriptionStatusStyles[sub.status]}>{sub.status}</Badge></TableCell>
-                            <TableCell>{format(new Date(sub.startDate), GLOBAL_DATE_FORMAT)}</TableCell>
+                            <TableCell className="font-mono font-semibold">{sub.id}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     <span>{sub.userCount} / {userLimit}</span>
@@ -184,7 +386,7 @@ const SubscriptionsMobileView = ({
                                 className="absolute top-4 right-4 h-5 w-5"
                             />
                         </div>
-                        <CardDescription>{sub.plan} Plan - Started: {format(new Date(sub.startDate), GLOBAL_DATE_FORMAT)}</CardDescription>
+                        <CardDescription>{sub.plan} Plan &bull; ID: <span className="font-mono font-semibold text-foreground">{sub.id}</span></CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -240,7 +442,7 @@ const PaymentHistoryDesktopView = () => (
                         <TableCell className="font-medium">{payment.companyName}</TableCell>
                         <TableCell>${payment.amount.toLocaleString()}</TableCell>
                         <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
-                        <TableCell className="font-mono text-xs">{payment.subscriptionId}</TableCell>
+                        <TableCell className="font-mono text-xs font-semibold">{payment.subscriptionId}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
@@ -257,7 +459,7 @@ const PaymentHistoryMobileView = () => (
                         <CardTitle>{payment.companyName}</CardTitle>
                         <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
                     </div>
-                    <CardDescription>Payment on {format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</CardDescription>
+                    <CardDescription>Subscription: <span className="font-mono font-semibold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>

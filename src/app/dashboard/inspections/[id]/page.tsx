@@ -87,7 +87,7 @@ export default function InspectionDetailPage() {
                                         <FileText />
                                         Audit Report for {inspection.assetName}
                                     </CardTitle>
-                                    <CardDescription>Inspection ID: {inspection.id}</CardDescription>
+                                    <CardDescription>Inspection ID: <span className="font-mono font-semibold text-foreground">{inspection.id}</span></CardDescription>
                                 </div>
                                 <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                             </div>

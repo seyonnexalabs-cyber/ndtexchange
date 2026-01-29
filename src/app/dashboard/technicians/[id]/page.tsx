@@ -109,6 +109,7 @@ export default function TechnicianDetailPage() {
                                 </Avatar>
                                 <div>
                                     <h1 className="text-2xl font-headline font-bold">{technician.name}</h1>
+                                    <p className="font-mono font-semibold text-sm text-muted-foreground">{technician.id}</p>
                                     <Badge shape="rounded" variant={highestLevel === 'Level III' ? 'default' : highestLevel === 'Level II' ? 'success' : 'secondary'} className="mt-1">
                                         {highestLevel} Inspector
                                     </Badge>

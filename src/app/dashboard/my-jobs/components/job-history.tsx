@@ -1,13 +1,12 @@
-
 'use client';
 import { Job, JobUpdate, allUsers } from '@/lib/placeholder-data';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import * as React from 'react';
+import { FileText, PlusCircle, Gavel, Award, History, Users, Calendar } from 'lucide-react';
+
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -41,6 +40,18 @@ const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
     );
 };
 
+const getEventIcon = (action: string): React.ReactNode => {
+    const lowerCaseAction = action.toLowerCase();
+    if (lowerCaseAction.startsWith('created job')) return <PlusCircle className="h-4 w-4" />;
+    if (lowerCaseAction.startsWith('awarded job')) return <Award className="h-4 w-4" />;
+    if (lowerCaseAction.startsWith('scheduled job')) return <Calendar className="h-4 w-4" />;
+    if (lowerCaseAction.startsWith('submitted inspection report')) return <FileText className="h-4 w-4" />;
+    if (lowerCaseAction.startsWith('bid for')) return <Gavel className="h-4 w-4" />;
+    if (lowerCaseAction.startsWith('assigned resources')) return <Users className="h-4 w-4" />;
+    if (lowerCaseAction.startsWith('status changed')) return <History className="h-4 w-4" />;
+    return <History className="h-4 w-4" />;
+};
+
 
 export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
     if (!history || history.length === 0) {
@@ -51,47 +62,52 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
 
     return (
         <ScrollArea className="max-h-96">
-            <ul className="space-y-6 p-2">
+             <div className="relative pl-6">
+                {/* Vertical line */}
+                <div className="absolute left-6 top-2 h-[calc(100%_-_1rem)] w-0.5 bg-border -translate-x-1/2" />
+                
                 {sortedHistory.map((entry, index) => {
                     const userDetails = allUsers.find(u => u.name === entry.user);
-                    return (
-                        <li key={index} className="flex gap-4">
-                            <Avatar>
-                                <AvatarFallback>{entry.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-sm font-medium">{entry.user}</p>
-                                        {userDetails && (
-                                            <p className="text-xs text-muted-foreground">{userDetails.role}, {userDetails.company}</p>
-                                        )}
-                                        <p className="text-sm text-muted-foreground mt-1">{entry.action}</p>
-                                        {entry.details && (
-                                            <p className="text-xs text-muted-foreground/80 mt-1 italic">"{entry.details}"</p>
-                                        )}
-                                    </div>
-                                    <ClientFormattedDate timestamp={entry.timestamp} />
-                                </div>
-                            
-                                {entry.documentName && (
-                                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground border p-2 rounded-md bg-muted/50">
-                                        <FileText className="w-4 h-4 shrink-0" />
-                                        <span>{entry.documentName}</span>
-                                    </div>
-                                )}
+                    const icon = getEventIcon(entry.action);
 
-                                {entry.statusChange && (
-                                    <div className="mt-2 flex items-center gap-2 text-sm">
-                                        <span className="text-muted-foreground">Status changed to:</span>
-                                        <Badge variant={jobStatusVariants[entry.statusChange]}>{entry.statusChange}</Badge>
-                                    </div>
+                    return (
+                        <div key={index} className="relative mb-8 pl-8">
+                            <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
+                                <div className="text-primary">{icon}</div>
+                            </div>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-medium">{entry.user}</p>
+                                    {userDetails && (
+                                        <p className="text-xs text-muted-foreground">{userDetails.role}, {userDetails.company}</p>
+                                    )}
+                                </div>
+                                <ClientFormattedDate timestamp={entry.timestamp} />
+                            </div>
+                             <div className="mt-1">
+                                <p className="text-sm text-muted-foreground">{entry.action}</p>
+                                {entry.details && (
+                                    <p className="text-xs text-muted-foreground/80 mt-1 italic">"{entry.details}"</p>
                                 )}
                             </div>
-                        </li>
+
+                            {entry.documentName && (
+                                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground border p-2 rounded-md bg-muted/50">
+                                    <FileText className="w-4 h-4 shrink-0" />
+                                    <span>{entry.documentName}</span>
+                                </div>
+                            )}
+
+                            {entry.statusChange && (
+                                <div className="mt-2 flex items-center gap-2 text-sm">
+                                    <span className="text-muted-foreground">Status changed to:</span>
+                                    <Badge variant={jobStatusVariants[entry.statusChange]}>{entry.statusChange}</Badge>
+                                </div>
+                            )}
+                        </div>
                     )
                 })}
-            </ul>
+            </div>
         </ScrollArea>
     );
 }

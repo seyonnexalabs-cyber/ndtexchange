@@ -98,7 +98,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                         {assetIcons[asset.type]}
                         {asset.name}
                     </h1>
-                    <p className="font-mono text-sm font-semibold text-muted-foreground">{asset.id}</p>
+                    <p className="font-bold text-sm text-muted-foreground">{asset.id}</p>
                 </div>
                 {isClient && (
                     <div className='flex gap-2 self-start sm:self-center'>
@@ -222,7 +222,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                                        <DetailItem label="Asset ID" value={<span className='font-mono font-semibold'>{asset.id}</span>} />
+                                        <DetailItem label="Asset ID" value={<span className='font-bold'>{asset.id}</span>} />
                                         <DetailItem label="Asset Type" value={asset.type} />
                                         <DetailItem label="Location" value={asset.location} />
                                         <DetailItem label="Status" value={<Badge variant={
@@ -232,7 +232,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                         }>{asset.status}</Badge>} />
                                         {asset.manufacturer && <DetailItem label="Manufacturer" value={asset.manufacturer} />}
                                         {asset.model && <DetailItem label="Model" value={asset.model} />}
-                                        {asset.serialNumber && <DetailItem label="Serial Number" value={asset.serialNumber} />}
+                                        {asset.serialNumber && <DetailItem label="Serial Number" value={<span className="font-bold">{asset.serialNumber}</span>} />}
                                         {asset.installationDate && <DetailItem label="Installation Date" value={format(new Date(asset.installationDate), GLOBAL_DATE_FORMAT)} />}
                                         {asset.notes && <DetailItem label="Notes" value={asset.notes} className="md:col-span-2" />}
                                     </div>

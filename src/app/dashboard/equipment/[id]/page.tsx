@@ -59,19 +59,12 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {defaultValues?.id && (
-                    <FormField
-                        control={form.control}
-                        name="id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Equipment ID</FormLabel>
-                                <FormControl>
-                                    <Input {...field} readOnly className="bg-muted cursor-not-allowed font-mono" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <FormItem>
+                        <FormLabel>Equipment ID</FormLabel>
+                        <FormControl>
+                            <Input value={defaultValues.id} readOnly className="bg-muted cursor-not-allowed font-bold" />
+                        </FormControl>
+                    </FormItem>
                 )}
                 <FormField
                     control={form.control}
@@ -341,7 +334,7 @@ export default function EquipmentDetailPage() {
                                 <Wrench className="h-6 w-6 text-primary" />
                                 {equipment.name}
                             </CardTitle>
-                            <CardDescription>ID: <span className="font-mono font-semibold text-foreground">{equipment.id}</span></CardDescription>
+                            <CardDescription>ID: <span className="font-bold text-foreground">{equipment.id}</span></CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                             <div className="flex items-start">
@@ -383,7 +376,7 @@ export default function EquipmentDetailPage() {
                                     <Tag className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                     <div>
                                         <p className="font-semibold">Serial Number</p>
-                                        <p className="font-mono text-muted-foreground">{equipment.serialNumber}</p>
+                                        <p className="font-bold text-muted-foreground">{equipment.serialNumber}</p>
                                     </div>
                                 </div>
                             )}
@@ -451,6 +444,7 @@ export default function EquipmentDetailPage() {
                             status: equipment.status,
                             nextCalibration: new Date(equipment.nextCalibration),
                         }}
+                        isEditing={true}
                     />
                 </DialogContent>
             </Dialog>

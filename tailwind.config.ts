@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -19,7 +20,6 @@ export default {
       fontFamily: {
         body: ['Noto Sans', 'sans-serif'],
         headline: ['Playfair Display', 'serif'],
-        code: ['IBM Plex Mono', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',

@@ -332,7 +332,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                             }>{asset.status}</Badge>
                                         </div>
                                         <CardTitle className="mt-2 font-semibold text-lg">{asset.name}</CardTitle>
-                                        <CardDescription className="font-mono font-semibold">{asset.id}</CardDescription>
+                                        <CardDescription className="font-bold">{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
                                         <span>Next: {format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</span>
@@ -376,7 +376,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                     />
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{qrCodeData.name}</p>
-                                        <p className="font-mono text-muted-foreground">{qrCodeData.id}</p>
+                                        <p className="font-bold text-muted-foreground">{qrCodeData.id}</p>
                                     </div>
                                 </>
                             )}

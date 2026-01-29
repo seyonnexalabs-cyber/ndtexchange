@@ -1,3 +1,4 @@
+
 'use client';
 import { Job, JobUpdate, allUsers } from '@/lib/placeholder-data';
 import { ScrollArea } from '@/components/ui/scroll-area';

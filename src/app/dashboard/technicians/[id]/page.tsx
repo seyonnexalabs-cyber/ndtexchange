@@ -271,7 +271,7 @@ export default function TechnicianDetailPage() {
                                 </Avatar>
                                 <div>
                                     <h1 className="text-2xl font-headline font-bold">{technician.name}</h1>
-                                    <p className="font-mono font-semibold text-sm text-muted-foreground">{technician.id}</p>
+                                    <p className="font-bold text-sm text-muted-foreground">{technician.id}</p>
                                     <Badge shape="rounded" variant={highestLevel === 'Level III' ? 'default' : highestLevel === 'Level II' ? 'success' : 'secondary'} className="mt-1">
                                         {highestLevel} Inspector
                                     </Badge>
@@ -333,7 +333,7 @@ export default function TechnicianDetailPage() {
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <p className="font-semibold">{job.title}</p>
-                                                    <p className="text-xs font-mono font-semibold text-muted-foreground">{job.id}</p>
+                                                    <p className="text-xs font-bold text-muted-foreground">{job.id}</p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                             </div>
@@ -360,7 +360,7 @@ export default function TechnicianDetailPage() {
                                     <TableBody>
                                         {assignedJobs.map(job => (
                                             <TableRow key={job.id}>
-                                                <TableCell className="font-mono text-xs font-medium">{job.id}</TableCell>
+                                                <TableCell className="font-bold text-xs">{job.id}</TableCell>
                                                 <TableCell className="font-medium">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className="hover:underline">{job.title}</Link>
                                                 </TableCell>

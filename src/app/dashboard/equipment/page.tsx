@@ -97,19 +97,12 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {defaultValues?.id && (
-                    <FormField
-                        control={form.control}
-                        name="id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Equipment ID</FormLabel>
-                                <FormControl>
-                                    <Input {...field} readOnly className="bg-muted cursor-not-allowed" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <FormItem>
+                        <FormLabel>Equipment ID</FormLabel>
+                        <FormControl>
+                            <Input value={defaultValues.id} readOnly className="bg-muted cursor-not-allowed font-bold" />
+                        </FormControl>
+                    </FormItem>
                 )}
                 <FormField
                     control={form.control}
@@ -608,7 +601,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
             <TableBody>
                 {equipment.map(asset => (
                     <TableRow key={asset.id}>
-                        <TableCell className="font-mono text-xs font-medium">{asset.id}</TableCell>
+                        <TableCell className="font-bold text-xs">{asset.id}</TableCell>
                         <TableCell className="font-medium flex items-center gap-3">
                             {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
                             {asset.name}
@@ -674,7 +667,7 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
                     <div className="flex flex-wrap gap-1">
                         {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
                     </div>
-                     <p className="text-xs font-mono font-semibold text-muted-foreground mt-2">{asset.id}</p>
+                     <p className="text-xs font-bold text-muted-foreground mt-2">{asset.id}</p>
                     <Badge variant={statusVariants[asset.status]} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
@@ -997,7 +990,7 @@ export default function EquipmentPage() {
                                     />
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{qrCodeData.name}</p>
-                                        <p className="font-mono text-muted-foreground">{qrCodeData.id}</p>
+                                        <p className="font-bold text-muted-foreground">{qrCodeData.id}</p>
                                     </div>
                                 </>
                             )}
@@ -1027,6 +1020,7 @@ export default function EquipmentPage() {
                         onSubmit={handleFormSubmit}
                         onCancel={closeAddEditDialog}
                         defaultValues={dialogState === 'edit' ? editingEquipment : undefined}
+                        isEditing={dialogState === 'edit'}
                    />
                 </DialogContent>
             </Dialog>

@@ -11,12 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format } from 'date-fns';
 import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
-import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
-import { Calendar as CalendarIcon, PlusCircle, ChevronLeft } from "lucide-react";
+import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
+import { PlusCircle, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -199,35 +197,9 @@ export default function PostJobPage() {
                                       render={({ field }) => (
                                           <FormItem className="flex flex-col">
                                           <FormLabel>Bid Expiry Date</FormLabel>
-                                          <Popover>
-                                              <PopoverTrigger asChild>
-                                              <FormControl>
-                                                  <Button
-                                                  variant={"outline"}
-                                                  className={cn(
-                                                      "w-full pl-3 text-left font-normal",
-                                                      !field.value && "text-muted-foreground"
-                                                  )}
-                                                  >
-                                                  {field.value ? (
-                                                      format(field.value, GLOBAL_DATE_FORMAT)
-                                                  ) : (
-                                                      <span>Pick a date</span>
-                                                  )}
-                                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                  </Button>
-                                              </FormControl>
-                                              </PopoverTrigger>
-                                              <PopoverContent className="w-auto p-0" align="start">
-                                              <CalendarComponent
-                                                  mode="single"
-                                                  selected={field.value}
-                                                  onSelect={field.onChange}
-                                                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                  initialFocus
-                                              />
-                                              </PopoverContent>
-                                          </Popover>
+                                           <FormControl>
+                                            <CustomDateInput {...field} />
+                                          </FormControl>
                                           <FormMessage />
                                           </FormItem>
                                       )}
@@ -239,35 +211,9 @@ export default function PostJobPage() {
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
                                         <FormLabel>Target Start Date (Optional)</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                                >
-                                                {field.value ? (
-                                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                            <CalendarComponent
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                initialFocus
-                                            />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <FormControl>
+                                            <CustomDateInput {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                         </FormItem>
                                     )}
@@ -278,35 +224,9 @@ export default function PostJobPage() {
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
                                         <FormLabel>Target End Date (Optional)</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                                >
-                                                {field.value ? (
-                                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                            <CalendarComponent
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => date < (form.getValues('scheduledStartDate') || new Date(new Date().setHours(0, 0, 0, 0)))}
-                                                initialFocus
-                                            />
-                                            </PopoverContent>
-                                        </Popover>
+                                         <FormControl>
+                                            <CustomDateInput {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                         </FormItem>
                                     )}

@@ -13,7 +13,7 @@ import { jobPayments, JobPayment, jobs, Job, subscriptions, Subscription, client
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Calendar as CalendarIcon, Users, Database, Mail } from "lucide-react";
+import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Users, Database, Mail } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
@@ -22,14 +22,13 @@ import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 
 const createPaymentSchema = (isClient: boolean, getJobById: (id: string) => Job | undefined) => {
@@ -151,35 +150,9 @@ const RecordPaymentForm = ({
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                         <FormLabel>Payment Date</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <CalendarComponent
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => date > new Date()}
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                            <CustomDateInput {...field} />
+                        </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}

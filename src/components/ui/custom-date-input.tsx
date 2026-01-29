@@ -4,12 +4,11 @@ import * as React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { format, parse, isValid } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { format, isValid } from 'date-fns';
 
 interface CustomDateInputProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: Date;
+  onChange?: (date?: Date) => void;
   className?: string;
 }
 
@@ -28,25 +27,19 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
     const [month, setMonth] = React.useState<string>('');
     const [year, setYear] = React.useState<string>('');
 
-    // Parse incoming value from parent
     React.useEffect(() => {
-      if (value) {
-        try {
-          const date = parse(value, GLOBAL_DATE_FORMAT, new Date());
-          if (isValid(date)) {
-            setDay(format(date, 'dd'));
-            setMonth(format(date, 'MMM'));
-            setYear(format(date, 'yyyy'));
-            return;
-          }
-        } catch (e) {
-          // Fall through to reset if parse fails
+      if (value && isValid(value)) {
+        setDay(format(value, 'dd'));
+        setMonth(format(value, 'MMM'));
+        setYear(format(value, 'yyyy'));
+      } else {
+        // When value is cleared from parent, reset fields
+        if (value === undefined) {
+          setDay('');
+          setMonth('');
+          setYear('');
         }
       }
-      // Reset if value is falsy or parsing failed
-      setDay('');
-      setMonth('');
-      setYear('');
     }, [value]);
     
     const numDaysInMonth = React.useMemo(() => {
@@ -56,20 +49,25 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
         return new Date(parseInt(year), monthIndex + 1, 0).getDate();
     }, [month, year]);
 
-    // This effect calls the onChange prop when the date is valid
     React.useEffect(() => {
-        if (day && month && year && year.length === 4) {
-            const dayNum = parseInt(day, 10);
-            if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= numDaysInMonth) {
-                 const dateStr = `${String(day).padStart(2, '0')}-${month}-${year}`;
-                 if (dateStr !== value) {
-                    onChange?.(dateStr);
-                 }
-            }
-        } else if (value) {
-            // If fields are incomplete but there was a value, clear it
-            onChange?.('');
+      if (day && month && year && year.length === 4) {
+          const dayNum = parseInt(day, 10);
+          if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= numDaysInMonth) {
+              const monthIndex = months.findIndex(m => m.value === month);
+              if (monthIndex > -1) {
+                  const newDate = new Date(parseInt(year), monthIndex, dayNum);
+                  if (isValid(newDate)) {
+                      if (!value || newDate.getTime() !== value.getTime()) {
+                          onChange?.(newDate);
+                      }
+                  }
+              }
+          }
+      } else {
+        if (value) {
+            onChange?.(undefined);
         }
+      }
     }, [day, month, year, numDaysInMonth, onChange, value]);
 
     const handleMonthChange = (newMonth: string) => {
@@ -116,7 +114,6 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
             setDay(dayNum.toString().padStart(2, '0'));
         }
     }
-
 
     return (
       <div className={cn('grid grid-cols-3 gap-2', className)} ref={ref}>

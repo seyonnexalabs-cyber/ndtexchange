@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -7,12 +8,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory, Job, NDTTechniques } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Calendar as CalendarIcon, Printer } from "lucide-react";
+import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory } from "@/lib/placeholder-data";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -21,11 +21,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from '@/components/ui/textarea';
+import { NDTTechniques } from '@/lib/placeholder-data';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 const equipmentSchema = z.object({
   id: z.string().optional(),
@@ -216,37 +216,9 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                         <FormLabel>Next Calibration Date</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <CalendarComponent
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                    date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                            <CustomDateInput {...field} />
+                        </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}

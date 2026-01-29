@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -9,13 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Briefcase, MapPin, CheckCircle, Users, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { addDays, startOfWeek, format, isSameDay, addWeeks, subWeeks, eachDayOfInterval, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 type CalendarEvent = {
   id: string;
@@ -284,15 +285,8 @@ export default function CalendarPage() {
                                 {currentDate ? format(currentDate, "MMMM yyyy") : <span>Pick a date</span>}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={currentDate}
-                                onSelect={(day) => day && setCurrentDate(day)}
-                                captionLayout="dropdown"
-                                initialFocus
-                                className="rounded-md border shadow-sm"
-                            />
+                        <PopoverContent className="w-auto p-4" align="start">
+                            <CustomDateInput value={currentDate} onChange={(d) => d && setCurrentDate(d)} />
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -368,5 +362,6 @@ export default function CalendarPage() {
     );
 
     
+
 
 

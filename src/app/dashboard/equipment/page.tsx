@@ -9,16 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, jobs, NDTTechniques, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Calendar as CalendarIcon, Printer, LogIn, LogOut, Edit, History, Send, ChevronsUpDown } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, ChevronsUpDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,6 +28,7 @@ import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSearch } from "@/app/components/layout/search-provider";
+import { CustomDateInput } from "@/components/ui/custom-date-input";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
@@ -254,37 +253,9 @@ const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (value
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                         <FormLabel>Next Calibration Date</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                    date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                            <CustomDateInput {...field} />
+                        </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -482,37 +453,9 @@ const ServiceOutForm = ({
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                         <FormLabel>Expected Return Date (Optional)</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                    date < new Date(new Date().setHours(0,0,0,0))
-                                }
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                           <CustomDateInput {...field} />
+                        </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -1020,7 +963,6 @@ export default function EquipmentPage() {
                         onSubmit={handleFormSubmit}
                         onCancel={closeAddEditDialog}
                         defaultValues={dialogState === 'edit' ? editingEquipment : undefined}
-                        isEditing={dialogState === 'edit'}
                    />
                 </DialogContent>
             </Dialog>

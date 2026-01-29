@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { jobs, allUsers, inspectorAssets, clientData, Job } from "@/lib/placeholder-data";
@@ -10,7 +9,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -313,17 +312,20 @@ export default function MyJobsPage() {
                                                  <div className="flex items-center text-sm text-muted-foreground">
                                                     <Calendar className="w-4 h-4 mr-2" />
                                                     <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                                    {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
                                                 </div>
                                                  {job.bidExpiryDate && (
                                                     <div className="flex items-center text-sm text-muted-foreground">
                                                         <AlarmClock className="w-4 h-4 mr-2" />
                                                         <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
+                                                        {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
                                                     </div>
                                                 )}
                                                 {job.scheduledStartDate && (
                                                     <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
                                                         <Calendar className="w-4 h-4 mr-2" />
                                                         <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
+                                                        {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
                                                     </div>
                                                 )}
             

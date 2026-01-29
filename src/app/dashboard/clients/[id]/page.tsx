@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -13,7 +12,7 @@ import { clientData, jobs, subscriptions } from "@/lib/placeholder-data";
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 
@@ -113,13 +112,19 @@ export default function ClientDetailPage() {
                         <CardContent>
                         {isMobile ? (
                                 <div className="space-y-4">
-                                    {clientJobs.map(job => (
+                                    {clientJobs.map(job => {
+                                      const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                      return (
                                         <Card key={job.id} className="p-4">
                                             <div className="flex items-start justify-between">
                                                 <div>
                                                     <p className="font-semibold">{job.title}</p>
                                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
-                                                    <p className="text-sm text-muted-foreground">{job.technique}</p>
+                                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                                        {job.technique} &bull; 
+                                                        <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
+                                                        {isToday(jobDate) && <Badge>Today</Badge>}
+                                                    </p>
                                                 </div>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
                                             </div>
@@ -129,7 +134,7 @@ export default function ClientDetailPage() {
                                                 </Button>
                                             </div>
                                         </Card>
-                                    ))}
+                                    )})}
                                 </div>
                         ) : (
                             <Table>
@@ -143,7 +148,9 @@ export default function ClientDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {clientJobs.map(job => (
+                                    {clientJobs.map(job => {
+                                      const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                      return (
                                         <TableRow key={job.id}>
                                             <TableCell className="font-extrabold text-sm">{job.id}</TableCell>
                                             <TableCell className="font-medium">{job.title}</TableCell>
@@ -152,10 +159,13 @@ export default function ClientDetailPage() {
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {job.scheduledStartDate || job.postedDate}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
+                                                    {isToday(jobDate) && <Badge>Today</Badge>}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                    )})}
                                 </TableBody>
                             </Table>
                         )}

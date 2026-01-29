@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award } from "lucide-react";
@@ -227,8 +226,8 @@ const ClientDashboard = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Job Title</TableHead>
                                 <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
@@ -236,9 +235,14 @@ const ClientDashboard = () => {
                         <TableBody>
                             {schedule.map(job => (
                                 <TableRow key={job.id}>
-                                    <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
-                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-2">
+                                          <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                          {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
@@ -336,8 +340,8 @@ const InspectorDashboard = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Job Title</TableHead>
                                 <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Technicians</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
@@ -348,9 +352,14 @@ const InspectorDashboard = () => {
                                 const assignedTechs = allUsers.filter(u => job.technicianIds?.includes(u.id));
                                 return (
                                     <TableRow key={job.id}>
-                                        <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
-                                        <TableCell>{job.title}</TableCell>
+                                        <TableCell className="font-medium">
+                                          <div className="flex items-center gap-2">
+                                            <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                            {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                          </div>
+                                        </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                        <TableCell>{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{assignedTechs.map(t => t.name).join(', ')}</TableCell>
                                         <TableCell className="text-right">
@@ -431,6 +440,7 @@ const AuditorDashboard = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Job Title</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead>Technique</TableHead>
@@ -441,6 +451,7 @@ const AuditorDashboard = () => {
                         <TableBody>
                             {auditQueue.sort((a,b) => new Date(a.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime() - new Date(b.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime()).map(job => (
                                 <TableRow key={job.id}>
+                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
@@ -452,7 +463,7 @@ const AuditorDashboard = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {auditQueue.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">Your audit queue is empty. Great job!</TableCell></TableRow>}
+                            {auditQueue.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">Your audit queue is empty. Great job!</TableCell></TableRow>}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -467,8 +478,8 @@ const AuditorDashboard = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Job Title</TableHead>
                                 <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
@@ -477,9 +488,14 @@ const AuditorDashboard = () => {
                         <TableBody>
                             {schedule.map(job => (
                                 <TableRow key={job.id}>
-                                    <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
-                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-2">
+                                          <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                          {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell className="text-right">
@@ -607,8 +623,8 @@ const AdminDashboard = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Job Title</TableHead>
                                 <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
@@ -617,9 +633,14 @@ const AdminDashboard = () => {
                         <TableBody>
                             {schedule.map(job => (
                                 <TableRow key={job.id}>
-                                    <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
-                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-2">
+                                          <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                          {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell className="text-right">

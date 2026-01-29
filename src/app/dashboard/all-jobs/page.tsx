@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { jobs, Job, clientData } from "@/lib/placeholder-data";
@@ -15,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { useSearch } from "@/app/components/layout/search-provider";
 
 
@@ -236,11 +235,13 @@ export default function AllJobsPage() {
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <Calendar className="w-4 h-4 mr-2" />
                                     <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                    {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                                 {job.bidExpiryDate && (
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <AlarmClock className="w-4 h-4 mr-2" />
                                         <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
+                                        {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
                                     </div>
                                 )}
                             </CardContent>
@@ -275,7 +276,12 @@ export default function AllJobsPage() {
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
                                     <TableCell>{job.location}</TableCell>
-                                    <TableCell>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <span>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                            {isToday(new Date(job.postedDate)) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                     </TableCell>

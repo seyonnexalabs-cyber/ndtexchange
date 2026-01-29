@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -17,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useSearch } from '@/app/components/layout/search-provider';
 
@@ -203,43 +201,49 @@ export default function InspectionsPage() {
             
             {isMobile ? (
                 <div className="space-y-4">
-                    {augmentedAndFilteredInspections.map(inspection => (
-                        <Card key={inspection.id}>
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-base">{inspection.assetName}</CardTitle>
-                                        <p className="font-extrabold text-xs text-muted-foreground">{inspection.jobId}</p>
+                    {augmentedAndFilteredInspections.map(inspection => {
+                        const inspectionDate = new Date(inspection.date);
+                        return (
+                            <Card key={inspection.id}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="text-base">{inspection.assetName}</CardTitle>
+                                            <p className="font-extrabold text-xs text-muted-foreground">{inspection.jobId}</p>
+                                        </div>
+                                        <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                     </div>
-                                    <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
-                                </div>
-                                <CardDescription>
-                                    <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge>
-                                    <span className="mx-1.5">by</span>
-                                    {inspection.assignedTechnicians.length > 0 
-                                        ? inspection.assignedTechnicians.map(t => t.name).join(', ') 
-                                        : inspection.inspector
-                                    }
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground">Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</p>
-                            </CardContent>
-                             <CardFooter>
-                                <Button asChild variant="outline" size="sm" className="w-full">
-                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>{buttonText}</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
+                                    <CardDescription>
+                                        <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge>
+                                        <span className="mx-1.5">by</span>
+                                        {inspection.assignedTechnicians.length > 0 
+                                            ? inspection.assignedTechnicians.map(t => t.name).join(', ') 
+                                            : inspection.inspector
+                                        }
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                        Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}
+                                        {isToday(inspectionDate) && <Badge>Today</Badge>}
+                                    </p>
+                                </CardContent>
+                                 <CardFooter>
+                                    <Button asChild variant="outline" size="sm" className="w-full">
+                                        <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>{buttonText}</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
                 </div>
             ) : (
                 <Card>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Asset Name</TableHead>
                                 <TableHead>Job ID</TableHead>
+                                <TableHead>Asset Name</TableHead>
                                 <TableHead>Technique</TableHead>
                                 <TableHead>Inspectors</TableHead>
                                 <TableHead>Date</TableHead>
@@ -248,10 +252,12 @@ export default function InspectionsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {augmentedAndFilteredInspections.map(inspection => (
+                            {augmentedAndFilteredInspections.map(inspection => {
+                                const inspectionDate = new Date(inspection.date);
+                                return (
                                 <TableRow key={inspection.id}>
-                                    <TableCell className="font-medium">{inspection.assetName}</TableCell>
                                     <TableCell className="font-extrabold text-xs">{inspection.jobId}</TableCell>
+                                    <TableCell className="font-medium">{inspection.assetName}</TableCell>
                                     <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
@@ -261,7 +267,12 @@ export default function InspectionsPage() {
                                             }
                                         </div>
                                     </TableCell>
-                                    <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <span>{format(inspectionDate, GLOBAL_DATE_FORMAT)}</span>
+                                            {isToday(inspectionDate) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                     </TableCell>
@@ -271,7 +282,7 @@ export default function InspectionsPage() {
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </Card>

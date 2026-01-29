@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -13,7 +12,7 @@ import { allUsers, jobs, PlatformUser, Job, NDTTechniques, Certification } from 
 import { serviceProviders } from "@/lib/service-providers-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -321,7 +320,9 @@ export default function TechnicianDetailPage() {
                         <CardContent>
                             {isMobile ? (
                                 <div className="space-y-4">
-                                    {assignedJobs.map(job => (
+                                    {assignedJobs.map(job => {
+                                        const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                        return (
                                         <Card key={job.id} className="p-4">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -330,14 +331,18 @@ export default function TechnicianDetailPage() {
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                             </div>
-                                            <p className="text-sm text-muted-foreground mt-1">{job.client}</p>
+                                            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                                                {job.client} &bull; 
+                                                <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
+                                                {isToday(jobDate) && <Badge>Today</Badge>}
+                                            </p>
                                             <div className="flex justify-end mt-3">
                                                  <Button asChild size="sm" variant="ghost">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
                                                 </Button>
                                             </div>
                                         </Card>
-                                    ))}
+                                    )})}
                                 </div>
                             ) : (
                                 <Table>
@@ -351,19 +356,26 @@ export default function TechnicianDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {assignedJobs.map(job => (
+                                        {assignedJobs.map(job => {
+                                          const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                          return (
                                             <TableRow key={job.id}>
                                                 <TableCell className="font-bold text-xs">{job.id}</TableCell>
                                                 <TableCell className="font-medium">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className="hover:underline">{job.title}</Link>
                                                 </TableCell>
                                                 <TableCell>{job.client}</TableCell>
-                                                <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
+                                                        {isToday(jobDate) && <Badge>Today</Badge>}
+                                                    </div>
+                                                </TableCell>
                                                 <TableCell>
                                                     <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                                 </TableCell>
                                             </TableRow>
-                                        ))}
+                                        )})}
                                     </TableBody>
                                 </Table>
                             )}

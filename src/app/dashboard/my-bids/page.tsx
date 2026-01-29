@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -24,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 
@@ -79,7 +77,10 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Date Submitted</span>
-                                <span className="font-medium">{format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</span>
+                                <span className="font-medium flex items-center gap-2">
+                                  {format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}
+                                  {isToday(new Date(bid.submittedDate)) && <Badge>Today</Badge>}
+                                </span>
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
@@ -128,7 +129,12 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                             <TableCell className="font-medium">{bid.job?.title}</TableCell>
                             <TableCell>{bid.job?.client}</TableCell>
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
-                            <TableCell>{format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <span>{format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</span>
+                                  {isToday(new Date(bid.submittedDate)) && <Badge>Today</Badge>}
+                                </div>
+                            </TableCell>
                             <TableCell>
                                 <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
                             </TableCell>

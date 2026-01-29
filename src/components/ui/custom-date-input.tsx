@@ -1,11 +1,10 @@
-
 'use client';
 
 import * as React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { format, parse } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 interface CustomDateInputProps {
@@ -29,11 +28,12 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
     const [month, setMonth] = React.useState<string>('');
     const [year, setYear] = React.useState<string>('');
 
+    // Parse incoming value from parent
     React.useEffect(() => {
       if (value) {
         try {
           const date = parse(value, GLOBAL_DATE_FORMAT, new Date());
-          if (!isNaN(date.getTime())) {
+          if (isValid(date)) {
             setDay(format(date, 'dd'));
             setMonth(format(date, 'MMM'));
             setYear(format(date, 'yyyy'));
@@ -49,32 +49,39 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
       setYear('');
     }, [value]);
     
-    const daysInMonth = React.useMemo(() => {
-        if (!month || !year || year.length !== 4) return [];
+    const numDaysInMonth = React.useMemo(() => {
+        if (!month || !year || year.length !== 4) return 31;
         const monthIndex = months.findIndex(m => m.value === month);
-        if (monthIndex < 0) return [];
-        const numDays = new Date(parseInt(year), monthIndex + 1, 0).getDate();
-        return Array.from({ length: numDays }, (_, i) => (i + 1).toString().padStart(2, '0'));
+        if (monthIndex < 0) return 31;
+        return new Date(parseInt(year), monthIndex + 1, 0).getDate();
     }, [month, year]);
 
-    // This effect ensures that a valid date string is propagated upwards.
+    // This effect calls the onChange prop when the date is valid
     React.useEffect(() => {
         if (day && month && year && year.length === 4) {
-            const dateStr = `${day}-${month}-${year}`;
-            onChange?.(dateStr);
-        } else if (!day && !month && !year && value) {
-            // If all fields are cleared, and there was a value, propagate the clear
+            const dayNum = parseInt(day, 10);
+            if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= numDaysInMonth) {
+                 const dateStr = `${String(day).padStart(2, '0')}-${month}-${year}`;
+                 if (dateStr !== value) {
+                    onChange?.(dateStr);
+                 }
+            }
+        } else if (value) {
+            // If fields are incomplete but there was a value, clear it
             onChange?.('');
         }
-    }, [day, month, year, onChange, value]);
+    }, [day, month, year, numDaysInMonth, onChange, value]);
 
     const handleMonthChange = (newMonth: string) => {
         setMonth(newMonth);
-        const monthIndex = months.findIndex(m => m.value === newMonth);
-        if (day && year && monthIndex >= 0) {
-            const numDaysInNewMonth = new Date(parseInt(year), monthIndex + 1, 0).getDate();
-            if (parseInt(day) > numDaysInNewMonth) {
-                setDay(''); // Reset day if it's no longer valid
+        const currentDay = parseInt(day);
+        if (!isNaN(currentDay)) {
+            const monthIndex = months.findIndex(m => m.value === newMonth);
+            if (year && year.length === 4 && monthIndex >= 0) {
+                const numDaysInNewMonth = new Date(parseInt(year), monthIndex + 1, 0).getDate();
+                if (currentDay > numDaysInNewMonth) {
+                    setDay(numDaysInNewMonth.toString()); // Adjust to max day of new month
+                }
             }
         }
     };
@@ -83,15 +90,32 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
         const newYear = e.target.value;
         if (/^\d{0,4}$/.test(newYear)) {
             setYear(newYear);
-            if (day && month) {
+             const currentDay = parseInt(day);
+            if (!isNaN(currentDay) && month && newYear.length === 4) {
                 const monthIndex = months.findIndex(m => m.value === month);
                 const numDaysInNewMonth = new Date(parseInt(newYear), monthIndex + 1, 0).getDate();
-                if (parseInt(day) > numDaysInNewMonth) {
-                    setDay(''); // Reset day if it's no longer valid (e.g., Feb 29 in a non-leap year)
+                if (currentDay > numDaysInNewMonth) {
+                    setDay(numDaysInNewMonth.toString()); // Adjust day if it's now invalid
                 }
             }
         }
     };
+    
+     const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newDayValue = e.target.value;
+        setDay(newDayValue); // Allow user to type freely
+    };
+    
+    const handleDayBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const dayNum = parseInt(e.target.value, 10);
+        if (isNaN(dayNum) || dayNum < 1) {
+            setDay('01');
+        } else if (dayNum > numDaysInMonth) {
+            setDay(numDaysInMonth.toString());
+        } else {
+            setDay(dayNum.toString().padStart(2, '0'));
+        }
+    }
 
 
     return (
@@ -112,12 +136,16 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
                 ))}
             </SelectContent>
         </Select>
-        <Select value={day} onValueChange={setDay} disabled={!month || !year || year.length !== 4}>
-            <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
-            <SelectContent>
-                {daysInMonth.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-            </SelectContent>
-        </Select>
+        <Input
+            type="number"
+            placeholder="Day"
+            value={day}
+            onChange={handleDayChange}
+            onBlur={handleDayBlur}
+            min={1}
+            max={numDaysInMonth}
+            disabled={!month || !year || year.length !== 4}
+        />
       </div>
     );
   }

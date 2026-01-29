@@ -374,15 +374,21 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         workflow: 'level3',
         history: [
             { user: 'Carlos Ray', timestamp: '2024-06-22T09:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
-            { user: 'Carlos Ray', timestamp: '2024-06-20T08:00:00Z', action: 'Scheduled job.', details: 'Start: 2024-06-21', statusChange: 'Scheduled' },
-            { user: 'John Doe', timestamp: '2024-06-19T15:00:00Z', action: 'Awarded job to provider "TEAM, Inc.".', statusChange: 'Assigned' },
-            { user: 'John Doe', timestamp: '2024-06-18T10:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' },
+            { user: 'Carlos Ray', timestamp: '2024-06-21T08:00:00Z', action: 'Assigned resources.', details: 'Assigned Carlos Ray, Parker B-300S' },
+            { user: 'Maria Garcia', timestamp: '2024-06-20T08:00:00Z', action: 'Scheduled job.', details: 'Inspection scheduled for 2024-06-21', statusChange: 'Scheduled' },
+            { user: 'John Doe', timestamp: '2024-06-19T15:00:00Z', action: 'Awarded job to provider "TEAM, Inc." for $4,800.', statusChange: 'Assigned' },
+            { user: 'Carlos Ray', timestamp: '2024-06-18T14:00:00Z', action: 'Bid for $4,800 submitted by TEAM, Inc.', details: 'Includes on-site mobilization and reporting.' },
+            { user: 'John Doe', timestamp: '2024-06-18T10:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
         ],
         messages: [
             { user: 'John Doe', role: 'Client', timestamp: '2024-06-20T14:15:00Z', message: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.' },
             { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-06-20T15:00:00Z', message: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.' },
             { user: 'John Doe', role: 'Client', timestamp: '2024-06-22T10:00:00Z', message: 'Thanks for the report. What was the outcome on that secondary hook?' },
-        ]
+        ],
+        documents: [
+            { name: 'Crane_Maintenance_Manual.pdf', url: '#' },
+            { name: 'Lifting_Procedure.pdf', url: '#' },
+        ],
     },
     { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
     { 
@@ -522,7 +528,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
 const bidsData: Bid[] = [
     { id: 'BID-001', jobId: 'JOB-001', providerId: 'provider-01', amount: 12500, status: 'Submitted', submittedDate: '2024-06-29' },
     { id: 'BID-001A', jobId: 'JOB-001', providerId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01' },
-    { id: 'BID-002', jobId: 'JOB-002', providerId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-26' },
+    { id: 'BID-002', jobId: 'JOB-002', providerId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
     { id: 'BID-003', jobId: 'JOB-005', providerId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
     { id: 'BID-004', jobId: 'JOB-006', providerId: 'provider-02', amount: 22000, status: 'Rejected', submittedDate: '2024-07-04' },
     { id: 'BID-004A', jobId: 'JOB-006', providerId: 'provider-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04' },

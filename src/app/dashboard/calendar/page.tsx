@@ -41,8 +41,14 @@ export default function CalendarPage() {
     }, []);
 
     const events: CalendarEvent[] = useMemo(() => {
-        const scheduledJobs = jobs.filter(job => job.scheduledStartDate);
-        const technicians = allUsers.filter(u => u.role === 'Inspector');
+        let relevantJobs = jobs;
+        if (role === 'client') {
+            relevantJobs = jobs.filter(job => job.client === 'Global Energy Corp.');
+        } else if (role === 'inspector') {
+            relevantJobs = jobs.filter(job => job.providerId === 'provider-03');
+        }
+        
+        const scheduledJobs = relevantJobs.filter(job => job.scheduledStartDate);
 
         const createEventsForJob = (job: Job): CalendarEvent[] => {
             const startDate = parseISO(job.scheduledStartDate as string);
@@ -60,18 +66,21 @@ export default function CalendarPage() {
         };
 
         if (activeTab === 'jobs') {
-            return scheduledJobs
-                .filter(job => {
-                    if (role === 'client') return job.client === 'Global Energy Corp.';
-                    if (role === 'inspector') return !!job.technicianIds?.length;
-                    return true;
-                })
-                .flatMap(createEventsForJob);
+            return scheduledJobs.flatMap(createEventsForJob);
         }
 
         if (activeTab === 'technicians' || activeTab === 'equipment') {
             const resourceSchedule: Record<string, { resource: PlatformUser | InspectorAsset; jobs: Job[]; date: Date }> = {};
             
+            // For inspectors, only show their own company's resources.
+            const technicians = (role === 'inspector') 
+                ? allUsers.filter(u => u.role === 'Inspector' && u.providerId === 'provider-03') 
+                : allUsers.filter(u => u.role === 'Inspector');
+
+            const equipmentList = (role === 'inspector') 
+                ? inspectorAssets.filter(e => e.providerId === 'provider-03') 
+                : inspectorAssets;
+
             scheduledJobs.forEach(job => {
                 if (!job.scheduledStartDate) return;
                 const startDate = parseISO(job.scheduledStartDate);
@@ -79,7 +88,7 @@ export default function CalendarPage() {
                 const interval = eachDayOfInterval({ start: startDate, end: endDate });
 
                 const resourceIds = activeTab === 'technicians' ? job.technicianIds : job.equipmentIds;
-                const resourceList = activeTab === 'technicians' ? technicians : inspectorAssets;
+                const resourceList = activeTab === 'technicians' ? technicians : equipmentList;
 
                 resourceIds?.forEach(resourceId => {
                     const resource = (resourceList as Array<PlatformUser | InspectorAsset>).find(r => r.id === resourceId);
@@ -89,7 +98,6 @@ export default function CalendarPage() {
                              if (!resourceSchedule[key]) {
                                 resourceSchedule[key] = { resource, jobs: [], date };
                             }
-                            // Avoid duplicating jobs for the same resource on the same day
                             if (!resourceSchedule[key].jobs.some(j => j.id === job.id)) {
                                 resourceSchedule[key].jobs.push(job);
                             }

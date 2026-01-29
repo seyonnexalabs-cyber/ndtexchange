@@ -1,5 +1,4 @@
 
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History } from "lucide-react";
@@ -14,7 +13,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, technicians, inspectorAssets, Job, Inspection, allUsers, userAuditLog } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspectorAssets, Job, Inspection, allUsers, userAuditLog } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -267,7 +266,7 @@ const InspectorDashboard = () => {
     
     // Filter data specifically for the inspector's company
     const providerJobs = useMemo(() => jobs.filter(j => j.providerId === 'provider-03'), []);
-    const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === 'provider-03'), []);
+    const providerTechnicians = useMemo(() => allUsers.filter(u => u.role === 'Inspector' && u.providerId === 'provider-03'), []);
     const providerEquipment = useMemo(() => inspectorAssets, []);
 
     // Job Stats
@@ -281,8 +280,8 @@ const InspectorDashboard = () => {
     , [providerJobs]);
 
     // Technician Stats
-    const availableTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'Available'), [providerTechnicians]);
-    const onAssignmentTechnicians = useMemo(() => providerTechnicians.filter(t => t.status === 'On Assignment'), [providerTechnicians]);
+    const availableTechnicians = useMemo(() => providerTechnicians.filter(t => t.workStatus === 'Available'), [providerTechnicians]);
+    const onAssignmentTechnicians = useMemo(() => providerTechnicians.filter(t => t.workStatus === 'On Assignment'), [providerTechnicians]);
 
     // Equipment Stats
     const availableEquipment = useMemo(() => providerEquipment.filter(e => e.status === 'Available'), [providerEquipment]);
@@ -745,3 +744,5 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+    

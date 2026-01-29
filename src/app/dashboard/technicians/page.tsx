@@ -3,7 +3,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { technicians as initialTechnicians, jobs, NDTTechniques, Technician, Certification } from "@/lib/placeholder-data";
+import { allUsers, jobs, NDTTechniques, PlatformUser, Certification } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -31,7 +31,8 @@ const technicianSchema = z.object({
   name: z.string().min(2, "Name is required."),
   level: z.enum(['Level I', 'Level II', 'Level III'], { required_error: "Please select a level." }),
   certifications: z.array(z.string()).min(1, "At least one certification must be selected."),
-  status: z.enum(['Available', 'On Assignment', 'Disabled']).optional(),
+  workStatus: z.enum(['Available', 'On Assignment']).optional(),
+  status: z.enum(['Active', 'Disabled']).optional(),
 });
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
@@ -65,10 +66,10 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                  {isEditing && (
                     <FormField
                         control={form.control}
-                        name="status"
+                        name="workStatus"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Status</FormLabel>
+                                <FormLabel>Work Status</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -78,7 +79,6 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                                     <SelectContent>
                                         <SelectItem value="Available">Available</SelectItem>
                                         <SelectItem value="On Assignment">On Assignment</SelectItem>
-                                        <SelectItem value="Disabled">Disabled</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -169,7 +169,7 @@ const technicianStatusVariants: {[key: string]: 'success' | 'default' | 'outline
     'Disabled': 'outline',
 }
 
-const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; })[]; onEditClick: (technician: Technician) => void; }) => (
+const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (PlatformUser & { completedJobs: number; })[]; onEditClick: (technician: PlatformUser) => void; }) => (
     <Card>
         <CardHeader>
             <CardTitle>Technician Roster</CardTitle>
@@ -197,11 +197,11 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
                             </TableCell>
                             <TableCell>{tech.completedJobs}</TableCell>
                             <TableCell>
-                                <Badge variant={technicianStatusVariants[tech.status]}>{tech.status}</Badge>
+                                <Badge variant={tech.workStatus ? technicianStatusVariants[tech.workStatus] : 'outline'}>{tech.workStatus || 'N/A'}</Badge>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1">
-                                    {tech.certifications.map((cert, i) => (
+                                    {tech.certifications?.map((cert, i) => (
                                         <Badge key={i} variant="secondary" shape="rounded">
                                             {cert.method}
                                             <Separator orientation="vertical" className="h-3 mx-1 bg-muted-foreground/30" />
@@ -236,7 +236,7 @@ const DesktopView = ({ constructUrl, technicians, onEditClick }: { constructUrl:
     </Card>
 );
 
-const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (Technician & { completedJobs: number; })[]; onEditClick: (technician: Technician) => void; }) => (
+const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: (path: string) => string; technicians: (PlatformUser & { completedJobs: number; })[]; onEditClick: (technician: PlatformUser) => void; }) => (
     <div className="space-y-4">
         {technicians.map(tech => {
             return (
@@ -251,7 +251,7 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                                     <CardTitle>{tech.name}</CardTitle>
                                 </div>
                             </div>
-                            <Badge variant={technicianStatusVariants[tech.status]}>{tech.status}</Badge>
+                            <Badge variant={tech.workStatus ? technicianStatusVariants[tech.workStatus] : 'outline'}>{tech.workStatus || 'N/A'}</Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -261,7 +261,7 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
                         </div>
                         <h4 className="text-sm font-semibold mb-2">Certifications</h4>
                         <div className="flex flex-wrap gap-1">
-                            {tech.certifications.map((cert, i) => (
+                            {tech.certifications?.map((cert, i) => (
                                 <Badge key={i} variant="secondary" shape="rounded">
                                     {cert.method}
                                     <Separator orientation="vertical" className="h-3 mx-1 bg-muted-foreground/30" />
@@ -302,8 +302,8 @@ export default function TechniciansPage() {
     const { toast } = useToast();
     
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
-    const [technicianList, setTechnicianList] = useState(() => initialTechnicians.filter(t => t.providerId === 'provider-03'));
+    const [editingTechnician, setEditingTechnician] = useState<PlatformUser | null>(null);
+    const [technicianList, setTechnicianList] = useState(() => allUsers.filter(u => u.providerId === 'provider-03' && u.role === 'Inspector'));
     const [statusFilter, setStatusFilter] = useState('all');
     
     const technicianListWithStats = useMemo(() => {
@@ -317,7 +317,10 @@ export default function TechniciansPage() {
 
     const filteredTechnicians = useMemo(() => {
         return technicianListWithStats.filter(tech => {
-            return statusFilter === 'all' || tech.status === statusFilter;
+            if (tech.status === 'Disabled' && statusFilter !== 'Disabled') return false;
+            if (statusFilter === 'all') return tech.status !== 'Disabled';
+            if (statusFilter === 'Disabled') return tech.status === 'Disabled';
+            return tech.workStatus === statusFilter && tech.status !== 'Disabled';
         });
     }, [technicianListWithStats, statusFilter]);
 
@@ -331,7 +334,7 @@ export default function TechniciansPage() {
         setIsFormOpen(true);
     };
 
-    const handleEditClick = (technician: Technician) => {
+    const handleEditClick = (technician: PlatformUser) => {
         setEditingTechnician(technician);
         setIsFormOpen(true);
     };
@@ -351,19 +354,31 @@ export default function TechniciansPage() {
 
         if (isEditing) {
             setTechnicianList(prev => prev.map(tech => 
-                tech.id === editingTechnician.id ? { ...tech, name: values.name, certifications: newCertifications, status: values.status || tech.status } : tech
+                tech.id === editingTechnician.id ? { 
+                    ...tech, 
+                    name: values.name, 
+                    certifications: newCertifications, 
+                    level: values.level,
+                    workStatus: values.workStatus || tech.workStatus,
+                    status: values.status || tech.status,
+                } : tech
             ));
             toast({
                 title: "Technician Updated",
                 description: `${values.name}'s profile has been updated.`,
             });
         } else {
-             const newTechnician: Technician = {
-                id: `TECH-${String(technicianList.length + 1).padStart(2, '0')}`,
+             const newTechnician: PlatformUser = {
+                id: `user-TECH-${String(technicianList.length + 1).padStart(2, '0')}`,
                 name: values.name,
+                email: `${values.name.toLowerCase().replace(' ', '.')}@teaminc.com`,
+                role: 'Inspector',
+                company: 'TEAM, Inc.',
+                status: 'Active',
                 certifications: newCertifications,
-                status: 'Available',
+                workStatus: 'Available',
                 providerId: 'provider-03', // This would be dynamic in a real app
+                level: values.level,
             };
             setTechnicianList(prev => [newTechnician, ...prev]);
             toast({
@@ -387,7 +402,7 @@ export default function TechniciansPage() {
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="all">All Active</SelectItem>
                             <SelectItem value="Available">Available</SelectItem>
                             <SelectItem value="On Assignment">On Assignment</SelectItem>
                             <SelectItem value="Disabled">Disabled</SelectItem>
@@ -415,8 +430,9 @@ export default function TechniciansPage() {
                         onCancel={closeDialog}
                         defaultValues={editingTechnician ? {
                             name: editingTechnician.name,
-                            level: (['Level I', 'Level II', 'Level III'] as const)[Math.max(...editingTechnician.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))],
-                            certifications: editingTechnician.certifications.map(c => c.method),
+                            level: editingTechnician.level,
+                            certifications: editingTechnician.certifications?.map(c => c.method),
+                            workStatus: editingTechnician.workStatus,
                             status: editingTechnician.status,
                         } : undefined}
                         isEditing={!!editingTechnician}

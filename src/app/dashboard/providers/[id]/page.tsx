@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
-import { technicians, inspectorAssets, InspectorAsset, Technician, subscriptions } from "@/lib/placeholder-data";
+import { allUsers, inspectorAssets, InspectorAsset, subscriptions } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,7 +45,7 @@ export default function ProviderDetailPage() {
     const role = searchParams.get('role');
     
     const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
-    const providerTechnicians = useMemo(() => technicians.filter(t => t.providerId === id && t.status !== 'Disabled'), [id]);
+    const providerTechnicians = useMemo(() => allUsers.filter(u => u.providerId === id && u.status !== 'Disabled'), [id]);
     const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
     const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
 
@@ -171,7 +172,7 @@ export default function ProviderDetailPage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-wrap gap-1 mt-3">
-                                                        {tech.certifications.map((cert, i) => (
+                                                        {tech.certifications?.map((cert, i) => (
                                                             <Badge key={i} variant="secondary" shape="rounded">
                                                                 {cert.method}
                                                                 <Separator orientation="vertical" className="h-3 mx-1.5 bg-muted-foreground/30" />
@@ -203,7 +204,7 @@ export default function ProviderDetailPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex flex-wrap gap-1">
-                                                            {tech.certifications.map((cert, i) => (
+                                                            {tech.certifications?.map((cert, i) => (
                                                                 <Badge key={i} variant="secondary" shape="rounded">
                                                                     {cert.method}
                                                                     <Separator orientation="vertical" className="h-3 mx-1.5 bg-muted-foreground/30" />

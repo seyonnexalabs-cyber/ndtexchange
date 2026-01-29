@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { technicians, jobs, Technician, Job, NDTTechniques, Certification } from "@/lib/placeholder-data";
+import { allUsers, jobs, PlatformUser, Job, NDTTechniques, Certification } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -43,10 +43,9 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Paid': 'success'
 };
 
-const technicianStatusVariants: { [key in Technician['status']]: 'success' | 'default' | 'outline' } = {
+const technicianStatusVariants: { [key in PlatformUser['workStatus'] & string]: 'success' | 'default' | 'outline' } = {
     'Available': 'success',
     'On Assignment': 'default',
-    'Disabled': 'outline',
 };
 
 const technicianSchema = z.object({
@@ -54,7 +53,7 @@ const technicianSchema = z.object({
   name: z.string().min(2, "Name is required."),
   level: z.enum(['Level I', 'Level II', 'Level III'], { required_error: "Please select a level." }),
   certifications: z.array(z.string()).min(1, "At least one certification must be selected."),
-  status: z.enum(['Available', 'On Assignment', 'Disabled']).optional(),
+  workStatus: z.enum(['Available', 'On Assignment']).optional(),
 });
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
@@ -88,7 +87,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                  {isEditing && (
                     <FormField
                         control={form.control}
-                        name="status"
+                        name="workStatus"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Status</FormLabel>
@@ -101,7 +100,6 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                                     <SelectContent>
                                         <SelectItem value="Available">Available</SelectItem>
                                         <SelectItem value="On Assignment">On Assignment</SelectItem>
-                                        <SelectItem value="Disabled">Disabled</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -196,7 +194,7 @@ export default function TechnicianDetailPage() {
     const { toast } = useToast();
     const router = useRouter();
     
-    const technician = useMemo(() => technicians.find(t => t.id === id), [id]);
+    const technician = useMemo(() => allUsers.find(t => t.id === id && t.role === 'Inspector'), [id]);
     const assignedJobs = useMemo(() => jobs.filter(j => j.technicianIds?.includes(id as string)), [id]);
     const provider = useMemo(() => serviceProviders.find(p => p.id === technician?.providerId), [technician]);
     const completedJobsCount = useMemo(() => assignedJobs.filter(j => ['Completed', 'Paid'].includes(j.status)).length, [assignedJobs]);
@@ -205,12 +203,7 @@ export default function TechnicianDetailPage() {
         notFound();
     }
     
-    const highestLevel = useMemo(() => {
-        if (!technician.certifications.length) return 'N/A';
-        const levels = ['Level I', 'Level II', 'Level III'];
-        const highestIndex = Math.max(...technician.certifications.map(c => levels.indexOf(c.level)));
-        return levels[highestIndex];
-    }, [technician.certifications]);
+    const highestLevel = technician.level;
 
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -271,7 +264,7 @@ export default function TechnicianDetailPage() {
                                 </Avatar>
                                 <div>
                                     <h1 className="text-2xl font-headline font-bold">{technician.name}</h1>
-                                    <p className="font-extrabold text-sm text-muted-foreground">{technician.id}</p>
+                                    <p className="font-bold text-sm text-muted-foreground">{technician.id}</p>
                                     <Badge shape="rounded" variant={highestLevel === 'Level III' ? 'default' : highestLevel === 'Level II' ? 'success' : 'secondary'} className="mt-1">
                                         {highestLevel} Inspector
                                     </Badge>
@@ -280,7 +273,7 @@ export default function TechnicianDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="text-center">
-                             <Badge variant={technicianStatusVariants[technician.status]}>{technician.status}</Badge>
+                             <Badge variant={technician.workStatus ? technicianStatusVariants[technician.workStatus] : 'outline'}>{technician.workStatus || 'N/A'}</Badge>
                              <div className="mt-4 text-sm border-t pt-4">
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Jobs Completed</span>
@@ -302,7 +295,7 @@ export default function TechnicianDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {technician.certifications.map((cert, index) => (
+                                    {technician.certifications?.map((cert, index) => (
                                         <TableRow key={index}>
                                             <TableCell>
                                                 <Badge variant="outline" shape="rounded">{cert.method}</Badge>
@@ -333,7 +326,7 @@ export default function TechnicianDetailPage() {
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <p className="font-semibold">{job.title}</p>
-                                                    <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
+                                                    <p className="font-bold text-xs text-muted-foreground">{job.id}</p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                             </div>
@@ -360,7 +353,7 @@ export default function TechnicianDetailPage() {
                                     <TableBody>
                                         {assignedJobs.map(job => (
                                             <TableRow key={job.id}>
-                                                <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                                <TableCell className="font-bold text-xs">{job.id}</TableCell>
                                                 <TableCell className="font-medium">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className="hover:underline">{job.title}</Link>
                                                 </TableCell>
@@ -397,9 +390,9 @@ export default function TechnicianDetailPage() {
                         onCancel={() => setIsFormOpen(false)}
                         defaultValues={{
                             name: technician.name,
-                            level: (['Level I', 'Level II', 'Level III'] as const)[Math.max(...technician.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))],
-                            certifications: technician.certifications.map(c => c.method),
-                            status: technician.status,
+                            level: technician.level,
+                            certifications: technician.certifications?.map(c => c.method),
+                            workStatus: technician.workStatus,
                         }}
                         isEditing={true}
                     />

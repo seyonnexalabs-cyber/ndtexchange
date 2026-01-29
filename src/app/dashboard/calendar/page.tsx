@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { jobs, technicians, inspectorAssets, Job, Technician, InspectorAsset } from '@/lib/placeholder-data';
+import { jobs, allUsers, inspectorAssets, Job, PlatformUser, InspectorAsset } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Briefcase, MapPin, CheckCircle, Users, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ type CalendarEvent = {
   date: Date;
   type: 'job' | 'technician' | 'equipment';
   isClash: boolean;
-  data: Job | { resource: Technician | InspectorAsset; jobs: Job[] };
+  data: Job | { resource: PlatformUser | InspectorAsset; jobs: Job[] };
 };
 
 export default function CalendarPage() {
@@ -41,6 +41,7 @@ export default function CalendarPage() {
 
     const events: CalendarEvent[] = useMemo(() => {
         const scheduledJobs = jobs.filter(job => job.scheduledStartDate);
+        const technicians = allUsers.filter(u => u.role === 'Inspector');
 
         const createEventsForJob = (job: Job): CalendarEvent[] => {
             const startDate = parseISO(job.scheduledStartDate as string);
@@ -68,7 +69,7 @@ export default function CalendarPage() {
         }
 
         if (activeTab === 'technicians' || activeTab === 'equipment') {
-            const resourceSchedule: Record<string, { resource: Technician | InspectorAsset; jobs: Job[]; date: Date }> = {};
+            const resourceSchedule: Record<string, { resource: PlatformUser | InspectorAsset; jobs: Job[]; date: Date }> = {};
             
             scheduledJobs.forEach(job => {
                 if (!job.scheduledStartDate) return;
@@ -80,7 +81,7 @@ export default function CalendarPage() {
                 const resourceList = activeTab === 'technicians' ? technicians : inspectorAssets;
 
                 resourceIds?.forEach(resourceId => {
-                    const resource = (resourceList as Array<Technician | InspectorAsset>).find(r => r.id === resourceId);
+                    const resource = (resourceList as Array<PlatformUser | InspectorAsset>).find(r => r.id === resourceId);
                     if (resource) {
                         interval.forEach(date => {
                             const key = `${resource.id}-${format(date, 'yyyy-MM-dd')}`;
@@ -143,7 +144,7 @@ export default function CalendarPage() {
             details = <p className="text-xs text-muted-foreground">{job.technique}</p>;
             badgeText = job.status;
         } else if (event.type === 'technician' || event.type === 'equipment') {
-            const resourceData = event.data as { resource: Technician | InspectorAsset, jobs: Job[] };
+            const resourceData = event.data as { resource: PlatformUser | InspectorAsset, jobs: Job[] };
             title = resourceData.resource.name;
             details = <p className="text-xs text-muted-foreground">{resourceData.jobs.map(j => j.title).join(', ')}</p>
             badgeText = `${resourceData.jobs.length} job(s)`;
@@ -217,7 +218,7 @@ export default function CalendarPage() {
                 </>
             );
         } else {
-             const resourceData = event.data as { resource: Technician | InspectorAsset, jobs: Job[] };
+             const resourceData = event.data as { resource: PlatformUser | InspectorAsset, jobs: Job[] };
              const resourceType = selectedEvent.type === 'technician' ? 'Technician' : 'Equipment';
              return (
                 <>
@@ -367,3 +368,4 @@ export default function CalendarPage() {
     );
 
     
+

@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, technicians, inspectorAssets, Bid, Job, reviews } from '@/lib/placeholder-data';
+import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -342,7 +342,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         return `${base}?${params.toString()}`;
     }
 
-    const assignedTechnicians = technicians.filter(t => jobDetails.technicianIds?.includes(t.id));
+    const assignedTechnicians = allUsers.filter(u => u.role === 'Inspector' && jobDetails.technicianIds?.includes(u.id));
     const assignedEquipment = inspectorAssets.filter(e => jobDetails.equipmentIds?.includes(e.id));
     
     const openTechDialog = () => {
@@ -897,7 +897,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </DialogHeader>
                         <ScrollArea className="max-h-64 p-1">
                             <div className="space-y-2 p-3">
-                            {technicians.map(tech => (
+                            {allUsers.filter(u => u.role === 'Inspector').map(tech => (
                                 <div key={tech.id} className="flex items-center space-x-2">
                                     <Checkbox 
                                         id={`tech-${tech.id}`} 
@@ -907,7 +907,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         }}
                                     />
                                     <Label htmlFor={`tech-${tech.id}`} className="flex-grow">{tech.name} <span className="text-muted-foreground">({tech.level})</span></Label>
-                                    <Badge variant={tech.status === 'Available' ? 'success' : 'default'}>{tech.status}</Badge>
+                                    <Badge variant={tech.workStatus === 'Available' ? 'success' : 'default'}>{tech.workStatus}</Badge>
                                 </div>
                             ))}
                             </div>
@@ -968,5 +968,4 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     
 
     
-
 

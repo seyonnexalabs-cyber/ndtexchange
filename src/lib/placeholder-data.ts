@@ -99,14 +99,6 @@ export type Certification = {
   level: 'Level I' | 'Level II' | 'Level III';
 };
 
-export type Technician = {
-    id: string;
-    name: string;
-    certifications: Certification[];
-    status: 'Available' | 'On Assignment' | 'Disabled';
-    providerId: string;
-};
-
 export type Bid = {
     id: string;
     jobId: string;
@@ -145,6 +137,11 @@ export type PlatformUser = {
     role: string;
     company: string;
     status: 'Active' | 'Invited' | 'Disabled';
+    // Technician-specific properties
+    certifications?: Certification[];
+    workStatus?: 'Available' | 'On Assignment';
+    providerId?: string;
+    level?: 'Level I' | 'Level II' | 'Level III';
 };
 
 export type Subscription = {
@@ -323,24 +320,6 @@ export const inspectorAssets: InspectorAsset[] = [
     },
 ];
 
-export const technicians: Technician[] = [
-    { id: 'TECH-01', name: 'Carlos Ray', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], status: 'Available', providerId: 'provider-03' },
-    { id: 'TECH-02', name: 'Aisha Khan', certifications: [{method: 'RT', level: 'Level II'}, {method: 'VT', level: 'Level II'}, {method: 'ET', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-01' },
-    { id: 'TECH-03', name: 'Ben Carter', certifications: [{method: 'UT', level: 'Level III'}, {method: 'PAUT', level: 'Level III'}, {method: 'TOFD', level: 'Level II'}, {method: 'AE', level: 'Level II'}], status: 'Available', providerId: 'provider-01' },
-    { id: 'TECH-04', name: 'David Lee', certifications: [{method: 'MT', level: 'Level I'}, {method: 'PT', level: 'Level I'}], status: 'Available', providerId: 'provider-02' },
-    { id: 'TECH-05', name: 'Maria Garcia', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-03' },
-    { id: 'TECH-06', name: 'Frank Miller', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], status: 'Available', providerId: 'provider-02' },
-    { id: 'TECH-07', name: 'Samantha Wu', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-04' },
-    { id: 'TECH-08', name: 'James Wilson', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], status: 'Available', providerId: 'provider-03' },
-    { id: 'TECH-09', name: 'Steven Shaw', certifications: [{method: 'RT', level: 'Level II'}], status: 'Disabled', providerId: 'provider-03' },
-    { id: 'TECH-10', name: 'Olivia Chen', certifications: [{method: 'PT', level: 'Level II'}, {method: 'VT', level: 'Level II'}], status: 'Available', providerId: 'provider-04' },
-    { id: 'TECH-11', name: 'Michael Brown', certifications: [{method: 'UT', level: 'Level I'}, {method: 'MT', level: 'Level I'}], status: 'Available', providerId: 'provider-03' },
-    { id: 'TECH-12', name: 'Emily Rodriguez', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'UT', level: 'Level II'}], status: 'On Assignment', providerId: 'provider-01' },
-    { id: 'TECH-13', name: 'Isabelle Laurent', certifications: [{method: 'RT', level: 'Level III'}, {method: 'UT', level: 'Level II'}], status: 'Available', providerId: 'provider-11' },
-    { id: 'TECH-14', name: 'Jean-Pierre', certifications: [{method: 'ET', level: 'Level II'}, {method: 'PT', level: 'Level II'}], status: 'Available', providerId: 'provider-11' },
-    { id: 'TECH-15', name: 'Lars Andersen', certifications: [{method: 'VT', level: 'Level III'}, {method: 'AE', level: 'Level III'}], status: 'Available', providerId: 'provider-12' },
-];
-
 const today = new Date();
 const tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
@@ -388,7 +367,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-06-18', 
         scheduledStartDate: '2024-06-21', 
         scheduledEndDate: '2024-06-21', 
-        technicianIds: ['TECH-01'], 
+        technicianIds: ['user-TECH-01'], 
         equipmentIds: ['YOKE-02'], 
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
@@ -404,7 +383,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { user: 'John Doe', role: 'Client', timestamp: '2024-06-22T10:00:00Z', message: 'Thanks for the report. What was the outcome on that secondary hook?' },
         ]
     },
-    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
+    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
     { 
         id: 'JOB-004', 
         title: 'Pipeline Weld Inspections', 
@@ -416,7 +395,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-01', 
         scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], 
         scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], 
-        technicianIds: ['TECH-01', 'TECH-03'], 
+        technicianIds: ['user-TECH-01', 'user-TECH-03'], 
         equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], 
         assetIds: ['ASSET-002'], 
         workflow: 'level3',
@@ -441,8 +420,8 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         ] 
     },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3' },
-    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['TECH-02'], workflow: 'level3' },
-    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-TECH-02'], workflow: 'level3' },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['user-TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { 
         id: 'JOB-009', 
         title: 'APR Inspection of Boiler Tubes', 
@@ -457,17 +436,17 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         documents: [ { name: 'Boiler_Tube_Diagram.pdf', url: '#' } ],
         history: [ { user: 'New Client User', timestamp: '2024-07-12T11:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' } ]
     },
-    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['TECH-07'], assetIds: ['ASSET-009'], workflow: 'standard' },
-    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['TECH-04', 'TECH-06'], assetIds: ['ASSET-007'], workflow: 'standard' },
-    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['TECH-03'], workflow: 'level3' },
+    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-TECH-07'], assetIds: ['ASSET-009'], workflow: 'standard' },
+    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['user-TECH-04', 'user-TECH-06'], assetIds: ['ASSET-007'], workflow: 'standard' },
+    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-03'], workflow: 'level3' },
     { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', providerId: 'provider-09', location: 'Freeport, TX', technique: 'AE', status: 'Assigned', postedDate: '2024-07-20', assetIds: [], workflow: 'level3' },
-    { id: 'JOB-014', title: 'Internal Corrosion Mapping of Piping', client: 'Energy Transfer', providerId: 'provider-03', location: 'Permian Basin, TX', technique: 'UT', status: 'In Progress', postedDate: '2024-07-18', scheduledStartDate: '2024-07-25', scheduledEndDate: '2024-07-28', technicianIds: ['TECH-01', 'TECH-08'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-002'], workflow: 'standard' },
-    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['TECH-02'], workflow: 'standard' },
+    { id: 'JOB-014', title: 'Internal Corrosion Mapping of Piping', client: 'Energy Transfer', providerId: 'provider-03', location: 'Permian Basin, TX', technique: 'UT', status: 'In Progress', postedDate: '2024-07-18', scheduledStartDate: '2024-07-25', scheduledEndDate: '2024-07-28', technicianIds: ['user-TECH-01', 'user-TECH-08'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-002'], workflow: 'standard' },
+    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-02'], workflow: 'standard' },
     { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { id: 'JOB-017', title: 'Shutdown Support - PT/MT', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Houston, TX', technique: 'PT', status: 'Scheduled', postedDate: '2024-07-25', scheduledStartDate: nextWeek.toISOString().split('T')[0], scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], assetIds: [], workflow: 'standard' },
     { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: [], workflow: 'level3' },
     { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'ET', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: [], workflow: 'standard' },
-    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['TECH-15'], assetIds: [], workflow: 'standard' },
+    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-TECH-15'], assetIds: [], workflow: 'standard' },
 ];
 
 const bidsData: Bid[] = [
@@ -558,25 +537,45 @@ export const reviews: Review[] = [
   { id: 'REV-008', jobId: 'JOB-020', providerId: 'provider-12', clientId: 'client-01', rating: 5, comment: 'DNV provided excellent service. Very knowledgeable and professional.', date: '2024-07-10', status: 'Approved' },
 ];
 
+const rawTechnicians: Omit<PlatformUser, 'email' | 'role' | 'company' | 'status'>[] = [
+    { id: 'user-TECH-01', name: 'Carlos Ray', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-03' },
+    { id: 'user-TECH-02', name: 'Aisha Khan', certifications: [{method: 'RT', level: 'Level II'}, {method: 'VT', level: 'Level II'}, {method: 'ET', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-01' },
+    { id: 'user-TECH-03', name: 'Ben Carter', certifications: [{method: 'UT', level: 'Level III'}, {method: 'PAUT', level: 'Level III'}, {method: 'TOFD', level: 'Level II'}, {method: 'AE', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-01' },
+    { id: 'user-TECH-04', name: 'David Lee', certifications: [{method: 'MT', level: 'Level I'}, {method: 'PT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-02' },
+    { id: 'user-TECH-05', name: 'Maria Garcia', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03' },
+    { id: 'user-TECH-06', name: 'Frank Miller', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-02' },
+    { id: 'user-TECH-07', name: 'Samantha Wu', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-04' },
+    { id: 'user-TECH-08', name: 'James Wilson', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03' },
+    { id: 'user-TECH-09', name: 'Steven Shaw', certifications: [{method: 'RT', level: 'Level II'}], workStatus: undefined, providerId: 'provider-03' }, // Disabled user
+    { id: 'user-TECH-10', name: 'Olivia Chen', certifications: [{method: 'PT', level: 'Level II'}, {method: 'VT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-04' },
+    { id: 'user-TECH-11', name: 'Michael Brown', certifications: [{method: 'UT', level: 'Level I'}, {method: 'MT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03' },
+    { id: 'user-TECH-12', name: 'Emily Rodriguez', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'UT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-01' },
+    { id: 'user-TECH-13', name: 'Isabelle Laurent', certifications: [{method: 'RT', level: 'Level III'}, {method: 'UT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-11' },
+    { id: 'user-TECH-14', name: 'Jean-Pierre', certifications: [{method: 'ET', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-11' },
+    { id: 'user-TECH-15', name: 'Lars Andersen', certifications: [{method: 'VT', level: 'Level III'}, {method: 'AE', level: 'Level III'}], workStatus: 'Available', providerId: 'provider-12' },
+];
+
+
 export const allUsers: PlatformUser[] = [
     { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active' },
     { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active' },
     { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active' },
     { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active' },
     { id: 'user-auditor-02', name: 'Brenda Vance', email: 'brenda.v@ndtauditors.gov', role: 'Senior Auditor', company: 'Aero-Compliance Partners', status: 'Active' },
-    ...technicians.map(t => {
+    ...rawTechnicians.map(t => {
         const provider = serviceProviders.find(p => p.id === t.providerId);
+        const highestLevel = t.certifications && t.certifications.length > 0 ? (['Level I', 'Level II', 'Level III'] as const)[Math.max(...t.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))] : 'Level I';
         return {
-            id: `user-${t.id}`,
-            name: t.name,
-            email: `${t.name.toLowerCase().replace(' ', '.')}@provider.com`,
-            role: `Inspector (${t.certifications[0]?.level || 'Level I'})`,
-            company: provider?.name || `Unknown Provider`,
-            status: 'Active' as 'Active' | 'Invited' | 'Disabled',
+            ...t,
+            id: t.id,
+            email: `${t.name.toLowerCase().replace(' ', '.')}@${provider?.name.toLowerCase().replace(/[^a-z]/g, '')}.com`,
+            role: `Inspector`,
+            company: provider?.name || 'Unknown Provider',
+            level: highestLevel,
+            status: t.name === 'Steven Shaw' ? 'Disabled' : 'Active' as 'Active' | 'Invited' | 'Disabled',
         };
     }),
      { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited' },
-     { id: 'user-tech-09', name: 'Disabled Tech', email: 'old.tech@provider.com', role: 'Inspector (Level II)', company: 'Applus+', status: 'Disabled' },
      { id: 'user-client-06', name: 'New Client User', email: 'contact@chemc.com', role: 'Client', company: 'Chemical Plant C', status: 'Active' },
      { id: 'user-client-07', name: 'Power Admin', email: 'admin@powergen.com', role: 'Client', company: 'Power Generation LLC', status: 'Active' },
      { id: 'user-client-08', name: 'Factory Manager', email: 'fm@mansol.com', role: 'Client', company: 'Manufacturing Solutions Inc.', status: 'Active' },

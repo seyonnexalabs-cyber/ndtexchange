@@ -171,7 +171,7 @@ const ClientDashboard = () => {
                                         fontSize={12}
                                     />
                                 </Pie>
-                                <ChartLegend content={<ChartLegendContent nameKey="status" />} className="-mt-4" />
+                                <ChartLegend content={<ChartLegendContent nameKey="key" />} className="-mt-4" />
                             </PieChart>
                         </ChartContainer>
                     </CardContent>

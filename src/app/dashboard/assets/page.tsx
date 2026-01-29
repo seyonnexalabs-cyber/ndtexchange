@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -254,10 +255,10 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                         <FormItem>
                             <FormLabel>Next Inspection Date</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g. 29-Jan-2026" {...field} />
+                                <CustomDateInput {...field} />
                             </FormControl>
                             <FormDescription>
-                                Please use dd-MMM-yyyy format.
+                                Enter the day, month, and year for the next inspection.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

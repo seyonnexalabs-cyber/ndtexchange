@@ -7,9 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { History, User, Briefcase, DollarSign } from 'lucide-react';
+import { History, User, Briefcase, DollarSign, PlusCircle, Award, Gavel, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Client-side only component to prevent hydration mismatch on formatted dates
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -22,7 +23,7 @@ const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
 
     // On the server and during the initial client render, formattedDate is null.
     // We return a placeholder to prevent the mismatch.
-    return <span className="text-xs">{formattedDate || '...'}</span>;
+    return <span className="text-xs text-muted-foreground/80 shrink-0">{formattedDate || '...'}</span>;
 };
 
 
@@ -51,84 +52,126 @@ const billingActionStyles: { [key in BillingAuditLog['action']]: 'success' | 'de
     'Plan Changed': 'default',
 };
 
+const getUserEventIcon = (action: UserAuditLog['action']): React.ReactNode => {
+    switch (action) {
+        case 'User Invited': return <PlusCircle className="h-4 w-4" />;
+        case 'Admin Promotion': return <Award className="h-4 w-4" />;
+        default: return <User className="h-4 w-4" />;
+    }
+};
+
+const getJobEventIcon = (action: JobAuditLog['action']): React.ReactNode => {
+    switch(action) {
+        case 'Job Created': return <PlusCircle className="h-4 w-4" />;
+        case 'Bid Placed': return <Gavel className="h-4 w-4" />;
+        case 'Job Awarded': return <Award className="h-4 w-4" />;
+        case 'Report Submitted': return <FileText className="h-4 w-4" />;
+        default: return <History className="h-4 w-4" />;
+    }
+};
+
+const getBillingEventIcon = (action: BillingAuditLog['action']): React.ReactNode => {
+    return <DollarSign className="h-4 w-4" />;
+};
+
+
 export default function AuditLogPage() {
     
     const UserLog = () => (
         <Card>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Actor</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Target User</TableHead>
-                        <TableHead>Target Company</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {userAuditLog.map(log => (
-                        <TableRow key={log.id}>
-                            <TableCell className="text-xs"><ClientFormattedDate timestamp={log.timestamp} /></TableCell>
-                            <TableCell>{log.actorName}</TableCell>
-                            <TableCell><Badge variant={userActionStyles[log.action]}>{log.action}</Badge></TableCell>
-                            <TableCell>{log.targetUserName}</TableCell>
-                            <TableCell>{log.targetCompany}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <CardContent className="pt-6">
+                <ScrollArea className="max-h-[60vh]">
+                     <div className="relative pl-6">
+                        <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                        {userAuditLog.map(log => (
+                            <div key={log.id} className="relative mb-8 pl-8">
+                                <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
+                                    <div className="text-primary">{getUserEventIcon(log.action)}</div>
+                                </div>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-medium">{log.actorName} <span className="text-muted-foreground font-normal">from {log.actorCompany}</span></p>
+                                    </div>
+                                    <ClientFormattedDate timestamp={log.timestamp} />
+                                </div>
+                                <div className="mt-1">
+                                    <p className="text-sm">
+                                        <Badge variant={userActionStyles[log.action]}>{log.action}</Badge>
+                                        <span className="text-muted-foreground ml-2">on user</span>
+                                        <span className="font-medium mx-1.5">{log.targetUserName}</span>
+                                        <span className="text-muted-foreground">({log.targetCompany})</span>
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </CardContent>
         </Card>
     );
 
      const JobLog = () => (
         <Card>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Job</TableHead>
-                        <TableHead>Actor</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Details</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {jobAuditLog.map(log => (
-                        <TableRow key={log.id}>
-                            <TableCell className="text-xs"><ClientFormattedDate timestamp={log.timestamp} /></TableCell>
-                            <TableCell className="font-medium">{log.jobTitle}</TableCell>
-                            <TableCell>{log.actorName}</TableCell>
-                            <TableCell><Badge variant={jobActionStyles[log.action]}>{log.action}</Badge></TableCell>
-                            <TableCell className="text-muted-foreground">{log.details}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+           <CardContent className="pt-6">
+                <ScrollArea className="max-h-[60vh]">
+                     <div className="relative pl-6">
+                        <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                        {jobAuditLog.map(log => (
+                            <div key={log.id} className="relative mb-8 pl-8">
+                                <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
+                                    <div className="text-primary">{getJobEventIcon(log.action)}</div>
+                                </div>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-medium">{log.actorName} <span className="text-muted-foreground font-normal">({log.actorRole})</span></p>
+                                    </div>
+                                    <ClientFormattedDate timestamp={log.timestamp} />
+                                </div>
+                                <div className="mt-1">
+                                    <p className="text-sm">
+                                        <Badge variant={jobActionStyles[log.action]}>{log.action}</Badge>
+                                        <span className="text-muted-foreground ml-2">on job</span>
+                                        <span className="font-medium mx-1.5">{log.jobTitle}</span>
+                                        <span className="font-extrabold text-xs">({log.jobId})</span>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1 italic">"{log.details}"</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </CardContent>
         </Card>
     );
 
      const BillingLog = () => (
         <Card>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Details</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {billingAuditLog.map(log => (
-                        <TableRow key={log.id}>
-                            <TableCell className="text-xs"><ClientFormattedDate timestamp={log.timestamp} /></TableCell>
-                            <TableCell className="font-medium">{log.companyName}</TableCell>
-                            <TableCell><Badge variant={billingActionStyles[log.action]}>{log.action}</Badge></TableCell>
-                            <TableCell className="text-muted-foreground">{log.details}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <CardContent className="pt-6">
+                <ScrollArea className="max-h-[60vh]">
+                     <div className="relative pl-6">
+                        <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                        {billingAuditLog.map(log => (
+                            <div key={log.id} className="relative mb-8 pl-8">
+                                <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
+                                    <div className="text-primary">{getBillingEventIcon(log.action)}</div>
+                                </div>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-medium">{log.companyName}</p>
+                                    </div>
+                                    <ClientFormattedDate timestamp={log.timestamp} />
+                                </div>
+                                <div className="mt-1">
+                                    <p className="text-sm">
+                                        <Badge variant={billingActionStyles[log.action]}>{log.action}</Badge>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1 italic">"{log.details}"</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </CardContent>
         </Card>
     );
 

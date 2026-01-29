@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -209,7 +210,7 @@ export default function InspectionsPage() {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardTitle className="text-base">{inspection.assetName}</CardTitle>
-                                        <p className="text-xs text-muted-foreground font-mono">{inspection.jobId}</p>
+                                        <p className="text-xs font-mono font-semibold text-muted-foreground">{inspection.jobId}</p>
                                     </div>
                                     <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                 </div>
@@ -251,7 +252,7 @@ export default function InspectionsPage() {
                             {augmentedAndFilteredInspections.map(inspection => (
                                 <TableRow key={inspection.id}>
                                     <TableCell className="font-medium">{inspection.assetName}</TableCell>
-                                    <TableCell className="font-mono text-xs">{inspection.jobId}</TableCell>
+                                    <TableCell className="font-mono text-xs font-medium">{inspection.jobId}</TableCell>
                                     <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">

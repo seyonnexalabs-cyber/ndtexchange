@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -331,7 +332,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                             }>{asset.status}</Badge>
                                         </div>
                                         <CardTitle className="mt-2 font-semibold text-lg">{asset.name}</CardTitle>
-                                        <CardDescription>{asset.id}</CardDescription>
+                                        <CardDescription className="font-mono font-semibold">{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
                                         <span>Next: {format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</span>

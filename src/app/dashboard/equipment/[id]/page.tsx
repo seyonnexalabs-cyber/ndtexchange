@@ -77,7 +77,7 @@ export default function EquipmentDetailPage() {
                                 <Wrench className="h-6 w-6 text-primary" />
                                 {equipment.name}
                             </CardTitle>
-                            <CardDescription>ID: {equipment.id}</CardDescription>
+                            <CardDescription>ID: <span className="font-mono font-semibold text-foreground">{equipment.id}</span></CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                             <div className="flex items-start">

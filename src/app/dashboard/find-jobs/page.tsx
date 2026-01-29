@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -161,7 +162,7 @@ export default function FindJobsPage() {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                    <p className="text-xs font-mono text-muted-foreground">{job.id}</p>
+                                    <p className="text-xs font-mono font-semibold text-muted-foreground">{job.id}</p>
                                 </div>
                                 {isExpired ? (
                                     <Badge variant="destructive">Bidding Expired</Badge>
@@ -216,7 +217,7 @@ export default function FindJobsPage() {
                     <DialogHeader>
                         <DialogTitle>Place Bid on: {selectedJob?.title}</DialogTitle>
                         <DialogDescription>
-                            Job ID: {selectedJob?.id} <br/>
+                            Job ID: <span className="font-mono font-semibold text-foreground">{selectedJob?.id}</span> <br/>
                             Review the job details and attached documents, then submit your bid and quotation.
                         </DialogDescription>
                     </DialogHeader>

@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -169,7 +170,7 @@ export default function TechnicianDetailPage() {
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <p className="font-semibold">{job.title}</p>
-                                                    <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                                    <p className="text-xs font-mono font-semibold text-muted-foreground">{job.id}</p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                             </div>
@@ -196,7 +197,7 @@ export default function TechnicianDetailPage() {
                                     <TableBody>
                                         {assignedJobs.map(job => (
                                             <TableRow key={job.id}>
-                                                <TableCell className="font-mono text-xs">{job.id}</TableCell>
+                                                <TableCell className="font-mono text-xs font-medium">{job.id}</TableCell>
                                                 <TableCell className="font-medium">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className="hover:underline">{job.title}</Link>
                                                 </TableCell>

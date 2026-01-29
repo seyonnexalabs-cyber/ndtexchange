@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -607,7 +608,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
             <TableBody>
                 {equipment.map(asset => (
                     <TableRow key={asset.id}>
-                        <TableCell className="font-mono text-xs">{asset.id}</TableCell>
+                        <TableCell className="font-mono text-xs font-medium">{asset.id}</TableCell>
                         <TableCell className="font-medium flex items-center gap-3">
                             {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
                             {asset.name}
@@ -673,7 +674,7 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
                     <div className="flex flex-wrap gap-1">
                         {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
                     </div>
-                     <p className="text-xs font-mono text-muted-foreground mt-2">{asset.id}</p>
+                     <p className="text-xs font-mono font-semibold text-muted-foreground mt-2">{asset.id}</p>
                     <Badge variant={statusVariants[asset.status]} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">

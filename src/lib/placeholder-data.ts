@@ -58,8 +58,8 @@ export type Job = {
     documents?: JobDocument[];
     history?: JobUpdate[];
     messages?: JobMessage[];
-    bids?: Bid[];
-    inspections?: Inspection[];
+    bids: Bid[];
+    inspections: Inspection[];
 };
 
 export type Inspection = {

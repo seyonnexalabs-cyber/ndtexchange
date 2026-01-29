@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History } from "lucide-react";
@@ -13,7 +14,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, inspections, technicians, inspectorAssets, Job, Inspection, allUsers, userAuditLog } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, technicians, inspectorAssets, Job, Inspection, allUsers, userAuditLog } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -63,8 +64,7 @@ const ClientDashboard = () => {
     
     // Filter data specifically for the client
     const clientJobs = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
-    const clientJobIds = useMemo(() => clientJobs.map(j => j.id), [clientJobs]);
-    const clientInspections = useMemo(() => inspections.filter(i => clientJobIds.includes(i.jobId)), [clientJobIds]);
+    const clientInspections = useMemo(() => clientJobs.flatMap(j => j.inspections), [clientJobs]);
     
     // Calculate card metrics directly
     const totalAssetsCount = clientAssets.length;

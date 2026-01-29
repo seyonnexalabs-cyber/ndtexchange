@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, technicians, inspectorAssets, bids, Bid, Job, reviews } from '@/lib/placeholder-data';
+import { jobs, technicians, inspectorAssets, Bid, Job, reviews } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -276,8 +277,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const { toast } = useToast();
     
     // State for the entire page's data to avoid hydration issues with direct mutation
-    const [jobDetails, setJobDetails] = useState<Job | undefined>(() => jobs.find(j => j.id === id));
-    const [jobBids, setJobBids] = useState<Bid[]>(() => bids.filter(b => b.jobId === id));
+    const [jobDetails, setJobDetails] = useState<Job | undefined>(() => JSON.parse(JSON.stringify(jobs.find(j => j.id === id))));
     
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
@@ -298,7 +298,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         const jobData = jobs.find(j => j.id === id);
         if (jobData) {
             setJobDetails(JSON.parse(JSON.stringify(jobData)));
-            setJobBids(JSON.parse(JSON.stringify(bids.filter(b => b.jobId === id))));
             
             const existingReview = reviews.find(r => r.jobId === id && r.clientId === 'client-01'); // Assuming client-01 for demo
             if (existingReview) {
@@ -376,18 +375,15 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         if (!jobDetails) return;
 
         // Update job status and provider
-        setJobDetails(prev => prev ? {...prev, status: 'Assigned', providerId: providerId } : undefined);
-
-        // Update bids status
-        setJobBids(prevBids => prevBids.map(bid => {
-            if (bid.id === awardedBidId) {
-                return { ...bid, status: 'Awarded' };
-            }
-            if (bid.status === 'Submitted') {
-                 return { ...bid, status: 'Rejected' };
-            }
-            return bid;
-        }));
+        setJobDetails(prev => {
+            if (!prev) return undefined;
+            const updatedBids = prev.bids.map(bid => {
+                if (bid.id === awardedBidId) return { ...bid, status: 'Awarded' as const };
+                if (bid.status === 'Submitted') return { ...bid, status: 'Rejected' as const };
+                return bid;
+            });
+            return {...prev, status: 'Assigned', providerId: providerId, bids: updatedBids };
+        });
 
         const provider = serviceProviders.find(p => p.id === providerId);
         toast({
@@ -457,6 +453,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const BidsSection = () => {
         if (!jobDetails) return null;
         const isClient = role === 'client';
+        const jobBids = jobDetails.bids || [];
         
         // After job is assigned, show who it was assigned to.
         if (jobDetails.status !== 'Posted') {
@@ -473,7 +470,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     <CardContent>
                         <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12">
-                                <AvatarImage src={assignedProvider.logoUrl} alt={`${assignedProvider.name} logo`} />
+                                <AvatarImage src={assignedProvider.logoUrl} alt={`${assignedProvider.name} logo`} data-ai-hint={`${assignedProvider.name} logo`} />
                                 <AvatarFallback>{assignedProvider.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -971,4 +968,5 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     
 
     
+
 

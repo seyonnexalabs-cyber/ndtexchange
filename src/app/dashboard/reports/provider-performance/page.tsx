@@ -348,13 +348,14 @@ export default function ProviderPerformanceReportPage() {
                                 <CartesianGrid horizontal={false} />
                                 <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
                                 <XAxis dataKey="jobsAwarded" type="number" hide />
-                                <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel />} />
+                                <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
                                 <Bar dataKey="jobsAwarded" layout="vertical" radius={4}>
                                     <LabelList dataKey="jobsAwarded" position="right" offset={8} className="fill-foreground" fontSize={12} />
                                     {performanceData.map((entry) => (
                                         <Cell key={`cell-${entry.providerId}`} fill={cn(chartConfig[entry.providerName]?.color)} />
                                     ))}
                                 </Bar>
+                                <ChartLegend content={<ChartLegendContent nameKey="providerName" />} className="flex-wrap justify-center" />
                             </BarChart>
                         </ChartContainer>
                     </CardContent>
@@ -369,7 +370,7 @@ export default function ProviderPerformanceReportPage() {
                                 <CartesianGrid horizontal={false} />
                                 <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
                                 <XAxis dataKey="avgJobCost" type="number" hide />
-                                <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent hideLabel formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
+                                <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
                                 <Bar dataKey="avgJobCost" layout="vertical" radius={4}>
                                     <LabelList
                                         dataKey="avgJobCost"
@@ -383,6 +384,7 @@ export default function ProviderPerformanceReportPage() {
                                         <Cell key={`cell-${entry.providerId}`} fill={cn(chartConfig[entry.providerName]?.color)} />
                                     ))}
                                 </Bar>
+                                <ChartLegend content={<ChartLegendContent nameKey="providerName" />} className="flex-wrap justify-center" />
                             </BarChart>
                         </ChartContainer>
                     </CardContent>
@@ -391,4 +393,3 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
-

@@ -13,7 +13,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, inspectorAssets, Job, Inspection, allUsers, userAuditLog } from "@/lib/placeholder-data";
+import { clientAssets, jobs, inspectorAssets, Job, Inspection, allUsers, userAuditLog, reviews } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from 'next/link';
@@ -161,7 +161,7 @@ const ClientDashboard = () => {
                     <CardContent className="flex items-center justify-center">
                         <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
                             <PieChart>
-                                <Tooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                                <Tooltip cursor={false} content={<ChartTooltipContent />} />
                                 <Pie data={assetStatusData} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
                                     {assetStatusData.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
                                 </Pie>

@@ -128,6 +128,7 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis />
                                 <ChartTooltip content={<ChartTooltipContent />} />
+                                <ChartLegend content={<ChartLegendContent />} />
                                 <Bar dataKey="count" fill="var(--color-count)" radius={4}>
                                     <LabelList position="top" offset={4} className="fill-foreground" fontSize={12} />
                                 </Bar>
@@ -146,6 +147,7 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis tickFormatter={(value) => `$${value/1000}k`}/>
                                 <ChartTooltip content={<ChartTooltipContent />} />
+                                <ChartLegend content={<ChartLegendContent />} />
                                 <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4}>
                                     <LabelList
                                         position="top"
@@ -173,8 +175,8 @@ export default function AnalyticsPage() {
                         >
                         <PieChart>
                             <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent hideLabel />}
+                                cursor={false}
+                                content={<ChartTooltipContent />}
                             />
                             <Pie
                             data={analyticsData.jobsByTechniqueData}
@@ -186,6 +188,12 @@ export default function AnalyticsPage() {
                                 {analyticsData.jobsByTechniqueData.map((entry) => (
                                     <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
+                                 <LabelList
+                                    dataKey="count"
+                                    className="fill-background font-semibold"
+                                    stroke="none"
+                                    fontSize={12}
+                                />
                             </Pie>
                             <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center"/>} className="mt-4" />
                         </PieChart>

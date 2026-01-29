@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { format, parse } from 'date-fns';
@@ -14,25 +13,19 @@ interface CustomDateInputProps {
 }
 
 const months = [
-  { value: 'Jan', label: 'January' },
-  { value: 'Feb', label: 'February' },
-  { value: 'Mar', label: 'March' },
-  { value: 'Apr', label: 'April' },
-  { value: 'May', label: 'May' },
-  { value: 'Jun', label: 'June' },
-  { value: 'Jul', label: 'July' },
-  { value: 'Aug', label: 'August' },
-  { value: 'Sep', label: 'September' },
-  { value: 'Oct', label: 'October' },
-  { value: 'Nov', label: 'November' },
-  { value: 'Dec', label: 'December' },
+  { value: 'Jan', label: 'January' }, { value: 'Feb', label: 'February' },
+  { value: 'Mar', label: 'March' }, { value: 'Apr', label: 'April' },
+  { value: 'May', label: 'May' }, { value: 'Jun', label: 'June' },
+  { value: 'Jul', label: 'July' }, { value: 'Aug', label: 'August' },
+  { value: 'Sep', label: 'September' }, { value: 'Oct', label: 'October' },
+  { value: 'Nov', label: 'November' }, { value: 'Dec', label: 'December' },
 ];
 
 const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
   ({ value, onChange, className }, ref) => {
-    const [day, setDay] = React.useState('');
-    const [month, setMonth] = React.useState('');
-    const [year, setYear] = React.useState('');
+    const [day, setDay] = React.useState<string>('');
+    const [month, setMonth] = React.useState<string>('');
+    const [year, setYear] = React.useState<string>('');
 
     React.useEffect(() => {
       if (value) {
@@ -42,80 +35,88 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
             setDay(format(date, 'dd'));
             setMonth(format(date, 'MMM'));
             setYear(format(date, 'yyyy'));
+            return;
           }
         } catch (e) {
-          // If parsing fails, reset fields
-          setDay('');
-          setMonth('');
-          setYear('');
+          // Fall through to reset if parse fails
         }
-      } else {
-        // If no value, reset fields
-          setDay('');
-          setMonth('');
-          setYear('');
       }
+      // Reset if value is falsy or parsing failed
+      setDay('');
+      setMonth('');
+      setYear('');
     }, [value]);
+    
+    const years = React.useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        // Create a range of years, e.g., from 20 years ago to 20 years from now
+        return Array.from({ length: 41 }, (_, i) => (currentYear - 20 + i).toString()).reverse();
+    }, []);
 
-    const handleDateChange = (newDay: string, newMonth: string, newYear: string) => {
-      if (newDay && newMonth && newYear && newYear.length === 4) {
-        const dateStr = `${newDay}-${newMonth}-${newYear}`;
-        try {
-            // Validate if the created date is a real date before propagating change
-            const parsedDate = parse(dateStr, GLOBAL_DATE_FORMAT, new Date());
-             if (!isNaN(parsedDate.getTime())) {
-                onChange?.(format(parsedDate, GLOBAL_DATE_FORMAT));
-            }
-        } catch (e) {
-            // Do nothing if the date is invalid during construction
+    const daysInMonth = React.useMemo(() => {
+        if (!month || !year) return [];
+        const monthIndex = months.findIndex(m => m.value === month);
+        if (monthIndex < 0 || !year) return [];
+        const numDays = new Date(parseInt(year), monthIndex + 1, 0).getDate();
+        return Array.from({ length: numDays }, (_, i) => (i + 1).toString().padStart(2, '0'));
+    }, [month, year]);
+
+    // This effect ensures that a valid date string is propagated upwards.
+    React.useEffect(() => {
+        if (day && month && year) {
+            const dateStr = `${day}-${month}-${year}`;
+            onChange?.(dateStr);
+        } else if (!day && !month && !year && value) {
+            // If all fields are cleared, and there was a value, propagate the clear
+            onChange?.('');
         }
-      }
-    };
-    
-    const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newDay = e.target.value.replace(/[^0-9]/g, '');
-        if (Number(newDay) > 31) return;
-        setDay(newDay);
-        handleDateChange(newDay, month, year);
-    };
-    
+    }, [day, month, year, onChange, value]);
+
     const handleMonthChange = (newMonth: string) => {
         setMonth(newMonth);
-        handleDateChange(day, newMonth, year);
+        const monthIndex = months.findIndex(m => m.value === newMonth);
+        if (day && year && monthIndex >= 0) {
+            const numDaysInNewMonth = new Date(parseInt(year), monthIndex + 1, 0).getDate();
+            if (parseInt(day) > numDaysInNewMonth) {
+                setDay(''); // Reset day if it's no longer valid
+            }
+        }
     };
-
-    const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newYear = e.target.value.replace(/[^0-9]/g, '');
-        if (newYear.length > 4) return;
+    
+    const handleYearChange = (newYear: string) => {
         setYear(newYear);
-        handleDateChange(day, month, newYear);
+        if (day && month) {
+            const monthIndex = months.findIndex(m => m.value === month);
+            const numDaysInNewMonth = new Date(parseInt(newYear), monthIndex + 1, 0).getDate();
+            if (parseInt(day) > numDaysInNewMonth) {
+                setDay(''); // Reset day if it's no longer valid (e.g., Feb 29 in a non-leap year)
+            }
+        }
     };
 
 
     return (
       <div className={cn('grid grid-cols-3 gap-2', className)} ref={ref}>
-        <Input
-          placeholder="DD"
-          value={day}
-          onChange={handleDayChange}
-          maxLength={2}
-        />
+        <Select value={year} onValueChange={handleYearChange}>
+            <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+            <SelectContent>
+                {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+            </SelectContent>
+        </Select>
         <Select value={month} onValueChange={handleMonthChange}>
-            <SelectTrigger>
-                <SelectValue placeholder="Month" />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
             <SelectContent>
                 {months.map(m => (
                     <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                 ))}
             </SelectContent>
         </Select>
-        <Input
-          placeholder="YYYY"
-          value={year}
-          onChange={handleYearChange}
-          maxLength={4}
-        />
+        <Select value={day} onValueChange={setDay} disabled={!month || !year}>
+            <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+            <SelectContent>
+                {daysInMonth.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+            </SelectContent>
+        </Select>
       </div>
     );
   }

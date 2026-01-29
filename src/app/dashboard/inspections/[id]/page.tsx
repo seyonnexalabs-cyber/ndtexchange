@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useMemo } from 'react';
 import { notFound, useSearchParams, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { inspections, jobs, Inspection } from '@/lib/placeholder-data';
+import { jobs, Inspection } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +31,20 @@ export default function InspectionDetailPage() {
     const { toast } = useToast();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
-    const inspection = useMemo(() => inspections.find(i => i.id === id), [id]);
-    const job = useMemo(() => jobs.find(j => j.assetIds?.includes(inspection?.assetId ?? '')), [inspection]);
+    const { inspection, job } = useMemo(() => {
+        let inspection: Inspection | undefined;
+        let job: (typeof jobs[0]) | undefined;
+        for (const j of jobs) {
+            const found = j.inspections?.find(i => i.id === id);
+            if (found) {
+                inspection = found;
+                job = j;
+                break;
+            }
+        }
+        return { inspection, job };
+    }, [id]);
+    
     const provider = useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
 
     const allDocuments: ViewerDocument[] = React.useMemo(() => {

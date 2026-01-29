@@ -6,7 +6,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useMemo, useEffect } from 'react';
-import { inspections, NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
+import { NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -51,22 +51,22 @@ export default function InspectionsPage() {
         return `${base}?${params.toString()}`;
     }
 
+    const allInspections = useMemo(() => jobs.flatMap(job => (job.inspections || []).map(inspection => ({...inspection, job}))), []);
+
     const augmentedAndFilteredInspections = useMemo(() => {
-        let filtered = inspections;
+        let filtered = allInspections;
         
         // For auditors, default "all" is their actionable queue.
         if (role === 'auditor' && statusFilter === 'all') {
-            filtered = inspections.filter(i => i.status === 'Requires Review');
+            filtered = allInspections.filter(i => i.status === 'Requires Review');
         }
 
         const augmented = filtered.map(inspection => {
-            const job = jobs.find(j => j.id === inspection.jobId);
-            const assignedTechnicians = job?.technicianIds
+            const assignedTechnicians = inspection.job?.technicianIds
                 ?.map(techId => technicians.find(t => t.id === techId))
                 .filter((t): t is Technician => !!t) ?? [];
             return {
                 ...inspection,
-                job,
                 assignedTechnicians
             };
         });
@@ -91,7 +91,7 @@ export default function InspectionsPage() {
 
             return searchMatch && techniqueMatch && statusMatch;
         });
-    }, [searchQuery, selectedTechniques, statusFilter, role]);
+    }, [allInspections, searchQuery, selectedTechniques, statusFilter, role]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);

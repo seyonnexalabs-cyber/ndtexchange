@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { jobs, bids as initialBids, NDTTechniques } from '@/lib/placeholder-data';
+import { jobs as initialJobs, NDTTechniques, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Gavel, Calendar, DollarSign, Building, MoreVertical, Edit, Trash2, Info, FileText } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Bid, Job } from '@/lib/placeholder-data';
+import { Bid } from '@/lib/placeholder-data';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
@@ -167,7 +167,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
 export default function MyBidsPage() {
     const [editingBid, setEditingBid] = useState<MappedBid | null>(null);
     const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
-    const [bids, setBids] = useState(initialBids);
+    const [jobsData, setJobsData] = useState(initialJobs);
     const searchParams = useSearchParams();
 
     const form = useForm<z.infer<typeof bidSchema>>({
@@ -196,13 +196,10 @@ export default function MyBidsPage() {
 
     const myBids = useMemo(() => {
         // This is a client-side simulation. In a real app, you'd fetch this data.
-        return bids
-            .filter(bid => bid.providerId === 'provider-03')
-            .map(bid => ({
-                ...bid,
-                job: jobs.find(job => job.id === bid.jobId),
-            }));
-    }, [bids]);
+        return jobsData
+            .flatMap(job => (job.bids || []).map(bid => ({ ...bid, job })))
+            .filter(bid => bid.providerId === 'provider-03');
+    }, [jobsData]);
 
     const handleEditClick = (bid: MappedBid) => {
         setEditingBid(bid);
@@ -220,11 +217,15 @@ export default function MyBidsPage() {
 
     const handleConfirmWithdraw = () => {
         if (!withdrawingBid) return;
-        console.log(`Withdrawing bid ${withdrawingBid.id}`);
-        // Here you would call an API to update the bid status to 'Withdrawn'
-        setBids(prevBids => prevBids.map(b => 
-            b.id === withdrawingBid.id ? { ...b, status: 'Withdrawn' } : b
-        ));
+        setJobsData(prevJobs => prevJobs.map(job => {
+            if (job.id === withdrawingBid.jobId) {
+                return {
+                    ...job,
+                    bids: job.bids?.map(b => b.id === withdrawingBid.id ? { ...b, status: 'Withdrawn' } : b)
+                };
+            }
+            return job;
+        }));
         setWithdrawingBid(null);
     };
 

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, bids, NDTTechniques, clientData } from '@/lib/placeholder-data';
+import { jobs, NDTTechniques, clientData } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,7 +60,7 @@ export default function JobCostAnalysisReportPage() {
         return jobs
             .filter(job => job.client === currentClient?.name) // Filter for current client's jobs
             .map(job => {
-                const awardedBid = bids.find(bid => bid.jobId === job.id && bid.status === 'Awarded');
+                const awardedBid = job.bids?.find(bid => bid.status === 'Awarded');
                 if (!awardedBid) return null;
                 const duration = (job.scheduledStartDate && job.scheduledEndDate)
                     ? differenceInDays(parseISO(job.scheduledEndDate), parseISO(job.scheduledStartDate)) + 1

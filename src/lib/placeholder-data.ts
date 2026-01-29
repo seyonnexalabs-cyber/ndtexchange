@@ -58,6 +58,8 @@ export type Job = {
     documents?: JobDocument[];
     history?: JobUpdate[];
     messages?: JobMessage[];
+    bids?: Bid[];
+    inspections?: Inspection[];
 };
 
 export type Inspection = {
@@ -354,7 +356,7 @@ const nextMonth = new Date(today);
 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
 
-export const jobs: Job[] = [
+const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     { 
         id: 'JOB-001', 
         title: 'PAUT on Pressure Vessel Welds', 
@@ -468,7 +470,7 @@ export const jobs: Job[] = [
     { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['TECH-15'], assetIds: [], workflow: 'standard' },
 ];
 
-export const bids: Bid[] = [
+const bidsData: Bid[] = [
     { id: 'BID-001', jobId: 'JOB-001', providerId: 'provider-01', amount: 12500, status: 'Submitted', submittedDate: '2024-06-29' },
     { id: 'BID-001A', jobId: 'JOB-001', providerId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01' },
     { id: 'BID-002', jobId: 'JOB-002', providerId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-26' },
@@ -488,8 +490,7 @@ export const bids: Bid[] = [
     { id: 'BID-020', jobId: 'JOB-020', providerId: 'provider-12', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20' },
 ];
 
-
-export const inspections: Inspection[] = [
+const inspectionsData: Inspection[] = [
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Carlos Ray', date: '2024-06-21', status: 'Requires Review' },
@@ -502,6 +503,13 @@ export const inspections: Inspection[] = [
     { id: 'INSP-010', jobId: 'JOB-017', assetName: 'Various Assets', assetId: 'N/A', technique: 'PT', inspector: 'Pending', date: nextWeek.toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'N/A', technique: 'UT', inspector: 'Lars Andersen', date: '2024-07-02', status: 'Completed' },
 ];
+
+export const jobs: Job[] = jobsData.map(job => ({
+    ...job,
+    bids: bidsData.filter(bid => bid.jobId === job.id),
+    inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
+}));
+
 
 export const NDTTechniques = [
   { "id": "UT", "name": "Ultrasonic Testing" },

@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { inspections, clientAssets } from '@/lib/placeholder-data';
+import { jobs, clientAssets } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -52,7 +52,9 @@ export default function AssetHistoryReportPage() {
 
     const filteredInspections = React.useMemo(() => {
         const { assetIds, dateRange } = filters;
-        return inspections.filter(inspection => {
+        const allInspections = jobs.flatMap(j => j.inspections || []);
+
+        return allInspections.filter(inspection => {
             const inspectionDate = parseISO(inspection.date);
             const assetMatch = assetIds.length === 0 || assetIds.includes(inspection.assetId);
             const dateMatch = dateRange?.from && dateRange?.to ? (inspectionDate >= dateRange.from && inspectionDate <= dateRange.to) : true;

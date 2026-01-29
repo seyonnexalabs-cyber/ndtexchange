@@ -368,20 +368,18 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                     render={() => (
                         <FormItem>
                             <FormLabel>Attach Additional Documents (Optional)</FormLabel>
-                             <FormControl>
-                                <>
-                                    <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>
-                                        Select Files to Attach
-                                    </Button>
-                                    <Input
-                                        ref={documentsInputRef}
-                                        type="file"
-                                        multiple
-                                        accept={ACCEPTED_FILE_TYPES}
-                                        className="hidden"
-                                        onChange={handleDocumentSelection}
-                                    />
-                                </>
+                             <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>
+                                Select Files to Attach
+                            </Button>
+                            <FormControl>
+                                <Input
+                                    ref={documentsInputRef}
+                                    type="file"
+                                    multiple
+                                    accept={ACCEPTED_FILE_TYPES}
+                                    className="hidden"
+                                    onChange={handleDocumentSelection}
+                                />
                             </FormControl>
                             {documentFiles.length > 0 && (
                                 <div className="mt-4 space-y-2">
@@ -676,6 +674,7 @@ export default function AssetsPage() {
         </div>
     );
 }
+
 
 
 

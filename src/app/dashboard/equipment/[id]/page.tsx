@@ -1,20 +1,271 @@
 
-
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
-import { notFound, useSearchParams, useParams } from "next/navigation";
+import { useMemo, useState } from "react";
+import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inspectorAssets as allEquipment, InspectorAsset } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag } from "lucide-react";
+import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory, Job, NDTTechniques } from "@/lib/placeholder-data";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Calendar as CalendarIcon, Printer } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from '@/components/ui/textarea';
+
+const equipmentSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  techniques: z.array(z.string()).min(1, "At least one technique is required."),
+  manufacturer: z.string().optional(),
+  model: z.string().optional(),
+  serialNumber: z.string().optional(),
+  status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
+  nextCalibration: z.date(),
+});
+
+type EquipmentFormValues = z.infer<typeof equipmentSchema>;
+
+const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (values: EquipmentFormValues) => void, defaultValues?: Partial<EquipmentFormValues>, onCancel: () => void }) => {
+    const form = useForm<EquipmentFormValues>({
+        resolver: zodResolver(equipmentSchema),
+        defaultValues: {
+            name: "",
+            techniques: [],
+            manufacturer: "",
+            model: "",
+            serialNumber: "",
+            status: "Available",
+            ...defaultValues,
+            nextCalibration: defaultValues?.nextCalibration ? new Date(defaultValues.nextCalibration) : new Date(),
+        }
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {defaultValues?.id && (
+                    <FormField
+                        control={form.control}
+                        name="id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Equipment ID</FormLabel>
+                                <FormControl>
+                                    <Input {...field} readOnly className="bg-muted cursor-not-allowed font-mono" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Equipment Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Olympus 45MG" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="techniques"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Technique(s)</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn(
+                                        "w-full justify-between",
+                                        !field.value?.length && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value?.length > 0
+                                        ? `${field.value.length} selected`
+                                        : "Select techniques"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <ScrollArea className="h-48">
+                                    <div className="p-2">
+                                        {NDTTechniques.map((tech) => (
+                                        <div
+                                            key={tech.id}
+                                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"
+                                        >
+                                            <Checkbox
+                                            id={`tech-${tech.id}`}
+                                            checked={field.value?.includes(tech.id)}
+                                            onCheckedChange={(checked) => {
+                                                return checked
+                                                ? field.onChange([...(field.value || []), tech.id])
+                                                : field.onChange(
+                                                    field.value?.filter(
+                                                        (value) => value !== tech.id
+                                                    )
+                                                    );
+                                            }}
+                                            />
+                                            <label
+                                            htmlFor={`tech-${tech.id}`}
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full"
+                                            >
+                                            {tech.name} ({tech.id})
+                                            </label>
+                                        </div>
+                                        ))}
+                                    </div>
+                                    </ScrollArea>
+                                </PopoverContent>
+                            </Popover>
+                            <FormDescription>
+                                Select all applicable NDT methods for this equipment.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="manufacturer"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Manufacturer (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Olympus" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="model"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Model (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 45MG" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <FormField
+                    control={form.control}
+                    name="serialNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Serial Number (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., SN-12345" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="Available">Available</SelectItem>
+                                <SelectItem value="In Use">In Use</SelectItem>
+                                <SelectItem value="Calibration Due">Calibration Due</SelectItem>
+                                <SelectItem value="Out of Service">Out of Service</SelectItem>
+                                <SelectItem value="Under Service">Under Service</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="nextCalibration"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Next Calibration Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, GLOBAL_DATE_FORMAT)
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                    date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
 
 const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
     'Available': 'success',
@@ -40,6 +291,9 @@ export default function EquipmentDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const { toast } = useToast();
+    const [isFormOpen, setIsFormOpen] = useState(false);
 
     // In a real app, you would fetch this data. Here we find it in the placeholder data.
     // Note: This won't reflect the state changes from the parent page without a proper state management solution.
@@ -54,6 +308,16 @@ export default function EquipmentDetailPage() {
         return `${base}?${params.toString()}`;
     }
 
+    const handleFormSubmit = (values: EquipmentFormValues) => {
+        console.log("Updated Equipment:", { ...equipment, ...values });
+        toast({
+            title: "Equipment Updated",
+            description: `${equipment.name} has been updated.`,
+        });
+        setIsFormOpen(false);
+        router.refresh();
+    };
+
     return (
         <div>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -64,8 +328,8 @@ export default function EquipmentDetailPage() {
                     </Link>
                 </Button>
                 <div className="flex gap-2">
-                    <Button>Edit</Button>
-                    <Button variant="outline">Print QR Code</Button>
+                    <Button onClick={() => setIsFormOpen(true)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
+                    <Button variant="outline"><Printer className="mr-2 h-4 w-4" />Print QR Code</Button>
                 </div>
             </div>
 
@@ -119,7 +383,7 @@ export default function EquipmentDetailPage() {
                                     <Tag className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                     <div>
                                         <p className="font-semibold">Serial Number</p>
-                                        <p className="text-muted-foreground">{equipment.serialNumber}</p>
+                                        <p className="font-mono text-muted-foreground">{equipment.serialNumber}</p>
                                     </div>
                                 </div>
                             )}
@@ -166,6 +430,30 @@ export default function EquipmentDetailPage() {
                     </Card>
                 </div>
             </div>
+             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Equipment: {equipment.name}</DialogTitle>
+                        <DialogDescription>
+                            Update the equipment's details below.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <EquipmentForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setIsFormOpen(false)}
+                        defaultValues={{
+                            id: equipment.id,
+                            name: equipment.name,
+                            techniques: equipment.techniques,
+                            manufacturer: equipment.manufacturer,
+                            model: equipment.model,
+                            serialNumber: equipment.serialNumber,
+                            status: equipment.status,
+                            nextCalibration: new Date(equipment.nextCalibration),
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

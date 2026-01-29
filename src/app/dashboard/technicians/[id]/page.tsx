@@ -1,8 +1,7 @@
 
-
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { technicians, jobs, Technician, Job } from "@/lib/placeholder-data";
+import { technicians, jobs, Technician, Job, NDTTechniques, Certification } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -18,6 +17,16 @@ import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useToast } from '@/hooks/use-toast';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -40,12 +49,152 @@ const technicianStatusVariants: { [key in Technician['status']]: 'success' | 'de
     'Disabled': 'outline',
 };
 
+const technicianSchema = z.object({
+  id: z.string().optional(), // For editing
+  name: z.string().min(2, "Name is required."),
+  level: z.enum(['Level I', 'Level II', 'Level III'], { required_error: "Please select a level." }),
+  certifications: z.array(z.string()).min(1, "At least one certification must be selected."),
+  status: z.enum(['Available', 'On Assignment', 'Disabled']).optional(),
+});
+
+type TechnicianFormValues = z.infer<typeof technicianSchema>;
+
+const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>, isEditing: boolean }) => {
+    const form = useForm<TechnicianFormValues>({
+        resolver: zodResolver(technicianSchema),
+        defaultValues: defaultValues || {
+            name: '',
+            level: 'Level I',
+            certifications: [],
+        },
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., John Smith" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 {isEditing && (
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a status" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Available">Available</SelectItem>
+                                        <SelectItem value="On Assignment">On Assignment</SelectItem>
+                                        <SelectItem value="Disabled">Disabled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+                 <FormField
+                    control={form.control}
+                    name="level"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Certification Level</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a level" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Level I">Level I</SelectItem>
+                                    <SelectItem value="Level II">Level II</SelectItem>
+                                    <SelectItem value="Level III">Level III</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="certifications"
+                    render={() => (
+                    <FormItem>
+                        <FormLabel>NDT Certifications</FormLabel>
+                        <FormDescription>The level selected above will be applied to all checked methods.</FormDescription>
+                        <ScrollArea className="h-40 w-full rounded-md border p-4">
+                        {NDTTechniques.map((item) => (
+                            <FormField
+                            key={item.id}
+                            control={form.control}
+                            name="certifications"
+                            render={({ field }) => {
+                                return (
+                                <FormItem
+                                    key={item.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0 mb-3"
+                                >
+                                    <FormControl>
+                                    <Checkbox
+                                        checked={field.value?.includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                        return checked
+                                            ? field.onChange([...(field.value || []), item.id])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                (value) => value !== item.id
+                                                )
+                                            )
+                                        }}
+                                    />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                        {item.name} ({item.id})
+                                    </FormLabel>
+                                </FormItem>
+                                )
+                            }}
+                            />
+                        ))}
+                        </ScrollArea>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
 
 export default function TechnicianDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const { toast } = useToast();
+    const router = useRouter();
     
     const technician = useMemo(() => technicians.find(t => t.id === id), [id]);
     const assignedJobs = useMemo(() => jobs.filter(j => j.technicianIds?.includes(id as string)), [id]);
@@ -77,6 +226,16 @@ export default function TechnicianDetailPage() {
         const queryString = newParams.toString();
         return queryString ? `${pathname}?${queryString}` : pathname;
     }
+
+    const handleFormSubmit = (values: TechnicianFormValues) => {
+        console.log("Updated Technician:", { ...technician, ...values });
+        toast({
+            title: "Technician Updated",
+            description: `${technician.name}'s profile has been updated.`,
+        });
+        setIsFormOpen(false);
+        router.refresh();
+    };
     
     return (
         <div>
@@ -86,6 +245,9 @@ export default function TechnicianDetailPage() {
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to Technicians
                     </Link>
+                </Button>
+                 <Button onClick={() => setIsFormOpen(true)}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit Technician
                 </Button>
             </div>
 
@@ -221,6 +383,28 @@ export default function TechnicianDetailPage() {
                     </Card>
                  </div>
             </div>
+
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Technician: {technician.name}</DialogTitle>
+                        <DialogDescription>
+                            Update the technician's details below.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <TechnicianForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setIsFormOpen(false)}
+                        defaultValues={{
+                            name: technician.name,
+                            level: (['Level I', 'Level II', 'Level III'] as const)[Math.max(...technician.certifications.map(c => ['Level I', 'Level II', 'Level III'].indexOf(c.level)))],
+                            certifications: technician.certifications.map(c => c.method),
+                            status: technician.status,
+                        }}
+                        isEditing={true}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

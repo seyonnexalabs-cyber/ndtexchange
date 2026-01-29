@@ -161,7 +161,7 @@ const ClientDashboard = () => {
                     <CardContent className="flex items-center justify-center">
                         <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
                             <PieChart>
-                                <Tooltip cursor={false} content={<ChartTooltipContent />} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                                 <Pie data={assetStatusData} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
                                     {assetStatusData.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
                                      <LabelList
@@ -430,7 +430,7 @@ const AdminDashboard = () => {
                                 <CartesianGrid vertical={false} />
                                 <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis />
-                                <Tooltip cursor={false} content={<ChartTooltipContent />} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                                 <Bar dataKey="users" fill="var(--color-users)" radius={4}>
                                     <LabelList position="top" offset={4} className="fill-foreground" fontSize={12} />
                                 </Bar>

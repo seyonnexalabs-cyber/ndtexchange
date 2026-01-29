@@ -125,6 +125,7 @@ const ClientDashboard = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Job ID</TableHead>
                                     <TableHead>Job Title</TableHead>
                                     <TableHead>Provider</TableHead>
                                     <TableHead>Status</TableHead>
@@ -134,6 +135,7 @@ const ClientDashboard = () => {
                             <TableBody>
                                 {jobsForReview.map(job => (
                                     <TableRow key={job.id}>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                         <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
@@ -146,7 +148,7 @@ const ClientDashboard = () => {
                                 ))}
                                 {jobsForReview.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No jobs require your action at this time.</TableCell>
+                                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No jobs require your action at this time.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>

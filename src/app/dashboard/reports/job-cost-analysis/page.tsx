@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -315,6 +314,7 @@ export default function JobCostAnalysisReportPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Job Title</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead>Technique</TableHead>
@@ -326,6 +326,7 @@ export default function JobCostAnalysisReportPage() {
                         <TableBody>
                             {filteredJobs.map(job => (
                                 <TableRow key={job!.id}>
+                                    <TableCell className="font-extrabold text-xs">{job!.id}</TableCell>
                                     <TableCell className="font-medium">{job!.title}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job!.providerId)?.name}</TableCell>
                                     <TableCell><Badge variant="secondary" shape="rounded">{job!.technique}</Badge></TableCell>
@@ -336,7 +337,7 @@ export default function JobCostAnalysisReportPage() {
                             ))}
                              {filteredJobs.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center h-24">
+                                    <TableCell colSpan={7} className="text-center h-24">
                                         No jobs found matching your criteria.
                                     </TableCell>
                                 </TableRow>

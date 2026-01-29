@@ -175,7 +175,7 @@ export default function CalendarPage() {
                 <>
                     <DialogHeader>
                         <DialogTitle className="font-headline text-xl">{job.title}</DialogTitle>
-                        <DialogDescription>for {job.client}</DialogDescription>
+                        <DialogDescription>Job ID: <span className="font-extrabold text-foreground">{job.id}</span> &bull; for {job.client}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="flex items-center">
@@ -368,4 +368,5 @@ export default function CalendarPage() {
     );
 
     
+
 

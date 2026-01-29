@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,6 +42,11 @@ export default function AllJobsPage() {
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useIsMobile();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
     
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -235,13 +240,13 @@ export default function AllJobsPage() {
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <Calendar className="w-4 h-4 mr-2" />
                                     <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                    {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
+                                    {today && isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                                 {job.bidExpiryDate && (
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <AlarmClock className="w-4 h-4 mr-2" />
                                         <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
-                                        {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
+                                        {today && isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
                                     </div>
                                 )}
                             </CardContent>
@@ -279,7 +284,7 @@ export default function AllJobsPage() {
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <span>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                            {isToday(new Date(job.postedDate)) && <Badge>Today</Badge>}
+                                            {today && isToday(new Date(job.postedDate)) && <Badge>Today</Badge>}
                                         </div>
                                     </TableCell>
                                     <TableCell>

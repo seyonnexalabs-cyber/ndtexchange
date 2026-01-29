@@ -48,6 +48,12 @@ const clientChartConfig = {
 const ClientDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
+
     // In a real app, this would come from a user context. For demo purposes:
     const clientCompanyId = 'client-01'; 
     const clientCompanyName = 'Global Energy Corp.';
@@ -71,14 +77,14 @@ const ClientDashboard = () => {
     ], [currentClientAssets]);
     
     const schedule = useMemo(() => {
-        const today = new Date();
-        const nextSevenDays = new Date();
+        if (!today) return [];
+        const nextSevenDays = new Date(today);
         nextSevenDays.setDate(today.getDate() + 7);
         
         return clientJobs
             .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
-    }, [clientJobs]);
+    }, [clientJobs, today]);
 
     return (
         <div className="grid gap-6">
@@ -238,7 +244,7 @@ const ClientDashboard = () => {
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
                                           <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                          {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                          {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -264,6 +270,12 @@ const ClientDashboard = () => {
 // --- INSPECTOR DASHBOARD ---
 const InspectorDashboard = () => {
     const searchParams = useSearchParams();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
+
     const providerJobs = useMemo(() => jobs.filter(j => j.providerId === 'provider-03'), []);
     const providerTechnicians = useMemo(() => allUsers.filter(u => u.role === 'Inspector' && u.providerId === 'provider-03'), []);
     const providerEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === 'provider-03'), []);
@@ -276,14 +288,14 @@ const InspectorDashboard = () => {
     }), [providerJobs, providerTechnicians, providerEquipment]);
 
     const schedule = useMemo(() => {
-        const today = new Date();
-        const nextSevenDays = new Date();
+        if (!today) return [];
+        const nextSevenDays = new Date(today);
         nextSevenDays.setDate(today.getDate() + 7);
         
         return providerJobs
             .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
-    }, [providerJobs]);
+    }, [providerJobs, today]);
 
     return (
         <div className="grid gap-6">
@@ -355,7 +367,7 @@ const InspectorDashboard = () => {
                                         <TableCell className="font-medium">
                                           <div className="flex items-center gap-2">
                                             <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                            {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                            {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
                                           </div>
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -383,19 +395,25 @@ const InspectorDashboard = () => {
 // --- AUDITOR DASHBOARD ---
 const AuditorDashboard = () => {
     const searchParams = useSearchParams();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+    
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
+
     const auditQueue = useMemo(() => jobs.filter(j => j.status === 'Report Submitted' && (j.workflow === 'level3' || j.workflow === 'auto')), []);
     const auditsCompleted = useMemo(() => jobs.filter(j => j.status === 'Audit Approved').length, []);
     const averageReviewTime = "22h"; // Placeholder
 
     const schedule = useMemo(() => {
-        const today = new Date();
-        const nextSevenDays = new Date();
+        if (!today) return [];
+        const nextSevenDays = new Date(today);
         nextSevenDays.setDate(today.getDate() + 7);
         
         return jobs
             .filter(j => (j.workflow === 'level3' || j.workflow === 'auto') && j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
-    }, []);
+    }, [today]);
 
     return (
         <div className="grid gap-6">
@@ -491,7 +509,7 @@ const AuditorDashboard = () => {
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
                                           <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                          {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                          {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -531,6 +549,12 @@ const getLogIcon = (action: string) => {
 
 const AdminDashboard = () => {
     const searchParams = useSearchParams();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
+    
     const stats = {
         totalUsers: allUsers.length,
         totalProviders: serviceProviders.length,
@@ -539,14 +563,14 @@ const AdminDashboard = () => {
     };
     
     const schedule = useMemo(() => {
-        const today = new Date();
-        const nextSevenDays = new Date();
+        if (!today) return [];
+        const nextSevenDays = new Date(today);
         nextSevenDays.setDate(today.getDate() + 7);
         
         return jobs
             .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
-    }, []);
+    }, [today]);
 
     return (
          <div className="grid gap-6">
@@ -636,7 +660,7 @@ const AdminDashboard = () => {
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
                                           <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                          {job.scheduledStartDate && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                          {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, Building, QrCode, Calendar as CalendarIcon, Printer, UploadCloud, X, FileText } from "lucide-react";
+import { MoreVertical, Building, QrCode, Printer, UploadCloud, X, FileText } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
@@ -21,10 +21,8 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from "@/lib/utils";
+import { cn, ACCEPTED_FILE_TYPES } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +34,7 @@ const assetSchema = z.object({
     location: z.string({ required_error: 'Please select a location or add a new one.'}),
     newLocation: z.string().optional(),
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
-    nextInspection: z.date(),
+    nextInspection: z.string().min(1, 'Next inspection date is required.'),
     notes: z.string().optional(),
     thumbnail: z.any().optional(),
     documents: z.any().optional(),
@@ -57,7 +55,7 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
             name: '',
             type: 'Tank',
             status: 'Operational',
-            nextInspection: new Date(),
+            nextInspection: format(new Date(), 'dd-MMMM-yyyy'),
             notes: '',
         }
     });
@@ -254,40 +252,15 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                     control={form.control}
                     name="nextInspection"
                     render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Next Inspection Date</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
+                        <FormItem>
+                            <FormLabel>Next Inspection Date</FormLabel>
                             <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, GLOBAL_DATE_FORMAT)
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
+                                <Input placeholder="e.g. 29-January-2026" {...field} />
                             </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                    date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
+                            <FormDescription>
+                                Please use dd-MMMM-yyyy format.
+                            </FormDescription>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -496,7 +469,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                         <CardDescription className="font-bold">{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-                                        <span>Next: {format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</span>
+                                        <span>Next: {format(new Date(asset.nextInspection), 'dd-MMM-yyyy')}</span>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -586,7 +559,7 @@ export default function AssetsPage() {
             type: values.type,
             location: finalLocation,
             status: values.status,
-            nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
+            nextInspection: format(new Date(values.nextInspection), 'yyyy-MM-dd'),
             notes: values.notes,
         };
         
@@ -674,6 +647,7 @@ export default function AssetsPage() {
         </div>
     );
 }
+
 
 
 

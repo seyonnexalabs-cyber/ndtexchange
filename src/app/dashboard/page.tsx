@@ -139,7 +139,10 @@ const ClientDashboard = () => {
                                         return (
                                             <Card key={`insp-${inspection.id}`} className="p-4">
                                                 <div className="flex justify-between items-start">
-                                                    <div className="font-medium">{inspection.technique} on {inspection.assetName}</div>
+                                                    <div>
+                                                        <div className="font-medium">{inspection.technique} on {inspection.assetName}</div>
+                                                        <div className="text-sm text-muted-foreground font-mono">{inspection.id}</div>
+                                                    </div>
                                                     <Badge variant="outline">Inspection Report</Badge>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mt-2">Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</div>
@@ -151,7 +154,10 @@ const ClientDashboard = () => {
                                         return (
                                             <Card key={`job-${job.id}`} className="p-4">
                                                 <div className="flex justify-between items-start">
-                                                    <div className="font-medium">{job.title}</div>
+                                                    <div>
+                                                        <div className="font-medium">{job.title}</div>
+                                                        <div className="text-sm text-muted-foreground font-mono">{job.id}</div>
+                                                    </div>
                                                     <Badge variant="outline">Job Posted</Badge>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mt-2">Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</div>
@@ -168,7 +174,7 @@ const ClientDashboard = () => {
                             <TableHeader>
                                 <TableRow>
                                 <TableHead>Type</TableHead>
-                                <TableHead>Description</TableHead>
+                                <TableHead>Details</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Status</TableHead>
                                 </TableRow>
@@ -180,7 +186,10 @@ const ClientDashboard = () => {
                                     return (
                                     <TableRow key={`insp-${inspection.id}`}>
                                         <TableCell><Badge variant="outline">Inspection Report</Badge></TableCell>
-                                        <TableCell className="font-medium">{inspection.technique} on {inspection.assetName}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <div>{inspection.technique} on {inspection.assetName}</div>
+                                            <div className="text-xs font-mono text-muted-foreground">{inspection.id}</div>
+                                        </TableCell>
                                         <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
                                         <TableCell><Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge></TableCell>
                                     </TableRow>
@@ -190,7 +199,10 @@ const ClientDashboard = () => {
                                     return (
                                     <TableRow key={`job-${job.id}`}>
                                         <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
-                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <div>{job.title}</div>
+                                            <div className="text-xs font-mono text-muted-foreground">{job.id}</div>
+                                        </TableCell>
                                         <TableCell>{job.scheduledStartDate ? `Sch: ${format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}` : `Post: ${format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}`}</TableCell>
                                         <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
                                     </TableRow>
@@ -421,7 +433,10 @@ const InspectorDashboard = () => {
                             {activeAndUpcomingJobs.map(job => (
                                 <Card key={job.id} className="p-4">
                                     <div className="flex justify-between items-start">
-                                        <div className="font-medium">{job.title}</div>
+                                        <div>
+                                            <div className="font-medium">{job.title}</div>
+                                            <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                        </div>
                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-2">Client: {job.client}</div>
@@ -439,6 +454,7 @@ const InspectorDashboard = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Job ID</TableHead>
                                     <TableHead>Job Title</TableHead>
                                     <TableHead>Client</TableHead>
                                     <TableHead>Scheduled Date</TableHead>
@@ -449,6 +465,7 @@ const InspectorDashboard = () => {
                             <TableBody>
                                 {activeAndUpcomingJobs.map(job => (
                                     <TableRow key={job.id}>
+                                        <TableCell className="font-mono text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'Not Scheduled'}</TableCell>
@@ -462,7 +479,7 @@ const InspectorDashboard = () => {
                                 ))}
                                 {activeAndUpcomingJobs.length === 0 && (
                                      <TableRow>
-                                        <TableCell colSpan={5} className="text-center h-24">
+                                        <TableCell colSpan={6} className="text-center h-24">
                                             No active or upcoming jobs.
                                         </TableCell>
                                     </TableRow>
@@ -647,7 +664,10 @@ const AuditorDashboard = () => {
                             {auditQueue.map(job => (
                                 <Card key={job.id} className="p-4">
                                     <div className="flex justify-between items-start">
-                                        <div className="font-medium">{job.title}</div>
+                                        <div>
+                                            <div className="font-medium">{job.title}</div>
+                                            <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                        </div>
                                         <Badge variant={job.status === 'Report Submitted' ? 'destructive' : 'secondary'}>{job.status === 'Report Submitted' ? 'Awaiting Review' : 'Under Audit'}</Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-2">Technique: {job.technique}</div>
@@ -660,6 +680,7 @@ const AuditorDashboard = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Job ID</TableHead>
                                     <TableHead>Job Title</TableHead>
                                     <TableHead>Technique</TableHead>
                                     <TableHead>Submitted On</TableHead>
@@ -669,6 +690,7 @@ const AuditorDashboard = () => {
                             <TableBody>
                                 {jobsAwaitingReview.map(job => (
                                     <TableRow key={job.id}>
+                                        <TableCell className="font-mono text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
                                         <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
@@ -677,6 +699,7 @@ const AuditorDashboard = () => {
                                 ))}
                                 {jobsUnderAudit.map(job => (
                                     <TableRow key={job.id}>
+                                        <TableCell className="font-mono text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
                                         <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
@@ -685,7 +708,7 @@ const AuditorDashboard = () => {
                                 ))}
                                 {(jobsAwaitingReview.length === 0 && jobsUnderAudit.length === 0) && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-muted-foreground">The audit queue is empty.</TableCell>
+                                        <TableCell colSpan={5} className="text-center text-muted-foreground">The audit queue is empty.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>

@@ -851,7 +851,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     {assignedTechnicians.length > 0 ? (
                                         <ul className="space-y-2 pl-2">
                                             {assignedTechnicians.map(tech => (
-                                                <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} - {tech.level}</li>
+                                                <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} <span className="font-mono text-xs">({tech.id})</span> - {tech.level}</li>
                                             ))}
                                         </ul>
                                     ) : <p className="text-sm text-muted-foreground pl-2">No technicians assigned.</p>}
@@ -870,7 +870,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <ul className="space-y-2 pl-2">
                                             {assignedEquipment.map(equip => (
                                                 <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
-                                                    <span>{equip.name}</span>
+                                                    <span>{equip.name} <span className="font-mono text-xs">({equip.id})</span></span>
                                                     <div className="flex flex-wrap gap-1">
                                                         {equip.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
                                                     </div>

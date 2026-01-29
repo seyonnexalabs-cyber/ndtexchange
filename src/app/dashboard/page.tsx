@@ -48,27 +48,42 @@ const clientChartConfig = {
 
 const ClientDashboard = () => {
     const searchParams = useSearchParams();
-    const clientJobs = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
+    // In a real app, this would come from a user context. For demo purposes:
+    const clientCompanyId = 'client-01'; 
+    const clientCompanyName = 'Global Energy Corp.';
+    
+    const clientJobs = useMemo(() => jobs.filter(j => j.client === clientCompanyName), [clientCompanyName]);
+    const currentClientAssets = useMemo(() => clientAssets.filter(a => a.companyId === clientCompanyId), [clientCompanyId]);
     
     const stats = useMemo(() => {
-        const assetsRequiringInspection = clientAssets.filter(a => a.status === 'Requires Inspection').length;
+        const totalAssets = currentClientAssets.length;
+        const assetsRequiringInspection = currentClientAssets.filter(a => a.status === 'Requires Inspection').length;
         const reportsForReview = clientJobs.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').length;
         const activeJobs = clientJobs.filter(j => ['In Progress', 'Scheduled', 'Assigned'].includes(j.status)).length;
-        const upcomingDeadlines = clientJobs.filter(j => j.bidExpiryDate && isAfter(new Date(j.bidExpiryDate), new Date())).length;
-        return { assetsRequiringInspection, reportsForReview, activeJobs, upcomingDeadlines };
-    }, [clientJobs]);
+        return { totalAssets, assetsRequiringInspection, reportsForReview, activeJobs };
+    }, [clientJobs, currentClientAssets]);
 
     const jobsForReview = useMemo(() => clientJobs.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').slice(0, 3), [clientJobs]);
     const assetStatusData = useMemo(() => [
-      { status: "Operational", key: "operational", count: clientAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
-      { status: "Requires Inspection", key: "inspection", count: clientAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
-      { status: "Under Repair", key: "repair", count: clientAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
-    ], []);
+      { status: "Operational", key: "operational", count: currentClientAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
+      { status: "Requires Inspection", key: "inspection", count: currentClientAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
+      { status: "Under Repair", key: "repair", count: currentClientAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
+    ], [currentClientAssets]);
 
     return (
         <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Managed Assets</CardTitle>
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalAssets}</div>
+                        <p className="text-xs text-muted-foreground">Assets in your portfolio</p>
+                    </CardContent>
+                </Card>
+                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Assets Requiring Inspection</CardTitle>
                         <AlarmClock className="h-4 w-4 text-muted-foreground" />
@@ -96,16 +111,6 @@ const ClientDashboard = () => {
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.activeJobs}</div>
                         <p className="text-xs text-muted-foreground">Jobs currently in progress or scheduled</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Upcoming Deadlines</CardTitle>
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.upcomingDeadlines}</div>
-                        <p className="text-xs text-muted-foreground">Job bids expiring soon</p>
                     </CardContent>
                 </Card>
             </div>
@@ -379,6 +384,7 @@ const getLogIcon = (action: string) => {
 }
 
 const AdminDashboard = () => {
+    const searchParams = useSearchParams();
     const stats = {
         totalUsers: allUsers.length,
         totalProviders: serviceProviders.length,

@@ -1,4 +1,3 @@
-
 'use client';
 import { Job, JobUpdate, allUsers } from '@/lib/placeholder-data';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,6 +6,7 @@ import { FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import * as React from 'react';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -21,6 +21,23 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Approved': 'success',
     'Completed': 'success',
     'Paid': 'success'
+};
+
+const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        // This code runs only on the client, after the component has mounted.
+        setFormattedDate(format(new Date(timestamp), GLOBAL_DATETIME_FORMAT));
+    }, [timestamp]);
+
+    // On the server and during the initial client render, formattedDate is null.
+    // We return a placeholder to prevent the mismatch.
+    return (
+        <p className="text-xs text-muted-foreground/80 shrink-0">
+            {formattedDate || '...'}
+        </p>
+    );
 };
 
 
@@ -53,9 +70,7 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
                                             <p className="text-xs text-muted-foreground/80 mt-1 italic">"{entry.details}"</p>
                                         )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground/80 shrink-0">
-                                        {format(new Date(entry.timestamp), GLOBAL_DATETIME_FORMAT)}
-                                    </p>
+                                    <ClientFormattedDate timestamp={entry.timestamp} />
                                 </div>
                             
                                 {entry.documentName && (
@@ -79,5 +94,3 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
         </ScrollArea>
     );
 }
-
-    

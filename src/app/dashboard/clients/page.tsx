@@ -235,7 +235,7 @@ export default function ClientsPage() {
             {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}
 
             <Dialog open={isAddClientOpen} onOpenChange={setAddClientOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Create New Client Company</DialogTitle>
                         <DialogDescription>

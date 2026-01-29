@@ -551,7 +551,7 @@ export default function UsersPage() {
             />
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Invite New User</DialogTitle>
                         <DialogDescription>
@@ -610,4 +610,3 @@ export default function UsersPage() {
         </div>
     );
 }
-

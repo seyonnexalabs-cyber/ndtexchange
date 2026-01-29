@@ -304,7 +304,7 @@ export default function AuditorsPage() {
             {isMobile ? <MobileView constructUrl={constructUrl} auditFirms={firms} /> : <DesktopView constructUrl={constructUrl} auditFirms={firms} />}
 
             <Dialog open={isAddFirmOpen} onOpenChange={setIsAddFirmOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Create New Audit Firm</DialogTitle>
                         <DialogDescription>

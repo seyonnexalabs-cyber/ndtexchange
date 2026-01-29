@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -890,7 +889,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
                 {/* Technician Assignment Dialog */}
                 <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-lg">
                         <DialogHeader>
                             <DialogTitle>Assign Technicians</DialogTitle>
                             <DialogDescription>Select the technicians to assign to this job.</DialogDescription>
@@ -921,7 +920,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
                 {/* Equipment Assignment Dialog */}
                 <Dialog open={isEquipDialogOpen} onOpenChange={setIsEquipDialogOpen}>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-lg">
                         <DialogHeader>
                             <DialogTitle>Assign Equipment</DialogTitle>
                             <DialogDescription>Select the equipment to assign to this job.</DialogDescription>

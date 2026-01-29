@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, Building, QrCode, Calendar as CalendarIcon, Printer, UploadCloud } from "lucide-react";
+import { MoreVertical, Building, QrCode, Calendar as CalendarIcon, Printer, UploadCloud, X, FileText } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
@@ -66,6 +66,8 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const documentsInputRef = useRef<HTMLInputElement>(null);
+    const [documentFiles, setDocumentFiles] = useState<File[]>([]);
 
     const uniqueLocations = useMemo(() => {
         const allLocations = assets.map(asset => asset.location);
@@ -127,6 +129,28 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
             e.dataTransfer.clearData();
         }
     };
+
+    const handleDocumentSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files) {
+            const newFilesArray = Array.from(files);
+            const updatedFiles = [...documentFiles, ...newFilesArray];
+            setDocumentFiles(updatedFiles);
+            form.setValue('documents', updatedFiles);
+            
+            // Reset the input value to allow selecting the same file again
+            if(documentsInputRef.current) {
+                documentsInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleRemoveDocument = (indexToRemove: number) => {
+        const updatedFiles = documentFiles.filter((_, index) => index !== indexToRemove);
+        setDocumentFiles(updatedFiles);
+        form.setValue('documents', updatedFiles);
+    };
+
 
     return (
         <Form {...form}>
@@ -341,14 +365,50 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                 <FormField
                     control={form.control}
                     name="documents"
-                    render={({ field }) => (
+                    render={() => (
                         <FormItem>
                             <FormLabel>Attach Additional Documents (Optional)</FormLabel>
-                            <FormControl>
-                                <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
+                             <FormControl>
+                                <>
+                                    <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>
+                                        Select Files to Attach
+                                    </Button>
+                                    <Input
+                                        ref={documentsInputRef}
+                                        type="file"
+                                        multiple
+                                        accept={ACCEPTED_FILE_TYPES}
+                                        className="hidden"
+                                        onChange={handleDocumentSelection}
+                                    />
+                                </>
                             </FormControl>
+                            {documentFiles.length > 0 && (
+                                <div className="mt-4 space-y-2">
+                                     <p className="text-sm font-medium">{documentFiles.length} file(s) attached:</p>
+                                     <ScrollArea className="max-h-32 rounded-md border p-2">
+                                        {documentFiles.map((file, index) => (
+                                            <div key={`${file.name}-${index}`} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <FileText className="h-4 w-4 shrink-0" />
+                                                    <span className="truncate">{file.name}</span>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6 shrink-0"
+                                                    onClick={() => handleRemoveDocument(index)}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </ScrollArea>
+                                </div>
+                            )}
                             <FormDescription>
-                                Attach multiple files (PDFs, images).
+                                Attach multiple files (PDFs, images). New selections will be added to the list.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -616,6 +676,7 @@ export default function AssetsPage() {
         </div>
     );
 }
+
 
 
 

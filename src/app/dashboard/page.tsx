@@ -228,6 +228,7 @@ const ClientDashboard = () => {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Job Title</TableHead>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
@@ -237,6 +238,7 @@ const ClientDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell>{job.title}</TableCell>
+                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
@@ -245,7 +247,7 @@ const ClientDashboard = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {schedule.length === 0 && <TableRow><TableCell colSpan={4} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -335,6 +337,7 @@ const InspectorDashboard = () => {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Job Title</TableHead>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Technicians</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
@@ -347,6 +350,7 @@ const InspectorDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                         <TableCell>{job.title}</TableCell>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{assignedTechs.map(t => t.name).join(', ')}</TableCell>
                                         <TableCell className="text-right">
@@ -357,7 +361,7 @@ const InspectorDashboard = () => {
                                     </TableRow>
                                 );
                             })}
-                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -464,6 +468,7 @@ const AuditorDashboard = () => {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Job Title</TableHead>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
@@ -474,6 +479,7 @@ const AuditorDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell>{job.title}</TableCell>
+                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell className="text-right">
@@ -483,7 +489,7 @@ const AuditorDashboard = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs requiring future audit are scheduled in the next 7 days.</TableCell></TableRow>}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No jobs requiring future audit are scheduled in the next 7 days.</TableCell></TableRow>}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -602,6 +608,7 @@ const AdminDashboard = () => {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Job Title</TableHead>
+                                <TableHead>Job ID</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
@@ -612,6 +619,7 @@ const AdminDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell>{job.title}</TableCell>
+                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell>{job.client}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell className="text-right">
@@ -621,7 +629,7 @@ const AdminDashboard = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled across the platform in the next 7 days.</TableCell></TableRow>}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No jobs scheduled across the platform in the next 7 days.</TableCell></TableRow>}
                         </TableBody>
                     </Table>
                 </CardContent>

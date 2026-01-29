@@ -64,7 +64,7 @@ const ClientDashboard = () => {
     
     // Filter data specifically for the client
     const clientJobs = useMemo(() => jobs.filter(j => j.client === 'Global Energy Corp.'), []);
-    const clientInspections = useMemo(() => clientJobs.flatMap(j => j.inspections), [clientJobs]);
+    const clientInspections = useMemo(() => clientJobs.flatMap(j => j.inspections || []), [clientJobs]);
     
     // Calculate card metrics directly
     const totalAssetsCount = clientAssets.length;
@@ -141,7 +141,7 @@ const ClientDashboard = () => {
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <div className="font-medium">{inspection.technique} on {inspection.assetName}</div>
-                                                        <div className="text-sm text-muted-foreground font-mono">{inspection.id}</div>
+                                                        <div className="font-extrabold text-sm text-muted-foreground">{inspection.id}</div>
                                                     </div>
                                                     <Badge variant="outline">Inspection Report</Badge>
                                                 </div>
@@ -156,7 +156,7 @@ const ClientDashboard = () => {
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <div className="font-medium">{job.title}</div>
-                                                        <div className="text-sm text-muted-foreground font-mono">{job.id}</div>
+                                                        <div className="font-extrabold text-sm text-muted-foreground">{job.id}</div>
                                                     </div>
                                                     <Badge variant="outline">Job Posted</Badge>
                                                 </div>
@@ -188,7 +188,7 @@ const ClientDashboard = () => {
                                         <TableCell><Badge variant="outline">Inspection Report</Badge></TableCell>
                                         <TableCell className="font-medium">
                                             <div>{inspection.technique} on {inspection.assetName}</div>
-                                            <div className="text-xs font-mono text-muted-foreground">{inspection.id}</div>
+                                            <div className="font-extrabold text-xs text-muted-foreground">{inspection.id}</div>
                                         </TableCell>
                                         <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
                                         <TableCell><Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge></TableCell>
@@ -201,7 +201,7 @@ const ClientDashboard = () => {
                                         <TableCell><Badge variant="outline">Job Posted</Badge></TableCell>
                                         <TableCell className="font-medium">
                                             <div>{job.title}</div>
-                                            <div className="text-xs font-mono text-muted-foreground">{job.id}</div>
+                                            <div className="font-extrabold text-xs text-muted-foreground">{job.id}</div>
                                         </TableCell>
                                         <TableCell>{job.scheduledStartDate ? `Sch: ${format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}` : `Post: ${format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}`}</TableCell>
                                         <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
@@ -390,7 +390,7 @@ const InspectorDashboard = () => {
                                 <p className="text-xs text-muted-foreground">In Use</p>
                             </div>
                             <div className="p-2 border rounded-lg border-destructive/50 bg-destructive/10">
-                                <p className="text-2xl font-bold text-destructive">{calibrationDue.length}</p>
+                                <p className="font-extrabold text-2xl text-destructive">{calibrationDue.length}</p>
                                 <p className="text-xs text-destructive/80">Calibration Due</p>
                             </div>
                             <div className="p-2 border rounded-lg">
@@ -405,7 +405,7 @@ const InspectorDashboard = () => {
                                     {calibrationDue.slice(0, 2).map(equip => (
                                         <li key={equip.id} className="flex justify-between">
                                             <span>{equip.name}</span>
-                                            <span className="text-destructive font-medium">Due: {format(new Date(equip.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
+                                            <span className="font-medium text-destructive">Due: {format(new Date(equip.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -435,7 +435,7 @@ const InspectorDashboard = () => {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <div className="font-medium">{job.title}</div>
-                                            <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                            <p className="font-extrabold text-xs text-muted-foreground">{job.id}</p>
                                         </div>
                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                     </div>
@@ -465,7 +465,7 @@ const InspectorDashboard = () => {
                             <TableBody>
                                 {activeAndUpcomingJobs.map(job => (
                                     <TableRow key={job.id}>
-                                        <TableCell className="font-mono text-xs">{job.id}</TableCell>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'Not Scheduled'}</TableCell>
@@ -666,7 +666,7 @@ const AuditorDashboard = () => {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <div className="font-medium">{job.title}</div>
-                                            <p className="text-xs text-muted-foreground font-mono">{job.id}</p>
+                                            <p className="font-extrabold text-xs text-muted-foreground">{job.id}</p>
                                         </div>
                                         <Badge variant={job.status === 'Report Submitted' ? 'destructive' : 'secondary'}>{job.status === 'Report Submitted' ? 'Awaiting Review' : 'Under Audit'}</Badge>
                                     </div>
@@ -690,7 +690,7 @@ const AuditorDashboard = () => {
                             <TableBody>
                                 {jobsAwaitingReview.map(job => (
                                     <TableRow key={job.id}>
-                                        <TableCell className="font-mono text-xs">{job.id}</TableCell>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
                                         <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>
@@ -699,7 +699,7 @@ const AuditorDashboard = () => {
                                 ))}
                                 {jobsUnderAudit.map(job => (
                                     <TableRow key={job.id}>
-                                        <TableCell className="font-mono text-xs">{job.id}</TableCell>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.technique}</TableCell>
                                         <TableCell>{format(new Date(job.scheduledStartDate || job.postedDate), GLOBAL_DATE_FORMAT)}</TableCell>

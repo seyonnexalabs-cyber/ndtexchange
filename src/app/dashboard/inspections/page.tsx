@@ -34,9 +34,9 @@ export default function InspectionsPage() {
     const role = searchParams.get('role');
 
     useEffect(() => {
-        if (role && role !== 'auditor') {
+        if (role && role !== 'auditor' && role !== 'admin') {
             const params = new URLSearchParams(searchParams.toString());
-            const redirectPath = role === 'admin' ? '/dashboard/all-jobs' : '/dashboard';
+            const redirectPath = '/dashboard';
             router.replace(`${redirectPath}?${params.toString()}`);
         }
     }, [role, router, searchParams]);
@@ -59,7 +59,12 @@ export default function InspectionsPage() {
         // For auditors, default "all" is their actionable queue.
         if (role === 'auditor' && statusFilter === 'all') {
             filtered = allInspections.filter(i => i.status === 'Requires Review');
+        } else if (role === 'admin' && statusFilter !== 'all') {
+            filtered = allInspections.filter(i => i.status === statusFilter);
+        } else if (role === 'auditor' && statusFilter !== 'all') {
+            filtered = allInspections.filter(i => i.status === statusFilter);
         }
+
 
         const augmented = filtered.map(inspection => {
             const assignedTechnicians = inspection.job?.technicianIds
@@ -82,14 +87,8 @@ export default function InspectionsPage() {
             
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
             
-            let statusMatch = true;
-            if (role === 'admin' && statusFilter !== 'all') {
-                statusMatch = inspection.status === statusFilter;
-            } else if (role === 'auditor') {
-                statusMatch = statusFilter === 'all' ? inspection.status === 'Requires Review' : inspection.status === statusFilter;
-            }
 
-            return searchMatch && techniqueMatch && statusMatch;
+            return searchMatch && techniqueMatch;
         });
     }, [allInspections, searchQuery, selectedTechniques, statusFilter, role]);
 
@@ -210,7 +209,7 @@ export default function InspectionsPage() {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardTitle className="text-base">{inspection.assetName}</CardTitle>
-                                        <p className="text-xs font-extrabold text-muted-foreground">{inspection.jobId}</p>
+                                        <p className="font-extrabold text-xs text-muted-foreground">{inspection.jobId}</p>
                                     </div>
                                     <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                 </div>

@@ -44,7 +44,7 @@ const statusStyles: { [key in Bid['status']]: 'success' | 'default' | 'secondary
     Withdrawn: 'outline',
 };
 
-type MappedBid = Bid & { job: Job | undefined };
+type MappedBid = Bid & { job: Job };
 
 const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[], onEdit: (bid: MappedBid) => void, onWithdraw: (bid: MappedBid) => void, constructUrl: (path: string) => string }) => {
     const isMobile = useIsMobile();
@@ -69,7 +69,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                 <CardTitle className="text-lg font-semibold leading-tight">{bid.job?.title}</CardTitle>
                                 <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground font-extrabold">{bid.job?.id}</p>
+                            <p className="font-extrabold text-xs text-muted-foreground">{bid.job?.id}</p>
                              <CardDescription className="flex items-center pt-1"><Building className="w-4 h-4 mr-2"/> {bid.job?.client}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -167,7 +167,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
 export default function MyBidsPage() {
     const [editingBid, setEditingBid] = useState<MappedBid | null>(null);
     const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
-    const [jobsData, setJobsData] = useState(initialJobs);
+    const [jobs, setJobs] = useState(initialJobs);
     const searchParams = useSearchParams();
 
     const form = useForm<z.infer<typeof bidSchema>>({
@@ -196,10 +196,11 @@ export default function MyBidsPage() {
 
     const myBids = useMemo(() => {
         // This is a client-side simulation. In a real app, you'd fetch this data.
-        return jobsData
+        return jobs
             .flatMap(job => (job.bids || []).map(bid => ({ ...bid, job })))
+            .filter((bid): bid is MappedBid => !!bid.job)
             .filter(bid => bid.providerId === 'provider-03');
-    }, [jobsData]);
+    }, [jobs]);
 
     const handleEditClick = (bid: MappedBid) => {
         setEditingBid(bid);
@@ -217,7 +218,7 @@ export default function MyBidsPage() {
 
     const handleConfirmWithdraw = () => {
         if (!withdrawingBid) return;
-        setJobsData(prevJobs => prevJobs.map(job => {
+        setJobs(prevJobs => prevJobs.map(job => {
             if (job.id === withdrawingBid.jobId) {
                 return {
                     ...job,

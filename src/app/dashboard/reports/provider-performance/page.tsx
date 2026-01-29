@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -7,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, bids, reviews, clientData } from '@/lib/placeholder-data';
+import { jobs, reviews, clientData } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,7 +93,7 @@ export default function ProviderPerformanceReportPage() {
             const providerReviews = reviews.filter(r => r.providerId === provider.id && r.clientId === clientId);
             
             const totalSpend = providerJobs.reduce((acc, job) => {
-                const awardedBid = bids.find(b => b.jobId === job.id && b.status === 'Awarded');
+                const awardedBid = job.bids?.find(b => b.status === 'Awarded');
                 return acc + (awardedBid?.amount || 0);
             }, 0);
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -254,14 +255,14 @@ export default function JobCostAnalysisReportPage() {
                                             />
                                             </PopoverContent>
                                         </Popover>
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="flex items-end">
-                                <Button type="button" variant="outline" onClick={() => form.reset({ providerIds: [], techniqueIds: [], dateRange: { from: undefined, to: undefined }})}>
-                                    Clear Filters
-                                </Button>
-                            </div>
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="flex items-end">
+                                    <Button type="button" variant="outline" onClick={() => form.reset({ providerIds: [], techniqueIds: [], dateRange: { from: undefined, to: undefined }})}>
+                                        Clear Filters
+                                    </Button>
+                                </div>
                         </form>
                     </Form>
                 </CardContent>

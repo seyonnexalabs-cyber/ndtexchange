@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, technicians, inspectorAssets, clientData, Job } from "@/lib/placeholder-data";
+import { jobs, allUsers, inspectorAssets, clientData, Job } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -286,7 +286,7 @@ export default function MyJobsPage() {
                             <h2 className="text-xl font-semibold mb-4 text-primary">{groupName}</h2>
                             <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                                 {jobsInGroup.map(job => {
-                                    const assignedTechnicians = technicians.filter(t => job.technicianIds?.includes(t.id));
+                                    const assignedTechnicians = allUsers.filter(t => t.role === 'Inspector' && job.technicianIds?.includes(t.id));
                                     const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
                                     const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
             
@@ -296,7 +296,7 @@ export default function MyJobsPage() {
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                                        <p className="text-xs text-muted-foreground font-extrabold">{job.id}</p>
+                                                        <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
                                                         {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}

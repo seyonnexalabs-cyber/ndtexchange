@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -21,6 +22,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const reportSchema = z.object({
   providerIds: z.array(z.string()),
@@ -45,6 +47,7 @@ export default function JobCostAnalysisReportPage() {
     });
 
     const searchParams = useSearchParams();
+    const isMobile = useIsMobile();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -311,39 +314,62 @@ export default function JobCostAnalysisReportPage() {
                     <CardTitle>Detailed Job Data</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Job ID</TableHead>
-                                <TableHead>Job Title</TableHead>
-                                <TableHead>Provider</TableHead>
-                                <TableHead>Technique</TableHead>
-                                <TableHead>Cost</TableHead>
-                                <TableHead>Duration (Days)</TableHead>
-                                <TableHead>Completion Date</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    {isMobile ? (
+                        <div className="space-y-4">
                             {filteredJobs.map(job => (
-                                <TableRow key={job!.id}>
-                                    <TableCell className="font-extrabold text-xs">{job!.id}</TableCell>
-                                    <TableCell className="font-medium">{job!.title}</TableCell>
-                                    <TableCell>{serviceProviders.find(p => p.id === job!.providerId)?.name}</TableCell>
-                                    <TableCell><Badge variant="secondary" shape="rounded">{job!.technique}</Badge></TableCell>
-                                    <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
-                                    <TableCell>{job!.duration}</TableCell>
-                                    <TableCell>{job!.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT): ''}</TableCell>
-                                </TableRow>
+                                <Card key={job.id} className="p-4">
+                                    <p className="font-semibold">{job.title}</p>
+                                    <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
+                                    <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                                        <p>Provider: {serviceProviders.find(p => p.id === job.providerId)?.name}</p>
+                                        <p>Technique: <Badge variant="secondary" shape="rounded">{job.technique}</Badge></p>
+                                        <p>Cost: ${job.awardedBid.amount.toLocaleString()}</p>
+                                        <p>Duration: {job.duration} Day(s)</p>
+                                        <p>Completed: {job.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                    </div>
+                                </Card>
                             ))}
-                             {filteredJobs.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-center h-24">
-                                        No jobs found matching your criteria.
-                                    </TableCell>
-                                </TableRow>
+                            {filteredJobs.length === 0 && (
+                                <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
+                                    No jobs found matching your criteria.
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Job ID</TableHead>
+                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Provider</TableHead>
+                                    <TableHead>Technique</TableHead>
+                                    <TableHead>Cost</TableHead>
+                                    <TableHead>Duration (Days)</TableHead>
+                                    <TableHead>Completion Date</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredJobs.map(job => (
+                                    <TableRow key={job!.id}>
+                                        <TableCell className="font-extrabold text-xs">{job!.id}</TableCell>
+                                        <TableCell className="font-medium">{job!.title}</TableCell>
+                                        <TableCell>{serviceProviders.find(p => p.id === job!.providerId)?.name}</TableCell>
+                                        <TableCell><Badge variant="secondary" shape="rounded">{job!.technique}</Badge></TableCell>
+                                        <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
+                                        <TableCell>{job!.duration}</TableCell>
+                                        <TableCell>{job!.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT): ''}</TableCell>
+                                    </TableRow>
+                                ))}
+                                {filteredJobs.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center h-24">
+                                            No jobs found matching your criteria.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </div>

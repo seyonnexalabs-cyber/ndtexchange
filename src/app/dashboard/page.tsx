@@ -48,6 +48,7 @@ const clientChartConfig = {
 
 const ClientDashboard = () => {
     const searchParams = useSearchParams();
+    const isMobile = useIsMobile();
     // In a real app, this would come from a user context. For demo purposes:
     const clientCompanyId = 'client-01'; 
     const clientCompanyName = 'Global Energy Corp.';
@@ -122,37 +123,64 @@ const ClientDashboard = () => {
                         <CardDescription>These jobs are awaiting your review and approval to move forward.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Job ID</TableHead>
-                                    <TableHead>Job Title</TableHead>
-                                    <TableHead>Provider</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
+                        {isMobile ? (
+                            <div className="space-y-4">
                                 {jobsForReview.map(job => (
-                                    <TableRow key={job.id}>
-                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
-                                        <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
-                                        <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
-                                        <TableCell className="text-right">
-                                            <Button asChild variant="outline" size="sm">
+                                    <Card key={job.id}>
+                                        <CardHeader>
+                                            <div className="flex justify-between items-start">
+                                                <CardTitle className="text-base">{job.title}</CardTitle>
+                                                <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                            </div>
+                                            <CardDescription>ID: <span className="font-bold text-foreground">{job.id}</span></CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="text-sm">
+                                            Provider: {serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Button asChild variant="outline" size="sm" className="w-full">
                                                 <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Review Job</Link>
                                             </Button>
-                                        </TableCell>
-                                    </TableRow>
+                                        </CardFooter>
+                                    </Card>
                                 ))}
-                                {jobsForReview.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No jobs require your action at this time.</TableCell>
-                                    </TableRow>
+                                 {jobsForReview.length === 0 && (
+                                    <div className="h-24 text-center text-muted-foreground flex items-center justify-center">No jobs require your action at this time.</div>
                                 )}
-                            </TableBody>
-                        </Table>
+                            </div>
+                        ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Job ID</TableHead>
+                                        <TableHead>Job Title</TableHead>
+                                        <TableHead>Provider</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {jobsForReview.map(job => (
+                                        <TableRow key={job.id}>
+                                            <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                            <TableCell className="font-medium">{job.title}</TableCell>
+                                            <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                            <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
+                                            <TableCell className="text-right">
+                                                <Button asChild variant="outline" size="sm">
+                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Review Job</Link>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {jobsForReview.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No jobs require your action at this time.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        )}
                     </CardContent>
                 </Card>
                  <Card className="lg:col-span-2">

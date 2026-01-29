@@ -24,6 +24,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const reportSchema = z.object({
@@ -54,6 +55,7 @@ export default function ProviderPerformanceReportPage() {
     });
     
     const searchParams = useSearchParams();
+    const isMobile = useIsMobile();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -305,35 +307,56 @@ export default function ProviderPerformanceReportPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Provider</TableHead>
-                                <TableHead>Jobs Awarded</TableHead>
-                                <TableHead>Avg. Rating</TableHead>
-                                <TableHead>Avg. Job Cost</TableHead>
-                                <TableHead>Total Spend</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    {isMobile ? (
+                        <div className="space-y-4">
                             {performanceData.map(provider => (
-                                <TableRow key={provider.providerId}>
-                                    <TableCell className="font-medium">{provider.providerName}</TableCell>
-                                    <TableCell>{provider.jobsAwarded}</TableCell>
-                                    <TableCell>{provider.avgRating > 0 ? provider.avgRating.toFixed(1) : 'N/A'}</TableCell>
-                                    <TableCell>${provider.avgJobCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
-                                    <TableCell>${provider.totalSpend.toLocaleString()}</TableCell>
-                                </TableRow>
+                                <Card key={provider.providerId} className="p-4">
+                                    <p className="font-bold">{provider.providerName}</p>
+                                    <div className="text-sm text-muted-foreground mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                                        <span className="font-medium">Jobs Awarded:</span><span>{provider.jobsAwarded}</span>
+                                        <span className="font-medium">Avg. Rating:</span><span>{provider.avgRating > 0 ? provider.avgRating.toFixed(1) : 'N/A'}</span>
+                                        <span className="font-medium">Avg. Job Cost:</span><span>${provider.avgJobCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                        <span className="font-medium">Total Spend:</span><span>${provider.totalSpend.toLocaleString()}</span>
+                                    </div>
+                                </Card>
                             ))}
-                             {performanceData.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">
-                                        No provider performance data found for the selected filters.
-                                    </TableCell>
-                                </TableRow>
+                            {performanceData.length === 0 && (
+                                <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
+                                    No provider performance data found for the selected filters.
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Provider</TableHead>
+                                    <TableHead>Jobs Awarded</TableHead>
+                                    <TableHead>Avg. Rating</TableHead>
+                                    <TableHead>Avg. Job Cost</TableHead>
+                                    <TableHead>Total Spend</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {performanceData.map(provider => (
+                                    <TableRow key={provider.providerId}>
+                                        <TableCell className="font-medium">{provider.providerName}</TableCell>
+                                        <TableCell>{provider.jobsAwarded}</TableCell>
+                                        <TableCell>{provider.avgRating > 0 ? provider.avgRating.toFixed(1) : 'N/A'}</TableCell>
+                                        <TableCell>${provider.avgJobCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</TableCell>
+                                        <TableCell>${provider.totalSpend.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))}
+                                {performanceData.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">
+                                            No provider performance data found for the selected filters.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
 

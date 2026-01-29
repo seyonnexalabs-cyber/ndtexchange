@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const reportSchema = z.object({
@@ -44,6 +45,7 @@ export default function AssetHistoryReportPage() {
     });
     
     const searchParams = useSearchParams();
+    const isMobile = useIsMobile();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -203,37 +205,60 @@ export default function AssetHistoryReportPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Asset Name</TableHead>
-                                <TableHead>Technique</TableHead>
-                                <TableHead>Inspector</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Date</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    {isMobile ? (
+                        <div className="space-y-4">
                             {filteredInspections.map(inspection => (
-                                <TableRow key={inspection.id}>
-                                    <TableCell className="font-medium">{inspection.assetName}</TableCell>
-                                    <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
-                                    <TableCell>{inspection.inspector}</TableCell>
-                                    <TableCell>
-                                         <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
-                                    </TableCell>
-                                    <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
-                                </TableRow>
+                                <Card key={inspection.id} className="p-4">
+                                    <div className="flex justify-between items-start">
+                                        <p className="font-semibold">{inspection.assetName}</p>
+                                        <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground mt-2">
+                                        <p>Technique: <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></p>
+                                        <p>Inspector: {inspection.inspector}</p>
+                                        <p>Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</p>
+                                    </div>
+                                </Card>
                             ))}
-                             {filteredInspections.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">
-                                        No inspections found matching your criteria.
-                                    </TableCell>
-                                </TableRow>
+                            {filteredInspections.length === 0 && (
+                                <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
+                                    No inspections found matching your criteria.
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Asset Name</TableHead>
+                                    <TableHead>Technique</TableHead>
+                                    <TableHead>Inspector</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Date</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredInspections.map(inspection => (
+                                    <TableRow key={inspection.id}>
+                                        <TableCell className="font-medium">{inspection.assetName}</TableCell>
+                                        <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
+                                        <TableCell>{inspection.inspector}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
+                                        </TableCell>
+                                        <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    </TableRow>
+                                ))}
+                                {filteredInspections.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">
+                                            No inspections found matching your criteria.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </div>

@@ -1,7 +1,9 @@
+
 'use client';
 
 import * as React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { format, parse } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -47,23 +49,17 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
       setYear('');
     }, [value]);
     
-    const years = React.useMemo(() => {
-        const currentYear = new Date().getFullYear();
-        // Create a range of years, e.g., from 20 years ago to 20 years from now
-        return Array.from({ length: 41 }, (_, i) => (currentYear - 20 + i).toString()).reverse();
-    }, []);
-
     const daysInMonth = React.useMemo(() => {
-        if (!month || !year) return [];
+        if (!month || !year || year.length !== 4) return [];
         const monthIndex = months.findIndex(m => m.value === month);
-        if (monthIndex < 0 || !year) return [];
+        if (monthIndex < 0) return [];
         const numDays = new Date(parseInt(year), monthIndex + 1, 0).getDate();
         return Array.from({ length: numDays }, (_, i) => (i + 1).toString().padStart(2, '0'));
     }, [month, year]);
 
     // This effect ensures that a valid date string is propagated upwards.
     React.useEffect(() => {
-        if (day && month && year) {
+        if (day && month && year && year.length === 4) {
             const dateStr = `${day}-${month}-${year}`;
             onChange?.(dateStr);
         } else if (!day && !month && !year && value) {
@@ -83,13 +79,16 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
         }
     };
     
-    const handleYearChange = (newYear: string) => {
-        setYear(newYear);
-        if (day && month) {
-            const monthIndex = months.findIndex(m => m.value === month);
-            const numDaysInNewMonth = new Date(parseInt(newYear), monthIndex + 1, 0).getDate();
-            if (parseInt(day) > numDaysInNewMonth) {
-                setDay(''); // Reset day if it's no longer valid (e.g., Feb 29 in a non-leap year)
+    const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newYear = e.target.value;
+        if (/^\d{0,4}$/.test(newYear)) {
+            setYear(newYear);
+            if (day && month) {
+                const monthIndex = months.findIndex(m => m.value === month);
+                const numDaysInNewMonth = new Date(parseInt(newYear), monthIndex + 1, 0).getDate();
+                if (parseInt(day) > numDaysInNewMonth) {
+                    setDay(''); // Reset day if it's no longer valid (e.g., Feb 29 in a non-leap year)
+                }
             }
         }
     };
@@ -97,12 +96,14 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
 
     return (
       <div className={cn('grid grid-cols-3 gap-2', className)} ref={ref}>
-        <Select value={year} onValueChange={handleYearChange}>
-            <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-            <SelectContent>
-                {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-            </SelectContent>
-        </Select>
+        <Input 
+            type="number"
+            placeholder="Year"
+            value={year}
+            onChange={handleYearChange}
+            min={new Date().getFullYear() - 100}
+            max={new Date().getFullYear() + 20}
+        />
         <Select value={month} onValueChange={handleMonthChange}>
             <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
             <SelectContent>
@@ -111,7 +112,7 @@ const CustomDateInput = React.forwardRef<HTMLDivElement, CustomDateInputProps>(
                 ))}
             </SelectContent>
         </Select>
-        <Select value={day} onValueChange={setDay} disabled={!month || !year}>
+        <Select value={day} onValueChange={setDay} disabled={!month || !year || year.length !== 4}>
             <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
             <SelectContent>
                 {daysInMonth.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}

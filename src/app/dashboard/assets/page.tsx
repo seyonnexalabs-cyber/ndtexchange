@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -309,8 +310,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                     <h2 className="text-xl font-semibold mb-4">{location}</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {locationAssets.map((asset) => {
-                            const imageIndex = initialClientAssets.findIndex(a => a.id === asset.id);
-                            const image = PlaceHolderImages.find(p => p.id === `asset${imageIndex + 1}`);
+                            const image = asset.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined;
                             return (
                                 <Card key={asset.id} className="flex flex-col">
                                     <CardHeader className="p-0">
@@ -332,7 +332,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                             }>{asset.status}</Badge>
                                         </div>
                                         <CardTitle className="mt-2 font-semibold text-lg">{asset.name}</CardTitle>
-                                        <CardDescription className="font-extrabold">{asset.id}</CardDescription>
+                                        <CardDescription className="font-bold">{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
                                         <span>Next: {format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</span>
@@ -376,7 +376,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                     />
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{qrCodeData.name}</p>
-                                        <p className="font-extrabold text-muted-foreground">{qrCodeData.id}</p>
+                                        <p className="font-bold text-muted-foreground">{qrCodeData.id}</p>
                                     </div>
                                 </>
                             )}
@@ -511,3 +511,4 @@ export default function AssetsPage() {
         </div>
     );
 }
+

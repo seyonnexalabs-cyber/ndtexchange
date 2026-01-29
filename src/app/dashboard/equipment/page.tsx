@@ -601,7 +601,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
             <TableBody>
                 {equipment.map(asset => (
                     <TableRow key={asset.id}>
-                        <TableCell className="font-bold text-xs">{asset.id}</TableCell>
+                        <TableCell className="font-extrabold text-xs">{asset.id}</TableCell>
                         <TableCell className="font-medium flex items-center gap-3">
                             {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
                             {asset.name}
@@ -667,7 +667,7 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
                     <div className="flex flex-wrap gap-1">
                         {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
                     </div>
-                     <p className="text-xs font-bold text-muted-foreground mt-2">{asset.id}</p>
+                     <p className="text-xs font-extrabold text-muted-foreground mt-2">{asset.id}</p>
                     <Badge variant={statusVariants[asset.status]} className="mt-2">{asset.status}</Badge>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
@@ -990,7 +990,7 @@ export default function EquipmentPage() {
                                     />
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{qrCodeData.name}</p>
-                                        <p className="font-bold text-muted-foreground">{qrCodeData.id}</p>
+                                        <p className="font-extrabold text-muted-foreground">{qrCodeData.id}</p>
                                     </div>
                                 </>
                             )}

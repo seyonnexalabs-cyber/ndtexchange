@@ -210,7 +210,7 @@ export default function InspectionsPage() {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardTitle className="text-base">{inspection.assetName}</CardTitle>
-                                        <p className="text-xs font-bold text-muted-foreground">{inspection.jobId}</p>
+                                        <p className="text-xs font-extrabold text-muted-foreground">{inspection.jobId}</p>
                                     </div>
                                     <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                 </div>
@@ -252,7 +252,7 @@ export default function InspectionsPage() {
                             {augmentedAndFilteredInspections.map(inspection => (
                                 <TableRow key={inspection.id}>
                                     <TableCell className="font-medium">{inspection.assetName}</TableCell>
-                                    <TableCell className="font-bold text-xs">{inspection.jobId}</TableCell>
+                                    <TableCell className="font-extrabold text-xs">{inspection.jobId}</TableCell>
                                     <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">

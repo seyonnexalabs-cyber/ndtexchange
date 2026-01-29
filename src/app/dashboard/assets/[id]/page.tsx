@@ -98,7 +98,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                         {assetIcons[asset.type]}
                         {asset.name}
                     </h1>
-                    <p className="font-bold text-sm text-muted-foreground">{asset.id}</p>
+                    <p className="font-extrabold text-sm text-muted-foreground">{asset.id}</p>
                 </div>
                 {isClient && (
                     <div className='flex gap-2 self-start sm:self-center'>
@@ -222,7 +222,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                                        <DetailItem label="Asset ID" value={<span className='font-bold'>{asset.id}</span>} />
+                                        <DetailItem label="Asset ID" value={<span className='font-extrabold'>{asset.id}</span>} />
                                         <DetailItem label="Asset Type" value={asset.type} />
                                         <DetailItem label="Location" value={asset.location} />
                                         <DetailItem label="Status" value={<Badge variant={

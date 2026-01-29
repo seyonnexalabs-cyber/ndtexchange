@@ -313,7 +313,7 @@ const SubscriptionsDesktopView = ({
                             <TableCell className="font-medium">{sub.companyName}</TableCell>
                             <TableCell>{sub.plan}</TableCell>
                             <TableCell><Badge variant={subscriptionStatusStyles[sub.status]}>{sub.status}</Badge></TableCell>
-                            <TableCell className="font-bold">{sub.id}</TableCell>
+                            <TableCell className="font-extrabold">{sub.id}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     <span>{sub.userCount} / {userLimit}</span>
@@ -386,7 +386,7 @@ const SubscriptionsMobileView = ({
                                 className="absolute top-4 right-4 h-5 w-5"
                             />
                         </div>
-                        <CardDescription>{sub.plan} Plan &bull; ID: <span className="font-bold text-foreground">{sub.id}</span></CardDescription>
+                        <CardDescription>{sub.plan} Plan &bull; ID: <span className="font-extrabold text-foreground">{sub.id}</span></CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -442,7 +442,7 @@ const PaymentHistoryDesktopView = () => (
                         <TableCell className="font-medium">{payment.companyName}</TableCell>
                         <TableCell>${payment.amount.toLocaleString()}</TableCell>
                         <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
-                        <TableCell className="font-bold text-xs">{payment.subscriptionId}</TableCell>
+                        <TableCell className="font-extrabold text-xs">{payment.subscriptionId}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
@@ -459,7 +459,7 @@ const PaymentHistoryMobileView = () => (
                         <CardTitle>{payment.companyName}</CardTitle>
                         <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
                     </div>
-                    <CardDescription>Subscription: <span className="font-bold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</CardDescription>
+                    <CardDescription>Subscription: <span className="font-extrabold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>

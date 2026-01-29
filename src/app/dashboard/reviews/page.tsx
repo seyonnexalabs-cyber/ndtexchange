@@ -53,7 +53,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                             <div className="flex justify-between items-start">
                                 <div>
                                     <CardTitle className="text-base">{review.job?.title}</CardTitle>
-                                    <p className="text-xs font-bold text-muted-foreground">{review.job?.id}</p>
+                                    <p className="text-xs font-extrabold text-muted-foreground">{review.job?.id}</p>
                                 </div>
                                 <Badge variant={statusStyles[review.status]}>{review.status}</Badge>
                             </div>
@@ -96,7 +96,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                 <TableBody>
                     {reviews.map(review => (
                         <TableRow key={review.id}>
-                            <TableCell className="font-bold text-xs">{review.job?.id}</TableCell>
+                            <TableCell className="font-extrabold text-xs">{review.job?.id}</TableCell>
                             <TableCell>{review.client?.name}</TableCell>
                             <TableCell>{review.provider?.name}</TableCell>
                             <TableCell><Link className="underline" href={`/dashboard/my-jobs/${review.jobId}?role=admin`}>{review.job?.title}</Link></TableCell>
@@ -174,5 +174,3 @@ export default function ReviewsPage() {
         </div>
     );
 }
-
-    

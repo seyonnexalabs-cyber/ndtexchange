@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, Building, QrCode, Calendar as CalendarIcon, Printer } from "lucide-react";
+import { MoreVertical, Building, QrCode, Calendar as CalendarIcon, Printer, UploadCloud } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState, cloneElement, useEffect } from "react";
+import { useMemo, useState, cloneElement, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useSearch } from "@/app/components/layout/search-provider";
 import { useForm } from 'react-hook-form';
@@ -64,6 +64,8 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
 
     const [showNewLocation, setShowNewLocation] = useState(false);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const uniqueLocations = useMemo(() => {
         const allLocations = assets.map(asset => asset.location);
@@ -78,7 +80,53 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
             }
         };
     }, [thumbnailPreview]);
+    
+    const handleFileChange = (file: File | null) => {
+        form.setValue('thumbnail', file);
+        if (thumbnailPreview) {
+            URL.revokeObjectURL(thumbnailPreview);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setThumbnailPreview(URL.createObjectURL(file));
+                form.clearErrors('thumbnail');
+            } else {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+            }
+        } else {
+            setThumbnailPreview(null);
+        }
+    };
 
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            handleFileChange(file);
+            e.dataTransfer.clearData();
+        }
+    };
 
     return (
         <Form {...form}>
@@ -238,30 +286,51 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Thumbnail Image (Optional)</FormLabel>
-                            {thumbnailPreview && (
-                                <div className="relative w-full h-48 rounded-md overflow-hidden bg-muted border">
-                                    <Image
-                                        src={thumbnailPreview}
-                                        alt="Thumbnail preview"
-                                        fill
-                                        className="object-contain"
+                             <div
+                                onDragEnter={handleDragEnter}
+                                onDragLeave={handleDragLeave}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={cn(
+                                    "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                )}
+                            >
+                                {thumbnailPreview ? (
+                                    <>
+                                        <Image
+                                            src={thumbnailPreview}
+                                            alt="Thumbnail preview"
+                                            fill
+                                            className="object-contain rounded-md p-2"
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                            <p className="text-white font-semibold">Click or drag to replace</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 pointer-events-none">
+                                        <UploadCloud className="w-8 h-8" />
+                                        <p>
+                                            <span className="font-semibold text-primary">Click to upload</span> or drag and drop
+                                        </p>
+                                        <p className="text-xs">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                )}
+                                <FormControl>
+                                    <Input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            handleFileChange(file);
+                                        }}
                                     />
-                                </div>
-                            )}
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    field.onChange(file);
-                                    if (thumbnailPreview) {
-                                        URL.revokeObjectURL(thumbnailPreview);
-                                    }
-                                    if (file) {
-                                        setThumbnailPreview(URL.createObjectURL(file));
-                                    } else {
-                                        setThumbnailPreview(null);
-                                    }
-                                }} />
-                            </FormControl>
+                                </FormControl>
+                            </div>
                             <FormDescription>
                                 This image will be used as the display card for the asset.
                             </FormDescription>
@@ -547,6 +616,7 @@ export default function AssetsPage() {
         </div>
     );
 }
+
 
 
 

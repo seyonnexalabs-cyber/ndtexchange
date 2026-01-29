@@ -70,6 +70,16 @@ const ClientDashboard = () => {
       { status: "Requires Inspection", key: "inspection", count: currentClientAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
       { status: "Under Repair", key: "repair", count: currentClientAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
     ], [currentClientAssets]);
+    
+    const schedule = useMemo(() => {
+        const today = new Date();
+        const nextSevenDays = new Date();
+        nextSevenDays.setDate(today.getDate() + 7);
+        
+        return clientJobs
+            .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
+            .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
+    }, [clientJobs]);
 
     return (
         <div className="grid gap-6">
@@ -207,6 +217,39 @@ const ClientDashboard = () => {
                     </CardContent>
                 </Card>
             </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Upcoming Schedule (Next 7 Days)</CardTitle>
+                    <CardDescription>Your upcoming scheduled jobs.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Job Title</TableHead>
+                                <TableHead>Provider</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {schedule.map(job => (
+                                <TableRow key={job.id}>
+                                    <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={4} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     );
 };
@@ -331,6 +374,16 @@ const AuditorDashboard = () => {
     const auditsCompleted = useMemo(() => jobs.filter(j => j.status === 'Audit Approved').length, []);
     const averageReviewTime = "22h"; // Placeholder
 
+    const schedule = useMemo(() => {
+        const today = new Date();
+        const nextSevenDays = new Date();
+        nextSevenDays.setDate(today.getDate() + 7);
+        
+        return jobs
+            .filter(j => (j.workflow === 'level3' || j.workflow === 'auto') && j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
+            .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
+    }, []);
+
     return (
         <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -400,6 +453,41 @@ const AuditorDashboard = () => {
                     </Table>
                 </CardContent>
             </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Upcoming Jobs Requiring Audit (Next 7 Days)</CardTitle>
+                    <CardDescription>Jobs scheduled soon that will require your review after completion.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Job Title</TableHead>
+                                <TableHead>Client</TableHead>
+                                <TableHead>Provider</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {schedule.map(job => (
+                                <TableRow key={job.id}>
+                                    <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell>{job.client}</TableCell>
+                                    <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs requiring future audit are scheduled in the next 7 days.</TableCell></TableRow>}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     );
 };
@@ -428,6 +516,16 @@ const AdminDashboard = () => {
         activeJobs: jobs.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length,
     };
     
+    const schedule = useMemo(() => {
+        const today = new Date();
+        const nextSevenDays = new Date();
+        nextSevenDays.setDate(today.getDate() + 7);
+        
+        return jobs
+            .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
+            .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
+    }, []);
+
     return (
          <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -493,6 +591,41 @@ const AdminDashboard = () => {
                     </CardContent>
                 </Card>
              </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Platform Schedule (Next 7 Days)</CardTitle>
+                    <CardDescription>All jobs scheduled across the platform in the upcoming week.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Job Title</TableHead>
+                                <TableHead>Client</TableHead>
+                                <TableHead>Provider</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {schedule.map(job => (
+                                <TableRow key={job.id}>
+                                    <TableCell className="font-medium">{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell>{job.client}</TableCell>
+                                    <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled across the platform in the next 7 days.</TableCell></TableRow>}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     );
 };

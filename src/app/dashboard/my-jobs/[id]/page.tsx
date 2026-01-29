@@ -590,7 +590,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                             <Briefcase />
                                             {jobDetails.title}
                                         </CardTitle>
-                                        <CardDescription>ID: <span className="font-mono font-semibold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
+                                        <CardDescription>ID: <span className="font-bold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
                                     </div>
                                     <Tooltip>
                                         <TooltipTrigger>
@@ -851,7 +851,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     {assignedTechnicians.length > 0 ? (
                                         <ul className="space-y-2 pl-2">
                                             {assignedTechnicians.map(tech => (
-                                                <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} <span className="font-mono text-xs font-semibold">({tech.id})</span> - {tech.level}</li>
+                                                <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} <span className="font-bold text-xs">({tech.id})</span> - {tech.level}</li>
                                             ))}
                                         </ul>
                                     ) : <p className="text-sm text-muted-foreground pl-2">No technicians assigned.</p>}
@@ -870,7 +870,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <ul className="space-y-2 pl-2">
                                             {assignedEquipment.map(equip => (
                                                 <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
-                                                    <span>{equip.name} <span className="font-mono text-xs font-semibold">({equip.id})</span></span>
+                                                    <span>{equip.name} <span className="font-bold text-xs">({equip.id})</span></span>
                                                     <div className="flex flex-wrap gap-1">
                                                         {equip.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
                                                     </div>
@@ -971,3 +971,4 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     
 
     
+

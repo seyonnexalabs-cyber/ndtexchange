@@ -12,7 +12,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState, cloneElement } from "react";
+import { useMemo, useState, cloneElement, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useSearch } from "@/app/components/layout/search-provider";
 import { useForm } from 'react-hook-form';
@@ -28,6 +28,7 @@ import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -62,10 +63,22 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
     });
 
     const [showNewLocation, setShowNewLocation] = useState(false);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
     const uniqueLocations = useMemo(() => {
         const allLocations = assets.map(asset => asset.location);
         return [...new Set(allLocations)];
     }, [assets]);
+    
+    useEffect(() => {
+        // Cleanup function to revoke the object URL
+        return () => {
+            if (thumbnailPreview) {
+                URL.revokeObjectURL(thumbnailPreview);
+            }
+        };
+    }, [thumbnailPreview]);
+
 
     return (
         <Form {...form}>
@@ -225,8 +238,29 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Thumbnail Image (Optional)</FormLabel>
+                            {thumbnailPreview && (
+                                <div className="relative w-full h-48 rounded-md overflow-hidden bg-muted border">
+                                    <Image
+                                        src={thumbnailPreview}
+                                        alt="Thumbnail preview"
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
+                            )}
                             <FormControl>
-                                <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
+                                <Input type="file" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    field.onChange(file);
+                                    if (thumbnailPreview) {
+                                        URL.revokeObjectURL(thumbnailPreview);
+                                    }
+                                    if (file) {
+                                        setThumbnailPreview(URL.createObjectURL(file));
+                                    } else {
+                                        setThumbnailPreview(null);
+                                    }
+                                }} />
                             </FormControl>
                             <FormDescription>
                                 This image will be used as the display card for the asset.
@@ -245,13 +279,13 @@ const AssetForm = ({ onCancel, onSubmit, assets }: { onCancel: () => void, onSub
                                 <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
                             </FormControl>
                             <FormDescription>
-                                Attach initial drawings, photos, or certificates.
+                                Attach multiple files (PDFs, images).
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <DialogFooter>
+                <DialogFooter className="pt-4 sticky bottom-0 bg-background z-10 -mx-6 px-6 pb-6 -mb-6">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                     <Button type="submit">Create Asset</Button>
                 </DialogFooter>
@@ -494,22 +528,25 @@ export default function AssetsPage() {
 
 
              <Dialog open={isAddAssetOpen} onOpenChange={setAddAssetOpen}>
-                <DialogContent>
-                    <DialogHeader>
+                <DialogContent className="sm:max-w-4xl h-[90dvh] flex flex-col p-0">
+                    <DialogHeader className="p-6 pb-4">
                         <DialogTitle>Add New Asset</DialogTitle>
                         <DialogDescription>
                             Enter the details for the new asset to add it to your inventory.
                         </DialogDescription>
                     </DialogHeader>
-                    <AssetForm
-                        assets={currentAssets}
-                        onSubmit={handleFormSubmit}
-                        onCancel={() => setAddAssetOpen(false)}
-                    />
+                    <ScrollArea className="flex-grow px-6">
+                        <AssetForm
+                            assets={currentAssets}
+                            onSubmit={handleFormSubmit}
+                            onCancel={() => setAddAssetOpen(false)}
+                        />
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
         </div>
     );
 }
+
 
 

@@ -10,20 +10,19 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
-import { ACCEPTED_FILE_TYPES, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { clientAssets } from "@/lib/placeholder-data";
+import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -31,7 +30,7 @@ const assetSchema = z.object({
     location: z.string({ required_error: 'Please select a location or add a new one.'}),
     newLocation: z.string().optional(),
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
-    nextInspection: z.string().min(1, 'Next inspection date is required.'),
+    nextInspection: z.date({ required_error: 'Please select a valid date.' }),
     notes: z.string().optional(),
     thumbnail: z.any().optional(),
     documents: z.any().optional(),
@@ -50,15 +49,12 @@ export default function AddAssetPage() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const [currentAssets, setCurrentAssets] = React.useState<Asset[]>(initialClientAssets);
-
     const form = useForm<z.infer<typeof assetSchema>>({
         resolver: zodResolver(assetSchema),
         defaultValues: {
             name: '',
             type: 'Tank',
             status: 'Operational',
-            nextInspection: format(new Date(), GLOBAL_DATE_FORMAT),
             notes: '',
         }
     });
@@ -71,9 +67,9 @@ export default function AddAssetPage() {
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
 
     const uniqueLocations = React.useMemo(() => {
-        const allLocations = currentAssets.map(asset => asset.location);
+        const allLocations = clientAssets.map(asset => asset.location);
         return [...new Set(allLocations)];
-    }, [currentAssets]);
+    }, []);
     
     React.useEffect(() => {
         return () => {
@@ -187,7 +183,7 @@ export default function AddAssetPage() {
             <Card>
                 <CardContent className="pt-6">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
                             <FormField
                                 control={form.control}
                                 name="name"
@@ -286,7 +282,7 @@ export default function AddAssetPage() {
                                 control={form.control}
                                 name="nextInspection"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="flex flex-col">
                                         <FormLabel>Next Inspection Date</FormLabel>
                                         <FormControl>
                                             <CustomDateInput {...field} />
@@ -420,4 +416,3 @@ export default function AddAssetPage() {
         </div>
     );
 }
-

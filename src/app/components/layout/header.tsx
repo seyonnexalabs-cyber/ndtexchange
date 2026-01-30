@@ -14,6 +14,7 @@ import { useQRScanner } from './qr-scanner-provider';
 import { notifications as initialNotifications, Notification } from '@/lib/placeholder-data';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 
 const userDetails = {
@@ -92,7 +93,7 @@ const AppHeader = () => {
 
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-9 px-2">
+                        <Button variant="ghost" className="h-9 px-2 gap-2">
                             <Bell className="h-5 w-5" />
                             {unreadCount > 0 && (
                                 <div className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-destructive-foreground">
@@ -132,6 +133,8 @@ const AppHeader = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
                 
+                <Separator orientation="vertical" className="h-6" />
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-9 w-9">

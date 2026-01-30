@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -21,8 +20,6 @@ import Image from 'next/image';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Checkbox } from '@/components/ui/checkbox';
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -414,5 +411,4 @@ export default function AddAssetPage() {
                 </CardContent>
             </Card>
         </div>
-    );
-}
+    ); 

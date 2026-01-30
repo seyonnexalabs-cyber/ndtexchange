@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -27,9 +28,14 @@ import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/component
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -61,6 +67,99 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Completed': 'success',
     'Paid': 'success'
 };
+
+const scheduleSchema = z.object({
+  scheduledStartDate: z.date(),
+  scheduledEndDate: z.date().optional(),
+}).refine(data => {
+    if (data.scheduledStartDate && data.scheduledEndDate) {
+        return data.scheduledEndDate >= data.scheduledStartDate;
+    }
+    return true;
+}, {
+    message: "End date cannot be before start date.",
+    path: ["scheduledEndDate"],
+});
+
+const ScheduleJobForm = ({ onSubmit, onCancel, defaultValues }: { onSubmit: (values: z.infer<typeof scheduleSchema>) => void, onCancel: () => void, defaultValues: any }) => {
+    const form = useForm<z.infer<typeof scheduleSchema>>({
+        resolver: zodResolver(scheduleSchema),
+        defaultValues,
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField
+                    control={form.control}
+                    name="scheduledStartDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Scheduled Start Date</FormLabel>
+                        <FormControl>
+                            <CustomDateInput {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="scheduledEndDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Scheduled End Date (Optional)</FormLabel>
+                        <FormControl>
+                            <CustomDateInput {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Confirm Schedule</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    )
+};
+
+const InspectorActions = ({ status, onScheduleClick, onReportClick, reportSubmitted }: { status: Job['status'], onScheduleClick: () => void, onReportClick: () => void, reportSubmitted: boolean }) => {
+    if (status === 'Assigned') {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Next Step: Schedule Job</CardTitle>
+                    <CardDescription>Confirm the inspection dates to move the job to the next stage.</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                    <Button onClick={onScheduleClick}>
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Schedule Job
+                    </Button>
+                </CardFooter>
+            </Card>
+        )
+    }
+    if (status === 'In Progress' || status === 'Scheduled') {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Next Step: Submit Report</CardTitle>
+                    <CardDescription>Once the inspection is complete, submit your digital report.</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                    <Button onClick={onReportClick} disabled={reportSubmitted}>
+                         {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
+                    </Button>
+                </CardFooter>
+            </Card>
+        )
+    }
+
+    return null;
+}
 
 
 const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['status'], workflow: Job['workflow'], onStatusChange: (status: Job['status']) => void }) => {
@@ -280,6 +379,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
+    const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
 
     const [tempSelectedTechs, setTempSelectedTechs] = useState<string[]>([]);
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
@@ -389,6 +489,22 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             title: "Job Awarded!",
             description: `${provider?.name} has been awarded the job: ${jobDetails.title}.`,
         });
+    };
+    
+    const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
+        if (jobDetails) {
+            setJobDetails({ 
+                ...jobDetails, 
+                status: 'Scheduled',
+                scheduledStartDate: format(values.scheduledStartDate, 'yyyy-MM-dd'),
+                scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : format(values.scheduledStartDate, 'yyyy-MM-dd'),
+            });
+            toast({
+                title: 'Job Scheduled',
+                description: 'The job has been scheduled and the client has been notified.',
+            });
+            setIsSchedulingOpen(false);
+        }
     };
 
     const handleAuditorApprove = () => {
@@ -620,6 +736,18 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </Card>
 
                         {(isClient || isAdmin) && <BidsSection />}
+                        
+                        {isInspector && (
+                            <InspectorActions 
+                                status={jobDetails.status} 
+                                onScheduleClick={() => setIsSchedulingOpen(true)}
+                                onReportClick={() => { 
+                                    handleStatusChange('Report Submitted');
+                                    toast({ title: "Report Submitted", description: "Your inspection report has been submitted for review." });
+                                }}
+                                reportSubmitted={reportSubmitted}
+                            />
+                        )}
 
                         <Card>
                             <CardHeader>
@@ -674,13 +802,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                     </>
                                 )}
                             </CardContent>
-                            {isInspector && (
-                                <CardFooter className="flex justify-end gap-2">
-                                    <Button disabled={reportSubmitted}>
-                                        {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
-                                    </Button>
-                                </CardFooter>
-                            )}
                         </Card>
                         
                         <Card>
@@ -948,6 +1069,23 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+                
+                 <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Schedule Job: {jobDetails.title}</DialogTitle>
+                            <DialogDescription>Select the start and end dates for the inspection.</DialogDescription>
+                        </DialogHeader>
+                        <ScheduleJobForm
+                            onSubmit={handleScheduleSubmit}
+                            onCancel={() => setIsSchedulingOpen(false)}
+                            defaultValues={{
+                                scheduledStartDate: jobDetails.scheduledStartDate ? parseISO(jobDetails.scheduledStartDate) : new Date(),
+                                scheduledEndDate: jobDetails.scheduledEndDate ? parseISO(jobDetails.scheduledEndDate) : undefined,
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
 
                 <UniformDocumentViewer 
                     isOpen={isViewerOpen}
@@ -967,3 +1105,4 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     
 
     
+

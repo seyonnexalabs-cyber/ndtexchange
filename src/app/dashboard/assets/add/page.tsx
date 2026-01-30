@@ -252,7 +252,8 @@ export default function AddAssetPage() {
                                             <FormMessage />
                                         </FormItem>
                                     )}
-                                )}
+                                />
+                            )}
                              <FormField
                                 control={form.control}
                                 name="nextInspection"

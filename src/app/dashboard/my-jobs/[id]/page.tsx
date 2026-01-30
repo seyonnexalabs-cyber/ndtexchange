@@ -370,7 +370,7 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
 }
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
-    const { id } = React.use(params);
+    const { id } = params;
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();

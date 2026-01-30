@@ -98,7 +98,7 @@ const AppHeader = () => {
                             <Bell className="h-5 w-5" />
                             <span className="sr-only">Notifications</span>
                             {unreadCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
                                     {unreadCount}
                                 </span>
                             )}

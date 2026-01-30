@@ -336,11 +336,11 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
 
 
 const assetIcons = {
-    'Tank': <TankIcon className="w-8 h-8 text-muted-foreground" />,
-    'Piping': <PipeIcon className="w-8 h-8 text-muted-foreground" />,
-    'Crane': <CraneIcon className="w-8 h-8 text-muted-foreground" />,
-    'Vessel': <TankIcon className="w-8 h-8 text-muted-foreground" />,
-    'Weld Joint': <WeldIcon className="w-8 h-8 text-muted-foreground" />,
+    'Tank': <TankIcon className="w-8 h-8 text-primary" />,
+    'Piping': <PipeIcon className="w-8 h-8 text-primary" />,
+    'Crane': <CraneIcon className="w-8 h-8 text-primary" />,
+    'Vessel': <TankIcon className="w-8 h-8 text-primary" />,
+    'Weld Joint': <WeldIcon className="w-8 h-8 text-primary" />,
 };
 
 const DetailItem = ({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) => (
@@ -432,7 +432,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                 <div>
                     <Button asChild variant="outline" size="sm" className="mb-4">
                         <Link href={constructUrl("/dashboard/assets")}>
-                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                             Back to Assets
                         </Link>
                     </Button>
@@ -531,7 +531,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                                         <div className="flex justify-between items-center">
                                             <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
                                             <Button onClick={() => handleOpenViewer(allDocuments[0]?.name)} disabled={allDocuments.length === 0}>
-                                                <Maximize className="mr-2 h-4 w-4" />
+                                                <Maximize className="mr-2 h-4 w-4 text-primary" />
                                                 View All Documents
                                             </Button>
                                         </div>
@@ -540,7 +540,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                                                  const isImage = doc.name.match(/\.(jpg|jpeg|png)$/i);
                                                  return (
                                                     <button key={doc.name} onClick={() => handleOpenViewer(doc.name)} className="w-full flex items-center gap-2 p-2 text-left hover:bg-muted rounded-md">
-                                                        {isImage ? <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" /> : <FileText className="w-4 h-4 text-muted-foreground shrink-0" />}
+                                                        {isImage ? <ImageIcon className="w-4 h-4 text-primary shrink-0" /> : <FileText className="w-4 h-4 text-primary shrink-0" />}
                                                         <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
                                                     </button>
                                                 )
@@ -600,7 +600,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm p-6 pt-0">
                             <div className="flex items-start">
-                                <Tag className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <Tag className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Status</p>
                                     <Badge variant={
@@ -611,14 +611,14 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                                 </div>
                             </div>
                              <div className="flex items-start">
-                                <MapPin className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <MapPin className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Location</p>
                                     <p className="text-muted-foreground">{asset.location}</p>
                                 </div>
                             </div>
                             <div className="flex items-start">
-                                <Calendar className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <Calendar className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Next Inspection</p>
                                     <p className="text-muted-foreground">{format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</p>
@@ -639,7 +639,3 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         </div>
     );
 }
-
-    
-
-    

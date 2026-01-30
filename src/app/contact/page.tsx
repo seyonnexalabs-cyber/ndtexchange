@@ -189,10 +189,10 @@ export default function ContactPage() {
                     </form>
                     <div className="text-center mt-12 text-muted-foreground">
                         <p className="flex items-center justify-center gap-2">
-                            <Mail className="w-4 h-4" /> sales@ndtexchange.com
+                            <Mail className="w-4 h-4 text-primary" /> sales@ndtexchange.com
                         </p>
                          <p className="flex items-center justify-center gap-2 mt-2">
-                            <Phone className="w-4 h-4" /> (555) 123-4567
+                            <Phone className="w-4 h-4 text-primary" /> (555) 123-4567
                         </p>
                     </div>
                 </div>
@@ -238,7 +238,7 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
         <ul className="space-y-3">
           {features.map((feature, i) => (
             <li key={i} className="flex items-start">
-              <CheckCircle className="w-5 h-5 text-accent mr-3 mt-0.5 shrink-0" />
+              <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 shrink-0" />
               <span className="text-muted-foreground">{feature}</span>
             </li>
           ))}

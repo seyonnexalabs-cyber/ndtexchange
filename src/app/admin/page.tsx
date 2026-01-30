@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline text-center flex items-center justify-center gap-2"><Shield /> Platform Administration</CardTitle>
+          <CardTitle className="text-2xl font-headline text-center flex items-center justify-center gap-2"><Shield className="text-primary" /> Platform Administration</CardTitle>
           <CardDescription className="text-center">Admin access only</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>

@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <BarChart3 />
+                    <BarChart3 className="text-primary" />
                     Platform Analytics
                 </h1>
             </div>
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <Users className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">${analyticsData.totalRevenue.toLocaleString()}</div>
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Providers</CardTitle>
-                        <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                        <ShieldCheck className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{serviceProviders.length}</div>
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
-                        <FileCheck className="h-4 w-4 text-muted-foreground" />
+                        <FileCheck className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{jobs.length}</div>
@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Jobs This Month</CardTitle>
-                        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        <BarChart3 className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{analyticsData.jobsByMonthData[0]?.count || 0}</div>

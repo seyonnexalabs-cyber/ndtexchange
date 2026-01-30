@@ -96,7 +96,7 @@ export default function AllJobsPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Briefcase />
+                    <Briefcase className="text-primary" />
                     All Jobs
                 </h1>
             </div>
@@ -106,7 +106,7 @@ export default function AllJobsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Client ({selectedClients.length})
                             </Button>
                         </PopoverTrigger>
@@ -133,7 +133,7 @@ export default function AllJobsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Provider ({selectedProviders.length})
                             </Button>
                         </PopoverTrigger>
@@ -160,7 +160,7 @@ export default function AllJobsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Status ({selectedStatuses.length})
                             </Button>
                         </PopoverTrigger>
@@ -194,7 +194,7 @@ export default function AllJobsPage() {
                         <Badge key={clientName} variant="secondary">
                             {clientName}
                             <button onClick={() => handleClientChange(clientName)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -202,7 +202,7 @@ export default function AllJobsPage() {
                         <Badge key={providerId} variant="secondary">
                             {serviceProviders.find(p => p.id === providerId)?.name}
                             <button onClick={() => handleProviderChange(providerId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -210,7 +210,7 @@ export default function AllJobsPage() {
                         <Badge key={status} variant="secondary">
                             Status: {status}
                              <button onClick={() => handleStatusChange(status)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -234,17 +234,17 @@ export default function AllJobsPage() {
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 <div className="flex items-center text-sm text-muted-foreground">
-                                    <MapPin className="w-4 h-4 mr-2" />
+                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
                                     <span>{job.location}</span>
                                 </div>
                                 <div className="flex items-center text-sm text-muted-foreground">
-                                    <Calendar className="w-4 h-4 mr-2" />
+                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
                                     <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
                                     {today && isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                                 {job.bidExpiryDate && (
                                     <div className="flex items-center text-sm text-muted-foreground">
-                                        <AlarmClock className="w-4 h-4 mr-2" />
+                                        <AlarmClock className="w-4 h-4 mr-2 text-primary" />
                                         <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
                                         {today && isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
                                     </div>
@@ -304,7 +304,7 @@ export default function AllJobsPage() {
 
              {filteredJobs.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
-                    <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <Briefcase className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">No jobs found</h2>
                     <p className="mt-2 text-muted-foreground">There are no jobs matching your current filters.</p>
                 </div>

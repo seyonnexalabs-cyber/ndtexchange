@@ -189,10 +189,10 @@ export default function ContactPage() {
                     </form>
                     <div className="text-center mt-12 text-muted-foreground">
                         <p className="flex items-center justify-center gap-2">
-                            <Mail className="w-4 h-4 text-primary" /> sales@ndtexchange.com
+                            <Mail className="w-4 h-4" /> sales@ndtexchange.com
                         </p>
                          <p className="flex items-center justify-center gap-2 mt-2">
-                            <Phone className="w-4 h-4 text-primary" /> (555) 123-4567
+                            <Phone className="w-4 h-4" /> (555) 123-4567
                         </p>
                     </div>
                 </div>

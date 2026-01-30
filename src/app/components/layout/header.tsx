@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -108,12 +109,12 @@ const AppHeader = () => {
                         <DropdownMenuSeparator className="m-0" />
                         <div className="max-h-96 overflow-y-auto">
                             {notifications.map((notification, index) => (
-                                <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0 focus:bg-transparent">
+                                <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0">
                                     <Link 
                                         href={constructUrl(notification.href)} 
                                         onClick={() => handleNotificationClick(notification.id)}
                                         className={cn(
-                                            "block p-3 hover:bg-muted/50",
+                                            "block p-3",
                                             index < notifications.length - 1 && "border-b"
                                         )}
                                     >

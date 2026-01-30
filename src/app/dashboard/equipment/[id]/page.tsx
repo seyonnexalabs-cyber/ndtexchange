@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory, NDTTechniques } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -212,7 +211,6 @@ export default function EquipmentDetailPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
-    const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     
     const [equipment, setEquipment] = useState(() => allEquipment.find(p => p.id === id));
 
@@ -262,9 +260,6 @@ export default function EquipmentDetailPage() {
                 </Button>
                 <div className="flex gap-2">
                     <Button onClick={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
-                    <Button variant="outline" onClick={() => setQrCodeData({ id: equipment.id, name: equipment.name })}>
-                        <Printer className="mr-2 h-4 w-4" />Print QR Code
-                    </Button>
                 </div>
             </div>
 
@@ -331,6 +326,34 @@ export default function EquipmentDetailPage() {
                             </div>
                         </CardContent>
                     </Card>
+                    <Card className="non-printable">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <QrCode className="h-5 w-5" />
+                                Equipment QR Code
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="printable-area border rounded-lg p-4 flex flex-col items-center justify-center gap-4">
+                                <Image 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(equipment.id)}`}
+                                    alt={`QR Code for ${equipment.name}`}
+                                    width={250}
+                                    height={250}
+                                />
+                                <div className="text-center">
+                                    <p className="font-bold text-lg">{equipment.name}</p>
+                                    <p className="font-extrabold text-muted-foreground">{equipment.id}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button className="w-full" onClick={() => window.print()}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Print QR Code
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 </div>
                 <div className="lg:col-span-2">
                      <Card>
@@ -349,7 +372,9 @@ export default function EquipmentDetailPage() {
                                                     <div className="text-primary">{historyEventIcons[entry.event]}</div>
                                                 </div>
                                                 <p className="text-sm font-medium">{entry.event}</p>
-                                                <p className="text-xs text-muted-foreground">{entry.user} - <ClientFormattedDate timestamp={entry.timestamp} /></p>
+                                                <div className="text-xs text-muted-foreground">
+                                                    <ClientFormattedDate timestamp={entry.timestamp} /> by {entry.user}
+                                                </div>
                                                 {entry.notes && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.notes}"</p>}
                                             </div>
                                         ))
@@ -364,46 +389,6 @@ export default function EquipmentDetailPage() {
                     </Card>
                 </div>
             </div>
-
-            <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
-                <DialogContent className="sm:max-w-md">
-                    <div className="printable-area">
-                        <DialogHeader>
-                            <DialogTitle>Equipment QR Code for {qrCodeData?.name}</DialogTitle>
-                            <DialogDescription>
-                               Print this QR code and attach it to your equipment for easy scanning.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="flex flex-col items-center justify-center p-6 gap-4">
-                            {qrCodeData && (
-                                <>
-                                    <Image 
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCodeData.id)}`}
-                                        alt={`QR Code for ${qrCodeData.name}`}
-                                        width={250}
-                                        height={250}
-                                    />
-                                    <div className="text-center">
-                                        <p className="font-bold text-lg">{qrCodeData.name}</p>
-                                        <p className="font-extrabold text-muted-foreground">{qrCodeData.id}</p>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    <DialogFooter className="non-printable">
-                        <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
-                            Close
-                        </Button>
-                        <Button type="button" onClick={() => window.print()}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }
-
-    

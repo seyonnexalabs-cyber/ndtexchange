@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import Image from "next/image";
 
 
 const equipmentSchema = z.object({
@@ -199,6 +200,7 @@ export default function EquipmentDetailPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
+    const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     
     const [equipment, setEquipment] = useState(() => allEquipment.find(p => p.id === id));
 
@@ -248,7 +250,9 @@ export default function EquipmentDetailPage() {
                 </Button>
                 <div className="flex gap-2">
                     <Button onClick={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
-                    <Button variant="outline"><Printer className="mr-2 h-4 w-4" />Print QR Code</Button>
+                    <Button variant="outline" onClick={() => setQrCodeData({ id: equipment.id, name: equipment.name })}>
+                        <Printer className="mr-2 h-4 w-4" />Print QR Code
+                    </Button>
                 </div>
             </div>
 
@@ -348,7 +352,44 @@ export default function EquipmentDetailPage() {
                     </Card>
                 </div>
             </div>
+
+            <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
+                <DialogContent className="sm:max-w-md">
+                    <div className="printable-area">
+                        <DialogHeader>
+                            <DialogTitle>Equipment QR Code for {qrCodeData?.name}</DialogTitle>
+                            <DialogDescription>
+                               Print this QR code and attach it to your equipment for easy scanning.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center justify-center p-6 gap-4">
+                            {qrCodeData && (
+                                <>
+                                    <Image 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCodeData.id)}`}
+                                        alt={`QR Code for ${qrCodeData.name}`}
+                                        width={250}
+                                        height={250}
+                                    />
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{qrCodeData.name}</p>
+                                        <p className="font-extrabold text-muted-foreground">{qrCodeData.id}</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter className="non-printable">
+                        <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
+                            Close
+                        </Button>
+                        <Button type="button" onClick={() => window.print()}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
-

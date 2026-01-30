@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser } from '@/lib/placeholder-data';
+import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -564,6 +565,36 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         }
     };
 
+    const handleSendMessage = (message: string) => {
+        if (!jobDetails) return;
+
+        const currentUserDetails = {
+            client: allUsers.find(u => u.id === 'user-client-01'),
+            inspector: allUsers.find(u => u.id === 'user-tech-05'), // A representative inspector
+            auditor: allUsers.find(u => u.id === 'user-auditor-01'),
+            admin: allUsers.find(u => u.id === 'user-admin-01'),
+        };
+
+        const currentUser = currentUserDetails[role as keyof typeof currentUserDetails];
+
+        if (!currentUser) return;
+
+        const newMessage: JobMessage = {
+            user: currentUser.name,
+            role: currentUser.role.split(' ')[0] as 'Client' | 'Inspector' | 'Auditor',
+            timestamp: new Date().toISOString(),
+            message: message,
+        };
+
+        setJobDetails(prev => {
+            if (!prev) return undefined;
+            return {
+                ...prev,
+                messages: [...(prev.messages || []), newMessage],
+            };
+        });
+    };
+
     const BidsSection = () => {
         if (!jobDetails) return null;
         const isClient = role === 'client';
@@ -814,42 +845,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><MessageSquare /> Communication</CardTitle>
-                                <CardDescription>Review messages and exchange information about the job.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-6 max-h-96 overflow-y-auto p-4 border rounded-md bg-muted/20">
-                                    {jobDetails.messages && jobDetails.messages.length > 0 ? (
-                                        jobDetails.messages.map((message, index) => (
-                                            <div key={index} className="flex gap-4">
-                                                <Avatar>
-                                                    <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="flex items-baseline gap-2">
-                                                        <p className="font-semibold">{message.user}</p>
-                                                        <p className="text-xs text-muted-foreground">{message.role} · {format(new Date(message.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground">{message.message}</p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground text-center py-4">No messages yet. Start the conversation!</p>
-                                    )}
-                                </div>
-                                <div className="mt-6 space-y-2">
-                                    <Label htmlFor="new-message">Your Message</Label>
-                                    <Textarea id="new-message" placeholder="Type your message here..." />
-                                    <div className="flex justify-end">
-                                        <Button>Send Message</Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
                         {isReviewable && !reviewSubmitted && (
                             <Card>
                                 <CardHeader>
@@ -1007,6 +1002,8 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         </Card>
                     </div>
                 </div>
+
+                <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />
 
                 {/* Technician Assignment Dialog */}
                 <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>

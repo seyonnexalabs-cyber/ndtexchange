@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
-import { PlusCircle, ChevronLeft } from "lucide-react";
+import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +42,9 @@ export default function PostJobPage() {
     const role = searchParams.get('role') || 'client';
     const router = useRouter();
     const { toast } = useToast();
+    
+    const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
+    const documentsInputRef = React.useRef<HTMLInputElement>(null);
 
     const jobSchema = React.useMemo(() => {
       let schema = baseSchema;
@@ -86,6 +90,25 @@ export default function PostJobPage() {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const handleDocumentSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files) {
+            const newFilesArray = Array.from(files);
+            const updatedFiles = [...documentFiles, ...newFilesArray];
+            setDocumentFiles(updatedFiles);
+            form.setValue('documents', updatedFiles);
+            if (documentsInputRef.current) {
+                documentsInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleRemoveDocument = (indexToRemove: number) => {
+        const updatedFiles = documentFiles.filter((_, index) => index !== indexToRemove);
+        setDocumentFiles(updatedFiles);
+        form.setValue('documents', updatedFiles);
+    };
 
     function onSubmit(values: z.infer<typeof jobSchema>) {
         console.log('New Job Submitted:', values);
@@ -330,12 +353,46 @@ export default function PostJobPage() {
                                 <FormField
                                     control={form.control}
                                     name="documents"
-                                    render={({ field }) => (
+                                    render={() => (
                                         <FormItem>
                                             <FormLabel>Attach Documents</FormLabel>
+                                            <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>
+                                                Select Files to Attach
+                                            </Button>
                                             <FormControl>
-                                                <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files)} />
+                                                <Input
+                                                    ref={documentsInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    accept={ACCEPTED_FILE_TYPES}
+                                                    className="hidden"
+                                                    onChange={handleDocumentSelection}
+                                                />
                                             </FormControl>
+                                            {documentFiles.length > 0 && (
+                                                <div className="mt-2 space-y-2">
+                                                     <p className="text-xs font-medium text-muted-foreground">{documentFiles.length} file(s) attached:</p>
+                                                     <ScrollArea className="max-h-24 rounded-md border p-2">
+                                                        {documentFiles.map((file, index) => (
+                                                            <div key={`${file.name}-${index}`} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <FileText className="h-4 w-4 shrink-0" />
+                                                                    <span className="truncate">{file.name}</span>
+                                                                </div>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-6 w-6 shrink-0"
+                                                                    onClick={() => handleRemoveDocument(index)}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                    </ScrollArea>
+                                                </div>
+                                            )}
                                             <FormDescription>
                                                 You can upload multiple files. Max 10MB per file.
                                             </FormDescription>

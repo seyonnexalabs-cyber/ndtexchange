@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -11,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clientAssets } from "@/lib/placeholder-data";
+import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
@@ -21,13 +20,14 @@ import Image from 'next/image';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
     type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
     location: z.string({ required_error: 'Please select a location or add a new one.'}),
     newLocation: z.string().optional(),
-    status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
     nextInspection: z.date({ required_error: 'Please select a valid date.' }),
     notes: z.string().optional(),
     thumbnail: z.any().optional(),
@@ -46,13 +46,13 @@ export default function AddAssetPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { toast } = useToast();
-
+    const role = searchParams.get('role') || 'client';
+    
     const form = useForm<z.infer<typeof assetSchema>>({
         resolver: zodResolver(assetSchema),
         defaultValues: {
             name: '',
             type: 'Tank',
-            status: 'Operational',
             notes: '',
         }
     });
@@ -195,51 +195,28 @@ export default function AddAssetPage() {
                                     </FormItem>
                                 )}
                             />
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="type"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Asset Type</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger><SelectValue placeholder="Select a type" /></SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="Tank">Tank</SelectItem>
-                                                    <SelectItem value="Piping">Piping</SelectItem>
-                                                    <SelectItem value="Vessel">Vessel</SelectItem>
-                                                    <SelectItem value="Crane">Crane</SelectItem>
-                                                    <SelectItem value="Weld Joint">Weld Joint</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="status"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Status</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="Operational">Operational</SelectItem>
-                                                    <SelectItem value="Requires Inspection">Requires Inspection</SelectItem>
-                                                    <SelectItem value="Under Repair">Under Repair</SelectItem>
-                                                    <SelectItem value="Decommissioned">Decommissioned</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                             <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Asset Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger><SelectValue placeholder="Select a type" /></SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="Tank">Tank</SelectItem>
+                                                <SelectItem value="Piping">Piping</SelectItem>
+                                                <SelectItem value="Vessel">Vessel</SelectItem>
+                                                <SelectItem value="Crane">Crane</SelectItem>
+                                                <SelectItem value="Weld Joint">Weld Joint</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                              <FormField
                                 control={form.control}
                                 name="location"
@@ -414,5 +391,3 @@ export default function AddAssetPage() {
         </div>
     );
 }
-
-  

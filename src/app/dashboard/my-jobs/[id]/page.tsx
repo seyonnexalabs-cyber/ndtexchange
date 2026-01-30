@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -244,7 +245,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Review</CardTitle>
+                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor Review</CardTitle>
                     <CardDescription>This job follows the standard workflow and does not require Level III Auditor review.</CardDescription>
                 </CardHeader>
             </Card>
@@ -259,7 +260,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Audit Result</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Audit Result</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-3 bg-green-600/10 text-green-700 p-4 rounded-md">
@@ -280,7 +281,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
          return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Review</CardTitle>
+                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor Review</CardTitle>
                     <CardDescription>This step will become active once the service provider submits their final report.</CardDescription>
                 </CardHeader>
             </Card>
@@ -292,7 +293,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
          return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Actions</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor Actions</CardTitle>
                     <CardDescription>Review the report and provide your decision.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -319,7 +320,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
     return (
          <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Review Pending</CardTitle>
+                <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor Review Pending</CardTitle>
                 <CardDescription>The inspection report has been submitted and is currently under review by the Level III Auditor.</CardDescription>
             </CardHeader>
         </Card>
@@ -1097,5 +1098,3 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
-
-    

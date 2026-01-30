@@ -274,6 +274,7 @@ export default function AddAssetPage() {
                                             <FormMessage />
                                         </FormItem>
                                     )}
+                                />
                                 )}
                              <FormField
                                 control={form.control}
@@ -411,4 +412,5 @@ export default function AddAssetPage() {
                 </CardContent>
             </Card>
         </div>
-    ); 
+    );
+}

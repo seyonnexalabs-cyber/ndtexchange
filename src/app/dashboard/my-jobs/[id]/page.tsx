@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -701,6 +700,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <CardTitle className="text-2xl font-headline flex items-center gap-3">
                                             <Briefcase />
                                             {jobDetails.title}
+                                            {jobDetails.isInternal && <Badge variant="outline" className="ml-2">Internal Job</Badge>}
                                         </CardTitle>
                                         <CardDescription>ID: <span className="font-bold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
                                     </div>
@@ -1105,4 +1105,3 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     
 
     
-

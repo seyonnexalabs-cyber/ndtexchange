@@ -10,7 +10,7 @@
     --card-foreground: 225 10% 20%;
     --popover: 0 0% 100%;
     --popover-foreground: 225 10% 20%;
-    --primary: 225 60% 48%; /* Indigo */
+    --primary: 221.2 83.2% 53.3%; /* Blue */
     --primary-foreground: 0 0% 98%;
     --secondary: 225 10% 94%;
     --secondary-foreground: 225 10% 20%;
@@ -22,12 +22,12 @@
     --destructive-foreground: 0 0% 98%;
     --border: 225 15% 91%;
     --input: 225 15% 91%;
-    --ring: 225 60% 48%;
+    --ring: 221.2 83.2% 53.3%;
 
     /* Chart Colors */
-    --chart-1: 225 60% 48%;
+    --chart-1: 221.2 83.2% 53.3%;
     --chart-2: 170 70% 40%;
-    --chart-3: 225 60% 68%;
+    --chart-3: 221.2 83.2% 73.3%;
     --chart-4: 170 70% 60%;
     --chart-5: 225 10% 50%;
   }
@@ -45,7 +45,7 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 225 60% 48%; /* Indigo */
+    --accent: 221.2 83.2% 53.3%; /* Blue */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -55,9 +55,9 @@
 
     /* Chart Colors */
     --chart-1: 170 70% 40%;
-    --chart-2: 225 60% 48%;
+    --chart-2: 221.2 83.2% 53.3%;
     --chart-3: 170 70% 60%;
-    --chart-4: 225 60% 68%;
+    --chart-4: 221.2 83.2% 73.3%;
     --chart-5: 0 72% 51%;
   }
 
@@ -97,7 +97,7 @@
     --card-foreground: 220 20% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 15%;
-    --primary: 225 60% 48%;      /* Indigo */
+    --primary: 221.2 83.2% 53.3%;      /* Blue */
     --primary-foreground: 0 0% 98%;
     --secondary: 220 20% 94%;
     --secondary-foreground: 220 20% 15%;
@@ -109,12 +109,12 @@
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 225 60% 48%;
+    --ring: 221.2 83.2% 53.3%;
 
     /* Chart Colors */
-    --chart-1: 225 60% 48%;
+    --chart-1: 221.2 83.2% 53.3%;
     --chart-2: 195 85% 55%;
-    --chart-3: 225 60% 68%;
+    --chart-3: 221.2 83.2% 73.3%;
     --chart-4: 195 85% 75%;
     --chart-5: 220 20% 50%;
   }

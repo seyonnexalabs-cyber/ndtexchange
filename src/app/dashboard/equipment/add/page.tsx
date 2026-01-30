@@ -120,8 +120,8 @@ export default function AddEquipmentPage() {
 
     const handleFormSubmit = (values: EquipmentFormValues) => {
         toast({
-            title: "Equipment Added",
-            description: `${values.name} has been added to your inventory.`,
+            title: "Equipment Submitted for Approval",
+            description: `${values.name} has been submitted and is awaiting approval.`,
         });
         console.log("New Equipment Data:", values);
         router.push(constructUrl('/dashboard/equipment'));
@@ -357,7 +357,7 @@ export default function AddEquipmentPage() {
                                 )}
                             />
                             <div className="flex justify-end pt-4">
-                                <Button type="submit">Create Equipment</Button>
+                                <Button type="submit">Submit for Approval</Button>
                             </div>
                         </form>
                     </Form>
@@ -366,3 +366,5 @@ export default function AddEquipmentPage() {
         </div>
     );
 }
+
+  

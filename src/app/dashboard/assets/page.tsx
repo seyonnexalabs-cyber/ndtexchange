@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, Building, QrCode, Printer } from "lucide-react";
+import { MoreVertical, Building, QrCode, Printer, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,6 +16,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useSearch } from "@/app/components/layout/search-provider";
 import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
 
 const assetIcons = {
     'Tank': <TankIcon className="w-6 h-6 text-primary" />,
@@ -25,10 +28,12 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-6 h-6 text-primary" />,
 };
 
-const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
+const ClientAssetsView = ({ assets, onApprove, onReject }: { assets: Asset[], onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { searchQuery } = useSearch();
+    const role = searchParams.get('role');
+    const isCompanyAdmin = role === 'client';
 
     const filteredAssets = useMemo(() => {
         if (!searchQuery) return assets;
@@ -68,7 +73,10 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                         {locationAssets.map((asset) => {
                             const image = asset.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined;
                             return (
-                                <Card key={asset.id} className="flex flex-col">
+                                <Card key={asset.id} className={cn(
+                                    "flex flex-col",
+                                    asset.approvalStatus === 'Pending Approval' && "border-amber-500/50 bg-amber-500/5"
+                                )}>
                                     <CardHeader className="p-0">
                                         <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
                                             {image ? (
@@ -78,6 +86,12 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                             )}
                                         </div>
                                     </CardHeader>
+                                    {asset.approvalStatus === 'Pending Approval' && (
+                                        <div className="p-4 pt-4 pb-0 text-amber-600 flex items-center gap-2 text-sm font-semibold">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            Pending Admin Approval
+                                        </div>
+                                    )}
                                     <CardContent className="p-4 flex-grow">
                                         <div className="flex items-start justify-between">
                                             {cloneElement(assetIcons[asset.type], { className: 'w-6 h-6 text-primary' })}
@@ -91,19 +105,28 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                         <CardDescription className="font-bold">{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-                                        <span>Next: {format(new Date(asset.nextInspection), 'dd-MMM-yyyy')}</span>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreVertical className="h-4 w-4 text-primary" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/assets/${asset.id}`)}>View Details</Link></DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                                                <DropdownMenuItem>Archive</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                       {isCompanyAdmin && asset.approvalStatus === 'Pending Approval' ? (
+                                            <div className="flex w-full justify-end gap-2">
+                                                <Button variant="outline" size="sm" onClick={() => onReject(asset.id)}>Reject</Button>
+                                                <Button size="sm" onClick={() => onApprove(asset.id)}>Approve</Button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <span>Next: {format(new Date(asset.nextInspection), 'dd-MMM-yyyy')}</span>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            <MoreVertical className="h-4 w-4 text-primary" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/assets/${asset.id}`)}>View Details</Link></DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                                                        <DropdownMenuItem>Archive</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </>
+                                        )}
                                     </CardFooter>
                                 </Card>
                             );
@@ -142,7 +165,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                             Close
                         </Button>
                         <Button type="button" onClick={() => window.print()}>
-                            <Printer className="mr-2 h-4 w-4 text-primary" />
+                            <Printer className="mr-2 h-4 w-4" />
                             Print
                         </Button>
                     </DialogFooter>
@@ -157,6 +180,7 @@ export default function AssetsPage() {
     const role = searchParams.get('role') || 'client';
     const currentUserCompanyId = 'client-01'; 
     const { setScanOpen } = useQRScanner();
+    const { toast } = useToast();
     const router = useRouter();
 
     const [currentAssets, setCurrentAssets] = useState<Asset[]>(() =>
@@ -168,6 +192,18 @@ export default function AssetsPage() {
         return `${base}?${params.toString()}`;
     }
 
+    const handleApproveAsset = (assetId: string) => {
+        setCurrentAssets(prev => prev.map(asset => 
+            asset.id === assetId ? { ...asset, approvalStatus: 'Approved' } : asset
+        ));
+        toast({ title: 'Asset Approved', description: 'The asset is now active.' });
+    };
+
+    const handleRejectAsset = (assetId: string) => {
+        setCurrentAssets(prev => prev.filter(asset => asset.id !== assetId));
+        toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
+    };
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -177,7 +213,7 @@ export default function AssetsPage() {
                 </h1>
                 <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
                     <Button onClick={() => setScanOpen(true)} className="w-full sm:w-auto">
-                        <QrCode className="mr-2 h-4 w-4 text-primary"/>
+                        <QrCode className="mr-2 h-4 w-4"/>
                         Scan Asset
                     </Button>
                     {role === 'client' && (
@@ -188,7 +224,7 @@ export default function AssetsPage() {
                 </div>
             </div>
             
-            {role === 'client' ? <ClientAssetsView assets={currentAssets} /> : (
+            {role === 'client' ? <ClientAssetsView assets={currentAssets} onApprove={handleApproveAsset} onReject={handleRejectAsset} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
                     <QrCode className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>
@@ -198,3 +234,5 @@ export default function AssetsPage() {
         </div>
     );
 }
+
+  

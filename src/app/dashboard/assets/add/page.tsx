@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -83,8 +84,8 @@ export default function AddAssetPage() {
 
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
         toast({
-            title: "Asset Created",
-            description: `${values.name} has been added to your asset list.`,
+            title: "Asset Submitted for Approval",
+            description: `${values.name} has been submitted and is awaiting approval from your company admin.`,
         });
         
         if (values.thumbnail) {
@@ -274,7 +275,6 @@ export default function AddAssetPage() {
                                             <FormMessage />
                                         </FormItem>
                                     )}
-                                />
                                 )}
                              <FormField
                                 control={form.control}
@@ -405,7 +405,7 @@ export default function AddAssetPage() {
                                 )}
                             />
                             <div className="flex justify-end pt-4">
-                                <Button type="submit">Create Asset</Button>
+                                <Button type="submit">Submit for Approval</Button>
                             </div>
                         </form>
                     </Form>
@@ -414,3 +414,5 @@ export default function AddAssetPage() {
         </div>
     );
 }
+
+  

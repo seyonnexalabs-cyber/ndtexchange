@@ -33,21 +33,14 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
     type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
-    location: z.string({ required_error: 'Please select a location or add a new one.'}),
-    newLocation: z.string().optional(),
+    location: z.string().min(2, 'Location is required.'),
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
-    nextInspection: z.string().min(1, 'Next inspection date is required.'),
+    nextInspection: z.date({ required_error: "Please select a valid date." }),
+    manufacturer: z.string().optional(),
+    model: z.string().optional(),
+    serialNumber: z.string().optional(),
+    installationDate: z.date().optional(),
     notes: z.string().optional(),
-    thumbnail: z.any().optional(),
-    documents: z.any().optional(),
-}).refine(data => {
-    if (data.location === '__add_new__') {
-        return data.newLocation && data.newLocation.length > 2;
-    }
-    return true;
-}, {
-    message: 'New location name must be at least 3 characters.',
-    path: ['newLocation'],
 });
 
 const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (values: z.infer<typeof assetSchema>) => void, onCancel: () => void }) => {
@@ -55,7 +48,8 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
         resolver: zodResolver(assetSchema),
         defaultValues: {
             ...asset,
-            nextInspection: format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT),
+            nextInspection: new Date(asset.nextInspection),
+            installationDate: asset.installationDate ? new Date(asset.installationDate) : undefined,
         }
     });
 
@@ -122,11 +116,80 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
                                 )}
                             />
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Location</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="installationDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Installation Date</FormLabel>
+                                        <FormControl>
+                                            <CustomDateInput {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="manufacturer"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Manufacturer</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} value={field.value || ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="model"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Model</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} value={field.value || ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                         <FormField
+                            control={form.control}
+                            name="serialNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Serial Number</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <FormField
                             control={form.control}
                             name="nextInspection"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="flex flex-col">
                                     <FormLabel>Next Inspection Date</FormLabel>
                                     <FormControl>
                                         <CustomDateInput {...field} />
@@ -142,7 +205,7 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
                                 <FormItem>
                                     <FormLabel>Notes</FormLabel>
                                     <FormControl>
-                                        <Textarea {...field} />
+                                        <Textarea {...field} value={field.value || ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -227,8 +290,13 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     };
     
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
-        const updatedAsset = { ...asset, ...values, nextInspection: format(new Date(values.nextInspection), 'yyyy-MM-dd') };
-        setAsset(updatedAsset);
+        const updatedAsset = { 
+            ...asset, 
+            ...values, 
+            nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
+            installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined
+        };
+        setAsset(updatedAsset as Asset);
         toast({
             title: "Asset Updated",
             description: `${values.name} has been updated successfully.`,
@@ -455,3 +523,5 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         </div>
     );
 }
+
+    

@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -26,6 +25,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
 
+
+const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        // This code runs only on the client, after the component has mounted.
+        setFormattedDate(format(parseISO(timestamp), GLOBAL_DATETIME_FORMAT));
+    }, [timestamp]);
+
+    // On the server and during the initial client render, formattedDate is null.
+    // We return a placeholder to prevent the mismatch.
+    return <>{formattedDate || '...'}</>;
+};
 
 const equipmentSchema = z.object({
   id: z.string().optional(),
@@ -337,7 +349,7 @@ export default function EquipmentDetailPage() {
                                                     <div className="text-primary">{historyEventIcons[entry.event]}</div>
                                                 </div>
                                                 <p className="text-sm font-medium">{entry.event}</p>
-                                                <p className="text-xs text-muted-foreground">{entry.user} - {format(parseISO(entry.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
+                                                <p className="text-xs text-muted-foreground">{entry.user} - <ClientFormattedDate timestamp={entry.timestamp} /></p>
                                                 {entry.notes && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.notes}"</p>}
                                             </div>
                                         ))
@@ -393,3 +405,5 @@ export default function EquipmentDetailPage() {
         </div>
     );
 }
+
+    

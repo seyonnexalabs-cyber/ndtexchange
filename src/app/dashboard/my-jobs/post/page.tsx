@@ -111,7 +111,7 @@ export default function PostJobPage() {
     };
 
     function onSubmit(values: z.infer<typeof jobSchema>) {
-        console.log('New Job Submitted:', values);
+        console.log('New Job Submitted:', { ...values, isInternal: role === 'inspector' });
         toast({
             title: 'Job Created Successfully',
             description: `${values.title} is now ready to be managed.`,

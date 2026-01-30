@@ -60,6 +60,7 @@ export type Job = {
     messages?: JobMessage[];
     bids: Bid[];
     inspections: Inspection[];
+    isInternal?: boolean;
 };
 
 export type Inspection = {
@@ -497,7 +498,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
      { 
         id: 'JOB-023', 
         title: 'Flare Stack RVI', 
-        client: 'Energy Transfer', 
+        client: 'TEAM, Inc.', 
         providerId: 'provider-03', 
         location: 'Midland, TX', 
         technique: 'RVI', 
@@ -506,6 +507,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: '2024-08-05', 
         technicianIds: ['user-TECH-05'],
         workflow: 'standard',
+        isInternal: true,
     },
     { 
         id: 'JOB-024', 

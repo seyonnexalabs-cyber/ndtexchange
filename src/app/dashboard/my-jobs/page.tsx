@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { jobs, allUsers, inspectorAssets, clientData, Job } from "@/lib/placeholder-data";
@@ -298,6 +299,7 @@ export default function MyJobsPage() {
                                                         <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
+                                                        {job.isInternal && <Badge variant="outline">Internal</Badge>}
                                                         {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
                                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                                     </div>

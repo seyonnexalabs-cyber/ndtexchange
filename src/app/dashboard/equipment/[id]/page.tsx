@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -8,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory } from "@/lib/placeholder-data";
+import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory, NDTTechniques } from "@/lib/placeholder-data";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
@@ -23,9 +22,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { NDTTechniques } from '@/lib/placeholder-data';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+
 
 const equipmentSchema = z.object({
   id: z.string().optional(),
@@ -40,195 +39,102 @@ const equipmentSchema = z.object({
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
-const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (values: EquipmentFormValues) => void, defaultValues?: Partial<EquipmentFormValues>, onCancel: () => void }) => {
+const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: InspectorAsset, onSubmit: (values: EquipmentFormValues) => void, onCancel: () => void }) => {
     const form = useForm<EquipmentFormValues>({
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
-            name: "",
-            techniques: [],
-            manufacturer: "",
-            model: "",
-            serialNumber: "",
-            status: "Available",
-            ...defaultValues,
-            nextCalibration: defaultValues?.nextCalibration ? new Date(defaultValues.nextCalibration) : new Date(),
+            ...equipment,
+            nextCalibration: equipment.nextCalibration !== 'N/A' ? new Date(equipment.nextCalibration) : new Date(),
         }
     });
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {defaultValues?.id && (
-                    <FormItem>
-                        <FormLabel>Equipment ID</FormLabel>
-                        <FormControl>
-                            <Input value={defaultValues.id} readOnly className="bg-muted cursor-not-allowed font-bold" />
-                        </FormControl>
-                    </FormItem>
-                )}
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Equipment Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Olympus 45MG" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="techniques"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Technique(s)</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className={cn(
-                                        "w-full justify-between",
-                                        !field.value?.length && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value?.length > 0
-                                        ? `${field.value.length} selected`
-                                        : "Select techniques"}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <ScrollArea className="h-48">
-                                    <div className="p-2">
-                                        {NDTTechniques.map((tech) => (
-                                        <div
-                                            key={tech.id}
-                                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"
-                                        >
-                                            <Checkbox
-                                            id={`tech-${tech.id}`}
-                                            checked={field.value?.includes(tech.id)}
-                                            onCheckedChange={(checked) => {
-                                                return checked
-                                                ? field.onChange([...(field.value || []), tech.id])
-                                                : field.onChange(
-                                                    field.value?.filter(
-                                                        (value) => value !== tech.id
-                                                    )
-                                                    );
-                                            }}
-                                            />
-                                            <label
-                                            htmlFor={`tech-${tech.id}`}
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full"
-                                            >
-                                            {tech.name} ({tech.id})
-                                            </label>
-                                        </div>
-                                        ))}
-                                    </div>
-                                    </ScrollArea>
-                                </PopoverContent>
-                            </Popover>
-                            <FormDescription>
-                                Select all applicable NDT methods for this equipment.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="manufacturer"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Manufacturer (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g., Olympus" {...field} />
-                                </FormControl>
+        <Card>
+            <CardHeader>
+                <CardTitle>Editing: {equipment.name}</CardTitle>
+                <CardDescription>Make changes to the equipment details below.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="techniques"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Technique(s)</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>
+                                            {field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                            <ScrollArea className="h-48"><div className="p-2">
+                                                {NDTTechniques.map((tech) => (
+                                                <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
+                                                    <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.id)} onCheckedChange={(checked) => {
+                                                        return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));
+                                                    }}/>
+                                                    <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.name} ({tech.id})</label>
+                                                </div>
+                                                ))}
+                                            </div></ScrollArea>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Status</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Available">Available</SelectItem>
+                                            <SelectItem value="In Use">In Use</SelectItem>
+                                            <SelectItem value="Calibration Due">Calibration Due</SelectItem>
+                                            <SelectItem value="Out of Service">Out of Service</SelectItem>
+                                            <SelectItem value="Under Service">Under Service</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="nextCalibration"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>Next Calibration Date</FormLabel>
+                                <FormControl><CustomDateInput {...field} /></FormControl>
                                 <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="model"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Model (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g., 45MG" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                 <FormField
-                    control={form.control}
-                    name="serialNumber"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Serial Number (Optional)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., SN-12345" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="Available">Available</SelectItem>
-                                <SelectItem value="In Use">In Use</SelectItem>
-                                <SelectItem value="Calibration Due">Calibration Due</SelectItem>
-                                <SelectItem value="Out of Service">Out of Service</SelectItem>
-                                <SelectItem value="Under Service">Under Service</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="nextCalibration"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Next Calibration Date</FormLabel>
-                        <FormControl>
-                            <CustomDateInput {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Save Changes</Button>
-                </DialogFooter>
-            </form>
-        </Form>
+                                </FormItem>
+                            )}
+                        />
+                        <div className="flex justify-end gap-2 pt-4">
+                            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                            <Button type="submit">Save Changes</Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
     );
 };
 
@@ -251,18 +157,15 @@ const historyEventIcons = {
     'Checked Out for Service': <Send className="h-4 w-4" />,
 }
 
-
 export default function EquipmentDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
     const router = useRouter();
     const { toast } = useToast();
-    const [isFormOpen, setIsFormOpen] = useState(false);
-
-    // In a real app, you would fetch this data. Here we find it in the placeholder data.
-    // Note: This won't reflect the state changes from the parent page without a proper state management solution.
-    const equipment = useMemo(() => allEquipment.find(p => p.id === id), [id]);
+    const [isEditing, setIsEditing] = useState(false);
+    
+    const [equipment, setEquipment] = useState(() => allEquipment.find(p => p.id === id));
 
     if (!equipment) {
         notFound();
@@ -274,14 +177,30 @@ export default function EquipmentDetailPage() {
     }
 
     const handleFormSubmit = (values: EquipmentFormValues) => {
-        console.log("Updated Equipment:", { ...equipment, ...values });
+        const updatedEquipment = { ...equipment, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') };
+        setEquipment(updatedEquipment);
         toast({
             title: "Equipment Updated",
             description: `${equipment.name} has been updated.`,
         });
-        setIsFormOpen(false);
-        router.refresh();
+        setIsEditing(false);
     };
+
+    if (isEditing) {
+        return (
+             <div className="max-w-2xl mx-auto">
+                <Button variant="outline" size="sm" className="mb-4" onClick={() => setIsEditing(false)}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to View
+                </Button>
+                <EquipmentForm
+                    onSubmit={handleFormSubmit}
+                    onCancel={() => setIsEditing(false)}
+                    equipment={equipment}
+                />
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -293,7 +212,7 @@ export default function EquipmentDetailPage() {
                     </Link>
                 </Button>
                 <div className="flex gap-2">
-                    <Button onClick={() => setIsFormOpen(true)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
+                    <Button onClick={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
                     <Button variant="outline"><Printer className="mr-2 h-4 w-4" />Print QR Code</Button>
                 </div>
             </div>
@@ -371,7 +290,6 @@ export default function EquipmentDetailPage() {
                         <CardContent>
                              <ScrollArea className="h-96">
                                 <div className="relative pl-6">
-                                     {/* Vertical line */}
                                     <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
                                     {equipment.history && equipment.history.length > 0 ? (
                                         equipment.history.map((entry, index) => (
@@ -395,31 +313,6 @@ export default function EquipmentDetailPage() {
                     </Card>
                 </div>
             </div>
-             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Equipment: {equipment.name}</DialogTitle>
-                        <DialogDescription>
-                            Update the equipment's details below.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <EquipmentForm
-                        onSubmit={handleFormSubmit}
-                        onCancel={() => setIsFormOpen(false)}
-                        defaultValues={{
-                            id: equipment.id,
-                            name: equipment.name,
-                            techniques: equipment.techniques,
-                            manufacturer: equipment.manufacturer,
-                            model: equipment.model,
-                            serialNumber: equipment.serialNumber,
-                            status: equipment.status,
-                            nextCalibration: new Date(equipment.nextCalibration),
-                        }}
-                        isEditing={true}
-                    />
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

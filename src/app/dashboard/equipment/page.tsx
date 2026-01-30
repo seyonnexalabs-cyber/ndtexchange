@@ -1,22 +1,18 @@
 
-
 'use client';
 import { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets as initialEquipment, jobs, NDTTechniques, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
+import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, ChevronsUpDown } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,9 +21,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useSearch } from "@/app/components/layout/search-provider";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { CustomDateInput } from "@/components/ui/custom-date-input";
 
 
@@ -38,19 +35,6 @@ const equipmentIcons: { [key: string]: React.ReactNode } = {
     'Calibration': <Wrench className="w-6 h-6 text-muted-foreground" />,
     'APR': <RadioTower className="w-6 h-6 text-muted-foreground" />,
 };
-
-const equipmentSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  techniques: z.array(z.string()).min(1, "At least one technique is required."),
-  manufacturer: z.string().optional(),
-  model: z.string().optional(),
-  serialNumber: z.string().optional(),
-  status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
-  nextCalibration: z.date(),
-});
-
-type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
 const checkInSchema = z.object({
   condition: z.enum(['Good', 'Damaged', 'Requires Calibration'], { required_error: "Please select the equipment's condition." }),
@@ -75,199 +59,6 @@ const serviceOutSchema = z.object({
   notes: z.string().optional(),
 });
 type ServiceOutFormValues = z.infer<typeof serviceOutSchema>;
-
-
-const EquipmentForm = ({ onSubmit, defaultValues, onCancel }: { onSubmit: (values: EquipmentFormValues) => void, defaultValues?: Partial<EquipmentFormValues>, onCancel: () => void }) => {
-    const form = useForm<EquipmentFormValues>({
-        resolver: zodResolver(equipmentSchema),
-        defaultValues: {
-            name: "",
-            techniques: [],
-            manufacturer: "",
-            model: "",
-            serialNumber: "",
-            status: "Available",
-            ...defaultValues,
-            nextCalibration: defaultValues?.nextCalibration ? new Date(defaultValues.nextCalibration) : new Date(),
-        }
-    });
-
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {defaultValues?.id && (
-                    <FormItem>
-                        <FormLabel>Equipment ID</FormLabel>
-                        <FormControl>
-                            <Input value={defaultValues.id} readOnly className="bg-muted cursor-not-allowed font-bold" />
-                        </FormControl>
-                    </FormItem>
-                )}
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Equipment Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Olympus 45MG" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="techniques"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Technique(s)</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className={cn(
-                                        "w-full justify-between",
-                                        !field.value?.length && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value?.length > 0
-                                        ? `${field.value.length} selected`
-                                        : "Select techniques"}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <ScrollArea className="h-48">
-                                    <div className="p-2">
-                                        {NDTTechniques.map((tech) => (
-                                        <div
-                                            key={tech.id}
-                                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"
-                                        >
-                                            <Checkbox
-                                            id={`tech-${tech.id}`}
-                                            checked={field.value?.includes(tech.id)}
-                                            onCheckedChange={(checked) => {
-                                                return checked
-                                                ? field.onChange([...(field.value || []), tech.id])
-                                                : field.onChange(
-                                                    field.value?.filter(
-                                                        (value) => value !== tech.id
-                                                    )
-                                                    );
-                                            }}
-                                            />
-                                            <label
-                                            htmlFor={`tech-${tech.id}`}
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full"
-                                            >
-                                            {tech.name} ({tech.id})
-                                            </label>
-                                        </div>
-                                        ))}
-                                    </div>
-                                    </ScrollArea>
-                                </PopoverContent>
-                            </Popover>
-                            <FormDescription>
-                                Select all applicable NDT methods for this equipment.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="manufacturer"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Manufacturer (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g., Olympus" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="model"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Model (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g., 45MG" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                 <FormField
-                    control={form.control}
-                    name="serialNumber"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Serial Number (Optional)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., SN-12345" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="Available">Available</SelectItem>
-                                <SelectItem value="In Use">In Use</SelectItem>
-                                <SelectItem value="Calibration Due">Calibration Due</SelectItem>
-                                <SelectItem value="Out of Service">Out of Service</SelectItem>
-                                <SelectItem value="Under Service">Under Service</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="nextCalibration"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Next Calibration Date</FormLabel>
-                        <FormControl>
-                            <CustomDateInput {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Save Changes</Button>
-                </DialogFooter>
-            </form>
-        </Form>
-    );
-};
 
 
 const CheckInOutForm = ({ 
@@ -520,9 +311,8 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 
-const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
+const DesktopView = ({ equipment, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
     equipment: InspectorAsset[], 
-    onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
     onCheckOutClick: (equipment: InspectorAsset) => void,
     onCheckInClick: (equipment: InspectorAsset) => void,
@@ -577,7 +367,7 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
 
                                     <DropdownMenuSeparator />
                                     
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><Edit className="mr-2 h-4 w-4" /> View/Edit</Link></DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -590,9 +380,8 @@ const DesktopView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckO
     </Card>
 );
 
-const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
+const MobileView = ({ equipment, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
     equipment: InspectorAsset[], 
-    onEditClick: (equipment: InspectorAsset) => void, 
     onQrClick: (data: {id: string, name: string}) => void,
     onCheckOutClick: (equipment: InspectorAsset) => void,
     onCheckInClick: (equipment: InspectorAsset) => void,
@@ -633,7 +422,7 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onEditClick(asset)}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><Edit className="mr-2 h-4 w-4"/>View/Edit</Link></DropdownMenuItem>
                             <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -646,14 +435,10 @@ const MobileView = ({ equipment, onEditClick, onQrClick, constructUrl, onCheckOu
 
 
 export default function EquipmentPage() {
-    // In a real app, this would come from a user session.
-    // For this demo, we assume the inspector is from TEAM, Inc. (provider-03)
     const usersProviderId = 'provider-03';
     
     const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId));
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
-    const [dialogState, setDialogState] = useState<'closed' | 'add' | 'edit'>('closed');
-    const [editingEquipment, setEditingEquipment] = useState<Partial<InspectorAsset> | undefined>(undefined);
     const isMobile = useIsMobile();
     const { toast } = useToast();
     const searchParams = useSearchParams();
@@ -681,63 +466,6 @@ export default function EquipmentPage() {
     }, [equipment, searchQuery, statusFilter]);
 
     const jobsForCheckout = useMemo(() => jobs.filter(j => j.providerId === usersProviderId && ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), [usersProviderId]);
-
-    const handleEditClick = (equipment: InspectorAsset) => {
-        setTimeout(() => {
-            setEditingEquipment(equipment);
-            setDialogState('edit');
-        }, 50);
-    };
-
-    const handleAddClick = () => {
-        setEditingEquipment(undefined);
-        setDialogState('add');
-    };
-
-    const handleFormSubmit = (values: EquipmentFormValues) => {
-        const isAdding = dialogState === 'add';
-        
-        closeAddEditDialog();
-
-        setTimeout(() => {
-            const historyEvent = isAdding ? 'Created' : 'Updated';
-            const historyNotes = isAdding ? 'Item created in inventory.' : 'Item details updated.';
-            const historyEntry: EquipmentHistory = {
-                event: historyEvent,
-                user: 'Jane Smith',
-                timestamp: new Date().toISOString(),
-                notes: historyNotes
-            };
-
-            const techniquesArray = values.techniques;
-
-            if(isAdding) {
-                const newId = `EQ-${Date.now().toString().slice(-6)}`;
-                const newEquipment: InspectorAsset = {
-                    ...values,
-                    id: newId,
-                    techniques: techniquesArray,
-                    providerId: usersProviderId,
-                    nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
-                    history: [historyEntry],
-                };
-                setEquipment(prev => [newEquipment, ...prev]);
-            } else {
-                setEquipment(prev => prev.map(eq => eq.id === values.id ? {
-                    ...(eq as InspectorAsset),
-                    ...values,
-                     techniques: techniquesArray,
-                     nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
-                     history: [historyEntry, ...(eq.history || [])],
-                } : eq));
-            }
-
-            toast({
-                title: isAdding ? "Equipment Added" : "Equipment Updated",
-                description: `${values.name} has been ${isAdding ? 'added to' : 'updated in'} your inventory.`,
-            });
-        }, 50);
-    };
 
      const handleCheckOutClick = (equipment: InspectorAsset) => {
         setTimeout(() => {
@@ -777,70 +505,28 @@ export default function EquipmentPage() {
 
             if (action === 'check-in') {
                 const formValues = values as CheckInFormValues;
-                notes = [
-                    formValues.notes,
-                    `Condition: ${formValues.condition}`,
-                    formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`
-                ].filter(Boolean).join('. ');
-
-                switch (formValues.condition) {
-                    case 'Damaged':
-                        newStatus = 'Out of Service';
-                        break;
-                    case 'Requires Calibration':
-                        newStatus = 'Calibration Due';
-                        break;
-                    default:
-                        newStatus = 'Available';
-                        break;
-                }
+                notes = [`Condition: ${formValues.condition}`, formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`, formValues.notes].filter(Boolean).join('. ');
+                newStatus = formValues.condition === 'Damaged' ? 'Out of Service' : formValues.condition === 'Requires Calibration' ? 'Calibration Due' : 'Available';
                 historyEvent = 'Checked In';
-
             } else if (action === 'check-out') {
                 const formValues = values as CheckOutFormValues;
                 const jobTitle = jobs.find(j => j.id === formValues.jobId)?.title || formValues.jobId;
-                notes = [
-                    formValues.notes,
-                    `Job: ${jobTitle}`
-                ].filter(Boolean).join('. ');
+                notes = [`Job: ${jobTitle}`, formValues.notes].filter(Boolean).join('. ');
                 newStatus = 'In Use';
                 historyEvent = 'Checked Out';
             } else { // service-out
                  const formValues = values as ServiceOutFormValues;
-                notes = [
-                    `Service: ${formValues.serviceType} with ${formValues.vendor}`,
-                    formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`,
-                    formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`,
-                    formValues.vendorContactPerson && `Contact: ${formValues.vendorContactPerson}${formValues.vendorContactEmail ? ` (${formValues.vendorContactEmail})` : ''}`,
-                    formValues.notes,
-                ].filter(Boolean).join('. ');
+                notes = [`Service: ${formValues.serviceType} with ${formValues.vendor}`, formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`, formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`, formValues.vendorContactPerson, formValues.notes].filter(Boolean).join('. ');
                 newStatus = 'Under Service';
                 historyEvent = 'Checked Out for Service';
             }
 
-
-            const newHistoryEntry: EquipmentHistory = {
-                event: historyEvent!,
-                user: 'Jane Smith',
-                timestamp: new Date().toISOString(),
-                notes: notes,
-            };
-
-            setEquipment(prev => prev.map(eq =>
-                eq.id === equipment.id
-                    ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] }
-                    : eq
-            ));
-
-            toast({
-                title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`,
-                description: `${equipment.name} status has been updated to '${newStatus}'.`,
-            });
+            const newHistoryEntry: EquipmentHistory = { event: historyEvent!, user: 'Jane Smith', timestamp: new Date().toISOString(), notes: notes };
+            setEquipment(prev => prev.map(eq => eq.id === equipment.id ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] } : eq));
+            toast({ title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`, description: `${equipment.name} status has been updated to '${newStatus}'.`});
         }, 50);
     };
 
-    const isAddEditDialogOpen = dialogState !== 'closed';
-    const closeAddEditDialog = () => setDialogState('closed');
     const isTransactionDialogOpen = transactionState.action !== null;
     const closeTransactionDialog = () => setTransactionState({ action: null, equipment: null });
 
@@ -862,7 +548,7 @@ export default function EquipmentPage() {
                         <QrCode className="mr-2 h-4 w-4"/>
                         Scan QR
                     </Button>
-                    <Button onClick={handleAddClick}>Add New Equipment</Button>
+                    <Button asChild><Link href={constructUrl('/dashboard/equipment/add')}>Add New Equipment</Link></Button>
                 </div>
             </div>
             
@@ -888,7 +574,6 @@ export default function EquipmentPage() {
                 isMobile ? 
                     <MobileView 
                         equipment={filteredEquipment} 
-                        onEditClick={handleEditClick} 
                         onQrClick={handleQrClick}
                         onCheckInClick={handleCheckInClick}
                         onCheckOutClick={handleCheckOutClick}
@@ -897,7 +582,6 @@ export default function EquipmentPage() {
                     /> : 
                     <DesktopView 
                         equipment={filteredEquipment} 
-                        onEditClick={handleEditClick} 
                         onQrClick={handleQrClick}
                         onCheckInClick={handleCheckInClick}
                         onCheckOutClick={handleCheckOutClick}
@@ -951,22 +635,6 @@ export default function EquipmentPage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isAddEditDialogOpen} onOpenChange={closeAddEditDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{dialogState === 'add' ? 'Add New Equipment' : `Edit ${editingEquipment?.name}`}</DialogTitle>
-                        <DialogDescription>
-                             {dialogState === 'add' ? 'Enter the details for the new piece of equipment.' : 'Update the details for this piece of equipment.'}
-                        </DialogDescription>
-                    </DialogHeader>
-                   <EquipmentForm 
-                        onSubmit={handleFormSubmit}
-                        onCancel={closeAddEditDialog}
-                        defaultValues={dialogState === 'edit' ? editingEquipment : undefined}
-                   />
-                </DialogContent>
-            </Dialog>
-
              <Dialog open={isTransactionDialogOpen} onOpenChange={closeTransactionDialog}>
                 <DialogContent>
                     <DialogHeader>
@@ -1000,5 +668,3 @@ export default function EquipmentPage() {
         </div>
     );
 }
-
-    

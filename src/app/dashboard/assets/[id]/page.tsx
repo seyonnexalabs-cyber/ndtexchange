@@ -1,25 +1,163 @@
 
-
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
-import { assets, jobs } from "@/lib/placeholder-data";
-import { notFound, useSearchParams } from "next/navigation";
+import { useMemo, useState, useRef } from "react";
+import { assets, jobs, clientAssets, Asset } from "@/lib/placeholder-data";
+import { notFound, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize } from "lucide-react";
+import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
-import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from "@/hooks/use-toast";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
+
+
+const assetSchema = z.object({
+    name: z.string().min(3, 'Name must be at least 3 characters.'),
+    type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
+    location: z.string({ required_error: 'Please select a location or add a new one.'}),
+    newLocation: z.string().optional(),
+    status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
+    nextInspection: z.string().min(1, 'Next inspection date is required.'),
+    notes: z.string().optional(),
+    thumbnail: z.any().optional(),
+    documents: z.any().optional(),
+}).refine(data => {
+    if (data.location === '__add_new__') {
+        return data.newLocation && data.newLocation.length > 2;
+    }
+    return true;
+}, {
+    message: 'New location name must be at least 3 characters.',
+    path: ['newLocation'],
+});
+
+const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (values: z.infer<typeof assetSchema>) => void, onCancel: () => void }) => {
+    const form = useForm<z.infer<typeof assetSchema>>({
+        resolver: zodResolver(assetSchema),
+        defaultValues: {
+            ...asset,
+            nextInspection: format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT),
+        }
+    });
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Editing: {asset.name}</CardTitle>
+                <CardDescription>Make changes to the asset details below.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                         <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Asset Name</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Asset Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="Tank">Tank</SelectItem>
+                                                <SelectItem value="Piping">Piping</SelectItem>
+                                                <SelectItem value="Vessel">Vessel</SelectItem>
+                                                <SelectItem value="Crane">Crane</SelectItem>
+                                                <SelectItem value="Weld Joint">Weld Joint</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="status"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Status</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="Operational">Operational</SelectItem>
+                                                <SelectItem value="Requires Inspection">Requires Inspection</SelectItem>
+                                                <SelectItem value="Under Repair">Under Repair</SelectItem>
+                                                <SelectItem value="Decommissioned">Decommissioned</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <FormField
+                            control={form.control}
+                            name="nextInspection"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Next Inspection Date</FormLabel>
+                                    <FormControl>
+                                        <CustomDateInput {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="notes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Notes</FormLabel>
+                                    <FormControl>
+                                        <Textarea {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="flex justify-end gap-2 pt-4">
+                            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                            <Button type="submit">Save Changes</Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
+    );
+};
 
 
 const assetIcons = {
@@ -37,9 +175,14 @@ const DetailItem = ({ label, value, className }: { label: string; value: React.R
     </div>
 );
 
-export default function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = React.use(params);
-    const asset = useMemo(() => assets.find(a => a.id === id), [id]);
+export default function AssetDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
+    const [isEditing, setIsEditing] = useState(false);
+    const { toast } = useToast();
+    const router = useRouter();
+    
+    const [asset, setAsset] = React.useState(() => assets.find(a => a.id === id));
+
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const isMobile = useIsMobile();
@@ -82,8 +225,22 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             setInitialDoc(null);
         }
     };
+    
+    const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
+        const updatedAsset = { ...asset, ...values, nextInspection: format(new Date(values.nextInspection), 'yyyy-MM-dd') };
+        setAsset(updatedAsset);
+        toast({
+            title: "Asset Updated",
+            description: `${values.name} has been updated successfully.`,
+        });
+        setIsEditing(false);
+    };
 
     const isClient = role === 'client';
+
+    if (isEditing) {
+        return <AssetForm asset={asset} onSubmit={handleFormSubmit} onCancel={() => setIsEditing(false)} />;
+    }
 
     return (
         <div>
@@ -103,7 +260,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 {isClient && (
                     <div className='flex gap-2 self-start sm:self-center'>
-                        <Button>Edit Asset</Button>
+                        <Button onClick={() => setIsEditing(true)}>Edit Asset</Button>
                         <Button variant="outline">Archive Asset</Button>
                     </div>
                 )}

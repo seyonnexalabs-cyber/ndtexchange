@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -34,13 +35,10 @@ const AppHeader = () => {
     
     const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
-    const handleOpenNotifications = (open: boolean) => {
-        if (open) {
-            // When opening, mark all as read after a short delay for effect
-            setTimeout(() => {
-                setNotifications(prev => prev.map(n => ({...n, read: true})));
-            }, 1000);
-        }
+    const handleNotificationClick = (notificationId: string) => {
+        setNotifications(prev =>
+            prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+        );
     };
     
     const currentUser = useMemo(() => {
@@ -94,7 +92,7 @@ const AppHeader = () => {
                     </Link>
                 </Button>
 
-                 <DropdownMenu onOpenChange={handleOpenNotifications}>
+                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="relative h-9 w-9">
                             <Bell className="h-5 w-5" />
@@ -106,21 +104,32 @@ const AppHeader = () => {
                             )}
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-80">
-                        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {notifications.map(notification => (
-                            <DropdownMenuItem key={notification.id} asChild className="cursor-pointer">
-                                <Link href={constructUrl(notification.href)} className={cn("flex items-start gap-3 whitespace-normal", !notification.read && "font-bold")}>
-                                    {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
-                                    <div className={cn(!notification.read && "pl-0", notification.read && "pl-4")}>
-                                        <p className="text-sm leading-tight">{notification.title}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">{notification.description}</p>
-                                        <p className="text-xs text-muted-foreground mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
-                                    </div>
-                                </Link>
-                            </DropdownMenuItem>
-                        ))}
+                    <DropdownMenuContent align="end" className="w-80 p-0">
+                        <DropdownMenuLabel className="p-2">Notifications</DropdownMenuLabel>
+                        <DropdownMenuSeparator className="m-0" />
+                        <div className="max-h-96 overflow-y-auto">
+                            {notifications.map((notification, index) => (
+                                <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0 focus:bg-transparent">
+                                    <Link 
+                                        href={constructUrl(notification.href)} 
+                                        onClick={() => handleNotificationClick(notification.id)}
+                                        className={cn(
+                                            "block p-3 hover:bg-muted/50",
+                                            index < notifications.length - 1 && "border-b"
+                                        )}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
+                                            <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
+                                                <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">{notification.description}</p>
+                                                <p className="text-xs text-muted-foreground mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </DropdownMenuItem>
+                            ))}
+                        </div>
                         {notifications.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">No new notifications</p>}
                     </DropdownMenuContent>
                 </DropdownMenu>

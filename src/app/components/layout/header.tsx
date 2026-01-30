@@ -114,7 +114,7 @@ const AppHeader = () => {
                                         href={constructUrl(notification.href)} 
                                         onClick={() => handleNotificationClick(notification.id)}
                                         className={cn(
-                                            "block p-3",
+                                            "block p-3 group",
                                             index < notifications.length - 1 && "border-b"
                                         )}
                                     >
@@ -122,8 +122,8 @@ const AppHeader = () => {
                                             {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
                                             <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
                                                 <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">{notification.description}</p>
-                                                <p className="text-xs text-muted-foreground mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                                                <p className="text-xs text-muted-foreground group-focus:text-accent-foreground/90 group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
+                                                <p className="text-xs text-muted-foreground group-focus:text-accent-foreground/70 group-hover:text-accent-foreground/70 mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
                                             </div>
                                         </div>
                                     </Link>

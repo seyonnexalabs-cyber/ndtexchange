@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -94,14 +92,14 @@ const AppHeader = () => {
 
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                        <Button variant="ghost" className="h-9 px-2">
                             <Bell className="h-5 w-5" />
-                            <span className="sr-only">Notifications</span>
                             {unreadCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                                <div className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-destructive-foreground">
                                     {unreadCount}
-                                </span>
+                                </div>
                             )}
+                            <span className="sr-only">Notifications</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-80 p-0">

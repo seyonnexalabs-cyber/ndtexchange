@@ -41,6 +41,7 @@ const assetSchema = z.object({
     serialNumber: z.string().optional(),
     installationDate: z.date().optional(),
     notes: z.string().optional(),
+    thumbnail: z.any().optional(),
 });
 
 const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (values: z.infer<typeof assetSchema>) => void, onCancel: () => void }) => {
@@ -52,6 +53,68 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
             installationDate: asset.installationDate ? new Date(asset.installationDate) : undefined,
         }
     });
+
+    const image = React.useMemo(() => asset?.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined, [asset]);
+
+    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(image?.imageUrl || null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+        // Cleanup function to revoke the object URL
+        return () => {
+            if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(thumbnailPreview);
+            }
+        };
+    }, [thumbnailPreview]);
+    
+    const handleFileChange = (file: File | null) => {
+        form.setValue('thumbnail', file);
+        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
+            URL.revokeObjectURL(thumbnailPreview);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setThumbnailPreview(URL.createObjectURL(file));
+                form.clearErrors('thumbnail');
+            } else {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+            }
+        } else {
+             // When cleared, revert to the original asset image if it exists
+            setThumbnailPreview(image?.imageUrl || null);
+        }
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
+
 
     return (
         <Card>
@@ -185,6 +248,55 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
                                 </FormItem>
                             )}
                         />
+                          <FormField
+                            control={form.control}
+                            name="thumbnail"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel>Thumbnail Image</FormLabel>
+                                     <div
+                                        onDragEnter={handleDragEnter}
+                                        onDragLeave={handleDragLeave}
+                                        onDragOver={handleDragOver}
+                                        onDrop={handleDrop}
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className={cn(
+                                            "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                            isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                        )}
+                                    >
+                                        {thumbnailPreview ? (
+                                            <>
+                                                <Image
+                                                    src={thumbnailPreview}
+                                                    alt="Thumbnail preview"
+                                                    fill
+                                                    className="object-contain rounded-md p-2"
+                                                />
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                                    <p className="text-white font-semibold">Click or drag to replace</p>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <p>Click or drag & drop to upload thumbnail</p>
+                                        )}
+                                        <FormControl>
+                                            <Input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                            />
+                                        </FormControl>
+                                    </div>
+                                    <FormDescription>
+                                        This image will be used as the display card for the asset.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <FormField
                             control={form.control}
                             name="nextInspection"
@@ -290,12 +402,16 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     };
     
     const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
+        if (values.thumbnail) {
+            console.log("Uploaded thumbnail: ", values.thumbnail);
+        }
         const updatedAsset = { 
             ...asset, 
             ...values, 
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
             installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined
         };
+        // In a real app, you would handle the imageId update here
         setAsset(updatedAsset as Asset);
         toast({
             title: "Asset Updated",
@@ -523,5 +639,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         </div>
     );
 }
+
+    
 
     

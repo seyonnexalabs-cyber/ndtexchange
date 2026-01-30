@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -244,7 +245,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Auditor Review</CardTitle>
+                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Review</CardTitle>
                     <CardDescription>This job follows the standard workflow and does not require Level III Auditor review.</CardDescription>
                 </CardHeader>
             </Card>
@@ -259,7 +260,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Audit Result</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Audit Result</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-3 bg-green-600/10 text-green-700 p-4 rounded-md">
@@ -280,7 +281,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
          return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Auditor Review</CardTitle>
+                    <CardTitle className="text-muted-foreground/70 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Review</CardTitle>
                     <CardDescription>This step will become active once the service provider submits their final report.</CardDescription>
                 </CardHeader>
             </Card>
@@ -319,7 +320,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
     return (
          <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Auditor Review Pending</CardTitle>
+                <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Review Pending</CardTitle>
                 <CardDescription>The inspection report has been submitted and is currently under review by the Level III Auditor.</CardDescription>
             </CardHeader>
         </Card>
@@ -348,7 +349,7 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText /> {title}</CardTitle>
+                <CardTitle className="flex items-center gap-2"><FileText className="text-primary" /> {title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
@@ -611,7 +612,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             return (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Award /> Awarded Provider</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><Award className="text-primary" /> Awarded Provider</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center gap-4">
@@ -701,7 +702,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             <div>
                 <Button asChild variant="outline" size="sm" className="mb-4">
                      <Link href={constructUrl(backLink)}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to {backText}
                     </Link>
                 </Button>
@@ -730,7 +731,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardTitle className="text-2xl font-headline flex items-center gap-3">
-                                            <Briefcase />
+                                            <Briefcase className="text-primary" />
                                             {jobDetails.title}
                                             {jobDetails.isInternal && <Badge variant="outline" className="ml-2">Internal Job</Badge>}
                                         </CardTitle>
@@ -751,11 +752,11 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center text-sm text-muted-foreground">
-                                    <MapPin className="w-4 h-4 mr-2" />
+                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
                                     <span>{jobDetails.location}</span>
                                 </div>
                                 <div className="flex items-center text-sm text-muted-foreground">
-                                    <Calendar className="w-4 h-4 mr-2" />
+                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
                                     <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span>
                                 </div>
                                 <div className="border-t pt-4">
@@ -838,7 +839,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><History /> Job Activity Log</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><History className="text-primary" /> Job Activity Log</CardTitle>
                                 <CardDescription>A detailed, chronological log of all events for this job.</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -954,10 +955,10 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                             <CardContent className="space-y-4">
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
-                                        <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" /> Technicians</h4>
+                                        <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Technicians</h4>
                                         {isInspector && (
                                             <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
-                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                                <PlusCircle className="mr-2 h-4 w-4 text-primary" /> Manage
                                             </Button>
                                         )}
                                     </div>
@@ -972,10 +973,10 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 <Separator />
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
-                                        <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-muted-foreground" /> Equipment</h4>
+                                        <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> Equipment</h4>
                                         {isInspector && (
                                             <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
-                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                                <PlusCircle className="mr-2 h-4 w-4 text-primary" /> Manage
                                             </Button>
                                         )}
                                     </div>
@@ -994,7 +995,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 </div>
                                 <Separator />
                                 <div>
-                                    <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-muted-foreground" /> Auditor</h4>
+                                    <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor</h4>
                                     {(jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto') ? (
                                         <p className="text-sm text-muted-foreground pl-2">Alex Chen (NDT Auditors LLC)</p>
                                     ) : <p className="text-sm text-muted-foreground pl-2">No auditor required for standard workflow.</p>}

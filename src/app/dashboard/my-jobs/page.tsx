@@ -336,12 +336,12 @@ export default function MyJobsPage() {
                                                 {(view === 'active' || view === 'upcoming') && role === 'inspector' && (
                                                     <>
                                                         <div>
-                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4" /> Assigned Technicians</h4>
+                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Assigned Technicians</h4>
                                                             {assignedTechnicians.length > 0 ? (
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {assignedTechnicians.map(tech => (
                                                                         <Badge key={tech.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
-                                                                            <User className="w-3 h-3"/>
+                                                                            <User className="w-3 h-3 text-primary"/>
                                                                             {tech.name}
                                                                         </Badge>
                                                                     ))}
@@ -350,7 +350,7 @@ export default function MyJobsPage() {
                                                         </div>
             
                                                          <div>
-                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4"/> Assigned Equipment</h4>
+                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4 text-primary"/> Assigned Equipment</h4>
                                                              {assignedEquipment.length > 0 ? (
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {assignedEquipment.map(equip => (

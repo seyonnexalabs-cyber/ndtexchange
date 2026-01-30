@@ -127,7 +127,7 @@ export default function PostJobPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                      <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <PlusCircle />
+                        <PlusCircle className="text-primary" />
                         {isClient ? 'Post a New Job' : 'Create Internal Job'}
                     </h1>
                     <p className="text-muted-foreground mt-1">
@@ -139,7 +139,7 @@ export default function PostJobPage() {
                 </div>
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                     <Link href={constructUrl('/dashboard/my-jobs')}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to My Jobs
                     </Link>
                 </Button>
@@ -376,7 +376,7 @@ export default function PostJobPage() {
                                                         {documentFiles.map((file, index) => (
                                                             <div key={`${file.name}-${index}`} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
                                                                 <div className="flex items-center gap-2 truncate">
-                                                                    <FileText className="h-4 w-4 shrink-0" />
+                                                                    <FileText className="h-4 w-4 shrink-0 text-primary" />
                                                                     <span className="truncate">{file.name}</span>
                                                                 </div>
                                                                 <Button
@@ -386,7 +386,7 @@ export default function PostJobPage() {
                                                                     className="h-6 w-6 shrink-0"
                                                                     onClick={() => handleRemoveDocument(index)}
                                                                 >
-                                                                    <X className="h-4 w-4" />
+                                                                    <X className="h-4 w-4 text-primary" />
                                                                 </Button>
                                                             </div>
                                                         ))}

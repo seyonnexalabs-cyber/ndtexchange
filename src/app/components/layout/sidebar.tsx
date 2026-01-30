@@ -323,7 +323,7 @@ const AppSidebar = () => {
                       tooltip={{ children: item.label }}
                     >
                       <Link href={item.href ? constructUrl(item.href) : '#'}>
-                        <item.icon />
+                        <item.icon className="text-primary" />
                         <span>{item.label}</span>
                         {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
                       </Link>
@@ -362,7 +362,7 @@ const AppSidebar = () => {
                 <p className="text-xs text-card-foreground/70 truncate">{currentUser.company}</p>
             </div>
             <Button variant="ghost" size="icon" className="ml-auto text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleLogout}>
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 text-primary" />
             </Button>
          </div>
       </SidebarFooter>

@@ -81,13 +81,13 @@ const AppHeader = () => {
                 </form>
 
                 <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setScanOpen(true)}>
-                    <QrCode className="h-5 w-5" />
+                    <QrCode className="h-5 w-5 text-primary" />
                     <span className="sr-only">Scan QR Code</span>
                 </Button>
 
                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
                     <Link href={constructUrl('/dashboard/messages')}>
-                        <MessageSquare className="h-5 w-5" />
+                        <MessageSquare className="h-5 w-5 text-primary" />
                         <span className="sr-only">Messages</span>
                     </Link>
                 </Button>
@@ -95,7 +95,7 @@ const AppHeader = () => {
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-9 px-2 gap-2">
-                            <Bell className="h-5 w-5" />
+                            <Bell className="h-5 w-5 text-primary" />
                             {unreadCount > 0 && (
                                 <div className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-destructive-foreground">
                                     {unreadCount}
@@ -122,8 +122,8 @@ const AppHeader = () => {
                                             {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
                                             <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
                                                 <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
-                                                <p className="text-xs text-muted-foreground group-focus:text-accent-foreground/90 group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
-                                                <p className="text-xs text-muted-foreground group-focus:text-accent-foreground/70 group-hover:text-accent-foreground/70 mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                                                <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
+                                                <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -139,7 +139,7 @@ const AppHeader = () => {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-9 w-9">
-                        <Globe className="h-5 w-5" />
+                        <Globe className="h-5 w-5 text-primary" />
                         <span className="sr-only">Select language</span>
                     </Button>
                     </DropdownMenuTrigger>

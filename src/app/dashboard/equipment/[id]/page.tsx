@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -23,6 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -47,6 +49,7 @@ const equipmentSchema = z.object({
   serialNumber: z.string().optional(),
   status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
   nextCalibration: z.date(),
+  thumbnail: z.any().optional(),
 });
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
@@ -59,6 +62,64 @@ const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: Inspector
             nextCalibration: equipment.nextCalibration !== 'N/A' ? new Date(equipment.nextCalibration) : new Date(),
         }
     });
+    
+    const image = React.useMemo(() => equipment?.imageId ? PlaceHolderImages.find(p => p.id === equipment.imageId) : undefined, [equipment]);
+    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(image?.imageUrl || null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(thumbnailPreview);
+            }
+        };
+    }, [thumbnailPreview]);
+    
+    const handleFileChange = (file: File | null) => {
+        form.setValue('thumbnail', file);
+        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
+            URL.revokeObjectURL(thumbnailPreview);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setThumbnailPreview(URL.createObjectURL(file));
+                form.clearErrors('thumbnail');
+            } else {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+            }
+        } else {
+            setThumbnailPreview(image?.imageUrl || null);
+        }
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
 
     return (
         <Card>
@@ -174,6 +235,55 @@ const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: Inspector
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name="thumbnail"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel>Thumbnail Image</FormLabel>
+                                     <div
+                                        onDragEnter={handleDragEnter}
+                                        onDragLeave={handleDragLeave}
+                                        onDragOver={handleDragOver}
+                                        onDrop={handleDrop}
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className={cn(
+                                            "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                            isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                        )}
+                                    >
+                                        {thumbnailPreview ? (
+                                            <>
+                                                <Image
+                                                    src={thumbnailPreview}
+                                                    alt="Thumbnail preview"
+                                                    fill
+                                                    className="object-contain rounded-md p-2"
+                                                />
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                                    <p className="text-white font-semibold">Click or drag to replace</p>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <p>Click or drag & drop to upload thumbnail</p>
+                                        )}
+                                        <FormControl>
+                                            <Input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                            />
+                                        </FormControl>
+                                    </div>
+                                    <FormDescription>
+                                        This image will be used as the display card for the equipment.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <div className="flex justify-end gap-2 pt-4">
                             <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                             <Button type="submit">Save Changes</Button>
@@ -217,6 +327,8 @@ export default function EquipmentDetailPage() {
     if (!equipment) {
         notFound();
     }
+
+    const image = useMemo(() => equipment?.imageId ? PlaceHolderImages.find(p => p.id === equipment.imageId) : undefined, [equipment]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -266,14 +378,21 @@ export default function EquipmentDetailPage() {
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-3 font-headline">
-                                <Wrench className="h-6 w-6 text-primary" />
-                                {equipment.name}
-                            </CardTitle>
-                            <CardDescription>ID: <span className="font-extrabold text-foreground">{equipment.id}</span></CardDescription>
+                        <CardHeader className="p-0">
+                           {image && (
+                                <div className="relative h-48 w-full block group">
+                                    <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                </div>
+                            )}
+                             <div className="p-6">
+                                <CardTitle className="flex items-center gap-3 font-headline">
+                                    <Wrench className="h-6 w-6 text-primary" />
+                                    {equipment.name}
+                                </CardTitle>
+                                <CardDescription>ID: <span className="font-extrabold text-foreground">{equipment.id}</span></CardDescription>
+                            </div>
                         </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
+                        <CardContent className="space-y-4 text-sm p-6 pt-0">
                             <div className="flex items-start">
                                 <Info className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
                                 <div>

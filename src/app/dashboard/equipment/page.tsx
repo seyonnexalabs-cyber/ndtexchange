@@ -1,6 +1,7 @@
 
+
 'use client';
-import { useState, useMemo } from "react";
+import { useState, useMemo, cloneElement } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,7 +26,8 @@ import { useSearch } from "@/app/components/layout/search-provider";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
@@ -311,127 +313,63 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 
-const DesktopView = ({ equipment, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
-    equipment: InspectorAsset[], 
+const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: {
+    asset: InspectorAsset,
     onQrClick: (data: {id: string, name: string}) => void,
+    constructUrl: (base: string) => string,
     onCheckOutClick: (equipment: InspectorAsset) => void,
     onCheckInClick: (equipment: InspectorAsset) => void,
     onServiceOutClick: (equipment: InspectorAsset) => void,
-    constructUrl: (base: string) => string;
-}) => (
-    <Card>
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Technique(s)</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Next Calibration</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {equipment.map(asset => (
-                    <TableRow key={asset.id}>
-                        <TableCell className="font-extrabold text-xs">{asset.id}</TableCell>
-                        <TableCell className="font-medium flex items-center gap-3">
-                            {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-5 h-5 text-muted-foreground" />}
-                            {asset.name}
-                        </TableCell>
-                        <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                                {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <Badge variant={statusVariants[asset.status]}>{asset.status}</Badge>
-                        </TableCell>
-                        <TableCell>{asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</TableCell>
-                        <TableCell className="text-right">
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    {asset.status === 'Available' ? (
-                                        <>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
-                                        </>
-                                    ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
-                                    )}
-
-                                    <DropdownMenuSeparator />
-                                    
-                                    <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><Edit className="mr-2 h-4 w-4" /> View/Edit</Link></DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    </Card>
-);
-
-const MobileView = ({ equipment, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: { 
-    equipment: InspectorAsset[], 
-    onQrClick: (data: {id: string, name: string}) => void,
-    onCheckOutClick: (equipment: InspectorAsset) => void,
-    onCheckInClick: (equipment: InspectorAsset) => void,
-    onServiceOutClick: (equipment: InspectorAsset) => void,
-    constructUrl: (base: string) => string;
-}) => (
-     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {equipment.map(asset => (
-            <Card key={asset.id}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-lg font-semibold">{asset.name}</CardTitle>
-                    {equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-6 h-6 text-muted-foreground" />}
-                </CardHeader>
-                <CardContent>
+}) => {
+    const image = asset.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined;
+    return (
+        <Card key={asset.id} className="flex flex-col">
+            <CardHeader className="p-0">
+                <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
+                    {image ? (
+                        <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                    ) : (
+                        cloneElement(equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench />, { className: 'w-16 h-16 text-muted-foreground/50' })
+                    )}
+                </div>
+            </CardHeader>
+            <CardContent className="p-4 flex-grow">
+                 <div className="flex items-start justify-between">
                     <div className="flex flex-wrap gap-1">
                         {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
                     </div>
-                     <p className="text-xs font-extrabold text-muted-foreground mt-2">{asset.id}</p>
-                    <Badge variant={statusVariants[asset.status]} className="mt-2">{asset.status}</Badge>
-                </CardContent>
-                <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>Cal Due: {asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {asset.status === 'Available' ? (
-                                <>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
-                                </>
-                            ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
-                            )}
-
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><Edit className="mr-2 h-4 w-4"/>View/Edit</Link></DropdownMenuItem>
-                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </CardFooter>
-            </Card>
-        ))}
-    </div>
-);
+                    <Badge variant={statusVariants[asset.status]}>{asset.status}</Badge>
+                </div>
+                <CardTitle className="mt-2 font-semibold text-lg">{asset.name}</CardTitle>
+                <CardDescription className="font-bold">{asset.id}</CardDescription>
+            </CardContent>
+            <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
+                <span>Cal Due: {asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {asset.status === 'Available' ? (
+                            <>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                            </>
+                        ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><Edit className="mr-2 h-4 w-4" /> View/Edit</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </CardFooter>
+        </Card>
+    );
+};
 
 
 export default function EquipmentPage() {
@@ -439,7 +377,6 @@ export default function EquipmentPage() {
     
     const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId));
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
-    const isMobile = useIsMobile();
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const { setScanOpen } = useQRScanner();
@@ -571,23 +508,19 @@ export default function EquipmentPage() {
             </div>
 
             {filteredEquipment.length > 0 ? (
-                isMobile ? 
-                    <MobileView 
-                        equipment={filteredEquipment} 
-                        onQrClick={handleQrClick}
-                        onCheckInClick={handleCheckInClick}
-                        onCheckOutClick={handleCheckOutClick}
-                        onServiceOutClick={handleServiceOutClick}
-                        constructUrl={constructUrl}
-                    /> : 
-                    <DesktopView 
-                        equipment={filteredEquipment} 
-                        onQrClick={handleQrClick}
-                        onCheckInClick={handleCheckInClick}
-                        onCheckOutClick={handleCheckOutClick}
-                        onServiceOutClick={handleServiceOutClick}
-                        constructUrl={constructUrl}
-                    />
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredEquipment.map(asset => (
+                        <EquipmentCard 
+                            key={asset.id}
+                            asset={asset}
+                            onQrClick={handleQrClick}
+                            onCheckInClick={handleCheckInClick}
+                            onCheckOutClick={handleCheckOutClick}
+                            onServiceOutClick={handleServiceOutClick}
+                            constructUrl={constructUrl}
+                        />
+                    ))}
+                </div>
             ) : (
                 <div className="text-center p-10 border rounded-lg">
                     <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />

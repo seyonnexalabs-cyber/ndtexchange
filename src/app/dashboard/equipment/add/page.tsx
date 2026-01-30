@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { PlusCircle, ChevronLeft, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CustomDateInput } from "@/components/ui/custom-date-input";
+import Image from 'next/image';
 
 
 const equipmentSchema = z.object({
@@ -31,6 +33,7 @@ const equipmentSchema = z.object({
   serialNumber: z.string().optional(),
   status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
   nextCalibration: z.date(),
+  thumbnail: z.any().optional(),
 });
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
@@ -39,6 +42,63 @@ export default function AddEquipmentPage() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const router = useRouter();
+
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        return () => {
+            if (thumbnailPreview) {
+                URL.revokeObjectURL(thumbnailPreview);
+            }
+        };
+    }, [thumbnailPreview]);
+
+    const handleFileChange = (file: File | null) => {
+        form.setValue('thumbnail', file);
+        if (thumbnailPreview) {
+            URL.revokeObjectURL(thumbnailPreview);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setThumbnailPreview(URL.createObjectURL(file));
+                form.clearErrors('thumbnail');
+            } else {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+            }
+        } else {
+            setThumbnailPreview(null);
+        }
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -244,6 +304,55 @@ export default function AddEquipmentPage() {
                                         <CustomDateInput {...field} />
                                     </FormControl>
                                     <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="thumbnail"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>Thumbnail Image (Optional)</FormLabel>
+                                         <div
+                                            onDragEnter={handleDragEnter}
+                                            onDragLeave={handleDragLeave}
+                                            onDragOver={handleDragOver}
+                                            onDrop={handleDrop}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className={cn(
+                                                "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                                isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                            )}
+                                        >
+                                            {thumbnailPreview ? (
+                                                <>
+                                                    <Image
+                                                        src={thumbnailPreview}
+                                                        alt="Thumbnail preview"
+                                                        fill
+                                                        className="object-contain rounded-md p-2"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                                        <p className="text-white font-semibold">Click or drag to replace</p>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <p>Click or drag & drop to upload thumbnail</p>
+                                            )}
+                                            <FormControl>
+                                                <Input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                                />
+                                            </FormControl>
+                                        </div>
+                                        <FormDescription>
+                                            This image will be used as the display card for the equipment.
+                                        </FormDescription>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />

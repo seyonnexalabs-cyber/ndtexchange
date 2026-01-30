@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -36,6 +35,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -373,6 +373,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
+    const isMobile = useIsMobile();
     
     // State for the entire page's data to avoid hydration issues with direct mutation
     const [jobDetails, setJobDetails] = useState<Job | undefined>(() => JSON.parse(JSON.stringify(jobs.find(j => j.id === id))));
@@ -1003,7 +1004,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                     </div>
                 </div>
 
-                <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />
+                {!isMobile && <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />}
 
                 {/* Technician Assignment Dialog */}
                 <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
@@ -1095,10 +1096,3 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
-    
-
-    
-
-    
-
-    

@@ -400,48 +400,50 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="workflow"
-                                    render={({ field }) => (
-                                    <FormItem className="space-y-3">
-                                        <FormLabel>Approval Workflow</FormLabel>
-                                        <FormControl>
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            className="flex flex-col space-y-1"
-                                        >
-                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                {isClient && (
+                                    <FormField
+                                        control={form.control}
+                                        name="workflow"
+                                        render={({ field }) => (
+                                        <FormItem className="space-y-3">
+                                            <FormLabel>Approval Workflow</FormLabel>
                                             <FormControl>
-                                                <RadioGroupItem value="standard" />
+                                            <RadioGroup
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                className="flex flex-col space-y-1"
+                                            >
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="standard" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Standard Workflow (Client Approval)
+                                                </FormLabel>
+                                                </FormItem>
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="level3" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Level III Approval Required
+                                                </FormLabel>
+                                                </FormItem>
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="auto" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Auto-select based on rules
+                                                </FormLabel>
+                                                </FormItem>
+                                            </RadioGroup>
                                             </FormControl>
-                                            <FormLabel className="font-normal">
-                                                Standard Workflow (Client Approval)
-                                            </FormLabel>
-                                            </FormItem>
-                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="level3" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">
-                                                Level III Approval Required
-                                            </FormLabel>
-                                            </FormItem>
-                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="auto" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">
-                                                Auto-select based on rules
-                                            </FormLabel>
-                                            </FormItem>
-                                        </RadioGroup>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                    )}
-                                />
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                )}
                             </div>
 
                             <div className="flex justify-end gap-2 pt-4">

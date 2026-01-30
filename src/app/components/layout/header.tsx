@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -7,10 +8,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Search, Bell, Globe, QrCode, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearch } from './search-provider';
 import { useQRScanner } from './qr-scanner-provider';
+import { notifications as initialNotifications, Notification } from '@/lib/placeholder-data';
+import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 
 const userDetails = {
@@ -26,6 +30,18 @@ const AppHeader = () => {
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
+    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+    
+    const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+
+    const handleOpenNotifications = (open: boolean) => {
+        if (open) {
+            // When opening, mark all as read after a short delay for effect
+            setTimeout(() => {
+                setNotifications(prev => prev.map(n => ({...n, read: true})));
+            }, 1000);
+        }
+    };
     
     const currentUser = useMemo(() => {
         return userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -78,14 +94,36 @@ const AppHeader = () => {
                     </Link>
                 </Button>
 
-                <Button variant="ghost" size="icon" className="relative h-9 w-9">
-                    <Bell className="h-5 w-5" />
-                    <span className="sr-only">Notifications</span>
-                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
-                    </span>
-                </Button>
+                 <DropdownMenu onOpenChange={handleOpenNotifications}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                            <Bell className="h-5 w-5" />
+                            <span className="sr-only">Notifications</span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-80">
+                        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {notifications.map(notification => (
+                            <DropdownMenuItem key={notification.id} asChild className="cursor-pointer">
+                                <Link href={constructUrl(notification.href)} className={cn("flex items-start gap-3 whitespace-normal", !notification.read && "font-bold")}>
+                                    {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
+                                    <div className={cn(!notification.read && "pl-0", notification.read && "pl-4")}>
+                                        <p className="text-sm leading-tight">{notification.title}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">{notification.description}</p>
+                                        <p className="text-xs text-muted-foreground mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                                    </div>
+                                </Link>
+                            </DropdownMenuItem>
+                        ))}
+                        {notifications.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">No new notifications</p>}
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

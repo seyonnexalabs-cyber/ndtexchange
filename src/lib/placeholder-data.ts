@@ -227,6 +227,50 @@ export const supportThreads: SupportThread[] = [
     }
 ];
 
+export type Notification = {
+  id: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  read: boolean;
+  href: string;
+};
+
+export const notifications: Notification[] = [
+    {
+        id: 'NOTIF-001',
+        title: 'New Bid on "PAUT on Pressure Vessel Welds"',
+        description: 'TEAM, Inc. has placed a bid for $11,800.',
+        timestamp: '2024-07-01T11:30:00Z',
+        read: false,
+        href: '/dashboard/my-jobs/JOB-001'
+    },
+    {
+        id: 'NOTIF-002',
+        title: 'Job Awarded: "MT Inspection on Crane Hooks"',
+        description: 'Your bid for $4,800 has been accepted by Global Energy Corp.',
+        timestamp: '2024-06-19T15:05:00Z',
+        read: true,
+        href: '/dashboard/my-jobs/JOB-002'
+    },
+    {
+        id: 'NOTIF-003',
+        title: 'New Message on "MT Inspection on Crane Hooks"',
+        description: 'John Doe: "Thanks for the report. What was the outcome on that secondary hook?"',
+        timestamp: '2024-06-22T10:00:00Z',
+        read: false,
+        href: '/dashboard/messages'
+    },
+    {
+        id: 'NOTIF-004',
+        title: 'Report Approved for "Tank Floor Corrosion Mapping"',
+        description: 'The client has approved your report for JOB-011.',
+        timestamp: '2024-07-03T16:00:00Z',
+        read: true,
+        href: '/dashboard/my-jobs/JOB-011'
+    },
+];
+
 
 export const clientAssets: Asset[] = [
     { id: 'ASSET-001', companyId: 'client-02', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-A1B2C3D4', installationDate: '2018-05-20', imageId: 'asset1' },

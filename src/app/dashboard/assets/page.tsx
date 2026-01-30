@@ -18,11 +18,11 @@ import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 
 const assetIcons = {
-    'Tank': <TankIcon className="w-6 h-6 text-muted-foreground" />,
-    'Piping': <PipeIcon className="w-6 h-6 text-muted-foreground" />,
-    'Crane': <CraneIcon className="w-6 h-6 text-muted-foreground" />,
-    'Vessel': <TankIcon className="w-6 h-6 text-muted-foreground" />,
-    'Weld Joint': <WeldIcon className="w-6 h-6 text-muted-foreground" />,
+    'Tank': <TankIcon className="w-6 h-6 text-primary" />,
+    'Piping': <PipeIcon className="w-6 h-6 text-primary" />,
+    'Crane': <CraneIcon className="w-6 h-6 text-primary" />,
+    'Vessel': <TankIcon className="w-6 h-6 text-primary" />,
+    'Weld Joint': <WeldIcon className="w-6 h-6 text-primary" />,
 };
 
 const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
@@ -74,13 +74,13 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                             {image ? (
                                                 <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                                             ) : (
-                                                cloneElement(assetIcons[asset.type], { className: 'w-16 h-16 text-muted-foreground/50' })
+                                                cloneElement(assetIcons[asset.type], { className: 'w-16 h-16 text-primary/50' })
                                             )}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="p-4 flex-grow">
                                         <div className="flex items-start justify-between">
-                                            {assetIcons[asset.type]}
+                                            {cloneElement(assetIcons[asset.type], { className: 'w-6 h-6 text-primary' })}
                                             <Badge variant={
                                                 asset.status === 'Operational' ? 'success' :
                                                 asset.status === 'Requires Inspection' ? 'destructive' :
@@ -95,7 +95,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreVertical className="h-4 w-4" />
+                                                    <MoreVertical className="h-4 w-4 text-primary" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
@@ -142,7 +142,7 @@ const ClientAssetsView = ({ assets }: { assets: Asset[] }) => {
                             Close
                         </Button>
                         <Button type="button" onClick={() => window.print()}>
-                            <Printer className="mr-2 h-4 w-4" />
+                            <Printer className="mr-2 h-4 w-4 text-primary" />
                             Print
                         </Button>
                     </DialogFooter>
@@ -172,12 +172,12 @@ export default function AssetsPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Building/>
+                    <Building className="text-primary"/>
                     Asset Management
                 </h1>
                 <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
                     <Button onClick={() => setScanOpen(true)} className="w-full sm:w-auto">
-                        <QrCode className="mr-2 h-4 w-4"/>
+                        <QrCode className="mr-2 h-4 w-4 text-primary"/>
                         Scan Asset
                     </Button>
                     {role === 'client' && (
@@ -190,7 +190,7 @@ export default function AssetsPage() {
             
             {role === 'client' ? <ClientAssetsView assets={currentAssets} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
-                    <QrCode className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <QrCode className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>
                     <p className="mt-2 text-muted-foreground">Click "Scan Asset" to find an asset and view its details.</p>
                 </div>

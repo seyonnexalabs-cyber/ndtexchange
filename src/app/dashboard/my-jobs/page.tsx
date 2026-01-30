@@ -17,10 +17,10 @@ import { Label } from "@/components/ui/label";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
-    'UT': <RadioTower className="w-4 h-4 text-muted-foreground" />,
-    'PAUT': <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />,
-    'MT': <Wrench className="w-4 h-4 text-muted-foreground" />,
-    'Calibration': <Wrench className="w-4 h-4 text-muted-foreground" />,
+    'UT': <RadioTower className="w-4 h-4 text-primary" />,
+    'PAUT': <SlidersHorizontal className="w-4 h-4 text-primary" />,
+    'MT': <Wrench className="w-4 h-4 text-primary" />,
+    'Calibration': <Wrench className="w-4 h-4 text-primary" />,
 };
 
 type JobView = 'active' | 'completed' | 'upcoming';
@@ -143,7 +143,7 @@ export default function MyJobsPage() {
             return (
                 <Button asChild className="mt-4">
                     <Link href={constructUrl('/dashboard/my-jobs/post')}>
-                        <PlusCircle className="mr-2" />
+                        <PlusCircle className="mr-2 text-primary" />
                         Post a Job
                     </Link>
                 </Button>
@@ -175,7 +175,7 @@ export default function MyJobsPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Briefcase />
+                    <Briefcase className="text-primary" />
                     My Jobs
                 </h1>
                 <div className="flex gap-2">
@@ -192,7 +192,7 @@ export default function MyJobsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Client ({selectedClients.length})
                             </Button>
                         </PopoverTrigger>
@@ -219,7 +219,7 @@ export default function MyJobsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Provider ({selectedProviders.length})
                             </Button>
                         </PopoverTrigger>
@@ -255,7 +255,7 @@ export default function MyJobsPage() {
                         <Badge key={clientName} variant="secondary">
                             Client: {clientName}
                             <button onClick={() => handleClientChange(clientName)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -263,7 +263,7 @@ export default function MyJobsPage() {
                         <Badge key={providerId} variant="secondary">
                             Provider: {serviceProviders.find(p => p.id === providerId)?.name}
                             <button onClick={() => handleProviderChange(providerId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -271,7 +271,7 @@ export default function MyJobsPage() {
                         <Badge variant="secondary">
                             Requires Audit
                             <button onClick={() => setAuditFilter(false)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     )}
@@ -310,24 +310,24 @@ export default function MyJobsPage() {
                                             </CardHeader>
                                             <CardContent className="space-y-4">
                                                 <div className="flex items-center text-sm text-muted-foreground">
-                                                    <MapPin className="w-4 h-4 mr-2" />
+                                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
                                                     <span>{job.location}</span>
                                                 </div>
                                                  <div className="flex items-center text-sm text-muted-foreground">
-                                                    <Calendar className="w-4 h-4 mr-2" />
+                                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
                                                     <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
                                                     {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
                                                 </div>
                                                  {job.bidExpiryDate && (
                                                     <div className="flex items-center text-sm text-muted-foreground">
-                                                        <AlarmClock className="w-4 h-4 mr-2" />
+                                                        <AlarmClock className="w-4 h-4 mr-2 text-primary" />
                                                         <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
                                                         {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
                                                     </div>
                                                 )}
                                                 {job.scheduledStartDate && (
                                                     <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
-                                                        <Calendar className="w-4 h-4 mr-2" />
+                                                        <Calendar className="w-4 h-4 mr-2 text-primary" />
                                                         <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
                                                         {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
                                                     </div>
@@ -379,7 +379,7 @@ export default function MyJobsPage() {
                 </div>
             ) : (
                  <div className="text-center p-10 border rounded-lg">
-                    <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <Briefcase className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">No {view} jobs</h2>
                     <p className="mt-2 text-muted-foreground">You don't have any jobs currently in this category or matching your filters.</p>
                      {getEmptyStateAction()}

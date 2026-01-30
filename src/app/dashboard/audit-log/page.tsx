@@ -179,16 +179,16 @@ export default function AuditLogPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <History />
+                    <History className="text-primary" />
                     Platform Audit Log
                 </h1>
             </div>
 
             <Tabs defaultValue="user-management" className="w-full">
                 <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4">
-                    <TabsTrigger value="user-management" className="gap-2"><User /> User Management</TabsTrigger>
-                    <TabsTrigger value="job-activity" className="gap-2"><Briefcase /> Job Activity</TabsTrigger>
-                    <TabsTrigger value="billing" className="gap-2"><DollarSign /> Billing Events</TabsTrigger>
+                    <TabsTrigger value="user-management" className="gap-2"><User className="text-primary" /> User Management</TabsTrigger>
+                    <TabsTrigger value="job-activity" className="gap-2"><Briefcase className="text-primary" /> Job Activity</TabsTrigger>
+                    <TabsTrigger value="billing" className="gap-2"><DollarSign className="text-primary" /> Billing Events</TabsTrigger>
                 </TabsList>
                 <TabsContent value="user-management">
                    <UserLog />

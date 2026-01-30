@@ -85,7 +85,7 @@ export default function InspectionDetailPage() {
         <div>
             <Button asChild variant="outline" size="sm" className="mb-4">
                 <Link href={constructUrl("/dashboard/inspections")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                     Back to Inspections
                 </Link>
             </Button>
@@ -97,7 +97,7 @@ export default function InspectionDetailPage() {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <CardTitle className="text-2xl font-headline flex items-center gap-3">
-                                        <FileText />
+                                        <FileText className="text-primary" />
                                         Audit Report for {inspection.assetName}
                                     </CardTitle>
                                     <CardDescription>Inspection ID: <span className="font-extrabold text-foreground">{inspection.id}</span></CardDescription>
@@ -110,14 +110,14 @@ export default function InspectionDetailPage() {
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
                                     <Button onClick={() => setIsViewerOpen(true)} disabled={allDocuments.length === 0}>
-                                        <Maximize className="mr-2 h-4 w-4" />
+                                        <Maximize className="mr-2 h-4 w-4 text-primary" />
                                         View All Documents
                                     </Button>
                                 </div>
                                 <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
                                     {allDocuments.map((doc) => (
                                         <div key={doc.name} className="flex items-center gap-2 p-2">
-                                            <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                            <FileText className="w-4 h-4 text-primary shrink-0" />
                                             <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
                                         </div>
                                     ))}
@@ -158,21 +158,21 @@ export default function InspectionDetailPage() {
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                              <div className="flex items-start">
-                                <HardHat className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <HardHat className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Technique</p>
                                     <p className="text-muted-foreground">{inspection.technique}</p>
                                 </div>
                             </div>
                              <div className="flex items-start">
-                                <User className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <User className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Inspector</p>
                                     <p className="text-muted-foreground">{inspection.inspector}</p>
                                 </div>
                             </div>
                             <div className="flex items-start">
-                                <Calendar className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <Calendar className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Inspection Date</p>
                                     <p className="text-muted-foreground">{inspection.date}</p>
@@ -186,14 +186,14 @@ export default function InspectionDetailPage() {
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                             <div className="flex items-start">
-                                <Building className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <Building className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Client</p>
                                     <p className="text-muted-foreground">{job.client}</p>
                                 </div>
                             </div>
                              <div className="flex items-start">
-                                <HardHat className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <HardHat className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Service Provider</p>
                                     <p className="text-muted-foreground">{provider?.name}</p>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/auditors-data';
+import { auditFirms, auditFirmServices, auditFirmIndustries, AuditFirm } from '@/lib/auditors-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -62,7 +62,7 @@ export default function FindAuditorsPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Eye />
+                    <Eye className="text-primary" />
                     Find Auditors
                 </h1>
                 <div className="flex gap-2">
@@ -134,7 +134,7 @@ export default function FindAuditorsPage() {
                         <Badge key={spec} variant="secondary">
                             {spec}
                             <button onClick={() => handleServiceChange(spec)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -142,7 +142,7 @@ export default function FindAuditorsPage() {
                         <Badge key={spec} variant="outline">
                             {spec}
                             <button onClick={() => handleIndustryChange(spec)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -161,7 +161,7 @@ export default function FindAuditorsPage() {
                                 <div>
                                     <CardTitle className="font-headline">{firm.name}</CardTitle>
                                     <CardDescription className="flex items-center gap-1.5 mt-1">
-                                        <MapPin className="w-3 h-3"/> {firm.location}
+                                        <MapPin className="w-3 h-3 text-primary"/> {firm.location}
                                     </CardDescription>
                                 </div>
                             </div>

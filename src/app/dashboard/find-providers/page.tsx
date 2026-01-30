@@ -102,7 +102,7 @@ export default function FindProvidersPage() {
             <div>
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <ShieldCheck />
+                        <ShieldCheck className="text-primary" />
                         Find Service Providers
                     </h1>
                     <div className="flex gap-2">
@@ -185,7 +185,7 @@ export default function FindProvidersPage() {
                             <Badge key={techId} variant="secondary">
                                 {NDTTechniques.find(t => t.id === techId)?.name}
                                 <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                    <X className="h-3 w-3" />
+                                    <X className="h-3 w-3 text-primary" />
                                 </button>
                             </Badge>
                         ))}
@@ -193,7 +193,7 @@ export default function FindProvidersPage() {
                             <Badge key={spec} variant="outline">
                                 {spec}
                                 <button onClick={() => handleIndustryChange(spec)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                    <X className="h-3 w-3" />
+                                    <X className="h-3 w-3 text-primary" />
                                 </button>
                             </Badge>
                         ))}
@@ -212,7 +212,7 @@ export default function FindProvidersPage() {
                                     <div>
                                         <CardTitle className="font-headline">{provider.name}</CardTitle>
                                         <CardDescription className="flex items-center gap-1.5 mt-1">
-                                            <MapPin className="w-3 h-3"/> {provider.location}
+                                            <MapPin className="w-3 h-3 text-primary"/> {provider.location}
                                         </CardDescription>
                                     </div>
                                 </div>

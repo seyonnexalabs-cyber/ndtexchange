@@ -33,7 +33,7 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
         <ul className="space-y-3">
           {features.map((feature, i) => (
             <li key={i} className="flex items-start">
-              <CheckCircle className="w-5 h-5 text-accent mr-3 mt-1 shrink-0" />
+              <CheckCircle className="w-5 h-5 text-primary mr-3 mt-1 shrink-0" />
               <span className="text-muted-foreground">{feature}</span>
             </li>
           ))}
@@ -236,7 +236,7 @@ export default function BillingPage() {
     <div className="space-y-6">
         <Button asChild variant="outline" size="sm">
             <Link href={constructUrl("/dashboard/settings")}>
-                <ChevronLeft className="mr-2 h-4 w-4" />
+                <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                 Back to Settings
             </Link>
         </Button>

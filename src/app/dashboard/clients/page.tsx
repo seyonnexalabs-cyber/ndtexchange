@@ -6,7 +6,7 @@ import { clientData } from "@/lib/placeholder-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Briefcase, DollarSign, MoreVertical } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -181,11 +181,11 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
                 </CardHeader>
                 <CardContent className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground flex items-center gap-2"><Briefcase /> Active Jobs</span>
+                        <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="text-primary" /> Active Jobs</span>
                         <span className="font-medium">{client.activeJobs}</span>
                     </div>
                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground flex items-center gap-2"><DollarSign /> Total Spend</span>
+                        <span className="text-muted-foreground flex items-center gap-2"><DollarSign className="text-primary" /> Total Spend</span>
                         <span className="font-medium">${client.totalSpend.toLocaleString()}</span>
                     </div>
                 </CardContent>
@@ -225,7 +225,7 @@ export default function ClientsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <Users/>
+                        <Users className="text-primary"/>
                         Client Management
                     </h1>
                 </div>

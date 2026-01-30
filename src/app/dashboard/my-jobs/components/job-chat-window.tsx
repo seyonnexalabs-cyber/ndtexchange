@@ -66,7 +66,7 @@ export default function JobChatWindow({ job, onSendMessage }: JobChatWindowProps
                         </div>
                     </div>
                     <Button variant="ghost" size="icon">
-                        {isOpen ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+                        {isOpen ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronUp className="h-5 w-5 text-primary" />}
                     </Button>
                 </CardHeader>
                 

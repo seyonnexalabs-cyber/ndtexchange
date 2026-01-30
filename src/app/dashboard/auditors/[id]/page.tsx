@@ -41,7 +41,7 @@ export default function AuditorDetailPage() {
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
                     <Link href={constructUrl("/dashboard/find-auditors")}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to Auditors
                     </Link>
                 </Button>
@@ -54,7 +54,7 @@ export default function AuditorDetailPage() {
                 <div>
                     <h1 className="text-2xl font-headline font-bold">{auditor.name}</h1>
                     <p className="text-muted-foreground flex items-center gap-1.5 pt-1">
-                        <MapPin className="w-4 h-4"/> {auditor.location}
+                        <MapPin className="w-4 h-4 text-primary"/> {auditor.location}
                     </p>
                 </div>
             </div>
@@ -97,7 +97,7 @@ export default function AuditorDetailPage() {
                 <TabsContent value="team">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Users /> Team Members</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Users className="text-primary" /> Team Members</CardTitle>
                             <CardDescription>Auditors and staff from {auditor.name}.</CardDescription>
                         </CardHeader>
                         <CardContent>

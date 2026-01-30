@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { clientData, jobs, subscriptions } from "@/lib/placeholder-data";
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -40,7 +40,7 @@ export default function ClientDetailPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
                     <Link href={constructUrl("/dashboard/clients")}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to Clients
                     </Link>
                 </Button>
@@ -74,24 +74,24 @@ export default function ClientDetailPage() {
                         <CardContent className="text-sm">
                             <div className="space-y-4 text-muted-foreground">
                                 <div className="flex items-center gap-3">
-                                    <Users className="w-4 h-4" />
+                                    <Users className="w-4 h-4 text-primary" />
                                     <span>{client.contactPerson}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Mail className="w-4 h-4" />
+                                    <Mail className="w-4 h-4 text-primary" />
                                     <span>{client.contactEmail}</span>
                                 </div>
                                  <div className="flex items-center gap-3">
-                                    <Briefcase className="w-4 h-4" />
+                                    <Briefcase className="w-4 h-4 text-primary" />
                                     <span>{client.activeJobs} Active Jobs</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <DollarSign className="w-4 h-4" />
+                                    <DollarSign className="w-4 h-4 text-primary" />
                                     <span>${client.totalSpend.toLocaleString()} Total Spend</span>
                                 </div>
                                 {subscription && (
                                     <div className="flex items-center gap-3">
-                                        <Calendar className="w-4 h-4" />
+                                        <Calendar className="w-4 h-4 text-primary" />
                                         <span>Member Since: {format(new Date(subscription.startDate), GLOBAL_DATE_FORMAT)}</span>
                                     </div>
                                 )}
@@ -103,7 +103,7 @@ export default function ClientDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Briefcase /> Active & Recent Jobs
+                                <Briefcase className="text-primary" /> Active & Recent Jobs
                             </CardTitle>
                             <CardDescription>
                                 Jobs associated with {client.name}.

@@ -188,21 +188,21 @@ export default function CalendarPage() {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="flex items-center">
-                            <CheckCircle className="w-4 h-4 mr-3 text-muted-foreground" />
+                            <CheckCircle className="w-4 h-4 mr-3 text-primary" />
                             <div>
                                 <p className="font-semibold">Status</p>
                                 <Badge>{job.status}</Badge>
                             </div>
                         </div>
                         <div className="flex items-center">
-                            <MapPin className="w-4 h-4 mr-3 text-muted-foreground" />
+                            <MapPin className="w-4 h-4 mr-3 text-primary" />
                             <div>
                                 <p className="font-semibold">Location</p>
                                 <p className="text-muted-foreground">{job.location}</p>
                             </div>
                         </div>
                         <div className="flex items-center">
-                            <Briefcase className="w-4 h-4 mr-3 text-muted-foreground" />
+                            <Briefcase className="w-4 h-4 mr-3 text-primary" />
                             <div>
                                 <p className="font-semibold">Technique</p>
                                 <p className="text-muted-foreground">{job.technique}</p>
@@ -210,7 +210,7 @@ export default function CalendarPage() {
                         </div>
                         {job.scheduledStartDate && (
                              <div className="flex items-center">
-                                <CalendarIcon className="w-4 h-4 mr-3 text-muted-foreground" />
+                                <CalendarIcon className="w-4 h-4 mr-3 text-primary" />
                                 <div>
                                     <p className="font-semibold">Scheduled Dates</p>
                                     <p className="text-muted-foreground">{format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</p>
@@ -267,7 +267,7 @@ export default function CalendarPage() {
         <div className="flex flex-col h-full">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <CalendarIcon />
+                    <CalendarIcon className="text-primary" />
                     Schedule
                 </h1>
                 <div className="flex items-center gap-2">
@@ -303,13 +303,13 @@ export default function CalendarPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 mb-4">
                     <TabsTrigger value="jobs" className="gap-2">
-                        <Briefcase /> Jobs
+                        <Briefcase className="text-primary" /> Jobs
                     </TabsTrigger>
                     <TabsTrigger value="technicians" className="gap-2">
-                        <Users /> Technicians
+                        <Users className="text-primary" /> Technicians
                     </TabsTrigger>
                     <TabsTrigger value="equipment" className="gap-2">
-                        <Wrench /> Equipment
+                        <Wrench className="text-primary" /> Equipment
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="jobs">

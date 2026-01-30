@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { format } from "date-fns";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
@@ -31,11 +31,11 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
-    'UT': <RadioTower className="w-6 h-6 text-muted-foreground" />,
-    'PAUT': <SlidersHorizontal className="w-6 h-6 text-muted-foreground" />,
-    'MT': <Wrench className="w-6 h-6 text-muted-foreground" />,
-    'Calibration': <Wrench className="w-6 h-6 text-muted-foreground" />,
-    'APR': <RadioTower className="w-6 h-6 text-muted-foreground" />,
+    'UT': <RadioTower className="w-6 h-6 text-primary" />,
+    'PAUT': <SlidersHorizontal className="w-6 h-6 text-primary" />,
+    'MT': <Wrench className="w-6 h-6 text-primary" />,
+    'Calibration': <Wrench className="w-6 h-6 text-primary" />,
+    'APR': <RadioTower className="w-6 h-6 text-primary" />,
 };
 
 const checkInSchema = z.object({
@@ -329,7 +329,7 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
                     {image ? (
                         <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                     ) : (
-                        cloneElement(equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench />, { className: 'w-16 h-16 text-muted-foreground/50' })
+                        cloneElement(equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="text-primary"/>, { className: 'w-16 h-16 text-primary/50' })
                     )}
                 </div>
             </CardHeader>
@@ -477,12 +477,12 @@ export default function EquipmentPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Wrench/>
+                    <Wrench className="text-primary"/>
                     Equipment
                 </h1>
                  <div className="flex gap-2">
                     <Button variant="outline" onClick={() => setScanOpen(true)}>
-                        <QrCode className="mr-2 h-4 w-4"/>
+                        <QrCode className="mr-2 h-4 w-4 text-primary"/>
                         Scan QR
                     </Button>
                     <Button asChild><Link href={constructUrl('/dashboard/equipment/add')}>Add New Equipment</Link></Button>
@@ -523,7 +523,7 @@ export default function EquipmentPage() {
                 </div>
             ) : (
                 <div className="text-center p-10 border rounded-lg">
-                    <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <Wrench className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">No Equipment Found</h2>
                     <p className="mt-2 text-muted-foreground">No equipment matches your current search or filter criteria.</p>
                 </div>

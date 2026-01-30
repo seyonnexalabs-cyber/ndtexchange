@@ -132,7 +132,7 @@ export default function AddEquipmentPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <PlusCircle />
+                        <PlusCircle className="text-primary" />
                         Add New Equipment
                     </h1>
                     <p className="text-muted-foreground mt-1">
@@ -141,7 +141,7 @@ export default function AddEquipmentPage() {
                 </div>
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                     <Link href={constructUrl('/dashboard/equipment')}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to Equipment
                     </Link>
                 </Button>

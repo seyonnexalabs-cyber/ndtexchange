@@ -91,7 +91,7 @@ export default function FindJobsPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <SearchIcon />
+                    <SearchIcon className="text-primary" />
                     Find Jobs
                 </h1>
                 <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ export default function FindJobsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="gap-2">
-                                <Filter />
+                                <Filter className="text-primary" />
                                 Technique ({selectedTechniques.length})
                             </Button>
                         </PopoverTrigger>
@@ -144,7 +144,7 @@ export default function FindJobsPage() {
                         <Badge key={techId} variant="secondary">
                             {NDTTechniques.find(t => t.id === techId)?.name}
                             <button onClick={() => setSelectedTechniques(p => p.filter(t => t !== techId))} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -172,24 +172,24 @@ export default function FindJobsPage() {
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div className="flex items-center text-sm text-muted-foreground">
-                                <MapPin className="w-4 h-4 mr-2" />
+                                <MapPin className="w-4 h-4 mr-2 text-primary" />
                                 <span>{job.location}</span>
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
-                                <Calendar className="w-4 h-4 mr-2" />
+                                <Calendar className="w-4 h-4 mr-2 text-primary" />
                                 <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
                                 {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
                             </div>
                             {job.scheduledStartDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
-                                    <Calendar className="w-4 h-4 mr-2" />
+                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
                                     <span>Target: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
                                     {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                             )}
                             {job.bidExpiryDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
-                                    <AlarmClock className="w-4 h-4 mr-2" />
+                                    <AlarmClock className="w-4 h-4 mr-2 text-primary" />
                                     <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
                                     {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
                                 </div>
@@ -207,7 +207,7 @@ export default function FindJobsPage() {
 
             {filteredJobs.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
-                    <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <Briefcase className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">No Open Jobs</h2>
                     <p className="mt-2 text-muted-foreground">There are currently no new jobs matching your filters.</p>
                 </div>
@@ -228,7 +228,7 @@ export default function FindJobsPage() {
                              <div className="space-y-2">
                                 {selectedJob?.documents && selectedJob.documents.length > 0 ? (
                                     <Button variant="outline" className="w-full" onClick={() => setIsViewerOpen(true)}>
-                                        <Maximize className="mr-2 h-4 w-4" />
+                                        <Maximize className="mr-2 h-4 w-4 text-primary" />
                                         View All Job Documents ({selectedJob.documents.length})
                                     </Button>
                                 ) : (
@@ -246,7 +246,7 @@ export default function FindJobsPage() {
                                             <FormLabel>Your Bid Amount ($USD)</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
-                                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                                                     <Input type="number" placeholder="5000.00" className="pl-8" {...field} />
                                                 </div>
                                             </FormControl>

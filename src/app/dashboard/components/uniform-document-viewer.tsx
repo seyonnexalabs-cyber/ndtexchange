@@ -54,7 +54,7 @@ export default function UniformDocumentViewer({
                 <div className="grid grid-cols-1 md:grid-cols-4 flex-grow min-h-0 gap-4 p-6">
                     <div className="md:col-span-1 flex flex-col gap-4">
                          <div className="bg-primary/10 text-primary p-3 rounded-lg flex items-center gap-3 text-sm">
-                            <Shield className="w-5 h-5 shrink-0"/>
+                            <Shield className="w-5 h-5 shrink-0 text-primary"/>
                             <div>
                                 <p className="font-semibold">Secure Viewing</p>
                                 <p className="text-xs">Downloads and screenshots are disabled.</p>
@@ -73,7 +73,7 @@ export default function UniformDocumentViewer({
                                                 selectedDoc?.name === doc.name ? "bg-accent text-accent-foreground" : "hover:bg-muted"
                                             )}
                                         >
-                                            {isImage ? <ImageIcon className="w-5 h-5 shrink-0" /> : <FileText className="w-5 h-5 shrink-0" />}
+                                            {isImage ? <ImageIcon className="w-5 h-5 shrink-0 text-primary" /> : <FileText className="w-5 h-5 shrink-0 text-primary" />}
                                             <div>
                                                 <p className="text-sm font-medium truncate">{doc.name}</p>
                                                 {doc.source && <p className="text-xs">{doc.source}</p>}
@@ -96,7 +96,7 @@ export default function UniformDocumentViewer({
                                     <Image src={selectedDoc.url} alt={selectedDoc.name} fill style={{ objectFit: 'contain' }} />
                                 ) : (
                                     <div className="p-8">
-                                        <FileText className="w-24 h-24 text-muted-foreground/50 mx-auto"/>
+                                        <FileText className="w-24 h-24 text-primary mx-auto"/>
                                         <h3 className="text-lg font-bold mt-4">{selectedDoc.name}</h3>
                                         <p className="text-sm text-muted-foreground">A high-fidelity document preview would appear here.</p>
                                     </div>

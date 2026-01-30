@@ -366,7 +366,7 @@ export default function EquipmentDetailPage() {
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
                     <Link href={constructUrl("/dashboard/equipment")}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to Equipment
                     </Link>
                 </Button>
@@ -394,14 +394,14 @@ export default function EquipmentDetailPage() {
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm p-6 pt-0">
                             <div className="flex items-start">
-                                <Info className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <Info className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Status</p>
                                     <Badge variant={statusVariants[equipment.status]}>{equipment.status}</Badge>
                                 </div>
                             </div>
                             <div className="flex items-start">
-                                <SlidersHorizontal className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <SlidersHorizontal className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Technique(s)</p>
                                     <div className="flex flex-wrap gap-1 mt-1">
@@ -411,7 +411,7 @@ export default function EquipmentDetailPage() {
                             </div>
                              {equipment.manufacturer && (
                                 <div className="flex items-start">
-                                    <Building className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                    <Building className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                     <div>
                                         <p className="font-semibold">Manufacturer</p>
                                         <p className="text-muted-foreground">{equipment.manufacturer}</p>
@@ -420,7 +420,7 @@ export default function EquipmentDetailPage() {
                             )}
                             {equipment.model && (
                                 <div className="flex items-start">
-                                    <Wrench className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                    <Wrench className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                     <div>
                                         <p className="font-semibold">Model</p>
                                         <p className="text-muted-foreground">{equipment.model}</p>
@@ -429,7 +429,7 @@ export default function EquipmentDetailPage() {
                             )}
                              {equipment.serialNumber && (
                                 <div className="flex items-start">
-                                    <Tag className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                    <Tag className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                     <div>
                                         <p className="font-semibold">Serial Number</p>
                                         <p className="font-bold text-muted-foreground">{equipment.serialNumber}</p>
@@ -437,7 +437,7 @@ export default function EquipmentDetailPage() {
                                 </div>
                             )}
                              <div className="flex items-start">
-                                <Calendar className="w-4 h-4 mr-3 mt-1 text-muted-foreground"/>
+                                <Calendar className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Next Calibration</p>
                                     <p className="text-muted-foreground">{equipment.nextCalibration === 'N/A' ? 'N/A' : format(new Date(equipment.nextCalibration), GLOBAL_DATE_FORMAT)}</p>
@@ -448,7 +448,7 @@ export default function EquipmentDetailPage() {
                     <Card className="non-printable">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3">
-                                <QrCode className="h-5 w-5" />
+                                <QrCode className="h-5 w-5 text-primary" />
                                 Equipment QR Code
                             </CardTitle>
                         </CardHeader>
@@ -477,7 +477,7 @@ export default function EquipmentDetailPage() {
                 <div className="lg:col-span-2">
                      <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><History /> Equipment Ledger</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><History className="text-primary" /> Equipment Ledger</CardTitle>
                             <CardDescription>A complete log of all check-in, check-out, and status changes for this item.</CardDescription>
                         </CardHeader>
                         <CardContent>

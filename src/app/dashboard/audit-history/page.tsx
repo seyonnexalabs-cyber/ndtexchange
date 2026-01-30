@@ -77,7 +77,7 @@ export default function AuditHistoryPage() {
     const hasActiveFilters = selectedTechniques.length > 0;
 
     const pageTitle = 'Audit History';
-    const pageIcon = <History />;
+    const pageIcon = <History className="text-primary" />;
     const emptyStateTitle = 'No Audit History';
     const emptyStateDescription = 'You have not audited any reports yet.';
 
@@ -95,7 +95,7 @@ export default function AuditHistoryPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Technique ({selectedTechniques.length})
                             </Button>
                         </PopoverTrigger>
@@ -129,7 +129,7 @@ export default function AuditHistoryPage() {
                         <Badge key={techId} variant="secondary">
                             {NDTTechniques.find(t => t.id === techId)?.name}
                             <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -196,7 +196,7 @@ export default function AuditHistoryPage() {
 
              {filteredInspections.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
-                    <div className="mx-auto h-12 w-12 text-muted-foreground">{pageIcon}</div>
+                    <div className="mx-auto h-12 w-12 text-primary">{pageIcon}</div>
                     <h2 className="mt-4 text-xl font-headline">{emptyStateTitle}</h2>
                     <p className="mt-2 text-muted-foreground">{emptyStateDescription}</p>
                 </div>

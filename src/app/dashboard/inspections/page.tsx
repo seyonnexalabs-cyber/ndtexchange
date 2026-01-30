@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Filter, X, Eye } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -118,7 +118,7 @@ export default function InspectionsPage() {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <Eye />
+                        <Eye className="text-primary" />
                         {pageTitle}
                     </h1>
                     <p className="text-muted-foreground mt-1">{pageDescription}</p>
@@ -130,7 +130,7 @@ export default function InspectionsPage() {
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Technique ({selectedTechniques.length})
                             </Button>
                         </PopoverTrigger>
@@ -175,7 +175,7 @@ export default function InspectionsPage() {
                         <Badge key={techId} variant="secondary">
                             {NDTTechniques.find(t => t.id === techId)?.name}
                             <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -183,7 +183,7 @@ export default function InspectionsPage() {
                         <Badge variant="secondary">
                             Status: {statusFilter}
                              <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     )}
@@ -191,7 +191,7 @@ export default function InspectionsPage() {
                          <Badge variant="secondary">
                             Status: {statusFilter}
                              <button onClick={() => setStatusFilter('Requires Review')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     )}
@@ -290,7 +290,7 @@ export default function InspectionsPage() {
 
              {augmentedAndFilteredInspections.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
-                    <div className="mx-auto h-12 w-12 text-muted-foreground"><Eye /></div>
+                    <div className="mx-auto h-12 w-12 text-primary"><Eye className="text-primary"/></div>
                     <h2 className="mt-4 text-xl font-headline">{emptyStateTitle}</h2>
                     <p className="mt-2 text-muted-foreground">{emptyStateDescription}</p>
                 </div>

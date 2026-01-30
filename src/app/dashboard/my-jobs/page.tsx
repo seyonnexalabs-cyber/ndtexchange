@@ -295,7 +295,10 @@ export default function MyJobsPage() {
                                             <CardHeader className={cn(job.isInternal && 'bg-accent/10')}>
                                                 <div className="flex justify-between items-start">
                                                     <div>
-                                                        <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                                        <CardTitle className="font-headline text-xl flex items-center gap-2">
+                                                            <span>{job.title}</span>
+                                                            {job.isInternal && <Badge variant="outline">Internal</Badge>}
+                                                        </CardTitle>
                                                         <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">

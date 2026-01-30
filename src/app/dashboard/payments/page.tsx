@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -27,6 +25,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 
 
 const createPaymentSchema = (isClient: boolean, getJobById: (id: string) => Job | undefined) => {
@@ -365,7 +364,7 @@ const PaymentsPage = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <DollarSign/>
+                    <DollarSign className="text-primary" />
                     {title}
                 </h1>
                 {canRecordPayment && (

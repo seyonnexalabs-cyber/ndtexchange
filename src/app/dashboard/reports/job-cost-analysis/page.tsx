@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -107,7 +105,7 @@ export default function JobCostAnalysisReportPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <FileText />
+                        <FileText className="text-primary" />
                         Job Cost & Duration Analysis
                     </h1>
                     <p className="text-muted-foreground mt-1">Analyze costs and timelines for completed jobs.</p>
@@ -120,7 +118,7 @@ export default function JobCostAnalysisReportPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Filter /> Report Filters</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Filter className="text-primary" /> Report Filters</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>

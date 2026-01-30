@@ -118,7 +118,7 @@ export default function SupportPage() {
 
        <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-3"><MessageSquare /> Live Chat Support</CardTitle>
+                <CardTitle className="flex items-center gap-3"><MessageSquare className="text-primary" /> Live Chat Support</CardTitle>
                 <CardDescription>Need immediate assistance? Our support agents are available to help you in real-time.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -216,7 +216,7 @@ export default function SupportPage() {
       <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
         <DialogContent className="sm:max-w-lg h-[70vh] flex flex-col p-0">
           <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="flex items-center gap-2"><MessageSquare /> Live Chat</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><MessageSquare className="text-primary" /> Live Chat</DialogTitle>
             <DialogDescription>You are now connected with a support agent.</DialogDescription>
           </DialogHeader>
           <ScrollArea className="flex-1 p-6 bg-muted/30">

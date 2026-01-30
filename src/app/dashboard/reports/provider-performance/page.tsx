@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -148,7 +146,7 @@ export default function ProviderPerformanceReportPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <HardHat />
+                        <HardHat className="text-primary" />
                         Provider Performance Review
                     </h1>
                     <p className="text-muted-foreground mt-1">Compare performance metrics for service providers.</p>
@@ -161,7 +159,7 @@ export default function ProviderPerformanceReportPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Filter /> Report Filters</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Filter className="text-primary" /> Report Filters</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -301,7 +299,7 @@ export default function ProviderPerformanceReportPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><BarChart2 /> Performance Details</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><BarChart2 className="text-primary" /> Performance Details</CardTitle>
                     <CardDescription>
                         Found {performanceData.length} provider(s) matching your criteria.
                     </CardDescription>

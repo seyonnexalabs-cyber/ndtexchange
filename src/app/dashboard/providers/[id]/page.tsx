@@ -1,5 +1,3 @@
-
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -149,7 +147,7 @@ export default function ProviderDetailPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <Users /> Technician Roster
+                                    <Users className="text-primary" /> Technician Roster
                                 </CardTitle>
                                 <CardDescription>
                                     Technicians employed by {provider.name}.
@@ -231,7 +229,7 @@ export default function ProviderDetailPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <Wrench /> Public Equipment
+                                    <Wrench className="text-primary" /> Public Equipment
                                 </CardTitle>
                                 <CardDescription>
                                     A selection of publicly listed equipment from {provider.name}.

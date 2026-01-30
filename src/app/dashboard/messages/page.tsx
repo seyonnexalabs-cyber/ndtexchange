@@ -1,4 +1,3 @@
-
 'use client';
 
 import { jobs as initialJobs, Job, JobMessage, allUsers, PlatformUser } from '@/lib/placeholder-data';
@@ -111,7 +110,7 @@ export default function MessagesPage() {
             )}>
                  <div className="p-4 border-b">
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <MessageSquare />
+                        <MessageSquare className="text-primary" />
                         Job Conversations
                     </h1>
                  </div>

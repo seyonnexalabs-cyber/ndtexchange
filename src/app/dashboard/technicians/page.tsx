@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -393,7 +391,7 @@ export default function TechniciansPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Users/>
+                    <Users className="text-primary" />
                     Technicians
                 </h1>
                 <div className="flex gap-2 w-full sm:w-auto">

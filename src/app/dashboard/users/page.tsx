@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -278,7 +277,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                      <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Company ({selectedCompanies.length})
                             </Button>
                         </PopoverTrigger>
@@ -305,7 +304,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
                                 Role ({selectedRoles.length})
                             </Button>
                         </PopoverTrigger>
@@ -349,7 +348,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                         <Badge key={company} variant="secondary">
                             {company}
                             <button onClick={() => handleCompanyChange(company)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -357,7 +356,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                         <Badge key={role} variant="secondary">
                             {role}
                             <button onClick={() => handleRoleChange(role)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     ))}
@@ -365,7 +364,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                         <Badge variant="secondary">
                             Status: {statusFilter}
                              <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                <X className="h-3 w-3" />
+                                <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
                     )}
@@ -536,7 +535,7 @@ export default function UsersPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <Users/>
+                        <Users className="text-primary" />
                         User Management
                     </h1>
                 </div>

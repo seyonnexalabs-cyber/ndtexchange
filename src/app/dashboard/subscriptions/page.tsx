@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -303,7 +301,7 @@ const SubscriptionsDesktopView = ({
                                 {showContactButton ? (
                                     <Button asChild variant={variant} size="sm">
                                         <Link href={link}>
-                                            <Mail className="mr-2 h-4 w-4" />
+                                            <Mail className="mr-2 h-4 w-4 text-primary" />
                                             {text}
                                         </Link>
                                     </Button>
@@ -364,14 +362,14 @@ const SubscriptionsMobileView = ({
                     <CardContent className="space-y-4">
                         <div>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className="text-muted-foreground flex items-center gap-1"><Users className="w-4 h-4" /> Users</span>
+                                <span className="text-muted-foreground flex items-center gap-1"><Users className="w-4 h-4 text-primary" /> Users</span>
                                 <span>{sub.userCount} / {userLimit}</span>
                             </div>
                             <Progress value={(sub.userCount / userLimit) * 100} className="h-2"/>
                         </div>
                          <div>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className="text-muted-foreground flex items-center gap-1"><Database className="w-4 h-4" /> Data</span>
+                                <span className="text-muted-foreground flex items-center gap-1"><Database className="w-4 h-4 text-primary" /> Data</span>
                                 <span>{sub.dataUsageGB} / {storageLimit} GB</span>
                             </div>
                             <Progress value={(sub.dataUsageGB / storageLimit) * 100} className="h-2"/>
@@ -381,7 +379,7 @@ const SubscriptionsMobileView = ({
                          {showContactButton ? (
                             <Button asChild variant={variant} size="sm">
                                 <Link href={link}>
-                                    <Mail className="mr-2 h-4 w-4" />
+                                    <Mail className="mr-2 h-4 w-4 text-primary" />
                                     {text}
                                 </Link>
                             </Button>
@@ -533,7 +531,7 @@ export default function SubscriptionsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <DollarSign/>
+                        <DollarSign className="text-primary" />
                         Subscription Management
                     </h1>
                 </div>
@@ -545,7 +543,7 @@ export default function SubscriptionsPage() {
                             onClick={() => setBulkMailOpen(true)}
                             className="w-full sm:w-auto"
                         >
-                            <Mail className="mr-2 h-4 w-4" />
+                            <Mail className="mr-2 h-4 w-4 text-primary" />
                             Send Bulk Email ({selectedSubscriptions.length})
                         </Button>
                         <Button className="w-full sm:w-auto">Create Subscription</Button>

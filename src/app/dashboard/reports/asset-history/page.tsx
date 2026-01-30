@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -76,7 +74,7 @@ export default function AssetHistoryReportPage() {
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <FileText />
+                        <FileText className="text-primary" />
                         Asset Inspection History
                     </h1>
                     <p className="text-muted-foreground mt-1">Generate a detailed history of all inspections for selected assets.</p>
@@ -89,7 +87,7 @@ export default function AssetHistoryReportPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Filter /> Report Filters</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Filter className="text-primary" /> Report Filters</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -199,7 +197,7 @@ export default function AssetHistoryReportPage() {
 
              <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><BarChart2 /> Report Results</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><BarChart2 className="text-primary" /> Report Results</CardTitle>
                     <CardDescription>
                         Found {filteredInspections.length} inspection(s) matching your criteria.
                     </CardDescription>

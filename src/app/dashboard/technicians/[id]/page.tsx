@@ -234,7 +234,7 @@ export default function TechnicianDetailPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
                     <Link href={constructUrl("/dashboard/technicians")}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
                         Back to Technicians
                     </Link>
                 </Button>
@@ -283,7 +283,7 @@ export default function TechnicianDetailPage() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Star /> Certifications</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Star className="text-primary" /> Certifications</CardTitle>
                         </CardHeader>
                         <CardContent>
                              <Table>
@@ -314,7 +314,7 @@ export default function TechnicianDetailPage() {
                  <div className="lg:col-span-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Briefcase /> Job History</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Briefcase className="text-primary" /> Job History</CardTitle>
                             <CardDescription>All jobs assigned to {technician.name}.</CardDescription>
                         </CardHeader>
                         <CardContent>

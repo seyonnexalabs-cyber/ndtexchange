@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -149,7 +147,7 @@ export default function ReviewsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <Star/>
+                        <Star className="text-primary" />
                         Reviews & Ratings
                     </h1>
                 </div>

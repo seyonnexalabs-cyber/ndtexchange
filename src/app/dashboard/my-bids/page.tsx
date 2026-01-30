@@ -251,7 +251,7 @@ export default function MyBidsPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Gavel />
+                    <Gavel className="text-primary" />
                     My Bids
                 </h1>
                 <Button asChild>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -14,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -131,7 +130,7 @@ const InspectorActions = ({ status, onScheduleClick, onReportClick, reportSubmit
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Next Step: Schedule Job</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Calendar className="h-5 w-5 text-primary" /> Next Step: Schedule Job</CardTitle>
                     <CardDescription>Confirm the inspection dates to move the job to the next stage.</CardDescription>
                 </CardHeader>
                 <CardFooter>
@@ -147,7 +146,7 @@ const InspectorActions = ({ status, onScheduleClick, onReportClick, reportSubmit
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Next Step: Submit Report</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><FileUp className="h-5 w-5 text-primary" /> Next Step: Submit Report</CardTitle>
                     <CardDescription>Once the inspection is complete, submit your digital report.</CardDescription>
                 </CardHeader>
                 <CardFooter>
@@ -293,7 +292,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
          return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Auditor Actions</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary" /> Auditor Actions</CardTitle>
                     <CardDescription>Review the report and provide your decision.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -349,7 +348,7 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText className="text-primary" /> {title}</CardTitle>
+                <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> {title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
@@ -612,7 +611,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             return (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Award className="text-primary" /> Awarded Provider</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><Award className="h-5 w-5 text-primary" /> Awarded Provider</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center gap-4">
@@ -637,7 +636,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
             return (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Bids Received</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><Gavel className="h-5 w-5 text-primary" />Bids Received</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground">No bids have been received for this job yet.</p>
@@ -649,7 +648,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Bids Received ({submittedBids.length})</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Gavel className="h-5 w-5 text-primary" />Bids Received ({submittedBids.length})</CardTitle>
                     {isClient && <CardDescription>Review the bids below and award the job to a provider.</CardDescription>}
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -712,6 +711,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-4">
+                                    <History className="h-6 w-6 text-primary" />
                                     <span>Job Lifecycle</span>
                                     <Badge variant={jobStatusVariants[jobDetails.status]}>{jobDetails.status}</Badge>
                                 </div>
@@ -731,7 +731,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardTitle className="text-2xl font-headline flex items-center gap-3">
-                                            <Briefcase className="text-primary" />
+                                            <Briefcase className="h-6 w-6 text-primary" />
                                             {jobDetails.title}
                                             {jobDetails.isInternal && <Badge variant="outline" className="ml-2">Internal Job</Badge>}
                                         </CardTitle>
@@ -784,7 +784,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">Documents & Reports</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Documents & Reports</CardTitle>
                                 <CardDescription>View all documents and reports associated with this job.</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -798,14 +798,14 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <div className="flex justify-between items-center">
                                             <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
                                             <Button onClick={() => setIsViewerOpen(true)}>
-                                                <Maximize className="mr-2 h-4 w-4" />
+                                                <Maximize className="mr-2 h-4 w-4 text-primary" />
                                                 View All Documents
                                             </Button>
                                         </div>
                                         <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
                                             {allDocuments.map((doc) => (
                                                 <div key={doc.name} className="flex items-center gap-2 p-2">
-                                                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                    <FileText className="w-4 h-4 text-primary shrink-0" />
                                                     <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
                                                 </div>
                                             ))}
@@ -839,7 +839,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><History className="text-primary" /> Job Activity Log</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /> Job Activity Log</CardTitle>
                                 <CardDescription>A detailed, chronological log of all events for this job.</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -850,7 +850,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         {isReviewable && !reviewSubmitted && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Leave a Review</CardTitle>
+                                    <CardTitle className="flex items-center gap-2"><Star className="h-5 w-5 text-primary" /> Leave a Review</CardTitle>
                                     <CardDescription>Share your experience with the service provider for this job.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -893,7 +893,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                         {isReviewable && reviewSubmitted && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Your Review</CardTitle>
+                                    <CardTitle className="flex items-center gap-2"><Star className="h-5 w-5 text-primary" /> Your Review</CardTitle>
                                     <CardDescription>
                                         Thank you for your feedback! Your review is now pending approval.
                                     </CardDescription>
@@ -958,7 +958,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Technicians</h4>
                                         {isInspector && (
                                             <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
-                                                <PlusCircle className="mr-2 h-4 w-4 text-primary" /> Manage
+                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
                                             </Button>
                                         )}
                                     </div>
@@ -976,7 +976,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                                         <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> Equipment</h4>
                                         {isInspector && (
                                             <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
-                                                <PlusCircle className="mr-2 h-4 w-4 text-primary" /> Manage
+                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
                                             </Button>
                                         )}
                                     </div>
@@ -1097,3 +1097,5 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
+
+    

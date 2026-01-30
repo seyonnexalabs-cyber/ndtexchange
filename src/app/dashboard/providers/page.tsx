@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -279,7 +278,7 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
                         </Avatar>
                         <div>
                             <CardTitle>{provider.name}</CardTitle>
-                            <CardDescription className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {provider.location}</CardDescription>
+                            <CardDescription className="flex items-center gap-1"><MapPin className="w-3 h-3 text-primary"/> {provider.location}</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
@@ -330,7 +329,7 @@ export default function ProvidersPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <ShieldCheck/>
+                        <ShieldCheck className="text-primary" />
                         Provider Management
                     </h1>
                 </div>

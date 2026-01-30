@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { clientData, jobs, subscriptions } from "@/lib/placeholder-data";
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';

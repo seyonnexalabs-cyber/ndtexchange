@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs, EquipmentType } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -28,6 +27,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -317,7 +317,7 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
                                                 </div>
                                             </>
                                         ) : (
-                                            <p>Click or drag & drop to upload thumbnail</p>
+                                            <p>Click or drag &amp; drop to upload thumbnail</p>
                                         )}
                                         <FormControl>
                                             <Input
@@ -475,6 +475,7 @@ export default function EquipmentDetailPage() {
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
+    const [editingComponent, setEditingComponent] = useState<InspectorAsset | null>(null);
 
     const [allEquipment, setAllEquipment] = useState(initialEquipment);
     const equipment = useMemo(() => allEquipment.find(p => p.id === id), [allEquipment, id]);
@@ -525,6 +526,25 @@ export default function EquipmentDetailPage() {
         setAllEquipment(prev => [...prev, newComponent]);
         toast({ title: "Component Added", description: `"${values.name}" is pending approval and has been added to this kit.` });
         setIsAddComponentOpen(false);
+    };
+
+    const handleEditComponentClick = (component: InspectorAsset) => {
+        setEditingComponent(component);
+    };
+
+    const handleComponentFormSubmit = (values: EquipmentFormValues) => {
+        if (!editingComponent) return;
+
+        setAllEquipment(prev => prev.map(eq => 
+            eq.id === editingComponent.id 
+                ? { ...eq, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') } 
+                : eq
+        ));
+        toast({
+            title: "Component Updated",
+            description: `${values.name} has been updated.`,
+        });
+        setEditingComponent(null);
     };
 
     if (isEditing) {
@@ -686,7 +706,7 @@ export default function EquipmentDetailPage() {
                     <Tabs defaultValue="history">
                         <TabsList className="mb-4">
                             <TabsTrigger value="history">Ledger</TabsTrigger>
-                            <TabsTrigger value="kit">Parts & Kit</TabsTrigger>
+                            <TabsTrigger value="kit">Parts &amp; Kit</TabsTrigger>
                         </TabsList>
                         <TabsContent value="history">
                             <Card>
@@ -724,7 +744,7 @@ export default function EquipmentDetailPage() {
                         <TabsContent value="kit">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><Package className="text-primary"/> Parts & Kit Management</CardTitle>
+                                    <CardTitle className="flex items-center gap-2"><Package className="text-primary"/> Parts &amp; Kit Management</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {childEquipment.length > 0 ? (
@@ -738,12 +758,28 @@ export default function EquipmentDetailPage() {
                                             <p className="text-sm text-muted-foreground mb-4">This item is a parent system.</p>
                                             <div className="space-y-2">
                                                 {childEquipment.map(child => (
-                                                    <Link key={child.id} href={constructUrl(`/dashboard/equipment/${child.id}`)}>
-                                                        <div className="flex items-center justify-between rounded-md border p-3 hover:bg-muted">
-                                                            <span>{child.name} ({child.id})</span>
+                                                    <div key={child.id} className="flex items-center justify-between rounded-md border p-3 hover:bg-muted/50 transition-colors">
+                                                        <Link href={constructUrl(`/dashboard/equipment/${child.id}`)} className="flex-grow">
+                                                            <p className="font-semibold hover:underline">{child.name}</p>
+                                                            <p className="text-xs font-extrabold text-muted-foreground">{child.id}</p>
+                                                        </Link>
+                                                        <div className="flex items-center gap-2">
                                                             <Badge variant={statusVariants[child.status]}>{child.status}</Badge>
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                        <MoreVertical className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem onClick={() => handleEditComponentClick(child)}>
+                                                                        <Edit className="mr-2 h-4 w-4"/>
+                                                                        Edit
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
                                                         </div>
-                                                    </Link>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
@@ -789,7 +825,27 @@ export default function EquipmentDetailPage() {
                     />
                 </DialogContent>
             </Dialog>
+
+            <Dialog open={!!editingComponent} onOpenChange={(open) => !open && setEditingComponent(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Component: {editingComponent?.name}</DialogTitle>
+                        <DialogDescription>
+                            Update the component's details below.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingComponent && (
+                         <EquipmentForm
+                            onSubmit={handleComponentFormSubmit}
+                            onCancel={() => setEditingComponent(null)}
+                            equipment={editingComponent}
+                            allEquipment={allEquipment}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
 
+    

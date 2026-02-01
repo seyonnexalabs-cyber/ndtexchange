@@ -75,7 +75,7 @@ export type Inspection = {
 };
 
 export type EquipmentHistory = {
-    event: 'Created' | 'Updated' | 'Checked Out' | 'Checked In' | 'Set to Available' | 'Set to Calibration Due' | 'Set to Out of Service' | 'Checked Out for Service';
+    event: 'Created' | 'Updated' | 'Checked Out' | 'Checked In' | 'Set to Available' | 'Set to Calibration Due' | 'Set to Out of Service' | 'Checked Out for Service' | 'Assigned to Kit' | 'Removed from Kit';
     timestamp: string;
     user: string;
     notes?: string;
@@ -95,6 +95,7 @@ export type InspectorAsset = {
     history?: EquipmentHistory[];
     isPublic?: boolean;
     imageId?: string;
+    parentId?: string;
 };
 
 export type Certification = {
@@ -320,7 +321,9 @@ export const inspectorAssets: InspectorAsset[] = [
         nextCalibration: '2024-12-11',
         isPublic: true,
         imageId: 'tech-ut',
+        parentId: 'UTM-1000',
         history: [
+             { event: 'Assigned to Kit', user: 'Admin', timestamp: '2023-02-10T11:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
              { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
              { event: 'Created', user: 'Admin', timestamp: '2023-02-10T11:00:00Z', notes: 'Item created in inventory.' }
         ]
@@ -335,7 +338,9 @@ export const inspectorAssets: InspectorAsset[] = [
         approvalStatus: 'Approved',
         nextCalibration: 'N/A',
         isPublic: false,
+        parentId: 'UTM-1000',
         history: [
+            { event: 'Assigned to Kit', user: 'Admin', timestamp: '2023-01-15T16:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
             { event: 'Created', user: 'Admin', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
         ]
     },

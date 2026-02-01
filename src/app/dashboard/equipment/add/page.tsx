@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { NDTTechniques, InspectorAsset } from "@/lib/placeholder-data";
+import { NDTTechniques, InspectorAsset, inspectorAssets } from "@/lib/placeholder-data";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -34,6 +34,7 @@ const equipmentSchema = z.object({
   status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
   nextCalibration: z.date(),
   thumbnail: z.any().optional(),
+  parentId: z.string().optional(),
 });
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
@@ -159,6 +160,32 @@ export default function AddEquipmentPage() {
                                         <FormControl>
                                             <Input placeholder="e.g., Olympus 45MG" {...field} />
                                         </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="parentId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Parent Equipment (Optional)</FormLabel>
+                                        <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Assign to a kit or system" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="none">None (Standalone Equipment)</SelectItem>
+                                                {inspectorAssets.filter(eq => !eq.parentId).map(parent => (
+                                                     <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            Assigning a parent makes this item a component of another system.
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

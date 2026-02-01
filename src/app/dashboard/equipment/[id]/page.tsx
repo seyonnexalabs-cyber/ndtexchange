@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory, NDTTechniques } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -25,6 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -50,6 +52,7 @@ const equipmentSchema = z.object({
   status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
   nextCalibration: z.date(),
   thumbnail: z.any().optional(),
+  parentId: z.string().optional(),
 });
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
@@ -67,6 +70,8 @@ const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: Inspector
     const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(image?.imageUrl || null);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const possibleParents = React.useMemo(() => allEquipment.filter(e => e.id !== equipment.id && !e.parentId), [equipment.id]);
 
     React.useEffect(() => {
         return () => {
@@ -135,6 +140,29 @@ const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: Inspector
                             name="name"
                             render={({ field }) => (
                                 <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="parentId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Parent Equipment (Optional)</FormLabel>
+                                    <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Assign to a kit or system" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">None (Standalone Equipment)</SelectItem>
+                                            {possibleParents.map(parent => (
+                                                 <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
                             )}
                         />
                         <div className="grid grid-cols-2 gap-4">
@@ -312,6 +340,8 @@ const historyEventIcons = {
     'Set to Calibration Due': <Info className="h-4 w-4" />,
     'Set to Out of Service': <Info className="h-4 w-4" />,
     'Checked Out for Service': <Send className="h-4 w-4" />,
+    'Assigned to Kit': <Package className="h-4 w-4" />,
+    'Removed from Kit': <Package className="h-4 w-4" />,
 }
 
 export default function EquipmentDetailPage() {
@@ -323,6 +353,9 @@ export default function EquipmentDetailPage() {
     const [isEditing, setIsEditing] = useState(false);
     
     const [equipment, setEquipment] = useState(() => allEquipment.find(p => p.id === id));
+
+    const childEquipment = useMemo(() => allEquipment.filter(e => e.parentId === id), [id]);
+    const parentEquipment = useMemo(() => allEquipment.find(e => e.id === equipment?.parentId), [equipment]);
 
     if (!equipment) {
         notFound();
@@ -475,37 +508,86 @@ export default function EquipmentDetailPage() {
                     </Card>
                 </div>
                 <div className="lg:col-span-2">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><History className="text-primary" /> Equipment Ledger</CardTitle>
-                            <CardDescription>A complete log of all check-in, check-out, and status changes for this item.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <ScrollArea className="h-96">
-                                <div className="relative pl-6">
-                                    <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
-                                    {equipment.history && equipment.history.length > 0 ? (
-                                        equipment.history.map((entry, index) => (
-                                            <div key={index} className="relative mb-8 pl-8">
-                                                <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
-                                                    <div className="text-primary">{historyEventIcons[entry.event]}</div>
+                    <Tabs defaultValue="history">
+                        <TabsList className="mb-4">
+                            <TabsTrigger value="history">Ledger</TabsTrigger>
+                            <TabsTrigger value="kit">Parts & Kit</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="history">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><History className="text-primary" /> Equipment Ledger</CardTitle>
+                                    <CardDescription>A complete log of all check-in, check-out, and status changes for this item.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <ScrollArea className="h-96">
+                                        <div className="relative pl-6">
+                                            <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                                            {equipment.history && equipment.history.length > 0 ? (
+                                                equipment.history.map((entry, index) => (
+                                                    <div key={index} className="relative mb-8 pl-8">
+                                                        <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
+                                                            <div className="text-primary">{historyEventIcons[entry.event]}</div>
+                                                        </div>
+                                                        <p className="text-sm font-medium">{entry.event}</p>
+                                                        <div className="text-xs text-muted-foreground">
+                                                            <ClientFormattedDate timestamp={entry.timestamp} /> by {entry.user}
+                                                        </div>
+                                                        {entry.notes && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.notes}"</p>}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center text-muted-foreground py-10">
+                                                    No history found for this item.
                                                 </div>
-                                                <p className="text-sm font-medium">{entry.event}</p>
-                                                <div className="text-xs text-muted-foreground">
-                                                    <ClientFormattedDate timestamp={entry.timestamp} /> by {entry.user}
-                                                </div>
-                                                {entry.notes && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.notes}"</p>}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center text-muted-foreground py-10">
-                                            No history found for this item.
+                                            )}
                                         </div>
+                                    </ScrollArea>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="kit">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><Package className="text-primary"/> Parts & Kit Management</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {childEquipment.length > 0 ? (
+                                        <div>
+                                            <h3 className="font-semibold">Components in this Kit ({childEquipment.length})</h3>
+                                            <p className="text-sm text-muted-foreground mb-4">This item is a parent system.</p>
+                                            <div className="space-y-2">
+                                                {childEquipment.map(child => (
+                                                    <Link key={child.id} href={constructUrl(`/dashboard/equipment/${child.id}`)}>
+                                                        <div className="flex items-center justify-between rounded-md border p-3 hover:bg-muted">
+                                                            <span>{child.name} ({child.id})</span>
+                                                            <Badge variant={statusVariants[child.status]}>{child.status}</Badge>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : parentEquipment ? (
+                                        <div>
+                                            <h3 className="font-semibold">Part of Kit</h3>
+                                            <p className="text-sm text-muted-foreground mb-4">This item is a component of a larger system.</p>
+                                            <Link href={constructUrl(`/dashboard/equipment/${parentEquipment.id}`)}>
+                                                <div className="flex items-center justify-between rounded-md border p-3 hover:bg-muted">
+                                                    <div>
+                                                        <p className="font-semibold">{parentEquipment.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{parentEquipment.id}</p>
+                                                    </div>
+                                                    <Button variant="outline" size="sm">View Parent System</Button>
+                                                </div>
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">This is a standalone piece of equipment and is not part of a kit.</p>
                                     )}
-                                </div>
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
         </div>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, Package } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -341,7 +341,10 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
                     <Badge variant={statusVariants[asset.status]}>{asset.status}</Badge>
                 </div>
                 <CardTitle className="mt-2 font-semibold text-lg">{asset.name}</CardTitle>
-                <CardDescription className="font-bold">{asset.id}</CardDescription>
+                <CardDescription className="font-bold flex items-center gap-2">
+                    {asset.id}
+                    {asset.parentId && <Badge variant="outline" className="text-xs">Kit Component</Badge>}
+                </CardDescription>
             </CardContent>
             <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
                 <span>Cal Due: {asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</span>

@@ -466,6 +466,7 @@ export default function EquipmentDetailPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
     const [editingComponent, setEditingComponent] = useState<InspectorAsset | null>(null);
+    const [isEditComponentOpen, setIsEditComponentOpen] = useState(false);
 
     const [allEquipment, setAllEquipment] = useState(initialEquipment);
     const equipment = useMemo(() => allEquipment.find(p => p.id === id), [allEquipment, id]);
@@ -520,6 +521,7 @@ export default function EquipmentDetailPage() {
 
     const handleEditComponentClick = (component: InspectorAsset) => {
         setEditingComponent(component);
+        setIsEditComponentOpen(true);
     };
 
     const handleComponentFormSubmit = (values: EquipmentFormValues) => {
@@ -534,7 +536,7 @@ export default function EquipmentDetailPage() {
             title: "Component Updated",
             description: `${values.name} has been updated.`,
         });
-        setEditingComponent(null);
+        setIsEditComponentOpen(false);
     };
 
     if (isEditing) {
@@ -818,7 +820,7 @@ export default function EquipmentDetailPage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={!!editingComponent} onOpenChange={(open) => !open && setEditingComponent(null)}>
+            <Dialog open={isEditComponentOpen} onOpenChange={setIsEditComponentOpen}>
                 <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
                     <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>Edit Component: {editingComponent?.name}</DialogTitle>
@@ -830,7 +832,7 @@ export default function EquipmentDetailPage() {
                         {editingComponent && (
                             <EquipmentForm
                                 onSubmit={handleComponentFormSubmit}
-                                onCancel={() => setEditingComponent(null)}
+                                onCancel={() => setIsEditComponentOpen(false)}
                                 equipment={editingComponent}
                                 allEquipment={allEquipment}
                             />
@@ -843,3 +845,4 @@ export default function EquipmentDetailPage() {
 }
 
     
+

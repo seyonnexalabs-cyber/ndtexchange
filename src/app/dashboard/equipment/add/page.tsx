@@ -27,6 +27,7 @@ import Image from 'next/image';
 const equipmentSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
+  type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
   techniques: z.array(z.string()).min(1, "At least one technique is required."),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
@@ -110,6 +111,7 @@ export default function AddEquipmentPage() {
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
             name: "",
+            type: 'Instrument',
             techniques: [],
             manufacturer: "",
             model: "",
@@ -160,6 +162,32 @@ export default function AddEquipmentPage() {
                                         <FormControl>
                                             <Input placeholder="e.g., Olympus 45MG" {...field} />
                                         </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Equipment Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a type" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="Instrument">Instrument</SelectItem>
+                                                <SelectItem value="Probe">Probe/Transducer</SelectItem>
+                                                <SelectItem value="Source">Source</SelectItem>
+                                                <SelectItem value="Sensor">Sensor/Detector</SelectItem>
+                                                <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
+                                                <SelectItem value="Accessory">Accessory</SelectItem>
+                                                <SelectItem value="Visual Aid">Visual Aid</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}

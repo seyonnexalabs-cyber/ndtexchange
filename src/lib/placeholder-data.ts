@@ -81,9 +81,12 @@ export type EquipmentHistory = {
     notes?: string;
 };
 
+export type EquipmentType = 'Instrument' | 'Probe' | 'Source' | 'Sensor' | 'Calibration Standard' | 'Accessory' | 'Visual Aid';
+
 export type InspectorAsset = {
     id: string;
     name: string;
+    type: EquipmentType;
     techniques: string[];
     providerId: string;
     status: 'Available' | 'In Use' | 'Calibration Due' | 'Out of Service' | 'Under Service';
@@ -292,6 +295,7 @@ export const inspectorAssets: InspectorAsset[] = [
     { 
         id: 'UTM-1000', 
         name: 'Olympus 45MG', 
+        type: 'Instrument',
         manufacturer: 'Olympus',
         model: '45MG',
         serialNumber: 'SN-45MG-12345',
@@ -310,11 +314,12 @@ export const inspectorAssets: InspectorAsset[] = [
     },
     { 
         id: 'PA-Probe-5MHz', 
-        name: 'OmniScan X3', 
+        name: '5MHz Phased Array Probe', 
+        type: 'Probe',
         manufacturer: 'Olympus',
-        model: 'OmniScan X3',
+        model: '5L64-A2',
         serialNumber: 'SN-PROBE-67890',
-        techniques: ['PAUT', 'TOFD', 'UT'], 
+        techniques: ['PAUT', 'UT'], 
         providerId: 'provider-03',
         status: 'In Use', 
         approvalStatus: 'Approved',
@@ -330,7 +335,8 @@ export const inspectorAssets: InspectorAsset[] = [
     },
     { 
         id: 'CAL-BLK-01', 
-        name: 'IIW Type 1 Block', 
+        name: 'IIW Type 1 Block',
+        type: 'Calibration Standard',
         manufacturer: 'Generic',
         techniques: ['UT', 'PAUT'], 
         providerId: 'provider-03',
@@ -346,7 +352,8 @@ export const inspectorAssets: InspectorAsset[] = [
     },
     { 
         id: 'YOKE-02', 
-        name: 'Parker B-300S', 
+        name: 'Parker B-300S Yoke', 
+        type: 'Visual Aid',
         manufacturer: 'Parker Research Corp',
         model: 'B-300S',
         serialNumber: 'SN-YOKE-ABCDE',
@@ -367,6 +374,7 @@ export const inspectorAssets: InspectorAsset[] = [
     {
         id: 'APR-G3',
         name: 'Dolphin G3',
+        type: 'Instrument',
         manufacturer: 'Talcyon',
         model: 'Dolphin G3',
         serialNumber: 'SN-G3-XYZ',
@@ -384,6 +392,7 @@ export const inspectorAssets: InspectorAsset[] = [
     {
         id: 'EQ-PEND-01',
         name: 'New Eddy Current Probe',
+        type: 'Probe',
         techniques: ['ET'],
         providerId: 'provider-03',
         status: 'Available',

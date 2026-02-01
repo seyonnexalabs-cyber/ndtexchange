@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs } from "@/lib/placeholder-data";
+import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs, EquipmentType } from "@/lib/placeholder-data";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
@@ -46,6 +46,7 @@ const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
 const equipmentSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, "Name must be at least 2 characters."),
+  type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
   techniques: z.array(z.string()).min(1, "At least one technique is required."),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
@@ -141,6 +142,28 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
                             name="name"
                             render={({ field }) => (
                                 <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Instrument">Instrument</SelectItem>
+                                            <SelectItem value="Probe">Probe/Transducer</SelectItem>
+                                            <SelectItem value="Source">Source</SelectItem>
+                                            <SelectItem value="Sensor">Sensor/Detector</SelectItem>
+                                            <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
+                                            <SelectItem value="Accessory">Accessory</SelectItem>
+                                            <SelectItem value="Visual Aid">Visual Aid</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
                             )}
                         />
                          <FormField
@@ -326,6 +349,7 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
 
 const addComponentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
+  type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
   techniques: z.array(z.string()).min(1, "At least one technique is required."),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
@@ -339,7 +363,7 @@ type AddComponentFormValues = z.infer<typeof addComponentSchema>;
 const AddComponentForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: AddComponentFormValues) => void }) => {
     const form = useForm<AddComponentFormValues>({
         resolver: zodResolver(addComponentSchema),
-        defaultValues: { name: "", techniques: [], status: "Available", nextCalibration: new Date() },
+        defaultValues: { name: "", type: 'Probe', techniques: [], status: "Available", nextCalibration: new Date() },
     });
 
     const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
@@ -379,6 +403,28 @@ const AddComponentForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubm
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Component Name</FormLabel><FormControl><Input placeholder="e.g., 5MHz Phased Array Probe" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                 <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a type"/></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Instrument">Instrument</SelectItem>
+                                    <SelectItem value="Probe">Probe/Transducer</SelectItem>
+                                    <SelectItem value="Source">Source</SelectItem>
+                                    <SelectItem value="Sensor">Sensor/Detector</SelectItem>
+                                    <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
+                                    <SelectItem value="Accessory">Accessory</SelectItem>
+                                    <SelectItem value="Visual Aid">Visual Aid</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="manufacturer" render={({ field }) => (<FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Model</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -465,6 +511,7 @@ export default function EquipmentDetailPage() {
             id: `COMP-${Date.now()}`,
             providerId: equipment.providerId,
             name: values.name,
+            type: values.type,
             techniques: values.techniques,
             manufacturer: values.manufacturer,
             model: values.model,
@@ -552,6 +599,13 @@ export default function EquipmentDetailPage() {
                                 <div>
                                     <p className="font-semibold">Status</p>
                                     <Badge variant={statusVariants[equipment.status]}>{equipment.status}</Badge>
+                                </div>
+                            </div>
+                             <div className="flex items-start">
+                                <Package className="w-4 h-4 mr-3 mt-1 text-primary"/>
+                                <div>
+                                    <p className="font-semibold">Type</p>
+                                    <p className="text-muted-foreground">{equipment.type}</p>
                                 </div>
                             </div>
                             <div className="flex items-start">

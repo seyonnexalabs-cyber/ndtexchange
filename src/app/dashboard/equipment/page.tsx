@@ -4,9 +4,9 @@
 import { useState, useMemo, cloneElement } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job } from "@/lib/placeholder-data";
+import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job, EquipmentType } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, Package } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, Package, Cpu, Waves, Cable, Eye } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -30,12 +30,14 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 
-const equipmentIcons: { [key: string]: React.ReactNode } = {
-    'UT': <RadioTower className="w-6 h-6 text-primary" />,
-    'PAUT': <SlidersHorizontal className="w-6 h-6 text-primary" />,
-    'MT': <Wrench className="w-6 h-6 text-primary" />,
-    'Calibration': <Wrench className="w-6 h-6 text-primary" />,
-    'APR': <RadioTower className="w-6 h-6 text-primary" />,
+const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
+    'Instrument': <RadioTower className="w-6 h-6 text-primary" />,
+    'Probe': <SlidersHorizontal className="w-6 h-6 text-primary" />,
+    'Source': <Waves className="w-6 h-6 text-primary" />,
+    'Sensor': <Cpu className="w-6 h-6 text-primary" />,
+    'Calibration Standard': <Wrench className="w-6 h-6 text-primary" />,
+    'Accessory': <Cable className="w-6 h-6 text-primary" />,
+    'Visual Aid': <Eye className="w-6 h-6 text-primary" />,
 };
 
 const checkInSchema = z.object({
@@ -329,14 +331,14 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
                     {image ? (
                         <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                     ) : (
-                        cloneElement(equipmentIcons[asset.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="text-primary"/>, { className: 'w-16 h-16 text-primary/50' })
+                        cloneElement(equipmentTypeIcons[asset.type] || <Wrench className="text-primary"/>, { className: 'w-16 h-16 text-primary/50' })
                     )}
                 </div>
             </CardHeader>
             <CardContent className="p-4 flex-grow">
                  <div className="flex items-start justify-between">
                     <div className="flex flex-wrap gap-1">
-                        {asset.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                        <Badge variant="outline">{asset.type}</Badge>
                     </div>
                     <Badge variant={statusVariants[asset.status]}>{asset.status}</Badge>
                 </div>
@@ -604,4 +606,3 @@ export default function EquipmentPage() {
         </div>
     );
 }
-

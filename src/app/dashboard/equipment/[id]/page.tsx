@@ -8,8 +8,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inspectorAssets as allEquipment, InspectorAsset, EquipmentHistory, NDTTechniques } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package } from "lucide-react";
+import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs } from "@/lib/placeholder-data";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -27,6 +27,7 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -57,7 +58,7 @@ const equipmentSchema = z.object({
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
-const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: InspectorAsset, onSubmit: (values: EquipmentFormValues) => void, onCancel: () => void }) => {
+const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipment: InspectorAsset, allEquipment: InspectorAsset[], onSubmit: (values: EquipmentFormValues) => void, onCancel: () => void }) => {
     const form = useForm<EquipmentFormValues>({
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
@@ -71,7 +72,7 @@ const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: Inspector
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-    const possibleParents = React.useMemo(() => allEquipment.filter(e => e.id !== equipment.id && !e.parentId), [equipment.id]);
+    const possibleParents = React.useMemo(() => allEquipment.filter(e => e.id !== equipment.id && !e.parentId), [equipment.id, allEquipment]);
 
     React.useEffect(() => {
         return () => {
@@ -323,6 +324,82 @@ const EquipmentForm = ({ equipment, onSubmit, onCancel }: { equipment: Inspector
     );
 };
 
+const addComponentSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  techniques: z.array(z.string()).min(1, "At least one technique is required."),
+  manufacturer: z.string().optional(),
+  model: z.string().optional(),
+  serialNumber: z.string().optional(),
+  status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
+  nextCalibration: z.date(),
+  thumbnail: z.any().optional(),
+});
+type AddComponentFormValues = z.infer<typeof addComponentSchema>;
+
+const AddComponentForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: AddComponentFormValues) => void }) => {
+    const form = useForm<AddComponentFormValues>({
+        resolver: zodResolver(addComponentSchema),
+        defaultValues: { name: "", techniques: [], status: "Available", nextCalibration: new Date() },
+    });
+
+    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+     React.useEffect(() => {
+        return () => { if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview); };
+    }, [thumbnailPreview]);
+    
+    const handleFileChange = (file: File | null) => {
+        form.setValue('thumbnail', file);
+        if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setThumbnailPreview(URL.createObjectURL(file));
+                form.clearErrors('thumbnail');
+            } else {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+            }
+        } else { setThumbnailPreview(null); }
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
+    
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Component Name</FormLabel><FormControl><Input placeholder="e.g., 5MHz Phased Array Probe" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="manufacturer" render={({ field }) => (<FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Model</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+                 <FormField control={form.control} name="serialNumber" render={({ field }) => (<FormItem><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                 <FormField control={form.control} name="techniques" render={({ field }) => (
+                     <FormItem><FormLabel>Technique(s)</FormLabel>
+                         <Popover><PopoverTrigger asChild><FormControl><Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>{field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /></Button></FormControl></PopoverTrigger>
+                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0"><ScrollArea className="h-48"><div className="p-2">{NDTTechniques.map((tech) => (<div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
+                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.id)} onCheckedChange={(checked) => { return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));}}/>
+                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium w-full">{tech.name} ({tech.id})</label>
+                         </div>))}</div></ScrollArea></PopoverContent></Popover><FormMessage /></FormItem>
+                 )}/>
+                 <FormField control={form.control} name="nextCalibration" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Next Calibration Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)} />
+                 <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button><Button type="submit">Add Component</Button></DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
+
 const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
     'Available': 'success',
     'In Use': 'default',
@@ -351,11 +428,13 @@ export default function EquipmentDetailPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
-    
-    const [equipment, setEquipment] = useState(() => allEquipment.find(p => p.id === id));
+    const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
 
-    const childEquipment = useMemo(() => allEquipment.filter(e => e.parentId === id), [id]);
-    const parentEquipment = useMemo(() => allEquipment.find(e => e.id === equipment?.parentId), [equipment]);
+    const [allEquipment, setAllEquipment] = useState(initialEquipment);
+    const equipment = useMemo(() => allEquipment.find(p => p.id === id), [allEquipment, id]);
+    
+    const childEquipment = useMemo(() => allEquipment.filter(e => e.parentId === id), [id, allEquipment]);
+    const parentEquipment = useMemo(() => allEquipment.find(e => e.id === equipment?.parentId), [equipment, allEquipment]);
 
     if (!equipment) {
         notFound();
@@ -369,13 +448,36 @@ export default function EquipmentDetailPage() {
     }
 
     const handleFormSubmit = (values: EquipmentFormValues) => {
-        const updatedEquipment = { ...equipment, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') };
-        setEquipment(updatedEquipment);
+        setAllEquipment(prev => prev.map(eq => 
+            eq.id === equipment.id 
+                ? { ...eq, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') } 
+                : eq
+        ));
         toast({
             title: "Equipment Updated",
             description: `${equipment.name} has been updated.`,
         });
         setIsEditing(false);
+    };
+
+    const handleAddComponentSubmit = (values: AddComponentFormValues) => {
+        const newComponent: InspectorAsset = {
+            id: `COMP-${Date.now()}`,
+            providerId: equipment.providerId,
+            name: values.name,
+            techniques: values.techniques,
+            manufacturer: values.manufacturer,
+            model: values.model,
+            serialNumber: values.serialNumber,
+            status: values.status,
+            approvalStatus: 'Pending Approval',
+            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
+            parentId: equipment.id,
+            isPublic: false,
+        };
+        setAllEquipment(prev => [...prev, newComponent]);
+        toast({ title: "Component Added", description: `"${values.name}" is pending approval and has been added to this kit.` });
+        setIsAddComponentOpen(false);
     };
 
     if (isEditing) {
@@ -389,6 +491,7 @@ export default function EquipmentDetailPage() {
                     onSubmit={handleFormSubmit}
                     onCancel={() => setIsEditing(false)}
                     equipment={equipment}
+                    allEquipment={allEquipment}
                 />
             </div>
         )
@@ -554,7 +657,12 @@ export default function EquipmentDetailPage() {
                                 <CardContent>
                                     {childEquipment.length > 0 ? (
                                         <div>
-                                            <h3 className="font-semibold">Components in this Kit ({childEquipment.length})</h3>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-semibold">Components in this Kit ({childEquipment.length})</h3>
+                                                <Button onClick={() => setIsAddComponentOpen(true)} size="sm">
+                                                    <PlusCircle className="mr-2 h-4 w-4" /> Add Component
+                                                </Button>
+                                            </div>
                                             <p className="text-sm text-muted-foreground mb-4">This item is a parent system.</p>
                                             <div className="space-y-2">
                                                 {childEquipment.map(child => (
@@ -582,7 +690,12 @@ export default function EquipmentDetailPage() {
                                             </Link>
                                         </div>
                                     ) : (
-                                        <p className="text-muted-foreground">This is a standalone piece of equipment and is not part of a kit.</p>
+                                        <div className="text-center py-10 text-muted-foreground">
+                                            <p>This is a standalone piece of equipment and is not part of a kit.</p>
+                                            <Button onClick={() => setIsAddComponentOpen(true)} className="mt-4">
+                                                <PlusCircle className="mr-2 h-4 w-4" /> Create a Kit
+                                            </Button>
+                                        </div>
                                     )}
                                 </CardContent>
                             </Card>
@@ -590,6 +703,21 @@ export default function EquipmentDetailPage() {
                     </Tabs>
                 </div>
             </div>
+             <Dialog open={isAddComponentOpen} onOpenChange={setIsAddComponentOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Component to {equipment.name}</DialogTitle>
+                        <DialogDescription>
+                            Create a new equipment item that will be part of this kit. It will be submitted for approval.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <AddComponentForm
+                        onSubmit={handleAddComponentSubmit}
+                        onCancel={() => setIsAddComponentOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
+

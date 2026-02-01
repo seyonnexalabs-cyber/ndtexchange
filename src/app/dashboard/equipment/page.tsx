@@ -378,7 +378,7 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
 export default function EquipmentPage() {
     const usersProviderId = 'provider-03';
     
-    const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId));
+    const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId && !e.parentId));
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { toast } = useToast();
     const searchParams = useSearchParams();
@@ -604,3 +604,4 @@ export default function EquipmentPage() {
         </div>
     );
 }
+

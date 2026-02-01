@@ -28,18 +28,16 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { RadioTower, Cpu, Waves, Cable, Eye } from 'lucide-react';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        // This code runs only on the client, after the component has mounted.
         setFormattedDate(format(parseISO(timestamp), GLOBAL_DATETIME_FORMAT));
     }, [timestamp]);
 
-    // On the server and during the initial client render, formattedDate is null.
-    // We return a placeholder to prevent the mismatch.
     return <>{formattedDate || '...'}</>;
 };
 
@@ -129,221 +127,213 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Editing: {equipment.name}</CardTitle>
-                <CardDescription>Make changes to the equipment details below.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Instrument">Instrument</SelectItem>
-                                            <SelectItem value="Probe">Probe/Transducer</SelectItem>
-                                            <SelectItem value="Source">Source</SelectItem>
-                                            <SelectItem value="Sensor">Sensor/Detector</SelectItem>
-                                            <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
-                                            <SelectItem value="Accessory">Accessory</SelectItem>
-                                            <SelectItem value="Visual Aid">Visual Aid</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="parentId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Parent Equipment (Optional)</FormLabel>
-                                    <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Assign to a kit or system" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="none">None (Standalone Equipment)</SelectItem>
-                                            {possibleParents.map(parent => (
-                                                 <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="manufacturer"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Manufacturer (Optional)</FormLabel>
-                                        <FormControl><Input placeholder="e.g., Olympus" {...field} value={field.value || ''} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="model"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Model (Optional)</FormLabel>
-                                        <FormControl><Input placeholder="e.g., 45MG" {...field} value={field.value || ''} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <FormField
-                            control={form.control}
-                            name="serialNumber"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Serial Number (Optional)</FormLabel>
-                                    <FormControl><Input placeholder="e.g., SN-12345" {...field} value={field.value || ''} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="techniques"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Technique(s)</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>
-                                            {field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                            <ScrollArea className="h-48"><div className="p-2">
-                                                {NDTTechniques.map((tech) => (
-                                                <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
-                                                    <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.id)} onCheckedChange={(checked) => {
-                                                        return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));
-                                                    }}/>
-                                                    <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.name} ({tech.id})</label>
-                                                </div>
-                                                ))}
-                                            </div></ScrollArea>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Status</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Available">Available</SelectItem>
-                                            <SelectItem value="In Use">In Use</SelectItem>
-                                            <SelectItem value="Calibration Due">Calibration Due</SelectItem>
-                                            <SelectItem value="Out of Service">Out of Service</SelectItem>
-                                            <SelectItem value="Under Service">Under Service</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="nextCalibration"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                <FormLabel>Next Calibration Date</FormLabel>
-                                <FormControl><CustomDateInput {...field} /></FormControl>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )}
+                />
+                    <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Instrument">Instrument</SelectItem>
+                                    <SelectItem value="Probe">Probe/Transducer</SelectItem>
+                                    <SelectItem value="Source">Source</SelectItem>
+                                    <SelectItem value="Sensor">Sensor/Detector</SelectItem>
+                                    <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
+                                    <SelectItem value="Accessory">Accessory</SelectItem>
+                                    <SelectItem value="Visual Aid">Visual Aid</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                    <FormField
+                    control={form.control}
+                    name="parentId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Parent Equipment (Optional)</FormLabel>
+                            <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Assign to a kit or system" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="none">None (Standalone Equipment)</SelectItem>
+                                    {possibleParents.map(parent => (
+                                            <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="manufacturer"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Manufacturer (Optional)</FormLabel>
+                                <FormControl><Input placeholder="e.g., Olympus" {...field} value={field.value || ''} /></FormControl>
                                 <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="thumbnail"
-                            render={() => (
-                                <FormItem>
-                                    <FormLabel>Thumbnail Image</FormLabel>
-                                     <div
-                                        onDragEnter={handleDragEnter}
-                                        onDragLeave={handleDragLeave}
-                                        onDragOver={handleDragOver}
-                                        onDrop={handleDrop}
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className={cn(
-                                            "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
-                                            isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
-                                        )}
-                                    >
-                                        {thumbnailPreview ? (
-                                            <>
-                                                <Image
-                                                    src={thumbnailPreview}
-                                                    alt="Thumbnail preview"
-                                                    fill
-                                                    className="object-contain rounded-md p-2"
-                                                />
-                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
-                                                    <p className="text-white font-semibold">Click or drag to replace</p>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <p>Click or drag &amp; drop to upload thumbnail</p>
-                                        )}
-                                        <FormControl>
-                                            <Input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                                            />
-                                        </FormControl>
-                                    </div>
-                                    <FormDescription>
-                                        This image will be used as the display card for the equipment.
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                            <Button type="submit">Save Changes</Button>
-                        </div>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="model"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Model (Optional)</FormLabel>
+                                <FormControl><Input placeholder="e.g., 45MG" {...field} value={field.value || ''} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <FormField
+                    control={form.control}
+                    name="serialNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Serial Number (Optional)</FormLabel>
+                            <FormControl><Input placeholder="e.g., SN-12345" {...field} value={field.value || ''} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                    <FormField
+                    control={form.control}
+                    name="techniques"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Technique(s)</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>
+                                    {field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <ScrollArea className="h-48"><div className="p-2">
+                                        {NDTTechniques.map((tech) => (
+                                        <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
+                                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.id)} onCheckedChange={(checked) => {
+                                                return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));
+                                            }}/>
+                                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.name} ({tech.id})</label>
+                                        </div>
+                                        ))}
+                                    </div></ScrollArea>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Available">Available</SelectItem>
+                                    <SelectItem value="In Use">In Use</SelectItem>
+                                    <SelectItem value="Calibration Due">Calibration Due</SelectItem>
+                                    <SelectItem value="Out of Service">Out of Service</SelectItem>
+                                    <SelectItem value="Under Service">Under Service</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="nextCalibration"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Next Calibration Date</FormLabel>
+                        <FormControl><CustomDateInput {...field} /></FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="thumbnail"
+                    render={() => (
+                        <FormItem>
+                            <FormLabel>Thumbnail Image</FormLabel>
+                                <div
+                                onDragEnter={handleDragEnter}
+                                onDragLeave={handleDragLeave}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={cn(
+                                    "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                )}
+                            >
+                                {thumbnailPreview ? (
+                                    <>
+                                        <Image
+                                            src={thumbnailPreview}
+                                            alt="Thumbnail preview"
+                                            fill
+                                            className="object-contain rounded-md p-2"
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                            <p className="text-white font-semibold">Click or drag to replace</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p>Click or drag &amp; drop to upload thumbnail</p>
+                                )}
+                                <FormControl>
+                                    <Input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                    />
+                                </FormControl>
+                            </div>
+                            <FormDescription>
+                                This image will be used as the display card for the equipment.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+            </form>
+        </Form>
     );
 };
 
@@ -812,36 +802,40 @@ export default function EquipmentDetailPage() {
                 </div>
             </div>
              <Dialog open={isAddComponentOpen} onOpenChange={setIsAddComponentOpen}>
-                <DialogContent>
-                    <DialogHeader>
+                <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>Add Component to {equipment.name}</DialogTitle>
                         <DialogDescription>
                             Create a new equipment item that will be part of this kit. It will be submitted for approval.
                         </DialogDescription>
                     </DialogHeader>
-                    <AddComponentForm
-                        onSubmit={handleAddComponentSubmit}
-                        onCancel={() => setIsAddComponentOpen(false)}
-                    />
+                    <div className="flex-grow overflow-y-auto px-6">
+                        <AddComponentForm
+                            onSubmit={handleAddComponentSubmit}
+                            onCancel={() => setIsAddComponentOpen(false)}
+                        />
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={!!editingComponent} onOpenChange={(open) => !open && setEditingComponent(null)}>
-                <DialogContent>
-                    <DialogHeader>
+                <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>Edit Component: {editingComponent?.name}</DialogTitle>
                         <DialogDescription>
                             Update the component's details below.
                         </DialogDescription>
                     </DialogHeader>
-                    {editingComponent && (
-                         <EquipmentForm
-                            onSubmit={handleComponentFormSubmit}
-                            onCancel={() => setEditingComponent(null)}
-                            equipment={editingComponent}
-                            allEquipment={allEquipment}
-                        />
-                    )}
+                    <div className="flex-grow overflow-y-auto px-6">
+                        {editingComponent && (
+                            <EquipmentForm
+                                onSubmit={handleComponentFormSubmit}
+                                onCancel={() => setEditingComponent(null)}
+                                equipment={editingComponent}
+                                allEquipment={allEquipment}
+                            />
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

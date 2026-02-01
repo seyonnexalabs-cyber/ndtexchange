@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -511,6 +511,31 @@ export default function EquipmentDetailPage() {
                 </div>
             </div>
 
+            {parentEquipment ? (
+                <div className="mb-6">
+                    <div className="mb-2 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                        <Link href={constructUrl(`/dashboard/equipment/${parentEquipment.id}`)} className="hover:text-primary">
+                            {parentEquipment.name}
+                        </Link>
+                        <ChevronRight className="h-4 w-4" />
+                    </div>
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <Wrench className="h-6 w-6 text-primary" />
+                        {equipment.name}
+                    </h1>
+                    <p className="font-extrabold text-sm text-muted-foreground">ID: {equipment.id}</p>
+                </div>
+            ) : (
+                <div className="mb-6">
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <Wrench className="h-6 w-6 text-primary" />
+                        {equipment.name}
+                    </h1>
+                    <p className="font-extrabold text-sm text-muted-foreground">ID: {equipment.id}</p>
+                </div>
+            )}
+
+
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
@@ -520,15 +545,8 @@ export default function EquipmentDetailPage() {
                                     <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                                 </div>
                             )}
-                             <div className="p-6">
-                                <CardTitle className="flex items-center gap-3 font-headline">
-                                    <Wrench className="h-6 w-6 text-primary" />
-                                    {equipment.name}
-                                </CardTitle>
-                                <CardDescription>ID: <span className="font-extrabold text-foreground">{equipment.id}</span></CardDescription>
-                            </div>
                         </CardHeader>
-                        <CardContent className="space-y-4 text-sm p-6 pt-0">
+                        <CardContent className="space-y-4 text-sm p-6">
                             <div className="flex items-start">
                                 <Info className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>

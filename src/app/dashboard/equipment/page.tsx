@@ -561,7 +561,7 @@ export default function EquipmentPage() {
                             )}
                         </div>
                     </div>
-                    <DialogFooter className="non-printable">
+                    <DialogFooter>
                         <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
                             Close
                         </Button>

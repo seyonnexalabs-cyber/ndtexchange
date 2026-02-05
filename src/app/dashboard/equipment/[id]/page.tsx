@@ -665,7 +665,7 @@ export default function EquipmentDetailPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <Card className="non-printable">
+                    <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3">
                                 <QrCode className="h-5 w-5 text-primary" />
@@ -845,4 +845,5 @@ export default function EquipmentDetailPage() {
 }
 
     
+
 

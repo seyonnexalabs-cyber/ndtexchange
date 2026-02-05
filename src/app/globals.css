@@ -160,9 +160,6 @@
       top: 50%;
       transform: translate(-50%, -50%);
     }
-    .non-printable {
-        display: none;
-    }
   }
 }
 

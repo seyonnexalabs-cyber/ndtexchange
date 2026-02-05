@@ -166,7 +166,7 @@ const ClientAssetsView = ({ assets, onApprove, onReject }: { assets: Asset[], on
                             )}
                         </div>
                     </div>
-                    <DialogFooter className="non-printable">
+                    <DialogFooter>
                         <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
                             Close
                         </Button>

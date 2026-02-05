@@ -229,38 +229,68 @@ const ClientDashboard = () => {
                     <CardDescription>Your upcoming scheduled jobs.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Job ID</TableHead>
-                                <TableHead>Job Title</TableHead>
-                                <TableHead>Provider</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    {isMobile ? (
+                        <div className="space-y-4">
                             {schedule.map(job => (
-                                <TableRow key={job.id}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-2">
-                                          <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                          {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
-                                    <TableCell>{job.title}</TableCell>
-                                    <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button asChild variant="outline" size="sm">
+                                <Card key={job.id}>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">{job.title}</CardTitle>
+                                        <CardDescription>
+                                            <div className="flex items-center gap-2">
+                                              <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                              {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                            </div>
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="text-sm space-y-1">
+                                        <p><strong>Provider:</strong> {serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</p>
+                                        <p><strong>Job ID:</strong> <span className="font-extrabold">{job.id}</span></p>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button asChild variant="outline" size="sm" className="w-full">
                                             <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
                                         </Button>
-                                    </TableCell>
-                                </TableRow>
+                                    </CardFooter>
+                                </Card>
                             ))}
-                            {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
-                        </TableBody>
-                    </Table>
+                            {schedule.length === 0 && (
+                                <div className="h-24 text-center text-muted-foreground flex items-center justify-center">No jobs scheduled in the next 7 days.</div>
+                            )}
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Job ID</TableHead>
+                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Provider</TableHead>
+                                    <TableHead className="text-right">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {schedule.map(job => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                              <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                              {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                        <TableCell>{job.title}</TableCell>
+                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </div>
@@ -701,5 +731,3 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
-    

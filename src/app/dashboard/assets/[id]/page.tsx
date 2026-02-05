@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useRef } from "react";
@@ -6,7 +5,7 @@ import { assets, jobs, clientAssets, Asset, AssetUpdate } from "@/lib/placeholde
 import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
@@ -871,5 +870,3 @@ export default function AssetDetailPage() {
         </div>
     );
 }
-
-    

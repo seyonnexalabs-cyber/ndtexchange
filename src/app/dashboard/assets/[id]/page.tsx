@@ -340,6 +340,7 @@ const checkLogSchema = z.object({
   checkType: z.enum(['Daily Visual', 'Weekly Operational', 'Monthly Safety Check']),
   issuesFound: z.boolean().default(false).optional(),
   notes: z.string().optional(),
+  photo: z.any().optional(),
 });
 
 const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeof checkLogSchema>) => void, onCancel: () => void }) => {
@@ -347,6 +348,48 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
         resolver: zodResolver(checkLogSchema),
         defaultValues: { checkType: 'Daily Visual', issuesFound: false, notes: '' },
     });
+
+    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (photoPreview) {
+                URL.revokeObjectURL(photoPreview);
+            }
+        };
+    }, [photoPreview]);
+    
+    const handleFileChange = (file: File | null) => {
+        form.setValue('photo', file);
+        if (photoPreview) {
+            URL.revokeObjectURL(photoPreview);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setPhotoPreview(URL.createObjectURL(file));
+                form.clearErrors('photo');
+            } else {
+                setPhotoPreview(null);
+                form.setError('photo', { type: 'manual', message: 'Only image files are accepted.' });
+            }
+        } else {
+            setPhotoPreview(null);
+        }
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileChange(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
+
 
     return (
         <Form {...form}>
@@ -377,7 +420,7 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
                             <div className="space-y-0.5">
                                 <FormLabel>Any Issues Found?</FormLabel>
                                 <FormDescription>
-                                    Check this box if any issues were discovered during the check.
+                                    Check this box if any issues were discovered during the check. This will update the asset status.
                                 </FormDescription>
                             </div>
                             <FormControl>
@@ -395,6 +438,49 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
                             <FormControl>
                                 <Textarea placeholder="Describe the condition or any issues found..." {...field} />
                             </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="photo"
+                    render={() => (
+                        <FormItem>
+                            <FormLabel>Attach Photo (Optional)</FormLabel>
+                                <div
+                                onDragEnter={handleDragEnter}
+                                onDragLeave={handleDragLeave}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={cn(
+                                    "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                )}
+                            >
+                                {photoPreview ? (
+                                    <>
+                                        <Image src={photoPreview} alt="Photo preview" fill className="object-contain rounded-md p-2" />
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                            <p className="text-white font-semibold">Click or drag to replace</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p>Click or drag & drop to upload photo</p>
+                                )}
+                                <FormControl>
+                                    <Input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                    />
+                                </FormControl>
+                            </div>
+                            <FormDescription>Useful for documenting any issues found.</FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -523,15 +609,26 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     const handleCheckLogSubmit = (values: z.infer<typeof checkLogSchema>) => {
         if (!asset) return;
 
+        let newStatus = asset.status;
+        if (values.issuesFound) {
+            newStatus = 'Requires Inspection';
+        }
+
         const newHistoryEntry: AssetUpdate = {
             user: 'John Doe', // Placeholder user
             timestamp: new Date().toISOString(),
             action: `Routine Check Logged: ${values.checkType}`,
             details: `Issues Found: ${values.issuesFound ? 'Yes' : 'No'}. Notes: ${values.notes || 'N/A'}`
         };
+        
+        if (values.photo) {
+            console.log("Photo attached to check log:", values.photo);
+            // In a real app, you would upload this photo and add the URL to the history entry.
+        }
 
         const updatedAsset = {
             ...asset,
+            status: newStatus,
             history: [newHistoryEntry, ...(asset.history || [])]
         };
         setAsset(updatedAsset as Asset);

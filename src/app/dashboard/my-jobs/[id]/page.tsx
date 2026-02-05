@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -7,14 +8,14 @@ import { notFound, useSearchParams, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
+import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, AlertTriangle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,6 +38,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -367,7 +369,21 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
             </CardFooter>
         </Card>
     );
-}
+};
+
+const StarRating = ({ rating }: { rating: number }) => {
+    return (
+        <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+                <Star
+                    key={i}
+                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
+                />
+            ))}
+            <span className="ml-2 text-xs text-muted-foreground">{rating.toFixed(1)}</span>
+        </div>
+    );
+};
 
 export default function JobDetailPage() {
     const params = useParams();
@@ -383,6 +399,7 @@ export default function JobDetailPage() {
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
     const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+    const [reviewingBid, setReviewingBid] = useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
 
     const [tempSelectedTechs, setTempSelectedTechs] = useState<string[]>([]);
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
@@ -492,6 +509,13 @@ export default function JobDetailPage() {
             title: "Job Awarded!",
             description: `${provider?.name} has been awarded the job: ${jobDetails.title}.`,
         });
+    };
+
+    const handleReviewBid = (bid: Bid) => {
+        const provider = serviceProviders.find(p => p.id === bid.providerId);
+        if (provider) {
+            setReviewingBid({ ...bid, provider });
+        }
     };
     
     const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
@@ -674,7 +698,7 @@ export default function JobDetailPage() {
                                         <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
                                         <p className="text-xs text-muted-foreground">Submitted on {format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</p>
                                     </div>
-                                    {isClient && <Button onClick={() => handleAwardBid(bid.id, bid.providerId)}>Award Job</Button>}
+                                    {isClient && <Button onClick={() => handleReviewBid(bid)}>Review Bid</Button>}
                                 </div>
                             </div>
                         )
@@ -1085,6 +1109,76 @@ export default function JobDetailPage() {
                                 scheduledEndDate: jobDetails.scheduledEndDate ? parseISO(jobDetails.scheduledEndDate) : undefined,
                             }}
                         />
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={!!reviewingBid} onOpenChange={(open) => !open && setReviewingBid(null)}>
+                    <DialogContent className="sm:max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Review Bid</DialogTitle>
+                            {reviewingBid?.provider && (
+                                <DialogDescription>
+                                From {reviewingBid.provider.name} for job: {jobDetails.title}
+                                </DialogDescription>
+                            )}
+                        </DialogHeader>
+                        {reviewingBid && (
+                        <div className="space-y-6 py-4">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={reviewingBid.provider.logoUrl} alt={`${reviewingBid.provider.name} logo`} data-ai-hint={`${reviewingBid.provider.name} logo`} />
+                                    <AvatarFallback className="text-xl">{reviewingBid.provider.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h3 className="text-lg font-bold">{reviewingBid.provider.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{reviewingBid.provider.location}</p>
+                                    <StarRating rating={reviewingBid.provider.rating} />
+                                </div>
+                            </div>
+                            <Separator />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Bid Amount</Label>
+                                    <p className="text-2xl font-bold">${reviewingBid.amount.toLocaleString()}</p>
+                                </div>
+                                <div>
+                                    <Label>Date Submitted</Label>
+                                    <p>{format(new Date(reviewingBid.submittedDate), GLOBAL_DATE_FORMAT)}</p>
+                                </div>
+                            </div>
+                            {reviewingBid.proposedTechnique && reviewingBid.proposedTechnique !== jobDetails.technique && (
+                                <div>
+                                    <Label>Proposed Technique Change</Label>
+                                    <Alert variant="destructive" className="mt-2">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <AlertTitle>New Technique Proposed: <Badge variant="outline">{reviewingBid.proposedTechnique}</Badge></AlertTitle>
+                                        <AlertDescription>{reviewingBid.proposalJustification || "No justification provided."}</AlertDescription>
+                                    </Alert>
+                                </div>
+                            )}
+                            <div>
+                                <Label>Provider Comments</Label>
+                                <p className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border min-h-[60px] mt-2">
+                                    {reviewingBid.comments || "No comments provided."}
+                                </p>
+                            </div>
+                            <div>
+                                <Label>Attached Documents</Label>
+                                <p className="text-sm text-muted-foreground mt-2">Provider documents would be listed here for download.</p>
+                            </div>
+                        </div>
+                        )}
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setReviewingBid(null)}>Close</Button>
+                            <Button onClick={() => {
+                                if (reviewingBid) {
+                                    handleAwardBid(reviewingBid.id, reviewingBid.providerId);
+                                }
+                                setReviewingBid(null);
+                            }}>
+                                <Award className="mr-2 h-4 w-4" /> Award Job to {reviewingBid?.provider?.name}
+                            </Button>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
 

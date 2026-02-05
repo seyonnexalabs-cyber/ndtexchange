@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { LifeBuoy, MessageSquare, Send } from 'lucide-react';
-import { ACCEPTED_FILE_TYPES, cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { LifeBuoy, MessageSquare, Send, BookOpen } from 'lucide-react';
+import { ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
 import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -19,6 +19,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSearchParams } from 'next/navigation';
 import { allUsers, supportThreads, SupportThread, SupportMessage, PlatformUser } from '@/lib/placeholder-data';
 import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ClientMaintenanceWorkflow from './components/client-maintenance-workflow';
 
 const supportSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters.'),
@@ -105,113 +107,134 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <LifeBuoy className="w-8 h-8 text-primary" />
         <div>
-            <h1 className="text-2xl font-headline font-semibold">Contact Support</h1>
+            <h1 className="text-2xl font-headline font-semibold">Support Center</h1>
             <p className="text-muted-foreground">
-            Have a question or need help? Choose an option below.
+                Get help with the platform, ask questions, and find guides.
             </p>
         </div>
       </div>
 
-       <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-3"><MessageSquare className="text-primary" /> Live Chat Support</CardTitle>
-                <CardDescription>Need immediate assistance? Our support agents are available to help you in real-time.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button onClick={handleStartChat}>Start Live Chat</Button>
-            </CardContent>
-        </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Submit a Support Request</CardTitle>
-          <CardDescription>For non-urgent issues, please fill out the form below. Our team will review your request and respond as soon as possible.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="subject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Trouble uploading inspection report" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+       <Tabs defaultValue="guides" className="w-full">
+            <TabsList>
+                <TabsTrigger value="guides"><BookOpen className="mr-2 h-4 w-4" /> Workflow Guides</TabsTrigger>
+                <TabsTrigger value="ticket"><Send className="mr-2 h-4 w-4" /> Submit a Ticket</TabsTrigger>
+                <TabsTrigger value="chat"><MessageSquare className="mr-2 h-4 w-4" /> Live Chat</TabsTrigger>
+            </TabsList>
+            <TabsContent value="guides" className="mt-4">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Client Maintenance Workflow</CardTitle>
+                        <CardDescription>A guide to how client-side maintenance activities are carried out within the NDT Exchange app.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ClientMaintenanceWorkflow />
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="ticket" className="mt-4">
+                <Card>
+                    <CardHeader>
+                    <CardTitle>Submit a Support Request</CardTitle>
+                    <CardDescription>For non-urgent issues, please fill out the form below. Our team will review your request and respond as soon as possible.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="subject"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Subject</FormLabel>
+                                <FormControl>
+                                <Input placeholder="e.g., Trouble uploading inspection report" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
 
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="technical-issue">Technical Issue</SelectItem>
-                        <SelectItem value="billing-inquiry">Billing Inquiry</SelectItem>
-                        <SelectItem value="general-question">General Question</SelectItem>
-                        <SelectItem value="feature-request">Feature Request</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                    <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="technical-issue">Technical Issue</SelectItem>
+                                    <SelectItem value="billing-inquiry">Billing Inquiry</SelectItem>
+                                    <SelectItem value="general-question">General Question</SelectItem>
+                                    <SelectItem value="feature-request">Feature Request</SelectItem>
+                                </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Please describe the issue in detail. Include any steps to reproduce it."
-                        className="min-h-[150px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                <Textarea
+                                    placeholder="Please describe the issue in detail. Include any steps to reproduce it."
+                                    className="min-h-[150px]"
+                                    {...field}
+                                />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
 
-              <FormField
-                control={form.control}
-                name="attachment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Attach a File (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="file" accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files?.[0])} />
-                    </FormControl>
-                    <FormDescription>
-                        Max file size: 10MB.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        <FormField
+                            control={form.control}
+                            name="attachment"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Attach a File (Optional)</FormLabel>
+                                <FormControl>
+                                <Input type="file" accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files?.[0])} />
+                                </FormControl>
+                                <FormDescription>
+                                    Max file size: 10MB.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
 
-              <Button type="submit">Submit Request</Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                        <Button type="submit">Submit Request</Button>
+                        </form>
+                    </Form>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="chat" className="mt-4">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Live Chat Support</CardTitle>
+                        <CardDescription>Need immediate assistance? Our support agents are available to help you in real-time.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button onClick={handleStartChat}>Start Live Chat</Button>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
       
       <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
         <DialogContent className="sm:max-w-lg h-[70vh] flex flex-col p-0">

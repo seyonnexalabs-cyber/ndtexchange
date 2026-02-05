@@ -21,6 +21,10 @@ import { allUsers, supportThreads, SupportThread, SupportMessage, PlatformUser }
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientMaintenanceWorkflow from './components/client-maintenance-workflow';
+import InspectorWorkflow from './components/inspector-workflow';
+import AuditorWorkflow from './components/auditor-workflow';
+import AdminWorkflow from './components/admin-workflow';
+
 
 const supportSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters.'),
@@ -34,8 +38,7 @@ export default function SupportPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
-  const isClient = role === 'client';
-
+  
   const currentUser = useMemo(() => {
     const userMap: { [key: string]: PlatformUser | undefined } = {
       client: allUsers.find(u => u.id === 'user-client-01'),
@@ -88,6 +91,31 @@ export default function SupportPage() {
     setCurrentThread(updatedThread);
     setNewMessage('');
   };
+
+  const roleGuides: { [key: string]: { component: React.ComponentType, title: string, description: string } } = {
+        client: {
+            component: ClientMaintenanceWorkflow,
+            title: 'Client Maintenance Workflow',
+            description: 'A guide to how client-side maintenance activities are carried out within the NDT Exchange app.'
+        },
+        inspector: {
+            component: InspectorWorkflow,
+            title: 'Provider Workflow Guide',
+            description: 'A guide for service providers on managing resources, finding jobs, and completing work on the platform.'
+        },
+        auditor: {
+            component: AuditorWorkflow,
+            title: 'Auditor Workflow Guide',
+            description: 'An overview of the process for reviewing and approving inspection reports.'
+        },
+        admin: {
+            component: AdminWorkflow,
+            title: 'Platform Administration Guide',
+            description: 'A summary of key administrative functions and responsibilities.'
+        },
+    };
+
+  const currentGuide = roleGuides[role];
   
   const form = useForm<z.infer<typeof supportSchema>>({
     resolver: zodResolver(supportSchema),
@@ -119,21 +147,21 @@ export default function SupportPage() {
         </div>
       </div>
 
-       <Tabs defaultValue={isClient ? "guides" : "ticket"} className="w-full">
+       <Tabs defaultValue={currentGuide ? "guides" : "ticket"} className="w-full">
             <TabsList>
-                {isClient && <TabsTrigger value="guides"><BookOpen className="mr-2 h-4 w-4" /> Workflow Guides</TabsTrigger>}
+                {currentGuide && <TabsTrigger value="guides"><BookOpen className="mr-2 h-4 w-4" /> Workflow Guides</TabsTrigger>}
                 <TabsTrigger value="ticket"><Send className="mr-2 h-4 w-4" /> Submit a Ticket</TabsTrigger>
                 <TabsTrigger value="chat"><MessageSquare className="mr-2 h-4 w-4" /> Live Chat</TabsTrigger>
             </TabsList>
-            {isClient && (
+            {currentGuide && (
                 <TabsContent value="guides" className="mt-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Client Maintenance Workflow</CardTitle>
-                            <CardDescription>A guide to how client-side maintenance activities are carried out within the NDT Exchange app.</CardDescription>
+                            <CardTitle>{currentGuide.title}</CardTitle>
+                            <CardDescription>{currentGuide.description}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ClientMaintenanceWorkflow />
+                            <currentGuide.component />
                         </CardContent>
                     </Card>
                 </TabsContent>

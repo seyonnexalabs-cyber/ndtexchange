@@ -39,7 +39,7 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
         <CardTitle className="text-xl font-headline">{plan}</CardTitle>
         <div className="pt-2">
             <span className="text-3xl font-bold">{price}</span>
-             {(price.startsWith("₹") && !price.includes("event")) && <span className="text-sm text-muted-foreground"> / month</span>}
+             {(price.startsWith("$") && !price.includes("event")) && <span className="text-sm text-muted-foreground"> / month</span>}
         </div>
         <CardDescription className="pt-2 !mt-2">{description}</CardDescription>
       </CardHeader>
@@ -115,7 +115,7 @@ export default function ContactPage() {
                     <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
                         <PricingCard
                             plan="Client Access (MVP)"
-                            price="₹0 – ₹3,000"
+                            price="$0 – $3,000"
                             description="Best for: Plants, EPCs, pilot teams"
                             features={[
                                 "Asset registry (up to 200 assets)",
@@ -128,7 +128,7 @@ export default function ContactPage() {
                         />
                         <PricingCard
                             plan="Client Plus"
-                            price="₹5,000 – ₹8,000"
+                            price="$5,000 – $8,000"
                             description="Best for: Multi-vendor operations"
                             features={[
                                 "Everything in Client Access, plus:",
@@ -154,7 +154,7 @@ export default function ContactPage() {
                     <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                          <PricingCard
                             plan="Individual Inspector"
-                            price="₹1,500"
+                            price="$1,500"
                             description="Per inspector"
                             features={[
                                 "Job assignments",
@@ -166,7 +166,7 @@ export default function ContactPage() {
                         />
                         <PricingCard
                             plan="NDT Company"
-                            price="₹5,000"
+                            price="$5,000"
                             description="Per company"
                             features={[
                                 "Up to 5 inspectors",
@@ -181,7 +181,7 @@ export default function ContactPage() {
                         />
                         <PricingCard
                             plan="Company Growth"
-                            price="₹10,000"
+                            price="$10,000"
                             description="Per company"
                             features={[
                                 "Up to 15 inspectors",
@@ -234,7 +234,7 @@ export default function ContactPage() {
                 <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
                     <div className="border p-6 rounded-lg">
                         <h3 className="font-semibold text-xl">Job Listings & Bidding</h3>
-                        <p className="text-3xl font-bold mt-2">₹0 – FREE (MVP)</p>
+                        <p className="text-3xl font-bold mt-2">$0 – FREE (MVP)</p>
                         <ul className="mt-4 space-y-2 text-muted-foreground">
                             <li>Post jobs</li>
                             <li>Submit bids</li>
@@ -263,7 +263,7 @@ export default function ContactPage() {
                 </div>
                  <Card className="max-w-2xl mx-auto bg-accent/10 border-accent">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-2xl text-accent">₹25,000 per shutdown event</CardTitle>
+                        <CardTitle className="text-2xl text-accent">$25,000 per shutdown event</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ul className="mx-auto max-w-md space-y-3">

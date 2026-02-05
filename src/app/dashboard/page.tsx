@@ -6,8 +6,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer, Line, LineChart, LabelList } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
@@ -299,10 +297,10 @@ const ClientDashboard = () => {
                     {uniqueLocations.map(location => {
                         const filteredAssets = currentClientAssets.filter(a => a.location === location);
                         const assetStatusDataForLocation = [
-                            { status: "Operational", key: "operational", count: filteredAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
-                            { status: "Requires Inspection", key: "inspection", count: filteredAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
-                            { status: "Under Repair", key: "repair", count: filteredAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
-                        ].filter(item => item.count > 0);
+                            { name: "Operational", count: filteredAssets.filter(a => a.status === 'Operational').length, key: "operational" },
+                            { name: "Requires Inspection", count: filteredAssets.filter(a => a.status === 'Requires Inspection').length, key: "inspection" },
+                            { name: "Under Repair", count: filteredAssets.filter(a => a.status === 'Under Repair').length, key: "repair" },
+                        ];
 
                         return (
                              <Card key={location} className="flex flex-col">
@@ -310,21 +308,20 @@ const ClientDashboard = () => {
                                     <CardTitle>{location}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex-grow flex items-center justify-center">
-                                    {assetStatusDataForLocation.length > 0 ? (
-                                        <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
-                                            <PieChart>
-                                                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                                                <Pie data={assetStatusDataForLocation} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
-                                                    {assetStatusDataForLocation.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
-                                                    <LabelList
-                                                        dataKey="count"
-                                                        className="fill-background font-semibold"
-                                                        stroke="none"
-                                                        fontSize={12}
-                                                    />
-                                                </Pie>
-                                                <ChartLegend content={<ChartLegendContent nameKey="key" />} className="-mt-4" />
-                                            </PieChart>
+                                    {filteredAssets.length > 0 ? (
+                                        <ChartContainer config={clientChartConfig} className="h-[250px] w-full">
+                                            <BarChart data={assetStatusDataForLocation} accessibilityLayer>
+                                                <CartesianGrid vertical={false} />
+                                                <XAxis dataKey="name" tickFormatter={(value) => value.substring(0, 3)} tickLine={false} tickMargin={10} axisLine={false} />
+                                                <YAxis />
+                                                <ChartTooltip content={<ChartTooltipContent />} />
+                                                <Bar dataKey="count" radius={4}>
+                                                    <LabelList position="top" offset={4} className="fill-foreground" fontSize={12} />
+                                                    {assetStatusDataForLocation.map((entry) => (
+                                                        <Cell key={entry.key} fill={`var(--color-${entry.key})`} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
                                         </ChartContainer>
                                     ) : (
                                         <div className="h-[250px] w-full flex items-center justify-center text-center text-muted-foreground p-4">

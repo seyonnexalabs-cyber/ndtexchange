@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if a user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Example: Allow authenticated users to read and write to a 'jobs' collection
+    // In a real application, you would add more granular rules.
+    // For example, only the client who created the job or the assigned provider can read/write it.
+    match /jobs/{jobId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Example: Allow authenticated users to manage their own data in a 'users' collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}

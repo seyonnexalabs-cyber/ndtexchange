@@ -20,7 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-// New pricing card component based on the user's new specs.
 function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
   plan: string;
   price: string;
@@ -267,7 +266,7 @@ export default function ContactPage() {
               Start free. Scale as your inspections, teams, and projects grow.
             </p>
              <p className="mt-4 text-sm text-muted-foreground">
-                14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level‑III free during MVP
+                14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level‑III are free.
             </p>
             <div className="mt-8 flex justify-center gap-4">
                 <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
@@ -309,8 +308,8 @@ export default function ContactPage() {
                         </div>
                         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
                             <PricingCard
-                                plan="Client Access (MVP)"
-                                price="Free during MVP"
+                                plan="Client Access"
+                                price="Free"
                                 description="Best for: Plants, EPCs, pilot teams"
                                 features={[
                                     "Asset registry (up to 200 assets)",
@@ -408,7 +407,7 @@ export default function ContactPage() {
                         </div>
                         <Card className="max-w-4xl mx-auto">
                             <CardHeader className="text-center">
-                                <CardTitle className="text-2xl">FREE during MVP</CardTitle>
+                                <CardTitle className="text-2xl">Free Access</CardTitle>
                             </CardHeader>
                             <CardContent>
                                  <ul className="mx-auto max-w-md space-y-3 text-center">
@@ -439,7 +438,7 @@ export default function ContactPage() {
                 <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
                     <div className="border p-6 rounded-lg">
                         <h3 className="font-semibold text-xl">Job Listings & Bidding</h3>
-                        <p className="text-3xl font-bold mt-2">FREE (MVP)</p>
+                        <p className="text-3xl font-bold mt-2">FREE</p>
                         <ul className="mt-4 space-y-2 text-muted-foreground">
                             <li>Post jobs</li>
                             <li>Submit bids</li>
@@ -454,7 +453,7 @@ export default function ContactPage() {
                             <li>2% success fee on awarded jobs (after pilot phase)</li>
                             <li>Premium access options later</li>
                         </ul>
-                        <p className="mt-4 text-xs italic text-muted-foreground">No commissions during MVP. We grow only when you grow.</p>
+                        <p className="mt-4 text-xs italic text-muted-foreground">No commissions during the pilot phase. We grow only when you grow.</p>
                     </div>
                 </div>
             </div>
@@ -533,7 +532,7 @@ export default function ContactPage() {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Do clients have to pay?</AccordionTrigger>
                         <AccordionContent>
-                        Client access is free or nominal during MVP.
+                        Client access is free or nominal during our initial launch period.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-2">
@@ -545,13 +544,13 @@ export default function ContactPage() {
                     <AccordionItem value="item-3">
                         <AccordionTrigger>When do commissions start?</AccordionTrigger>
                         <AccordionContent>
-                        After successful MVP adoption.
+                        After a successful pilot phase. We will provide ample notice.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-4">
                         <AccordionTrigger>Can pricing change later?</AccordionTrigger>
                         <AccordionContent>
-                        Early users will be grandfathered.
+                        Early users will be grandfathered into favorable pricing.
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

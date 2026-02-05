@@ -1,4 +1,3 @@
-
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,6 +45,11 @@ export default function PostJobPage() {
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
     const documentsInputRef = React.useRef<HTMLInputElement>(null);
 
+    const [assetNameFilter, setAssetNameFilter] = React.useState('');
+    const [assetLocationFilter, setAssetLocationFilter] = React.useState('all');
+    const [assetTypeFilter, setAssetTypeFilter] = React.useState('all');
+    const [assetStatusFilter, setAssetStatusFilter] = React.useState('all');
+
     const jobSchema = React.useMemo(() => {
       let schema = baseSchema;
       if (role === 'client') {
@@ -85,6 +89,36 @@ export default function PostJobPage() {
             workflow: 'standard',
         },
     });
+
+    const uniqueLocations = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.location))], []);
+    const uniqueTypes = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.type))], []);
+    const uniqueStatuses = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.status))], []);
+
+    const filteredAssets = React.useMemo(() => {
+        return clientAssets.filter(asset => {
+            const nameMatch = asset.name.toLowerCase().includes(assetNameFilter.toLowerCase());
+            const locationMatch = assetLocationFilter === 'all' || asset.location === assetLocationFilter;
+            const typeMatch = assetTypeFilter === 'all' || asset.type === assetTypeFilter;
+            const statusMatch = assetStatusFilter === 'all' || asset.status === assetStatusFilter;
+            return nameMatch && locationMatch && typeMatch && statusMatch;
+        });
+    }, [assetNameFilter, assetLocationFilter, assetTypeFilter, assetStatusFilter]);
+
+    const handleSelectAllVisible = () => {
+        const visibleAssetIds = filteredAssets.map(a => a.id);
+        const currentSelected = form.getValues('assets') || [];
+        const allVisibleSelected = visibleAssetIds.length > 0 && visibleAssetIds.every(id => currentSelected.includes(id));
+        
+        if (allVisibleSelected) {
+            // Deselect all visible
+            const newSelection = currentSelected.filter(id => !visibleAssetIds.includes(id));
+            form.setValue('assets', newSelection, { shouldValidate: true });
+        } else {
+            // Select all visible
+            const newSelection = [...new Set([...currentSelected, ...visibleAssetIds])];
+            form.setValue('assets', newSelection, { shouldValidate: true });
+        }
+    };
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -262,9 +296,42 @@ export default function PostJobPage() {
                                   name="assets"
                                   render={() => (
                                   <FormItem>
-                                      <FormLabel>Select Asset(s)</FormLabel>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <FormLabel>Select Asset(s) for Inspection</FormLabel>
+                                        <Button type="button" variant="secondary" size="sm" onClick={handleSelectAllVisible}>Select/Deselect All Visible</Button>
+                                    </div>
+                                    <FormDescription>
+                                        Use the filters to narrow down the list of assets, especially for planning large maintenance events.
+                                    </FormDescription>
+                                     <Card className="p-4 bg-muted/50">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                            <Input 
+                                                placeholder="Filter by asset name..."
+                                                value={assetNameFilter}
+                                                onChange={(e) => setAssetNameFilter(e.target.value)}
+                                            />
+                                            <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>
+                                                    {uniqueLocations.map(loc => <SelectItem key={loc} value={loc}>{loc === 'all' ? 'All Locations' : loc}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={assetTypeFilter} onValueChange={setAssetTypeFilter}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>
+                                                    {uniqueTypes.map(type => <SelectItem key={type} value={type}>{type === 'all' ? 'All Types' : type}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={assetStatusFilter} onValueChange={setAssetStatusFilter}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>
+                                                    {uniqueStatuses.map(status => <SelectItem key={status} value={status}>{status === 'all' ? 'All Statuses' : status}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </Card>
                                       <ScrollArea className="h-60 w-full rounded-md border p-4">
-                                          {clientAssets.map((asset, index) => (
+                                          {filteredAssets.map((asset, index) => (
                                           <FormField
                                               key={asset.id}
                                               control={form.control}

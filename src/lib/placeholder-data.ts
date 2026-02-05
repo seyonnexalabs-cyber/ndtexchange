@@ -55,7 +55,7 @@ export type Job = {
     providerId?: string; // The service provider company awarded the job
     location: string;
     technique: 'UT' | 'PAUT' | 'TOFD' | 'RT' | 'CR' | 'DR' | 'CT' | 'MT' | 'PT' | 'VT' | 'RVI' | 'ET' | 'ACFM' | 'RFT' | 'MFL' | 'AE' | 'LT' | 'IR' | 'APR' | 'GWT';
-    status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid';
+    status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid' | 'Revisions Requested';
     postedDate: string;
     bidExpiryDate?: string;
     scheduledStartDate?: string;

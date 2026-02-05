@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage } from '@/lib/placeholder-data';
+import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage, JobUpdate } from '@/lib/placeholder-data';
 import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,8 @@ const statusDescriptions: Record<Job['status'], string> = {
     'Client Review': 'Report is now with the client for final review.',
     'Client Approved': 'Client has approved the report and findings.',
     'Completed': 'All work is finished and the job is closed.',
-    'Paid': 'Payment for the job has been settled.'
+    'Paid': 'Payment for the job has been settled.',
+    'Revisions Requested': 'Report was rejected and requires revisions from the provider.',
 };
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -68,7 +69,8 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Review': 'secondary',
     'Client Approved': 'success',
     'Completed': 'success',
-    'Paid': 'success'
+    'Paid': 'success',
+    'Revisions Requested': 'destructive',
 };
 
 const scheduleSchema = z.object({
@@ -145,16 +147,16 @@ const InspectorActions = ({ status, onScheduleClick, onReportClick, reportSubmit
             </Card>
         )
     }
-    if (status === 'In Progress' || status === 'Scheduled') {
+    if (status === 'In Progress' || status === 'Scheduled' || status === 'Revisions Requested') {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><FileUp className="h-5 w-5 text-primary" /> Next Step: Submit Report</CardTitle>
-                    <CardDescription>Once the inspection is complete, submit your digital report.</CardDescription>
+                    <CardDescription>{status === 'Revisions Requested' ? 'Please address the requested revisions and resubmit your report.' : 'Once the inspection is complete, submit your digital report.'}</CardDescription>
                 </CardHeader>
                 <CardFooter>
                     <Button onClick={onReportClick} disabled={reportSubmitted}>
-                         {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : 'Generate Digital Report'}
+                         {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : (status === 'Revisions Requested' ? 'Resubmit Report' : 'Generate Digital Report')}
                     </Button>
                 </CardFooter>
             </Card>
@@ -178,7 +180,8 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
         'Completed',
         'Paid'
     ];
-    const currentStatusIndex = allStatuses.indexOf(status);
+    // If current status is not in the linear flow (like 'Revisions Requested'), find index of what it logically follows
+    const currentStatusIndex = allStatuses.includes(status) ? allStatuses.indexOf(status) : allStatuses.indexOf('Report Submitted');
 
     return (
         <Card>
@@ -224,7 +227,7 @@ const JobLifecycle = ({ status, workflow, onStatusChange }: { status: Job['statu
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
-                            {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            {[...allStatuses, 'Revisions Requested'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
@@ -240,8 +243,9 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
     isAuditor: boolean, 
     reportSubmitted: boolean,
     onApprove: () => void, 
-    onReject: () => void 
+    onReject: (comments: string) => void 
 }) => {
+    const [rejectionComment, setRejectionComment] = useState('');
     // 1. Standard workflow - always disabled and just provides info
     if (workflow === 'standard') {
         return (
@@ -301,11 +305,11 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
                 <CardContent className="space-y-4">
                     <div>
                         <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
-                        <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2...'" className="mt-2 min-h-[120px]"/>
+                        <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2...'" className="mt-2 min-h-[120px]" value={rejectionComment} onChange={(e) => setRejectionComment(e.target.value)} />
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
-                    <Button variant="destructive" onClick={onReject}>
+                    <Button variant="destructive" onClick={() => onReject(rejectionComment)}>
                         <XCircle className="mr-2"/>
                         Request Revisions
                     </Button>
@@ -334,8 +338,9 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
     workflow: Job['workflow'],
     isClient: boolean, 
     onApprove: () => void, 
-    onReject: () => void 
+    onReject: (comments: string) => void 
 }) => {
+    const [rejectionComment, setRejectionComment] = useState('');
     const showStandardReview = isClient && status === 'Report Submitted' && workflow === 'standard';
     const showAuditedReview = isClient && status === 'Audit Approved';
 
@@ -355,10 +360,14 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
-                 <p className="text-sm text-muted-foreground">Review the submitted report and documents. Approve the report to proceed, or request revisions from the provider.</p>
+                <p className="text-sm text-muted-foreground">Review the submitted report and documents. Approve the report to proceed, or request revisions from the provider.</p>
+                <div className="mt-4">
+                    <Label htmlFor="client-rejection-comments">Comments for Provider (if requesting revisions)</Label>
+                    <Textarea id="client-rejection-comments" placeholder="e.g., 'Please provide a higher resolution image for Fig 3...'" className="mt-2 min-h-[120px]" value={rejectionComment} onChange={(e) => setRejectionComment(e.target.value)} />
+                </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-                <Button variant="destructive" onClick={onReject}>
+                <Button variant="destructive" onClick={() => onReject(rejectionComment)}>
                     <XCircle className="mr-2"/>
                     Request Revisions
                 </Button>
@@ -441,7 +450,7 @@ export default function JobDetailPage() {
             docs.push({ ...doc, source: 'Client' });
         });
 
-        if (['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status)) {
+        if (['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid', 'Revisions Requested'].includes(jobDetails.status)) {
             docs.push({ name: `Inspection_Report_${jobDetails.id}.pdf`, source: 'Provider' });
         }
         
@@ -542,13 +551,20 @@ export default function JobDetailPage() {
         handleStatusChange('Audit Approved');
     }
 
-    const handleAuditorReject = () => {
-        toast({
-            variant: "destructive",
-            title: "Revisions Requested by Auditor",
-            description: `The report has been sent back to the provider for revisions.`,
-        });
-        handleStatusChange('Assigned');
+    const handleAuditorReject = (comments: string) => {
+        if (!comments.trim()) {
+            toast({ variant: 'destructive', title: 'Comments Required', description: 'Please provide comments to the provider when requesting revisions.' });
+            return;
+        }
+        const historyEntry: JobUpdate = {
+            user: 'Alex Chen', // Placeholder for current auditor
+            timestamp: new Date().toISOString(),
+            action: 'Auditor requested revisions.',
+            details: comments,
+            statusChange: 'Revisions Requested',
+        };
+        setJobDetails(prev => prev ? { ...prev, status: 'Revisions Requested', history: [historyEntry, ...(prev.history || [])] } : undefined);
+        toast({ variant: "destructive", title: "Revisions Requested by Auditor", description: "The report has been sent back to the provider for revisions." });
     }
 
     const handleClientApprove = () => {
@@ -559,13 +575,24 @@ export default function JobDetailPage() {
         handleStatusChange('Client Approved');
     }
 
-    const handleClientReject = () => {
+    const handleClientReject = (comments: string) => {
+        if (!comments.trim()) {
+            toast({ variant: 'destructive', title: 'Comments Required', description: 'Please provide comments to the provider when requesting revisions.' });
+            return;
+        }
+        const historyEntry: JobUpdate = {
+            user: 'John Doe', // Placeholder for current client
+            timestamp: new Date().toISOString(),
+            action: 'Client requested revisions.',
+            details: comments,
+            statusChange: 'Revisions Requested',
+        };
+        setJobDetails(prev => prev ? { ...prev, status: 'Revisions Requested', history: [historyEntry, ...(prev.history || [])] } : undefined);
         toast({
             variant: "destructive",
             title: "Revisions Requested by Client",
             description: `The report has been sent back to the provider for revisions.`,
         });
-        handleStatusChange('Assigned'); // Go back to assigned for simplicity
     }
 
     const handleReviewSubmit = () => {
@@ -714,13 +741,14 @@ export default function JobDetailPage() {
     const isAdmin = role === 'admin';
 
     const isReviewable = isClient && (jobDetails.status === 'Completed' || jobDetails.status === 'Paid');
-    const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
+    const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid', 'Revisions Requested'].includes(jobDetails.status);
     const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
     const technique = allNdtTechniques.find(t => t.id.toUpperCase() === jobDetails.technique);
     
     const backLink = isAdmin ? "/dashboard/all-jobs" : isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs";
     const backText = isAdmin ? "All Jobs" : isAuditor ? "Inspections" : "My Jobs";
 
+    const lastRejection = jobDetails.history?.find(h => h.statusChange === 'Revisions Requested');
 
     return (
         <TooltipProvider>
@@ -732,6 +760,19 @@ export default function JobDetailPage() {
                     </Link>
                 </Button>
 
+                {jobDetails.status === 'Revisions Requested' && lastRejection && (
+                    <Alert variant="destructive" className="mb-6">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Revisions Requested</AlertTitle>
+                        <AlertDescription>
+                            The report was sent back for revisions. Comments from {lastRejection.user}:
+                            <blockquote className="mt-2 pl-4 border-l-2 border-destructive/50 italic">
+                                "{lastRejection.details}"
+                            </blockquote>
+                        </AlertDescription>
+                    </Alert>
+                )}
+                
                 <Accordion type="single" collapsible className="w-full mb-6">
                     <AccordionItem value="item-1" className="border-b-0">
                         <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
@@ -804,7 +845,7 @@ export default function JobDetailPage() {
                                     handleStatusChange('Report Submitted');
                                     toast({ title: "Report Submitted", description: "Your inspection report has been submitted for review." });
                                 }}
-                                reportSubmitted={reportSubmitted}
+                                reportSubmitted={reportSubmitted && jobDetails.status !== 'Revisions Requested'}
                             />
                         )}
 

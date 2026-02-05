@@ -1,203 +1,200 @@
 
-'use client';
-import { useState, useEffect } from 'react';
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ShieldCheck, Building, HardHat, Eye } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
+import Image from 'next/image';
+import PublicHeader from '@/app/components/layout/public-header';
+import PublicFooter from '@/app/components/layout/public-footer';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import UserActivityDiagram from '@/app/components/inspection-lifecycle';
+import { Building, UserCheck, Globe, CheckCircle } from 'lucide-react';
+import { ndtTechniques } from '@/lib/ndt-techniques-data';
+import { FeatureCard } from '@/app/components/feature-card';
 
-type UserType = 'client' | 'inspector' | 'auditor';
-type InspectorPlan = 'operations' | 'marketplace';
+export const metadata: Metadata = {
+  title: 'NDT Exchange | The Digital Marketplace for Asset Integrity',
+  description: 'A purpose-built digital ecosystem connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.',
+};
 
-export default function LoginPage() {
-  const [userType, setUserType] = useState<UserType>('client');
-  const [inspectorPlan, setInspectorPlan] = useState<InspectorPlan>('marketplace');
-  const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme', 'auditor-theme');
-    const newTheme = `${userType}-theme`;
-    document.body.classList.add(newTheme);
-  }, [userType]);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (agreedToTerms) {
-      const params = new URLSearchParams();
-      params.set('role', userType);
-      if (userType === 'inspector') {
-        params.set('plan', inspectorPlan);
-      }
-      router.push(`/dashboard?${params.toString()}`);
-    }
-  };
-
-  const getTitle = () => {
-    switch (userType) {
-      case 'client':
-        return 'Client Company Login';
-      case 'inspector':
-        return 'Service Provider Login';
-      case 'auditor':
-        return 'Audit Firm Login';
-      default:
-        return 'Login';
-    }
-  };
+export default function HomePage() {
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-background transition-all p-4">
-      <div className={cn(
-        "w-full max-w-md space-y-6 opacity-0 transition-opacity duration-500",
-        isMounted && "opacity-100"
-      )}>
-        <div className="space-y-2 text-center">
-            <div className="flex items-center justify-center gap-2 text-primary">
-                <ShieldCheck className="w-10 h-10" />
-                <h1 className="text-3xl font-headline font-bold">
-                    NDT Exchange
-                </h1>
+    <div className="flex flex-col min-h-screen bg-background">
+      <PublicHeader />
+
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="relative py-20 md:py-32">
+          <div className="absolute inset-0">
+            {heroImage && (
+              <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={heroImage.imageHint}
+                priority
+              />
+            )}
+            <div className="absolute inset-0 bg-primary/60" />
+          </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
+                The Digital Marketplace for Asset Integrity
+              </h1>
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
+                NDT Exchange is a purpose-built ecosystem where asset owners ensure operational continuity and certified NDT professionals find opportunities to grow their business.
+              </p>
+              <div className="mt-8 flex justify-center gap-4">
+                  <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                    <Link href="/contact">Get Started</Link>
+                  </Button>
+                  <Button size="lg" asChild variant="outline" className="bg-background/20 text-white border-white hover:bg-background/30">
+                    <Link href="/platform-features">Learn More</Link>
+                  </Button>
+              </div>
             </div>
-            <p className="text-muted-foreground">Select your role and sign in to your account</p>
-        </div>
-      
-        <Card className="animate-in fade-in-0 zoom-in-95" style={{animationDuration: '500ms'}}>
-            <CardHeader>
-                <CardTitle className="text-2xl font-headline text-center">{getTitle()}</CardTitle>
-            </CardHeader>
-            <form onSubmit={handleLogin}>
-            <CardContent className="space-y-6">
-                <div className="space-y-2">
-                <Label>I am a...</Label>
-                <RadioGroup
-                    defaultValue="client"
-                    className="grid grid-cols-3 gap-2"
-                    onValueChange={(value: UserType) => setUserType(value)}
-                >
-                    <div>
-                    <RadioGroupItem value="client" id="client" className="peer sr-only" />
-                    <Label
-                        htmlFor="client"
-                        className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer transition-transform hover:scale-105"
-                    >
-                        <Building className="h-5 w-5" />
-                        Client Company
-                    </Label>
-                    </div>
-                    <div>
-                    <RadioGroupItem value="inspector" id="inspector" className="peer sr-only" />
-                    <Label
-                        htmlFor="inspector"
-                        className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer transition-transform hover:scale-105"
-                    >
-                        <HardHat className="h-5 w-5" />
-                        Service Provider
-                    </Label>
-                    </div>
-                    <div>
-                    <RadioGroupItem value="auditor" id="auditor" className="peer sr-only" />
-                    <Label
-                        htmlFor="auditor"
-                        className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer transition-transform hover:scale-105"
-                    >
-                        <Eye className="h-5 w-5" />
-                        Audit Firm
-                    </Label>
-                    </div>
-                </RadioGroup>
+          </div>
+        </section>
+
+        {/* What is NDT Exchange Section */}
+        <section className="py-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center">
+                    <h2 className="text-3xl font-headline font-semibold text-primary">
+                        What is NDT Exchange?
+                    </h2>
+                    <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                        Our platform digitizes the entire Non-Destructive Testing workflow, from a client posting a job to the final report approval, creating a transparent and efficient process for everyone involved.
+                    </p>
                 </div>
-                 {userType === 'inspector' && (
-                    <div className="space-y-2 pt-2 animate-in fade-in-0 duration-300">
-                        <Label>Select Your Plan</Label>
-                        <RadioGroup
-                            defaultValue={inspectorPlan}
-                            className="grid grid-cols-2 gap-2"
-                            onValueChange={(value: InspectorPlan) => setInspectorPlan(value)}
-                        >
-                            <div>
-                                <RadioGroupItem value="operations" id="operations" className="peer sr-only" />
-                                <Label
-                                    htmlFor="operations"
-                                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer"
-                                >
-                                    Operations Only
-                                </Label>
+                <UserActivityDiagram />
+            </div>
+        </section>
+
+        {/* Who We Serve Section */}
+        <section id="who-we-serve" className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl font-headline font-semibold text-primary">
+                    Who We Serve
+                </h2>
+                <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                    Our platform is built to create a transparent, efficient, and reliable digital ecosystem for every stakeholder in the NDT industry.
+                </p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
+                <Card className="p-2">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/10 p-4 rounded-full w-fit">
+                                <Building className="w-8 h-8 text-primary" />
                             </div>
-                            <div>
-                                <RadioGroupItem value="marketplace" id="marketplace" className="peer sr-only" />
-                                <Label
-                                    htmlFor="marketplace"
-                                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer"
-                                >
-                                    Marketplace Access
-                                </Label>
+                            <CardTitle className="text-2xl font-headline">For Asset Owners (Clients)</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>Managing asset integrity is complex and crucial. NDT Exchange simplifies the process of procuring inspection services, giving you confidence and control.</p>
+                        <ul className="space-y-3">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
+                        </ul>
+                    </CardContent>
+                </Card>
+                <Card className="p-2">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                           <div className="bg-primary/10 p-4 rounded-full w-fit">
+                                <UserCheck className="w-8 h-8 text-primary" />
                             </div>
-                        </RadioGroup>
-                    </div>
-                )}
-                <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required />
-                </div>
-                <div className="space-y-2">
-                <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <Link href="#" className="ml-auto inline-block text-sm underline">
-                        Forgot your password?
-                    </Link>
-                </div>
-                <Input id="password" type="password" required />
-                </div>
-                 <div className="flex items-start space-x-2">
-                    <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} className="mt-1" />
-                    <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-                        I agree to the{' '}
-                        <Link href="/terms" className="underline hover:text-primary">
-                        Terms & Conditions
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/privacy" className="underline hover:text-primary">
-                        Privacy Policy
-                        </Link>
-                        .
-                    </Label>
-                </div>
-                <Button type="submit" className="w-full" disabled={!agreedToTerms}>
-                    Sign In
+                            <CardTitle className="text-2xl font-headline">For NDT Providers (Inspectors)</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>Focus on what you do best: providing expert inspection services. Our platform helps you find work, manage your team, and streamline your operations.</p>
+                        <ul className="space-y-3">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Grow Your Business:</strong> Access a steady stream of inspection jobs from qualified asset owners looking for your specific expertise.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Optimize Your Operations:</strong> Manage your team, equipment, and certifications all in one place, reducing administrative overhead.</span></li>
+                        </ul>
+                    </CardContent>
+                </Card>
+                 <Card className="p-2">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                           <div className="bg-primary/10 p-4 rounded-full w-fit">
+                                <Globe className="w-8 h-8 text-primary" />
+                            </div>
+                            <CardTitle className="text-2xl font-headline">For Auditors & Regulators</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>Ensure compliance and maintain oversight with tools designed for transparency and traceability across the inspection lifecycle.</p>
+                        <ul className="space-y-3">
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle.</span></li>
+                        </ul>
+                    </CardContent>
+                </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* NDT Techniques Section */}
+        <section id="techniques" className="py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-headline font-semibold text-primary">
+                Supporting All Major NDT Techniques
+              </h2>
+              <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                Our platform is designed to accommodate all major Non-Destructive Testing methods, connecting you with providers who have the specific expertise you need.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {ndtTechniques.filter(t => t.isHighlighted).map((technique) => {
+                const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
+                return (
+                  <FeatureCard
+                    key={technique.id}
+                    imageUrl={techImage?.imageUrl}
+                    imageHint={techImage?.imageHint}
+                    altText={techImage?.description}
+                    title={technique.title}
+                    description={technique.description}
+                  />
+                );
+              })}
+            </div>
+            <div className="mt-12 text-center">
+                <Button variant="outline" asChild>
+                    <Link href="/manufacturers">Explore More Techniques & Manufacturers</Link>
                 </Button>
-                <div className="mt-4 text-center text-sm">
-                    <span className="text-muted-foreground">
-                        New users must be invited.
-                    </span>
-                    <Button variant="link" asChild className="p-1">
-                        <Link href="/contact">
-                            Contact Us
-                        </Link>
-                    </Button>
-                </div>
-            </CardContent>
-            </form>
-        </Card>
-        <footer className="text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} NDT Exchange. All Rights Reserved.</p>
-            <div className="flex gap-4 justify-center mt-2">
-                <Link href="/terms" className="hover:text-foreground">Terms</Link>
-                <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
             </div>
-        </footer>
-      </div>
+          </div>
+        </section>
+        
+        {/* CTA Section */}
+        <section className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-headline font-semibold text-primary">
+              Ready to Join NDT Exchange?
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Experience the future of asset integrity management. Start your 30-day free trial today.
+            </p>
+            <div className="mt-8">
+              <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Link href="/contact">Get Started</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <PublicFooter />
     </div>
   );
 }

@@ -8,7 +8,8 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AssetLifecycleDiagram from '@/app/components/asset-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
-import { FolderKanban, History, CalendarCheck, QrCode, CalendarClock, TrendingUp, TriangleAlert } from 'lucide-react';
+import { FolderKanban, History, CalendarCheck, QrCode, TrendingUp, TriangleAlert } from 'lucide-react';
+import ShutdownPhases from '@/app/components/shutdown-phases';
 
 
 export const metadata: Metadata = {
@@ -66,25 +67,33 @@ export default function AssetManagementPage() {
                     </div>
                 </section>
 
-                {/* Maintenance Strategy Section */}
+                 {/* Shutdown Maintenance Section */}
                 <section className="py-20 bg-card">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <h2 className="text-3xl font-headline font-semibold text-primary">
-                                Supporting Every Maintenance Strategy
+                                Master Your Shutdown & Turnaround Maintenance
                             </h2>
                             <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                                Whether you're planning a major turnaround or responding to an unexpected failure, NDT Exchange provides the tools to manage your asset integrity program effectively.
+                                NDT Exchange provides a purpose-built toolkit to support all 5 phases of a successful shutdown, from initial scope definition to post-event evaluation.
                             </p>
                         </div>
-                        <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                            <FeatureCard
-                                icon={<CalendarClock className="w-8 h-8 text-primary" />}
-                                title="Shutdown & Turnaround Maintenance"
-                                description="Efficiently plan, execute, and document large-scale inspection campaigns during scheduled downtime. Coordinate with multiple service providers, track progress in real-time, and consolidate all data in one place."
-                                cardClass="hover:border-primary/20"
-                                iconContainerClass="bg-primary/10"
-                            />
+                        <ShutdownPhases />
+                    </div>
+                </section>
+
+                {/* Other Maintenance Strategies Section */}
+                <section className="py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center">
+                            <h2 className="text-3xl font-headline font-semibold text-primary">
+                                Beyond Turnarounds: A Complete Maintenance Toolkit
+                            </h2>
+                            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                                Our platform also supports proactive and reactive maintenance strategies to ensure you're prepared for any scenario.
+                            </p>
+                        </div>
+                        <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-2 max-w-4xl mx-auto">
                             <FeatureCard
                                 icon={<TrendingUp className="w-8 h-8 text-primary" />}
                                 title="Predictive & Condition-Based"
@@ -104,7 +113,7 @@ export default function AssetManagementPage() {
                 </section>
                 
                 {/* Features Section */}
-                <section id="asset-management-features" className="py-20">
+                <section id="asset-management-features" className="py-20 bg-card">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -148,7 +157,7 @@ export default function AssetManagementPage() {
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-20 bg-card">
+                <section className="py-20">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
                       Ready to Take Control of Your Assets?

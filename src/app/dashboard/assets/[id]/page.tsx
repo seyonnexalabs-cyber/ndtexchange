@@ -122,7 +122,7 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
         <Card>
             <CardHeader>
                 <CardTitle>Editing: {asset.name}</CardTitle>
-                <CardDescription>Make changes to the asset details below.</CardDescription>
+                <CardDescription>Make changes to the asset details below. ID: <span className="font-bold text-foreground">{asset.id}</span></CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -657,7 +657,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                         {assetIcons[asset.type]}
                         {asset.name}
                     </h1>
-                    <p className="font-extrabold text-sm text-muted-foreground">{asset.id}</p>
+                    <p className="font-extrabold text-sm text-muted-foreground">ID: {asset.id}</p>
                 </div>
                 <div className='flex gap-2 self-start sm:self-center'>
                     {(isClient || isInspector) && <Button onClick={() => setIsCheckLogOpen(true)}>Log Routine Check</Button>}
@@ -833,7 +833,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                     <DialogHeader>
                         <DialogTitle>Log Routine Check for {asset.name}</DialogTitle>
                         <DialogDescription>
-                            Record a daily, weekly, or monthly check for this asset.
+                            Record a daily, weekly, or monthly check for this asset. ID: <span className="font-bold text-foreground">{asset.id}</span>
                         </DialogDescription>
                     </DialogHeader>
                     <CheckLogForm onSubmit={handleCheckLogSubmit} onCancel={() => setIsCheckLogOpen(false)} />

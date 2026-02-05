@@ -5,7 +5,7 @@ import { jobs, allUsers, inspectorAssets, clientData, Job } from "@/lib/placehol
 import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -290,6 +290,8 @@ export default function MyJobsPage() {
                                     const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
                                     const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
             
+                                    const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
+
                                     return (
                                         <Card key={job.id}>
                                             <CardHeader className={cn(job.isInternal && 'bg-accent/10')}>
@@ -330,6 +332,13 @@ export default function MyJobsPage() {
                                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
                                                         <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
                                                         {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
+                                                    </div>
+                                                )}
+                                                
+                                                {role === 'client' && job.status === 'Posted' && submittedBids > 0 && (
+                                                    <div className="flex items-center text-sm font-semibold text-primary pt-2">
+                                                        <Gavel className="w-4 h-4 mr-2" />
+                                                        <span>{submittedBids} Bid(s) Received - Ready for Review</span>
                                                     </div>
                                                 )}
             

@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { jobs, Job, clientData } from "@/lib/placeholder-data";
@@ -313,3 +314,5 @@ export default function AllJobsPage() {
         </div>
     );
 }
+
+    

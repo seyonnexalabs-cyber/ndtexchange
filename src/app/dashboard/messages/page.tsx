@@ -1,3 +1,4 @@
+
 'use client';
 
 import { jobs as initialJobs, Job, JobMessage, allUsers, PlatformUser } from '@/lib/placeholder-data';
@@ -218,3 +219,5 @@ export default function MessagesPage() {
         </Card>
     );
 };
+
+    

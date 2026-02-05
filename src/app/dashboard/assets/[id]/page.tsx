@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useMemo, useState, useRef } from "react";
 import { assets, jobs, clientAssets, Asset, AssetUpdate } from "@/lib/placeholder-data";
-import { notFound, useSearchParams, useRouter } from "next/navigation";
+import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -517,8 +517,9 @@ const getHistoryIcon = (action: string) => {
     return <History className="h-4 w-4" />;
 };
 
-export default function AssetDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function AssetDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [isEditing, setIsEditing] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
@@ -870,3 +871,5 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         </div>
     );
 }
+
+    

@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
-import { notFound, useSearchParams } from 'next/navigation';
+import { notFound, useSearchParams, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage } from '@/lib/placeholder-data';
@@ -369,8 +369,9 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
     );
 }
 
-export default function JobDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function JobDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
@@ -1098,3 +1099,5 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         </TooltipProvider>
     );
 }
+
+    

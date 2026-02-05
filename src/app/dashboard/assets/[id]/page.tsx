@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const assetSchema = z.object({
@@ -347,6 +348,8 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
         resolver: zodResolver(checkLogSchema),
         defaultValues: { checkType: 'Daily Visual', issuesFound: false, notes: '' },
     });
+    
+    const issuesFoundValue = form.watch('issuesFound');
 
     const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
     const [isDragging, setIsDragging] = React.useState(false);
@@ -419,7 +422,7 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
                             <div className="space-y-0.5">
                                 <FormLabel>Any Issues Found?</FormLabel>
                                 <FormDescription>
-                                    Check this box if any issues were discovered during the check. This will update the asset status.
+                                    This will update the asset status to "Requires Inspection".
                                 </FormDescription>
                             </div>
                             <FormControl>
@@ -428,6 +431,15 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
                         </FormItem>
                     )}
                 />
+                {issuesFoundValue && (
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Attention Required</AlertTitle>
+                        <AlertDescription>
+                            This asset will be flagged for inspection. Please provide detailed notes and a photo if possible.
+                        </AlertDescription>
+                    </Alert>
+                )}
                 <FormField
                     control={form.control}
                     name="notes"

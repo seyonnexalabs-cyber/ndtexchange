@@ -33,7 +33,6 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
         <CardTitle className="text-xl font-headline">{plan}</CardTitle>
         <div className="pt-2">
             <span className="text-3xl font-bold">{price}</span>
-             {(price.match(/\\$|₹|€/) && !price.includes("event")) && <span className="text-sm text-muted-foreground"> / month</span>}
         </div>
         <CardDescription className="pt-2 !mt-2">{description}</CardDescription>
       </CardHeader>
@@ -61,29 +60,50 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
 }
 
 export default function ContactPage() {
-    const [currency, setCurrency] = React.useState('$');
+    type Currency = 'USD' | 'EUR' | 'INR';
+    const [currency, setCurrency] = React.useState<Currency>('USD');
 
     useEffect(() => {
         // This effect runs only on the client side, after hydration
         const userLocale = navigator.language.toLowerCase();
 
-        // India -> INR
         if (userLocale.includes('in')) {
-            setCurrency('₹');
+            setCurrency('INR');
         } 
-        // Europe -> EUR
         else if (['de', 'fr', 'es', 'it', 'nl', 'pt', 'fi', 'at', 'be', 'cy', 'ee', 'gr', 'ie', 'lv', 'lt', 'lu', 'mt', 'sk', 'si'].some(prefix => userLocale.startsWith(prefix))) {
-            setCurrency('€');
+            setCurrency('EUR');
         }
-        // Default to USD for SEA, Middle East, and others
         else {
-            setCurrency('$');
+            setCurrency('USD');
         }
     }, []);
 
-    const formatPrice = (priceString: string) => {
-        // This regex will replace the first currency symbol it finds.
-        return priceString.replace(/\$|₹|€/, currency);
+    const prices = {
+      'Client Plus': {
+        USD: '$60 – $100 / month',
+        EUR: '€55 – €90 / month',
+        INR: '₹5,000 – ₹8,000 / month',
+      },
+      'Individual Inspector': {
+        USD: '$20 / inspector / month',
+        EUR: '€18 / inspector / month',
+        INR: '₹1,500 / inspector / month',
+      },
+      'NDT Company': {
+        USD: '$65 / company / month',
+        EUR: '€60 / company / month',
+        INR: '₹5,000 / company / month',
+      },
+      'Company Growth': {
+        USD: '$120 / company / month',
+        EUR: '€110 / company / month',
+        INR: '₹10,000 / company / month',
+      },
+      'Shutdown Maintenance': {
+        USD: '$300 per shutdown event',
+        EUR: '€275 per shutdown event',
+        INR: '₹25,000 per shutdown event',
+      },
     };
 
   return (
@@ -100,11 +120,11 @@ export default function ContactPage() {
               Start free. Scale as your inspections, teams, and projects grow.
             </p>
              <p className="mt-4 text-sm text-muted-foreground">
-                14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level-III free during MVP
+                14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level‑III free during MVP
             </p>
             <div className="mt-8 flex justify-center gap-4">
                 <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Link href="#contact-form">Get Started Free</Link>
+                  <Link href="#contact-form">Start Pilot / Request Access</Link>
                 </Button>
                 <Button size="lg" asChild variant="outline">
                   <Link href="#pricing-tabs">View Plans Below</Link>
@@ -114,135 +134,144 @@ export default function ContactPage() {
         </section>
 
         <div id="pricing-tabs" className="py-20">
-        <Tabs defaultValue="asset-owners" className="w-full">
-            {/* 2. WHO IS THIS FOR? (ROLE SELECTOR) */}
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex justify-center">
-                <TabsList className="grid w-full max-w-xl grid-cols-3">
-                    <TabsTrigger value="asset-owners" className="gap-2"><Building /> Asset Owners</TabsTrigger>
-                    <TabsTrigger value="ndt-companies" className="gap-2"><HardHat /> NDT Companies</TabsTrigger>
-                    <TabsTrigger value="auditors" className="gap-2"><Eye /> Level-III & Auditors</TabsTrigger>
-                </TabsList>
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex flex-col items-center gap-4">
+                <div className="flex justify-center gap-2">
+                    {(['USD', 'EUR', 'INR'] as Currency[]).map((c) => (
+                        <Button key={c} variant={currency === c ? 'default' : 'outline'} onClick={() => setCurrency(c)}>
+                            {c} ({c === 'USD' ? '$' : c === 'EUR' ? '€' : '₹'})
+                        </Button>
+                    ))}
+                </div>
             </div>
-            
-            <TabsContent value="asset-owners" className="container mx-auto px-4 sm:px-6 lg:px-8">
-                 {/* 3. CLIENT (ASSET OWNER) PRICING */}
-                <section id="asset-owner-pricing" className="mb-16">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-headline font-semibold text-primary">For Asset Owners & Clients</h2>
-                        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Gain secure access to inspection data across vendors, projects, and shutdowns.</p>
-                    </div>
-                    <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
-                        <PricingCard
-                            plan="Client Access (MVP)"
-                            price="Free"
-                            description="Best for: Plants, EPCs, pilot teams"
-                            features={[
-                                "Asset registry (up to 200 assets)",
-                                "Read-only access to NDT reports",
-                                "Vendor-shared reports",
-                                "Asset inspection history",
-                                "Web portal access",
-                            ]}
-                            isFeatured={true}
-                            ctaText="Get Started Free"
-                        />
-                        <PricingCard
-                            plan="Client Plus"
-                            price={formatPrice('$5,000 – $8,000')}
-                            description="Best for: Multi-vendor operations"
-                            features={[
-                                "Everything in Client Access, plus:",
-                                "Unlimited assets",
-                                "Multiple vendors",
-                                "Comments & approvals",
-                                "Shutdown inspection view",
-                            ]}
-                            ctaText="Get a Quote"
-                        />
-                    </div>
-                </section>
-            </TabsContent>
+            <Tabs defaultValue="asset-owners" className="w-full">
+                {/* 2. WHO IS THIS FOR? (ROLE SELECTOR) */}
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex justify-center">
+                    <TabsList className="grid w-full max-w-xl grid-cols-3">
+                        <TabsTrigger value="asset-owners" className="gap-2"><Building /> Asset Owners</TabsTrigger>
+                        <TabsTrigger value="ndt-companies" className="gap-2"><HardHat /> NDT Companies</TabsTrigger>
+                        <TabsTrigger value="auditors" className="gap-2"><Eye /> Level‑III & Auditors</TabsTrigger>
+                    </TabsList>
+                </div>
+                
+                <TabsContent value="asset-owners" className="container mx-auto px-4 sm:px-6 lg:px-8">
+                     {/* 3. CLIENT (ASSET OWNER) PRICING */}
+                    <section id="asset-owner-pricing" className="mb-16">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-headline font-semibold text-primary">For Asset Owners & Clients</h2>
+                            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Gain secure access to inspection data across vendors, projects, and shutdowns.</p>
+                        </div>
+                        <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+                            <PricingCard
+                                plan="Client Access (MVP)"
+                                price="Free during MVP"
+                                description="Best for: Plants, EPCs, pilot teams"
+                                features={[
+                                    "Asset registry (up to 200 assets)",
+                                    "Read-only access to NDT reports",
+                                    "Vendor-shared reports",
+                                    "Asset inspection history",
+                                    "Web portal access",
+                                ]}
+                                isFeatured={true}
+                                ctaText="Start Free Access"
+                            />
+                            <PricingCard
+                                plan="Client Plus"
+                                price={prices['Client Plus'][currency]}
+                                description="Best for: Multi-vendor operations"
+                                features={[
+                                    "Everything in Client Access, plus:",
+                                    "Unlimited assets",
+                                    "Multiple vendors",
+                                    "Comments & approvals",
+                                    "Shutdown inspection view",
+                                ]}
+                                ctaText="Upgrade to Plus"
+                            />
+                        </div>
+                    </section>
+                </TabsContent>
 
-             <TabsContent value="ndt-companies" className="container mx-auto px-4 sm:px-6 lg:px-8">
-                {/* 4. NDT COMPANY & INSPECTOR PRICING */}
-                <section id="ndt-company-pricing" className="mb-16">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-headline font-semibold text-primary">For NDT Companies & Inspectors</h2>
-                        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Digitize inspections, reports, equipment, and collaboration with clients.</p>
-                    </div>
-                    <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                         <PricingCard
-                            plan="Individual Inspector"
-                            price={formatPrice('$1,500')}
-                            description="Per inspector"
-                            features={[
-                                "14-day free trial",
-                                "Job assignments",
-                                "Digital report creation",
-                                "Mobile inspection workflows",
-                                "Basic equipment tracking",
-                            ]}
-                            ctaText="Start as Inspector"
-                        />
-                        <PricingCard
-                            plan="NDT Company"
-                            price={formatPrice('$5,000')}
-                            description="Per company"
-                            features={[
-                                "14-day free trial",
-                                "Up to 5 inspectors",
-                                "Equipment & calibration tracking",
-                                "Client-linked projects",
-                                "Level-III review workflows",
-                                "Report sharing via NDT Exchange",
-                            ]}
-                            isFeatured={true}
-                            popularBadge={true}
-                            ctaText="Start Company Pilot"
-                        />
-                        <PricingCard
-                            plan="Company Growth"
-                            price={formatPrice('$10,000')}
-                            description="Per company"
-                            features={[
-                                "14-day free trial",
-                                "Up to 15 inspectors",
-                                "Multi-site operations",
-                                "Advanced report templates",
-                                "Priority support",
-                            ]}
-                            ctaText="Get a Quote"
-                        />
-                    </div>
-                </section>
-             </TabsContent>
-            
-             <TabsContent value="auditors" className="container mx-auto px-4 sm:px-6 lg:px-8">
-                {/* 5. LEVEL-III / AUDITOR ACCESS */}
-                <section id="auditor-pricing" className="mb-16">
-                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-headline font-semibold text-primary">For Level-III & Auditors</h2>
-                    </div>
-                    <Card className="max-w-4xl mx-auto">
-                        <CardHeader className="text-center">
-                            <CardTitle className="text-2xl">FREE during MVP</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <ul className="mx-auto max-w-md space-y-3 text-center">
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Review & approval workflows</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Audit comments & traceability</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Certification reference access</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Cross-project oversight (limited)</li>
-                            </ul>
-                            <p className="mt-4 text-center text-sm text-muted-foreground">Level-III access is included to ensure industry-grade credibility and compliance.</p>
-                        </CardContent>
-                        <CardFooter className="justify-center">
-                            <Button>Request Level-III Access</Button>
-                        </CardFooter>
-                    </Card>
-                </section>
-             </TabsContent>
-        </Tabs>
+                 <TabsContent value="ndt-companies" className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* 4. NDT COMPANY & INSPECTOR PRICING */}
+                    <section id="ndt-company-pricing" className="mb-16">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-headline font-semibold text-primary">For NDT Companies & Inspectors</h2>
+                            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Digitize inspections, reports, equipment, and collaboration with clients.</p>
+                        </div>
+                        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
+                             <PricingCard
+                                plan="Individual Inspector"
+                                price={prices['Individual Inspector'][currency]}
+                                description="Per inspector"
+                                features={[
+                                    "14-day free trial",
+                                    "Job assignments",
+                                    "Digital report creation",
+                                    "Mobile inspection workflows",
+                                    "Basic equipment tracking",
+                                ]}
+                                ctaText="Start as Inspector"
+                            />
+                            <PricingCard
+                                plan="NDT Company"
+                                price={prices['NDT Company'][currency]}
+                                description="Per company"
+                                features={[
+                                    "14-day free trial",
+                                    "Up to 5 inspectors",
+                                    "Equipment & calibration tracking",
+                                    "Client-linked projects",
+                                    "Level-III review workflows",
+                                    "Report sharing via NDT Exchange",
+                                ]}
+                                isFeatured={true}
+                                popularBadge={true}
+                                ctaText="Start Company Pilot"
+                            />
+                            <PricingCard
+                                plan="Company Growth"
+                                price={prices['Company Growth'][currency]}
+                                description="Per company"
+                                features={[
+                                    "14-day free trial",
+                                    "Up to 15 inspectors",
+                                    "Multi-site operations",
+                                    "Advanced report templates",
+                                    "Priority support",
+                                ]}
+                                ctaText="Upgrade to Growth"
+                            />
+                        </div>
+                    </section>
+                 </TabsContent>
+                
+                 <TabsContent value="auditors" className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* 5. LEVEL-III / AUDITOR ACCESS */}
+                    <section id="auditor-pricing" className="mb-16">
+                         <div className="text-center mb-12">
+                            <h2 className="text-3xl font-headline font-semibold text-primary">For Level-III & Auditors</h2>
+                        </div>
+                        <Card className="max-w-4xl mx-auto">
+                            <CardHeader className="text-center">
+                                <CardTitle className="text-2xl">FREE during MVP</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                 <ul className="mx-auto max-w-md space-y-3 text-center">
+                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Review & approval workflows</li>
+                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Audit comments & traceability</li>
+                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Certification reference access</li>
+                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Cross-project oversight (limited)</li>
+                                </ul>
+                                <p className="mt-4 text-center text-sm text-muted-foreground">Level-III access is included to ensure industry-grade credibility and compliance.</p>
+                            </CardContent>
+                            <CardFooter className="justify-center">
+                                <Button>Request Level-III Access</Button>
+                            </CardFooter>
+                        </Card>
+                    </section>
+                 </TabsContent>
+            </Tabs>
         </div>
 
 
@@ -285,7 +314,7 @@ export default function ContactPage() {
                 </div>
                  <Card className="max-w-2xl mx-auto bg-accent/10 border-accent">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-2xl text-accent">{formatPrice('$25,000')} per shutdown event</CardTitle>
+                        <CardTitle className="text-2xl text-accent">{prices['Shutdown Maintenance'][currency]}</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ul className="mx-auto max-w-md space-y-3">
@@ -372,6 +401,9 @@ export default function ContactPage() {
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
+                <p className="text-center text-sm text-muted-foreground mt-12">
+                    Prices are displayed in your local currency for convenience. Value remains consistent globally.
+                </p>
             </div>
         </section>
         

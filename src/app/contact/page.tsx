@@ -210,7 +210,7 @@ export default function ContactPage() {
                                     "Access job marketplace",
                                     "Submit up to 10 bids per month",
                                     "Digital report creation",
-                                    "Mobile inspection workflows",
+                                    "Equipment tracking (up to 5 items)",
                                 ]}
                                 ctaText="Start as Inspector"
                             />
@@ -222,7 +222,7 @@ export default function ContactPage() {
                                     "14-day free trial",
                                     "Up to 5 inspectors",
                                     "Unlimited marketplace bidding",
-                                    "Advanced equipment tracking",
+                                    "Equipment & calibration tracking (up to 20 items)",
                                     "Client-linked projects",
                                     "Level-III review workflows",
                                 ]}
@@ -238,6 +238,7 @@ export default function ContactPage() {
                                     "14-day free trial",
                                     "Up to 15 inspectors",
                                     "Unlimited marketplace bidding",
+                                    "Advanced equipment tracking (up to 50 items)",
                                     "Multi-site operations & analytics",
                                     "Advanced report templates",
                                     "Priority support",
@@ -427,3 +428,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

@@ -36,7 +36,7 @@ const technicianSchema = z.object({
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
 
-const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>, isEditing: boolean }) => {
+const TechnicianForm = ({ formId, onSubmit, defaultValues, isEditing }: { formId: string, onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>, isEditing: boolean }) => {
     const form = useForm<TechnicianFormValues>({
         resolver: zodResolver(technicianSchema),
         defaultValues: defaultValues || {
@@ -48,7 +48,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
                 <FormField
                     control={form.control}
                     name="name"
@@ -153,10 +153,6 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                     </FormItem>
                     )}
                 />
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Save Changes</Button>
-                </DialogFooter>
             </form>
         </Form>
     );
@@ -413,9 +409,9 @@ export default function TechniciansPage() {
             
             {isMobile ? <MobileView constructUrl={constructUrl} technicians={filteredTechnicians} onEditClick={handleEditClick} /> : <DesktopView constructUrl={constructUrl} technicians={filteredTechnicians} onEditClick={handleEditClick} />}
 
-            <Dialog open={isFormOpen} onOpenChange={(open) => {if (!open) closeDialog()}}>
-                <DialogContent>
-                    <DialogHeader>
+            <Dialog open={isFormOpen} onOpenChange={closeDialog}>
+                <DialogContent className="flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>{editingTechnician ? 'Edit Technician' : 'Add New Technician'}</DialogTitle>
                         <DialogDescription>
                              {editingTechnician
@@ -424,23 +420,27 @@ export default function TechniciansPage() {
                             }
                         </DialogDescription>
                     </DialogHeader>
-                    <TechnicianForm
-                        onSubmit={handleFormSubmit}
-                        onCancel={closeDialog}
-                        defaultValues={editingTechnician ? {
-                            name: editingTechnician.name,
-                            level: editingTechnician.level,
-                            certifications: editingTechnician.certifications?.map(c => c.method),
-                            workStatus: editingTechnician.workStatus,
-                            status: editingTechnician.status,
-                        } : undefined}
-                        isEditing={!!editingTechnician}
-                    />
+                    <div className="flex-grow overflow-y-auto px-6">
+                        <TechnicianForm
+                            formId="technician-form"
+                            onSubmit={handleFormSubmit}
+                            defaultValues={editingTechnician ? {
+                                name: editingTechnician.name,
+                                level: editingTechnician.level,
+                                certifications: editingTechnician.certifications?.map(c => c.method),
+                                workStatus: editingTechnician.workStatus,
+                                status: editingTechnician.status,
+                            } : undefined}
+                            isEditing={!!editingTechnician}
+                        />
+                    </div>
+                    <DialogFooter className="p-6 pt-4 border-t">
+                        <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
+                        <Button type="submit" form="technician-form">Save Changes</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
         </div>
     );
 }
-
-    

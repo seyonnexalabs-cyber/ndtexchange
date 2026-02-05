@@ -343,7 +343,7 @@ const checkLogSchema = z.object({
   photo: z.any().optional(),
 });
 
-const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeof checkLogSchema>) => void, onCancel: () => void }) => {
+const CheckLogForm = ({ formId, onSubmit }: { formId: string, onSubmit: (values: z.infer<typeof checkLogSchema>) => void }) => {
     const form = useForm<z.infer<typeof checkLogSchema>>({
         resolver: zodResolver(checkLogSchema),
         defaultValues: { checkType: 'Daily Visual', issuesFound: false, notes: '' },
@@ -395,7 +395,7 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
                 <FormField
                     control={form.control}
                     name="checkType"
@@ -496,10 +496,6 @@ const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeo
                         </FormItem>
                     )}
                 />
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Log Check</Button>
-                </DialogFooter>
             </form>
         </Form>
     );
@@ -869,14 +865,20 @@ export default function AssetDetailPage() {
                 description="Securely view all documents associated with this asset."
             />
             <Dialog open={isCheckLogOpen} onOpenChange={setIsCheckLogOpen}>
-                <DialogContent>
-                    <DialogHeader>
+                <DialogContent className="flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>Log Routine Check for {asset.name}</DialogTitle>
                         <DialogDescription>
                             Record a daily, weekly, or monthly check for this asset. ID: <span className="font-bold text-foreground">{asset.id}</span>
                         </DialogDescription>
                     </DialogHeader>
-                    <CheckLogForm onSubmit={handleCheckLogSubmit} onCancel={() => setIsCheckLogOpen(false)} />
+                    <div className="flex-grow overflow-y-auto px-6">
+                        <CheckLogForm formId="check-log-form" onSubmit={handleCheckLogSubmit} />
+                    </div>
+                     <DialogFooter className="p-6 pt-4 border-t">
+                        <Button type="button" variant="ghost" onClick={() => setIsCheckLogOpen(false)}>Cancel</Button>
+                        <Button type="submit" form="check-log-form">Log Check</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

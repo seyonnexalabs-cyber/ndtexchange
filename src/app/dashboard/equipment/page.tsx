@@ -66,14 +66,14 @@ type ServiceOutFormValues = z.infer<typeof serviceOutSchema>;
 
 
 const CheckInOutForm = ({ 
+    formId,
     action, 
     onSubmit, 
-    onCancel,
     jobsForCheckout,
  }: { 
+    formId: string;
     action: 'check-in' | 'check-out';
     onSubmit: (values: CheckInFormValues | CheckOutFormValues) => void;
-    onCancel: () => void;
     jobsForCheckout: Job[];
 }) => {
     const isCheckIn = action === 'check-in';
@@ -86,7 +86,7 @@ const CheckInOutForm = ({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
                 {isCheckIn ? (
                     <>
                         <FormField
@@ -162,22 +162,17 @@ const CheckInOutForm = ({
                         </FormItem>
                     )}
                 />
-
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">{isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out'}</Button>
-                </DialogFooter>
             </form>
         </Form>
     );
 };
 
 const ServiceOutForm = ({
+    formId,
     onSubmit,
-    onCancel,
 }: {
+    formId: string;
     onSubmit: (values: ServiceOutFormValues) => void;
-    onCancel: () => void;
 }) => {
     const form = useForm<ServiceOutFormValues>({
         resolver: zodResolver(serviceOutSchema),
@@ -193,7 +188,7 @@ const ServiceOutForm = ({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
                 <FormField
                     control={form.control}
                     name="serviceType"
@@ -296,10 +291,6 @@ const ServiceOutForm = ({
                         </FormItem>
                     )}
                 />
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Confirm Service Check-Out</Button>
-                </DialogFooter>
             </form>
         </Form>
     );
@@ -574,33 +565,39 @@ export default function EquipmentPage() {
             </Dialog>
 
              <Dialog open={isTransactionDialogOpen} onOpenChange={closeTransactionDialog}>
-                <DialogContent>
-                    <DialogHeader>
+                <DialogContent className="flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>{transactionDialogTitle}</DialogTitle>
                         <DialogDescription>Record details for {transactionState.equipment?.name}.</DialogDescription>
                     </DialogHeader>
-                    {transactionState.action === 'check-in' && (
-                         <CheckInOutForm
-                            action="check-in"
-                            onSubmit={handleTransactionSubmit}
-                            onCancel={closeTransactionDialog}
-                            jobsForCheckout={jobsForCheckout}
-                        />
-                    )}
-                     {transactionState.action === 'check-out' && (
-                         <CheckInOutForm
-                            action="check-out"
-                            onSubmit={handleTransactionSubmit}
-                            onCancel={closeTransactionDialog}
-                            jobsForCheckout={jobsForCheckout}
-                        />
-                    )}
-                     {transactionState.action === 'service-out' && (
-                        <ServiceOutForm 
-                            onSubmit={handleTransactionSubmit}
-                            onCancel={closeTransactionDialog}
-                        />
-                    )}
+                    <div className="flex-grow overflow-y-auto px-6">
+                        {transactionState.action === 'check-in' && (
+                            <CheckInOutForm
+                                formId="transaction-form"
+                                action="check-in"
+                                onSubmit={handleTransactionSubmit}
+                                jobsForCheckout={jobsForCheckout}
+                            />
+                        )}
+                        {transactionState.action === 'check-out' && (
+                            <CheckInOutForm
+                                formId="transaction-form"
+                                action="check-out"
+                                onSubmit={handleTransactionSubmit}
+                                jobsForCheckout={jobsForCheckout}
+                            />
+                        )}
+                        {transactionState.action === 'service-out' && (
+                            <ServiceOutForm 
+                                formId="transaction-form"
+                                onSubmit={handleTransactionSubmit}
+                            />
+                        )}
+                    </div>
+                    <DialogFooter className="p-6 pt-4 border-t">
+                         <Button type="button" variant="ghost" onClick={closeTransactionDialog}>Cancel</Button>
+                         <Button type="submit" form="transaction-form">Confirm</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

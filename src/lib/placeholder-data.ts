@@ -1,5 +1,13 @@
 
+
 import { serviceProviders } from './service-providers-data';
+
+export type AssetUpdate = {
+    user: string;
+    timestamp: string;
+    action: string;
+    details?: string;
+};
 
 export type Asset = {
     id: string;
@@ -16,6 +24,7 @@ export type Asset = {
     installationDate?: string;
     notes?: string;
     imageId?: string;
+    history?: AssetUpdate[];
 };
 
 export type JobDocument = {
@@ -278,7 +287,10 @@ export const notifications: Notification[] = [
 
 
 export const clientAssets: Asset[] = [
-    { id: 'ASSET-001', companyId: 'client-02', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-A1B2C3D4', installationDate: '2018-05-20', imageId: 'asset1', approvalStatus: 'Approved' },
+    { id: 'ASSET-001', companyId: 'client-02', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-A1B2C3D4', installationDate: '2018-05-20', imageId: 'asset1', approvalStatus: 'Approved', history: [
+        { user: 'John Doe', timestamp: '2024-07-20T08:00:00Z', action: 'Routine Check Logged: Daily Visual', details: 'Issues Found: No. Notes: All clear.' },
+        { user: 'Admin', timestamp: '2018-05-20T09:00:00Z', action: 'Asset Created' }
+    ] },
     { id: 'ASSET-006', companyId: 'client-01', name: 'Cooling Tower Piping', type: 'Piping', location: 'Refinery A', status: 'Operational', nextInspection: '2025-02-20', manufacturer: 'FlowLine Pipes', serialNumber: 'SN-E5F6G7H8', installationDate: '2019-11-10', imageId: 'asset6', approvalStatus: 'Approved' },
     { id: 'ASSET-002', companyId: 'client-03', name: 'Main Steam Piping', type: 'Piping', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-07-20', manufacturer: 'US Pipe', serialNumber: 'SN-I9J0K1L2', installationDate: '2015-03-12', imageId: 'asset2', approvalStatus: 'Approved' },
     { id: 'ASSET-003', companyId: 'client-01', name: 'Pressure Vessel PV-203', type: 'Vessel', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-01-10', manufacturer: 'Vessel Works', model: 'VW-2000', serialNumber: 'SN-M3N4O5P6', installationDate: '2020-01-15', imageId: 'asset5', approvalStatus: 'Approved' },

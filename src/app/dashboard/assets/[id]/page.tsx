@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useRef } from "react";
-import { assets, jobs, clientAssets, Asset } from "@/lib/placeholder-data";
+import { assets, jobs, clientAssets, Asset, AssetUpdate } from "@/lib/placeholder-data";
 import { notFound, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud } from "lucide-react";
+import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud, Check, Settings, History } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { format } from 'date-fns';
-import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
+import { format, parseISO } from 'date-fns';
+import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useForm } from 'react-hook-form';
@@ -28,6 +28,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 
 
 const assetSchema = z.object({
@@ -334,6 +336,78 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
     );
 };
 
+const checkLogSchema = z.object({
+  checkType: z.enum(['Daily Visual', 'Weekly Operational', 'Monthly Safety Check']),
+  issuesFound: z.boolean().default(false).optional(),
+  notes: z.string().optional(),
+});
+
+const CheckLogForm = ({ onSubmit, onCancel }: { onSubmit: (values: z.infer<typeof checkLogSchema>) => void, onCancel: () => void }) => {
+    const form = useForm<z.infer<typeof checkLogSchema>>({
+        resolver: zodResolver(checkLogSchema),
+        defaultValues: { checkType: 'Daily Visual', issuesFound: false, notes: '' },
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField
+                    control={form.control}
+                    name="checkType"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Type of Check</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Daily Visual">Daily Visual</SelectItem>
+                                    <SelectItem value="Weekly Operational">Weekly Operational</SelectItem>
+                                    <SelectItem value="Monthly Safety Check">Monthly Safety Check</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="issuesFound"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Any Issues Found?</FormLabel>
+                                <FormDescription>
+                                    Check this box if any issues were discovered during the check.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Notes (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Describe the condition or any issues found..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Log Check</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
 
 const assetIcons = {
     'Tank': <TankIcon className="w-8 h-8 text-primary" />,
@@ -350,6 +424,13 @@ const DetailItem = ({ label, value, className }: { label: string; value: React.R
     </div>
 );
 
+const getHistoryIcon = (action: string) => {
+    if (action.includes('Check Logged')) return <Check className="h-4 w-4" />;
+    if (action.includes('Created')) return <Settings className="h-4 w-4" />;
+    if (action.includes('Inspection')) return <FileText className="h-4 w-4" />;
+    return <History className="h-4 w-4" />;
+};
+
 export default function AssetDetailPage({ params }: { params: { id: string } }) {
     const { id } = params;
     const [isEditing, setIsEditing] = useState(false);
@@ -357,6 +438,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     const router = useRouter();
     
     const [asset, setAsset] = React.useState(() => assets.find(a => a.id === id));
+    const [isCheckLogOpen, setIsCheckLogOpen] = useState(false);
 
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
@@ -365,6 +447,26 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
 
     const image = React.useMemo(() => asset?.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined, [asset]);
+    
+    const assetInspections = useMemo(() => jobs.filter(j => j.assetIds?.includes(id)).flatMap(j => j.inspections || []), [id]);
+
+    const combinedHistory = useMemo(() => {
+        if (!asset) return [];
+
+        const inspectionHistory = assetInspections.map(insp => ({
+            type: 'inspection' as const,
+            timestamp: parseISO(insp.date).toISOString(),
+            data: insp,
+        }));
+
+        const assetUpdates = (asset.history || []).map(update => ({
+            type: 'update' as const,
+            timestamp: update.timestamp,
+            data: update,
+        }));
+
+        return [...inspectionHistory, ...assetUpdates].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [asset, assetInspections]);
 
     const allDocuments: ViewerDocument[] = React.useMemo(() => {
         const docs: ViewerDocument[] = [
@@ -381,8 +483,6 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     if (!asset) {
         notFound();
     }
-    
-    const assetInspections = jobs.filter(j => j.assetIds?.includes(asset.id)).flatMap(j => j.inspections || []);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -419,8 +519,28 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         });
         setIsEditing(false);
     };
+    
+    const handleCheckLogSubmit = (values: z.infer<typeof checkLogSchema>) => {
+        if (!asset) return;
+
+        const newHistoryEntry: AssetUpdate = {
+            user: 'John Doe', // Placeholder user
+            timestamp: new Date().toISOString(),
+            action: `Routine Check Logged: ${values.checkType}`,
+            details: `Issues Found: ${values.issuesFound ? 'Yes' : 'No'}. Notes: ${values.notes || 'N/A'}`
+        };
+
+        const updatedAsset = {
+            ...asset,
+            history: [newHistoryEntry, ...(asset.history || [])]
+        };
+        setAsset(updatedAsset as Asset);
+        setIsCheckLogOpen(false);
+        toast({ title: 'Routine Check Logged' });
+    };
 
     const isClient = role === 'client';
+    const isInspector = role === 'inspector';
 
     if (isEditing) {
         return <AssetForm asset={asset} onSubmit={handleFormSubmit} onCancel={() => setIsEditing(false)} />;
@@ -442,81 +562,56 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                     </h1>
                     <p className="font-extrabold text-sm text-muted-foreground">{asset.id}</p>
                 </div>
-                {isClient && (
-                    <div className='flex gap-2 self-start sm:self-center'>
-                        <Button onClick={() => setIsEditing(true)}>Edit Asset</Button>
-                        <Button variant="outline">Archive Asset</Button>
-                    </div>
-                )}
+                <div className='flex gap-2 self-start sm:self-center'>
+                    {(isClient || isInspector) && <Button onClick={() => setIsCheckLogOpen(true)}>Log Routine Check</Button>}
+                    {isClient && <Button onClick={() => setIsEditing(true)}>Edit Asset</Button>}
+                </div>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2">
-                    <Tabs defaultValue="history">
+                    <Tabs defaultValue="activity">
                         <TabsList className="mb-4 w-full sm:w-auto grid grid-cols-3">
-                            <TabsTrigger value="history">Inspection History</TabsTrigger>
+                            <TabsTrigger value="activity">Activity Log</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="details">Details</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="history">
+                        <TabsContent value="activity">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Inspection History</CardTitle>
-                                    <CardDescription>Previous inspections, defects, and repairs for this asset.</CardDescription>
+                                    <CardTitle>Activity Log</CardTitle>
+                                    <CardDescription>A complete log of all inspections and routine checks for this asset.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {isMobile ? (
-                                        <div className="space-y-4">
-                                            {assetInspections.map(inspection => (
-                                                <Card key={inspection.id} className="p-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="font-medium">{inspection.technique}</div>
-                                                        <Badge variant={inspection.status === 'Completed' ? 'success' : 'secondary'}>{inspection.status}</Badge>
+                                    <ScrollArea className="h-96">
+                                        <div className="relative pl-6">
+                                            <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                                            {combinedHistory.map((entry) => {
+                                                const icon = entry.type === 'inspection' ? <FileText className="h-4 w-4" /> : getHistoryIcon(entry.data.action);
+                                                return (
+                                                    <div key={`${entry.type}-${entry.timestamp}-${(entry.data as any).id || entry.data.action}`} className="relative mb-8 pl-8">
+                                                        <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
+                                                            <div className="text-primary">{icon}</div>
+                                                        </div>
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <p className="text-sm font-medium">{entry.type === 'inspection' ? `Inspection (${(entry.data as any).technique})` : entry.data.action}</p>
+                                                                <p className="text-xs text-muted-foreground">by {entry.type === 'inspection' ? (entry.data as any).inspector : entry.data.user}</p>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground/80 shrink-0">{format(parseISO(entry.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
+                                                        </div>
+                                                        {entry.type === 'update' && entry.data.details && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.data.details}"</p>}
+                                                        {entry.type === 'inspection' && <Button asChild size="sm" variant="outline" className="mt-2"><Link href={constructUrl(`/dashboard/my-jobs/${(entry.data as any).jobId}`)}>View Report</Link></Button>}
                                                     </div>
-                                                    <div className="text-sm text-muted-foreground mt-2">Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</div>
-                                                    <div className="text-sm text-muted-foreground">Inspector: {inspection.inspector}</div>
-                                                    <div className="mt-2 flex justify-end">
-                                                        <Button variant="outline" size="sm">View Report</Button>
-                                                    </div>
-                                                </Card>
-                                            ))}
-                                            {assetInspections.length === 0 && (
-                                                <div className="text-center text-muted-foreground py-4">No inspection history found.</div>
+                                                )
+                                            })}
+                                            {combinedHistory.length === 0 && (
+                                                <div className="text-center text-muted-foreground py-10">
+                                                    No activity found for this asset.
+                                                </div>
                                             )}
                                         </div>
-                                    ) : (
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Date</TableHead>
-                                                    <TableHead>Technique</TableHead>
-                                                    <TableHead>Inspector</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead>Report</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {assetInspections.map(inspection => (
-                                                    <TableRow key={inspection.id}>
-                                                        <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
-                                                        <TableCell>{inspection.technique}</TableCell>
-                                                        <TableCell>{inspection.inspector}</TableCell>
-                                                        <TableCell>
-                                                            <Badge variant={inspection.status === 'Completed' ? 'success' : 'secondary'}>{inspection.status}</Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button variant="outline" size="sm">View</Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                {assetInspections.length === 0 && (
-                                                    <TableRow>
-                                                        <TableCell colSpan={5} className="text-center text-muted-foreground">No inspection history found.</TableCell>
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    )}
+                                    </ScrollArea>
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -636,6 +731,17 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                 title={`Documents for ${asset.name}`}
                 description="Securely view all documents associated with this asset."
             />
+            <Dialog open={isCheckLogOpen} onOpenChange={setIsCheckLogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Log Routine Check for {asset.name}</DialogTitle>
+                        <DialogDescription>
+                            Record a daily, weekly, or monthly check for this asset.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <CheckLogForm onSubmit={handleCheckLogSubmit} onCancel={() => setIsCheckLogOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

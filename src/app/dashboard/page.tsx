@@ -51,7 +51,6 @@ const ClientDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
-    const [assetLocationFilter, setAssetLocationFilter] = useState('all');
 
     useEffect(() => {
         setToday(new Date());
@@ -72,22 +71,9 @@ const ClientDashboard = () => {
         return { totalAssets, assetsRequiringInspection, reportsForReview, activeJobs };
     }, [clientJobs, currentClientAssets]);
 
-    const jobsForReview = useMemo(() => clientJobs.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').slice(0, 3), [clientJobs]);
+    const jobsForReview = useMemo(() => clientJobs.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').slice(0, 5), [clientJobs]);
     
-    const uniqueLocations = useMemo(() => ['all', ...new Set(currentClientAssets.map(a => a.location))], [currentClientAssets]);
-
-    const assetStatusData = useMemo(() => {
-        const filteredAssets = assetLocationFilter === 'all'
-            ? currentClientAssets
-            : currentClientAssets.filter(a => a.location === assetLocationFilter);
-
-        return [
-          { status: "Operational", key: "operational", count: filteredAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
-          { status: "Requires Inspection", key: "inspection", count: filteredAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
-          { status: "Under Repair", key: "repair", count: filteredAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
-        ].filter(item => item.count > 0); // Only show slices with data
-    }, [currentClientAssets, assetLocationFilter]);
-
+    const uniqueLocations = useMemo(() => [...new Set(currentClientAssets.map(a => a.location))], [currentClientAssets]);
     
     const schedule = useMemo(() => {
         if (!today) return [];
@@ -166,119 +152,73 @@ const ClientDashboard = () => {
                 </Card>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-                <Card className="lg:col-span-3">
-                    <CardHeader>
-                        <CardTitle className="font-headline">Reports Awaiting Review</CardTitle>
-                        <CardDescription>These jobs are awaiting your review and approval to move forward.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {isMobile ? (
-                            <div className="space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Reports Awaiting Review</CardTitle>
+                    <CardDescription>These jobs are awaiting your review and approval to move forward.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isMobile ? (
+                        <div className="space-y-4">
+                            {jobsForReview.map(job => (
+                                <Card key={job.id}>
+                                    <CardHeader>
+                                        <div className="flex justify-between items-start">
+                                            <CardTitle className="text-base">{job.title}</CardTitle>
+                                            {getNextStep(job.status)}
+                                        </div>
+                                        <CardDescription>ID: <span className="font-bold text-foreground">{job.id}</span></CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="text-sm">
+                                        Provider: {serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button asChild variant="outline" size="sm" className="w-full">
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Review Job</Link>
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                                {jobsForReview.length === 0 && (
+                                <div className="h-24 text-center text-muted-foreground flex items-center justify-center">No jobs require your action at this time.</div>
+                            )}
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Job ID</TableHead>
+                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Provider</TableHead>
+                                    <TableHead>Next Step</TableHead>
+                                    <TableHead className="text-right">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
                                 {jobsForReview.map(job => (
-                                    <Card key={job.id}>
-                                        <CardHeader>
-                                            <div className="flex justify-between items-start">
-                                                <CardTitle className="text-base">{job.title}</CardTitle>
-                                                {getNextStep(job.status)}
-                                            </div>
-                                            <CardDescription>ID: <span className="font-bold text-foreground">{job.id}</span></CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="text-sm">
-                                            Provider: {serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}
-                                        </CardContent>
-                                        <CardFooter>
-                                            <Button asChild variant="outline" size="sm" className="w-full">
+                                    <TableRow key={job.id}>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                        <TableCell>{getNextStep(job.status)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button asChild variant="outline" size="sm">
                                                 <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Review Job</Link>
                                             </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                                 {jobsForReview.length === 0 && (
-                                    <div className="h-24 text-center text-muted-foreground flex items-center justify-center">No jobs require your action at this time.</div>
-                                )}
-                            </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Job ID</TableHead>
-                                        <TableHead>Job Title</TableHead>
-                                        <TableHead>Provider</TableHead>
-                                        <TableHead>Next Step</TableHead>
-                                        <TableHead className="text-right">Action</TableHead>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {jobsForReview.map(job => (
-                                        <TableRow key={job.id}>
-                                            <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
-                                            <TableCell className="font-medium">{job.title}</TableCell>
-                                            <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
-                                            <TableCell>{getNextStep(job.status)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Review Job</Link>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {jobsForReview.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No jobs require your action at this time.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        )}
-                    </CardContent>
-                </Card>
-                 <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                           <div>
-                            <CardTitle className="font-headline">Asset Status</CardTitle>
-                            <CardDescription>Fleet operational status.</CardDescription>
-                           </div>
-                             <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}>
-                                <SelectTrigger className="w-full sm:w-[180px]">
-                                    <SelectValue placeholder="Filter by location" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {uniqueLocations.map(loc => (
-                                        <SelectItem key={loc} value={loc}>
-                                            {loc === 'all' ? 'All Locations' : loc}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center">
-                        {assetStatusData.length > 0 ? (
-                            <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
-                                <PieChart>
-                                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                                    <Pie data={assetStatusData} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
-                                        {assetStatusData.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
-                                        <LabelList
-                                            dataKey="count"
-                                            className="fill-background font-semibold"
-                                            stroke="none"
-                                            fontSize={12}
-                                        />
-                                    </Pie>
-                                    <ChartLegend content={<ChartLegendContent nameKey="key" />} className="-mt-4" />
-                                </PieChart>
-                            </ChartContainer>
-                        ) : (
-                             <div className="h-[250px] w-full flex items-center justify-center text-center text-muted-foreground p-4">
-                                No asset data available for the selected location.
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+                                ))}
+                                {jobsForReview.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No jobs require your action at this time.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+
              <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Upcoming Job Schedule (Next 7 Days)</CardTitle>
@@ -293,8 +233,8 @@ const ClientDashboard = () => {
                                         <CardTitle className="text-base">{job.title}</CardTitle>
                                         <CardDescription>
                                             <div className="flex items-center gap-2">
-                                              <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                              {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate))}
+                                                <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate))}
                                             </div>
                                         </CardDescription>
                                     </CardHeader>
@@ -329,8 +269,8 @@ const ClientDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
-                                              <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                              {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate))}
+                                                <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate))}
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -347,6 +287,54 @@ const ClientDashboard = () => {
                             </TableBody>
                         </Table>
                     )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Asset Status by Location</CardTitle>
+                    <CardDescription>An overview of your fleet's operational status at each site.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {uniqueLocations.map(location => {
+                        const filteredAssets = currentClientAssets.filter(a => a.location === location);
+                        const assetStatusDataForLocation = [
+                            { status: "Operational", key: "operational", count: filteredAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
+                            { status: "Requires Inspection", key: "inspection", count: filteredAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
+                            { status: "Under Repair", key: "repair", count: filteredAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
+                        ].filter(item => item.count > 0);
+
+                        return (
+                             <Card key={location} className="flex flex-col">
+                                <CardHeader>
+                                    <CardTitle>{location}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex-grow flex items-center justify-center">
+                                    {assetStatusDataForLocation.length > 0 ? (
+                                        <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
+                                            <PieChart>
+                                                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                                                <Pie data={assetStatusDataForLocation} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
+                                                    {assetStatusDataForLocation.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
+                                                    <LabelList
+                                                        dataKey="count"
+                                                        className="fill-background font-semibold"
+                                                        stroke="none"
+                                                        fontSize={12}
+                                                    />
+                                                </Pie>
+                                                <ChartLegend content={<ChartLegendContent nameKey="key" />} className="-mt-4" />
+                                            </PieChart>
+                                        </ChartContainer>
+                                    ) : (
+                                        <div className="h-[250px] w-full flex items-center justify-center text-center text-muted-foreground p-4">
+                                            No asset data available for this location.
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
                 </CardContent>
             </Card>
         </div>

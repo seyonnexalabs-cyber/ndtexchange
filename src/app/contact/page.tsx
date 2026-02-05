@@ -1,3 +1,4 @@
+
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -206,10 +207,10 @@ export default function ContactPage() {
                                 description="Per inspector"
                                 features={[
                                     "14-day free trial",
-                                    "Job assignments",
+                                    "Access job marketplace",
+                                    "Submit up to 10 bids per month",
                                     "Digital report creation",
                                     "Mobile inspection workflows",
-                                    "Basic equipment tracking",
                                 ]}
                                 ctaText="Start as Inspector"
                             />
@@ -220,10 +221,10 @@ export default function ContactPage() {
                                 features={[
                                     "14-day free trial",
                                     "Up to 5 inspectors",
-                                    "Equipment & calibration tracking",
+                                    "Unlimited marketplace bidding",
+                                    "Advanced equipment tracking",
                                     "Client-linked projects",
                                     "Level-III review workflows",
-                                    "Report sharing via NDT Exchange",
                                 ]}
                                 isFeatured={true}
                                 popularBadge={true}
@@ -236,7 +237,8 @@ export default function ContactPage() {
                                 features={[
                                     "14-day free trial",
                                     "Up to 15 inspectors",
-                                    "Multi-site operations",
+                                    "Unlimited marketplace bidding",
+                                    "Multi-site operations & analytics",
                                     "Advanced report templates",
                                     "Priority support",
                                 ]}

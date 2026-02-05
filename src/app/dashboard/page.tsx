@@ -6,6 +6,8 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer, Line, LineChart, LabelList } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
@@ -39,7 +41,6 @@ const constructUrl = (base: string, searchParams: URLSearchParams) => {
 
 // --- CLIENT DASHBOARD ---
 const clientChartConfig = {
-  count: { label: "Assets" },
   operational: { label: "Operational", color: "hsl(var(--chart-2))" },
   inspection: { label: "Requires Inspection", color: "hsl(var(--chart-4))" },
   repair: { label: "Under Repair", color: "hsl(var(--chart-5))" },
@@ -71,7 +72,18 @@ const ClientDashboard = () => {
 
     const jobsForReview = useMemo(() => clientJobs.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').slice(0, 5), [clientJobs]);
     
-    const uniqueLocations = useMemo(() => [...new Set(currentClientAssets.map(a => a.location))], [currentClientAssets]);
+    const assetStatusByLocationData = useMemo(() => {
+        const locations = [...new Set(currentClientAssets.map(a => a.location))];
+        return locations.map(location => {
+            const assetsInLocation = currentClientAssets.filter(a => a.location === location);
+            return {
+                location: location,
+                operational: assetsInLocation.filter(a => a.status === 'Operational').length,
+                inspection: assetsInLocation.filter(a => a.status === 'Requires Inspection').length,
+                repair: assetsInLocation.filter(a => a.status === 'Under Repair').length,
+            };
+        });
+    }, [currentClientAssets]);
     
     const schedule = useMemo(() => {
         if (!today) return [];
@@ -291,47 +303,27 @@ const ClientDashboard = () => {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Asset Status by Location</CardTitle>
-                    <CardDescription>An overview of your fleet's operational status at each site.</CardDescription>
+                    <CardDescription>An overview of your fleet's operational status across all sites.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {uniqueLocations.map(location => {
-                        const filteredAssets = currentClientAssets.filter(a => a.location === location);
-                        const assetStatusDataForLocation = [
-                            { name: "Operational", count: filteredAssets.filter(a => a.status === 'Operational').length, key: "operational" },
-                            { name: "Requires Inspection", count: filteredAssets.filter(a => a.status === 'Requires Inspection').length, key: "inspection" },
-                            { name: "Under Repair", count: filteredAssets.filter(a => a.status === 'Under Repair').length, key: "repair" },
-                        ];
-
-                        return (
-                             <Card key={location} className="flex flex-col">
-                                <CardHeader>
-                                    <CardTitle>{location}</CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex-grow flex items-center justify-center">
-                                    {filteredAssets.length > 0 ? (
-                                        <ChartContainer config={clientChartConfig} className="h-[250px] w-full">
-                                            <BarChart data={assetStatusDataForLocation} accessibilityLayer>
-                                                <CartesianGrid vertical={false} />
-                                                <XAxis dataKey="name" tickFormatter={(value) => value.substring(0, 3)} tickLine={false} tickMargin={10} axisLine={false} />
-                                                <YAxis />
-                                                <ChartTooltip content={<ChartTooltipContent />} />
-                                                <Bar dataKey="count" radius={4}>
-                                                    <LabelList position="top" offset={4} className="fill-foreground" fontSize={12} />
-                                                    {assetStatusDataForLocation.map((entry) => (
-                                                        <Cell key={entry.key} fill={`var(--color-${entry.key})`} />
-                                                    ))}
-                                                </Bar>
-                                            </BarChart>
-                                        </ChartContainer>
-                                    ) : (
-                                        <div className="h-[250px] w-full flex items-center justify-center text-center text-muted-foreground p-4">
-                                            No asset data available for this location.
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )
-                    })}
+                <CardContent>
+                    <ChartContainer config={clientChartConfig} className="h-[300px] w-full">
+                        <BarChart accessibilityLayer data={assetStatusByLocationData}>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                                dataKey="location"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                tickFormatter={(value) => value.substring(0, 10)}
+                            />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <ChartLegend content={<ChartLegendContent />} />
+                            <Bar dataKey="operational" stackId="a" fill="var(--color-operational)" radius={[0, 0, 4, 4]} />
+                            <Bar dataKey="inspection" stackId="a" fill="var(--color-inspection)" />
+                            <Bar dataKey="repair" stackId="a" fill="var(--color-repair)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ChartContainer>
                 </CardContent>
             </Card>
         </div>
@@ -772,3 +764,5 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    

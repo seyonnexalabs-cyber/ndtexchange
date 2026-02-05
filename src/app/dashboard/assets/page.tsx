@@ -75,7 +75,8 @@ const ClientAssetsView = ({ assets, onApprove, onReject }: { assets: Asset[], on
                             return (
                                 <Card key={asset.id} className={cn(
                                     "flex flex-col",
-                                    asset.approvalStatus === 'Pending Approval' && "border-amber-500/50 bg-amber-500/5"
+                                    asset.approvalStatus === 'Pending Approval' && "border-amber-500/50 bg-amber-500/5",
+                                    asset.status === 'Requires Inspection' && "border-destructive/50 bg-destructive/5"
                                 )}>
                                     <CardHeader className="p-0">
                                         <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
@@ -101,7 +102,12 @@ const ClientAssetsView = ({ assets, onApprove, onReject }: { assets: Asset[], on
                                                 asset.status === 'Under Repair' ? 'secondary' : 'outline'
                                             }>{asset.status}</Badge>
                                         </div>
-                                        <CardTitle className="mt-2 font-semibold text-lg">{asset.name}</CardTitle>
+                                        <CardTitle className="mt-2 font-semibold text-lg flex items-center gap-2">
+                                            {asset.name}
+                                            {asset.status === 'Requires Inspection' && (
+                                                <AlertTriangle className="h-5 w-5 text-destructive" />
+                                            )}
+                                        </CardTitle>
                                         <CardDescription className="font-bold">{asset.id}</CardDescription>
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
@@ -236,3 +242,5 @@ export default function AssetsPage() {
 }
 
   
+
+    

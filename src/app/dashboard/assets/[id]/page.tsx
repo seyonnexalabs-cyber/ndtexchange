@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud, Check, Settings, History } from "lucide-react";
+import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud, Check, Settings, History, AlertTriangle, QrCode, Printer } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -775,7 +775,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                         </TabsContent>
                     </Tabs>
                 </div>
-                <div>
+                <div className="lg:col-span-1 space-y-6">
                      <Card>
                         <CardHeader className="p-0">
                             {image && (
@@ -817,6 +817,34 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                                 </div>
                             </div>
                         </CardContent>
+                    </Card>
+                    <Card className="non-printable">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <QrCode className="h-5 w-5 text-primary" />
+                                Asset QR Code
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="printable-area border rounded-lg p-4 flex flex-col items-center justify-center gap-4">
+                                <Image 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(asset.id)}`}
+                                    alt={`QR Code for ${asset.name}`}
+                                    width={250}
+                                    height={250}
+                                />
+                                <div className="text-center">
+                                    <p className="font-bold text-lg">{asset.name}</p>
+                                    <p className="font-extrabold text-muted-foreground">{asset.id}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button className="w-full" onClick={() => window.print()}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Print QR Code
+                            </Button>
+                        </CardFooter>
                     </Card>
                 </div>
             </div>

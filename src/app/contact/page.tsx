@@ -3,254 +3,39 @@
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Mail, Phone, Info } from 'lucide-react';
+import { CheckCircle, Building, HardHat, Eye, Cloud, GitBranch, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useState } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-export default function ContactPage() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
-  const [showCustomSubject, setShowCustomSubject] = useState(false);
-
-  const handleSubjectChange = (value: string) => {
-    setShowCustomSubject(value === 'other');
-  };
-
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <PublicHeader />
-      <main className="flex-grow">
-        <section className="relative py-20 md:py-24 text-primary-foreground">
-           <div className="absolute inset-0">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                priority
-              />
-            )}
-            <div className="absolute inset-0 bg-primary/60" />
-          </div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold">
-                Flexible Plans for Every Role
-              </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                Find the right plan for your role in the NDT ecosystem. Get started for free today.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section id="pricing" className="py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-                <Alert className="max-w-3xl mx-auto bg-primary/10 border-primary/20">
-                  <Info className="h-4 w-4 text-primary" />
-                  <AlertDescription className="text-primary font-semibold">
-                    14-Day Free Trial for Inspectors & NDT Companies. No credit card required. Clients & Level-III are free during MVP.
-                  </AlertDescription>
-                </Alert>
-            </div>
-            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-              <PricingCard
-                plan="Client"
-                price="Free"
-                description="For asset owners managing critical infrastructure. Free during our MVP phase."
-                features={[
-                  "Full Asset Lifecycle Management",
-                  "Secure Document & Data Vault",
-                  "Post jobs to a global marketplace",
-                  "Transparent bidding & awarding process",
-                  "Advanced historical reporting",
-                ]}
-                isFeatured={false}
-                theme="client"
-                ctaText="Get Started Free"
-                ctaLink="/login?role=client"
-              />
-              <PricingCard
-                plan="Provider Operations"
-                price="From $49"
-                description="Digitize your internal operations and team management."
-                features={[
-                  "Includes a 14-day free trial",
-                  "Technician Roster Management",
-                  "Equipment Inventory & Calibration Tracking",
-                  "QR Code Generation for Equipment",
-                  "Internal Job & Schedule Management",
-                  "Standard Digital Reporting Tools",
-                  "Email & Community Support",
-                ]}
-                isFeatured={false}
-                theme="inspector"
-              />
-              <PricingCard
-                plan="Provider Marketplace"
-                price="From $149"
-                description="Includes Operations, plus full marketplace access."
-                features={[
-                  "Includes a 14-day free trial",
-                  "All Provider Operations features",
-                  "Access to Exclusive Job Marketplace",
-                  "Submit Unlimited Competitive Bids",
-                  "Public Company Profile",
-                  "Direct Client Communication",
-                  "Priority Email & Phone Support",
-                ]}
-                isFeatured={true}
-                theme="inspector"
-              />
-              <PricingCard
-                plan="Auditor / Regulator"
-                price="By Invite"
-                description="For independent Level III auditors and regulatory bodies."
-                features={[
-                    "Secure, read-only access to job data",
-                    "Participate in Level III review workflows",
-                    "Tamper-proof audit trail of inspection lifecycle",
-                    "Provide expert oversight and ensure compliance",
-                    "Direct communication with clients",
-                    "Access via client invitation",
-                ]}
-                isFeatured={false}
-                theme="auditor"
-                ctaText="By Invitation Only"
-                ctaLink="#contact-form"
-                ctaDisabled={true}
-              />
-            </div>
-             <p className="text-center text-muted-foreground mt-8 text-sm">
-                The prices shown are starting points. Your final subscription cost is usage-based, determined by factors like the number of users and data storage needs. Contact our sales team for a detailed quote tailored to your business. Auditor access is by invitation from Client accounts.
-             </p>
-          </div>
-        </section>
-
-        <section id="contact-form" className="py-20 bg-card">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="max-w-2xl mx-auto">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-headline font-semibold text-primary">
-                            Get in Touch
-                        </h2>
-                        <p className="mt-4 text-lg text-muted-foreground">
-                            Have questions about our platform or pricing? We'd love to hear from you.
-                        </p>
-                    </div>
-                    <form className="space-y-6">
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name</Label>
-                                <Input id="name" placeholder="Your Name" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" placeholder="you@company.com" />
-                            </div>
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="role">You are a...</Label>
-                            <Select name="role">
-                                <SelectTrigger id="role">
-                                    <SelectValue placeholder="Select your role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="client">Client / Asset Owner</SelectItem>
-                                    <SelectItem value="provider">NDT Service Provider</SelectItem>
-                                    <SelectItem value="auditor">Auditor / Regulator</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="subject-select">Subject</Label>
-                            <Select onValueChange={handleSubjectChange}>
-                                <SelectTrigger id="subject-select">
-                                    <SelectValue placeholder="Select a subject" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="pricing">Pricing Inquiry</SelectItem>
-                                    <SelectItem value="support">Technical Support</SelectItem>
-                                    <SelectItem value="general">General Question</SelectItem>
-                                    <SelectItem value="other">Other...</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {showCustomSubject && (
-                            <div className="space-y-2 animate-in fade-in duration-300">
-                                <Label htmlFor="custom-subject">Custom Subject</Label>
-                                <Input id="custom-subject" placeholder="Please specify your subject" autoFocus />
-                            </div>
-                        )}
-                         <div className="space-y-2">
-                            <Label htmlFor="message">Message</Label>
-                            <Textarea id="message" placeholder="How can we help you?" className="min-h-[150px]" />
-                        </div>
-                        <div className="text-right">
-                             <Button type="submit">Send Message</Button>
-                        </div>
-                    </form>
-                    <div className="text-center mt-12 text-muted-foreground">
-                        <p className="flex items-center justify-center gap-2">
-                            <Mail className="w-4 h-4" /> sales@ndtexchange.com
-                        </p>
-                         <p className="flex items-center justify-center gap-2 mt-2">
-                            <Phone className="w-4 h-4" /> (555) 123-4567
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-      </main>
-      <PublicFooter />
-    </div>
-  );
-}
-
-function PricingCard({ plan, price, description, features, isFeatured, theme, ctaText = 'Get a Quote', ctaLink = '#contact-form', ctaDisabled = false }: {
+// New pricing card component based on the user's new specs.
+function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
   plan: string;
   price: string;
   description: string;
   features: string[];
-  isFeatured: boolean;
-  theme: 'client' | 'inspector' | 'auditor' | 'admin';
-  ctaText?: string;
+  isFeatured?: boolean;
+  ctaText: string;
   ctaLink?: string;
-  ctaDisabled?: boolean;
+  popularBadge?: boolean;
 }) {
-  const isPrefixed = price.startsWith("From ");
-
   return (
-    <Card className={cn("flex flex-col", `${theme}-theme`, isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "")}>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-        <div className="pt-4">
-          {isPrefixed ? (
-            <div className="flex items-baseline justify-center gap-x-1">
-              <span className="text-xl font-semibold text-muted-foreground">From</span>
-              <span className="text-4xl font-bold">{price.replace('From ', '')}</span>
-              <span className="text-sm text-muted-foreground self-end">/mo</span>
+    <Card className={cn("flex flex-col h-full", isFeatured && "border-primary ring-2 ring-primary shadow-lg")}>
+       {popularBadge && (
+            <div className="py-1.5 px-3 bg-primary text-primary-foreground text-sm font-semibold rounded-t-lg text-center">
+                ⭐ Most Chosen
             </div>
-          ) : (
-            <>
-              <span className="text-4xl font-bold">{price}</span>
-              {price !== "Custom" && price !== "By Invite" && price !== "Free" && <span className="text-sm text-muted-foreground">/mo</span>}
-            </>
-          )}
+       )}
+      <CardHeader>
+        <CardTitle className="text-xl font-headline">{plan}</CardTitle>
+        <div className="pt-2">
+            <span className="text-3xl font-bold">{price}</span>
+             {(price.startsWith("₹") && !price.includes("event")) && <span className="text-sm text-muted-foreground"> / month</span>}
         </div>
+        <CardDescription className="pt-2 !mt-2">{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
         <ul className="space-y-3">
@@ -264,14 +49,319 @@ function PricingCard({ plan, price, description, features, isFeatured, theme, ct
       </CardContent>
       <CardFooter>
         <Button 
-            className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} 
+            className="w-full" 
             variant={isFeatured ? 'default' : 'outline'} 
-            asChild={!ctaDisabled}
-            disabled={ctaDisabled}
+            asChild
         >
-          {ctaDisabled ? <span>{ctaText}</span> : <Link href={ctaLink}>{ctaText}</Link>}
+          <Link href={ctaLink}>{ctaText}</Link>
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <PublicHeader />
+      <main className="flex-grow">
+        {/* 1. HERO SECTION */}
+        <section className="bg-card border-b py-20 md:py-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+              Simple, Transparent Pricing for the NDT Industry
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+              Start free. Scale as your inspections, teams, and projects grow.
+            </p>
+             <p className="mt-4 text-sm text-muted-foreground">
+                No credit card required • Level‑III access included • Marketplace free during MVP
+            </p>
+            <div className="mt-8 flex justify-center gap-4">
+                <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  <Link href="#contact-form">Start Pilot / Request Access</Link>
+                </Button>
+                <Button size="lg" asChild variant="outline">
+                  <Link href="#pricing-tabs">View Plans Below</Link>
+                </Button>
+            </div>
+          </div>
+        </section>
+
+        <div id="pricing-tabs" className="py-20">
+        <Tabs defaultValue="asset-owners" className="w-full">
+            {/* 2. WHO IS THIS FOR? (ROLE SELECTOR) */}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex justify-center">
+                <TabsList className="grid w-full max-w-xl grid-cols-3">
+                    <TabsTrigger value="asset-owners" className="gap-2"><Building /> Asset Owners</TabsTrigger>
+                    <TabsTrigger value="ndt-companies" className="gap-2"><HardHat /> NDT Companies</TabsTrigger>
+                    <TabsTrigger value="auditors" className="gap-2"><Eye /> Level-III & Auditors</TabsTrigger>
+                </TabsList>
+            </div>
+            
+            <TabsContent value="asset-owners" className="container mx-auto px-4 sm:px-6 lg:px-8">
+                 {/* 3. CLIENT (ASSET OWNER) PRICING */}
+                <section id="asset-owner-pricing" className="mb-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-headline font-semibold text-primary">For Asset Owners & Clients</h2>
+                        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Gain secure access to inspection data across vendors, projects, and shutdowns.</p>
+                    </div>
+                    <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+                        <PricingCard
+                            plan="Client Access (MVP)"
+                            price="₹0 – ₹3,000"
+                            description="Best for: Plants, EPCs, pilot teams"
+                            features={[
+                                "Asset registry (up to 200 assets)",
+                                "Read-only access to NDT reports",
+                                "Vendor-shared reports",
+                                "Asset inspection history",
+                                "Web portal access",
+                            ]}
+                            ctaText="Start Free Access"
+                        />
+                        <PricingCard
+                            plan="Client Plus"
+                            price="₹5,000 – ₹8,000"
+                            description="Best for: Multi-vendor operations"
+                            features={[
+                                "Everything in Client Access, plus:",
+                                "Unlimited assets",
+                                "Multiple vendors",
+                                "Comments & approvals",
+                                "Shutdown inspection view",
+                            ]}
+                            isFeatured={true}
+                            ctaText="Upgrade to Plus"
+                        />
+                    </div>
+                </section>
+            </TabsContent>
+
+             <TabsContent value="ndt-companies" className="container mx-auto px-4 sm:px-6 lg:px-8">
+                {/* 4. NDT COMPANY & INSPECTOR PRICING */}
+                <section id="ndt-company-pricing" className="mb-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-headline font-semibold text-primary">For NDT Companies & Inspectors</h2>
+                        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Digitize inspections, reports, equipment, and collaboration with clients.</p>
+                    </div>
+                    <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
+                         <PricingCard
+                            plan="Individual Inspector"
+                            price="₹1,500"
+                            description="Per inspector"
+                            features={[
+                                "Job assignments",
+                                "Digital report creation",
+                                "Mobile inspection workflows",
+                                "Basic equipment tracking",
+                            ]}
+                            ctaText="Start as Inspector"
+                        />
+                        <PricingCard
+                            plan="NDT Company"
+                            price="₹5,000"
+                            description="Per company"
+                            features={[
+                                "Up to 5 inspectors",
+                                "Equipment & calibration tracking",
+                                "Client-linked projects",
+                                "Level-III review workflows",
+                                "Report sharing via NDT Exchange",
+                            ]}
+                            isFeatured={true}
+                            popularBadge={true}
+                            ctaText="Start Company Pilot"
+                        />
+                        <PricingCard
+                            plan="Company Growth"
+                            price="₹10,000"
+                            description="Per company"
+                            features={[
+                                "Up to 15 inspectors",
+                                "Multi-site operations",
+                                "Advanced report templates",
+                                "Priority support",
+                            ]}
+                            ctaText="Upgrade to Growth"
+                        />
+                    </div>
+                </section>
+             </TabsContent>
+            
+             <TabsContent value="auditors" className="container mx-auto px-4 sm:px-6 lg:px-8">
+                {/* 5. LEVEL-III / AUDITOR ACCESS */}
+                <section id="auditor-pricing" className="mb-16">
+                     <div className="text-center mb-12">
+                        <h2 className="text-3xl font-headline font-semibold text-primary">For Level-III & Auditors</h2>
+                    </div>
+                    <Card className="max-w-4xl mx-auto">
+                        <CardHeader className="text-center">
+                            <CardTitle className="text-2xl">FREE during MVP</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <ul className="mx-auto max-w-md space-y-3 text-center">
+                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Review & approval workflows</li>
+                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Audit comments & traceability</li>
+                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Certification reference access</li>
+                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Cross-project oversight (limited)</li>
+                            </ul>
+                            <p className="mt-4 text-center text-sm text-muted-foreground">Level-III access is included to ensure industry-grade credibility and compliance.</p>
+                        </CardContent>
+                        <CardFooter className="justify-center">
+                            <Button>Request Level-III Access</Button>
+                        </CardFooter>
+                    </Card>
+                </section>
+             </TabsContent>
+        </Tabs>
+        </div>
+
+
+        {/* 6. EXCHANGE & MARKETPLACE PRICING */}
+        <section className="py-20 bg-card">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-headline font-semibold text-primary">NDT Exchange Marketplace</h2>
+                    <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Connect clients, inspectors, and vendors through a shared job & data exchange.</p>
+                </div>
+                <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                    <div className="border p-6 rounded-lg">
+                        <h3 className="font-semibold text-xl">Job Listings & Bidding</h3>
+                        <p className="text-3xl font-bold mt-2">₹0 – FREE (MVP)</p>
+                        <ul className="mt-4 space-y-2 text-muted-foreground">
+                            <li>Post jobs</li>
+                            <li>Submit bids</li>
+                            <li>Client shortlisting</li>
+                            <li>Award marking</li>
+                        </ul>
+                    </div>
+                     <div className="border p-6 rounded-lg">
+                        <h3 className="font-semibold text-xl">Future Monetization (Transparent)</h3>
+                        <p className="text-lg font-bold mt-2">Commission starts post‑MVP</p>
+                        <ul className="mt-4 space-y-2 text-muted-foreground">
+                            <li>2% success fee on awarded jobs (after pilot phase)</li>
+                            <li>Premium access options later</li>
+                        </ul>
+                        <p className="mt-4 text-xs italic text-muted-foreground">No commissions during MVP. We grow only when you grow.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        {/* 7. SHUTDOWN MAINTENANCE PRICING */}
+        <section className="py-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-headline font-semibold text-primary">Shutdown Maintenance Events</h2>
+                </div>
+                 <Card className="max-w-2xl mx-auto bg-accent/10 border-accent">
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-2xl text-accent">₹25,000 per shutdown event</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <ul className="mx-auto max-w-md space-y-3">
+                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Multi-vendor coordination</li>
+                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Asset-wise inspection visibility</li>
+                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Live shutdown progress tracking</li>
+                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Central report repository</li>
+                        </ul>
+                    </CardContent>
+                    <CardFooter className="justify-center">
+                        <Button>Plan a Shutdown</Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        </section>
+
+        {/* 8. TRUST & ASSURANCE SECTION */}
+        <section className="py-20 bg-card">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                         <h2 className="text-3xl font-headline font-semibold text-primary">Trust & Assurance</h2>
+                         <div className="mt-8 space-y-6">
+                            <div className="flex items-start gap-4">
+                                <div className="bg-primary/10 p-3 rounded-full"><GitBranch className="w-6 h-6 text-primary"/></div>
+                                <div>
+                                    <h4 className="font-semibold">Industry-Aligned Workflows</h4>
+                                    <p className="text-muted-foreground text-sm">Built for how the NDT industry actually works.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                                <div className="bg-primary/10 p-3 rounded-full"><Cloud className="w-6 h-6 text-primary"/></div>
+                                <div>
+                                    <h4 className="font-semibold">Secure Cloud Infrastructure</h4>
+                                    <p className="text-muted-foreground text-sm">Your data is protected with enterprise-grade security.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                                <div className="bg-primary/10 p-3 rounded-full"><Cpu className="w-6 h-6 text-primary"/></div>
+                                <div>
+                                    <h4 className="font-semibold">Pilot-Friendly Pricing</h4>
+                                    <p className="text-muted-foreground text-sm">Start small and scale as you see value. No long-term contracts.</p>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                     <div className="p-8 border-l-4 border-primary bg-background">
+                        <p className="text-lg italic text-muted-foreground">“NDT Exchange simplified multi‑vendor inspections during shutdowns.”</p>
+                        <p className="mt-4 font-semibold">- Plant Manager, Oil & Gas Sector</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        {/* 9. FAQ SECTION */}
+        <section id="faq" className="py-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+                 <div className="text-center mb-12">
+                    <h2 className="text-3xl font-headline font-semibold text-primary">Frequently Asked Questions</h2>
+                </div>
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>Do clients have to pay?</AccordionTrigger>
+                        <AccordionContent>
+                        Client access is free or nominal during MVP.
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-2">
+                        <AccordionTrigger>Is Level-III really free?</AccordionTrigger>
+                        <AccordionContent>
+                        Yes, to ensure audit credibility.
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-3">
+                        <AccordionTrigger>When do commissions start?</AccordionTrigger>
+                        <AccordionContent>
+                        After successful MVP adoption.
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-4">
+                        <AccordionTrigger>Can pricing change later?</AccordionTrigger>
+                        <AccordionContent>
+                        Early users will be grandfathered.
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </div>
+        </section>
+        
+        {/* 10. FINAL CTA */}
+        <section id="contact-form" className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-headline font-semibold text-primary">
+              Ready to digitize inspections and collaborate better?
+            </h2>
+            <p className="mt-2 text-muted-foreground">Industry-first platform, built for long-term trust</p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Button size="lg">Start Pilot</Button>
+              <Button size="lg" variant="outline">Talk to Us</Button>
+            </div>
+          </div>
+        </section>
+      </main>
+      <PublicFooter />
+    </div>
   );
 }

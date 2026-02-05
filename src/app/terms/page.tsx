@@ -6,7 +6,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 
 export const metadata: Metadata = {
-    title: 'Terms and Conditions | NDT Exchange',
+    title: 'Terms and Conditions',
     description: 'Review the terms and conditions for using the NDT Exchange platform. Your use of the service is subject to these terms.',
 };
 

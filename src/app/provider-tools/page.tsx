@@ -12,7 +12,7 @@ import { Users, Wrench, QrCode } from 'lucide-react';
 
 
 export const metadata: Metadata = {
-  title: 'Provider Tools | NDT Exchange',
+  title: 'Operations Hub for NDT Service Providers',
   description: 'Streamline your NDT operations with powerful tools for team and equipment management. Track certifications, manage calibrations, and optimize your fieldwork.',
 };
 

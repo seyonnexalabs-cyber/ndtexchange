@@ -13,8 +13,8 @@ import { ndtTechniques } from '@/lib/ndt-techniques-data';
 import { FeatureCard } from '@/app/components/feature-card';
 
 export const metadata: Metadata = {
-  title: 'NDT Exchange | The Digital Marketplace for Asset Integrity',
-  description: 'A purpose-built digital ecosystem connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.',
+  title: 'The Digital Marketplace for Asset Integrity',
+  description: 'NDT Exchange is a purpose-built digital ecosystem connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.',
 };
 
 export default function HomePage() {

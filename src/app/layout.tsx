@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -6,8 +7,11 @@ import { ThemeProvider } from '@/app/components/layout/theme-provider';
 
 
 export const metadata: Metadata = {
-  title: 'NDT Exchange',
-  description: 'The premier marketplace for Non-Destructive Testing services.',
+  title: {
+    default: 'NDT Exchange | The Digital Marketplace for Asset Integrity',
+    template: '%s | NDT Exchange',
+  },
+  description: 'A purpose-built digital ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.',
   manifest: "/manifest.json",
 };
 

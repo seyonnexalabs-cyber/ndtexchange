@@ -13,7 +13,7 @@ import ShutdownPhases from '@/app/components/shutdown-phases';
 
 
 export const metadata: Metadata = {
-  title: 'Asset Management | NDT Exchange',
+  title: 'Total Lifecycle Asset Management for Clients',
   description: 'Discover a powerful, unified platform to manage the entire lifecycle of your critical assets. Centralize data, track history, and ensure compliance with NDT Exchange.',
 };
 

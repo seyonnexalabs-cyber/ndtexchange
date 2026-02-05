@@ -12,7 +12,7 @@ import { ndtTechniques } from '@/lib/ndt-techniques-data';
 import { FeatureCard } from '@/app/components/feature-card';
 
 export const metadata: Metadata = {
-  title: 'NDT Equipment Manufacturers Directory | NDT Exchange',
+  title: 'NDT Equipment Manufacturers Directory',
   description: 'A curated list of prominent Original Equipment Manufacturers (OEMs) for various NDT techniques, including UT, RT, ET, MT, PT, and more.',
 };
 

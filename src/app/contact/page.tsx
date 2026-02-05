@@ -1,5 +1,5 @@
-'use client';
 
+import type { Metadata } from 'next';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,12 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+
+export const metadata: Metadata = {
+  title: 'Pricing & Plans',
+  description: 'Flexible, role-based pricing for the NDT Exchange platform. Find plans for Asset Owners, NDT Companies, and Auditors. Start your free trial today.',
+};
+
 
 // New pricing card component based on the user's new specs.
 function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {

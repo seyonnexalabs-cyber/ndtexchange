@@ -10,7 +10,7 @@ import { FeatureCard } from '@/app/components/feature-card';
 import { Building, HardHat, Users, Wrench, QrCode } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Platform Features | NDT Exchange',
+  title: 'Platform Features for Asset Owners and NDT Providers',
   description: 'Explore the powerful, purpose-built tools for asset owners and NDT service providers. Manage assets, teams, and equipment all in one unified platform.',
 };
 

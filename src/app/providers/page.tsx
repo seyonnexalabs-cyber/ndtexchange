@@ -22,7 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 export const metadata: Metadata = {
-    title: 'NDT Service Provider Directory | NDT Exchange',
+    title: 'NDT Service Provider Directory',
     description: 'Browse our directory of leading NDT companies from around the world. Filter by technique to find the right partner for your inspection needs.',
 };
 

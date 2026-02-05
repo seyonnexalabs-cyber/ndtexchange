@@ -6,7 +6,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 
 export const metadata: Metadata = {
-    title: 'Privacy Policy | NDT Exchange',
+    title: 'Privacy Policy',
     description: 'Read the NDT Exchange privacy policy to understand how we collect, use, and protect your personal information and data.',
 };
 

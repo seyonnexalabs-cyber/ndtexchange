@@ -304,7 +304,7 @@ export default function AddAssetPage() {
                                                 <>
                                                     <Image
                                                         src={thumbnailPreview}
-                                                        alt="Thumbnail preview"
+                                                        alt="New asset thumbnail preview"
                                                         fill
                                                         className="object-contain rounded-md p-2"
                                                     />

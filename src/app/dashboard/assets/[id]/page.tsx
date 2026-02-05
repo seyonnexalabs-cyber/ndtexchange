@@ -271,7 +271,7 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
                                             <>
                                                 <Image
                                                     src={thumbnailPreview}
-                                                    alt="Thumbnail preview"
+                                                    alt={`Thumbnail preview for ${asset.name}`}
                                                     fill
                                                     className="object-contain rounded-md p-2"
                                                 />

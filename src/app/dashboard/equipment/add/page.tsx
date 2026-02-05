@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { PlusCircle, ChevronLeft, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from 'next/image';
 
 
@@ -383,7 +383,7 @@ export default function AddEquipmentPage() {
                                                 <>
                                                     <Image
                                                         src={thumbnailPreview}
-                                                        alt="Thumbnail preview"
+                                                        alt="New equipment thumbnail preview"
                                                         fill
                                                         className="object-contain rounded-md p-2"
                                                     />

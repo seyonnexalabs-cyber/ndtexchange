@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -300,7 +301,7 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
                                     <>
                                         <Image
                                             src={thumbnailPreview}
-                                            alt="Thumbnail preview"
+                                            alt={`Thumbnail preview for ${equipment.name}`}
                                             fill
                                             className="object-contain rounded-md p-2"
                                         />
@@ -845,5 +846,3 @@ export default function EquipmentDetailPage() {
 }
 
     
-
-

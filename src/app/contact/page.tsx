@@ -1,3 +1,4 @@
+
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -18,6 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
   plan: string;
@@ -207,6 +210,7 @@ const ContactForm = () => {
 export default function ContactPage() {
     type Currency = 'USD' | 'EUR' | 'INR';
     const [currency, setCurrency] = React.useState<Currency>('USD');
+    const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
 
     useEffect(() => {
         // This effect runs only on the client side, after hydration
@@ -261,24 +265,39 @@ export default function ContactPage() {
       <PublicHeader />
       <main className="flex-grow">
         {/* 1. HERO SECTION */}
-        <section className="bg-card border-b py-20 md:py-24">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-              Simple, Transparent Pricing for the NDT Industry
-            </h1>
-            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Start free. Scale as your inspections, teams, and projects grow.
-            </p>
-             <p className="mt-4 text-sm text-muted-foreground">
-                14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level‑III are free.
-            </p>
-            <div className="mt-8 flex justify-center gap-4">
-                <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Link href="#contact-form">Start Pilot / Request Access</Link>
-                </Button>
-                <Button size="lg" asChild variant="outline">
-                  <Link href="#pricing-tabs">View Plans Below</Link>
-                </Button>
+        <section className="relative py-20 md:py-24 text-primary-foreground">
+           <div className="absolute inset-0">
+            {heroImage && (
+              <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={heroImage.imageHint}
+                priority
+              />
+            )}
+            <div className="absolute inset-0 bg-primary/60" />
+          </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold">
+                Simple, Transparent Pricing for the NDT Industry
+              </h1>
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/90">
+                Start free. Scale as your inspections, teams, and projects grow.
+              </p>
+              <p className="mt-4 text-sm text-primary-foreground/80">
+                  14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level‑III are free.
+              </p>
+              <div className="mt-8 flex justify-center gap-4">
+                  <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                    <Link href="#contact-form">Start Pilot / Request Access</Link>
+                  </Button>
+                  <Button size="lg" asChild variant="outline" className="bg-background/20 text-white border-white hover:bg-background/30">
+                    <Link href="#pricing-tabs">View Plans Below</Link>
+                  </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -317,8 +336,8 @@ export default function ContactPage() {
                                 description="Best for: Plants, EPCs, pilot teams"
                                 features={[
                                     "Asset register (up to 200 assets)",
-                                    "Read-only access to NDT reports",
-                                    "Vendor-shared reports",
+                                    "Read‑only access to NDT reports",
+                                    "Vendor‑shared reports",
                                     "Asset register with inspection history and maintenance visibility",
                                     "Web portal access",
                                 ]}
@@ -329,7 +348,7 @@ export default function ContactPage() {
                             <PricingCard
                                 plan="Client Plus"
                                 price={prices['Client Plus'][currency]}
-                                description="Best for: Multi-vendor operations"
+                                description="Best for: Multi‑vendor operations"
                                 features={[
                                     "Everything in Client Access, plus:",
                                     "Unlimited assets",
@@ -359,7 +378,6 @@ export default function ContactPage() {
                                 description="Per inspector"
                                 features={[
                                     "14-day free trial",
-                                    "Access job marketplace",
                                     "Submit up to 10 bids per month",
                                     "Digital report creation",
                                     "Equipment register with calibration tracking and job‑wise equipment assignment",
@@ -538,13 +556,13 @@ export default function ContactPage() {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Do clients have to pay?</AccordionTrigger>
                         <AccordionContent>
-                        Client access is free or nominal during our initial launch period.
+                        Client access is free for basic use. Paid plans are available for unlimited assets and advanced features.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-2">
                         <AccordionTrigger>Is Level-III really free?</AccordionTrigger>
                         <AccordionContent>
-                        Yes, to ensure audit credibility.
+                        Yes, to ensure audit credibility. Auditors are invited to jobs by clients or providers.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-3">
@@ -561,7 +579,7 @@ export default function ContactPage() {
                     </AccordionItem>
                 </Accordion>
                 <p className="text-center text-sm text-muted-foreground mt-12">
-                    Prices are displayed in your local currency for convenience. Value remains consistent globally.
+                    Prices are shown in local currency for convenience. Final billing currency depends on billing location.
                 </p>
             </div>
         </section>

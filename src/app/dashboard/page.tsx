@@ -22,6 +22,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format, differenceInDays, isAfter, isToday, isWithinInterval } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 // --- SHARED COMPONENTS & CONFIGS ---
@@ -29,7 +30,7 @@ import { Button } from "@/components/ui/button";
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
     'Report Submitted': 'secondary', 'Under Audit': 'secondary', 'Audit Approved': 'success', 'Client Review': 'secondary',
-    'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success'
+    'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success', 'Revisions Requested': 'destructive'
 };
 
 const constructUrl = (base: string, searchParams: URLSearchParams) => {
@@ -50,6 +51,7 @@ const ClientDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
+    const [assetLocationFilter, setAssetLocationFilter] = useState('all');
 
     useEffect(() => {
         setToday(new Date());
@@ -71,11 +73,21 @@ const ClientDashboard = () => {
     }, [clientJobs, currentClientAssets]);
 
     const jobsForReview = useMemo(() => clientJobs.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').slice(0, 3), [clientJobs]);
-    const assetStatusData = useMemo(() => [
-      { status: "Operational", key: "operational", count: currentClientAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
-      { status: "Requires Inspection", key: "inspection", count: currentClientAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
-      { status: "Under Repair", key: "repair", count: currentClientAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
-    ], [currentClientAssets]);
+    
+    const uniqueLocations = useMemo(() => ['all', ...new Set(currentClientAssets.map(a => a.location))], [currentClientAssets]);
+
+    const assetStatusData = useMemo(() => {
+        const filteredAssets = assetLocationFilter === 'all'
+            ? currentClientAssets
+            : currentClientAssets.filter(a => a.location === assetLocationFilter);
+
+        return [
+          { status: "Operational", key: "operational", count: filteredAssets.filter(a => a.status === 'Operational').length, fill: "var(--color-operational)" },
+          { status: "Requires Inspection", key: "inspection", count: filteredAssets.filter(a => a.status === 'Requires Inspection').length, fill: "var(--color-inspection)" },
+          { status: "Under Repair", key: "repair", count: filteredAssets.filter(a => a.status === 'Under Repair').length, fill: "var(--color-repair)" },
+        ].filter(item => item.count > 0); // Only show slices with data
+    }, [currentClientAssets, assetLocationFilter]);
+
     
     const schedule = useMemo(() => {
         if (!today) return [];
@@ -86,6 +98,28 @@ const ClientDashboard = () => {
             .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
     }, [clientJobs, today]);
+    
+    const getNextStep = (status: Job['status']) => {
+        switch(status) {
+            case 'Client Review':
+                return <Badge variant="secondary">Review Report</Badge>;
+            case 'Audit Approved':
+                return <Badge variant="success">Final Approval</Badge>;
+            default:
+                return <Badge variant="outline">Review</Badge>;
+        }
+    };
+
+    const getRelativeDateBadge = (date: Date) => {
+        if (!today) return null;
+        const diff = differenceInDays(date, today);
+        if (diff < 0) return null; // In the past
+        if (diff === 0) return <Badge>Today</Badge>;
+        if (diff === 1) return <Badge variant="secondary">Tomorrow</Badge>;
+        if (diff > 1 && diff <= 7) return <Badge variant="outline">in {diff} days</Badge>;
+        return null;
+    };
+
 
     return (
         <div className="grid gap-6">
@@ -135,7 +169,7 @@ const ClientDashboard = () => {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
                 <Card className="lg:col-span-3">
                     <CardHeader>
-                        <CardTitle className="font-headline">Action Required</CardTitle>
+                        <CardTitle className="font-headline">Reports Awaiting Review</CardTitle>
                         <CardDescription>These jobs are awaiting your review and approval to move forward.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -146,7 +180,7 @@ const ClientDashboard = () => {
                                         <CardHeader>
                                             <div className="flex justify-between items-start">
                                                 <CardTitle className="text-base">{job.title}</CardTitle>
-                                                <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                                {getNextStep(job.status)}
                                             </div>
                                             <CardDescription>ID: <span className="font-bold text-foreground">{job.id}</span></CardDescription>
                                         </CardHeader>
@@ -171,7 +205,7 @@ const ClientDashboard = () => {
                                         <TableHead>Job ID</TableHead>
                                         <TableHead>Job Title</TableHead>
                                         <TableHead>Provider</TableHead>
-                                        <TableHead>Status</TableHead>
+                                        <TableHead>Next Step</TableHead>
                                         <TableHead className="text-right">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -181,7 +215,7 @@ const ClientDashboard = () => {
                                             <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                             <TableCell className="font-medium">{job.title}</TableCell>
                                             <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
-                                            <TableCell><Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge></TableCell>
+                                            <TableCell>{getNextStep(job.status)}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button asChild variant="outline" size="sm">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Review Job</Link>
@@ -201,31 +235,53 @@ const ClientDashboard = () => {
                 </Card>
                  <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle className="font-headline">Asset Status</CardTitle>
-                        <CardDescription>Distribution of your asset fleet's operational status.</CardDescription>
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                           <div>
+                            <CardTitle className="font-headline">Asset Status</CardTitle>
+                            <CardDescription>Fleet operational status.</CardDescription>
+                           </div>
+                             <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}>
+                                <SelectTrigger className="w-full sm:w-[180px]">
+                                    <SelectValue placeholder="Filter by location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {uniqueLocations.map(loc => (
+                                        <SelectItem key={loc} value={loc}>
+                                            {loc === 'all' ? 'All Locations' : loc}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </CardHeader>
                     <CardContent className="flex items-center justify-center">
-                        <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
-                            <PieChart>
-                                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                                <Pie data={assetStatusData} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
-                                    {assetStatusData.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
-                                     <LabelList
-                                        dataKey="count"
-                                        className="fill-background font-semibold"
-                                        stroke="none"
-                                        fontSize={12}
-                                    />
-                                </Pie>
-                                <ChartLegend content={<ChartLegendContent nameKey="key" />} className="-mt-4" />
-                            </PieChart>
-                        </ChartContainer>
+                        {assetStatusData.length > 0 ? (
+                            <ChartContainer config={clientChartConfig} className="mx-auto aspect-square h-[250px]">
+                                <PieChart>
+                                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                                    <Pie data={assetStatusData} dataKey="count" nameKey="status" innerRadius={60} strokeWidth={5}>
+                                        {assetStatusData.map(entry => <Cell key={entry.key} fill={entry.fill} />)}
+                                        <LabelList
+                                            dataKey="count"
+                                            className="fill-background font-semibold"
+                                            stroke="none"
+                                            fontSize={12}
+                                        />
+                                    </Pie>
+                                    <ChartLegend content={<ChartLegendContent nameKey="key" />} className="-mt-4" />
+                                </PieChart>
+                            </ChartContainer>
+                        ) : (
+                             <div className="h-[250px] w-full flex items-center justify-center text-center text-muted-foreground p-4">
+                                No asset data available for the selected location.
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
              <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline">Upcoming Schedule (Next 7 Days)</CardTitle>
+                    <CardTitle className="font-headline">Upcoming Job Schedule (Next 7 Days)</CardTitle>
                     <CardDescription>Your upcoming scheduled jobs.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -238,7 +294,7 @@ const ClientDashboard = () => {
                                         <CardDescription>
                                             <div className="flex items-center gap-2">
                                               <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                              {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                              {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate))}
                                             </div>
                                         </CardDescription>
                                     </CardHeader>
@@ -274,7 +330,7 @@ const ClientDashboard = () => {
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                               <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                              {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                              {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate))}
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>

@@ -34,6 +34,7 @@ export default function SupportPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
+  const isClient = role === 'client';
 
   const currentUser = useMemo(() => {
     const userMap: { [key: string]: PlatformUser | undefined } = {
@@ -118,23 +119,25 @@ export default function SupportPage() {
         </div>
       </div>
 
-       <Tabs defaultValue="guides" className="w-full">
+       <Tabs defaultValue={isClient ? "guides" : "ticket"} className="w-full">
             <TabsList>
-                <TabsTrigger value="guides"><BookOpen className="mr-2 h-4 w-4" /> Workflow Guides</TabsTrigger>
+                {isClient && <TabsTrigger value="guides"><BookOpen className="mr-2 h-4 w-4" /> Workflow Guides</TabsTrigger>}
                 <TabsTrigger value="ticket"><Send className="mr-2 h-4 w-4" /> Submit a Ticket</TabsTrigger>
                 <TabsTrigger value="chat"><MessageSquare className="mr-2 h-4 w-4" /> Live Chat</TabsTrigger>
             </TabsList>
-            <TabsContent value="guides" className="mt-4">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Client Maintenance Workflow</CardTitle>
-                        <CardDescription>A guide to how client-side maintenance activities are carried out within the NDT Exchange app.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ClientMaintenanceWorkflow />
-                    </CardContent>
-                </Card>
-            </TabsContent>
+            {isClient && (
+                <TabsContent value="guides" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Client Maintenance Workflow</CardTitle>
+                            <CardDescription>A guide to how client-side maintenance activities are carried out within the NDT Exchange app.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ClientMaintenanceWorkflow />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            )}
             <TabsContent value="ticket" className="mt-4">
                 <Card>
                     <CardHeader>

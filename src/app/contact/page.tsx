@@ -3,7 +3,7 @@
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Building, HardHat, Eye, Cloud, GitBranch, Cpu } from 'lucide-react';
+import { CheckCircle, Building, HardHat, Eye, Cloud, GitBranch, Cpu, Send, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,14 @@ import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 // New pricing card component based on the user's new specs.
 function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
@@ -59,6 +67,144 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
     </Card>
   );
 }
+
+const contactFormSchema = z.object({
+  name: z.string().min(2, "Name is required."),
+  companyName: z.string().min(2, "Company name is required."),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  role: z.enum(["asset-owner", "ndt-company", "auditor"], {required_error: 'Please select your role.'}),
+  inquiryType: z.enum(["free-trial", "pricing", "support", "general"], {required_error: 'Please select an inquiry type.'}),
+  message: z.string().min(10, "Please provide a brief message (min. 10 characters)."),
+});
+
+
+const ContactForm = () => {
+    const { toast } = useToast();
+    const form = useForm<z.infer<typeof contactFormSchema>>({
+        resolver: zodResolver(contactFormSchema),
+        defaultValues: { name: '', companyName: '', email: '', message: '' },
+    });
+
+    function onSubmit(data: z.infer<typeof contactFormSchema>) {
+        toast({ title: "Request Sent", description: "Thank you for contacting us. We will get back to you shortly." });
+        console.log(data);
+        form.reset();
+    }
+
+    return (
+        <Card>
+            <CardContent className="p-6">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Full Name</FormLabel>
+                                        <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="companyName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Company Name</FormLabel>
+                                        <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="phone"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Phone Number (Optional)</FormLabel>
+                                        <FormControl><Input type="tel" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="role"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>You are a...</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select your role" /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="asset-owner">Asset Owner / Client</SelectItem>
+                                                <SelectItem value="ndt-company">NDT Company / Inspector</SelectItem>
+                                                <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="inquiryType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>I'm interested in...</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a topic" /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="free-trial">Starting a Free Trial / Pilot</SelectItem>
+                                                <SelectItem value="pricing">A Pricing Quote</SelectItem>
+                                                <SelectItem value="support">Technical Support</SelectItem>
+                                                <SelectItem value="general">A General Inquiry</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                         <FormField
+                            control={form.control}
+                            name="message"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Message</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="How can we help you?" className="min-h-[100px]" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" size="lg">Send Request <Send className="ml-2" /></Button>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function ContactPage() {
     type Currency = 'USD' | 'EUR' | 'INR';
@@ -175,6 +321,7 @@ export default function ContactPage() {
                                 ]}
                                 isFeatured={true}
                                 ctaText="Start Free Access"
+                                ctaLink="#contact-form"
                             />
                             <PricingCard
                                 plan="Client Plus"
@@ -188,6 +335,7 @@ export default function ContactPage() {
                                     "Shutdown inspection view",
                                 ]}
                                 ctaText="Upgrade to Plus"
+                                ctaLink="#contact-form"
                             />
                         </div>
                     </section>
@@ -213,6 +361,7 @@ export default function ContactPage() {
                                     "Equipment tracking (up to 5 items)",
                                 ]}
                                 ctaText="Start as Inspector"
+                                ctaLink="#contact-form"
                             />
                             <PricingCard
                                 plan="NDT Company"
@@ -229,6 +378,7 @@ export default function ContactPage() {
                                 isFeatured={true}
                                 popularBadge={true}
                                 ctaText="Start Company Pilot"
+                                ctaLink="#contact-form"
                             />
                             <PricingCard
                                 plan="Company Growth"
@@ -244,6 +394,7 @@ export default function ContactPage() {
                                     "Priority support",
                                 ]}
                                 ctaText="Upgrade to Growth"
+                                ctaLink="#contact-form"
                             />
                         </div>
                     </section>
@@ -269,7 +420,7 @@ export default function ContactPage() {
                                 <p className="mt-4 text-center text-sm text-muted-foreground">Level-III access is included to ensure industry-grade credibility and compliance.</p>
                             </CardContent>
                             <CardFooter className="justify-center">
-                                <Button>Request Level-III Access</Button>
+                                <Button asChild><Link href="#contact-form">Request Level-III Access</Link></Button>
                             </CardFooter>
                         </Card>
                     </section>
@@ -328,7 +479,7 @@ export default function ContactPage() {
                         </ul>
                     </CardContent>
                     <CardFooter className="justify-center">
-                        <Button>Plan a Shutdown</Button>
+                        <Button asChild><Link href="#contact-form">Plan a Shutdown</Link></Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -410,16 +561,43 @@ export default function ContactPage() {
             </div>
         </section>
         
-        {/* 10. FINAL CTA */}
-        <section id="contact-form" className="py-20 bg-card">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-headline font-semibold text-primary">
-              Ready to digitize inspections and collaborate better?
-            </h2>
-            <p className="mt-2 text-muted-foreground">Industry-first platform, built for long-term trust</p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg">Start Pilot</Button>
-              <Button size="lg" variant="outline">Talk to Us</Button>
+        {/* 10. FINAL CTA / CONTACT FORM */}
+        <section id="contact-form" className="py-20 bg-muted/30">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl font-headline font-semibold text-primary">
+                Get Started with NDT Exchange
+                </h2>
+                <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
+                    Whether you're ready to start a pilot, have a pricing question, or just want to learn more, we're here to help.
+                </p>
+            </div>
+            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 items-start">
+                <div className="space-y-6">
+                    <h3 className="text-2xl font-headline font-semibold">Contact Information</h3>
+                    <p className="text-muted-foreground">
+                        Our team is available to answer your questions and help you get started. We aim to respond to all inquiries within one business day.
+                    </p>
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <Mail className="w-5 h-5 text-primary" />
+                            <div>
+                                <h4 className="font-semibold">General & Sales Inquiries</h4>
+                                <a href="mailto:pilot@ndtexchange.com" className="text-primary hover:underline">pilot@ndtexchange.com</a>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <Phone className="w-5 h-5 text-primary" />
+                            <div>
+                                <h4 className="font-semibold">Phone</h4>
+                                <p className="text-muted-foreground">Contact details available upon request.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <ContactForm />
+                </div>
             </div>
           </div>
         </section>
@@ -428,4 +606,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

@@ -1,4 +1,3 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -225,6 +224,11 @@ export default function ContactPage() {
     }, []);
 
     const prices = {
+      'Client Access': {
+        USD: '$0 – $50 / month',
+        EUR: '€0 – €45 / month',
+        INR: '₹0 – ₹4,000 / month',
+      },
       'Client Plus': {
         USD: '$60 – $100 / month',
         EUR: '€55 – €90 / month',
@@ -312,14 +316,14 @@ export default function ContactPage() {
                                 price="Free"
                                 description="Best for: Plants, EPCs, pilot teams"
                                 features={[
-                                    "Asset registry (up to 200 assets)",
+                                    "Asset register (up to 200 assets)",
                                     "Read-only access to NDT reports",
                                     "Vendor-shared reports",
-                                    "Asset inspection history",
+                                    "Asset register with inspection history and maintenance visibility",
                                     "Web portal access",
                                 ]}
                                 isFeatured={true}
-                                ctaText="Start Free Access"
+                                ctaText="Get Started Free"
                                 ctaLink="#contact-form"
                             />
                             <PricingCard
@@ -332,6 +336,7 @@ export default function ContactPage() {
                                     "Multiple vendors",
                                     "Comments & approvals",
                                     "Shutdown inspection view",
+                                    "Asset register with cross‑vendor inspection history and maintenance visibility",
                                 ]}
                                 ctaText="Upgrade to Plus"
                                 ctaLink="#contact-form"
@@ -357,7 +362,7 @@ export default function ContactPage() {
                                     "Access job marketplace",
                                     "Submit up to 10 bids per month",
                                     "Digital report creation",
-                                    "Equipment tracking (up to 5 items)",
+                                    "Equipment register with calibration tracking and job‑wise equipment assignment",
                                 ]}
                                 ctaText="Start as Inspector"
                                 ctaLink="#contact-form"
@@ -370,9 +375,9 @@ export default function ContactPage() {
                                     "14-day free trial",
                                     "Up to 5 inspectors",
                                     "Unlimited marketplace bidding",
-                                    "Equipment & calibration tracking (up to 20 items)",
                                     "Client-linked projects",
                                     "Level-III review workflows",
+                                    "Equipment register, calibration history, and job‑wise equipment assignment",
                                 ]}
                                 isFeatured={true}
                                 popularBadge={true}
@@ -387,10 +392,10 @@ export default function ContactPage() {
                                     "14-day free trial",
                                     "Up to 15 inspectors",
                                     "Unlimited marketplace bidding",
-                                    "Advanced equipment tracking (up to 50 items)",
                                     "Multi-site operations & analytics",
                                     "Advanced report templates",
                                     "Priority support",
+                                    "Centralized equipment register with calibration history, alerts, and job traceability",
                                 ]}
                                 ctaText="Upgrade to Growth"
                                 ctaLink="#contact-form"
@@ -475,6 +480,7 @@ export default function ContactPage() {
                             <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Asset-wise inspection visibility</li>
                             <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Live shutdown progress tracking</li>
                             <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Central report repository</li>
+                             <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Consolidated asset inspection view with vendor equipment traceability during shutdowns</li>
                         </ul>
                     </CardContent>
                     <CardFooter className="justify-center">

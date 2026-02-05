@@ -3,7 +3,7 @@
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Mail, Phone } from 'lucide-react';
+import { CheckCircle, Mail, Phone, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ContactPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
@@ -48,7 +49,7 @@ export default function ContactPage() {
                 Flexible Plans for Every Role
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                All our plans come with a 30-day free trial. No credit card required. Full access to all features to grow your business and ensure asset integrity.
+                Find the right plan for your role in the NDT ecosystem. Get started for free today.
               </p>
             </div>
           </div>
@@ -56,27 +57,37 @@ export default function ContactPage() {
 
         <section id="pricing" className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+                <Alert className="max-w-3xl mx-auto bg-primary/10 border-primary/20">
+                  <Info className="h-4 w-4 text-primary" />
+                  <AlertDescription className="text-primary font-semibold">
+                    14-Day Free Trial for Inspectors & NDT Companies. No credit card required. Clients & Level-III are free during MVP.
+                  </AlertDescription>
+                </Alert>
+            </div>
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               <PricingCard
                 plan="Client"
-                price="Custom"
-                description="For asset owners managing critical infrastructure."
+                price="Free"
+                description="For asset owners managing critical infrastructure. Free during our MVP phase."
                 features={[
                   "Full Asset Lifecycle Management",
                   "Secure Document & Data Vault",
                   "Post jobs to a global marketplace",
                   "Transparent bidding & awarding process",
                   "Advanced historical reporting",
-                  "Flexible usage-based pricing",
                 ]}
                 isFeatured={false}
                 theme="client"
+                ctaText="Get Started Free"
+                ctaLink="/login?role=client"
               />
               <PricingCard
                 plan="Provider Operations"
                 price="From $49"
                 description="Digitize your internal operations and team management."
                 features={[
+                  "Includes a 14-day free trial",
                   "Technician Roster Management",
                   "Equipment Inventory & Calibration Tracking",
                   "QR Code Generation for Equipment",
@@ -92,6 +103,7 @@ export default function ContactPage() {
                 price="From $149"
                 description="Includes Operations, plus full marketplace access."
                 features={[
+                  "Includes a 14-day free trial",
                   "All Provider Operations features",
                   "Access to Exclusive Job Marketplace",
                   "Submit Unlimited Competitive Bids",
@@ -116,10 +128,13 @@ export default function ContactPage() {
                 ]}
                 isFeatured={false}
                 theme="auditor"
+                ctaText="By Invitation Only"
+                ctaLink="#contact-form"
+                ctaDisabled={true}
               />
             </div>
              <p className="text-center text-muted-foreground mt-8 text-sm">
-                The prices shown are starting points. Your final subscription cost is usage-based, determined by factors like the number of users and data storage needs. All plans are billed annually after a 30-day free trial. Contact our sales team for a detailed quote tailored to your business. Auditor access is by invitation from Client accounts.
+                The prices shown are starting points. Your final subscription cost is usage-based, determined by factors like the number of users and data storage needs. Contact our sales team for a detailed quote tailored to your business. Auditor access is by invitation from Client accounts.
              </p>
           </div>
         </section>
@@ -204,13 +219,16 @@ export default function ContactPage() {
   );
 }
 
-function PricingCard({ plan, price, description, features, isFeatured, theme }: {
+function PricingCard({ plan, price, description, features, isFeatured, theme, ctaText = 'Get a Quote', ctaLink = '#contact-form', ctaDisabled = false }: {
   plan: string;
   price: string;
   description: string;
   features: string[];
   isFeatured: boolean;
   theme: 'client' | 'inspector' | 'auditor' | 'admin';
+  ctaText?: string;
+  ctaLink?: string;
+  ctaDisabled?: boolean;
 }) {
   const isPrefixed = price.startsWith("From ");
 
@@ -229,7 +247,7 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
           ) : (
             <>
               <span className="text-4xl font-bold">{price}</span>
-              {price !== "Custom" && price !== "By Invite" && <span className="text-sm text-muted-foreground">/mo</span>}
+              {price !== "Custom" && price !== "By Invite" && price !== "Free" && <span className="text-sm text-muted-foreground">/mo</span>}
             </>
           )}
         </div>
@@ -245,8 +263,13 @@ function PricingCard({ plan, price, description, features, isFeatured, theme }: 
         </ul>
       </CardContent>
       <CardFooter>
-        <Button className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} variant={isFeatured ? 'default' : 'outline'} asChild>
-          <Link href="#contact-form">Get a Quote</Link>
+        <Button 
+            className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} 
+            variant={isFeatured ? 'default' : 'outline'} 
+            asChild={!ctaDisabled}
+            disabled={ctaDisabled}
+        >
+          {ctaDisabled ? <span>{ctaText}</span> : <Link href={ctaLink}>{ctaText}</Link>}
         </Button>
       </CardFooter>
     </Card>

@@ -8,7 +8,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
-import { Building, UserCheck, Globe, CheckCircle } from 'lucide-react';
+import { Building, UserCheck, Globe, CheckCircle, HardHat } from 'lucide-react';
 import { ndtTechniques } from '@/lib/ndt-techniques-data';
 import { FeatureCard } from '@/app/components/feature-card';
 
@@ -60,15 +60,50 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* What is NDT Exchange Section */}
+        {/* What is NDT Exchange Section - REVISED */}
         <section className="py-20">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
-                        What is NDT Exchange?
+                        The Operating System for Asset Integrity
                     </h2>
                     <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                        Our platform digitizes the entire Non-Destructive Testing workflow, from a client posting a job to the final report approval, creating a transparent and efficient process for everyone involved.
+                        NDT Exchange is more than a marketplace. It's a unified platform providing dedicated toolsets for every stakeholder in the inspection lifecycle.
+                    </p>
+                </div>
+
+                <div className="mt-16 grid gap-16 lg:grid-cols-2 lg:gap-x-12 items-start">
+                    {/* Client Features */}
+                    <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                        <div className="bg-primary/10 text-primary p-4 rounded-full w-fit">
+                            <Building className="w-10 h-10" />
+                        </div>
+                        <h3 className="mt-6 text-2xl font-headline font-semibold text-primary">For Asset Owners</h3>
+                        <p className="mt-4 text-lg text-muted-foreground">A complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.</p>
+                        <Button asChild className="mt-6">
+                            <Link href="/asset-management">Explore Asset Management</Link>
+                        </Button>
+                    </div>
+                    
+                    {/* Provider Features */}
+                    <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                       <div className="bg-accent/10 text-accent p-4 rounded-full w-fit">
+                            <HardHat className="w-10 h-10" />
+                        </div>
+                        <h3 className="mt-6 text-2xl font-headline font-semibold text-accent">For NDT Providers</h3>
+                        <p className="mt-4 text-lg text-muted-foreground">A dedicated suite of tools to manage your team and equipment, improving efficiency and ensuring your resources are always ready.</p>
+                        <Button asChild className="mt-6 bg-accent hover:bg-accent/90 text-accent-foreground">
+                            <Link href="/provider-tools">Explore Provider Tools</Link>
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="mt-20 text-center">
+                    <h3 className="text-2xl font-headline font-semibold text-primary">
+                        Connected by a Transparent Marketplace
+                    </h3>
+                    <p className="mt-2 max-w-3xl mx-auto text-lg text-muted-foreground">
+                        Our core engine is a digital marketplace that streamlines procurement and connects clients with qualified inspectors through a standardized workflow.
                     </p>
                 </div>
                 <UserActivityDiagram />

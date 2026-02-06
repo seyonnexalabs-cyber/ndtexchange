@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { CheckCircle, CreditCard, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
@@ -46,7 +47,7 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
             disabled={isCurrent}
             onClick={() => !isCurrent && onUpgradeClick(plan, price)}
         >
-            {isCurrent ? "This is your current plan" : (price === 'Custom' ? 'Contact Sales' : 'Proceed to Payment')}
+            {isCurrent ? "This is your current plan" : (price === 'Custom' ? 'Contact Sales' : 'Pay with Razorpay')}
         </Button>
       </CardFooter>
     </Card>
@@ -193,11 +194,31 @@ const AdminView = ({ constructUrl }: { constructUrl: (url: string) => string }) 
     </Card>
 );
 
+// Simplified user details for pre-filling payment form
+const userDetails = {
+    client: { name: 'John Doe', email: 'john.d@globalenergy.corp' },
+    inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com' },
+    auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov' },
+    admin: { name: 'Admin User', email: 'admin@ndtexchange.com' },
+};
+
 
 export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
+    const currentUser = useMemo(() => userDetails[role as keyof typeof userDetails] || userDetails.client, [role]);
+
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        }
+    }, []);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -209,11 +230,32 @@ export default function BillingPage() {
              const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
              window.location.href = mailtoHref;
         } else {
-            toast({
-                title: "Redirecting to Payment Gateway...",
-                description: `You are being redirected to complete your purchase for the ${plan} plan.`,
-            });
-            // In a real app, this would be a router.push('/payment-gateway') or similar.
+            const amountInCents = parseInt(price.replace('$', '')) * 100;
+        
+            const options = {
+                "key": "rzp_test_XXXXXXXXXXXXXX", // Public Test Key
+                "amount": amountInCents,
+                "currency": "USD",
+                "name": "NDT Exchange",
+                "description": `Subscription for ${plan}`,
+                "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",
+                "handler": function (response: any){
+                    toast({
+                        title: "Payment Successful!",
+                        description: `Payment ID: ${response.razorpay_payment_id}`,
+                    });
+                },
+                "prefill": {
+                    "name": currentUser.name,
+                    "email": currentUser.email,
+                },
+                "theme": {
+                    "color": "#3B82F6" // Matches the client primary color
+                }
+            };
+    
+            const rzp = new (window as any).Razorpay(options);
+            rzp.open();
         }
     };
 

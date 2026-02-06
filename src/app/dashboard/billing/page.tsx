@@ -233,7 +233,7 @@ export default function BillingPage() {
             const amountInCents = parseInt(price.replace('$', '')) * 100;
         
             const options = {
-                "key": "rzp_test_XXXXXXXXXXXXXX", // Public Test Key
+                "key": "rzp_test_SCmu4c9MVES9Ei", // Public Test Key
                 "amount": amountInCents,
                 "currency": "USD",
                 "name": "NDT Exchange",

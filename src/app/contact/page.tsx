@@ -452,28 +452,6 @@ export default function ContactPage() {
             </Tabs>
         </div>
 
-
-        {/* 6. EXCHANGE & MARKETPLACE PRICING */}
-        <section className="py-20 bg-card">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl font-headline font-semibold text-primary">NDT Exchange Marketplace</h2>
-                    <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Connect clients, inspectors, and vendors through a shared job & data exchange.</p>
-                </div>
-                <div className="max-w-lg mx-auto">
-                    <div className="border p-6 rounded-lg">
-                        <h3 className="font-semibold text-xl">Job Listings & Bidding</h3>
-                        <p className="text-3xl font-bold mt-2">FREE</p>
-                        <ul className="mt-4 space-y-2 text-muted-foreground">
-                            <li>Post jobs</li>
-                            <li>Submit bids</li>
-                            <li>Client shortlisting</li>
-                            <li>Award marking</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
         
         {/* 7. SHUTDOWN MAINTENANCE PRICING */}
         <section className="py-20">
@@ -622,3 +600,5 @@ export default function ContactPage() {
     </div>
   );
 }
+
+    

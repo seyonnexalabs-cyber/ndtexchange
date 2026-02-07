@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -182,7 +183,7 @@ export default function LoginPage() {
                     </span>
                     <Button variant="link" asChild className="p-1">
                         <Link href="/contact">
-                            Get Started
+                            Sign up for a trial
                         </Link>
                     </Button>
                 </div>

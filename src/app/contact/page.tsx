@@ -21,6 +21,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
   plan: string;
@@ -82,6 +84,7 @@ const contactFormSchema = z.object({
 
 const ContactForm = () => {
     const { toast } = useToast();
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
     const form = useForm<z.infer<typeof contactFormSchema>>({
         resolver: zodResolver(contactFormSchema),
         defaultValues: { name: '', companyName: '', email: '', message: '' },
@@ -91,6 +94,7 @@ const ContactForm = () => {
         toast({ title: "Request Sent", description: "Thank you for contacting us. We will get back to you shortly." });
         console.log(data);
         form.reset();
+        setAgreedToTerms(false);
     }
 
     return (
@@ -198,7 +202,21 @@ const ContactForm = () => {
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" size="lg">Send Request <Send className="ml-2" /></Button>
+                        <div className="flex items-start space-x-2 pt-2">
+                            <Checkbox id="contact-terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} className="mt-1" />
+                            <Label htmlFor="contact-terms" className="text-sm font-normal text-muted-foreground">
+                                I agree to the{' '}
+                                <Link href="/terms" className="underline hover:text-primary">
+                                Terms & Conditions
+                                </Link>{' '}
+                                and{' '}
+                                <Link href="/privacy" className="underline hover:text-primary">
+                                Privacy Policy
+                                </Link>
+                                .
+                            </Label>
+                        </div>
+                        <Button type="submit" className="w-full" size="lg" disabled={!agreedToTerms}>Send Request <Send className="ml-2" /></Button>
                     </form>
                 </Form>
             </CardContent>

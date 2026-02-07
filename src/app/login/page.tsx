@@ -121,25 +121,27 @@ export default function LoginPage() {
                         <Label>Select Your Plan</Label>
                         <RadioGroup
                             defaultValue={inspectorPlan}
-                            className="grid grid-cols-2 gap-2"
+                            className="grid grid-cols-2 gap-4"
                             onValueChange={(value: InspectorPlan) => setInspectorPlan(value)}
                         >
                             <div>
                                 <RadioGroupItem value="operations" id="operations" className="peer sr-only" />
                                 <Label
                                     htmlFor="operations"
-                                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer"
+                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-sm h-full cursor-pointer transition-transform hover:scale-105"
                                 >
-                                    Operations Only
+                                    <span className="font-bold text-center">Operations Only</span>
+                                    <span className="text-xs text-center text-muted-foreground mt-2">Manage your team and equipment for internal jobs.</span>
                                 </Label>
                             </div>
                             <div>
                                 <RadioGroupItem value="marketplace" id="marketplace" className="peer sr-only" />
                                 <Label
                                     htmlFor="marketplace"
-                                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer"
+                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-sm h-full cursor-pointer transition-transform hover:scale-105"
                                 >
-                                    Marketplace Access
+                                    <span className="font-bold text-center">Marketplace Access</span>
+                                    <span className="text-xs text-center text-muted-foreground mt-2">Find and bid on public jobs from asset owners.</span>
                                 </Label>
                             </div>
                         </RadioGroup>

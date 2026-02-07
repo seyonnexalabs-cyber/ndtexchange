@@ -115,20 +115,15 @@ export default function ReportPage() {
             surfaceCondition: undefined,
             inspectionArea: '',
             findings: [{ location: "", thickness: 0, notes: "" }],
+            summary: undefined,
         },
     });
-    
-    React.useEffect(() => {
-        // This runs only on the client
-        if (isClientMounted) {
-            form.setValue('summary', EditorState.createEmpty());
-        }
-    }, [isClientMounted, form]);
-    
+
     React.useEffect(() => {
         setIsClientMounted(true);
-    }, []);
-
+        form.setValue('summary', EditorState.createEmpty());
+    }, [form]);
+    
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "findings",
@@ -176,10 +171,6 @@ export default function ReportPage() {
         });
         router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
     };
-
-    if (!isClientMounted) {
-        return null;
-    }
     
     const lastSavedMessage = () => {
         if (saveLog.length > 0) {
@@ -193,7 +184,7 @@ export default function ReportPage() {
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <Button asChild variant="outline" size="sm">
                     <Link href={constructUrl(`/dashboard/my-jobs/${id}`)}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
@@ -292,7 +283,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        {isClientMounted && (
+                                        {isClientMounted && field.value && (
                                             <Editor
                                                 editorState={field.value}
                                                 onEditorStateChange={field.onChange}

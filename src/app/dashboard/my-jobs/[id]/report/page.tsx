@@ -51,7 +51,7 @@ const utReportSchema = z.object({
 
 const ReportHeader = ({ job, client, provider, plan }: { job: Job, client?: any, provider?: any, plan?: any }) => {
     let logoUrl = 'https://placehold.co/150x50/111827/FFFFFF/png?text=NDT+Exchange';
-    let brandColor = '#3B82F6'; // Default primary color
+    let brandColor = '#4A6572'; // Default primary color
 
     if (plan?.customBranding && provider?.logoUrl) {
         logoUrl = provider.logoUrl;
@@ -128,7 +128,7 @@ export default function ReportPage() {
 
     React.useEffect(() => {
         if (editorState) {
-            form.setValue('summary', editorState);
+            form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
         }
     }, [editorState, form]);
 
@@ -172,6 +172,9 @@ export default function ReportPage() {
             </div>
 
             <Card className="max-w-4xl mx-auto p-8 printable-area">
+                <div className="watermark-container">
+                    <p className="watermark-text">NDT Exchange</p>
+                </div>
                 <ReportHeader job={job} client={client} provider={provider} plan={plan} />
                 
                 <div className="grid grid-cols-2 gap-x-8 gap-y-4 my-6 text-sm">

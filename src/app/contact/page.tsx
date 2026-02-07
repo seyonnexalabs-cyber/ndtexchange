@@ -1,4 +1,3 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -600,5 +599,3 @@ export default function ContactPage() {
     </div>
   );
 }
-
-    

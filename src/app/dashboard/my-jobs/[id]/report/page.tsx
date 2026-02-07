@@ -1,7 +1,6 @@
-
 'use client';
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -27,7 +26,6 @@ import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import type { EditorProps } from 'react-draft-wysiwyg';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useFieldArray } from 'react-hook-form';
 
 
 const Editor = dynamic<EditorProps>(
@@ -89,13 +87,8 @@ export default function ReportPage() {
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
-    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
+    const [isClientMounted, setIsClientMounted] = React.useState(false);
     
-    React.useEffect(() => {
-        // Load editor state only on the client
-        setEditorState(EditorState.createEmpty());
-    }, []);
-
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
@@ -116,9 +109,14 @@ export default function ReportPage() {
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
-            summary: editorState,
         },
     });
+
+    React.useEffect(() => {
+        // This runs only on the client
+        form.setValue('summary', EditorState.createEmpty());
+        setIsClientMounted(true);
+    }, [form]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -150,12 +148,6 @@ export default function ReportPage() {
         }
     }, [isAutoSaveEnabled, handleSave]);
     
-    React.useEffect(() => {
-        if (editorState) {
-            form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
-        }
-    }, [editorState, form]);
-
     if (!job) {
         notFound();
     }
@@ -175,7 +167,7 @@ export default function ReportPage() {
         router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
     };
 
-    if (!editorState) {
+    if (!isClientMounted) {
         return null; // or a loading spinner
     }
 
@@ -281,26 +273,25 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        <Editor
-                                            editorState={field.value}
-                                            onEditorStateChange={(state) => {
-                                                setEditorState(state);
-                                                field.onChange(state);
-                                            }}
-                                            placeholder="Provide a detailed summary of the inspection results, including any recommendations."
-                                            toolbarClassName="border-b"
-                                            wrapperClassName="min-h-[250px] flex flex-col"
-                                            editorClassName="p-3 flex-grow"
-                                            toolbar={{
-                                                options: ['inline', 'blockType', 'list', 'history'],
-                                                inline: {
-                                                    options: ['bold', 'italic', 'underline'],
-                                                },
-                                                list: {
-                                                    options: ['unordered', 'ordered'],
-                                                }
-                                            }}
-                                        />
+                                        {isClientMounted && (
+                                            <Editor
+                                                editorState={field.value}
+                                                onEditorStateChange={field.onChange}
+                                                placeholder="Provide a detailed summary of the inspection results, including any recommendations."
+                                                toolbarClassName="border-b"
+                                                wrapperClassName="min-h-[250px] flex flex-col"
+                                                editorClassName="p-3 flex-grow"
+                                                toolbar={{
+                                                    options: ['inline', 'blockType', 'list', 'history'],
+                                                    inline: {
+                                                        options: ['bold', 'italic', 'underline'],
+                                                    },
+                                                    list: {
+                                                        options: ['unordered', 'ordered'],
+                                                    }
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                 </FormControl>
                                 <FormMessage />

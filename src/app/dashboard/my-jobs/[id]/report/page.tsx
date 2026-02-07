@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -12,15 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, ShieldCheck, Trash2, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
+import { EditorState, convertToRaw } from 'draft-js';
+import { RichTextEditor } from '../../components/RichTextEditor';
 
 
 const utReportSchema = z.object({
@@ -34,7 +35,10 @@ const utReportSchema = z.object({
     thickness: z.coerce.number().positive("Thickness must be a positive number."),
     notes: z.string().optional(),
   })),
-  summary: z.string().min(10, "Summary is required."),
+  summary: z.instanceof(EditorState).refine((editorState) => {
+    const contentState = editorState.getCurrentContent();
+    return contentState.hasText();
+  }, { message: "Summary is required." }),
 });
 
 const ReportHeader = ({ job, client, provider, plan }: { job: Job, client?: any, provider?: any, plan?: any }) => {
@@ -79,7 +83,7 @@ export default function ReportPage() {
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
-            summary: "",
+            summary: EditorState.createEmpty(),
         },
     });
 
@@ -98,7 +102,8 @@ export default function ReportPage() {
     }
 
     const onSubmit = (values: z.infer<typeof utReportSchema>) => {
-        console.log("Report Submitted", values);
+        const rawSummary = convertToRaw(values.summary.getCurrentContent());
+        console.log("Report Submitted", { ...values, summary: rawSummary });
         toast({
             title: "Report Submitted Successfully",
             description: `The UT report for job ${job.id} has been submitted for review.`,
@@ -181,27 +186,21 @@ export default function ReportPage() {
                      <FormField
                         control={form.control}
                         name="summary"
-                        render={({ field }) => (
+                        render={() => (
                             <FormItem>
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
-                                    <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        <div className="p-1 border-b">
-                                            <div className="flex items-center gap-1">
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><Bold className="w-4 h-4" /></Button>
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><Italic className="w-4 h-4" /></Button>
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><Underline className="w-4 h-4" /></Button>
-                                                <Separator orientation="vertical" className="h-6 mx-1" />
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><List className="w-4 h-4" /></Button>
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><ListOrdered className="w-4 h-4" /></Button>
-                                            </div>
-                                        </div>
-                                        <Textarea
-                                            placeholder="Provide a detailed summary of the inspection results, including any recommendations."
-                                            className="min-h-[250px] border-0 rounded-t-none focus-visible:ring-0 focus-visible:ring-offset-0 p-3"
-                                            {...field}
-                                        />
-                                    </div>
+                                    <Controller
+                                        name="summary"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <RichTextEditor
+                                                editorState={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Provide a detailed summary of the inspection results, including any recommendations."
+                                            />
+                                        )}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

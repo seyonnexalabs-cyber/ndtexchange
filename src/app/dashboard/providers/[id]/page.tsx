@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -56,15 +57,18 @@ export default function ProviderDetailPage() {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+    
+    const backUrl = role === 'admin' ? "/dashboard/providers" : "/dashboard/find-providers";
+    const backText = role === 'admin' ? "Back to Providers" : "Back to Find Providers";
 
     return (
         <TooltipProvider>
             <div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                     <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                        <Link href={constructUrl(role === 'admin' ? "/dashboard/providers" : "/dashboard/find-providers")}>
+                        <Link href={constructUrl(backUrl)}>
                             <ChevronLeft className="mr-2 h-4 w-4" />
-                            Back to Providers
+                            {backText}
                         </Link>
                     </Button>
                     {role === 'admin' && <Button>Edit Provider</Button>}
@@ -294,5 +298,3 @@ export default function ProviderDetailPage() {
         </TooltipProvider>
     );
 }
-
-    

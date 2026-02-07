@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -9,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, MapPin, Star, MoreVertical, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -356,5 +357,3 @@ export default function ProvidersPage() {
         </div>
     );
 }
-
-    

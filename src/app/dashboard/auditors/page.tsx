@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -21,6 +22,7 @@ export default function FindAuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
 
     const filteredAuditors = useMemo(() => {
         return auditFirms.filter(firm => {
@@ -58,12 +60,14 @@ export default function FindAuditorsPage() {
 
     const hasActiveFilters = selectedServices.length > 0 || selectedIndustries.length > 0;
 
+    const pageTitle = role === 'admin' ? 'Auditor Management' : 'Find Auditors';
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Eye className="text-primary" />
-                    Find Auditors
+                    {pageTitle}
                 </h1>
                 <div className="flex gap-2">
                     <Popover>

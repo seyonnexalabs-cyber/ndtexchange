@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -19,6 +20,7 @@ export default function AuditorDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     
     const auditor = useMemo(() => auditFirms.find(p => p.id === id), [id]);
 
@@ -36,13 +38,16 @@ export default function AuditorDetailPage() {
         return `${base}?${params.toString()}`;
     }
 
+    const backUrl = role === 'admin' ? "/dashboard/auditors" : "/dashboard/find-auditors";
+    const backText = role === 'admin' ? "Back to Auditors" : "Back to Find Auditors";
+
     return (
         <div>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl("/dashboard/find-auditors")}>
+                    <Link href={constructUrl(backUrl)}>
                         <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                        Back to Auditors
+                        {backText}
                     </Link>
                 </Button>
             </div>

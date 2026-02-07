@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -10,6 +11,7 @@ import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { jobPayments, JobPayment, jobs, Job, subscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
 import { serviceProviders } from '@/lib/service-providers-data';
+import { auditFirms } from '@/lib/auditors-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Users, Database, Mail } from "lucide-react";
@@ -613,5 +615,3 @@ export default function SubscriptionsPage() {
         </div>
     );
 }
-
-    

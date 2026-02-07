@@ -315,6 +315,9 @@ const ClientDashboard = () => {
                                 tickMargin={10}
                                 axisLine={false}
                                 tickFormatter={(value) => value.substring(0, 10)}
+                                angle={-30}
+                                textAnchor="end"
+                                height={50}
                             />
                             <YAxis />
                             <ChartTooltip content={<ChartTooltipContent />} />

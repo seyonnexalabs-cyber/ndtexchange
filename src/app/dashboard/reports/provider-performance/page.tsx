@@ -368,7 +368,7 @@ export default function ProviderPerformanceReportPage() {
                         <ChartContainer config={chartConfig} className="h-[300px] w-full">
                             <BarChart accessibilityLayer data={performanceData} layout="vertical" margin={{ left: 20 }}>
                                 <CartesianGrid horizontal={false} />
-                                <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
+                                <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 12)}...` : value} />
                                 <XAxis dataKey="jobsAwarded" type="number" hide />
                                 <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
                                 <Bar dataKey="jobsAwarded" layout="vertical" radius={4}>
@@ -390,7 +390,7 @@ export default function ProviderPerformanceReportPage() {
                         <ChartContainer config={chartConfig} className="h-[300px] w-full">
                             <BarChart accessibilityLayer data={performanceData} layout="vertical" margin={{ left: 20 }}>
                                 <CartesianGrid horizontal={false} />
-                                <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} />
+                                <YAxis dataKey="providerName" type="category" tickLine={false} axisLine={false} tickMargin={10} className="text-xs" width={120} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 12)}...` : value} />
                                 <XAxis dataKey="avgJobCost" type="number" hide />
                                 <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent formatter={(value) => `$${Number(value).toLocaleString()}`} />} />
                                 <Bar dataKey="avgJobCost" layout="vertical" radius={4}>
@@ -415,5 +415,3 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
-
-    

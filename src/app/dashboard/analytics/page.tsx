@@ -184,8 +184,8 @@ export default function AnalyticsPage() {
                     </CardHeader>
                     <CardContent className="flex items-center justify-center">
                          <ChartContainer
-                        config={techniquesChartConfig}
-                        className="mx-auto aspect-square h-[350px]"
+                            config={techniquesChartConfig}
+                            className="mx-auto aspect-square w-full max-w-[350px]"
                         >
                         <PieChart>
                             <ChartTooltip

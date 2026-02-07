@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -9,12 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobPayments, JobPayment, jobs, Job, subscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
+import { jobs, subscriptions as initialSubscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
 import { serviceProviders } from '@/lib/service-providers-data';
 import { auditFirms } from '@/lib/auditors-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Users, Database, Mail } from "lucide-react";
+import { DollarSign, Mail, Users, Database, Edit, MoreVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
@@ -24,175 +23,164 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-const createPaymentSchema = (isClient: boolean, getJobById: (id: string) => Job | undefined) => {
-    return z.object({
-        jobId: z.string({ required_error: "Please select a job." }),
-        payeeType: z.enum(['Provider', 'Auditor']).optional(),
-        amount: z.coerce.number().positive({ message: "Please enter a positive amount." }),
-        paymentDate: z.date({ required_error: "Please select a payment date." }),
-        notes: z.string().optional(),
-    }).refine(data => {
-        if (!isClient || !data.jobId) return true;
-        const job = getJobById(data.jobId);
-        if (job && (job.workflow === 'level3' || job.workflow === 'auto')) {
-            return !!data.payeeType;
-        }
-        return true;
-    }, {
-        message: "Please specify if this payment is for the Provider or Auditor.",
-        path: ["payeeType"],
-    });
-};
+const subscriptionSchema = z.object({
+  id: z.string().optional(),
+  companyId: z.string({ required_error: "Please select a company." }),
+  plan: z.enum(['Free Trial', 'Client', 'Provider', 'Enterprise']),
+  status: z.enum(['Active', 'Trialing', 'Past Due', 'Canceled', 'Payment Failed']),
+  startDate: z.date(),
+  endDate: z.date().optional(),
+  userCount: z.coerce.number().min(0),
+  dataUsageGB: z.coerce.number().min(0),
+});
 
-type PaymentFormValues = z.infer<ReturnType<typeof createPaymentSchema>>;
+type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
 
-const RecordPaymentForm = ({ 
-    jobsForPayment, 
-    role, 
-    onCancel, 
-    onSubmit,
-    allJobs
+const SubscriptionForm = ({ 
+    formId,
+    onSubmit, 
+    defaultValues,
+    isEditing
 }: { 
-    jobsForPayment: Job[], 
-    role: string, 
-    onCancel: () => void, 
-    onSubmit: (values: PaymentFormValues) => void,
-    allJobs: Job[]
+    formId: string, 
+    onSubmit: (values: SubscriptionFormValues) => void,
+    defaultValues?: Partial<SubscriptionFormValues>,
+    isEditing: boolean
 }) => {
-    const paymentSchema = useMemo(() => createPaymentSchema(role === 'client', (id) => allJobs.find(j => j.id === id)), [role, allJobs]);
-    
-    const form = useForm<PaymentFormValues>({
-        resolver: zodResolver(paymentSchema),
-        defaultValues: {
-            paymentDate: new Date(),
-        },
+    const form = useForm<SubscriptionFormValues>({
+        resolver: zodResolver(subscriptionSchema),
+        defaultValues: defaultValues,
     });
 
-    const selectedJobId = form.watch('jobId');
-    const selectedJob = allJobs.find(j => j.id === selectedJobId);
-
-    const requiresAuditorOption = role === 'client' && selectedJob && (selectedJob.workflow === 'level3' || selectedJob.workflow === 'auto');
+    const allCompanies = useMemo(() => {
+        return [
+            ...clientData.map(c => ({ id: c.id, name: c.name, type: 'Client' })),
+            ...serviceProviders.map(p => ({ id: p.id, name: p.name, type: 'Provider' })),
+            ...auditFirms.map(a => ({ id: a.id, name: a.name, type: 'Auditor' }))
+        ].sort((a, b) => a.name.localeCompare(b.name));
+    }, []);
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
                  <FormField
                     control={form.control}
-                    name="jobId"
+                    name="companyId"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Job</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormLabel>Company</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
                                 <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a job to pay" />
-                                    </SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {jobsForPayment.length > 0 ? jobsForPayment.map(job => (
-                                        <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
-                                    )) : <SelectItem value="none" disabled>No eligible jobs found</SelectItem>}
+                                    {allCompanies.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-
-                {requiresAuditorOption && (
-                     <FormField
+                 <FormField
+                    control={form.control}
+                    name="plan"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Plan</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Free Trial">Free Trial</SelectItem>
+                                    <SelectItem value="Client">Client</SelectItem>
+                                    <SelectItem value="Provider">Provider</SelectItem>
+                                    <SelectItem value="Enterprise">Enterprise</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Trialing">Trialing</SelectItem>
+                                    <SelectItem value="Past Due">Past Due</SelectItem>
+                                    <SelectItem value="Canceled">Canceled</SelectItem>
+                                    <SelectItem value="Payment Failed">Payment Failed</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField
                         control={form.control}
-                        name="payeeType"
+                        name="startDate"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Payment For</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select a payee" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="Provider">Service Provider</SelectItem>
-                                        <SelectItem value="Auditor">Auditor</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Start Date</FormLabel>
+                                <FormControl><CustomDateInput {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                )}
-
-                <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Amount Paid</FormLabel>
-                             <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input type="number" placeholder="5000.00" className="pl-8" {...field} />
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="paymentDate"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Payment Date</FormLabel>
-                        <FormControl>
-                            <CustomDateInput {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Notes (Optional)</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="e.g., Final payment via wire transfer" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Record Payment</Button>
-                </DialogFooter>
+                     <FormField
+                        control={form.control}
+                        name="endDate"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>End Date (Optional)</FormLabel>
+                                <FormControl><CustomDateInput {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="userCount"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>User Count</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="dataUsageGB"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Data Usage (GB)</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
             </form>
         </Form>
     );
-}
-
-
-const paymentStatusVariants: Record<JobPayment['status'], 'success' | 'outline'> = {
-    'Paid': 'success',
-    'Pending': 'outline',
 };
 
-const userDetails = {
-    client: { company: 'Global Energy Corp.' },
-    inspector: { company: 'TEAM, Inc.' },
-    auditor: { company: 'NDT Auditors LLC' },
-    admin: { company: 'NDT Exchange' },
-};
 
 const subscriptionStatusStyles: { [key in Subscription['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Active: 'success',
@@ -229,11 +217,13 @@ const getContactEmailForSubscription = (subscription: Subscription) => {
 type MailtoDetails = { link: string; text: string; variant: 'destructive' | 'secondary' | 'default' | 'outline' | 'ghost' | 'link' | null | undefined };
 
 const SubscriptionsDesktopView = ({ 
+    onEdit,
     getMailtoLink,
     selectedSubscriptions,
     setSelectedSubscriptions,
     allSubscriptions
 }: { 
+    onEdit: (subscription: Subscription) => void;
     getMailtoLink: (sub: Subscription) => MailtoDetails,
     selectedSubscriptions: string[],
     setSelectedSubscriptions: React.Dispatch<React.SetStateAction<string[]>>,
@@ -301,16 +291,25 @@ const SubscriptionsDesktopView = ({
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
-                                {showContactButton ? (
-                                    <Button asChild variant={variant} size="sm">
-                                        <Link href={link}>
-                                            <Mail className="mr-2 h-4 w-4 text-primary" />
-                                            {text}
-                                        </Link>
-                                    </Button>
-                                ) : (
-                                    <Button variant="ghost" size="sm">Manage</Button>
-                                )}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => onEdit(sub)}>
+                                            <Edit className="mr-2 h-4 w-4"/> Edit
+                                        </DropdownMenuItem>
+                                        {showContactButton && (
+                                            <DropdownMenuItem asChild>
+                                                 <Link href={link}>
+                                                    <Mail className="mr-2 h-4 w-4" /> {text}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     );
@@ -321,11 +320,13 @@ const SubscriptionsDesktopView = ({
 );
 
 const SubscriptionsMobileView = ({ 
+    onEdit,
     getMailtoLink,
     selectedSubscriptions,
     setSelectedSubscriptions,
     allSubscriptions
 }: { 
+    onEdit: (subscription: Subscription) => void;
     getMailtoLink: (sub: Subscription) => MailtoDetails,
     selectedSubscriptions: string[],
     setSelectedSubscriptions: React.Dispatch<React.SetStateAction<string[]>>,
@@ -365,30 +366,40 @@ const SubscriptionsMobileView = ({
                     <CardContent className="space-y-4">
                         <div>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className="text-muted-foreground flex items-center gap-1"><Users className="w-4 h-4 text-primary" /> Users</span>
+                                <span className="text-muted-foreground flex items-center gap-1"><Users className="w-4 h-4" /> Users</span>
                                 <span>{sub.userCount} / {userLimit}</span>
                             </div>
                             <Progress value={(sub.userCount / userLimit) * 100} className="h-2"/>
                         </div>
                          <div>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className="text-muted-foreground flex items-center gap-1"><Database className="w-4 h-4 text-primary" /> Data</span>
+                                <span className="text-muted-foreground flex items-center gap-1"><Database className="w-4 h-4" /> Data</span>
                                 <span>{sub.dataUsageGB} / {storageLimit} GB</span>
                             </div>
                             <Progress value={(sub.dataUsageGB / storageLimit) * 100} className="h-2"/>
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
-                         {showContactButton ? (
-                            <Button asChild variant={variant} size="sm">
-                                <Link href={link}>
-                                    <Mail className="mr-2 h-4 w-4 text-primary" />
-                                    {text}
-                                </Link>
-                            </Button>
-                        ) : (
-                            <Button variant="ghost" size="sm">Manage Subscription</Button>
-                        )}
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                    Manage
+                                    <MoreVertical className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => onEdit(sub)}>
+                                    <Edit className="mr-2 h-4 w-4"/> Edit
+                                </DropdownMenuItem>
+                                {showContactButton && (
+                                    <DropdownMenuItem asChild>
+                                        <Link href={link}>
+                                            <Mail className="mr-2 h-4 w-4" /> {text}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </CardFooter>
                 </Card>
             )
@@ -419,6 +430,13 @@ const PaymentHistoryDesktopView = () => (
                         <TableCell className="font-extrabold text-xs">{payment.subscriptionId}</TableCell>
                     </TableRow>
                 ))}
+                 {payments.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                            No payment history found.
+                        </TableCell>
+                    </TableRow>
+                )}
             </TableBody>
         </Table>
     </Card>
@@ -440,6 +458,11 @@ const PaymentHistoryMobileView = () => (
                 </CardContent>
             </Card>
         ))}
+         {payments.length === 0 && (
+            <div className="text-center p-10 text-muted-foreground">
+                No payment history found.
+            </div>
+        )}
     </div>
 );
 
@@ -452,12 +475,49 @@ export default function SubscriptionsPage() {
     const [selectedSubscriptions, setSelectedSubscriptions] = useState<string[]>([]);
     const [isBulkMailOpen, setBulkMailOpen] = useState(false);
     const { toast } = useToast();
+    
+    const [subscriptions, setSubscriptions] = useState(initialSubscriptions);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
 
     useEffect(() => {
         if (role && role !== 'admin') {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
     }, [role, router, searchParams]);
+
+    const handleAddClick = () => {
+        setEditingSubscription(null);
+        setIsFormOpen(true);
+    };
+
+    const handleEditClick = (subscription: Subscription) => {
+        setEditingSubscription(subscription);
+        setIsFormOpen(true);
+    };
+
+    const handleFormSubmit = (values: SubscriptionFormValues) => {
+        const company = [...clientData, ...serviceProviders, ...auditFirms].find(c => c.id === values.companyId);
+        
+        if (editingSubscription) {
+            // Update existing subscription
+            setSubscriptions(prev => prev.map(s => s.id === editingSubscription.id ? { ...s, ...values, companyName: company?.name || s.companyName, startDate: format(values.startDate, 'yyyy-MM-dd'), endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined } : s));
+            toast({ title: "Subscription Updated", description: `The subscription for ${company?.name} has been updated.` });
+        } else {
+            // Create new subscription
+            const newSubscription: Subscription = {
+                ...values,
+                id: `SUB-${Date.now()}`,
+                companyName: company?.name || 'Unknown Company',
+                startDate: format(values.startDate, 'yyyy-MM-dd'),
+                endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined,
+            };
+            setSubscriptions(prev => [newSubscription, ...prev]);
+            toast({ title: "Subscription Created", description: `A new subscription has been created for ${company?.name}.` });
+        }
+        setIsFormOpen(false);
+        setEditingSubscription(null);
+    };
 
     const getMailtoLink = (sub: Subscription): MailtoDetails => {
         const contactEmail = getContactEmailForSubscription(sub);
@@ -519,7 +579,7 @@ export default function SubscriptionsPage() {
         });
 
         return summary;
-    }, [isBulkMailOpen, selectedSubscriptions]);
+    }, [isBulkMailOpen, selectedSubscriptions, subscriptions]);
 
     const handleBulkEmailSend = () => {
         if (selectedSubscriptions.length === 0) {
@@ -559,10 +619,10 @@ export default function SubscriptionsPage() {
                             onClick={() => setBulkMailOpen(true)}
                             className="w-full sm:w-auto"
                         >
-                            <Mail className="mr-2 h-4 w-4 text-primary" />
+                            <Mail className="mr-2 h-4 w-4" />
                             Send Bulk Email ({selectedSubscriptions.length})
                         </Button>
-                        <Button className="w-full sm:w-auto">Create Subscription</Button>
+                        <Button className="w-full sm:w-auto" onClick={handleAddClick}>Create Subscription</Button>
                     </div>
                 )}
             </div>
@@ -575,12 +635,14 @@ export default function SubscriptionsPage() {
                 <TabsContent value="subscriptions">
                      {isMobile 
                         ? <SubscriptionsMobileView 
+                            onEdit={handleEditClick}
                             getMailtoLink={getMailtoLink} 
                             selectedSubscriptions={selectedSubscriptions} 
                             setSelectedSubscriptions={setSelectedSubscriptions}
                             allSubscriptions={subscriptions}
                           /> 
                         : <SubscriptionsDesktopView 
+                            onEdit={handleEditClick}
                             getMailtoLink={getMailtoLink}
                             selectedSubscriptions={selectedSubscriptions} 
                             setSelectedSubscriptions={setSelectedSubscriptions}
@@ -593,6 +655,31 @@ export default function SubscriptionsPage() {
                 </TabsContent>
             </Tabs>
             
+            <Dialog open={isFormOpen} onOpenChange={() => { setIsFormOpen(false); setEditingSubscription(null); }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{editingSubscription ? 'Edit Subscription' : 'Create New Subscription'}</DialogTitle>
+                        <DialogDescription>
+                            {editingSubscription ? `Editing subscription for ${editingSubscription.companyName}.` : 'Create a new subscription plan for a company.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <SubscriptionForm
+                        formId="subscription-form"
+                        onSubmit={handleFormSubmit}
+                        defaultValues={editingSubscription ? {
+                            ...editingSubscription,
+                            startDate: new Date(editingSubscription.startDate),
+                            endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
+                        } : { startDate: new Date(), userCount: 1, dataUsageGB: 0 }}
+                        isEditing={!!editingSubscription}
+                    />
+                     <DialogFooter>
+                        <Button variant="ghost" onClick={() => { setIsFormOpen(false); setEditingSubscription(null); }}>Cancel</Button>
+                        <Button type="submit" form="subscription-form">Save Changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
              <Dialog open={isBulkMailOpen} onOpenChange={setBulkMailOpen}>
                 <DialogContent>
                     <DialogHeader>

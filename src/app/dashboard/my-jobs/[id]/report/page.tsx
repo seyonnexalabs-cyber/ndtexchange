@@ -1,12 +1,13 @@
 
+
 'use client';
 import * as React from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, allUsers, Job } from '@/lib/placeholder-data';
+import { jobs, clientData, allUsers, Job, subscriptions } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { subscriptionPlans } from '@/lib/subscription-plans';
 import { Button } from '@/components/ui/button';
@@ -53,12 +54,12 @@ const ReportHeader = ({ job, client, provider, plan }: { job: Job, client?: any,
     let logoUrl = 'https://placehold.co/150x50/111827/FFFFFF/png?text=NDT+Exchange';
     let brandColor = '#3B82F6'; // Default primary color
 
-    if (client?.logoUrl) {
-        logoUrl = client.logoUrl;
-        brandColor = client.brandColor || brandColor;
-    } else if (plan?.customBranding && provider?.logoUrl) {
+    if (plan?.customBranding && provider?.logoUrl) {
         logoUrl = provider.logoUrl;
         brandColor = provider.brandColor || brandColor;
+    } else if (client?.logoUrl) {
+        logoUrl = client.logoUrl;
+        brandColor = client.brandColor || brandColor;
     }
 
     return (
@@ -82,8 +83,17 @@ export default function ReportPage() {
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
-    const planParam = searchParams.get('plan');
-    const plan = React.useMemo(() => subscriptionPlans.find(p => p.name.toLowerCase().replace(' ', '-') === planParam), [planParam]);
+    
+    const subscription = React.useMemo(() => {
+        if (!provider) return null;
+        return subscriptions.find(s => s.companyId === provider.id);
+    }, [provider]);
+
+    const plan = React.useMemo(() => {
+        if (!subscription) return null;
+        return subscriptionPlans.find(p => p.name === subscription.plan);
+    }, [subscription]);
+    
     const assignedTechnicians = React.useMemo(() => allUsers.filter(u => job?.technicianIds?.includes(u.id)), [job]);
 
 
@@ -202,7 +212,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        {field.value && <Editor
+                                        <Editor
                                             editorState={field.value}
                                             onEditorStateChange={field.onChange}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."
@@ -218,7 +228,7 @@ export default function ReportPage() {
                                                     options: ['unordered', 'ordered'],
                                                 }
                                             }}
-                                        />}
+                                        />
                                     </div>
                                 </FormControl>
                                 <FormMessage />

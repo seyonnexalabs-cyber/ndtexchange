@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs, EquipmentType } from "@/lib/placeholder-data";
-import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical } from "lucide-react";
+import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical, AlertTriangle } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RadioTower, Cpu, Waves, Cable, Eye } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -473,6 +474,9 @@ export default function EquipmentDetailPage() {
     const router = useRouter();
     const role = searchParams.get('role');
 
+    // In a real app, this would come from a user context or subscription check.
+    const isSubscriptionActive = false;
+
     useEffect(() => {
         if (role && role !== 'inspector') {
             router.replace(`/dashboard?${searchParams.toString()}`);
@@ -587,9 +591,19 @@ export default function EquipmentDetailPage() {
                     </Link>
                 </Button>
                 <div className="flex gap-2">
-                    <Button onClick={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
+                    <Button onClick={() => setIsEditing(true)} disabled={!isSubscriptionActive}><Edit className="mr-2 h-4 w-4" />Edit</Button>
                 </div>
             </div>
+
+            {!isSubscriptionActive && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Subscription Expired</AlertTitle>
+                    <AlertDescription>
+                        Your account is in read-only mode. You cannot edit equipment or kits.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {parentEquipment ? (
                 <div className="mb-6">
@@ -764,7 +778,7 @@ export default function EquipmentDetailPage() {
                                         <div>
                                             <div className="flex justify-between items-center mb-4">
                                                 <h3 className="font-semibold">Components in this Kit ({childEquipment.length})</h3>
-                                                <Button onClick={() => setIsAddComponentOpen(true)} size="sm">
+                                                <Button onClick={() => setIsAddComponentOpen(true)} size="sm" disabled={!isSubscriptionActive}>
                                                     <PlusCircle className="mr-2 h-4 w-4" /> Add Component
                                                 </Button>
                                             </div>
@@ -785,7 +799,7 @@ export default function EquipmentDetailPage() {
                                                                     </Button>
                                                                 </DropdownMenuTrigger>
                                                                 <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem onClick={() => handleEditComponentClick(child)}>
+                                                                    <DropdownMenuItem onClick={() => handleEditComponentClick(child)} disabled={!isSubscriptionActive}>
                                                                         <Edit className="mr-2 h-4 w-4"/>
                                                                         Edit
                                                                     </DropdownMenuItem>
@@ -813,7 +827,7 @@ export default function EquipmentDetailPage() {
                                     ) : (
                                         <div className="text-center py-10 text-muted-foreground">
                                             <p>This is a standalone piece of equipment and is not part of a kit.</p>
-                                            <Button onClick={() => setIsAddComponentOpen(true)} className="mt-4">
+                                            <Button onClick={() => setIsAddComponentOpen(true)} className="mt-4" disabled={!isSubscriptionActive}>
                                                 <PlusCircle className="mr-2 h-4 w-4" /> Create a Kit
                                             </Button>
                                         </div>

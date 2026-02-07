@@ -305,13 +305,14 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 
-const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick }: {
+const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick, isSubscriptionActive }: {
     asset: InspectorAsset,
     onQrClick: (data: {id: string, name: string}) => void,
     constructUrl: (base: string) => string,
     onCheckOutClick: (equipment: InspectorAsset) => void,
     onCheckInClick: (equipment: InspectorAsset) => void,
     onServiceOutClick: (equipment: InspectorAsset) => void,
+    isSubscriptionActive: boolean,
 }) => {
     const image = asset.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined;
     return (
@@ -349,16 +350,15 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
                     <DropdownMenuContent align="end">
                         {asset.status === 'Available' ? (
                             <>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckOutClick(asset)}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onServiceOutClick(asset)}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onCheckOutClick(asset)} disabled={!isSubscriptionActive}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onServiceOutClick(asset)} disabled={!isSubscriptionActive}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
                             </>
                         ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onCheckInClick(asset)}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => onCheckInClick(asset)} disabled={!isSubscriptionActive}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><Edit className="mr-2 h-4 w-4" /> View/Edit</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View History</Link></DropdownMenuItem>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View Details</Link></DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </CardFooter>
@@ -411,27 +411,19 @@ export default function EquipmentPage() {
     const jobsForCheckout = useMemo(() => jobs.filter(j => j.providerId === usersProviderId && ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), [usersProviderId]);
 
      const handleCheckOutClick = (equipment: InspectorAsset) => {
-        setTimeout(() => {
-            setTransactionState({ action: 'check-out', equipment });
-        }, 50);
+        setTransactionState({ action: 'check-out', equipment });
     };
 
     const handleCheckInClick = (equipment: InspectorAsset) => {
-        setTimeout(() => {
-            setTransactionState({ action: 'check-in', equipment });
-        }, 50);
+        setTransactionState({ action: 'check-in', equipment });
     };
     
     const handleServiceOutClick = (equipment: InspectorAsset) => {
-        setTimeout(() => {
-            setTransactionState({ action: 'service-out', equipment });
-        }, 50);
+        setTransactionState({ action: 'service-out', equipment });
     };
     
     const handleQrClick = (data: { id: string, name: string }) => {
-        setTimeout(() => {
-            setQrCodeData(data);
-        }, 50);
+        setQrCodeData(data);
     }
 
     const handleTransactionSubmit = (values: CheckInFormValues | CheckOutFormValues | ServiceOutFormValues) => {
@@ -538,6 +530,7 @@ export default function EquipmentPage() {
                             onCheckOutClick={handleCheckOutClick}
                             onServiceOutClick={handleServiceOutClick}
                             constructUrl={constructUrl}
+                            isSubscriptionActive={isSubscriptionActive}
                         />
                     ))}
                 </div>

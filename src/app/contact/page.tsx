@@ -1,4 +1,3 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -46,6 +45,7 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
         <CardTitle className="text-xl font-headline">{plan}</CardTitle>
         <div className="pt-2">
             <span className="text-3xl font-bold">{price}</span>
+            {price.toLowerCase() !== 'free' && !price.toLowerCase().includes('custom') && <span className="text-muted-foreground">/ month</span>}
         </div>
         <CardDescription className="pt-2 !mt-2">{description}</CardDescription>
       </CardHeader>
@@ -217,8 +217,22 @@ export default function ContactPage() {
     
     const [activePlans, setActivePlans] = useState(() => subscriptionPlans.filter(p => p.isActive && p.isPublic));
 
-    const clientPlans = useMemo(() => activePlans.filter(p => p.audience === 'Client'), [activePlans]);
-    const providerPlans = useMemo(() => activePlans.filter(p => p.audience === 'Provider'), [activePlans]);
+    const priceToNumber = (price: string) => {
+        if (price.toLowerCase() === 'free') return 0;
+        const match = price.match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : Infinity;
+    };
+
+    const clientPlans = useMemo(() => activePlans
+        .filter(p => p.audience === 'Client')
+        .sort((a, b) => priceToNumber(a.price[currency]) - priceToNumber(b.price[currency])), 
+    [activePlans, currency]);
+    
+    const providerPlans = useMemo(() => activePlans
+        .filter(p => p.audience === 'Provider')
+        .sort((a, b) => priceToNumber(a.price[currency]) - priceToNumber(b.price[currency])), 
+    [activePlans, currency]);
+
     const auditorPlan = useMemo(() => activePlans.find(p => p.audience === 'Auditor'), [activePlans]);
 
 

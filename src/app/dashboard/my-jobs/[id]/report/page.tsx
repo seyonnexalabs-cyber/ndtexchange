@@ -42,7 +42,8 @@ const utReportSchema = z.object({
     thickness: z.coerce.number().positive("Thickness must be a positive number."),
     notes: z.string().optional(),
   })),
-  summary: z.instanceof(EditorState).refine((editorState) => {
+  summary: z.any().refine((editorState) => {
+    if (!editorState) return false;
     const contentState = editorState.getCurrentContent();
     return contentState.hasText();
   }, { message: "Summary is required." }),
@@ -90,9 +91,12 @@ export default function ReportPage() {
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
-            summary: EditorState.createEmpty(),
         },
     });
+
+    React.useEffect(() => {
+        form.setValue('summary', EditorState.createEmpty());
+    }, [form]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -198,7 +202,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        <Editor
+                                        {field.value && <Editor
                                             editorState={field.value}
                                             onEditorStateChange={field.onChange}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."
@@ -214,7 +218,7 @@ export default function ReportPage() {
                                                     options: ['unordered', 'ordered'],
                                                 }
                                             }}
-                                        />
+                                        />}
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -227,4 +231,6 @@ export default function ReportPage() {
         </div>
     );
 }
+    
+
     

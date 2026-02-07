@@ -523,7 +523,10 @@ const PlanManagementView = () => {
                                     <ul className="list-disc list-inside text-xs space-y-1">
                                         <li>{plan.userLimit} User(s)</li>
                                         <li>{plan.dataLimitGB} GB Data</li>
-                                        {plan.features.filter(f => f.toLowerCase().includes('bid')).map((feature, i) => (
+                                        {plan.features
+                                            .filter(f => !f.toLowerCase().startsWith('everything'))
+                                            .slice(0, 2)
+                                            .map((feature, i) => (
                                             <li key={i}>{feature}</li>
                                         ))}
                                     </ul>
@@ -531,7 +534,7 @@ const PlanManagementView = () => {
                                 <TableCell>
                                     <Switch
                                         checked={plan.isActive}
-                                        onCheckedChange={(checked) => handlePlanStatusChange(plan.id, checked)}
+                                        onCheckedChange={(checked) => handlePlanStatusChange(plan.id, checked as boolean)}
                                     />
                                 </TableCell>
                             </TableRow>

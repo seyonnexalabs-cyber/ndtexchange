@@ -509,7 +509,7 @@ const PlanManagementView = () => {
                             <TableHead>Plan Name</TableHead>
                             <TableHead>Audience</TableHead>
                             <TableHead>Price (USD)</TableHead>
-                            <TableHead>Limits (Users/Data)</TableHead>
+                            <TableHead className="w-[40%]">Key Features & Limits</TableHead>
                             <TableHead>Publicly Visible</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -519,7 +519,15 @@ const PlanManagementView = () => {
                                 <TableCell className="font-medium">{plan.name}</TableCell>
                                 <TableCell>{plan.audience}</TableCell>
                                 <TableCell>{plan.price.USD}</TableCell>
-                                <TableCell>{plan.userLimit} Users / {plan.dataLimitGB} GB</TableCell>
+                                <TableCell>
+                                    <ul className="list-disc list-inside text-xs space-y-1">
+                                        <li>{plan.userLimit} User(s)</li>
+                                        <li>{plan.dataLimitGB} GB Data</li>
+                                        {plan.features.filter(f => f.toLowerCase().includes('bid')).map((feature, i) => (
+                                            <li key={i}>{feature}</li>
+                                        ))}
+                                    </ul>
+                                </TableCell>
                                 <TableCell>
                                     <Switch
                                         checked={plan.isActive}

@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -7,33 +8,48 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ShieldCheck, Building, HardHat, Eye } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
 type UserType = 'client' | 'inspector' | 'auditor';
 
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(1, "Password is required."),
+});
+
 export default function LoginPage() {
-  const [userType, setUserType] = useState<UserType>('client');
   const router = useRouter();
   const isMobile = useIsMobile();
+  
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
-  useEffect(() => {
-    document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme', 'auditor-theme');
-    document.body.classList.add(`${userType}-theme`);
-  }, [userType]);
+  const onSubmit = (data: z.infer<typeof loginSchema>) => {
+    // In a real app, this would involve an API call to an authentication service.
+    // For this prototype, we'll determine the role based on the email address.
+    let role: UserType = 'client'; // Default to client
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    params.set('role', userType);
-    if (userType === 'inspector') {
-      // For the prototype, we default to the marketplace plan.
-      // In a real app, this would be determined by the user's subscription data.
-      params.set('plan', 'marketplace');
+    if (data.email.includes('inspector') || data.email.includes('teaminc')) {
+        role = 'inspector';
+    } else if (data.email.includes('auditor')) {
+        role = 'auditor';
+    } else if (data.email.includes('admin')) {
+        // Redirect admins to the dedicated admin login
+        router.push('/admin');
+        return;
     }
+
+    const params = new URLSearchParams();
+    params.set('role', role);
     router.push(`/dashboard?${params.toString()}`);
   };
 
@@ -67,66 +83,55 @@ export default function LoginPage() {
                 </h1>
             </Link>
             <p className="text-muted-foreground">
-              Select your role and sign in to continue
+              Sign in to your account to continue
             </p>
           </div>
-          <form onSubmit={handleLogin} className="grid gap-6">
-            <div className="grid gap-2">
-              <Label>I am a...</Label>
-              <RadioGroup
-                  defaultValue="client"
-                  className="grid grid-cols-3 gap-4"
-                  onValueChange={(value: UserType) => setUserType(value)}
-              >
-                  <div>
-                      <RadioGroupItem value="client" id="client" className="peer sr-only" />
-                      <Label htmlFor="client" className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer transition-transform hover:scale-105">
-                          <Building className="h-5 w-5" />
-                          Client
-                      </Label>
-                  </div>
-                  <div>
-                      <RadioGroupItem value="inspector" id="inspector" className="peer sr-only" />
-                      <Label htmlFor="inspector" className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer transition-transform hover:scale-105">
-                          <HardHat className="h-5 w-5" />
-                          Provider
-                      </Label>
-                  </div>
-                  <div>
-                      <RadioGroupItem value="auditor" id="auditor" className="peer sr-only" />
-                      <Label htmlFor="auditor" className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-xs h-full cursor-pointer transition-transform hover:scale-105">
-                          <Eye className="h-5 w-5" />
-                          Auditor
-                      </Label>
-                  </div>
-              </RadioGroup>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="email">Email</Label>
+                    <FormControl>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="#"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-              <Input id="password" type="password" required />
-            </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </form>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center">
+                      <Label htmlFor="password">Password</Label>
+                      <Link
+                        href="#"
+                        className="ml-auto inline-block text-sm underline"
+                      >
+                        Forgot your password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <Input id="password" type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+            </form>
+          </Form>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline">

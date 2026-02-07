@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,15 @@ import { Shield, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+
+const adminLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1, "Password is required."),
+});
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -19,8 +29,14 @@ export default function AdminLoginPage() {
     document.body.classList.add('admin-theme');
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<z.infer<typeof adminLoginSchema>>({
+    resolver: zodResolver(adminLoginSchema),
+    defaultValues: { email: 'admin@example.com', password: '' },
+  });
+
+  const onSubmit = (data: z.infer<typeof adminLoginSchema>) => {
+    // In a real app, authentication logic would go here.
+    console.log(data);
     router.push(`/dashboard?role=admin`);
   };
 
@@ -37,26 +53,46 @@ export default function AdminLoginPage() {
           <CardTitle className="text-2xl font-headline text-center flex items-center justify-center gap-2"><Shield className="text-primary" /> Platform Administration</CardTitle>
           <CardDescription className="text-center">Admin access only</CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="admin@example.com" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full">Sign In</Button>
-            {!isMobile && (
-                <Button variant="link" size="sm" className="text-muted-foreground !mt-2" asChild>
-                    <Link href="/">Return to Homepage</Link>
-                </Button>
-            )}
-          </CardFooter>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="email">Email</Label>
+                    <FormControl>
+                      <Input id="email" type="email" placeholder="admin@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="password">Password</Label>
+                    <FormControl>
+                      <Input id="password" type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button type="submit" className="w-full">Sign In</Button>
+              {!isMobile && (
+                  <Button variant="link" size="sm" className="text-muted-foreground !mt-2" asChild>
+                      <Link href="/">Return to Homepage</Link>
+                  </Button>
+              )}
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   );

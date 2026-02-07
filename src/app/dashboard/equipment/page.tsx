@@ -1,7 +1,5 @@
-
-
 'use client';
-import { useState, useMemo, cloneElement } from "react";
+import { useState, useMemo, cloneElement, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job, EquipmentType } from "@/lib/placeholder-data";
@@ -13,13 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -374,10 +372,18 @@ export default function EquipmentPage() {
     const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId && !e.parentId));
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { toast } = useToast();
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const { setScanOpen } = useQRScanner();
     const { searchQuery } = useSearch();
     const [statusFilter, setStatusFilter] = useState('all');
+
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
     
     const [transactionState, setTransactionState] = useState<{ action: 'check-in' | 'check-out' | 'service-out' | null; equipment: InspectorAsset | null }>({ action: null, equipment: null });
 
@@ -468,6 +474,10 @@ export default function EquipmentPage() {
         'check-out': 'Check Out for Job',
         'service-out': 'Check Out for Service',
     }[transactionState.action || ''] || '';
+
+    if (role && role !== 'inspector') {
+        return null;
+    }
     
     return (
         <div>

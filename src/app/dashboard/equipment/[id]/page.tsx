@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -471,6 +471,14 @@ export default function EquipmentDetailPage() {
     const { id } = params;
     const searchParams = useSearchParams();
     const router = useRouter();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
@@ -547,6 +555,10 @@ export default function EquipmentDetailPage() {
         });
         setIsEditComponentOpen(false);
     };
+
+    if (role && role !== 'inspector') {
+        return null;
+    }
 
     if (isEditing) {
         return (

@@ -15,9 +15,8 @@ import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
@@ -41,6 +40,12 @@ export default function PostJobPage() {
     const role = searchParams.get('role') || 'client';
     const router = useRouter();
     const { toast } = useToast();
+
+    React.useEffect(() => {
+        if (role && !['client', 'inspector'].includes(role)) {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
     
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
     const documentsInputRef = React.useRef<HTMLInputElement>(null);
@@ -169,6 +174,10 @@ export default function PostJobPage() {
 
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
+
+    if (role && !['client', 'inspector'].includes(role)) {
+        return null;
+    }
 
     return (
         <div className="max-w-4xl mx-auto">

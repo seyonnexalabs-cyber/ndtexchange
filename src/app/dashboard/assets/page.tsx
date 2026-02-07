@@ -1,4 +1,3 @@
-
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -214,6 +213,12 @@ export default function AssetsPage() {
     const { toast } = useToast();
     const router = useRouter();
 
+    useEffect(() => {
+        if (role && !['client', 'inspector'].includes(role)) {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
     const { firestore } = useFirebase();
 
     const assetsQuery = useMemoFirebase(() => {
@@ -246,6 +251,10 @@ export default function AssetsPage() {
         deleteDocumentNonBlocking(assetRef);
         toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
     };
+
+    if (role && !['client', 'inspector'].includes(role)) {
+        return null;
+    }
 
     return (
         <div>

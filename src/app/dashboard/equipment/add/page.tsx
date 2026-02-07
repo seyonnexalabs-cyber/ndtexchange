@@ -42,6 +42,13 @@ export default function AddEquipmentPage() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const router = useRouter();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -132,6 +139,10 @@ export default function AddEquipmentPage() {
         console.log("New Equipment Data:", values);
         router.push(constructUrl('/dashboard/equipment'));
     };
+
+    if (role && role !== 'inspector') {
+        return null;
+    }
 
     return (
         <div className="max-w-4xl mx-auto">

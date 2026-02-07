@@ -1,10 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useMemo, useEffect } from 'react';
 import { inspections, NDTTechniques, Inspection } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -35,9 +34,17 @@ const historyStatusVariants: Record<string, 'success' | 'default' | 'secondary' 
 
 export default function AuditHistoryPage() {
     const isMobile = useIsMobile();
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const { searchQuery } = useSearch();
     const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
+
+    useEffect(() => {
+        if (role && role !== 'auditor') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
     
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -80,6 +87,10 @@ export default function AuditHistoryPage() {
     const pageIcon = <History className="text-primary" />;
     const emptyStateTitle = 'No Audit History';
     const emptyStateDescription = 'You have not audited any reports yet.';
+
+    if (role && role !== 'auditor') {
+        return null;
+    }
 
     return (
         <div>

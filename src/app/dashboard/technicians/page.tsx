@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import { Users, MoreVertical, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -293,8 +292,16 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
 
 export default function TechniciansPage() {
     const isMobile = useIsMobile();
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const { toast } = useToast();
+
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
     
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTechnician, setEditingTechnician] = useState<PlatformUser | null>(null);
@@ -383,6 +390,10 @@ export default function TechniciansPage() {
         }
         closeDialog();
     };
+
+    if (role && role !== 'inspector') {
+        return null;
+    }
 
     return (
         <div>

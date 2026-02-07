@@ -1,8 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
@@ -12,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -21,6 +20,14 @@ export default function FindAuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && !['client', 'admin'].includes(role)) {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const filteredAuditors = useMemo(() => {
         return auditFirms.filter(firm => {
@@ -58,12 +65,18 @@ export default function FindAuditorsPage() {
 
     const hasActiveFilters = selectedServices.length > 0 || selectedIndustries.length > 0;
 
+    const pageTitle = role === 'admin' ? 'Auditor Management' : 'Find Auditors';
+
+    if (role && !['client', 'admin'].includes(role)) {
+        return null;
+    }
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Eye className="text-primary" />
-                    Find Auditors
+                    {pageTitle}
                 </h1>
                 <div className="flex gap-2">
                     <Popover>

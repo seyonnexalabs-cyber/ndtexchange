@@ -47,6 +47,12 @@ export default function AddAssetPage() {
     const router = useRouter();
     const { toast } = useToast();
     const role = searchParams.get('role') || 'client';
+
+    React.useEffect(() => {
+        if (role && role !== 'client') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
     
     const form = useForm<z.infer<typeof assetSchema>>({
         resolver: zodResolver(assetSchema),
@@ -181,6 +187,10 @@ export default function AddAssetPage() {
         setDocumentFiles(updatedFiles);
         form.setValue('documents', updatedFiles);
     };
+
+    if (role && role !== 'client') {
+        return null;
+    }
 
     return (
         <div className="max-w-4xl mx-auto">

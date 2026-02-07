@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,7 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
@@ -176,6 +175,14 @@ export default function MyBidsPage() {
     const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
     const [jobs, setJobs] = useState(initialJobs);
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const role = searchParams.get('role');
+    
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -247,6 +254,10 @@ export default function MyBidsPage() {
     const activeBids = myBids.filter(bid => bid.status === 'Submitted');
     const awardedBids = myBids.filter(bid => bid.status === 'Awarded');
     const archivedBids = myBids.filter(bid => ['Rejected', 'Withdrawn'].includes(bid.status));
+
+    if (role && role !== 'inspector') {
+        return null;
+    }
 
     return (
         <div>

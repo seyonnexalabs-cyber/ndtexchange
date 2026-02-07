@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import UniformDocumentViewer from '@/app/dashboard/components/uniform-document-viewer';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
@@ -43,6 +44,15 @@ export default function FindJobsPage() {
     const [locationFilter, setLocationFilter] = useState('');
     const { searchQuery } = useSearch();
     const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -92,6 +102,10 @@ export default function FindJobsPage() {
         setSelectedJob(null);
         form.reset();
     };
+
+    if (role && role !== 'inspector') {
+        return null;
+    }
 
     return (
         <div>

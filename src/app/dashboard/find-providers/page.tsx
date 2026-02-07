@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Star, MapPin, X, ShieldCheck } from 'lucide-react';
@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -40,6 +40,14 @@ export default function FindProvidersPage() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState('rating-desc');
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && !['client', 'admin'].includes(role)) {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const filteredProviders = useMemo(() => {
         let providers = serviceProviders.filter(provider => {
@@ -96,6 +104,9 @@ export default function FindProvidersPage() {
 
     const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0;
 
+    if (role && !['client', 'admin'].includes(role)) {
+        return null;
+    }
 
     return (
         <TooltipProvider>

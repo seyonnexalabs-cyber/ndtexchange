@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { assets, jobs, clientAssets, Asset, AssetUpdate } from "@/lib/placeholder-data";
 import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -546,6 +546,13 @@ export default function AssetDetailPage() {
 
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+
+    useEffect(() => {
+        if (role && !['client', 'inspector'].includes(role)) {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
     const isMobile = useIsMobile();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
@@ -656,6 +663,10 @@ export default function AssetDetailPage() {
 
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
+
+    if (role && !['client', 'inspector'].includes(role)) {
+        return null;
+    }
 
     if (isEditing) {
         return <AssetForm asset={asset} onSubmit={handleFormSubmit} onCancel={() => setIsEditing(false)} />;

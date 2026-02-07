@@ -151,7 +151,7 @@ export default function ProvidersPage({ searchParams }: { searchParams?: { [key:
                     {heroImage && (
                       <Image
                         src={heroImage.imageUrl}
-                        alt={heroImage.description}
+                        alt="A team of NDT service providers collaborating on a project."
                         fill
                         className="object-cover"
                         data-ai-hint={heroImage.imageHint}
@@ -264,11 +264,11 @@ export default function ProvidersPage({ searchParams }: { searchParams?: { [key:
                       Ready to Join NDT Exchange?
                     </h2>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                      Experience the future of asset integrity management. Start your 30-day free trial today. No credit card required, full access to all features.
+                      Experience the future of asset integrity management. Start your 14-day free trial today.
                     </p>
                     <div className="mt-8">
                       <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                        <Link href="/contact">Start Your Free Trial</Link>
+                        <Link href="/signup">Sign Up for a Free Trial</Link>
                       </Button>
                     </div>
                   </div>

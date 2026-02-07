@@ -77,24 +77,22 @@ const contactFormSchema = z.object({
   email: z.string().email(),
   phone: z.string().optional(),
   role: z.enum(["asset-owner", "ndt-company", "auditor"], {required_error: 'Please select your role.'}),
-  inquiryType: z.enum(["free-trial", "pricing", "support", "general"], {required_error: 'Please select an inquiry type.'}),
+  inquiryType: z.enum(["pricing", "partnership", "support", "general"], {required_error: 'Please select an inquiry type.'}),
   message: z.string().min(10, "Please provide a brief message (min. 10 characters)."),
 });
 
 
 const ContactForm = () => {
     const { toast } = useToast();
-    const [agreedToTerms, setAgreedToTerms] = useState(false);
     const form = useForm<z.infer<typeof contactFormSchema>>({
         resolver: zodResolver(contactFormSchema),
         defaultValues: { name: '', companyName: '', email: '', message: '' },
     });
 
     function onSubmit(data: z.infer<typeof contactFormSchema>) {
-        toast({ title: "Request Sent", description: "Thank you for contacting us. We will get back to you shortly." });
+        toast({ title: "Inquiry Sent", description: "Thank you for contacting us. We will get back to you shortly." });
         console.log(data);
         form.reset();
-        setAgreedToTerms(false);
     }
 
     return (
@@ -174,12 +172,12 @@ const ContactForm = () => {
                                 name="inquiryType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>I'm interested in...</FormLabel>
+                                        <FormLabel>Reason for Contact</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select a topic" /></SelectTrigger></FormControl>
                                             <SelectContent>
-                                                <SelectItem value="free-trial">Starting a Free Trial / Pilot</SelectItem>
                                                 <SelectItem value="pricing">A Pricing Quote</SelectItem>
+                                                <SelectItem value="partnership">Partnership Inquiry</SelectItem>
                                                 <SelectItem value="support">Technical Support</SelectItem>
                                                 <SelectItem value="general">A General Inquiry</SelectItem>
                                             </SelectContent>
@@ -202,21 +200,7 @@ const ContactForm = () => {
                                 </FormItem>
                             )}
                         />
-                        <div className="flex items-start space-x-2 pt-2">
-                            <Checkbox id="contact-terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} className="mt-1" />
-                            <Label htmlFor="contact-terms" className="text-sm font-normal text-muted-foreground">
-                                I agree to the{' '}
-                                <Link href="/terms" className="underline hover:text-primary">
-                                Terms & Conditions
-                                </Link>{' '}
-                                and{' '}
-                                <Link href="/privacy" className="underline hover:text-primary">
-                                Privacy Policy
-                                </Link>
-                                .
-                            </Label>
-                        </div>
-                        <Button type="submit" className="w-full" size="lg" disabled={!agreedToTerms}>Send Request <Send className="ml-2" /></Button>
+                        <Button type="submit" className="w-full" size="lg">Send Inquiry <Send className="ml-2" /></Button>
                     </form>
                 </Form>
             </CardContent>
@@ -288,7 +272,7 @@ export default function ContactPage() {
             {heroImage && (
               <Image
                 src={heroImage.imageUrl}
-                alt={heroImage.description}
+                alt="NDT inspector working in an industrial setting, representing professional services"
                 fill
                 className="object-cover"
                 data-ai-hint={heroImage.imageHint}
@@ -306,11 +290,11 @@ export default function ContactPage() {
                 Start free. Scale as your inspections, teams, and projects grow.
               </p>
               <p className="mt-4 text-sm text-primary-foreground/80">
-                  14-Day Free Trial for Inspectors & NDT Companies • No credit card required • Clients & Level‑III are free.
+                  14-Day Free Trial • No credit card required • Clients & Level‑III are free.
               </p>
               <div className="mt-8 flex justify-center gap-4">
                   <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Link href="#contact-form">Start Pilot / Request Access</Link>
+                    <Link href="/signup">Start Your Free Trial</Link>
                   </Button>
                   <Button size="lg" asChild variant="outline" className="bg-background/20 text-white border-white hover:bg-background/30">
                     <Link href="#pricing-tabs">View Plans Below</Link>
@@ -351,7 +335,7 @@ export default function ContactPage() {
                             <PricingCard
                                 plan="Client Access"
                                 price="Free"
-                                description="Best for: Plants, EPCs, pilot teams"
+                                description="For plants, EPCs, and pilot teams."
                                 features={[
                                     "Asset register (up to 200 assets)",
                                     "Read‑only access to NDT reports",
@@ -361,12 +345,12 @@ export default function ContactPage() {
                                 ]}
                                 isFeatured={true}
                                 ctaText="Get Started Free"
-                                ctaLink="#contact-form"
+                                ctaLink="/signup"
                             />
                             <PricingCard
                                 plan="Client Plus"
                                 price={prices['Client Plus'][currency]}
-                                description="Best for: Multi‑vendor operations"
+                                description="For multi‑vendor operations."
                                 features={[
                                     "Everything in Client Access, plus:",
                                     "Unlimited assets",
@@ -376,7 +360,7 @@ export default function ContactPage() {
                                     "Asset register with cross‑vendor inspection history and maintenance visibility",
                                 ]}
                                 ctaText="Upgrade to Plus"
-                                ctaLink="#contact-form"
+                                ctaLink="/signup"
                             />
                         </div>
                     </section>
@@ -398,10 +382,10 @@ export default function ContactPage() {
                                     "14-day free trial",
                                     "Submit up to 10 bids per month",
                                     "Digital report creation",
-                                    "Equipment register with calibration tracking and job‑wise equipment assignment",
+                                    "Equipment tracking (up to 5 items)",
                                 ]}
                                 ctaText="Start as Inspector"
-                                ctaLink="#contact-form"
+                                ctaLink="/signup"
                             />
                             <PricingCard
                                 plan="NDT Company"
@@ -413,12 +397,12 @@ export default function ContactPage() {
                                     "Unlimited marketplace bidding",
                                     "Client-linked projects",
                                     "Level-III review workflows",
-                                    "Equipment register, calibration history, and job‑wise equipment assignment",
+                                    "Equipment & calibration tracking (up to 20 items)",
                                 ]}
                                 isFeatured={true}
                                 popularBadge={true}
                                 ctaText="Start Company Pilot"
-                                ctaLink="#contact-form"
+                                ctaLink="/signup"
                             />
                             <PricingCard
                                 plan="Company Growth"
@@ -431,10 +415,10 @@ export default function ContactPage() {
                                     "Multi-site operations & analytics",
                                     "Advanced report templates",
                                     "Priority support",
-                                    "Centralized equipment register with calibration history, alerts, and job traceability",
+                                    "Advanced equipment tracking (up to 50 items)",
                                 ]}
                                 ctaText="Upgrade to Growth"
-                                ctaLink="#contact-form"
+                                ctaLink="/signup"
                             />
                         </div>
                     </section>
@@ -460,7 +444,7 @@ export default function ContactPage() {
                                 <p className="mt-4 text-center text-sm text-muted-foreground">Level-III access is included to ensure industry-grade credibility and compliance.</p>
                             </CardContent>
                             <CardFooter className="justify-center">
-                                <Button asChild><Link href="#contact-form">Request Level-III Access</Link></Button>
+                                <Button asChild><Link href="/signup">Request Level-III Access</Link></Button>
                             </CardFooter>
                         </Card>
                     </section>
@@ -489,7 +473,7 @@ export default function ContactPage() {
                     </div>
                      <div className="border p-6 rounded-lg">
                         <h3 className="font-semibold text-xl">Future Monetization (Transparent)</h3>
-                        <p className="text-lg font-bold mt-2">Commission starts post‑MVP</p>
+                        <p className="text-lg font-bold mt-2">Commission starts post‑pilot</p>
                         <ul className="mt-4 space-y-2 text-muted-foreground">
                             <li>2% success fee on awarded jobs (after pilot phase)</li>
                             <li>Premium access options later</li>
@@ -607,17 +591,17 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-headline font-semibold text-primary">
-                Get Started with NDT Exchange
+                Have a Question?
                 </h2>
                 <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
-                    Whether you're ready to start a pilot, have a pricing question, or just want to learn more, we're here to help.
+                    If you have questions about pricing, partnerships, or need support, please use the form below. Ready to sign up? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>.
                 </p>
             </div>
             <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 items-start">
                 <div className="space-y-6">
                     <h3 className="text-2xl font-headline font-semibold">Contact Information</h3>
                     <p className="text-muted-foreground">
-                        Our team is available to answer your questions and help you get started. We aim to respond to all inquiries within one business day.
+                        Our team is available to answer your questions. We aim to respond to all inquiries within one business day.
                     </p>
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">

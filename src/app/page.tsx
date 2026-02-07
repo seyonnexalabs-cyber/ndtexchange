@@ -31,7 +31,7 @@ export default function HomePage() {
             {heroImage && (
               <Image
                 src={heroImage.imageUrl}
-                alt="NDT inspector working at an industrial site"
+                alt="NDT inspector working on an industrial pipeline"
                 fill
                 className="object-cover"
                 data-ai-hint={heroImage.imageHint}
@@ -50,7 +50,7 @@ export default function HomePage() {
               </p>
               <div className="mt-8 flex justify-center gap-4">
                   <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Link href="/contact">Get Started</Link>
+                    <Link href="/signup">Sign Up Free</Link>
                   </Button>
                   <Button size="lg" asChild variant="outline" className="bg-background/20 text-white border-white hover:bg-background/30">
                     <Link href="/#features">Learn More</Link>
@@ -221,11 +221,11 @@ export default function HomePage() {
               Ready to Join NDT Exchange?
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              Experience the future of asset integrity management. Start your 30-day free trial today.
+              Experience the future of asset integrity management. Start your free trial today.
             </p>
             <div className="mt-8">
               <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Link href="/contact">Get Started</Link>
+                <Link href="/signup">Sign Up Free</Link>
               </Button>
             </div>
           </div>

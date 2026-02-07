@@ -30,7 +30,7 @@ export default function ProviderToolsPage() {
                         {heroImage && (
                             <Image
                                 src={heroImage.imageUrl}
-                                alt={heroImage.description}
+                                alt="An NDT inspector setting up equipment on a large industrial pipe."
                                 fill
                                 className="object-cover"
                                 data-ai-hint={heroImage.imageHint}
@@ -110,11 +110,11 @@ export default function ProviderToolsPage() {
                       Ready to Optimize Your Operations?
                     </h2>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                      Start your 30-day free trial today. No credit card required, full access to all features.
+                      Start your free trial today. No credit card required, full access to all features.
                     </p>
                     <div className="mt-8">
                       <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                        <Link href="/contact">Start Your Free Trial</Link>
+                        <Link href="/signup">Sign Up for a Free Trial</Link>
                       </Button>
                     </div>
                   </div>

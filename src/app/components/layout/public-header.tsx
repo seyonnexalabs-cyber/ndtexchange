@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -160,7 +161,7 @@ export default function PublicHeader() {
                     </div>
                      <div className="mt-8 pt-6 border-t">
                       <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                          <Link href="/contact">Get Started</Link>
+                          <Link href="/signup">Sign Up</Link>
                       </Button>
                       <Button variant="outline" asChild className="w-full mt-2" onClick={() => setMobileMenuOpen(false)}>
                           <Link href="/login">Login</Link>
@@ -187,7 +188,7 @@ export default function PublicHeader() {
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Link href="/contact">Get Started</Link>
+                <Link href="/signup">Sign Up</Link>
               </Button>
            </div>
         </div>

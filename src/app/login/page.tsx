@@ -34,14 +34,12 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (agreedToTerms) {
-      const params = new URLSearchParams();
-      params.set('role', userType);
-      if (userType === 'inspector') {
-        params.set('plan', inspectorPlan);
-      }
-      router.push(`/dashboard?${params.toString()}`);
+    const params = new URLSearchParams();
+    params.set('role', userType);
+    if (userType === 'inspector') {
+      params.set('plan', inspectorPlan);
     }
+    router.push(`/dashboard?${params.toString()}`);
   };
 
   const getTitle = () => {
@@ -160,21 +158,7 @@ export default function LoginPage() {
                 </div>
                 <Input id="password" type="password" required />
                 </div>
-                 <div className="flex items-start space-x-2">
-                    <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} className="mt-1" />
-                    <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-                        I agree to the{' '}
-                        <Link href="/terms" className="underline hover:text-primary">
-                        Terms & Conditions
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/privacy" className="underline hover:text-primary">
-                        Privacy Policy
-                        </Link>
-                        .
-                    </Label>
-                </div>
-                <Button type="submit" className="w-full" disabled={!agreedToTerms}>
+                <Button type="submit" className="w-full">
                     Sign In
                 </Button>
                 <div className="mt-4 text-center text-sm">
@@ -182,8 +166,8 @@ export default function LoginPage() {
                         Don't have an account?{' '}
                     </span>
                     <Button variant="link" asChild className="p-1">
-                        <Link href="/contact">
-                            Sign up for a trial
+                        <Link href="/signup">
+                            Create an account
                         </Link>
                     </Button>
                 </div>

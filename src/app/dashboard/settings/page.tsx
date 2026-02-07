@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -21,10 +22,11 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Building } from 'lucide-react';
 import Link from 'next/link';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import Image from 'next/image';
 
 
 const userDetails = {
@@ -439,6 +441,146 @@ const SubscriptionSettings = () => {
     );
 };
 
+const BrandingSettings = ({ companyName }: { companyName: string }) => {
+  const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
+  const [brandColor, setBrandColor] = React.useState('#3B82F6');
+  const [isDragging, setIsDragging] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = (file: File | null) => {
+    if (file) {
+      if (!['image/png', 'image/jpeg', 'image/svg+xml'].includes(file.type)) {
+        toast({ variant: 'destructive', title: 'Invalid File Type', description: 'Please upload a PNG, JPG, or SVG file.' });
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({ variant: 'destructive', title: 'File Too Large', description: 'Logo image must be smaller than 2MB.' });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleLogoUpload(e.dataTransfer.files[0]);
+      e.dataTransfer.clearData();
+    }
+  };
+  
+  const handleSaveBranding = () => {
+      toast({ title: 'Branding Saved', description: 'Your company branding has been updated.' });
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Company Branding</CardTitle>
+        <CardDescription>Manage your logo and brand color. These assets will be made available to service providers for automatically branding reports.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid md:grid-cols-2 gap-12 items-start">
+        <div className="space-y-6">
+            <div
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                    "relative w-full aspect-video rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                )}
+            >
+                {logoPreview ? (
+                    <>
+                        <Image
+                            src={logoPreview}
+                            alt="Company Logo Preview"
+                            fill
+                            className="object-contain rounded-md p-4"
+                        />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                            <p className="text-white font-semibold">Click or drag to replace logo</p>
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex flex-col items-center gap-2">
+                        <Building className="w-10 h-10" />
+                        <p>Click or drag & drop logo</p>
+                        <p className="text-xs">PNG, JPG, or SVG up to 2MB</p>
+                    </div>
+                )}
+                <Input
+                    ref={fileInputRef}
+                    id="logo-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/svg+xml"
+                    onChange={(e) => handleLogoUpload(e.target.files?.[0] || null)}
+                />
+            </div>
+            <div>
+                <Label htmlFor="brand-color">Brand Color</Label>
+                <div className="mt-2 flex items-center gap-2">
+                    <Input
+                        id="brand-color"
+                        type="color"
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        className="w-12 h-10 p-1"
+                    />
+                    <Input
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        placeholder="#3B82F6"
+                    />
+                </div>
+            </div>
+        </div>
+        <div>
+            <Label>Report Preview</Label>
+            <div className="mt-2 rounded-lg border p-4 shadow-md">
+                <div className="flex justify-between items-center pb-4 border-b" style={{ borderBottomColor: brandColor }}>
+                    {logoPreview ? (
+                        <Image src={logoPreview} alt="Logo" width={128} height={48} className="object-contain h-12" />
+                    ) : (
+                        <span className="font-bold text-lg">{companyName}</span>
+                    )}
+                    <div className="text-right">
+                        <h3 className="font-bold text-xl" style={{ color: brandColor }}>INSPECTION REPORT</h3>
+                        <p className="text-xs text-muted-foreground">Report #2024-123</p>
+                    </div>
+                </div>
+                <div className="pt-4 text-sm text-muted-foreground space-y-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <p><strong>Asset:</strong> Storage Tank T-101</p>
+                        <p><strong>Date:</strong> {format(new Date(), 'dd-MMM-yyyy')}</p>
+                        <p><strong>Job ID:</strong> JOB-001</p>
+                        <p><strong>Technique:</strong> UT</p>
+                    </div>
+                    <p className="pt-4">Report summary and findings will appear here...</p>
+                </div>
+            </div>
+        </div>
+      </CardContent>
+       <CardFooter>
+          <Button onClick={handleSaveBranding}>Save Branding</Button>
+       </CardFooter>
+    </Card>
+  );
+};
+
 
 export default function SettingsPage() {
     const searchParams = useSearchParams();
@@ -490,6 +632,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
+          {(role === 'client' || role === 'inspector') && <TabsTrigger value="branding">Branding</TabsTrigger>}
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -553,6 +696,9 @@ export default function SettingsPage() {
                 isReadOnly={role === 'admin'}
             />
         </TabsContent>
+        <TabsContent value="branding">
+            <BrandingSettings companyName={currentUser.company} />
+        </TabsContent>
         <TabsContent value="team">
               {isSubscriptionActive ? (
                 role === 'admin' ? 
@@ -597,3 +743,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

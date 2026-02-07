@@ -12,6 +12,8 @@ import { History, User, Briefcase, DollarSign, PlusCircle, Award, Gavel, FileTex
 import { format } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 // Client-side only component to prevent hydration mismatch on formatted dates
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -77,6 +79,19 @@ const getBillingEventIcon = (action: BillingAuditLog['action']): React.ReactNode
 
 
 export default function AuditLogPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
+    if (role !== 'admin') {
+        return null;
+    }
     
     const UserLog = () => (
         <Card>

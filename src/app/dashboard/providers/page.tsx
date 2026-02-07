@@ -11,9 +11,9 @@ import { ShieldCheck, MapPin, Star, MoreVertical, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -308,9 +308,17 @@ const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }
 
 export default function ProvidersPage() {
     const isMobile = useIsMobile();
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const { toast } = useToast();
     const [isAddProviderOpen, setAddProviderOpen] = useState(false);
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -325,6 +333,10 @@ export default function ProvidersPage() {
         });
         setAddProviderOpen(false);
     };
+
+    if (role !== 'admin') {
+        return null;
+    }
 
     return (
         <div>

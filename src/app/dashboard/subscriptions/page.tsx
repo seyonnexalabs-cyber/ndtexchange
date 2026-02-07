@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -445,10 +445,19 @@ const PaymentHistoryMobileView = () => (
 
 export default function SubscriptionsPage() {
     const isMobile = useIsMobile();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const [activeTab, setActiveTab] = useState("subscriptions");
     const [selectedSubscriptions, setSelectedSubscriptions] = useState<string[]>([]);
     const [isBulkMailOpen, setBulkMailOpen] = useState(false);
     const { toast } = useToast();
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const getMailtoLink = (sub: Subscription): MailtoDetails => {
         const contactEmail = getContactEmailForSubscription(sub);
@@ -528,6 +537,10 @@ export default function SubscriptionsPage() {
         setBulkMailOpen(false);
         setSelectedSubscriptions([]);
     };
+
+    if (role !== 'admin') {
+        return null;
+    }
 
     return (
         <div>

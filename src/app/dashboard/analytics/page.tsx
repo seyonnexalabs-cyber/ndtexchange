@@ -1,13 +1,13 @@
-
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { jobs, NDTTechniques, allUsers } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 const jobsByMonthChartConfig = {
@@ -37,6 +37,16 @@ const techniquesChartConfig = {
 
 
 export default function AnalyticsPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
     const analyticsData = useMemo(() => {
         const jobsByMonth: { [key: string]: number } = {};
         const revenueByMonth: { [key: string]: number } = {};
@@ -63,6 +73,10 @@ export default function AnalyticsPage() {
 
         return { jobsByMonthData, revenueByMonthData, jobsByTechniqueData, totalRevenue };
     }, []);
+
+    if (role !== 'admin') {
+        return null;
+    }
 
     return (
         <div>

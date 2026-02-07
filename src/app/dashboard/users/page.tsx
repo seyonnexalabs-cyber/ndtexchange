@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSearch } from "@/app/components/layout/search-provider";
 import { Input } from "@/components/ui/input";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -440,6 +442,9 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
 
 
 export default function UsersPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [users, setUsers] = useState(() => allUsers.filter(u => u.company !== 'NDT Exchange'));
     const { toast } = useToast();
@@ -455,6 +460,12 @@ export default function UsersPage() {
     const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
     const [userToDisable, setUserToDisable] = useState<PlatformUser | null>(null);
     const [showAdminDisableError, setShowAdminDisableError] = useState(false);
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const handleAddUser = (values: z.infer<typeof userSchema>) => {
         const newUser: PlatformUser = {
@@ -530,6 +541,10 @@ export default function UsersPage() {
         });
         setUserToDisable(null);
     };
+
+    if (role !== 'admin') {
+        return null;
+    }
 
     return (
         <div>

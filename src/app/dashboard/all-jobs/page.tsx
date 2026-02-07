@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -37,13 +37,21 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
 };
 
 export default function AllJobsPage() {
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const { searchQuery } = useSearch();
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useIsMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     useEffect(() => {
         setToday(new Date());
@@ -92,6 +100,10 @@ export default function AllJobsPage() {
     };
 
     const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0 || selectedClients.length > 0;
+
+    if (role !== 'admin') {
+        return null;
+    }
 
     return (
         <div>

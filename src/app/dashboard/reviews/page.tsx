@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { reviews, jobs, clientData } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { Review } from '@/lib/placeholder-data';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -121,7 +122,16 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
 
 
 export default function ReviewsPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const [reviewList, setReviewList] = useState(reviews);
+
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const handleApprove = (id: string) => {
         setReviewList(prev => prev.map(r => r.id === id ? { ...r, status: 'Approved' } : r));
@@ -143,6 +153,10 @@ export default function ReviewsPage() {
     const pendingReviews = mappedReviews.filter(r => r.status === 'Pending');
     const approvedReviews = mappedReviews.filter(r => r.status === 'Approved');
     const rejectedReviews = mappedReviews.filter(r => r.status === 'Rejected');
+
+    if (role !== 'admin') {
+        return null;
+    }
 
     return (
         <div>

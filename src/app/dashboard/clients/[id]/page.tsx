@@ -1,8 +1,8 @@
 
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
-import { notFound, useSearchParams, useParams } from "next/navigation";
+import { useMemo, useEffect } from "react";
+import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,15 +20,27 @@ import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 export default function ClientDetailPage() {
     const params = useParams();
     const { id } = params;
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const role = searchParams.get('role');
     const isMobile = useIsMobile();
     
+    useEffect(() => {
+        if (role && role !== 'admin') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
     const client = useMemo(() => clientData.find(c => c.id === id), [id]);
     const clientJobs = useMemo(() => jobs.filter(j => j.client === client?.name), [client]);
     const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
 
     if (!client) {
         notFound();
+    }
+    
+    if (role !== 'admin') {
+        return null;
     }
 
     const constructUrl = (base: string) => {

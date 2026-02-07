@@ -31,7 +31,7 @@ export default function HomePage() {
             {heroImage && (
               <Image
                 src={heroImage.imageUrl}
-                alt={heroImage.description}
+                alt="NDT inspector working at an industrial site"
                 fill
                 className="object-cover"
                 data-ai-hint={heroImage.imageHint}
@@ -53,7 +53,7 @@ export default function HomePage() {
                     <Link href="/contact">Get Started</Link>
                   </Button>
                   <Button size="lg" asChild variant="outline" className="bg-background/20 text-white border-white hover:bg-background/30">
-                    <Link href="/platform-features">Learn More</Link>
+                    <Link href="/#features">Learn More</Link>
                   </Button>
               </div>
             </div>
@@ -61,7 +61,7 @@ export default function HomePage() {
         </section>
 
         {/* What is NDT Exchange Section - REVISED */}
-        <section className="py-20">
+        <section id="features" className="py-20">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -199,7 +199,7 @@ export default function HomePage() {
                     key={technique.id}
                     imageUrl={techImage?.imageUrl}
                     imageHint={techImage?.imageHint}
-                    altText={techImage?.description}
+                    altText={technique.title}
                     title={technique.title}
                     description={technique.description}
                   />

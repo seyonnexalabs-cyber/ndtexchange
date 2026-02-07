@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, ShieldCheck } from 'lucide-react';
+import { Shield, Hexagon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8 flex items-center gap-2 text-primary">
-          <ShieldCheck className="w-8 h-8" />
+          <Hexagon className="w-8 h-8" />
           <h1 className="text-2xl font-headline font-bold">
               NDT Exchange
           </h1>

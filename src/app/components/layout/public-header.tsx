@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Globe, ChevronDown, Menu, ShieldCheck } from 'lucide-react';
+import { Globe, ChevronDown, Menu, Hexagon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -75,7 +75,7 @@ export default function PublicHeader() {
     <header className="container mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-2 text-2xl font-headline font-bold text-primary">
-          <ShieldCheck className="h-8 w-8" />
+          <Hexagon className="h-8 w-8" />
           <span>NDT Exchange</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
@@ -148,7 +148,7 @@ export default function PublicHeader() {
                 <SheetContent>
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2 text-2xl font-headline text-primary">
-                            <ShieldCheck className="h-8 w-8" />
+                            <Hexagon className="h-8 w-8" />
                             NDT Exchange
                         </SheetTitle>
                         <SheetDescription>Navigation Menu</SheetDescription>

@@ -43,7 +43,7 @@ export const subscriptionPlans: Plan[] = [
         id: 'client-plus',
         name: 'Client Plus',
         audience: 'Client',
-        price: { USD: '$60 – $100 / month', EUR: '€55 – €90 / month', INR: '₹5,000 – ₹8,000 / month' },
+        price: { USD: '$99 / month', EUR: '€89 / month', INR: '₹7,999 / month' },
         description: "For multi‑vendor operations.",
         features: [
             "Everything in Client Access, plus:",

@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, inspectorAssets, allUsers, Job } from '@/lib/placeholder-data';
+import { jobs, clientData, allUsers, Job } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { subscriptionPlans } from '@/lib/subscription-plans';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Link from 'next/link';
 
 
 const utReportSchema = z.object({

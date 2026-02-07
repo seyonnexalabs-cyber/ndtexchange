@@ -546,7 +546,29 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['user-TECH-04', 'user-TECH-06'], assetIds: ['ASSET-007'], workflow: 'standard' },
     { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-03'], workflow: 'level3' },
     { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', providerId: 'provider-09', location: 'Freeport, TX', technique: 'AE', status: 'Assigned', postedDate: '2024-07-20', assetIds: [], workflow: 'level3' },
-    { id: 'JOB-014', title: 'Internal Corrosion Mapping of Piping', client: 'Energy Transfer', providerId: 'provider-03', location: 'Permian Basin, TX', technique: 'UT', status: 'In Progress', postedDate: '2024-07-18', scheduledStartDate: '2024-07-25', scheduledEndDate: '2024-07-28', technicianIds: ['user-TECH-01', 'user-TECH-08'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-002'], workflow: 'standard' },
+    { 
+        id: 'JOB-014', 
+        title: 'Internal Corrosion Mapping of Piping', 
+        client: 'Energy Transfer', 
+        providerId: 'provider-03', 
+        location: 'Permian Basin, TX', 
+        technique: 'UT', 
+        status: 'In Progress', 
+        postedDate: '2024-07-18', 
+        scheduledStartDate: '2024-07-25', 
+        scheduledEndDate: '2024-07-28', 
+        technicianIds: ['user-TECH-01', 'user-TECH-08'], 
+        equipmentIds: ['UTM-1000'], 
+        assetIds: ['ASSET-002'], 
+        workflow: 'standard',
+        history: [
+            { user: 'Maria Garcia', timestamp: '2024-07-25T08:00:00Z', action: 'Job status changed to In Progress.', statusChange: 'In Progress', details: 'Inspection work has commenced on site.' },
+            { user: 'Maria Garcia', timestamp: '2024-07-24T10:00:00Z', action: 'Scheduled job.', statusChange: 'Scheduled', details: 'Inspection scheduled for 2024-07-25 to 2024-07-28' },
+            { user: 'Energy Transfer Admin', timestamp: '2024-07-19T13:00:00Z', action: 'Awarded job to provider "TEAM, Inc." for $15,000.', statusChange: 'Assigned' },
+            { user: 'Maria Garcia', timestamp: '2024-07-18T16:00:00Z', action: 'Bid for $15,000 submitted by TEAM, Inc.', details: 'Standard rates for pipeline corrosion mapping.' },
+            { user: 'Energy Transfer Admin', timestamp: '2024-07-18T09:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' }
+        ]
+    },
     { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-02'], workflow: 'standard' },
     { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { id: 'JOB-017', title: 'Shutdown Support - PT/MT', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Houston, TX', technique: 'PT', status: 'Scheduled', postedDate: '2024-07-25', scheduledStartDate: nextWeek.toISOString().split('T')[0], scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], assetIds: [], workflow: 'standard' },
@@ -647,6 +669,7 @@ const bidsData: Bid[] = [
     { id: 'BID-022', jobId: 'JOB-022', providerId: 'provider-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12' },
     { id: 'BID-023', jobId: 'JOB-023', providerId: 'provider-03', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29' },
     { id: 'BID-024', jobId: 'JOB-024', providerId: 'provider-04', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21' },
+    { id: 'BID-014', jobId: 'JOB-014', providerId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18' }
 ];
 
 const inspectionsData: Inspection[] = [

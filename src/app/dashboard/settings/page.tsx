@@ -47,64 +47,6 @@ const companyProfileSchema = z.object({
   companyAddress: z.string().optional(),
 });
 
-const inviteSchema = z.object({
-  name: z.string().min(2, "Name is required."),
-  email: z.string().email("Please provide a valid email address."),
-});
-
-
-const InviteMemberForm = ({ onCancel, onSubmit, companyName }: { onCancel: () => void; onSubmit: (values: any) => void; companyName: string }) => {
-  const form = useForm<z.infer<typeof inviteSchema>>({
-    resolver: zodResolver(inviteSchema),
-    defaultValues: { name: '', email: '' },
-  });
-
-  const handleSubmit = (values: z.infer<typeof inviteSchema>) => {
-    onSubmit({
-      ...values,
-      company: companyName,
-    });
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Jane Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email Address</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="jane.doe@company.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <DialogFooter className="pt-4">
-          <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-          <Button type="submit">Send Invitation</Button>
-        </DialogFooter>
-      </form>
-    </Form>
-  );
-};
-
-
 const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = false }: { companyName: string, companyAddress?: string, isReadOnly?: boolean }) => {
   const form = useForm<z.infer<typeof companyProfileSchema>>({
     resolver: zodResolver(companyProfileSchema),
@@ -165,56 +107,38 @@ const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = fals
   );
 };
 
-const TeamManagementSettings = ({ companyName, onInviteClick }: { companyName: string, onInviteClick: () => void }) => {
-    const teamMembers = allUsers.filter(user => user.company === companyName);
-    
-    const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-    const companyAdminName = allCompanies.find(c => c.name === companyName)?.contactPerson;
+const TeamManagementSettings = ({ user }: { user: { name: string, email: string, role: string } }) => {
+    const searchParams = useSearchParams();
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Team Management</CardTitle>
-                    <CardDescription>Manage users who have access to your company's account.</CardDescription>
-                </div>
-                <Button onClick={onInviteClick}>Invite Member</Button>
+            <CardHeader>
+                <CardTitle>Team Management</CardTitle>
+                <CardDescription>Your current plan includes a single user seat.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {teamMembers.map(user => {
-                            const isAdmin = user.name === companyAdminName;
-                            return (
-                                <TableRow key={user.id}>
-                                    <TableCell className="font-medium flex items-center gap-3">
-                                        <Avatar className="h-9 w-9">
-                                            <AvatarFallback className="text-lg font-bold font-headline">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                        </Avatar>
-                                        {user.name}
-                                        {isAdmin && <Badge variant="outline">Admin</Badge>}
-                                    </TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                       <Button variant="ghost" size="sm" disabled={isAdmin}>Manage</Button>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
+                <div className="rounded-lg border p-4 space-y-4">
+                    <div>
+                        <p className="font-semibold">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-sm text-muted-foreground">{user.role}</p>
+                        <Badge variant="outline" className="mt-2">Primary Contact & Account Admin</Badge>
+                    </div>
+                </div>
             </CardContent>
+            <CardFooter className="border-t pt-6">
+                <div className="space-y-2">
+                    <p className="font-semibold">Need to add more team members?</p>
+                    <p className="text-sm text-muted-foreground">Upgrade your plan to invite colleagues and manage user roles.</p>
+                    <Button asChild className="mt-2">
+                        <Link href={constructUrl("/dashboard/billing")}>View Subscription Plans</Link>
+                    </Button>
+                </div>
+            </CardFooter>
         </Card>
     );
 };
@@ -225,12 +149,11 @@ const AdminTeamManagement = () => {
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Admin Team Management</CardTitle>
-                    <CardDescription>Manage users with administrative privileges on the platform.</CardDescription>
-                </div>
-                <Button>Invite Admin</Button>
+            <CardHeader>
+                <CardTitle>Admin Team Management</CardTitle>
+                <CardDescription>
+                    Manage users with administrative privileges. New admins can be invited from the main <Link href="/dashboard/users" className="text-primary underline">User Management</Link> page.
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -523,7 +446,6 @@ const SubscriptionSettings = () => {
 export default function SettingsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const [isInviteOpen, setIsInviteOpen] = useState(false);
     
     const currentUser = useMemo(() => {
         const details = userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -546,15 +468,6 @@ export default function SettingsPage() {
         });
         console.log(data);
     };
-
-    const handleInviteSubmit = (values: z.infer<typeof inviteSchema>) => {
-        toast({
-            title: 'Invitation Sent',
-            description: `${values.name} has been invited to join ${currentUser.company}.`,
-        });
-        console.log("New Invitation:", values);
-        setIsInviteOpen(false);
-    }
 
   return (
     <div className="space-y-6">
@@ -636,7 +549,7 @@ export default function SettingsPage() {
         <TabsContent value="team">
             {role === 'admin' ? 
                 <AdminTeamManagement /> : 
-                <TeamManagementSettings companyName={currentUser.company} onInviteClick={() => setIsInviteOpen(true)} />
+                <TeamManagementSettings user={currentUser} />
             }
         </TabsContent>
         <TabsContent value="subscription">
@@ -657,22 +570,6 @@ export default function SettingsPage() {
             </Card>
         </TabsContent>
       </Tabs>
-
-      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite New Team Member</DialogTitle>
-            <DialogDescription>
-              Invite a new user to join {currentUser.company}. They will receive an email to set up their account.
-            </DialogDescription>
-          </DialogHeader>
-          <InviteMemberForm
-            onCancel={() => setIsInviteOpen(false)}
-            onSubmit={handleInviteSubmit}
-            companyName={currentUser.company}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

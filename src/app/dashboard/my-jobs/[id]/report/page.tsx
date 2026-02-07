@@ -177,9 +177,29 @@ export default function ReportPage() {
 
                      <Separator className="my-6" />
                     <h3 className="text-lg font-semibold border-b pb-2">Summary & Conclusion</h3>
-                     <FormField control={form.control} name="summary" render={({ field }) => (
-                        <FormItem><FormLabel>Summary of Findings</FormLabel><FormControl><Textarea placeholder="Provide a summary of the inspection results, including any areas of concern, recommendations, and overall condition." className="min-h-32" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
+                     <FormField
+                        control={form.control}
+                        name="summary"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Summary of Findings</FormLabel>
+                                <FormControl>
+                                    <div className="w-full rounded-md border border-input bg-background p-4 min-h-[200px] text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                        <p className="font-bold text-muted-foreground">[Rich Text Editor Placeholder]</p>
+                                        <p className="mt-2 text-muted-foreground">
+                                            This area would be a rich text editor, allowing for formatted text like <strong>bold</strong>, <em>italics</em>, and bulleted lists to create a comprehensive summary. For this demo, please enter your summary below.
+                                        </p>
+                                        <Textarea
+                                            placeholder="Provide a summary of the inspection results..."
+                                            className="mt-4 min-h-[100px] border-dashed"
+                                            {...field}
+                                        />
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </form>
                 </Form>
             </Card>

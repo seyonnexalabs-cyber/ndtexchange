@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Hexagon } from 'lucide-react';
+import { Hexagons7Icon } from '@/app/components/icons';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -94,7 +94,7 @@ export default function LoginPage() {
         <div className="mx-auto grid w-full max-w-md gap-6">
           <div className="grid gap-2 text-center">
             <Link href="/" className="flex items-center justify-center gap-2 text-primary">
-                <Hexagon className="w-8 h-8" />
+                <Hexagons7Icon className="w-8 h-8" />
                 <h1 className="text-3xl font-headline font-bold">
                     NDT Exchange
                 </h1>

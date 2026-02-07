@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Hexagon } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Hexagons7Icon } from '@/app/components/icons';
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
@@ -43,7 +44,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8 flex items-center gap-2 text-primary">
-          <Hexagon className="w-8 h-8" />
+          <Hexagons7Icon className="w-8 h-8" />
           <h1 className="text-2xl font-headline font-bold">
               NDT Exchange
           </h1>

@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { Hexagon } from 'lucide-react';
+import { Hexagons7Icon } from '@/app/components/icons';
 
 export default function PublicFooter() {
     const platformLinks = [
@@ -31,7 +31,7 @@ export default function PublicFooter() {
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div className="md:col-span-1">
                         <Link href="/" className="flex items-center gap-2 text-2xl font-headline font-bold">
-                            <Hexagon className="w-8 h-8" />
+                            <Hexagons7Icon className="w-8 h-8" />
                             NDT Exchange
                         </Link>
                         <p className="mt-4 text-sm text-primary-foreground/80">

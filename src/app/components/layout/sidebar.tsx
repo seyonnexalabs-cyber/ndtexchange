@@ -20,7 +20,6 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  Hexagon,
   Users,
   BarChart,
   Eye,
@@ -44,6 +43,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { Hexagons7Icon } from '@/app/components/icons';
 
 
 const userDetails = {
@@ -66,7 +66,7 @@ const clientMenu = [
   {
     title: 'Marketplace',
     items: [
-      { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: Hexagon },
+      { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: Users },
       { id: 'find-auditors', href: '/dashboard/find-auditors', label: 'Find Auditors', icon: Eye },
       { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
     ]
@@ -145,7 +145,7 @@ const adminMenu = [
     items: [
       { id: 'users', href: '/dashboard/users', label: 'Users', icon: Users },
       { id: 'clients', href: '/dashboard/clients', label: 'Clients', icon: Building },
-      { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Hexagon },
+      { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
@@ -301,7 +301,7 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link href={constructUrl("/dashboard")} className="flex items-center gap-2">
-            <Hexagon className="w-8 h-8 text-primary" />
+            <Hexagons7Icon className="w-8 h-8 text-primary" />
             <h1 className="text-xl font-headline font-bold text-card-foreground">
                 NDT Exchange
             </h1>

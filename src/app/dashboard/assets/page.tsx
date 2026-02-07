@@ -21,6 +21,7 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const assetIcons = {
@@ -31,7 +32,7 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-6 h-6 text-primary" />,
 };
 
-const ClientAssetsView = ({ assets, isLoading, onApprove, onReject }: { assets: Asset[], isLoading: boolean, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
+const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscriptionActive }: { assets: Asset[], isLoading: boolean, onApprove: (id: string) => void, onReject: (id: string) => void, isSubscriptionActive: boolean }) => {
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { searchQuery } = useSearch();
@@ -85,6 +86,15 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject }: { assets: 
 
     return (
         <div className="space-y-8">
+            {!isSubscriptionActive && (
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Subscription Expired</AlertTitle>
+                    <AlertDescription>
+                        Your plan has expired. Your account is in read-only mode. You cannot add new assets. Please visit settings to upgrade your plan.
+                    </AlertDescription>
+                </Alert>
+            )}
             {Object.keys(assetsByLocation).length === 0 && (
                 <div className="text-center py-10">
                     <p className="text-muted-foreground">No assets found for your search.</p>
@@ -213,6 +223,9 @@ export default function AssetsPage() {
     const { toast } = useToast();
     const router = useRouter();
 
+    // In a real app, this would come from a user context or subscription check.
+    const isSubscriptionActive = false;
+
     useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
             router.replace(`/dashboard?${searchParams.toString()}`);
@@ -269,14 +282,14 @@ export default function AssetsPage() {
                         Scan Asset
                     </Button>
                     {role === 'client' && (
-                        <Button asChild variant="outline" className="w-full sm:w-auto">
+                        <Button asChild variant="outline" className="w-full sm:w-auto" disabled={!isSubscriptionActive}>
                            <Link href={constructUrl("/dashboard/assets/add")}>Add New Asset</Link>
                         </Button>
                     )}
                 </div>
             </div>
             
-            {role === 'client' ? <ClientAssetsView assets={currentAssets} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} /> : (
+            {role === 'client' ? <ClientAssetsView assets={currentAssets} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} isSubscriptionActive={isSubscriptionActive} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
                     <QrCode className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>

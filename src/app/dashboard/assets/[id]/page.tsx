@@ -546,6 +546,9 @@ export default function AssetDetailPage() {
 
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+    
+    // In a real app, this would come from a subscription check.
+    const isSubscriptionActive = false; 
 
     useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
@@ -674,6 +677,15 @@ export default function AssetDetailPage() {
 
     return (
         <div>
+             {!isSubscriptionActive && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Subscription Expired</AlertTitle>
+                    <AlertDescription>
+                        Your plan has expired. Your account is in read-only mode. Please visit settings to upgrade your plan.
+                    </AlertDescription>
+                </Alert>
+            )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mb-6 gap-4">
                 <div>
                     <Button asChild variant="outline" size="sm" className="mb-4">
@@ -689,8 +701,8 @@ export default function AssetDetailPage() {
                     <p className="font-extrabold text-sm text-muted-foreground">ID: {asset.id}</p>
                 </div>
                 <div className='flex gap-2 self-start sm:self-center'>
-                    {(isClient || isInspector) && <Button onClick={() => setIsCheckLogOpen(true)}>Log Routine Check</Button>}
-                    {isClient && <Button onClick={() => setIsEditing(true)}>Edit Asset</Button>}
+                    {(isClient || isInspector) && <Button onClick={() => setIsCheckLogOpen(true)} disabled={!isSubscriptionActive}>Log Routine Check</Button>}
+                    {isClient && <Button onClick={() => setIsEditing(true)} disabled={!isSubscriptionActive}>Edit Asset</Button>}
                 </div>
             </div>
 
@@ -772,7 +784,7 @@ export default function AssetDetailPage() {
                                         </ScrollArea>
                                     </div>
                                     {isClient && (
-                                        <Button className="mt-4 w-full" variant="outline">Upload Document</Button>
+                                        <Button className="mt-4 w-full" variant="outline" disabled={!isSubscriptionActive}>Upload Document</Button>
                                     )}
                                 </CardContent>
                             </Card>

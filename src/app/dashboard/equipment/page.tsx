@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job, EquipmentType } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, Package, Cpu, Waves, Cable, Eye } from "lucide-react";
+import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, Package, Cpu, Waves, Cable, Eye, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -26,6 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
@@ -379,6 +380,9 @@ export default function EquipmentPage() {
     const { searchQuery } = useSearch();
     const [statusFilter, setStatusFilter] = useState('all');
 
+    // In a real app, this would come from a user context or subscription check.
+    const isSubscriptionActive = false;
+
     useEffect(() => {
         if (role && role !== 'inspector') {
             router.replace(`/dashboard?${searchParams.toString()}`);
@@ -491,9 +495,19 @@ export default function EquipmentPage() {
                         <QrCode className="mr-2 h-4 w-4 text-primary"/>
                         Scan QR
                     </Button>
-                    <Button asChild><Link href={constructUrl('/dashboard/equipment/add')}>Add New Equipment</Link></Button>
+                    <Button asChild disabled={!isSubscriptionActive}><Link href={constructUrl('/dashboard/equipment/add')}>Add New Equipment</Link></Button>
                 </div>
             </div>
+
+            {!isSubscriptionActive && (
+                 <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Subscription Expired</AlertTitle>
+                    <AlertDescription>
+                        Your plan has expired. Your account is in read-only mode. You cannot add new equipment. Please visit settings to upgrade your plan.
+                    </AlertDescription>
+                </Alert>
+            )}
             
             <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-6">
                 <div className="flex gap-2">

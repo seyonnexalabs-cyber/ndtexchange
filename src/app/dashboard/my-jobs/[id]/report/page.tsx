@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -16,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, ShieldCheck, Trash2 } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, ShieldCheck, Trash2, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -186,11 +185,23 @@ export default function ReportPage() {
                             <FormItem>
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
-                                    <Textarea
-                                        placeholder="Provide a detailed summary of the inspection results, including any recommendations."
-                                        className="min-h-[250px]"
-                                        {...field}
-                                    />
+                                    <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                                        <div className="p-1 border-b">
+                                            <div className="flex items-center gap-1">
+                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><Bold className="w-4 h-4" /></Button>
+                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><Italic className="w-4 h-4" /></Button>
+                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><Underline className="w-4 h-4" /></Button>
+                                                <Separator orientation="vertical" className="h-6 mx-1" />
+                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><List className="w-4 h-4" /></Button>
+                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8"><ListOrdered className="w-4 h-4" /></Button>
+                                            </div>
+                                        </div>
+                                        <Textarea
+                                            placeholder="Provide a detailed summary of the inspection results, including any recommendations."
+                                            className="min-h-[250px] border-0 rounded-t-none focus-visible:ring-0 focus-visible:ring-offset-0 p-3"
+                                            {...field}
+                                        />
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

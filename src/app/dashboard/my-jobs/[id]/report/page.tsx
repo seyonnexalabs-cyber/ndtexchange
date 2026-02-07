@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Trash2 } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Trash2, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -25,6 +25,7 @@ import { EditorState, convertToRaw } from 'draft-js';
 import dynamic from 'next/dynamic';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import type { EditorProps } from 'react-draft-wysiwyg';
+import { Switch } from '@/components/ui/switch';
 
 const Editor = dynamic<EditorProps>(
   () => import('react-draft-wysiwyg').then((mod) => mod.Editor),
@@ -79,8 +80,15 @@ export default function ReportPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const id = params.id as string;
+    
+    // States for auto-save feature
+    const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(true);
+    const [saveLog, setSaveLog] = React.useState<string[]>([]);
+    
+    // Editor state
+    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
     const [editorIsMounted, setEditorIsMounted] = React.useState(false);
-
+    
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
@@ -97,13 +105,6 @@ export default function ReportPage() {
     }, [subscription]);
     
     const assignedTechnicians = React.useMemo(() => allUsers.filter(u => job?.technicianIds?.includes(u.id)), [job]);
-    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
-
-    React.useEffect(() => {
-        setEditorIsMounted(true);
-        // Initialize EditorState only on the client
-        setEditorState(EditorState.createEmpty());
-    }, []);
 
     const form = useForm<z.infer<typeof utReportSchema>>({
         resolver: zodResolver(utReportSchema),
@@ -112,35 +113,48 @@ export default function ReportPage() {
             summary: undefined,
         },
     });
-    
-    const handleAutoSave = () => {
-        // Trigger validation to make sure we don't save invalid data
-        form.trigger().then(isValid => {
-            // Only save if the form is dirty and valid
-            if (form.formState.isDirty && isValid) {
-                const currentValues = form.getValues();
-                console.log("Auto-saving on blur...", currentValues);
-                toast({
-                    title: "Auto-saved",
-                    description: "Your changes have been saved.",
-                });
-                // Reset the form state to the new values, marking them as "not dirty"
-                form.reset(currentValues);
-            }
-        });
-    };
-
-    React.useEffect(() => {
-        // Set the initial value of the editor once it's created on the client
-        if (editorState) {
-            form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
-        }
-    }, [editorState, form]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "findings",
     });
+    
+    React.useEffect(() => {
+        setEditorIsMounted(true);
+        setEditorState(EditorState.createEmpty());
+    }, []);
+
+    React.useEffect(() => {
+        if (editorIsMounted && editorState) {
+            form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
+        }
+    }, [editorIsMounted, editorState, form]);
+
+    const handleSave = React.useCallback(() => {
+        form.trigger().then(isValid => {
+            if (form.formState.isDirty && isValid) {
+                const currentValues = form.getValues();
+                console.log("Saving draft...", currentValues);
+                
+                const now = new Date();
+                const timestamp = format(now, 'p');
+                
+                toast({
+                    title: "Draft Saved",
+                    description: `Your changes were saved at ${timestamp}.`,
+                });
+
+                setSaveLog(prevLog => [`Saved at ${timestamp}`, ...prevLog].slice(0, 5));
+                form.reset(currentValues);
+            }
+        });
+    }, [form, toast]);
+
+    const handleAutoSave = React.useCallback(() => {
+        if (isAutoSaveEnabled) {
+            handleSave();
+        }
+    }, [isAutoSaveEnabled, handleSave]);
 
     if (!job) {
         notFound();
@@ -166,15 +180,32 @@ export default function ReportPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <Button asChild variant="outline" size="sm">
                     <Link href={constructUrl(`/dashboard/my-jobs/${id}`)}>
-                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                        <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to Job Details
                     </Link>
                 </Button>
+                 <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                        <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} />
+                        <Label htmlFor="autosave-toggle">Auto-save</Label>
+                    </div>
+                    {!isAutoSaveEnabled && (
+                        <Button variant="outline" onClick={handleSave}>
+                            <Save className="mr-2"/>
+                            Save Draft
+                        </Button>
+                    )}
+                </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2"/> Print/Save as PDF</Button>
                     <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
                 </div>
             </div>
+             {saveLog.length > 0 && (
+                <div className="mb-4 text-xs text-muted-foreground">
+                    {saveLog[0]}
+                </div>
+            )}
 
             <Card className="max-w-4xl mx-auto p-8 printable-area">
                 <div className="watermark-container">
@@ -273,5 +304,4 @@ export default function ReportPage() {
         </div>
     );
 }
-    
-    
+

@@ -1,3 +1,4 @@
+
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -22,6 +23,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { subscriptionPlans } from '@/lib/subscription-plans';
 
 function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
   plan: string;
@@ -212,6 +214,13 @@ export default function ContactPage() {
     type Currency = 'USD' | 'EUR' | 'INR';
     const [currency, setCurrency] = React.useState<Currency>('USD');
     const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
+    
+    const [activePlans, setActivePlans] = useState(() => subscriptionPlans.filter(p => p.isActive && p.isPublic));
+
+    const clientPlans = useMemo(() => activePlans.filter(p => p.audience === 'Client'), [activePlans]);
+    const providerPlans = useMemo(() => activePlans.filter(p => p.audience === 'Provider'), [activePlans]);
+    const auditorPlan = useMemo(() => activePlans.find(p => p.audience === 'Auditor'), [activePlans]);
+
 
     useEffect(() => {
         // This effect runs only on the client side, after hydration
@@ -228,40 +237,7 @@ export default function ContactPage() {
         }
     }, []);
 
-    const prices = {
-      'Client Access': {
-        USD: '$0 – $50 / month',
-        EUR: '€0 – €45 / month',
-        INR: '₹0 – ₹4,000 / month',
-      },
-      'Client Plus': {
-        USD: '$60 – $100 / month',
-        EUR: '€55 – €90 / month',
-        INR: '₹5,000 – ₹8,000 / month',
-      },
-      'Individual Inspector': {
-        USD: '$20 / inspector / month',
-        EUR: '€18 / inspector / month',
-        INR: '₹1,500 / inspector / month',
-      },
-      'NDT Company': {
-        USD: '$65 / company / month',
-        EUR: '€60 / company / month',
-        INR: '₹5,000 / company / month',
-      },
-      'Company Growth': {
-        USD: '$120 / company / month',
-        EUR: '€110 / company / month',
-        INR: '₹10,000 / company / month',
-      },
-      'Shutdown Maintenance': {
-        USD: '$300 per shutdown event',
-        EUR: '€275 per shutdown event',
-        INR: '₹25,000 per shutdown event',
-      },
-    };
-
-  return (
+    return (
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
       <main className="flex-grow">
@@ -331,36 +307,18 @@ export default function ContactPage() {
                             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Gain secure access to inspection data across vendors, projects, and shutdowns.</p>
                         </div>
                         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
-                            <PricingCard
-                                plan="Client Access"
-                                price="Free"
-                                description="For plants, EPCs, and pilot teams."
-                                features={[
-                                    "Asset register (up to 200 assets)",
-                                    "Read‑only access to NDT reports",
-                                    "Vendor‑shared reports",
-                                    "Asset register with inspection history and maintenance visibility",
-                                    "Web portal access",
-                                ]}
-                                isFeatured={true}
-                                ctaText="Get Started Free"
-                                ctaLink="/signup"
-                            />
-                            <PricingCard
-                                plan="Client Plus"
-                                price={prices['Client Plus'][currency]}
-                                description="For multi‑vendor operations."
-                                features={[
-                                    "Everything in Client Access, plus:",
-                                    "Unlimited assets",
-                                    "Multiple vendors",
-                                    "Comments & approvals",
-                                    "Shutdown inspection view",
-                                    "Asset register with cross‑vendor inspection history and maintenance visibility",
-                                ]}
-                                ctaText="Upgrade to Plus"
-                                ctaLink="/signup"
-                            />
+                            {clientPlans.map(plan => (
+                                <PricingCard
+                                    key={plan.id}
+                                    plan={plan.name}
+                                    price={plan.price[currency]}
+                                    description={plan.description}
+                                    features={plan.features}
+                                    isFeatured={plan.isFeatured}
+                                    ctaText="Get Started"
+                                    ctaLink="/signup"
+                                />
+                            ))}
                         </div>
                     </section>
                 </TabsContent>
@@ -373,52 +331,19 @@ export default function ContactPage() {
                             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Digitize inspections, reports, equipment, and collaboration with clients.</p>
                         </div>
                         <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                             <PricingCard
-                                plan="Individual Inspector"
-                                price={prices['Individual Inspector'][currency]}
-                                description="Per inspector"
-                                features={[
-                                    "14-day free trial",
-                                    "Submit up to 10 bids per month",
-                                    "Digital report creation",
-                                    "Equipment tracking (up to 5 items)",
-                                ]}
-                                ctaText="Start as Inspector"
-                                ctaLink="/signup"
-                            />
-                            <PricingCard
-                                plan="NDT Company"
-                                price={prices['NDT Company'][currency]}
-                                description="Per company"
-                                features={[
-                                    "14-day free trial",
-                                    "Up to 5 inspectors",
-                                    "Unlimited marketplace bidding",
-                                    "Client-linked projects",
-                                    "Level-III review workflows",
-                                    "Equipment & calibration tracking (up to 20 items)",
-                                ]}
-                                isFeatured={true}
-                                popularBadge={true}
-                                ctaText="Start Company Pilot"
-                                ctaLink="/signup"
-                            />
-                            <PricingCard
-                                plan="Company Growth"
-                                price={prices['Company Growth'][currency]}
-                                description="Per company"
-                                features={[
-                                    "14-day free trial",
-                                    "Up to 15 inspectors",
-                                    "Unlimited marketplace bidding",
-                                    "Multi-site operations & analytics",
-                                    "Advanced report templates",
-                                    "Priority support",
-                                    "Advanced equipment tracking (up to 50 items)",
-                                ]}
-                                ctaText="Upgrade to Growth"
-                                ctaLink="/signup"
-                            />
+                            {providerPlans.map(plan => (
+                                <PricingCard
+                                    key={plan.id}
+                                    plan={plan.name}
+                                    price={plan.price[currency]}
+                                    description={plan.description}
+                                    features={plan.features}
+                                    isFeatured={plan.isFeatured}
+                                    popularBadge={plan.isPopular}
+                                    ctaText="Get Started"
+                                    ctaLink="/signup"
+                                />
+                            ))}
                         </div>
                     </section>
                  </TabsContent>
@@ -431,14 +356,13 @@ export default function ContactPage() {
                         </div>
                         <Card className="max-w-4xl mx-auto">
                             <CardHeader className="text-center">
-                                <CardTitle className="text-2xl">Free Access</CardTitle>
+                                <CardTitle className="text-2xl">{auditorPlan?.name || 'Free Access'}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                  <ul className="mx-auto max-w-md space-y-3 text-center">
-                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Review & approval workflows</li>
-                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Audit comments & traceability</li>
-                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Certification reference access</li>
-                                    <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Cross-project oversight (limited)</li>
+                                    {(auditorPlan?.features || []).map(feature => (
+                                         <li key={feature} className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>{feature}</li>
+                                    ))}
                                 </ul>
                                 <p className="mt-4 text-center text-sm text-muted-foreground">Level-III access is included to ensure industry-grade credibility and compliance.</p>
                             </CardContent>
@@ -460,7 +384,7 @@ export default function ContactPage() {
                 </div>
                  <Card className="max-w-2xl mx-auto bg-accent/10 border-accent">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-2xl text-accent">{prices['Shutdown Maintenance'][currency]}</CardTitle>
+                        <CardTitle className="text-2xl text-accent">$300 per shutdown event</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ul className="mx-auto max-w-md space-y-3">

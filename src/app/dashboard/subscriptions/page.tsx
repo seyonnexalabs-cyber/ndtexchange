@@ -33,13 +33,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { subscriptionPlans } from '@/lib/subscription-plans';
+import { subscriptionPlans as initialPlans, Plan, subscriptionPlanDetails } from '@/lib/subscription-plans';
+import { Switch } from '@/components/ui/switch';
 
 
 const subscriptionSchema = z.object({
   id: z.string().optional(),
   companyId: z.string({ required_error: "Please select a company." }),
-  plan: z.enum(['Free Trial', 'Client', 'Provider', 'Enterprise', 'Custom']),
+  plan: z.string(),
   status: z.enum(['Active', 'Trialing', 'Past Due', 'Canceled', 'Payment Failed']),
   startDate: z.date(),
   endDate: z.date().optional(),
@@ -71,9 +72,8 @@ const SubscriptionForm = ({
     
     // Effect to update limits when a standard plan is chosen
     useEffect(() => {
-        if (plan && plan !== 'Custom' && subscriptionPlans[plan]) {
-            const planDetails = subscriptionPlans[plan];
-            // Only update if the current values don't match the plan defaults
+        if (plan && plan !== 'Custom' && subscriptionPlanDetails[plan]) {
+            const planDetails = subscriptionPlanDetails[plan];
             if (form.getValues('userLimit') !== planDetails.userLimit) {
                 form.setValue('userLimit', planDetails.userLimit);
             }
@@ -85,8 +85,8 @@ const SubscriptionForm = ({
 
     // Effect to set plan to "Custom" if limits are manually changed
     useEffect(() => {
-        if (plan && plan !== 'Custom' && subscriptionPlans[plan]) {
-            const planDetails = subscriptionPlans[plan];
+        if (plan && plan !== 'Custom' && subscriptionPlanDetails[plan]) {
+            const planDetails = subscriptionPlanDetails[plan];
             if (userLimit !== planDetails.userLimit || dataLimitGB !== planDetails.dataLimitGB) {
                 form.setValue('plan', 'Custom');
             }
@@ -132,8 +132,11 @@ const SubscriptionForm = ({
                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     <SelectItem value="Free Trial">Free Trial</SelectItem>
-                                    <SelectItem value="Client">Client</SelectItem>
-                                    <SelectItem value="Provider">Provider</SelectItem>
+                                    <SelectItem value="Client Access">Client Access</SelectItem>
+                                    <SelectItem value="Client Plus">Client Plus</SelectItem>
+                                    <SelectItem value="Individual Inspector">Individual Inspector</SelectItem>
+                                    <SelectItem value="NDT Company">NDT Company</SelectItem>
+                                    <SelectItem value="Company Growth">Company Growth</SelectItem>
                                     <SelectItem value="Enterprise">Enterprise</SelectItem>
                                     <SelectItem value="Custom">Custom</SelectItem>
                                 </SelectContent>
@@ -403,7 +406,8 @@ const SubscriptionsMobileView = ({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => onEdit(sub)}>
-                                    <Edit className="mr-2 h-4 w-4"/> Edit
+                                    <Edit className="mr-2 h-4 w-4"/>
+                                    Edit
                                 </DropdownMenuItem>
                                 {showContactButton && (
                                     <DropdownMenuItem asChild>
@@ -479,6 +483,57 @@ const PaymentHistoryMobileView = () => (
         )}
     </div>
 );
+
+const PlanManagementView = () => {
+    const [plans, setPlans] = useState<Plan[]>(initialPlans);
+    const { toast } = useToast();
+
+    const handlePlanStatusChange = (planId: string, isActive: boolean) => {
+        setPlans(prevPlans => prevPlans.map(p => p.id === planId ? { ...p, isActive } : p));
+        toast({
+            title: `Plan ${isActive ? 'Enabled' : 'Disabled'}`,
+            description: `${plans.find(p => p.id === planId)?.name} will now be ${isActive ? 'visible' : 'hidden'} on the public pricing page.`
+        });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Plan Management</CardTitle>
+                <CardDescription>Enable or disable subscription plans to control their visibility on the public pricing page.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Plan Name</TableHead>
+                            <TableHead>Audience</TableHead>
+                            <TableHead>Price (USD)</TableHead>
+                            <TableHead>Limits (Users/Data)</TableHead>
+                            <TableHead>Publicly Visible</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {plans.map(plan => (
+                            <TableRow key={plan.id}>
+                                <TableCell className="font-medium">{plan.name}</TableCell>
+                                <TableCell>{plan.audience}</TableCell>
+                                <TableCell>{plan.price.USD}</TableCell>
+                                <TableCell>{plan.userLimit} Users / {plan.dataLimitGB} GB</TableCell>
+                                <TableCell>
+                                    <Switch
+                                        checked={plan.isActive}
+                                        onCheckedChange={(checked) => handlePlanStatusChange(plan.id, checked)}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
 
 export default function SubscriptionsPage() {
     const isMobile = useIsMobile();
@@ -663,7 +718,8 @@ export default function SubscriptionsPage() {
             
             <Tabs defaultValue="subscriptions" onValueChange={setActiveTab} className="w-full">
                 <TabsList className="mb-4">
-                    <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+                    <TabsTrigger value="subscriptions">Company Subscriptions</TabsTrigger>
+                    <TabsTrigger value="plans">Plan Management</TabsTrigger>
                     <TabsTrigger value="payment-history">Payment History</TabsTrigger>
                 </TabsList>
                 <TabsContent value="subscriptions">
@@ -683,6 +739,9 @@ export default function SubscriptionsPage() {
                             allSubscriptions={subscriptions}
                           />
                     }
+                </TabsContent>
+                <TabsContent value="plans">
+                    <PlanManagementView />
                 </TabsContent>
                 <TabsContent value="payment-history">
                     {isMobile ? <PaymentHistoryMobileView /> : <PaymentHistoryDesktopView />}

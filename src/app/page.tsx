@@ -122,7 +122,7 @@ export default function HomePage() {
                 </p>
             </div>
             <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                <Card className="p-2">
+                <Card className="p-2 transition-all hover:shadow-lg hover:-translate-y-1">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <div className="bg-primary/10 p-4 rounded-full w-fit">
@@ -140,7 +140,7 @@ export default function HomePage() {
                         </ul>
                     </CardContent>
                 </Card>
-                <Card className="p-2">
+                <Card className="p-2 transition-all hover:shadow-lg hover:-translate-y-1">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">
@@ -158,7 +158,7 @@ export default function HomePage() {
                         </ul>
                     </CardContent>
                 </Card>
-                 <Card className="p-2">
+                 <Card className="p-2 transition-all hover:shadow-lg hover:-translate-y-1">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">

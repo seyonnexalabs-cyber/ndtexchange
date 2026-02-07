@@ -22,6 +22,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 // New schema and form for adding an auditor firm
 const auditorFirmSchema = z.object({
@@ -107,6 +110,116 @@ const AuditorFirmForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
     );
 };
 
+const DesktopView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl: (path: string) => string }) => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Auditor Firms</CardTitle>
+            <CardDescription>A directory of all third-party auditor firms on the platform.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Firm Name</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Services</TableHead>
+                        <TableHead>Industries</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {firms.map(firm => (
+                        <TableRow key={firm.id}>
+                            <TableCell className="font-medium flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarFallback>{firm.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                                {firm.name}
+                            </TableCell>
+                            <TableCell>{firm.location}</TableCell>
+                            <TableCell>
+                                <div className="flex flex-wrap gap-1 w-48">
+                                    {firm.services.slice(0, 3).map(service => <Badge key={service} variant="secondary">{service}</Badge>)}
+                                    {firm.services.length > 3 && <Badge variant="outline">+{firm.services.length - 3}</Badge>}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-wrap gap-1 w-48">
+                                    {firm.industries.slice(0, 3).map(industry => <Badge key={industry} variant="outline">{industry}</Badge>)}
+                                    {firm.industries.length > 3 && <Badge variant="outline">+{firm.industries.length - 3}</Badge>}
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                               <Button asChild variant="outline" size="sm">
+                                    <Link href={constructUrl(`/dashboard/auditors/${firm.id}`)}>View Details</Link>
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+             {firms.length === 0 && (
+                <div className="col-span-full text-center py-10">
+                    <p className="text-muted-foreground">No audit firms match the selected filters.</p>
+                </div>
+            )}
+        </CardContent>
+    </Card>
+);
+
+const MobileView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl: (path: string) => string }) => (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {firms.map(firm => (
+            <Card key={firm.id} className="flex flex-col">
+                <CardHeader>
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16">
+                            <AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <CardTitle className="font-headline">{firm.name}</CardTitle>
+                            <CardDescription className="flex items-center gap-1.5 mt-1">
+                                <MapPin className="w-3 h-3 text-primary"/> {firm.location}
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                    <p className="text-sm text-muted-foreground pt-2 h-24 overflow-hidden">{firm.description}</p>
+                    <div>
+                        <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
+                        <div className="flex flex-wrap gap-1.5 min-h-[50px]">
+                            {firm.services.map(tech => (
+                                <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
+                            ))}
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
+                        <div className="flex flex-wrap gap-1.5 min-h-[50px]">
+                            {firm.industries.map(tech => (
+                                <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
+                            ))}
+                        </div>
+                    </div>
+                </CardContent>
+                 <CardFooter>
+                    <Button asChild className="w-full">
+                        <Link href={constructUrl(`/dashboard/auditors/${firm.id}`)}>
+                            View Profile
+                        </Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+        ))}
+         {firms.length === 0 && (
+            <div className="col-span-full text-center py-10">
+                <p className="text-muted-foreground">No audit firms match the selected filters.</p>
+            </div>
+        )}
+    </div>
+);
+
 
 export default function FindAuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -117,6 +230,7 @@ export default function FindAuditorsPage() {
     const { toast } = useToast();
     const [firms, setFirms] = useState<AuditFirm[]>(initialAuditFirms);
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         if (role && !['client', 'admin'].includes(role)) {
@@ -274,56 +388,11 @@ export default function FindAuditorsPage() {
                 </div>
             )}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredAuditors.map(firm => (
-                    <Card key={firm.id} className="flex flex-col">
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-16 w-16">
-                                    <AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <CardTitle className="font-headline">{firm.name}</CardTitle>
-                                    <CardDescription className="flex items-center gap-1.5 mt-1">
-                                        <MapPin className="w-3 h-3 text-primary"/> {firm.location}
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
-                            <p className="text-sm text-muted-foreground pt-2 h-24 overflow-hidden">{firm.description}</p>
-                            <div>
-                                <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
-                                <div className="flex flex-wrap gap-1.5 min-h-[50px]">
-                                    {firm.services.map(tech => (
-                                        <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
-                                    ))}
-                                </div>
-                            </div>
-                             <div>
-                                <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
-                                <div className="flex flex-wrap gap-1.5 min-h-[50px]">
-                                    {firm.industries.map(tech => (
-                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
-                                    ))}
-                                </div>
-                            </div>
-                        </CardContent>
-                         <CardFooter>
-                            <Button asChild className="w-full">
-                                <Link href={constructUrl(`/dashboard/auditors/${firm.id}`)}>
-                                    View Profile
-                                </Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-                 {filteredAuditors.length === 0 && (
-                    <div className="col-span-full text-center py-10">
-                        <p className="text-muted-foreground">No audit firms match the selected filters.</p>
-                    </div>
-                )}
-            </div>
+            {isMobile ? 
+                <MobileView firms={filteredAuditors} constructUrl={constructUrl} /> : 
+                <DesktopView firms={filteredAuditors} constructUrl={constructUrl} />
+            }
+
              <Dialog open={isAddFirmOpen} onOpenChange={setIsAddFirmOpen}>
                 <DialogContent>
                     <DialogHeader>

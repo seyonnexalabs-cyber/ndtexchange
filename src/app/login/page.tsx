@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -16,12 +15,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type UserType = 'client' | 'inspector' | 'auditor';
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(1, "Password is required."),
+  role: z.enum(["client", "inspector", "auditor"]).optional(),
 });
 
 export default function LoginPage() {
@@ -30,19 +37,28 @@ export default function LoginPage() {
   
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', role: 'client' },
   });
 
   const onSubmit = (data: z.infer<typeof loginSchema>) => {
     // In a real app, this would involve an API call to an authentication service.
-    // For this prototype, we'll determine the role based on the email address.
-    let role: UserType = 'client'; // Default to client
+    let role: UserType;
+    
+    // Dev mode allows role selection, otherwise determine from email
+    if (process.env.NODE_ENV === 'development' && data.role) {
+      role = data.role;
+    } else {
+      // For this prototype, we'll determine the role based on the email address.
+      role = 'client'; // Default to client
 
-    if (data.email.includes('inspector') || data.email.includes('teaminc')) {
-        role = 'inspector';
-    } else if (data.email.includes('auditor')) {
-        role = 'auditor';
-    } else if (data.email.includes('admin')) {
+      if (data.email.includes('inspector') || data.email.includes('teaminc')) {
+          role = 'inspector';
+      } else if (data.email.includes('auditor')) {
+          role = 'auditor';
+      }
+    }
+
+    if (data.email.includes('admin')) {
         // Redirect admins to the dedicated admin login
         router.push('/admin');
         return;
@@ -127,6 +143,30 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              {process.env.NODE_ENV === 'development' && (
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role (Dev Mode)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role to login as" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="client">Client / Asset Owner</SelectItem>
+                          <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
+                          <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                        </SelectContent>
+                      </Select>
+                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <Button type="submit" className="w-full">
                 Login
               </Button>

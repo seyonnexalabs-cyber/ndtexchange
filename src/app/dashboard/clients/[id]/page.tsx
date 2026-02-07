@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useEffect } from "react";
@@ -9,13 +8,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { clientData, jobs, subscriptions } from "@/lib/placeholder-data";
+import { clientData, jobs, subscriptions, allUsers, PlatformUser } from "@/lib/placeholder-data";
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
+
+const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
+    Active: 'success',
+    Invited: 'secondary',
+    Disabled: 'destructive',
+};
 
 export default function ClientDetailPage() {
     const params = useParams();
@@ -34,6 +39,10 @@ export default function ClientDetailPage() {
     const client = useMemo(() => clientData.find(c => c.id === id), [id]);
     const clientJobs = useMemo(() => jobs.filter(j => j.client === client?.name), [client]);
     const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
+    const clientTeam = useMemo(() => {
+        if (!client) return [];
+        return allUsers.filter(user => user.company === client.name);
+    }, [client]);
 
     if (!client) {
         notFound();
@@ -197,7 +206,53 @@ export default function ClientDetailPage() {
                             <CardDescription>Users from {client.name} with access to the platform.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground">Team member management is coming soon.</p>
+                            {isMobile ? (
+                                <div className="space-y-4">
+                                    {clientTeam.map(user => (
+                                        <Card key={user.id} className="p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-semibold">{user.name}</p>
+                                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                                    <p className="text-sm text-muted-foreground">{user.role}</p>
+                                                </div>
+                                                <Badge variant={statusStyles[user.status]}>{user.status}</Badge>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Role</TableHead>
+                                            <TableHead>Status</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {clientTeam.map(user => (
+                                            <TableRow key={user.id}>
+                                                <TableCell className="font-medium flex items-center gap-3">
+                                                    <Avatar>
+                                                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                    </Avatar>
+                                                    {user.name}
+                                                </TableCell>
+                                                <TableCell>{user.email}</TableCell>
+                                                <TableCell>{user.role}</TableCell>
+                                                <TableCell><Badge variant={statusStyles[user.status]}>{user.status}</Badge></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
+                             {clientTeam.length === 0 && (
+                                <div className="text-center text-muted-foreground py-10">
+                                    No team members found for this client.
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -205,5 +260,3 @@ export default function ClientDetailPage() {
         </div>
     );
 }
-
-    

@@ -1,8 +1,7 @@
 
-
 'use client';
 import * as React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -91,22 +90,31 @@ export default function ReportPage() {
 
     const plan = React.useMemo(() => {
         if (!subscription) return null;
-        return subscriptionPlans.find(p => p.name === subscription.plan);
+        const planName = subscription.plan;
+        return subscriptionPlans.find(p => p.name === planName);
     }, [subscription]);
     
     const assignedTechnicians = React.useMemo(() => allUsers.filter(u => job?.technicianIds?.includes(u.id)), [job]);
 
+    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
+
+    React.useEffect(() => {
+        setEditorState(EditorState.createEmpty());
+    }, []);
 
     const form = useForm<z.infer<typeof utReportSchema>>({
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
+            summary: editorState,
         },
     });
 
     React.useEffect(() => {
-        form.setValue('summary', EditorState.createEmpty());
-    }, [form]);
+        if (editorState) {
+            form.setValue('summary', editorState);
+        }
+    }, [editorState, form]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -212,7 +220,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        <Editor
+                                        {editorState && <Editor
                                             editorState={field.value}
                                             onEditorStateChange={field.onChange}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."
@@ -228,7 +236,7 @@ export default function ReportPage() {
                                                     options: ['unordered', 'ordered'],
                                                 }
                                             }}
-                                        />
+                                        />}
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -242,5 +250,4 @@ export default function ReportPage() {
     );
 }
     
-
     

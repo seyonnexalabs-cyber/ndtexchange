@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
-import { notFound, useSearchParams, useParams } from 'next/navigation';
+import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage, JobUpdate } from '@/lib/placeholder-data';
@@ -398,6 +398,7 @@ export default function JobDetailPage() {
     const params = useParams();
     const id = params.id as string;
     const searchParams = useSearchParams();
+    const router = useRouter();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     const isMobile = useIsMobile();
@@ -841,9 +842,8 @@ export default function JobDetailPage() {
                             <InspectorActions 
                                 status={jobDetails.status} 
                                 onScheduleClick={() => setIsSchedulingOpen(true)}
-                                onReportClick={() => { 
-                                    handleStatusChange('Report Submitted');
-                                    toast({ title: "Report Submitted", description: "Your inspection report has been submitted for review." });
+                                onReportClick={() => {
+                                    router.push(constructUrl(`/dashboard/my-jobs/${jobDetails.id}/report`));
                                 }}
                                 reportSubmitted={reportSubmitted && jobDetails.status !== 'Revisions Requested'}
                             />

@@ -1,36 +1,136 @@
-
-
 'use client';
 
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms, auditFirmServices, auditFirmIndustries, AuditFirm } from '@/lib/auditors-data';
+import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries, AuditFirm } from '@/lib/auditors-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
+
+// New schema and form for adding an auditor firm
+const auditorFirmSchema = z.object({
+  name: z.string().min(2, "Company name is required."),
+  location: z.string().min(2, "Location is required."),
+  description: z.string().min(10, "Description must be at least 10 characters."),
+  contactPerson: z.string().min(2, "Contact person name is required."),
+  contactEmail: z.string().email("Please enter a valid email address."),
+  services: z.array(z.string()).min(1, "Select at least one service."),
+  industries: z.array(z.string()).min(1, "Select at least one industry."),
+});
+
+const AuditorFirmForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof auditorFirmSchema>) => void; }) => {
+    const form = useForm<z.infer<typeof auditorFirmSchema>>({
+        resolver: zodResolver(auditorFirmSchema),
+        defaultValues: {
+            name: '',
+            location: '',
+            description: '',
+            contactPerson: '',
+            contactEmail: '',
+            services: [],
+            industries: [],
+        },
+    });
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                        <FormItem><FormLabel>Company Name</FormLabel><FormControl><Input placeholder="e.g., Global Audit Solutions" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="location" render={({ field }) => (
+                        <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="City, Country" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+                 <FormField control={form.control} name="description" render={({ field }) => (
+                    <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Briefly describe the company..." {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-2 gap-4">
+                     <FormField control={form.control} name="contactPerson" render={({ field }) => (
+                        <FormItem><FormLabel>Contact Person</FormLabel><FormControl><Input placeholder="e.g., Jane Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={form.control} name="contactEmail" render={({ field }) => (
+                        <FormItem><FormLabel>Contact Email</FormLabel><FormControl><Input type="email" placeholder="contact@company.com" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="services" render={() => (
+                        <FormItem><FormLabel>Services Offered</FormLabel>
+                        <ScrollArea className="h-40 rounded-md border p-4">
+                            {auditFirmServices.map(service => (
+                                <FormField key={service} control={form.control} name="services" render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-3">
+                                        <FormControl><Checkbox checked={field.value?.includes(service)} onCheckedChange={checked => checked ? field.onChange([...field.value, service]) : field.onChange(field.value?.filter(v => v !== service))} /></FormControl>
+                                        <FormLabel className="font-normal">{service}</FormLabel>
+                                    </FormItem>
+                                )} />
+                            ))}
+                        </ScrollArea><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="industries" render={() => (
+                        <FormItem><FormLabel>Industry Focus</FormLabel>
+                        <ScrollArea className="h-40 rounded-md border p-4">
+                            {auditFirmIndustries.map(industry => (
+                                <FormField key={industry} control={form.control} name="industries" render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-3">
+                                        <FormControl><Checkbox checked={field.value?.includes(industry)} onCheckedChange={checked => checked ? field.onChange([...field.value, industry]) : field.onChange(field.value?.filter(v => v !== industry))} /></FormControl>
+                                        <FormLabel className="font-normal">{industry}</FormLabel>
+                                    </FormItem>
+                                )} />
+                            ))}
+                        </ScrollArea><FormMessage /></FormItem>
+                    )} />
+                </div>
+                 <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Create Firm</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
 
 
 export default function FindAuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
+    const router = useRouter();
     const role = searchParams.get('role');
+    const { toast } = useToast();
+    const [firms, setFirms] = useState<AuditFirm[]>(initialAuditFirms);
+    const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
+
+    useEffect(() => {
+        if (role && !['client', 'admin'].includes(role)) {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
 
     const filteredAuditors = useMemo(() => {
-        return auditFirms.filter(firm => {
+        return firms.filter(firm => {
             const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => firm.services.includes(s));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => firm.industries.includes(i));
             return serviceMatch && industryMatch;
         });
-    }, [selectedServices, selectedIndustries]);
+    }, [selectedServices, selectedIndustries, firms]);
 
     const handleServiceChange = (service: string) => {
         setSelectedServices(prev => 
@@ -58,9 +158,26 @@ export default function FindAuditorsPage() {
         setSelectedIndustries([]);
     }
 
+    const handleFormSubmit = (values: z.infer<typeof auditorFirmSchema>) => {
+        const newFirm: AuditFirm = {
+            id: `auditor-firm-${Date.now()}`,
+            ...values
+        };
+        setFirms(prev => [newFirm, ...prev]);
+        toast({
+            title: "Auditor Firm Created",
+            description: `${values.name} has been added to the directory.`,
+        });
+        setIsAddFirmOpen(false);
+    };
+
     const hasActiveFilters = selectedServices.length > 0 || selectedIndustries.length > 0;
 
     const pageTitle = role === 'admin' ? 'Auditor Management' : 'Find Auditors';
+
+    if (role && !['client', 'admin'].includes(role)) {
+        return null;
+    }
 
     return (
         <div>
@@ -69,10 +186,10 @@ export default function FindAuditorsPage() {
                     <Eye className="text-primary" />
                     {pageTitle}
                 </h1>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline">
+                            <Button variant="outline" className="flex-grow sm:flex-grow-0">
                                 Filter by Service ({selectedServices.length})
                             </Button>
                         </PopoverTrigger>
@@ -101,7 +218,7 @@ export default function FindAuditorsPage() {
                     </Popover>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline">
+                            <Button variant="outline" className="flex-grow sm:flex-grow-0">
                                 Filter by Industry ({selectedIndustries.length})
                             </Button>
                         </PopoverTrigger>
@@ -128,6 +245,9 @@ export default function FindAuditorsPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
+                     {role === 'admin' && (
+                        <Button onClick={() => setIsAddFirmOpen(true)} className="flex-grow sm:flex-grow-0">Add Firm</Button>
+                    )}
                 </div>
             </div>
             
@@ -204,6 +324,17 @@ export default function FindAuditorsPage() {
                     </div>
                 )}
             </div>
+             <Dialog open={isAddFirmOpen} onOpenChange={setIsAddFirmOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Auditor Firm</DialogTitle>
+                        <DialogDescription>
+                            Create a new auditor firm profile. Users can be invited to this firm from the User Management page.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <AuditorFirmForm onSubmit={handleFormSubmit} onCancel={() => setIsAddFirmOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

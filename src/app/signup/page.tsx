@@ -16,6 +16,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { NDTTechniques } from '@/lib/placeholder-data';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required."),
@@ -26,6 +28,25 @@ const signupSchema = z.object({
   agreedToTerms: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
+  level: z.enum(["Level I", "Level II", "Level III"]).optional(),
+  certifications: z.array(z.string()).optional(),
+}).superRefine((data, ctx) => {
+    if (data.role === 'inspector' || data.role === 'auditor') {
+        if (!data.level) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['level'],
+                message: 'Certification level is required for this role.',
+            });
+        }
+        if (!data.certifications || data.certifications.length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['certifications'],
+                message: 'Please select at least one certification.',
+            });
+        }
+    }
 });
 
 export default function SignupPage() {
@@ -47,6 +68,8 @@ export default function SignupPage() {
       agreedToTerms: false,
     },
   });
+
+  const role = form.watch('role');
 
   const onSubmit = (data: z.infer<typeof signupSchema>) => {
     console.log("New User Signup:", data);
@@ -142,6 +165,80 @@ export default function SignupPage() {
                                 </FormItem>
                             )}
                         />
+
+                        {(role === 'inspector' || role === 'auditor') && (
+                            <>
+                                <FormField
+                                control={form.control}
+                                name="level"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Certification Level</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select your highest certification level" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        <SelectItem value="Level I">Level I</SelectItem>
+                                        <SelectItem value="Level II">Level II</SelectItem>
+                                        <SelectItem value="Level III">Level III</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                                <FormField
+                                control={form.control}
+                                name="certifications"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>NDT Certifications</FormLabel>
+                                        <p className="text-sm text-muted-foreground">The level selected above will be applied to all checked methods.</p>
+                                        <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                            {NDTTechniques.map((item) => (
+                                            <FormField
+                                                key={item.id}
+                                                control={form.control}
+                                                name="certifications"
+                                                render={({ field }) => {
+                                                return (
+                                                    <FormItem
+                                                    key={item.id}
+                                                    className="flex flex-row items-center space-x-3 space-y-0 mb-3"
+                                                    >
+                                                    <FormControl>
+                                                        <Checkbox
+                                                        checked={field.value?.includes(item.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), item.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== item.id
+                                                                )
+                                                                )
+                                                        }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">
+                                                        {item.name} ({item.id})
+                                                    </FormLabel>
+                                                    </FormItem>
+                                                )
+                                                }}
+                                            />
+                                            ))}
+                                        </ScrollArea>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                            </>
+                        )}
+                        
                         <FormField
                           control={form.control}
                           name="agreedToTerms"

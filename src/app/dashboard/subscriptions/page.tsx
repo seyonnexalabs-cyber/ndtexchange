@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -32,11 +33,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import { subscriptionPlans } from '@/lib/subscription-plans';
+
 
 const subscriptionSchema = z.object({
   id: z.string().optional(),
   companyId: z.string({ required_error: "Please select a company." }),
-  plan: z.enum(['Free Trial', 'Client', 'Provider', 'Enterprise']),
+  plan: z.enum(['Free Trial', 'Client', 'Provider', 'Enterprise', 'Custom']),
   status: z.enum(['Active', 'Trialing', 'Past Due', 'Canceled', 'Payment Failed']),
   startDate: z.date(),
   endDate: z.date().optional(),
@@ -61,6 +64,34 @@ const SubscriptionForm = ({
         resolver: zodResolver(subscriptionSchema),
         defaultValues: defaultValues,
     });
+
+    const plan = form.watch('plan');
+    const userLimit = form.watch('userLimit');
+    const dataLimitGB = form.watch('dataLimitGB');
+    
+    // Effect to update limits when a standard plan is chosen
+    useEffect(() => {
+        if (plan && plan !== 'Custom' && subscriptionPlans[plan]) {
+            const planDetails = subscriptionPlans[plan];
+            // Only update if the current values don't match the plan defaults
+            if (form.getValues('userLimit') !== planDetails.userLimit) {
+                form.setValue('userLimit', planDetails.userLimit);
+            }
+            if (form.getValues('dataLimitGB') !== planDetails.dataLimitGB) {
+                form.setValue('dataLimitGB', planDetails.dataLimitGB);
+            }
+        }
+    }, [plan, form]);
+
+    // Effect to set plan to "Custom" if limits are manually changed
+    useEffect(() => {
+        if (plan && plan !== 'Custom' && subscriptionPlans[plan]) {
+            const planDetails = subscriptionPlans[plan];
+            if (userLimit !== planDetails.userLimit || dataLimitGB !== planDetails.dataLimitGB) {
+                form.setValue('plan', 'Custom');
+            }
+        }
+    }, [userLimit, dataLimitGB, plan, form]);
 
     const allCompanies = useMemo(() => {
         return [
@@ -104,6 +135,7 @@ const SubscriptionForm = ({
                                     <SelectItem value="Client">Client</SelectItem>
                                     <SelectItem value="Provider">Provider</SelectItem>
                                     <SelectItem value="Enterprise">Enterprise</SelectItem>
+                                    <SelectItem value="Custom">Custom</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -477,12 +509,12 @@ export default function SubscriptionsPage() {
         setEditingSubscription(subscription);
         setIsFormOpen(true);
     };
-
+    
     const closeDialog = () => {
         setIsFormOpen(false);
         setEditingSubscription(null);
-    };
-
+    }
+    
     const handleFormSubmit = (values: SubscriptionFormValues) => {
         const company = [...clientData, ...serviceProviders, ...auditFirms].find(c => c.id === values.companyId);
         
@@ -662,7 +694,7 @@ export default function SubscriptionsPage() {
                     <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>{editingSubscription ? 'Edit Subscription' : 'Create New Subscription'}</DialogTitle>
                         <DialogDescription>
-                            {editingSubscription ? `Editing subscription for ${editingSubscription.companyName}.` : 'Create a new subscription plan for a company.'}
+                             {editingSubscription ? `Editing subscription for ${editingSubscription.companyName}.` : 'Create a new subscription plan for a company.'}
                         </DialogDescription>
                     </DialogHeader>
                      <div className="flex-grow overflow-y-auto px-6">
@@ -673,7 +705,7 @@ export default function SubscriptionsPage() {
                                 ...editingSubscription,
                                 startDate: new Date(editingSubscription.startDate),
                                 endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
-                            } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5 }}
+                            } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5, plan: 'Free Trial', status: 'Trialing' }}
                             isEditing={!!editingSubscription}
                         />
                      </div>

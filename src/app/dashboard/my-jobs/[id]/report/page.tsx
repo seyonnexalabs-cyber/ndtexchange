@@ -109,6 +109,22 @@ export default function ReportPage() {
             summary: editorState,
         },
     });
+    
+    const watchedValues = form.watch();
+
+    React.useEffect(() => {
+        const debouncedSave = setTimeout(() => {
+            if (form.formState.isDirty) {
+                console.log("Auto-saving report data...", watchedValues);
+                toast({
+                    title: "Auto-saved",
+                    description: "Your report progress has been saved automatically.",
+                });
+            }
+        }, 2000); 
+
+        return () => clearTimeout(debouncedSave);
+    }, [watchedValues, form.formState.isDirty, toast]);
 
     React.useEffect(() => {
         if (editorState) {
@@ -220,7 +236,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        {editorState && <Editor
+                                        {editorState !== undefined && <Editor
                                             editorState={field.value}
                                             onEditorStateChange={field.onChange}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."

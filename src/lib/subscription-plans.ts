@@ -12,6 +12,12 @@ export type Plan = {
     features: string[];
     userLimit: number;
     dataLimitGB: number;
+    limitations: {
+        assets?: string;
+        bids?: string;
+        equipment?: string;
+        jobs?: string;
+    };
     isPublic: boolean;
     isActive: boolean;
     isFeatured?: boolean;
@@ -36,6 +42,10 @@ export const subscriptionPlans: Plan[] = [
         ],
         userLimit: 5,
         dataLimitGB: 2,
+        limitations: {
+            assets: 'Up to 200',
+            jobs: 'Unlimited',
+        },
         isPublic: true,
         isActive: true,
         isFeatured: true,
@@ -56,6 +66,10 @@ export const subscriptionPlans: Plan[] = [
         ],
         userLimit: 20,
         dataLimitGB: 50,
+        limitations: {
+            assets: 'Unlimited',
+            jobs: 'Unlimited',
+        },
         isPublic: true,
         isActive: true,
     },
@@ -75,6 +89,10 @@ export const subscriptionPlans: Plan[] = [
         ],
         userLimit: 1,
         dataLimitGB: 1,
+        limitations: {
+            bids: 'Up to 3/month',
+            equipment: 'Up to 2',
+        },
         isPublic: true,
         isActive: true,
     },
@@ -94,6 +112,10 @@ export const subscriptionPlans: Plan[] = [
         ],
         userLimit: 5,
         dataLimitGB: 25,
+        limitations: {
+            bids: 'Unlimited',
+            equipment: 'Unlimited',
+        },
         isPublic: true,
         isActive: true,
         isFeatured: true,
@@ -115,6 +137,10 @@ export const subscriptionPlans: Plan[] = [
         ],
         userLimit: 15,
         dataLimitGB: 75,
+        limitations: {
+            bids: 'Unlimited',
+            equipment: 'Unlimited',
+        },
         isPublic: true,
         isActive: true,
     },
@@ -134,6 +160,9 @@ export const subscriptionPlans: Plan[] = [
         ],
         userLimit: 1,
         dataLimitGB: 1,
+        limitations: {
+            jobs: 'Assigned Only',
+        },
         isPublic: true,
         isActive: true,
     }

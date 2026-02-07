@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -520,15 +521,24 @@ const PlanManagementView = () => {
                                 <TableCell>{plan.audience}</TableCell>
                                 <TableCell>{plan.price.USD}</TableCell>
                                 <TableCell>
-                                    <ul className="list-disc list-inside text-xs space-y-1">
-                                        <li>{plan.userLimit} User(s)</li>
-                                        <li>{plan.dataLimitGB} GB Data</li>
-                                        {plan.features
-                                            .filter(f => !f.toLowerCase().startsWith('everything'))
-                                            .slice(0, 2)
-                                            .map((feature, i) => (
-                                            <li key={i}>{feature}</li>
-                                        ))}
+                                    <ul className="list-none space-y-1 text-xs">
+                                        <li><span className="font-semibold text-muted-foreground">Users:</span> {plan.userLimit}</li>
+                                        <li><span className="font-semibold text-muted-foreground">Data:</span> {plan.dataLimitGB} GB</li>
+                                        {plan.audience === 'Client' && (
+                                            <>
+                                                <li><span className="font-semibold text-muted-foreground">Assets:</span> {plan.limitations.assets || 'N/A'}</li>
+                                                <li><span className="font-semibold text-muted-foreground">Marketplace:</span> {plan.limitations.jobs === 'Unlimited' ? 'Post unlimited jobs' : 'N/A'}</li>
+                                            </>
+                                        )}
+                                        {plan.audience === 'Provider' && (
+                                            <>
+                                                <li><span className="font-semibold text-muted-foreground">Equipment:</span> {plan.limitations.equipment || 'N/A'}</li>
+                                                <li><span className="font-semibold text-muted-foreground">Bidding:</span> {plan.limitations.bids || 'N/A'}</li>
+                                            </>
+                                        )}
+                                        {plan.audience === 'Auditor' && (
+                                            <li><span className="font-semibold text-muted-foreground">Access:</span> {plan.limitations.jobs === 'Assigned Only' ? 'Assigned jobs only' : 'N/A'}</li>
+                                        )}
                                     </ul>
                                 </TableCell>
                                 <TableCell>

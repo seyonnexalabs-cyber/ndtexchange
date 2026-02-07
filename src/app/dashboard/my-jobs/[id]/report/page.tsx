@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -21,12 +21,14 @@ import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
-import { EditorState, convertToRaw } from 'draft-js';
+import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import dynamic from 'next/dynamic';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import type { EditorProps } from 'react-draft-wysiwyg';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useFieldArray } from 'react-hook-form';
+
 
 const Editor = dynamic<EditorProps>(
   () => import('react-draft-wysiwyg').then((mod) => mod.Editor),
@@ -87,8 +89,13 @@ export default function ReportPage() {
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
-    const [editorState, setEditorState] = React.useState(() => EditorState.createEmpty());
+    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
     
+    React.useEffect(() => {
+        // Load editor state only on the client
+        setEditorState(EditorState.createEmpty());
+    }, []);
+
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
@@ -100,8 +107,7 @@ export default function ReportPage() {
 
     const plan = React.useMemo(() => {
         if (!subscription) return null;
-        const planDetails = subscriptionPlans.find(p => p.name === subscription.plan);
-        return planDetails;
+        return subscriptionPlans.find(p => p.name === subscription.plan);
     }, [subscription]);
     
     const assignedTechnicians = React.useMemo(() => allUsers.filter(u => job?.technicianIds?.includes(u.id)), [job]);
@@ -145,9 +151,10 @@ export default function ReportPage() {
     }, [isAutoSaveEnabled, handleSave]);
     
     React.useEffect(() => {
-        form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
+        if (editorState) {
+            form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
+        }
     }, [editorState, form]);
-
 
     if (!job) {
         notFound();
@@ -168,6 +175,10 @@ export default function ReportPage() {
         router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
     };
 
+    if (!editorState) {
+        return null; // or a loading spinner
+    }
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -177,21 +188,23 @@ export default function ReportPage() {
                         Back to Job Details
                     </Link>
                 </Button>
-                 <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                        <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} />
-                        <Label htmlFor="autosave-toggle">Auto-save</Label>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                            <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} />
+                            <Label htmlFor="autosave-toggle">Auto-save</Label>
+                        </div>
+                        {!isAutoSaveEnabled && (
+                            <Button variant="outline" onClick={() => handleSave()}>
+                                <Save className="mr-2"/>
+                                Save Draft
+                            </Button>
+                        )}
                     </div>
-                    {!isAutoSaveEnabled && (
-                        <Button variant="outline" onClick={() => handleSave()}>
-                            <Save className="mr-2"/>
-                            Save Draft
-                        </Button>
-                    )}
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Print</Button>
-                    <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Print</Button>
+                        <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
+                    </div>
                 </div>
             </div>
              {saveLog.length > 0 && (
@@ -303,7 +316,7 @@ export default function ReportPage() {
                     <DialogHeader>
                         <DialogTitle>Generate PDF</DialogTitle>
                         <DialogDescription>
-                            This action will open your browser's print dialog, allowing you to save the current report view as a PDF for your local records. This does not submit the report.
+                            This action will open your browser's print dialog, allowing you to save the current report view as a PDF.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

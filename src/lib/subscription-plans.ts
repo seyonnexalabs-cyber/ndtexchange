@@ -22,6 +22,7 @@ export type Plan = {
     isActive: boolean;
     isFeatured?: boolean;
     isPopular?: boolean;
+    features: string[];
 };
 
 export const subscriptionPlans: Plan[] = [
@@ -44,6 +45,12 @@ export const subscriptionPlans: Plan[] = [
         isPublic: true,
         isActive: true,
         isFeatured: true,
+        features: [
+            'Post unlimited jobs to marketplace',
+            'Manage up to 200 assets',
+            'Secure Document & Data Vault (2GB)',
+            'Standard historical reporting'
+        ],
     },
     {
         id: 'client-plus',
@@ -62,6 +69,12 @@ export const subscriptionPlans: Plan[] = [
         customBranding: false,
         isPublic: true,
         isActive: true,
+        features: [
+            "All Client Access features",
+            "Manage unlimited assets",
+            "Secure Document & Data Vault (50GB)",
+            "Advanced analytics & reporting",
+        ],
     },
     // Provider Plans
     {
@@ -81,6 +94,12 @@ export const subscriptionPlans: Plan[] = [
         customBranding: false,
         isPublic: true,
         isActive: true,
+        features: [
+            'Access to job marketplace',
+            'Submit up to 3 bids per month',
+            'Manage up to 2 equipment items',
+            'Digital reporting tools'
+        ],
     },
     {
         id: 'provider-pro',
@@ -101,6 +120,12 @@ export const subscriptionPlans: Plan[] = [
         isActive: true,
         isFeatured: true,
         isPopular: true,
+        features: [
+            "All Provider Starter features",
+            "Unlimited bids on marketplace jobs",
+            "Manage unlimited equipment items",
+            "Team management up to 5 users",
+        ],
     },
     {
         id: 'provider-growth',
@@ -119,6 +144,12 @@ export const subscriptionPlans: Plan[] = [
         customBranding: true,
         isPublic: true,
         isActive: true,
+        features: [
+            "All Provider Pro features",
+            "Custom branding on reports",
+            "Advanced API access for integrations",
+            "Team management up to 15 users",
+        ],
     },
     // Auditor Plan
     {
@@ -138,6 +169,11 @@ export const subscriptionPlans: Plan[] = [
         customBranding: false,
         isPublic: true,
         isActive: true,
+        features: [
+            'Access to all assigned audit jobs',
+            'Secure document review',
+            'Direct communication with clients & providers',
+        ],
     }
 ];
 

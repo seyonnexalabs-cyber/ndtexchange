@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense } from 'react';
 import { ThemeProvider } from '@/app/components/layout/theme-provider';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 
 export const metadata: Metadata = {
@@ -37,9 +38,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <Suspense fallback={<div>Loading...</div>}>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
+          <FirebaseClientProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </FirebaseClientProvider>
         </Suspense>
         <Toaster />
       </body>

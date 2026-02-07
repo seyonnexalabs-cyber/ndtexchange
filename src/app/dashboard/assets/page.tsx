@@ -18,6 +18,10 @@ import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const assetIcons = {
@@ -28,7 +32,7 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-6 h-6 text-primary" />,
 };
 
-const ClientAssetsView = ({ assets, onApprove, onReject }: { assets: Asset[], onApprove: (id: string) => void, onReject: (id: string) => void }) => {
+const ClientAssetsView = ({ assets, isLoading, onApprove, onReject }: { assets: Asset[], isLoading: boolean, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { searchQuery } = useSearch();
@@ -58,6 +62,27 @@ const ClientAssetsView = ({ assets, onApprove, onReject }: { assets: Asset[], on
             return acc;
         }, {} as Record<string, typeof initialClientAssets>);
     }, [filteredAssets]);
+
+    if (isLoading) {
+      return (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                  <Card key={i}>
+                      <CardHeader className="p-0">
+                          <Skeleton className="h-48 w-full rounded-t-lg" />
+                      </CardHeader>
+                      <CardContent className="p-4 space-y-2">
+                          <Skeleton className="h-6 w-3/4" />
+                          <Skeleton className="h-4 w-1/2" />
+                      </CardContent>
+                      <CardFooter className="p-4 pt-0">
+                          <Skeleton className="h-8 w-full" />
+                      </CardFooter>
+                  </Card>
+              ))}
+          </div>
+      );
+    }
 
     return (
         <div className="space-y-8">
@@ -189,24 +214,36 @@ export default function AssetsPage() {
     const { toast } = useToast();
     const router = useRouter();
 
-    const [currentAssets, setCurrentAssets] = useState<Asset[]>(() =>
-        initialClientAssets.filter(asset => asset.companyId === currentUserCompanyId)
-    );
+    const { firestore } = useFirebase();
+
+    const assetsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'assets');
+    }, [firestore]);
     
+    const { data: assetsFromDb, isLoading } = useCollection<Asset>(assetsQuery);
+
+    const currentAssets = useMemo(() => {
+        if (!assetsFromDb) return [];
+        return assetsFromDb.filter(asset => asset.companyId === currentUserCompanyId);
+    }, [assetsFromDb, currentUserCompanyId]);
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
     const handleApproveAsset = (assetId: string) => {
-        setCurrentAssets(prev => prev.map(asset => 
-            asset.id === assetId ? { ...asset, approvalStatus: 'Approved' } : asset
-        ));
+        if (!firestore) return;
+        const assetRef = doc(firestore, 'assets', assetId);
+        setDocumentNonBlocking(assetRef, { approvalStatus: 'Approved' }, { merge: true });
         toast({ title: 'Asset Approved', description: 'The asset is now active.' });
     };
 
     const handleRejectAsset = (assetId: string) => {
-        setCurrentAssets(prev => prev.filter(asset => asset.id !== assetId));
+        if (!firestore) return;
+        const assetRef = doc(firestore, 'assets', assetId);
+        deleteDocumentNonBlocking(assetRef);
         toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
     };
 
@@ -230,7 +267,7 @@ export default function AssetsPage() {
                 </div>
             </div>
             
-            {role === 'client' ? <ClientAssetsView assets={currentAssets} onApprove={handleApproveAsset} onReject={handleRejectAsset} /> : (
+            {role === 'client' ? <ClientAssetsView assets={currentAssets} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
                     <QrCode className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>
@@ -240,7 +277,3 @@ export default function AssetsPage() {
         </div>
     );
 }
-
-  
-
-    

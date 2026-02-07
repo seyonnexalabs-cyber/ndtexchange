@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage, JobUpdate } from '@/lib/placeholder-data';
+import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport } from '@/lib/placeholder-data';
 import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -415,6 +415,7 @@ export default function JobDetailPage() {
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
 
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
+    const [viewingReport, setViewingReport] = useState<InspectionReport | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
     const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(false);
@@ -443,24 +444,6 @@ export default function JobDetailPage() {
             }
         }
     }, [id]);
-
-    const allDocuments: ViewerDocument[] = React.useMemo(() => {
-        if (!jobDetails) return [];
-        const docs: ViewerDocument[] = [];
-        jobDetails.documents?.forEach(doc => {
-            docs.push({ ...doc, source: 'Client' });
-        });
-
-        if (['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid', 'Revisions Requested'].includes(jobDetails.status)) {
-            docs.push({ name: `Inspection_Report_${jobDetails.id}.pdf`, source: 'Provider' });
-        }
-        
-        if ((jobDetails.status === 'Audit Approved' || jobDetails.status === 'Under Audit') && (jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto')) {
-             docs.push({ name: `Audit_Findings_${jobDetails.id}.pdf`, source: 'Auditor' });
-        }
-        return docs;
-    }, [jobDetails]);
-
 
     if (!jobDetails) {
         notFound();
@@ -849,70 +832,92 @@ export default function JobDetailPage() {
                             />
                         )}
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Documents & Reports</CardTitle>
-                                <CardDescription>View all documents and reports associated with this job.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {allDocuments.length === 0 ? (
-                                    <div className="relative aspect-[4/3] sm:aspect-video bg-muted/30 rounded-lg flex flex-col items-center justify-center border-2 border-dashed">
-                                        <FileUp className="w-16 h-16 text-muted-foreground/70" />
-                                        <p className="mt-4 text-sm font-medium text-muted-foreground">No documents have been uploaded for this job yet.</p>
+                        <Tabs defaultValue="documents">
+                            <TabsList className="mb-4">
+                                <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
+                                <TabsTrigger value="activity">Activity Log</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="documents">
+                               <div className="space-y-6">
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Job-Level Documents</CardTitle>
+                                            <CardDescription>Scope of work, contracts, or other files provided by the client at job creation.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {(jobDetails.documents && jobDetails.documents.length > 0) ? (
+                                                <ul className="space-y-2">
+                                                    {jobDetails.documents.map((doc, i) => (
+                                                        <li key={i} className="flex items-center justify-between rounded-md border p-2 bg-muted/50">
+                                                            <div className="flex items-center gap-2">
+                                                                <FileText className="h-4 w-4 text-primary" />
+                                                                <span className="font-medium text-sm">{doc.name}</span>
+                                                            </div>
+                                                            <Button asChild variant="ghost" size="sm"><Link href={doc.url}>Download</Link></Button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">No job-level documents were provided.</p>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Inspection Reports</h3>
+                                        {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
+                                            if (!inspection.report) return null;
+                                            const report = inspection.report;
+                                            return (
+                                                <Card key={inspection.id} className="mb-4">
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Report for {inspection.assetName}</CardTitle>
+                                                        <CardDescription>Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <div className="space-y-4">
+                                                            <div>
+                                                                <h4 className="text-sm font-semibold mb-2">Digital Report</h4>
+                                                                <Button variant="outline" onClick={() => setViewingReport(report)}>View Digital Report</Button>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-sm font-semibold mb-2">Supplementary Documents</h4>
+                                                                {report.documents.length > 0 ? (
+                                                                    <ul className="space-y-2">
+                                                                        {report.documents.map((doc, i) => (
+                                                                            <li key={i} className="flex items-center justify-between rounded-md border p-2 bg-muted/50">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <FileText className="h-4 w-4 text-primary" />
+                                                                                    <span className="font-medium text-sm">{doc.name}</span>
+                                                                                </div>
+                                                                                <Button asChild variant="ghost" size="sm"><Link href={doc.url}>Download</Link></Button>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                ) : (
+                                                                    <p className="text-sm text-muted-foreground">No supplementary documents for this report.</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            );
+                                        }) : <p className="text-sm text-muted-foreground p-4 text-center border rounded-md">No inspection reports have been submitted for this job yet.</p>}
                                     </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
-                                            <Button onClick={() => setIsViewerOpen(true)}>
-                                                <Maximize className="mr-2 h-4 w-4 text-primary" />
-                                                View All Documents
-                                            </Button>
-                                        </div>
-                                        <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
-                                            {allDocuments.map((doc) => (
-                                                <div key={doc.name} className="flex items-center gap-2 p-2">
-                                                    <FileText className="w-4 h-4 text-primary shrink-0" />
-                                                    <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
-                                                </div>
-                                            ))}
-                                        </ScrollArea>
-                                    </div>
-                                )}
-                                
-                                {isClient && (
-                                    <>
-                                        <Separator className="my-6" />
-                                        <div className="space-y-4">
-                                            <h3 className="font-semibold">Upload Clarification Documents</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                Need to provide extra drawings, photos, or documents to the service provider? Upload them here.
-                                            </p>
-                                            <div className="p-4 border rounded-md space-y-2">
-                                                <div className="flex items-center gap-4">
-                                                    <Input id="clarification-docs" type="file" multiple accept={ACCEPTED_FILE_TYPES} className="flex-grow" />
-                                                    <Button variant="secondary">
-                                                        <Upload className="mr-2 h-4 w-4" />
-                                                        Upload
-                                                    </Button>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground">Max 10MB per file.</p>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                        
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /> Job Activity Log</CardTitle>
-                                <CardDescription>A detailed, chronological log of all events for this job.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <JobActivityLog history={jobDetails.history} />
-                            </CardContent>
-                        </Card>
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="activity">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" /> Job Activity Log</CardTitle>
+                                        <CardDescription>A detailed, chronological log of all events for this job.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <JobActivityLog history={jobDetails.history} />
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
 
                         {isReviewable && !reviewSubmitted && (
                             <Card>
@@ -1224,12 +1229,56 @@ export default function JobDetailPage() {
                 </Dialog>
 
                 <UniformDocumentViewer 
-                    isOpen={isViewerOpen}
+                    isOpen={false}
                     onOpenChange={setIsViewerOpen}
-                    documents={allDocuments}
+                    documents={[]}
                     title={`Documents for ${jobDetails.title}`}
                     description="Securely view all documents associated with this job."
                 />
+
+                <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>
+                    <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>Digital Report: {jobDetails.title}</DialogTitle>
+                            <DialogDescription>
+                                Inspection for {viewingReport?.reportData.inspectionArea} on {viewingReport ? format(parseISO(viewingReport.submittedOn), GLOBAL_DATE_FORMAT) : ''}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4 text-sm">
+                            <h3 className="font-semibold">Equipment & Setup</h3>
+                            <div className="grid grid-cols-2 gap-4 p-4 border rounded-md">
+                                <div><span className="font-medium text-muted-foreground">Instrument:</span> {viewingReport?.reportData.equipmentUsed}</div>
+                                <div><span className="font-medium text-muted-foreground">Calibration Block:</span> {viewingReport?.reportData.calibrationBlock}</div>
+                                <div><span className="font-medium text-muted-foreground">Couplant:</span> {viewingReport?.reportData.couplant}</div>
+                                <div><span className="font-medium text-muted-foreground">Surface:</span> {viewingReport?.reportData.surfaceCondition}</div>
+                            </div>
+                            <h3 className="font-semibold">Findings</h3>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Location</TableHead>
+                                        <TableHead>Thickness (mm)</TableHead>
+                                        <TableHead>Notes</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {viewingReport?.reportData.findings.map((finding: any, index: number) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{finding.location}</TableCell>
+                                            <TableCell>{finding.thickness}</TableCell>
+                                            <TableCell>{finding.notes}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                             <h3 className="font-semibold">Summary</h3>
+                             <div className="p-4 border rounded-md bg-muted/50 prose prose-sm max-w-none">
+                                {viewingReport?.reportData.summary}
+                             </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
             </div>
         </TooltipProvider>
     );

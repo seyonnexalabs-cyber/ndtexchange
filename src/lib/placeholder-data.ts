@@ -32,6 +32,14 @@ export type JobDocument = {
     url: string;
 };
 
+export type InspectionReport = {
+    id: string;
+    submittedOn: string;
+    submittedBy: string;
+    reportData: any; // This will hold the structured form data.
+    documents: JobDocument[]; // Re-using JobDocument for supplementary files.
+};
+
 export type JobUpdate = {
     user: string;
     timestamp: string;
@@ -81,6 +89,7 @@ export type Inspection = {
     inspector: string;
     date: string;
     status: 'Scheduled' | 'Completed' | 'Requires Review';
+    report?: InspectionReport;
 };
 
 export type EquipmentHistory = {
@@ -675,7 +684,29 @@ const bidsData: Bid[] = [
 const inspectionsData: Inspection[] = [
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
-    { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Carlos Ray', date: '2024-06-21', status: 'Requires Review' },
+    { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Carlos Ray', date: '2024-06-21', status: 'Requires Review',
+      report: {
+        id: 'REP-001',
+        submittedOn: '2024-06-22T09:00:00Z',
+        submittedBy: 'Carlos Ray',
+        reportData: {
+          equipmentUsed: 'Parker B-300S Yoke',
+          calibrationBlock: 'N/A for MT',
+          couplant: 'N/A for MT',
+          surfaceCondition: 'Cleaned, As-welded',
+          inspectionArea: 'All primary and secondary hook welds',
+          findings: [
+            { location: 'Hook A, throat area', thickness: 0, notes: 'No linear indications found.' },
+            { location: 'Hook B, shank area', thickness: 0, notes: 'Small rounded indication noted, within spec.' }
+          ],
+          summary: 'Both hooks inspected. Hook B has a minor permissible indication. Both are fit for service.'
+        },
+        documents: [
+          { name: 'MT-findings.jpg', url: 'https://picsum.photos/seed/mt-findings/800/600' },
+          { name: 'calibration_cert_yoke.pdf', url: '#' },
+        ]
+      }
+    },
     { id: 'INSP-004', jobId: 'JOB-007', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'ET', inspector: 'Aisha Khan', date: yesterday.toISOString().split('T')[0], status: 'Requires Review' },
     { id: 'INSP-005', jobId: 'JOB-010', assetName: 'Gantry Crane G-02', assetId: 'ASSET-009', technique: 'VT', inspector: 'Samantha Wu', date: '2024-07-14', status: 'Completed' },
     { id: 'INSP-006', jobId: 'JOB-011', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'UT', inspector: 'Frank Miller', date: '2024-06-21', status: 'Completed' },

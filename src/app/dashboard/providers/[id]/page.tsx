@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
-import { allUsers, inspectorAssets, InspectorAsset, subscriptions } from "@/lib/placeholder-data";
+import { allUsers, inspectorAssets, InspectorAsset, subscriptions, reviews, clientData } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +48,18 @@ export default function ProviderDetailPage() {
     const providerTechnicians = useMemo(() => allUsers.filter(u => u.providerId === id && u.status !== 'Disabled'), [id]);
     const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
     const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
+
+    const providerReviews = useMemo(() => {
+        return reviews
+            .filter(review => review.providerId === id && review.status === 'Approved')
+            .map(review => {
+                const client = clientData.find(c => c.id === review.clientId);
+                return {
+                    ...review,
+                    clientName: client ? client.name : 'Anonymous Client',
+                };
+            });
+    }, [id]);
 
     if (!provider) {
         notFound();
@@ -90,6 +102,7 @@ export default function ProviderDetailPage() {
                 <Tabs defaultValue="details">
                     <TabsList className="mb-4">
                         <TabsTrigger value="details">Details</TabsTrigger>
+                        <TabsTrigger value="reviews">Reviews ({providerReviews.length})</TabsTrigger>
                         <TabsTrigger value="technicians">Technicians</TabsTrigger>
                         <TabsTrigger value="equipment">Equipment</TabsTrigger>
                     </TabsList>
@@ -145,6 +158,47 @@ export default function ProviderDetailPage() {
                                         ))}
                                     </div>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="reviews">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Star className="text-primary" /> Client Reviews
+                                </CardTitle>
+                                <CardDescription>
+                                    Feedback from clients who have worked with {provider.name}.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {providerReviews.length > 0 ? (
+                                    <div className="space-y-6">
+                                        {providerReviews.map(review => (
+                                            <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarFallback>{review.clientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold">{review.clientName}</p>
+                                                            <StarRating rating={review.rating} />
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{format(new Date(review.date), GLOBAL_DATE_FORMAT)}</p>
+                                                </div>
+                                                <p className="mt-4 text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md">
+                                                    "{review.comment}"
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-muted-foreground py-10">
+                                        No approved reviews found for this provider yet.
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>

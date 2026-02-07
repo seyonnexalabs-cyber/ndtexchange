@@ -496,6 +496,11 @@ export default function SubscriptionsPage() {
         setIsFormOpen(true);
     };
 
+    const closeDialog = () => {
+        setIsFormOpen(false);
+        setEditingSubscription(null);
+    };
+
     const handleFormSubmit = (values: SubscriptionFormValues) => {
         const company = [...clientData, ...serviceProviders, ...auditFirms].find(c => c.id === values.companyId);
         
@@ -515,8 +520,7 @@ export default function SubscriptionsPage() {
             setSubscriptions(prev => [newSubscription, ...prev]);
             toast({ title: "Subscription Created", description: `A new subscription has been created for ${company?.name}.` });
         }
-        setIsFormOpen(false);
-        setEditingSubscription(null);
+        closeDialog();
     };
 
     const getMailtoLink = (sub: Subscription): MailtoDetails => {
@@ -655,7 +659,7 @@ export default function SubscriptionsPage() {
                 </TabsContent>
             </Tabs>
             
-            <Dialog open={isFormOpen} onOpenChange={() => { setIsFormOpen(false); setEditingSubscription(null); }}>
+            <Dialog open={isFormOpen} onOpenChange={(open) => !open && closeDialog()}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{editingSubscription ? 'Edit Subscription' : 'Create New Subscription'}</DialogTitle>
@@ -674,7 +678,7 @@ export default function SubscriptionsPage() {
                         isEditing={!!editingSubscription}
                     />
                      <DialogFooter>
-                        <Button variant="ghost" onClick={() => { setIsFormOpen(false); setEditingSubscription(null); }}>Cancel</Button>
+                        <Button variant="ghost" onClick={closeDialog}>Cancel</Button>
                         <Button type="submit" form="subscription-form">Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>

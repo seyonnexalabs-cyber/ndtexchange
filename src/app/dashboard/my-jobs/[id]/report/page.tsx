@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -87,9 +87,7 @@ export default function ReportPage() {
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
-    // Editor state
-    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
-    const [editorIsMounted, setEditorIsMounted] = React.useState(false);
+    const [editorState, setEditorState] = React.useState(() => EditorState.createEmpty());
     
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
@@ -121,35 +119,23 @@ export default function ReportPage() {
         name: "findings",
     });
     
-    React.useEffect(() => {
-        setEditorIsMounted(true);
-        setEditorState(EditorState.createEmpty());
-    }, []);
-
-    React.useEffect(() => {
-        if (editorIsMounted && editorState) {
-            form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
-        }
-    }, [editorIsMounted, editorState, form]);
-
     const handleSave = React.useCallback(() => {
-        form.trigger().then(isValid => {
-            if (form.formState.isDirty && isValid) {
-                const currentValues = form.getValues();
-                console.log("Saving draft...", currentValues);
-                
-                const now = new Date();
-                const timestamp = format(now, 'p');
-                
-                toast({
-                    title: "Draft Saved",
-                    description: `Your changes were saved at ${timestamp}.`,
-                });
+        if (form.formState.isDirty) {
+            // No validation check here, just save if dirty
+            const currentValues = form.getValues();
+            console.log("Saving draft...", currentValues);
+            
+            const now = new Date();
+            const timestamp = format(now, 'p');
+            
+            toast({
+                title: "Draft Saved",
+                description: `Your changes were saved at ${timestamp}.`,
+            });
 
-                setSaveLog(prevLog => [`Saved at ${timestamp}`, ...prevLog].slice(0, 5));
-                form.reset(currentValues, { keepValues: true, keepDirty: false, keepDefaultValues: false });
-            }
-        });
+            setSaveLog(prevLog => [`Saved at ${timestamp}`, ...prevLog].slice(0, 5));
+            form.reset(currentValues, { keepValues: true, keepDirty: false, keepDefaultValues: false });
+        }
     }, [form, toast]);
 
     const handleAutoSave = React.useCallback(() => {
@@ -157,6 +143,11 @@ export default function ReportPage() {
             handleSave();
         }
     }, [isAutoSaveEnabled, handleSave]);
+    
+    React.useEffect(() => {
+        form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
+    }, [editorState, form]);
+
 
     if (!job) {
         notFound();
@@ -192,7 +183,7 @@ export default function ReportPage() {
                         <Label htmlFor="autosave-toggle">Auto-save</Label>
                     </div>
                     {!isAutoSaveEnabled && (
-                        <Button variant="outline" onClick={handleSave}>
+                        <Button variant="outline" onClick={() => handleSave()}>
                             <Save className="mr-2"/>
                             Save Draft
                         </Button>
@@ -277,9 +268,10 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        {editorIsMounted && <Editor
+                                        <Editor
                                             editorState={field.value}
                                             onEditorStateChange={(state) => {
+                                                setEditorState(state);
                                                 field.onChange(state);
                                             }}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."
@@ -295,7 +287,7 @@ export default function ReportPage() {
                                                     options: ['unordered', 'ordered'],
                                                 }
                                             }}
-                                        />}
+                                        />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -309,7 +301,7 @@ export default function ReportPage() {
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Print Report</DialogTitle>
+                        <DialogTitle>Generate PDF</DialogTitle>
                         <DialogDescription>
                             This action will open your browser's print dialog, allowing you to save the current report view as a PDF for your local records. This does not submit the report.
                         </DialogDescription>

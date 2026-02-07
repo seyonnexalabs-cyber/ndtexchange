@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -88,7 +88,7 @@ export default function ReportPage() {
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
     // Editor state
-    const [editorState, setEditorState] = React.useState<EditorState>(() => EditorState.createEmpty());
+    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
     const [editorIsMounted, setEditorIsMounted] = React.useState(false);
     
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
@@ -123,6 +123,7 @@ export default function ReportPage() {
     
     React.useEffect(() => {
         setEditorIsMounted(true);
+        setEditorState(EditorState.createEmpty());
     }, []);
 
     React.useEffect(() => {
@@ -198,7 +199,7 @@ export default function ReportPage() {
                     )}
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Generate PDF</Button>
+                    <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Print</Button>
                     <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
                 </div>
             </div>
@@ -280,7 +281,6 @@ export default function ReportPage() {
                                             editorState={field.value}
                                             onEditorStateChange={(state) => {
                                                 field.onChange(state);
-                                                setEditorState(state);
                                             }}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."
                                             toolbarClassName="border-b"
@@ -309,9 +309,9 @@ export default function ReportPage() {
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Generate Report PDF</DialogTitle>
+                        <DialogTitle>Print Report</DialogTitle>
                         <DialogDescription>
-                            This will open your browser's print dialog. You can save the report as a PDF from there. The generated file will reflect the current, on-screen content.
+                            This action will open your browser's print dialog, allowing you to save the current report view as a PDF for your local records. This does not submit the report.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -329,4 +329,3 @@ export default function ReportPage() {
         </div>
     );
 }
-

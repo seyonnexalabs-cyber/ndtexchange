@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
-import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -71,7 +71,7 @@ export default function AddAssetPage() {
     
     React.useEffect(() => {
         return () => {
-            if (thumbnailPreview) {
+            if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
                 URL.revokeObjectURL(thumbnailPreview);
             }
         };
@@ -101,17 +101,23 @@ export default function AddAssetPage() {
 
     const handleFileChange = (file: File | null) => {
         form.setValue('thumbnail', file);
-        if (thumbnailPreview) {
+        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
             URL.revokeObjectURL(thumbnailPreview);
         }
         if (file) {
-            if (file.type.startsWith('image/')) {
-                setThumbnailPreview(URL.createObjectURL(file));
-                form.clearErrors('thumbnail');
-            } else {
+            if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
                 form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+                return;
             }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
+                return;
+            }
+            
+            setThumbnailPreview(URL.createObjectURL(file));
+            form.clearErrors('thumbnail');
         } else {
             setThumbnailPreview(null);
         }
@@ -148,15 +154,32 @@ export default function AddAssetPage() {
         const files = event.target.files;
         if (files) {
             const newFilesArray = Array.from(files);
-            setDocumentFiles(prev => [...prev, ...newFilesArray]);
-            form.setValue('documents', [...documentFiles, ...newFilesArray]);
+
+            const oversizedFiles = newFilesArray.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+            if (oversizedFiles.length > 0) {
+                toast({
+                    variant: 'destructive',
+                    title: 'File(s) Too Large',
+                    description: `${oversizedFiles.map(f => f.name).join(', ')} exceed(s) the ${MAX_FILE_SIZE_MB}MB limit and will not be uploaded.`,
+                });
+            }
+            
+            const validFiles = newFilesArray.filter(file => file.size <= MAX_FILE_SIZE_BYTES);
+
+            if(validFiles.length > 0) {
+                const updatedFiles = [...documentFiles, ...validFiles];
+                setDocumentFiles(updatedFiles);
+                form.setValue('documents', updatedFiles);
+            }
+
             if(documentsInputRef.current) documentsInputRef.current.value = '';
         }
     };
 
     const handleRemoveDocument = (indexToRemove: number) => {
-        setDocumentFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-        form.setValue('documents', documentFiles.filter((_, index) => index !== indexToRemove));
+        const updatedFiles = documentFiles.filter((_, index) => index !== indexToRemove);
+        setDocumentFiles(updatedFiles);
+        form.setValue('documents', updatedFiles);
     };
 
     return (
@@ -376,7 +399,7 @@ export default function AddAssetPage() {
                                             </div>
                                         )}
                                         <FormDescription>
-                                            Attach multiple files (PDFs, images). New selections will be added to the list.
+                                            Attach multiple files (PDFs, images, max {MAX_FILE_SIZE_MB}MB each). New selections will be added to the list.
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>

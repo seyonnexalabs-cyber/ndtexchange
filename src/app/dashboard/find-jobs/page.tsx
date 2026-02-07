@@ -20,13 +20,19 @@ import { useSearch } from '@/app/components/layout/search-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import UniformDocumentViewer from '@/app/dashboard/components/uniform-document-viewer';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be positive."),
   comments: z.string().optional(),
-  quote: z.any().optional(), // For file upload
+  quote: z.any().optional().refine((files: FileList | undefined) => {
+      if (!files || files.length === 0) return true;
+      for (let i = 0; i < files.length; i++) {
+          if (files[i].size > MAX_FILE_SIZE_BYTES) return false;
+      }
+      return true;
+  }, `Each file must be less than ${MAX_FILE_SIZE_MB}MB.`),
   proposedTechnique: z.string(),
   proposalJustification: z.string().optional(),
 });
@@ -319,7 +325,7 @@ export default function FindJobsPage() {
                                                 <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={e => field.onChange(e.target.files)} />
                                             </FormControl>
                                             <FormDescription>
-                                                You can upload multiple files. Max 10MB per file.
+                                                You can upload multiple files. Max {MAX_FILE_SIZE_MB}MB per file.
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>

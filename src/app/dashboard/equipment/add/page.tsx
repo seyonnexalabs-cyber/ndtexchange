@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from "react";
@@ -17,7 +15,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/utils";
 import { PlusCircle, ChevronLeft, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
@@ -59,17 +57,22 @@ export default function AddEquipmentPage() {
 
     const handleFileChange = (file: File | null) => {
         form.setValue('thumbnail', file);
-        if (thumbnailPreview) {
+        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
             URL.revokeObjectURL(thumbnailPreview);
         }
         if (file) {
-            if (file.type.startsWith('image/')) {
-                setThumbnailPreview(URL.createObjectURL(file));
-                form.clearErrors('thumbnail');
-            } else {
+            if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
                 form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+                return;
             }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
+                return;
+            }
+            setThumbnailPreview(URL.createObjectURL(file));
+            form.clearErrors('thumbnail');
         } else {
             setThumbnailPreview(null);
         }

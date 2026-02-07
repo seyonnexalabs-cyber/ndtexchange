@@ -1,5 +1,3 @@
-
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -11,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs, EquipmentType } from "@/lib/placeholder-data";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical } from "lucide-react";
 import { format, parseISO } from 'date-fns';
-import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useForm } from "react-hook-form";
@@ -88,13 +86,18 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
             URL.revokeObjectURL(thumbnailPreview);
         }
         if (file) {
-            if (file.type.startsWith('image/')) {
-                setThumbnailPreview(URL.createObjectURL(file));
-                form.clearErrors('thumbnail');
-            } else {
+            if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
                 form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+                return;
             }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
+                return;
+            }
+            setThumbnailPreview(URL.createObjectURL(file));
+            form.clearErrors('thumbnail');
         } else {
             setThumbnailPreview(image?.imageUrl || null);
         }
@@ -369,13 +372,18 @@ const AddComponentForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubm
         form.setValue('thumbnail', file);
         if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
         if (file) {
-            if (file.type.startsWith('image/')) {
-                setThumbnailPreview(URL.createObjectURL(file));
-                form.clearErrors('thumbnail');
-            } else {
+            if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
                 form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+                return;
             }
+             if (file.size > MAX_FILE_SIZE_BYTES) {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
+                return;
+            }
+            setThumbnailPreview(URL.createObjectURL(file));
+            form.clearErrors('thumbnail');
         } else { setThumbnailPreview(null); }
     };
 

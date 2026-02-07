@@ -15,7 +15,7 @@ import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format, parseISO } from 'date-fns';
-import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useForm } from 'react-hook-form';
@@ -77,13 +77,18 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
             URL.revokeObjectURL(thumbnailPreview);
         }
         if (file) {
-            if (file.type.startsWith('image/')) {
-                setThumbnailPreview(URL.createObjectURL(file));
-                form.clearErrors('thumbnail');
-            } else {
+            if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
                 form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
+                return;
             }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                setThumbnailPreview(null);
+                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
+                return;
+            }
+            setThumbnailPreview(URL.createObjectURL(file));
+            form.clearErrors('thumbnail');
         } else {
              // When cleared, revert to the original asset image if it exists
             setThumbnailPreview(image?.imageUrl || null);
@@ -369,13 +374,18 @@ const CheckLogForm = ({ formId, onSubmit }: { formId: string, onSubmit: (values:
             URL.revokeObjectURL(photoPreview);
         }
         if (file) {
-            if (file.type.startsWith('image/')) {
-                setPhotoPreview(URL.createObjectURL(file));
-                form.clearErrors('photo');
-            } else {
+            if (!file.type.startsWith('image/')) {
                 setPhotoPreview(null);
                 form.setError('photo', { type: 'manual', message: 'Only image files are accepted.' });
+                return;
             }
+             if (file.size > MAX_FILE_SIZE_BYTES) {
+                setPhotoPreview(null);
+                form.setError('photo', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
+                return;
+            }
+            setPhotoPreview(URL.createObjectURL(file));
+            form.clearErrors('photo');
         } else {
             setPhotoPreview(null);
         }

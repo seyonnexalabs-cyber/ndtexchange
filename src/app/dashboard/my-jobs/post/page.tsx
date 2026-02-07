@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
-import { ACCEPTED_FILE_TYPES } from '@/lib/utils';
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -129,9 +129,23 @@ export default function PostJobPage() {
         const files = event.target.files;
         if (files) {
             const newFilesArray = Array.from(files);
-            const updatedFiles = [...documentFiles, ...newFilesArray];
-            setDocumentFiles(updatedFiles);
-            form.setValue('documents', updatedFiles);
+
+            const oversizedFiles = newFilesArray.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+            if (oversizedFiles.length > 0) {
+                toast({
+                    variant: 'destructive',
+                    title: 'File(s) Too Large',
+                    description: `${oversizedFiles.map(f => f.name).join(', ')} exceed(s) the ${MAX_FILE_SIZE_MB}MB limit and will not be uploaded.`,
+                });
+            }
+
+            const validFiles = newFilesArray.filter(file => file.size <= MAX_FILE_SIZE_BYTES);
+            if (validFiles.length > 0) {
+                const updatedFiles = [...documentFiles, ...validFiles];
+                setDocumentFiles(updatedFiles);
+                form.setValue('documents', updatedFiles);
+            }
+            
             if (documentsInputRef.current) {
                 documentsInputRef.current.value = '';
             }
@@ -461,7 +475,7 @@ export default function PostJobPage() {
                                                 </div>
                                             )}
                                             <FormDescription>
-                                                You can upload multiple files. Max 10MB per file.
+                                                You can upload multiple files. Max {MAX_FILE_SIZE_MB}MB per file.
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { LifeBuoy, MessageSquare, Send, BookOpen } from 'lucide-react';
-import { ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
+import { ACCEPTED_FILE_TYPES, cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -30,7 +30,9 @@ const supportSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters.'),
   category: z.enum(['technical-issue', 'billing-inquiry', 'general-question', 'feature-request']),
   description: z.string().min(20, 'Please provide a detailed description (at least 20 characters).'),
-  attachment: z.any().optional(),
+  attachment: z.any()
+    .refine((file: File | undefined) => !file || file.size <= MAX_FILE_SIZE_BYTES, `Max file size is ${MAX_FILE_SIZE_MB}MB.`)
+    .optional(),
 });
 
 export default function SupportPage() {
@@ -241,7 +243,7 @@ export default function SupportPage() {
                                 <Input type="file" accept={ACCEPTED_FILE_TYPES} onChange={(e) => field.onChange(e.target.files?.[0])} />
                                 </FormControl>
                                 <FormDescription>
-                                    Max file size: 10MB.
+                                    Max file size: {MAX_FILE_SIZE_MB}MB.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>

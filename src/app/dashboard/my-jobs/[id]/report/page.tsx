@@ -112,7 +112,7 @@ export default function ReportPage() {
             equipmentUsed: '',
             calibrationBlock: '',
             couplant: '',
-            surfaceCondition: undefined,
+            surfaceCondition: '',
             inspectionArea: '',
             findings: [{ location: "", thickness: 0, notes: "" }],
             summary: undefined,
@@ -120,8 +120,8 @@ export default function ReportPage() {
     });
 
     React.useEffect(() => {
-        setIsClientMounted(true);
         form.setValue('summary', EditorState.createEmpty());
+        setIsClientMounted(true);
     }, [form]);
     
     const { fields, append, remove } = useFieldArray({
@@ -141,17 +141,10 @@ export default function ReportPage() {
                 title: "Draft Saved",
                 description: `Your changes were saved at ${timestamp}.`,
             });
-
             setSaveLog(prevLog => [`Last saved at ${timestamp}`, ...prevLog].slice(0, 5));
             form.reset(currentValues, { keepValues: true, keepDirty: false, keepDefaultValues: false });
         }
     }, [form, toast]);
-
-    const handleAutoSave = React.useCallback(() => {
-        if (isAutoSaveEnabled) {
-            handleSave();
-        }
-    }, [isAutoSaveEnabled, handleSave]);
     
     if (!job) {
         notFound();
@@ -210,11 +203,11 @@ export default function ReportPage() {
                     </div>
                 </div>
             </div>
-             
-             <div className="mb-4 text-xs text-muted-foreground">
+
+            <div className="mb-4 text-xs text-muted-foreground">
                 {lastSavedMessage()}
             </div>
-
+            
             <Card className="max-w-4xl mx-auto p-8 printable-area">
                 <div className="watermark-container">
                     <p className="watermark-text">NDT Exchange</p>
@@ -232,7 +225,7 @@ export default function ReportPage() {
 
                 <Separator className="my-6" />
                 <Form {...form}>
-                <form onBlur={handleAutoSave} className="space-y-6">
+                <form onBlur={isAutoSaveEnabled ? handleSave : undefined} className="space-y-6">
                     <h3 className="text-lg font-semibold border-b pb-2">Equipment & Setup</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="equipmentUsed" render={({ field }) => (
@@ -283,7 +276,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        {isClientMounted && field.value && (
+                                        {isClientMounted ? (
                                             <Editor
                                                 editorState={field.value}
                                                 onEditorStateChange={field.onChange}
@@ -301,7 +294,7 @@ export default function ReportPage() {
                                                     }
                                                 }}
                                             />
-                                        )}
+                                        ) : <div className="p-3 min-h-[250px]">Loading editor...</div>}
                                     </div>
                                 </FormControl>
                                 <FormMessage />

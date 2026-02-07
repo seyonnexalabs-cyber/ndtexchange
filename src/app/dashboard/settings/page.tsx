@@ -15,9 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { allUsers, clientData } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
-import { auditFirms } from '@/lib/auditors-data';
+import { allUsers, clientData, serviceProviders, auditFirms, subscriptions } from '@/lib/placeholder-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -453,6 +451,12 @@ export default function SettingsPage() {
         return { ...details, address };
     }, [role]);
 
+    const subscription = useMemo(() => {
+        return subscriptions.find(s => s.companyName === currentUser.company);
+    }, [currentUser.company]);
+
+    const isSubscriptionActive = subscription?.status === 'Active';
+
     const form = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
@@ -483,7 +487,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
+          {isSubscriptionActive && <TabsTrigger value="team">Team</TabsTrigger>}
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -546,12 +550,14 @@ export default function SettingsPage() {
                 isReadOnly={role === 'admin'}
             />
         </TabsContent>
-        <TabsContent value="team">
-            {role === 'admin' ? 
-                <AdminTeamManagement /> : 
-                <TeamManagementSettings user={currentUser} />
-            }
-        </TabsContent>
+        {isSubscriptionActive && (
+          <TabsContent value="team">
+              {role === 'admin' ? 
+                  <AdminTeamManagement /> : 
+                  <TeamManagementSettings user={currentUser} />
+              }
+          </TabsContent>
+        )}
         <TabsContent value="subscription">
             <SubscriptionSettings />
         </TabsContent>

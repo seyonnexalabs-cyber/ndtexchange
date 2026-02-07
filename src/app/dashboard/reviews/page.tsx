@@ -39,84 +39,41 @@ const statusStyles: { [key in Review['status']]: 'success' | 'default' | 'second
 };
 
 const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onApprove: (id: string) => void, onReject: (id: string) => void }) => {
-    const isMobile = useIsMobile();
 
     if (reviews.length === 0) {
         return <div className="text-center p-10 text-muted-foreground">No reviews in this category.</div>;
     }
     
-    if (isMobile) {
-        return (
-            <div className="space-y-4">
-                {reviews.map(review => (
-                    <Card key={review.id}>
-                        <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-base">{review.job?.title}</CardTitle>
-                                    <p className="text-xs font-extrabold text-muted-foreground">{review.job?.id}</p>
-                                </div>
-                                <Badge variant={statusStyles[review.status]}>{review.status}</Badge>
-                            </div>
-                            <CardDescription>
-                                For {review.provider?.name} by {review.client?.name}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <StarRating rating={review.rating} />
-                            <p className="text-sm text-muted-foreground mt-2">{review.comment}</p>
-                            <p className="text-xs text-muted-foreground mt-2">{format(new Date(review.date), GLOBAL_DATE_FORMAT)}</p>
-                        </CardContent>
-                        {review.status === 'Pending' && (
-                            <CardFooter className="flex justify-end gap-2">
-                                <Button size="sm" variant="outline" onClick={() => onReject(review.id)}><X className="mr-2 h-4 w-4" /> Reject</Button>
-                                <Button size="sm" onClick={() => onApprove(review.id)}><Check className="mr-2 h-4 w-4" /> Approve</Button>
-                            </CardFooter>
-                        )}
-                    </Card>
-                ))}
-            </div>
-        )
-    }
-
     return (
-        <Card>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Job ID</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Provider</TableHead>
-                        <TableHead>Job</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Comment</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {reviews.map(review => (
-                        <TableRow key={review.id}>
-                            <TableCell className="font-extrabold text-xs">{review.job?.id}</TableCell>
-                            <TableCell>{review.client?.name}</TableCell>
-                            <TableCell>{review.provider?.name}</TableCell>
-                            <TableCell><Link className="underline" href={`/dashboard/my-jobs/${review.jobId}?role=admin`}>{review.job?.title}</Link></TableCell>
-                            <TableCell><StarRating rating={review.rating} /></TableCell>
-                            <TableCell className="max-w-xs truncate">{review.comment}</TableCell>
-                            <TableCell><Badge variant={statusStyles[review.status]}>{review.status}</Badge></TableCell>
-                            <TableCell className="text-right">
-                                {review.status === 'Pending' && (
-                                    <div className="flex gap-2 justify-end">
-                                        <Button size="sm" variant="outline" onClick={() => onReject(review.id)}>Reject</Button>
-                                        <Button size="sm" onClick={() => onApprove(review.id)}>Approve</Button>
-                                    </div>
-                                )}
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </Card>
+        <div className="grid md:grid-cols-2 gap-6">
+            {reviews.map(review => (
+                <Card key={review.id}>
+                    <CardHeader>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <CardTitle className="text-base">{review.job?.title}</CardTitle>
+                                <p className="text-xs font-extrabold text-muted-foreground">{review.job?.id}</p>
+                            </div>
+                            <Badge variant={statusStyles[review.status]}>{review.status}</Badge>
+                        </div>
+                        <CardDescription>
+                            For {review.provider?.name} by {review.client?.name}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <StarRating rating={review.rating} />
+                        <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-3 rounded-md border">{review.comment}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{format(new Date(review.date), GLOBAL_DATE_FORMAT)}</p>
+                    </CardContent>
+                    {review.status === 'Pending' && (
+                        <CardFooter className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => onReject(review.id)}><X className="mr-2 h-4 w-4" /> Reject</Button>
+                            <Button size="sm" onClick={() => onApprove(review.id)}><Check className="mr-2 h-4 w-4" /> Approve</Button>
+                        </CardFooter>
+                    )}
+                </Card>
+            ))}
+        </div>
     )
 };
 

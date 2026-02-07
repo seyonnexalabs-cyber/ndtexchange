@@ -14,7 +14,7 @@ import { serviceProviders } from '@/lib/service-providers-data';
 import { auditFirms } from '@/lib/auditors-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Mail, Users, Database, Edit, MoreVertical } from "lucide-react";
+import { DollarSign, Mail, Users, Database, Edit, MoreVertical, Briefcase } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
@@ -73,8 +73,8 @@ const SubscriptionForm = ({
     
     // Effect to update limits when a standard plan is chosen
     useEffect(() => {
-        if (plan && plan !== 'Custom' && subscriptionPlanDetails[plan]) {
-            const planDetails = subscriptionPlanDetails[plan];
+        const planDetails = Object.values(subscriptionPlanDetails).find(p => p.name === plan);
+        if (plan && plan !== 'Custom' && planDetails) {
             if (form.getValues('userLimit') !== planDetails.userLimit) {
                 form.setValue('userLimit', planDetails.userLimit);
             }
@@ -86,8 +86,8 @@ const SubscriptionForm = ({
 
     // Effect to set plan to "Custom" if limits are manually changed
     useEffect(() => {
-        if (plan && plan !== 'Custom' && subscriptionPlanDetails[plan]) {
-            const planDetails = subscriptionPlanDetails[plan];
+        const planDetails = Object.values(subscriptionPlanDetails).find(p => p.name === plan);
+        if (plan && plan !== 'Custom' && planDetails) {
             if (userLimit !== planDetails.userLimit || dataLimitGB !== planDetails.dataLimitGB) {
                 form.setValue('plan', 'Custom');
             }
@@ -132,13 +132,9 @@ const SubscriptionForm = ({
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    <SelectItem value="Free Trial">Free Trial</SelectItem>
-                                    <SelectItem value="Client Access">Client Access</SelectItem>
-                                    <SelectItem value="Client Plus">Client Plus</SelectItem>
-                                    <SelectItem value="Individual Inspector">Individual Inspector</SelectItem>
-                                    <SelectItem value="NDT Company">NDT Company</SelectItem>
-                                    <SelectItem value="Company Growth">Company Growth</SelectItem>
-                                    <SelectItem value="Enterprise">Enterprise</SelectItem>
+                                    {initialPlans.map(p => (
+                                        <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                    ))}
                                     <SelectItem value="Custom">Custom</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -510,8 +506,14 @@ const PlanManagementView = () => {
                             <TableHead>Plan Name</TableHead>
                             <TableHead>Audience</TableHead>
                             <TableHead>Price (USD)</TableHead>
-                            <TableHead className="w-[40%]">Key Features & Limits</TableHead>
-                            <TableHead>Publicly Visible</TableHead>
+                            <TableHead>Users</TableHead>
+                            <TableHead>Data</TableHead>
+                            <TableHead>Assets/Equip.</TableHead>
+                            <TableHead>Marketplace</TableHead>
+                            <TableHead>Reporting</TableHead>
+                            <TableHead>API</TableHead>
+                            <TableHead>Branding</TableHead>
+                            <TableHead>Public</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -520,27 +522,17 @@ const PlanManagementView = () => {
                                 <TableCell className="font-medium">{plan.name}</TableCell>
                                 <TableCell>{plan.audience}</TableCell>
                                 <TableCell>{plan.price.USD}</TableCell>
+                                <TableCell>{plan.userLimit}</TableCell>
+                                <TableCell>{plan.dataLimitGB} GB</TableCell>
                                 <TableCell>
-                                    <ul className="list-none space-y-1 text-xs">
-                                        <li><span className="font-semibold text-muted-foreground">Users:</span> {plan.userLimit}</li>
-                                        <li><span className="font-semibold text-muted-foreground">Data:</span> {plan.dataLimitGB} GB</li>
-                                        {plan.audience === 'Client' && (
-                                            <>
-                                                <li><span className="font-semibold text-muted-foreground">Assets:</span> {plan.limitations.assets || 'N/A'}</li>
-                                                <li><span className="font-semibold text-muted-foreground">Marketplace:</span> {plan.limitations.jobs === 'Unlimited' ? 'Post unlimited jobs' : 'N/A'}</li>
-                                            </>
-                                        )}
-                                        {plan.audience === 'Provider' && (
-                                            <>
-                                                <li><span className="font-semibold text-muted-foreground">Equipment:</span> {plan.limitations.equipment || 'N/A'}</li>
-                                                <li><span className="font-semibold text-muted-foreground">Bidding:</span> {plan.limitations.bids || 'N/A'}</li>
-                                            </>
-                                        )}
-                                        {plan.audience === 'Auditor' && (
-                                            <li><span className="font-semibold text-muted-foreground">Access:</span> {plan.limitations.jobs === 'Assigned Only' ? 'Assigned jobs only' : 'N/A'}</li>
-                                        )}
-                                    </ul>
+                                    {plan.audience === 'Client' ? plan.assetLimit : plan.equipmentLimit}
                                 </TableCell>
+                                <TableCell>
+                                    {plan.marketplaceAccess ? (plan.biddingLimit === 'Unlimited' ? 'Unlimited Bids' : (plan.biddingLimit > 0 ? `${plan.biddingLimit} bids/mo` : 'Post Jobs')) : 'N/A'}
+                                </TableCell>
+                                <TableCell>{plan.reportingLevel}</TableCell>
+                                <TableCell>{plan.apiAccess ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-muted-foreground" />}</TableCell>
+                                <TableCell>{plan.customBranding ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-muted-foreground" />}</TableCell>
                                 <TableCell>
                                     <Switch
                                         checked={plan.isActive}
@@ -790,7 +782,7 @@ export default function SubscriptionsPage() {
                         />
                      </div>
                      <DialogFooter className="p-6 pt-4 border-t">
-                        <Button variant="ghost" onClick={closeDialog}>Cancel</Button>
+                        <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
                         <Button type="submit" form="subscription-form">Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>

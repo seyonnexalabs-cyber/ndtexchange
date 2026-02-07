@@ -9,15 +9,15 @@ export type Plan = {
         INR: string;
     };
     description: string;
-    features: string[];
     userLimit: number;
     dataLimitGB: number;
-    limitations: {
-        assets?: string;
-        bids?: string;
-        equipment?: string;
-        jobs?: string;
-    };
+    assetLimit: 'Unlimited' | number;
+    biddingLimit: 'Unlimited' | number;
+    equipmentLimit: 'Unlimited' | number;
+    marketplaceAccess: boolean;
+    reportingLevel: 'Basic' | 'Advanced';
+    apiAccess: boolean;
+    customBranding: boolean;
     isPublic: boolean;
     isActive: boolean;
     isFeatured?: boolean;
@@ -32,20 +32,15 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Client',
         price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
         description: "For plants, EPCs, and pilot teams.",
-        features: [
-            "Post unlimited jobs to marketplace",
-            "Asset register (up to 200 assets)",
-            "Read‑only access to NDT reports",
-            "Vendor‑shared reports",
-            "Asset register with inspection history and maintenance visibility",
-            "Web portal access",
-        ],
         userLimit: 5,
         dataLimitGB: 2,
-        limitations: {
-            assets: 'Up to 200',
-            jobs: 'Unlimited',
-        },
+        assetLimit: 200,
+        biddingLimit: 0,
+        equipmentLimit: 0,
+        marketplaceAccess: true,
+        reportingLevel: 'Basic',
+        apiAccess: false,
+        customBranding: false,
         isPublic: true,
         isActive: true,
         isFeatured: true,
@@ -56,20 +51,15 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Client',
         price: { USD: '$99 / month', EUR: '€89 / month', INR: '₹7,999 / month' },
         description: "For multi‑vendor operations.",
-        features: [
-            "Everything in Client Access, plus:",
-            "Unlimited assets",
-            "Multiple vendors",
-            "Comments & approvals",
-            "Shutdown inspection view",
-            "Asset register with cross‑vendor inspection history and maintenance visibility",
-        ],
         userLimit: 20,
         dataLimitGB: 50,
-        limitations: {
-            assets: 'Unlimited',
-            jobs: 'Unlimited',
-        },
+        assetLimit: 'Unlimited',
+        biddingLimit: 0,
+        equipmentLimit: 0,
+        marketplaceAccess: true,
+        reportingLevel: 'Advanced',
+        apiAccess: false,
+        customBranding: false,
         isPublic: true,
         isActive: true,
     },
@@ -80,19 +70,15 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Provider',
         price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
         description: "For individual inspectors getting started.",
-        features: [
-            "Access to job marketplace",
-            "Submit up to 3 bids per month",
-            "Digital report creation",
-            "Manage 1 technician",
-            "Equipment tracking (up to 2 items)",
-        ],
         userLimit: 1,
         dataLimitGB: 1,
-        limitations: {
-            bids: 'Up to 3/month',
-            equipment: 'Up to 2',
-        },
+        assetLimit: 0,
+        biddingLimit: 3,
+        equipmentLimit: 2,
+        marketplaceAccess: true,
+        reportingLevel: 'Basic',
+        apiAccess: false,
+        customBranding: false,
         isPublic: true,
         isActive: true,
     },
@@ -102,20 +88,15 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Provider',
         price: { USD: '$49 / company / month', EUR: '€45 / company / month', INR: '₹4,000 / company / month' },
         description: "For professional teams and growing companies.",
-        features: [
-            "Includes 5 inspectors",
-            "Unlimited marketplace bidding",
-            "Client-linked projects",
-            "Team & equipment management",
-            "Level-III review workflows",
-            "Advanced reporting tools",
-        ],
         userLimit: 5,
         dataLimitGB: 25,
-        limitations: {
-            bids: 'Unlimited',
-            equipment: 'Unlimited',
-        },
+        assetLimit: 0,
+        biddingLimit: 'Unlimited',
+        equipmentLimit: 'Unlimited',
+        marketplaceAccess: true,
+        reportingLevel: 'Basic',
+        apiAccess: false,
+        customBranding: false,
         isPublic: true,
         isActive: true,
         isFeatured: true,
@@ -127,20 +108,15 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Provider',
         price: { USD: '$120 / company / month', EUR: '€110 / company / month', INR: '₹10,000 / company / month' },
         description: "Per company",
-        features: [
-            "Includes 15 inspectors",
-            "Unlimited marketplace bidding",
-            "Multi-site operations & analytics",
-            "Custom branding on reports",
-            "Priority support",
-            "Advanced equipment tracking",
-        ],
         userLimit: 15,
         dataLimitGB: 75,
-        limitations: {
-            bids: 'Unlimited',
-            equipment: 'Unlimited',
-        },
+        assetLimit: 0,
+        biddingLimit: 'Unlimited',
+        equipmentLimit: 'Unlimited',
+        marketplaceAccess: true,
+        reportingLevel: 'Advanced',
+        apiAccess: true,
+        customBranding: true,
         isPublic: true,
         isActive: true,
     },
@@ -151,24 +127,22 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Auditor',
         price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
         description: "For Level-III professionals and auditors.",
-        features: [
-            "Access to all assigned audit jobs",
-            "Review & approval workflows",
-            "Audit comments & traceability",
-            "Certification reference access",
-            "Cross-project oversight (limited)",
-        ],
         userLimit: 1,
         dataLimitGB: 1,
-        limitations: {
-            jobs: 'Assigned Only',
-        },
+        assetLimit: 0,
+        biddingLimit: 0,
+        equipmentLimit: 0,
+        marketplaceAccess: false,
+        reportingLevel: 'Basic',
+        apiAccess: false,
+        customBranding: false,
         isPublic: true,
         isActive: true,
     }
 ];
 
+// This is now derived from the main array and includes all properties.
 export const subscriptionPlanDetails = subscriptionPlans.reduce((acc, plan) => {
-    acc[plan.name] = { userLimit: plan.userLimit, dataLimitGB: plan.dataLimitGB };
+    acc[plan.name] = plan;
     return acc;
-}, {} as Record<string, {userLimit: number, dataLimitGB: number}>);
+}, {} as Record<string, Plan>);

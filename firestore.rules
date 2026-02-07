@@ -1,29 +1,232 @@
+/**
+ * Core Philosophy: This ruleset is designed for an NDT (Non-Destructive Testing) marketplace application.
+ * It enforces a strict authorization model where users control their own data, but allows for public
+ * discoverability of shared resources like assets and job requests. The primary security mechanisms
+ * are path-based ownership for user-specific data (like profiles and job requests) and role-based
+ * access (e.g., 'inspectorId') for collaborative documents like bids and inspections.
+ *
+ * Data Structure: The data is organized into several top-level collections. User-specific data, such
+ * as 'job_requests', is nested under `/users/{userId}` to leverage path-based security. Collaborative
+ * data like 'assets', 'inspections', and 'bids' are structured to be cross-referenced.
+ *
+ * Key Security Decisions:
+ * - User Listing Disabled: Users cannot list the `/users` collection to protect user privacy.
+ * - Path-Based Ownership: A user's own data (e.g., their job requests) is stored in a subcollection
+ *   under their user ID (`/users/{userId}/...`), making ownership checks simple and performant.
+ * - Denormalized Ownership: For collaborative documents like Bids and Inspections, an ownership field
+ *   (e.g., `inspectorId`) is expected to be on the document itself. This avoids slow and costly `get()`
+ *   calls to parent documents for authorization during writes.
+ * - Public Read, Secure Writes: Collections intended for broad visibility (like `assets` and
+ *   `asset_types`) are readable by any authenticated user, but write operations are strictly controlled.
+ *   If a clear ownership field for writes is not present in the data model, writes are disabled by default
+ *   to ensure security, with a TODO note for the developer to add the required field.
+ * - Default Secure: Any operation not explicitly permitted is denied. All write operations require
+ *   user authentication and authorization.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if a user is authenticated
-    function isAuthenticated() {
+    /***********************************************************
+     * Helper Functions
+     ***********************************************************/
+
+    /**
+     * isSignedIn
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
       return request.auth != null;
     }
 
-    // Default deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
+    /**
+     * isOwner
+     * Checks if the currently authenticated user's ID matches the provided userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Example: Allow authenticated users to read and write to a 'jobs' collection
-    // In a real application, you would add more granular rules.
-    // For example, only the client who created the job or the assigned provider can read/write it.
-    match /jobs/{jobId} {
-      allow read, write: if isAuthenticated();
+    /**
+     * isExistingOwner
+     * Checks for ownership on an existing document. Used for update/delete.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+    
+    /**
+     * isClientOfJobRequest
+     * Checks if the user is the client who created the parent Job Request.
+     * This requires a get() call and should be used primarily for read/list rules.
+     */
+    function isClientOfJobRequest(jobRequestId) {
+      return isSignedIn() && get(/databases/$(database)/documents/job_requests/$(jobRequestId)).data.clientId == request.auth.uid;
+    }
+    
+    /**
+     * isInspectorOfParentInspection
+     * Checks if the user is the inspector assigned to the parent Inspection document.
+     * This requires a get() call and is used to authorize creation of child documents like reports.
+     */
+    function isInspectorOfParentInspection(inspectionId) {
+      let inspectionDoc = get(/databases/$(database)/documents/inspections/$(inspectionId));
+      return isSignedIn() && inspectionDoc != null && inspectionDoc.data.inspectorId == request.auth.uid;
     }
 
-    // Example: Allow authenticated users to manage their own data in a 'users' collection
+    /***********************************************************
+     * User Profile Rules (/users)
+     ***********************************************************/
+
+    /**
+     * @description Users can create their own profile and can only read or write their own data.
+     * @path /users/{userId}
+     * @allow (create) a user with auth.uid 'user_abc' creating their own document at /users/user_abc.
+     * @deny (get) user 'user_abc' reading a document at /users/user_xyz.
+     * @principle Restricts access to a user's own data tree and enforces relational integrity.
+     */
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /***********************************************************
+     * Asset & Inspection Rules (/assets, /inspections)
+     ***********************************************************/
+
+    /**
+     * @description Asset Types are public templates that any signed-in user can read.
+     * @path /asset_types/{assetTypeId}
+     * @allow (get) any signed-in user reading an asset type.
+     * @deny (create) any user creating a new asset type. This should be managed by an admin.
+     * @principle Public read for reference data, with writes locked down for system integrity.
+     */
+    match /asset_types/{assetTypeId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if false; // TODO: Implement admin-only creation logic.
+      allow update: if false; // TODO: Implement admin-only update logic.
+      allow delete: if false; // TODO: Implement admin-only delete logic.
+    }
+
+    /**
+     * @description Assets are publicly readable, but writes require an ownership model.
+     * @path /assets/{assetId}
+     * @allow (get) any signed-in user reading an asset.
+     * @deny (create) any user creating an asset because the ownership model is not defined.
+     * @principle Public read with owner-only writes. Writes are currently blocked.
+     */
+    match /assets/{assetId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      // CRITICAL: Cannot implement owner-only writes. The 'Asset' entity is missing an 'ownerId' or 'creatorId' field.
+      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Inspections can be read by any signed-in user, but only the assigned inspector can create or modify them.
+     * @path /assets/{assetId}/inspections/{inspectionId}
+     * @allow (create) inspector 'user_abc' creating an inspection where `inspectorId` is 'user_abc'.
+     * @deny (update) inspector 'user_xyz' updating an inspection assigned to 'user_abc'.
+     * @principle Enforces document ownership for writes via an `inspectorId` field.
+     */
+    match /assets/{assetId}/inspections/{inspectionId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+      allow update: if resource != null && isOwner(resource.data.inspectorId) && request.resource.data.inspectorId == resource.data.inspectorId;
+      allow delete: if resource != null && isOwner(resource.data.inspectorId);
+    }
+    
+    /**
+     * @description Inspection Reports can be read by any signed-in user, but only created by the inspector of the parent inspection.
+     * @path /inspections/{inspectionId}/inspection_reports/{inspectionReportId}
+     * @allow (create) inspector 'user_abc' creating a report for an inspection they are assigned to.
+     * @deny (create) user 'user_xyz' creating a report for an inspection assigned to 'user_abc'.
+     * @principle Secures a subcollection by checking ownership on the parent document.
+     */
+    match /inspections/{inspectionId}/inspection_reports/{inspectionReportId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isInspectorOfParentInspection(inspectionId);
+      // CRITICAL: Cannot implement secure updates without a denormalized 'inspectorId' on this document.
+      allow update: if false; // TODO: Denormalize inspectorId onto InspectionReport for secure updates.
+      allow delete: if false; // TODO: Denormalize inspectorId onto InspectionReport for secure deletes.
+    }
+    
+    /**
+     * @description Defects can be read by any signed-in user, but writes are restricted.
+     * @path /inspection_reports/{inspectionReportId}/defects/{defectId}
+     * @allow (get) any signed-in user reading a defect report.
+     * @deny (create) any user creating a defect, as ownership cannot be securely determined.
+     * @principle Securing nested data requires denormalized ownership, which is currently missing.
+     */
+    match /inspection_reports/{inspectionReportId}/defects/{defectId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      // CRITICAL: Cannot implement owner-only writes. The 'Defect' entity and its parent are missing an 'inspectorId' or 'creatorId' field.
+      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /***********************************************************
+     * Job & Bidding Rules (/job_requests, /bids)
+     ***********************************************************/
+    
+    /**
+     * @description A user can create, read, update, and delete their own job requests.
+     * @path /users/{userId}/job_requests/{jobRequestId}
+     * @allow (create) user 'user_abc' creating a job request under their own path.
+     * @deny (list) user 'user_xyz' listing job requests under /users/user_abc/job_requests.
+     * @principle Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/job_requests/{jobRequestId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.clientId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.clientId == resource.data.clientId;
+      allow delete: if isExistingOwner(userId);
+    }
+    
+    /**
+     * @description Bids can be created by inspectors. The client of the job request and the bidding inspector can read them. Only the bidding inspector can manage their bid.
+     * @path /job_requests/{jobRequestId}/bids/{bidId}
+     * @allow (create) an inspector creating a bid with their own UID as `inspectorId`.
+     * @deny (update) an inspector trying to modify a bid created by another inspector.
+     * @principle Shared access model where creator has write access and related parties (client) have read access.
+     */
+    match /job_requests/{jobRequestId}/bids/{bidId} {
+      allow get: if isOwner(resource.data.inspectorId) || isClientOfJobRequest(jobRequestId);
+      allow list: if isClientOfJobRequest(jobRequestId);
+      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+      allow update: if resource != null && isOwner(resource.data.inspectorId) && request.resource.data.inspectorId == resource.data.inspectorId;
+      allow delete: if resource != null && isOwner(resource.data.inspectorId);
+    }
+    
+    /***********************************************************
+     * Document Rules (/documents)
+     ***********************************************************/
+    
+    /**
+     * @description Documents are readable by any signed-in user, but writes require an ownership model.
+     * @path /documents/{documentId}
+     * @allow (get) any signed-in user viewing a document.
+     * @deny (create) any user uploading a document because ownership is not defined.
+     * @principle Public read for shared resources, with writes blocked until an ownership model is implemented.
+     */
+    match /documents/{documentId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      // CRITICAL: Cannot implement owner-only writes. The 'Document' entity is missing an 'ownerId' or 'uploaderId' field.
+      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
   }
 }

@@ -1,0 +1,556 @@
+{
+  "entities": {
+    "Asset": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Asset",
+      "type": "object",
+      "description": "Represents a physical asset such as equipment, structure, or component that needs inspection.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Asset entity."
+        },
+        "assetTypeId": {
+          "type": "string",
+          "description": "Reference to AssetType. (Relationship: AssetType 1:N Asset)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the asset."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the asset."
+        },
+        "location": {
+          "type": "string",
+          "description": "The physical location of the asset."
+        },
+        "qrCode": {
+          "type": "string",
+          "description": "The QR code associated with the asset for easy identification."
+        },
+        "documentIds": {
+          "type": "array",
+          "description": "References to Documents associated with the asset. (Relationship: Asset 1:N Document)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "assetTypeId",
+        "name"
+      ]
+    },
+    "AssetType": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetType",
+      "type": "object",
+      "description": "Represents a template for different types of assets (e.g., tanks, vessels, piping).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AssetType entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the asset type (e.g., Tank, Vessel)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the asset type."
+        },
+        "templateData": {
+          "type": "string",
+          "description": "JSON data defining the specific attributes or configurations for this asset type."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Inspection": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Inspection",
+      "type": "object",
+      "description": "Represents an inspection event performed on an asset.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Inspection entity."
+        },
+        "assetId": {
+          "type": "string",
+          "description": "Reference to Asset. (Relationship: Asset 1:N Inspection)"
+        },
+        "inspectorId": {
+          "type": "string",
+          "description": "Reference to User (Inspector). (Relationship: User 1:N Inspection)"
+        },
+        "scheduleDate": {
+          "type": "string",
+          "description": "The date the inspection is scheduled to occur.",
+          "format": "date-time"
+        },
+        "completionDate": {
+          "type": "string",
+          "description": "The date the inspection was completed.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the inspection (e.g., Scheduled, In Progress, Completed)."
+        },
+        "reportId": {
+          "type": "string",
+          "description": "Reference to the InspectionReport generated for this inspection. (Relationship: Inspection 1:1 InspectionReport)"
+        }
+      },
+      "required": [
+        "id",
+        "assetId",
+        "inspectorId",
+        "scheduleDate",
+        "status"
+      ]
+    },
+    "InspectionReport": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InspectionReport",
+      "type": "object",
+      "description": "Represents the report generated after an inspection.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the InspectionReport entity."
+        },
+        "inspectionId": {
+          "type": "string",
+          "description": "Reference to Inspection. (Relationship: Inspection 1:1 InspectionReport)"
+        },
+        "reportData": {
+          "type": "string",
+          "description": "The actual report data, likely stored as a JSON string or similar format."
+        },
+        "approvalLevel3Id": {
+          "type": "string",
+          "description": "Reference to User (Level III) who approved the report."
+        },
+        "defectIds": {
+          "type": "array",
+          "description": "References to Defect records found during the inspection. (Relationship: InspectionReport 1:N Defect)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "documentIds": {
+          "type": "array",
+          "description": "References to Supporting Documents for the Inspection Report. (Relationship: InspectionReport 1:N Document)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "inspectionId",
+        "reportData"
+      ]
+    },
+    "Defect": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Defect",
+      "type": "object",
+      "description": "Represents a defect identified during an inspection.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Defect entity."
+        },
+        "inspectionReportId": {
+          "type": "string",
+          "description": "Reference to InspectionReport. (Relationship: InspectionReport 1:N Defect)"
+        },
+        "size": {
+          "type": "string",
+          "description": "The size of the defect."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the defect (e.g., crack, corrosion)."
+        },
+        "location": {
+          "type": "string",
+          "description": "The location of the defect on the asset."
+        },
+        "photoUrls": {
+          "type": "array",
+          "description": "URLs of photos documenting the defect.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "videoUrls": {
+          "type": "array",
+          "description": "URLs of videos documenting the defect.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "waveformUrl": {
+          "type": "string",
+          "description": "URL of waveform data associated with the defect."
+        }
+      },
+      "required": [
+        "id",
+        "inspectionReportId",
+        "size",
+        "type",
+        "location"
+      ]
+    },
+    "JobRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "JobRequest",
+      "type": "object",
+      "description": "Represents a job request created by a client for NDT inspection services.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the JobRequest entity."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Reference to User (Client). (Relationship: User 1:N JobRequest)"
+        },
+        "location": {
+          "type": "string",
+          "description": "The location where the job needs to be performed."
+        },
+        "technique": {
+          "type": "string",
+          "description": "The NDT technique required for the job (e.g., UT, RT)."
+        },
+        "standards": {
+          "type": "string",
+          "description": "The industry standards to be followed during the inspection."
+        },
+        "urgency": {
+          "type": "string",
+          "description": "The urgency level of the job request."
+        },
+        "assetId": {
+          "type": "string",
+          "description": "Reference to the Asset to be inspected. (Relationship: Asset 1:N JobRequest)"
+        }
+      },
+      "required": [
+        "id",
+        "clientId",
+        "location",
+        "technique",
+        "standards",
+        "urgency"
+      ]
+    },
+    "Bid": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bid",
+      "type": "object",
+      "description": "Represents a bid submitted by an inspector for a job request.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Bid entity."
+        },
+        "jobRequestId": {
+          "type": "string",
+          "description": "Reference to JobRequest. (Relationship: JobRequest 1:N Bid)"
+        },
+        "inspectorId": {
+          "type": "string",
+          "description": "Reference to User (Inspector). (Relationship: User 1:N Bid)"
+        },
+        "price": {
+          "type": "number",
+          "description": "The price quoted in the bid."
+        },
+        "availability": {
+          "type": "string",
+          "description": "The inspector's availability to perform the job."
+        },
+        "certifications": {
+          "type": "string",
+          "description": "Certifications held by the inspector relevant to the job."
+        }
+      },
+      "required": [
+        "id",
+        "jobRequestId",
+        "inspectorId",
+        "price",
+        "availability"
+      ]
+    },
+    "Document": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Document",
+      "type": "object",
+      "description": "Represents a document (e.g., drawing, photo, certificate).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Document entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the document."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL where the document is stored.",
+          "format": "uri"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of document (e.g., Drawing, Photo, Certificate)."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The date the document was uploaded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "url",
+        "type",
+        "uploadDate"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user (e.g., Client, Inspector, Admin)."
+        },
+        "company": {
+          "type": "string",
+          "description": "The company the user works for."
+        },
+        "certifications": {
+          "type": "string",
+          "description": "Inspector certifications"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "role"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  User ID is used for path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/asset_types/{assetTypeId}",
+        "definition": {
+          "entityName": "AssetType",
+          "schema": {
+            "$ref": "#/backend/entities/AssetType"
+          },
+          "description": "Stores templates for asset types.",
+          "params": [
+            {
+              "name": "assetTypeId",
+              "description": "The unique identifier of the asset type."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/assets/{assetId}",
+        "definition": {
+          "entityName": "Asset",
+          "schema": {
+            "$ref": "#/backend/entities/Asset"
+          },
+          "description": "Stores information about individual assets.",
+          "params": [
+            {
+              "name": "assetId",
+              "description": "The unique identifier of the asset."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/assets/{assetId}/inspections/{inspectionId}",
+        "definition": {
+          "entityName": "Inspection",
+          "schema": {
+            "$ref": "#/backend/entities/Inspection"
+          },
+          "description": "Stores information about inspections performed on assets.",
+          "params": [
+            {
+              "name": "assetId",
+              "description": "The unique identifier of the asset."
+            },
+            {
+              "name": "inspectionId",
+              "description": "The unique identifier of the inspection."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/inspections/{inspectionId}/inspection_reports/{inspectionReportId}",
+        "definition": {
+          "entityName": "InspectionReport",
+          "schema": {
+            "$ref": "#/backend/entities/InspectionReport"
+          },
+          "description": "Stores inspection reports associated with inspections.",
+          "params": [
+            {
+              "name": "inspectionId",
+              "description": "The unique identifier of the inspection."
+            },
+            {
+              "name": "inspectionReportId",
+              "description": "The unique identifier of the inspection report."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/inspection_reports/{inspectionReportId}/defects/{defectId}",
+        "definition": {
+          "entityName": "Defect",
+          "schema": {
+            "$ref": "#/backend/entities/Defect"
+          },
+          "description": "Stores information about defects found during inspections.",
+          "params": [
+            {
+              "name": "inspectionReportId",
+              "description": "The unique identifier of the inspection report."
+            },
+            {
+              "name": "defectId",
+              "description": "The unique identifier of the defect."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/job_requests/{jobRequestId}",
+        "definition": {
+          "entityName": "JobRequest",
+          "schema": {
+            "$ref": "#/backend/entities/JobRequest"
+          },
+          "description": "Stores job requests created by users. Path-based ownership is used for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user (client)."
+            },
+            {
+              "name": "jobRequestId",
+              "description": "The unique identifier of the job request."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/job_requests/{jobRequestId}/bids/{bidId}",
+        "definition": {
+          "entityName": "Bid",
+          "schema": {
+            "$ref": "#/backend/entities/Bid"
+          },
+          "description": "Stores bids submitted for job requests.",
+          "params": [
+            {
+              "name": "jobRequestId",
+              "description": "The unique identifier of the job request."
+            },
+            {
+              "name": "bidId",
+              "description": "The unique identifier of the bid."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/documents/{documentId}",
+        "definition": {
+          "entityName": "Document",
+          "schema": {
+            "$ref": "#/backend/entities/Document"
+          },
+          "description": "Stores documents (drawings, photos, certificates).",
+          "params": [
+            {
+              "name": "documentId",
+              "description": "The unique identifier of the document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the NDT Exchange application, focusing on asset management, job marketplace, and inspection workflows. The structure emphasizes authorization independence, clarity, and scalability.  Path-based ownership is used for user-specific data (e.g., JobRequests created by a Client) while membership maps are utilized for collaborative data (not explicitly defined in this data model).  Denormalization is applied where necessary to avoid complex security rules and ensure atomic operations.\n\n**Authorization Independence:** The design uses path-based ownership where appropriate. For example, JobRequests are stored under `/users/{userId}/job_requests/{jobRequestId}`, directly associating them with the user who created them (clientId). This denormalizes the ownership and eliminates the need for `get()` calls to verify the user's identity.\n\n**QAPs (Rules are not Filters):** Segregation ensures secure list operations.  Storing JobRequests under `/users/{userId}/job_requests/{jobRequestId}` allows clients to list only their job requests.  Similarly, storing Bids under `/job_requests/{jobRequestId}/bids/{bidId}` allows Inspectors to list bids only for specific job requests. This segregation, combined with appropriate security rules, ensures that users can only access the data they are authorized to see, enabling QAPs."
+  }
+}

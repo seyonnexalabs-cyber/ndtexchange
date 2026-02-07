@@ -83,7 +83,7 @@ export default function ReportPage() {
     const id = params.id as string;
     
     // States for auto-save feature
-    const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(true);
+    const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(false);
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
@@ -109,14 +109,20 @@ export default function ReportPage() {
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
+            summary: undefined
         },
     });
-
+    
     React.useEffect(() => {
         // This runs only on the client
-        form.setValue('summary', EditorState.createEmpty());
+        if (isClientMounted) {
+            form.setValue('summary', EditorState.createEmpty());
+        }
+    }, [isClientMounted, form]);
+    
+    React.useEffect(() => {
         setIsClientMounted(true);
-    }, [form]);
+    }, []);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -125,7 +131,6 @@ export default function ReportPage() {
     
     const handleSave = React.useCallback(() => {
         if (form.formState.isDirty) {
-            // No validation check here, just save if dirty
             const currentValues = form.getValues();
             console.log("Saving draft...", currentValues);
             
@@ -137,7 +142,7 @@ export default function ReportPage() {
                 description: `Your changes were saved at ${timestamp}.`,
             });
 
-            setSaveLog(prevLog => [`Saved at ${timestamp}`, ...prevLog].slice(0, 5));
+            setSaveLog(prevLog => [`Last saved at ${timestamp}`, ...prevLog].slice(0, 5));
             form.reset(currentValues, { keepValues: true, keepDirty: false, keepDefaultValues: false });
         }
     }, [form, toast]);
@@ -168,8 +173,18 @@ export default function ReportPage() {
     };
 
     if (!isClientMounted) {
-        return null; // or a loading spinner
+        return null;
     }
+    
+    const lastSavedMessage = () => {
+        if (saveLog.length > 0) {
+            return saveLog[0];
+        }
+        if (isAutoSaveEnabled) {
+            return 'Your work will be saved automatically.';
+        }
+        return 'Auto-save is off. Remember to save your draft.';
+    };
 
     return (
         <div>
@@ -180,7 +195,7 @@ export default function ReportPage() {
                         Back to Job Details
                     </Link>
                 </Button>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center space-x-2">
                             <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} />
@@ -199,11 +214,10 @@ export default function ReportPage() {
                     </div>
                 </div>
             </div>
-             {saveLog.length > 0 && (
-                <div className="mb-4 text-xs text-muted-foreground">
-                    {saveLog[0]}
-                </div>
-            )}
+             
+             <div className="mb-4 text-xs text-muted-foreground">
+                {lastSavedMessage()}
+            </div>
 
             <Card className="max-w-4xl mx-auto p-8 printable-area">
                 <div className="watermark-container">
@@ -307,7 +321,7 @@ export default function ReportPage() {
                     <DialogHeader>
                         <DialogTitle>Generate PDF</DialogTitle>
                         <DialogDescription>
-                            This action will open your browser's print dialog, allowing you to save the current report view as a PDF.
+                            This will open your browser's print dialog. You can save the current report view as a PDF from there.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -21,7 +21,8 @@ import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { EditorState, convertToRaw } from 'draft-js';
-import { RichTextEditor } from '../../components/RichTextEditor';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
 
 const utReportSchema = z.object({
@@ -186,21 +187,29 @@ export default function ReportPage() {
                      <FormField
                         control={form.control}
                         name="summary"
-                        render={() => (
+                        render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
-                                    <Controller
-                                        name="summary"
-                                        control={form.control}
-                                        render={({ field }) => (
-                                            <RichTextEditor
-                                                editorState={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Provide a detailed summary of the inspection results, including any recommendations."
-                                            />
-                                        )}
-                                    />
+                                    <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                                        <Editor
+                                            editorState={field.value}
+                                            onEditorStateChange={field.onChange}
+                                            placeholder="Provide a detailed summary of the inspection results, including any recommendations."
+                                            toolbarClassName="border-b"
+                                            wrapperClassName="min-h-[250px] flex flex-col"
+                                            editorClassName="p-3 flex-grow"
+                                            toolbar={{
+                                                options: ['inline', 'blockType', 'list', 'history'],
+                                                inline: {
+                                                    options: ['bold', 'italic', 'underline'],
+                                                },
+                                                list: {
+                                                    options: ['unordered', 'ordered'],
+                                                }
+                                            }}
+                                        />
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

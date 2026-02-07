@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -8,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Shield, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Apply admin theme
@@ -49,9 +50,11 @@ export default function AdminLoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full">Sign In</Button>
-             <Button variant="link" size="sm" className="text-muted-foreground !mt-2" asChild>
-                <Link href="/">Return to Homepage</Link>
-            </Button>
+            {!isMobile && (
+                <Button variant="link" size="sm" className="text-muted-foreground !mt-2" asChild>
+                    <Link href="/">Return to Homepage</Link>
+                </Button>
+            )}
           </CardFooter>
         </form>
       </Card>

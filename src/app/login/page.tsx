@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -12,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ShieldCheck, Building, HardHat, Eye } from 'lucide-react';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type UserType = 'client' | 'inspector' | 'auditor';
 type InspectorPlan = 'operations' | 'marketplace';
@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [userType, setUserType] = useState<UserType>('client');
   const [inspectorPlan, setInspectorPlan] = useState<InspectorPlan>('marketplace');
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     document.body.classList.remove('client-theme', 'inspector-theme', 'admin-theme', 'auditor-theme');
@@ -158,6 +159,13 @@ export default function LoginPage() {
               Sign up
             </Link>
           </div>
+            {!isMobile && (
+              <div className="text-center">
+                  <Button variant="link" size="sm" asChild>
+                      <Link href="/">Return to Homepage</Link>
+                  </Button>
+              </div>
+            )}
         </div>
       </div>
     </div>

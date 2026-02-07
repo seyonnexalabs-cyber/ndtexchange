@@ -72,30 +72,30 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                <div className="mt-16 grid gap-16 lg:grid-cols-2 lg:gap-x-12 items-start">
+                <div className="mt-16 grid gap-8 md:grid-cols-2">
                     {/* Client Features */}
-                    <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                    <Card className="flex flex-col items-center text-center p-8 transition-all hover:shadow-primary/10 hover:shadow-2xl hover:-translate-y-2">
                         <div className="bg-primary/10 text-primary p-4 rounded-full w-fit">
                             <Building className="w-10 h-10" />
                         </div>
                         <h3 className="mt-6 text-2xl font-headline font-semibold text-primary">For Asset Owners</h3>
                         <p className="mt-4 text-lg text-muted-foreground">A complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.</p>
-                        <Button asChild className="mt-6">
+                        <Button size="lg" asChild className="mt-8">
                             <Link href="/asset-management">Explore Asset Management</Link>
                         </Button>
-                    </div>
+                    </Card>
                     
                     {/* Provider Features */}
-                    <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                    <Card className="flex flex-col items-center text-center p-8 transition-all hover:shadow-accent/10 hover:shadow-2xl hover:-translate-y-2">
                        <div className="bg-accent/10 text-accent p-4 rounded-full w-fit">
                             <HardHat className="w-10 h-10" />
                         </div>
                         <h3 className="mt-6 text-2xl font-headline font-semibold text-accent">For NDT Providers</h3>
                         <p className="mt-4 text-lg text-muted-foreground">A dedicated suite of tools to manage your team and equipment, improving efficiency and ensuring your resources are always ready.</p>
-                        <Button asChild className="mt-6 bg-accent hover:bg-accent/90 text-accent-foreground">
+                        <Button size="lg" asChild className="mt-8 bg-accent hover:bg-accent/90 text-accent-foreground">
                             <Link href="/provider-tools">Explore Provider Tools</Link>
                         </Button>
-                    </div>
+                    </Card>
                 </div>
 
                 <div className="mt-20 text-center">

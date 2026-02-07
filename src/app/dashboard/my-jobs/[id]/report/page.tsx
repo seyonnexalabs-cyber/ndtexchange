@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -24,8 +24,9 @@ import Link from 'next/link';
 import { EditorState, convertToRaw } from 'draft-js';
 import dynamic from 'next/dynamic';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import type { EditorProps } from 'react-draft-wysiwyg';
 
-const Editor = dynamic(
+const Editor = dynamic<EditorProps>(
   () => import('react-draft-wysiwyg').then((mod) => mod.Editor),
   { ssr: false }
 );
@@ -78,6 +79,7 @@ export default function ReportPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const id = params.id as string;
+    const [editorIsMounted, setEditorIsMounted] = React.useState(false);
 
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
@@ -90,15 +92,16 @@ export default function ReportPage() {
 
     const plan = React.useMemo(() => {
         if (!subscription) return null;
-        const planName = subscription.plan;
-        return subscriptionPlans.find(p => p.name === planName);
+        const planDetails = subscriptionPlans.find(p => p.name === subscription.plan);
+        return planDetails;
     }, [subscription]);
     
     const assignedTechnicians = React.useMemo(() => allUsers.filter(u => job?.technicianIds?.includes(u.id)), [job]);
-
     const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
 
     React.useEffect(() => {
+        setEditorIsMounted(true);
+        // Initialize EditorState only on the client
         setEditorState(EditorState.createEmpty());
     }, []);
 
@@ -106,27 +109,29 @@ export default function ReportPage() {
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
-            summary: editorState,
+            summary: undefined,
         },
     });
     
-    const watchedValues = form.watch();
-
-    React.useEffect(() => {
-        const debouncedSave = setTimeout(() => {
-            if (form.formState.isDirty) {
-                console.log("Auto-saving report data...", watchedValues);
+    const handleAutoSave = () => {
+        // Trigger validation to make sure we don't save invalid data
+        form.trigger().then(isValid => {
+            // Only save if the form is dirty and valid
+            if (form.formState.isDirty && isValid) {
+                const currentValues = form.getValues();
+                console.log("Auto-saving on blur...", currentValues);
                 toast({
                     title: "Auto-saved",
-                    description: "Your report progress has been saved automatically.",
+                    description: "Your changes have been saved.",
                 });
+                // Reset the form state to the new values, marking them as "not dirty"
+                form.reset(currentValues);
             }
-        }, 2000); 
-
-        return () => clearTimeout(debouncedSave);
-    }, [watchedValues, form.formState.isDirty, toast]);
+        });
+    };
 
     React.useEffect(() => {
+        // Set the initial value of the editor once it's created on the client
         if (editorState) {
             form.setValue('summary', editorState, { shouldValidate: true, shouldDirty: true });
         }
@@ -188,7 +193,7 @@ export default function ReportPage() {
 
                 <Separator className="my-6" />
                 <Form {...form}>
-                <form className="space-y-6">
+                <form onBlur={handleAutoSave} className="space-y-6">
                     <h3 className="text-lg font-semibold border-b pb-2">Equipment & Setup</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="equipmentUsed" render={({ field }) => (
@@ -239,7 +244,7 @@ export default function ReportPage() {
                                 <FormLabel>Summary of Findings</FormLabel>
                                 <FormControl>
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                        {editorState !== undefined && <Editor
+                                        {editorIsMounted && <Editor
                                             editorState={field.value}
                                             onEditorStateChange={field.onChange}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."

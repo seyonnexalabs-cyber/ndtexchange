@@ -134,6 +134,8 @@ export type Client = {
     contactEmail: string;
     activeJobs: number;
     totalSpend: number;
+    logoUrl?: string;
+    brandColor?: string;
 };
 
 export type Review = {
@@ -696,7 +698,7 @@ export const NDTTechniques = [
 ];
 
 export const clientData: Client[] = [
-    { id: 'client-01', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000 },
+    { id: 'client-01', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
     { id: 'client-02', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
     { id: 'client-03', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
     { id: 'client-04', name: 'State Department of Transportation', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },

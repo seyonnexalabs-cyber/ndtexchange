@@ -3,6 +3,7 @@ export type NDTServiceProvider = {
     id: string;
     name: string;
     logoUrl?: string;
+    brandColor?: string;
     location: string;
     rating: number;
     techniques: string[];
@@ -38,6 +39,8 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-03',
         name: 'TEAM, Inc.',
+        logoUrl: 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM',
+        brandColor: '#FF6600',
         contactPerson: 'Maria Garcia',
         contactEmail: 'maria.garcia@teaminc.com',
         location: 'Sugar Land, TX, USA (Global)',

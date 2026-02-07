@@ -14,11 +14,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type UserType = 'client' | 'inspector' | 'auditor';
-type InspectorPlan = 'operations' | 'marketplace';
 
 export default function LoginPage() {
   const [userType, setUserType] = useState<UserType>('client');
-  const [inspectorPlan, setInspectorPlan] = useState<InspectorPlan>('marketplace');
   const router = useRouter();
   const isMobile = useIsMobile();
 
@@ -32,7 +30,9 @@ export default function LoginPage() {
     const params = new URLSearchParams();
     params.set('role', userType);
     if (userType === 'inspector') {
-      params.set('plan', inspectorPlan);
+      // For the prototype, we default to the marketplace plan.
+      // In a real app, this would be determined by the user's subscription data.
+      params.set('plan', 'marketplace');
     }
     router.push(`/dashboard?${params.toString()}`);
   };
@@ -101,32 +101,6 @@ export default function LoginPage() {
                   </div>
               </RadioGroup>
             </div>
-
-            {userType === 'inspector' && (
-                <div className="grid gap-2 animate-in fade-in-0 duration-300">
-                    <Label>Select Your Plan</Label>
-                    <RadioGroup
-                        defaultValue={inspectorPlan}
-                        className="grid grid-cols-2 gap-4"
-                        onValueChange={(value: InspectorPlan) => setInspectorPlan(value)}
-                    >
-                        <div>
-                            <RadioGroupItem value="operations" id="operations" className="peer sr-only" />
-                            <Label htmlFor="operations" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-sm h-full cursor-pointer">
-                                <span className="font-bold text-center">Operations Only</span>
-                                <span className="text-xs text-center text-muted-foreground mt-2">Manage team & equipment</span>
-                            </Label>
-                        </div>
-                        <div>
-                            <RadioGroupItem value="marketplace" id="marketplace" className="peer sr-only" />
-                            <Label htmlFor="marketplace" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-sm h-full cursor-pointer">
-                                <span className="font-bold text-center">Marketplace Access</span>
-                                <span className="text-xs text-center text-muted-foreground mt-2">Find & bid on public jobs</span>
-                            </Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-            )}
 
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>

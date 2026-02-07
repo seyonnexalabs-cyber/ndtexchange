@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -444,6 +443,10 @@ const SubscriptionSettings = () => {
 export default function SettingsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
     
     const currentUser = useMemo(() => {
         const details = userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -487,7 +490,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
-          {isSubscriptionActive && <TabsTrigger value="team">Team</TabsTrigger>}
+          <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -550,14 +553,29 @@ export default function SettingsPage() {
                 isReadOnly={role === 'admin'}
             />
         </TabsContent>
-        {isSubscriptionActive && (
-          <TabsContent value="team">
-              {role === 'admin' ? 
-                  <AdminTeamManagement /> : 
-                  <TeamManagementSettings user={currentUser} />
-              }
+        <TabsContent value="team">
+              {isSubscriptionActive ? (
+                role === 'admin' ? 
+                    <AdminTeamManagement /> : 
+                    <TeamManagementSettings user={currentUser} />
+              ) : (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Team Management</CardTitle>
+                        <CardDescription>Invite colleagues, manage roles, and collaborate with your team.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-center p-8 border-2 border-dashed rounded-lg bg-muted/30">
+                            <p className="text-lg font-semibold">This is a premium feature</p>
+                            <p className="text-muted-foreground mt-2">Upgrade your plan to add colleagues and manage user roles.</p>
+                            <Button asChild className="mt-4">
+                                <Link href={constructUrl("/dashboard/billing")}>View Subscription Plans</Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+              )}
           </TabsContent>
-        )}
         <TabsContent value="subscription">
             <SubscriptionSettings />
         </TabsContent>

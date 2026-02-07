@@ -460,7 +460,7 @@ export default function ContactPage() {
                     <h2 className="text-3xl font-headline font-semibold text-primary">NDT Exchange Marketplace</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Connect clients, inspectors, and vendors through a shared job & data exchange.</p>
                 </div>
-                <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                <div className="max-w-lg mx-auto">
                     <div className="border p-6 rounded-lg">
                         <h3 className="font-semibold text-xl">Job Listings & Bidding</h3>
                         <p className="text-3xl font-bold mt-2">FREE</p>
@@ -470,15 +470,6 @@ export default function ContactPage() {
                             <li>Client shortlisting</li>
                             <li>Award marking</li>
                         </ul>
-                    </div>
-                     <div className="border p-6 rounded-lg">
-                        <h3 className="font-semibold text-xl">Future Monetization (Transparent)</h3>
-                        <p className="text-lg font-bold mt-2">Commission starts post‑pilot</p>
-                        <ul className="mt-4 space-y-2 text-muted-foreground">
-                            <li>2% success fee on awarded jobs (after pilot phase)</li>
-                            <li>Premium access options later</li>
-                        </ul>
-                        <p className="mt-4 text-xs italic text-muted-foreground">No commissions during the pilot phase. We grow only when you grow.</p>
                     </div>
                 </div>
             </div>

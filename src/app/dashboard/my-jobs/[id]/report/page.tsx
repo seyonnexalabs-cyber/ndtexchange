@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -108,8 +109,12 @@ export default function ReportPage() {
     const form = useForm<z.infer<typeof utReportSchema>>({
         resolver: zodResolver(utReportSchema),
         defaultValues: {
+            equipmentUsed: '',
+            calibrationBlock: '',
+            couplant: '',
+            surfaceCondition: undefined,
+            inspectionArea: '',
             findings: [{ location: "", thickness: 0, notes: "" }],
-            summary: undefined
         },
     });
     
@@ -321,7 +326,7 @@ export default function ReportPage() {
                     <DialogHeader>
                         <DialogTitle>Generate PDF</DialogTitle>
                         <DialogDescription>
-                            This will open your browser's print dialog. You can save the current report view as a PDF from there.
+                            This will open your browser's print dialog. Review the content on the page, then use the print dialog to save as a PDF.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

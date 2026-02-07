@@ -27,6 +27,7 @@ export const subscriptionPlans: Plan[] = [
         price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
         description: "For plants, EPCs, and pilot teams.",
         features: [
+            "Post unlimited jobs to marketplace",
             "Asset register (up to 200 assets)",
             "Read‑only access to NDT reports",
             "Vendor‑shared reports",
@@ -125,6 +126,7 @@ export const subscriptionPlans: Plan[] = [
         price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
         description: "For Level-III professionals and auditors.",
         features: [
+            "Access to all assigned audit jobs",
             "Review & approval workflows",
             "Audit comments & traceability",
             "Certification reference access",

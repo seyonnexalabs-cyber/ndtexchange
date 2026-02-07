@@ -453,7 +453,7 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
     'Under Service': 'secondary'
 };
 
-const historyEventIcons = {
+const historyEventIcons: { [key in EquipmentHistory['event']]: React.ReactNode } = {
     'Created': <Info className="h-4 w-4" />,
     'Updated': <Info className="h-4 w-4" />,
     'Checked Out': <Clock className="h-4 w-4" />,
@@ -732,7 +732,7 @@ export default function EquipmentDetailPage() {
                                         <div className="relative pl-6">
                                             <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
                                             {equipment.history && equipment.history.length > 0 ? (
-                                                equipment.history.map((entry, index) => (
+                                                [...equipment.history].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry, index) => (
                                                     <div key={index} className="relative mb-8 pl-8">
                                                         <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
                                                             <div className="text-primary">{historyEventIcons[entry.event]}</div>

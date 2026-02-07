@@ -26,6 +26,7 @@ import dynamic from 'next/dynamic';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import type { EditorProps } from 'react-draft-wysiwyg';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const Editor = dynamic<EditorProps>(
   () => import('react-draft-wysiwyg').then((mod) => mod.Editor),
@@ -84,9 +85,10 @@ export default function ReportPage() {
     // States for auto-save feature
     const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(true);
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
+    const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
     // Editor state
-    const [editorState, setEditorState] = React.useState<EditorState | undefined>(undefined);
+    const [editorState, setEditorState] = React.useState<EditorState>(() => EditorState.createEmpty());
     const [editorIsMounted, setEditorIsMounted] = React.useState(false);
     
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
@@ -110,7 +112,7 @@ export default function ReportPage() {
         resolver: zodResolver(utReportSchema),
         defaultValues: {
             findings: [{ location: "", thickness: 0, notes: "" }],
-            summary: undefined,
+            summary: editorState,
         },
     });
 
@@ -121,7 +123,6 @@ export default function ReportPage() {
     
     React.useEffect(() => {
         setEditorIsMounted(true);
-        setEditorState(EditorState.createEmpty());
     }, []);
 
     React.useEffect(() => {
@@ -145,7 +146,7 @@ export default function ReportPage() {
                 });
 
                 setSaveLog(prevLog => [`Saved at ${timestamp}`, ...prevLog].slice(0, 5));
-                form.reset(currentValues);
+                form.reset(currentValues, { keepValues: true, keepDirty: false, keepDefaultValues: false });
             }
         });
     }, [form, toast]);
@@ -197,7 +198,7 @@ export default function ReportPage() {
                     )}
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2"/> Print/Save as PDF</Button>
+                    <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Generate PDF</Button>
                     <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
                 </div>
             </div>
@@ -277,7 +278,10 @@ export default function ReportPage() {
                                     <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                                         {editorIsMounted && <Editor
                                             editorState={field.value}
-                                            onEditorStateChange={field.onChange}
+                                            onEditorStateChange={(state) => {
+                                                field.onChange(state);
+                                                setEditorState(state);
+                                            }}
                                             placeholder="Provide a detailed summary of the inspection results, including any recommendations."
                                             toolbarClassName="border-b"
                                             wrapperClassName="min-h-[250px] flex flex-col"
@@ -301,6 +305,27 @@ export default function ReportPage() {
                 </form>
                 </Form>
             </Card>
+
+            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Generate Report PDF</DialogTitle>
+                        <DialogDescription>
+                            This will open your browser's print dialog. You can save the report as a PDF from there. The generated file will reflect the current, on-screen content.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsPreviewOpen(false)}>Cancel</Button>
+                        <Button onClick={() => {
+                            window.print();
+                            setIsPreviewOpen(false);
+                        }}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Proceed to Print
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

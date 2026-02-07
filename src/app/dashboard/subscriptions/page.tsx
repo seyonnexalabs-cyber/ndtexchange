@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobs, subscriptions as initialSubscriptions, Subscription, clientData, payments, Payment } from "@/lib/placeholder-data";
+import { jobs, subscriptions as initialSubscriptions, Subscription, clientData, payments as allPayments, Payment } from "@/lib/placeholder-data";
 import { serviceProviders } from '@/lib/service-providers-data';
 import { auditFirms } from '@/lib/auditors-data';
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +17,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +28,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 
 const subscriptionSchema = z.object({
   id: z.string().optional(),
@@ -38,8 +40,8 @@ const subscriptionSchema = z.object({
   status: z.enum(['Active', 'Trialing', 'Past Due', 'Canceled', 'Payment Failed']),
   startDate: z.date(),
   endDate: z.date().optional(),
-  userCount: z.coerce.number().min(0),
-  dataUsageGB: z.coerce.number().min(0),
+  userLimit: z.coerce.number().min(1, "User limit must be at least 1."),
+  dataLimitGB: z.coerce.number().min(1, "Data limit must be at least 1 GB."),
 });
 
 type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
@@ -155,10 +157,10 @@ const SubscriptionForm = ({
                 <div className="grid grid-cols-2 gap-4">
                      <FormField
                         control={form.control}
-                        name="userCount"
+                        name="userLimit"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>User Count</FormLabel>
+                                <FormLabel>User Limit</FormLabel>
                                 <FormControl><Input type="number" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -166,10 +168,10 @@ const SubscriptionForm = ({
                     />
                      <FormField
                         control={form.control}
-                        name="dataUsageGB"
+                        name="dataLimitGB"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Data Usage (GB)</FormLabel>
+                                <FormLabel>Data Limit (GB)</FormLabel>
                                 <FormControl><Input type="number" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -193,20 +195,6 @@ const subscriptionStatusStyles: { [key in Subscription['status']]: 'success' | '
 const paymentStatusStyles: { [key in Payment['status']]: 'success' | 'destructive' } = {
     Succeeded: 'success',
     Failed: 'destructive',
-};
-
-const planUserLimits: {[key: string]: number} = {
-    'Client': 10,
-    'Provider': 50,
-    'Enterprise': 200,
-    'Free Trial': 5,
-};
-
-const planStorageLimits: {[key: string]: number} = {
-    'Client': 20,
-    'Provider': 100,
-    'Enterprise': 500,
-    'Free Trial': 5,
 };
 
 const getContactEmailForSubscription = (subscription: Subscription) => {
@@ -253,9 +241,6 @@ const SubscriptionsDesktopView = ({
             </TableHeader>
             <TableBody>
                 {allSubscriptions.map(sub => {
-                    const userLimit = planUserLimits[sub.plan] || 1;
-                    const storageLimit = planStorageLimits[sub.plan] || 1;
-                    
                     const { link, text, variant } = getMailtoLink(sub);
                     const showContactButton = sub.status !== 'Active' && link !== '#';
 
@@ -280,14 +265,14 @@ const SubscriptionsDesktopView = ({
                             <TableCell className="font-extrabold">{sub.id}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <span>{sub.userCount} / {userLimit}</span>
-                                    <Progress value={(sub.userCount / userLimit) * 100} className="w-20 h-2"/>
+                                    <span>{sub.userCount} / {sub.userLimit}</span>
+                                    <Progress value={(sub.userCount / sub.userLimit) * 100} className="w-20 h-2"/>
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <span>{sub.dataUsageGB} / {storageLimit} GB</span>
-                                    <Progress value={(sub.dataUsageGB / storageLimit) * 100} className="w-20 h-2"/>
+                                    <span>{sub.dataUsageGB} / {sub.dataLimitGB} GB</span>
+                                    <Progress value={(sub.dataUsageGB / sub.dataLimitGB) * 100} className="w-20 h-2"/>
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -334,9 +319,6 @@ const SubscriptionsMobileView = ({
 }) => (
     <div className="space-y-4">
         {allSubscriptions.map(sub => {
-            const userLimit = planUserLimits[sub.plan] || 1;
-            const storageLimit = planStorageLimits[sub.plan] || 1;
-            
             const { link, text, variant } = getMailtoLink(sub);
             const showContactButton = sub.status !== 'Active' && link !== '#';
 
@@ -367,16 +349,16 @@ const SubscriptionsMobileView = ({
                         <div>
                             <div className="flex justify-between text-sm mb-1">
                                 <span className="text-muted-foreground flex items-center gap-1"><Users className="w-4 h-4" /> Users</span>
-                                <span>{sub.userCount} / {userLimit}</span>
+                                <span>{sub.userCount} / {sub.userLimit}</span>
                             </div>
-                            <Progress value={(sub.userCount / userLimit) * 100} className="h-2"/>
+                            <Progress value={(sub.userCount / sub.userLimit) * 100} className="h-2"/>
                         </div>
                          <div>
                             <div className="flex justify-between text-sm mb-1">
                                 <span className="text-muted-foreground flex items-center gap-1"><Database className="w-4 h-4" /> Data</span>
-                                <span>{sub.dataUsageGB} / {storageLimit} GB</span>
+                                <span>{sub.dataUsageGB} / {sub.dataLimitGB} GB</span>
                             </div>
-                            <Progress value={(sub.dataUsageGB / storageLimit) * 100} className="h-2"/>
+                            <Progress value={(sub.dataUsageGB / sub.dataLimitGB) * 100} className="h-2"/>
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
@@ -421,7 +403,7 @@ const PaymentHistoryDesktopView = () => (
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {payments.map(payment => (
+                {allPayments.map(payment => (
                     <TableRow key={payment.id}>
                         <TableCell>{format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</TableCell>
                         <TableCell className="font-medium">{payment.companyName}</TableCell>
@@ -430,7 +412,7 @@ const PaymentHistoryDesktopView = () => (
                         <TableCell className="font-extrabold text-xs">{payment.subscriptionId}</TableCell>
                     </TableRow>
                 ))}
-                 {payments.length === 0 && (
+                 {allPayments.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center">
                             No payment history found.
@@ -444,7 +426,7 @@ const PaymentHistoryDesktopView = () => (
 
 const PaymentHistoryMobileView = () => (
     <div className="space-y-4">
-        {payments.map(payment => (
+        {allPayments.map(payment => (
             <Card key={payment.id}>
                 <CardHeader>
                     <div className="flex justify-between items-start">
@@ -458,7 +440,7 @@ const PaymentHistoryMobileView = () => (
                 </CardContent>
             </Card>
         ))}
-         {payments.length === 0 && (
+         {allPayments.length === 0 && (
             <div className="text-center p-10 text-muted-foreground">
                 No payment history found.
             </div>
@@ -506,16 +488,32 @@ export default function SubscriptionsPage() {
         
         if (editingSubscription) {
             // Update existing subscription
-            setSubscriptions(prev => prev.map(s => s.id === editingSubscription.id ? { ...s, ...values, companyName: company?.name || s.companyName, startDate: format(values.startDate, 'yyyy-MM-dd'), endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined } : s));
+            setSubscriptions(prev => prev.map(s => 
+                s.id === editingSubscription.id 
+                    ? { 
+                        ...s,
+                        ...values,
+                        companyName: company?.name || s.companyName, 
+                        startDate: format(values.startDate, 'yyyy-MM-dd'), 
+                        endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined 
+                      } 
+                    : s
+            ));
             toast({ title: "Subscription Updated", description: `The subscription for ${company?.name} has been updated.` });
         } else {
             // Create new subscription
             const newSubscription: Subscription = {
-                ...values,
                 id: `SUB-${Date.now()}`,
+                companyId: values.companyId,
                 companyName: company?.name || 'Unknown Company',
+                plan: values.plan,
+                status: values.status,
                 startDate: format(values.startDate, 'yyyy-MM-dd'),
                 endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined,
+                userCount: 0,
+                dataUsageGB: 0,
+                userLimit: values.userLimit,
+                dataLimitGB: values.dataLimitGB,
             };
             setSubscriptions(prev => [newSubscription, ...prev]);
             toast({ title: "Subscription Created", description: `A new subscription has been created for ${company?.name}.` });
@@ -659,25 +657,27 @@ export default function SubscriptionsPage() {
                 </TabsContent>
             </Tabs>
             
-            <Dialog open={isFormOpen} onOpenChange={(open) => !open && closeDialog()}>
-                <DialogContent>
-                    <DialogHeader>
+            <Dialog open={isFormOpen} onOpenChange={closeDialog}>
+                <DialogContent className="flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>{editingSubscription ? 'Edit Subscription' : 'Create New Subscription'}</DialogTitle>
                         <DialogDescription>
                             {editingSubscription ? `Editing subscription for ${editingSubscription.companyName}.` : 'Create a new subscription plan for a company.'}
                         </DialogDescription>
                     </DialogHeader>
-                    <SubscriptionForm
-                        formId="subscription-form"
-                        onSubmit={handleFormSubmit}
-                        defaultValues={editingSubscription ? {
-                            ...editingSubscription,
-                            startDate: new Date(editingSubscription.startDate),
-                            endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
-                        } : { startDate: new Date(), userCount: 1, dataUsageGB: 0 }}
-                        isEditing={!!editingSubscription}
-                    />
-                     <DialogFooter>
+                     <div className="flex-grow overflow-y-auto px-6">
+                        <SubscriptionForm
+                            formId="subscription-form"
+                            onSubmit={handleFormSubmit}
+                            defaultValues={editingSubscription ? {
+                                ...editingSubscription,
+                                startDate: new Date(editingSubscription.startDate),
+                                endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
+                            } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5 }}
+                            isEditing={!!editingSubscription}
+                        />
+                     </div>
+                     <DialogFooter className="p-6 pt-4 border-t">
                         <Button variant="ghost" onClick={closeDialog}>Cancel</Button>
                         <Button type="submit" form="subscription-form">Save Changes</Button>
                     </DialogFooter>

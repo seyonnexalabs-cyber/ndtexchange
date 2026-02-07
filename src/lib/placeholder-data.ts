@@ -170,7 +170,9 @@ export type Subscription = {
   startDate: string;
   endDate?: string;
   userCount: number;
-  dataUsageGB: number; // in GB
+  dataUsageGB: number;
+  userLimit: number;
+  dataLimitGB: number;
 };
 
 export type Payment = {
@@ -747,20 +749,20 @@ export const allUsers: PlatformUser[] = [
 ];
 
 export const subscriptions: Subscription[] = [
-    { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Enterprise', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2 },
-    { id: 'SUB-002', companyId: 'client-02', companyName: 'Marine Tankers Ltd.', plan: 'Client', status: 'Trialing', startDate: '2024-07-05', endDate: '2024-08-04', userCount: 5, dataUsageGB: 2.1 },
-    { id: 'SUB-003', companyId: 'provider-01', companyName: 'MISTRAS Group', plan: 'Provider', status: 'Active', startDate: '2024-03-20', userCount: 50, dataUsageGB: 45.8 },
-    { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5 },
-    { id: 'SUB-005', companyId: 'client-03', companyName: 'Energy Transfer', plan: 'Client', status: 'Canceled', startDate: '2024-02-01', endDate: '2024-05-01', userCount: 10, dataUsageGB: 8.7 },
-    { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Provider', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1 },
-    { id: 'SUB-007', companyId: 'client-04', companyName: 'State DOT', plan: 'Client', status: 'Payment Failed', startDate: '2024-04-15', userCount: 8, dataUsageGB: 12.3 },
-    { id: 'SUB-008', companyId: 'auditor-01', companyName: 'NDT Auditors LLC', plan: 'Enterprise', status: 'Active', startDate: '2024-01-01', userCount: 2, dataUsageGB: 1.5 },
-    { id: 'SUB-009', companyId: 'client-05', companyName: 'Chemical Plant C', plan: 'Client', status: 'Active', startDate: '2024-07-10', userCount: 3, dataUsageGB: 0.5 },
-    { id: 'SUB-010', companyId: 'provider-09', companyName: 'Blue Horizon Services', plan: 'Provider', status: 'Active', startDate: '2024-07-20', userCount: 12, dataUsageGB: 4.5 },
-    { id: 'SUB-011', companyId: 'client-08', companyName: 'Manufacturing Solutions Inc.', plan: 'Trialing', startDate: '2024-07-15', endDate: '2024-08-14', userCount: 2, dataUsageGB: 0.8 },
-    { id: 'SUB-012', companyId: 'client-09', companyName: 'Aviation Maintenance Pros', plan: 'Enterprise', status: 'Active', startDate: '2024-07-25', userCount: 1, dataUsageGB: 0.1 },
-    { id: 'SUB-013', companyId: 'provider-11', companyName: 'SGS', plan: 'Provider', status: 'Active', startDate: '2024-07-26', userCount: 2, dataUsageGB: 0.3 },
-    { id: 'SUB-014', companyId: 'provider-12', companyName: 'DNV (Det Norske Veritas)', plan: 'Enterprise', status: 'Active', startDate: '2024-06-10', userCount: 1, dataUsageGB: 2.5 },
+    { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Enterprise', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 500 },
+    { id: 'SUB-002', companyId: 'client-02', companyName: 'Marine Tankers Ltd.', plan: 'Client', status: 'Trialing', startDate: '2024-07-05', endDate: '2024-08-04', userCount: 5, dataUsageGB: 2.1, userLimit: 10, dataLimitGB: 20 },
+    { id: 'SUB-003', companyId: 'provider-01', companyName: 'MISTRAS Group', plan: 'Provider', status: 'Active', startDate: '2024-03-20', userCount: 50, dataUsageGB: 45.8, userLimit: 50, dataLimitGB: 100 },
+    { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Provider', status: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5, userLimit: 50, dataLimitGB: 100 },
+    { id: 'SUB-005', companyId: 'client-03', companyName: 'Energy Transfer', plan: 'Client', status: 'Canceled', startDate: '2024-02-01', endDate: '2024-05-01', userCount: 10, dataUsageGB: 8.7, userLimit: 10, dataLimitGB: 20 },
+    { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Provider', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1, userLimit: 150, dataLimitGB: 100 },
+    { id: 'SUB-007', companyId: 'client-04', companyName: 'State DOT', plan: 'Client', status: 'Payment Failed', startDate: '2024-04-15', userCount: 8, dataUsageGB: 12.3, userLimit: 10, dataLimitGB: 20 },
+    { id: 'SUB-008', companyId: 'auditor-01', companyName: 'NDT Auditors LLC', plan: 'Enterprise', status: 'Active', startDate: '2024-01-01', userCount: 2, dataUsageGB: 1.5, userLimit: 200, dataLimitGB: 500 },
+    { id: 'SUB-009', companyId: 'client-05', companyName: 'Chemical Plant C', plan: 'Client', status: 'Active', startDate: '2024-07-10', userCount: 3, dataUsageGB: 0.5, userLimit: 10, dataLimitGB: 20 },
+    { id: 'SUB-010', companyId: 'provider-09', companyName: 'Blue Horizon Services', plan: 'Provider', status: 'Active', startDate: '2024-07-20', userCount: 12, dataUsageGB: 4.5, userLimit: 50, dataLimitGB: 100 },
+    { id: 'SUB-011', companyId: 'client-08', companyName: 'Manufacturing Solutions Inc.', plan: 'Trialing', startDate: '2024-07-15', endDate: '2024-08-14', userCount: 2, dataUsageGB: 0.8, userLimit: 5, dataLimitGB: 5 },
+    { id: 'SUB-012', companyId: 'client-09', companyName: 'Aviation Maintenance Pros', plan: 'Enterprise', status: 'Active', startDate: '2024-07-25', userCount: 1, dataUsageGB: 0.1, userLimit: 200, dataLimitGB: 500 },
+    { id: 'SUB-013', companyId: 'provider-11', companyName: 'SGS', plan: 'Provider', status: 'Active', startDate: '2024-07-26', userCount: 2, dataUsageGB: 0.3, userLimit: 50, dataLimitGB: 100 },
+    { id: 'SUB-014', companyId: 'provider-12', companyName: 'DNV (Det Norske Veritas)', plan: 'Enterprise', status: 'Active', startDate: '2024-06-10', userCount: 1, dataUsageGB: 2.5, userLimit: 200, dataLimitGB: 500 },
 ];
 
 export const payments: Payment[] = [

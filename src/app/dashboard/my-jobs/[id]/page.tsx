@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -26,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { format, parseISO } from 'date-fns';
@@ -1283,5 +1282,4 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-
     

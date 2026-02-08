@@ -18,7 +18,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Noto Sans', 'sans-serif'],
+        body: ['Noto Serif', 'serif'],
         headline: ['Noto Sans', 'sans-serif'],
       },
       colors: {

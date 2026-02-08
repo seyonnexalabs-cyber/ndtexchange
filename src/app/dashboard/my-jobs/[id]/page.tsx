@@ -894,8 +894,17 @@ export default function JobDetailPage() {
                                                             <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
                                                         )}
                                                     </div>
-                                                    {report && (
+                                                    {report ? (
                                                         <Button variant="outline" size="sm" onClick={() => setViewingReport(report)}>View Report</Button>
+                                                    ) : (
+                                                        isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
+                                                            <Button asChild size="sm">
+                                                                <Link href={constructUrl(`/dashboard/my-jobs/${jobDetails.id}/report`)}>
+                                                                    <FileUp className="mr-2 h-4 w-4" />
+                                                                    Generate Report
+                                                                </Link>
+                                                            </Button>
+                                                        )
                                                     )}
                                                 </CardHeader>
                                             </Card>

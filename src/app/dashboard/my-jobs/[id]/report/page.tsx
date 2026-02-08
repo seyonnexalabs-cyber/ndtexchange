@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, serviceProviders, subscriptionPlans, subscriptions } from '@/lib/placeholder-data';
+import { jobs, clientData, subscriptionPlans, subscriptions } from '@/lib/placeholder-data';
+import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -107,6 +108,26 @@ export default function ReportPage() {
         defaultValues: {
             summary: '',
             findings: [{ location: "", thickness: 0, notes: "" }],
+            equipmentUsed: '',
+            calibrationBlock: '',
+            couplant: '',
+            surfaceCondition: '',
+            inspectionArea: '',
+            equipment: '',
+            media: '',
+            fieldStrength: '',
+            lighting: '',
+            penetrant: '',
+            remover: '',
+            developer: '',
+            dwellTime: '',
+            source: '',
+            voltage: '',
+            exposure: '',
+            filmType: '',
+            frequency: '',
+            instrument: '',
+            probe: '',
         },
     });
 
@@ -149,9 +170,6 @@ export default function ReportPage() {
         if (saveLog.length > 0) {
             return saveLog[0];
         }
-        if (isAutoSaveEnabled) {
-            return 'Your work will be saved automatically.';
-        }
         return 'Auto-save is off. Remember to save your draft.';
     };
 
@@ -178,7 +196,7 @@ export default function ReportPage() {
                         )}
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Print</Button>
+                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Generate PDF</Button>
                         <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
                     </div>
                 </div>

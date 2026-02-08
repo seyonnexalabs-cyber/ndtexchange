@@ -130,7 +130,7 @@ const ScheduleJobForm = ({ onSubmit, onCancel, defaultValues }: { onSubmit: (val
     )
 };
 
-const InspectorActions = ({ status, onScheduleClick, onReportClick, reportSubmitted }: { status: Job['status'], onScheduleClick: () => void, onReportClick: () => void, reportSubmitted: boolean }) => {
+const InspectorActions = ({ status, onScheduleClick }: { status: Job['status'], onScheduleClick: () => void }) => {
     if (status === 'Assigned') {
         return (
             <Card>
@@ -147,22 +147,6 @@ const InspectorActions = ({ status, onScheduleClick, onReportClick, reportSubmit
             </Card>
         )
     }
-    if (status === 'In Progress' || status === 'Scheduled' || status === 'Revisions Requested') {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><FileUp className="h-5 w-5 text-primary" /> Next Step: Submit Report</CardTitle>
-                    <CardDescription>{status === 'Revisions Requested' ? 'Please address the requested revisions and resubmit your report.' : 'Once the inspection is complete, submit your digital report.'}</CardDescription>
-                </CardHeader>
-                <CardFooter>
-                    <Button onClick={onReportClick} disabled={reportSubmitted}>
-                         {reportSubmitted ? <><CheckCircle className="mr-2"/>Report Submitted</> : (status === 'Revisions Requested' ? 'Resubmit Report' : 'Generate Digital Report')}
-                    </Button>
-                </CardFooter>
-            </Card>
-        )
-    }
-
     return null;
 }
 
@@ -834,10 +818,6 @@ export default function JobDetailPage() {
                             <InspectorActions 
                                 status={jobDetails.status} 
                                 onScheduleClick={() => setIsSchedulingOpen(true)}
-                                onReportClick={() => {
-                                    router.push(constructUrl(`/dashboard/my-jobs/${jobDetails.id}/report`));
-                                }}
-                                reportSubmitted={reportSubmitted && jobDetails.status !== 'Revisions Requested'}
                             />
                         )}
 

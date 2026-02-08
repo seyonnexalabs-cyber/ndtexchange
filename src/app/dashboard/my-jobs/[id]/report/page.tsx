@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -5,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, subscriptions } from '@/lib/placeholder-data';
+import { jobs, clientData, subscriptions, NDTTechniques } from '@/lib/placeholder-data';
 import { subscriptionPlans } from '@/lib/subscription-plans';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Save } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -21,13 +22,14 @@ import Link from 'next/link';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReportGenerator from '../../components/report-generator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const reportSchema = z.object({
   // Generic fields for all reports
   summary: z.string().min(10, "Summary must be at least 10 characters."),
 
   // Optional fields for different templates. 
-  // This allows one schema to work for all forms for now.
   equipmentUsed: z.string().optional(),
   calibrationBlock: z.string().optional(),
   couplant: z.string().optional(),
@@ -53,6 +55,16 @@ const reportSchema = z.object({
   frequency: z.string().optional(),
   instrument: z.string().optional(),
   probe: z.string().optional(),
+  // Acoustic templates
+  sensorLayout: z.string().optional(),
+  threshold: z.string().optional(),
+  preamplifierGain: z.string().optional(),
+  ringSpacing: z.string().optional(),
+  frequencyRange: z.string().optional(),
+  deadZone: z.string().optional(),
+  transducerType: z.string().optional(),
+  pulseWidth: z.string().optional(),
+  samplingRate: z.string().optional(),
 });
 
 
@@ -93,6 +105,7 @@ export default function ReportPage() {
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
+    const [devTemplate, setDevTemplate] = React.useState<string>(job?.technique || '');
     
     const subscription = React.useMemo(() => {
         if (!provider) return null;
@@ -101,7 +114,7 @@ export default function ReportPage() {
 
     const plan = React.useMemo(() => {
         if (!subscription) return null;
-        return subscriptionPlans.find(p => p.name === subscription.plan);
+        return initialPlans.find(p => p.name === subscription.plan);
     }, [subscription]);
     
     const form = useForm<z.infer<typeof reportSchema>>({
@@ -207,6 +220,22 @@ export default function ReportPage() {
                 {lastSavedMessage()}
             </div>
             
+            {process.env.NODE_ENV === 'development' && (
+                <Alert className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Developer Controls</AlertTitle>
+                    <AlertDescription className="flex items-center gap-4 mt-2">
+                        <Label>Override Template:</Label>
+                         <Select value={devTemplate} onValueChange={setDevTemplate}>
+                            <SelectTrigger className="w-[240px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {NDTTechniques.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             <Card className="max-w-4xl mx-auto p-8 printable-area">
                  <div className="watermark-container">
                     <p className="watermark-text">NDT Exchange</p>
@@ -223,7 +252,7 @@ export default function ReportPage() {
                 <Separator className="my-6" />
                 <Form {...form}>
                 <form onBlur={isAutoSaveEnabled ? handleSave : undefined}>
-                    <ReportGenerator technique={job.technique} />
+                    <ReportGenerator technique={job.technique} devOverrideTechnique={devTemplate} />
                 </form>
                 </Form>
             </Card>

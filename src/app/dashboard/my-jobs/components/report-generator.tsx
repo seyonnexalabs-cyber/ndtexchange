@@ -1,3 +1,4 @@
+
 'use client';
 import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +14,9 @@ const PTReportTemplate = dynamic(() => import('./report-templates/pt-report'));
 const RTReportTemplate = dynamic(() => import('./report-templates/rt-report'));
 const VTReportTemplate = dynamic(() => import('./report-templates/vt-report'));
 const ETReportTemplate = dynamic(() => import('./report-templates/et-report'));
+const AEReportTemplate = dynamic(() => import('./report-templates/ae-report'));
+const GWTReportTemplate = dynamic(() => import('./report-templates/gwt-report'));
+const APRReportTemplate = dynamic(() => import('./report-templates/apr-report'));
 
 const reportTemplates: { [key: string]: React.ComponentType } = {
     UT: UTReportTemplate,
@@ -26,6 +30,9 @@ const reportTemplates: { [key: string]: React.ComponentType } = {
     VT: VTReportTemplate,
     RVI: VTReportTemplate,
     ET: ETReportTemplate,
+    AE: AEReportTemplate,
+    GWT: GWTReportTemplate,
+    APR: APRReportTemplate,
 };
 
 const DefaultTemplate = () => (
@@ -34,9 +41,13 @@ const DefaultTemplate = () => (
     </p>
 );
 
-const ReportGenerator = ({ technique }: { technique: string }) => {
+const ReportGenerator = ({ technique, devOverrideTechnique }: { technique: string, devOverrideTechnique?: string }) => {
     const { control } = useFormContext();
-    const TemplateComponent = reportTemplates[technique] || DefaultTemplate;
+    
+    // In dev mode, allow override. Otherwise, strictly use job's technique.
+    const activeTechnique = process.env.NODE_ENV === 'development' && devOverrideTechnique ? devOverrideTechnique : technique;
+
+    const TemplateComponent = reportTemplates[activeTechnique] || DefaultTemplate;
     
     return (
         <div className="space-y-6">

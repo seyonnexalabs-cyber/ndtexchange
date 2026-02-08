@@ -1,45 +1,60 @@
 'use client';
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, allUsers, Job, subscriptions } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
-import { subscriptionPlans } from '@/lib/subscription-plans';
+import { jobs, clientData, serviceProviders, subscriptionPlans, subscriptions } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Trash2, Save } from 'lucide-react';
+import { Form } from '@/components/ui/form';
+import { ChevronLeft, FileText, Printer, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+import ReportGenerator from '../../components/report-generator';
 
-
-const utReportSchema = z.object({
-  equipmentUsed: z.string().min(1, "Equipment is required."),
-  calibrationBlock: z.string().min(1, "Calibration block is required."),
-  couplant: z.string().min(1, "Couplant is required."),
-  surfaceCondition: z.string().min(1, "Surface condition is required."),
-  inspectionArea: z.string().min(1, "Inspection area is required."),
-  findings: z.array(z.object({
-    location: z.string().min(1, "Location is required."),
-    thickness: z.coerce.number().positive("Thickness must be a positive number."),
-    notes: z.string().optional(),
-  })),
+const reportSchema = z.object({
+  // Generic fields for all reports
   summary: z.string().min(10, "Summary must be at least 10 characters."),
+
+  // Optional fields for different templates. 
+  // This allows one schema to work for all forms for now.
+  equipmentUsed: z.string().optional(),
+  calibrationBlock: z.string().optional(),
+  couplant: z.string().optional(),
+  surfaceCondition: z.string().optional(),
+  inspectionArea: z.string().optional(),
+  findings: z.array(z.object({
+    location: z.string(),
+    thickness: z.coerce.number(),
+    notes: z.string().optional(),
+  })).optional(),
+  equipment: z.string().optional(),
+  media: z.string().optional(),
+  fieldStrength: z.string().optional(),
+  lighting: z.string().optional(),
+  penetrant: z.string().optional(),
+  remover: z.string().optional(),
+  developer: z.string().optional(),
+  dwellTime: z.string().optional(),
+  source: z.string().optional(),
+  voltage: z.string().optional(),
+  exposure: z.string().optional(),
+  filmType: z.string().optional(),
+  frequency: z.string().optional(),
+  instrument: z.string().optional(),
+  probe: z.string().optional(),
 });
 
-const ReportHeader = ({ job, client, provider, plan }: { job: Job, client?: any, provider?: any, plan?: any }) => {
+
+const ReportHeader = ({ job, client, provider, plan }: { job: any, client?: any, provider?: any, plan?: any }) => {
     let logoUrl = 'https://placehold.co/150x50/111827/FFFFFF/png?text=NDT+Exchange';
     let brandColor = '#4A6572'; // Default primary color
 
@@ -55,8 +70,8 @@ const ReportHeader = ({ job, client, provider, plan }: { job: Job, client?: any,
         <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
             {logoUrl && <Image src={logoUrl} alt="Company Logo" width={150} height={50} className="object-contain" />}
             <div className="text-right">
-                <h2 className="text-2xl font-bold" style={{ color: brandColor }}>ULTRASONIC TEST REPORT</h2>
-                <p className="text-sm font-semibold">Report #: {job.id}-UT-001</p>
+                <h2 className="text-2xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
+                <p className="text-sm font-semibold">Report #: {job.id}-REP-001</p>
             </div>
         </div>
     );
@@ -69,7 +84,6 @@ export default function ReportPage() {
     const { toast } = useToast();
     const id = params.id as string;
     
-    // States for auto-save feature
     const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(false);
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
@@ -88,26 +102,14 @@ export default function ReportPage() {
         return subscriptionPlans.find(p => p.name === subscription.plan);
     }, [subscription]);
     
-    const assignedTechnicians = React.useMemo(() => allUsers.filter(u => job?.technicianIds?.includes(u.id)), [job]);
-
-    const form = useForm<z.infer<typeof utReportSchema>>({
-        resolver: zodResolver(utReportSchema),
+    const form = useForm<z.infer<typeof reportSchema>>({
+        resolver: zodResolver(reportSchema),
         defaultValues: {
-            equipmentUsed: '',
-            calibrationBlock: '',
-            couplant: '',
-            surfaceCondition: '',
-            inspectionArea: '',
-            findings: [{ location: "", thickness: 0, notes: "" }],
             summary: '',
+            findings: [{ location: "", thickness: 0, notes: "" }],
         },
     });
-    
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: "findings",
-    });
-    
+
     const handleSave = React.useCallback(() => {
         if (form.formState.isDirty) {
             const currentValues = form.getValues();
@@ -134,11 +136,11 @@ export default function ReportPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const onSubmit = (values: z.infer<typeof utReportSchema>) => {
+    const onSubmit = (values: z.infer<typeof reportSchema>) => {
         console.log("Report Submitted", values);
         toast({
             title: "Report Submitted Successfully",
-            description: `The UT report for job ${job.id} has been submitted for review.`,
+            description: `The report for job ${job.id} has been submitted for review.`,
         });
         router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
     };
@@ -187,7 +189,7 @@ export default function ReportPage() {
             </div>
             
             <Card className="max-w-4xl mx-auto p-8 printable-area">
-                <div className="watermark-container">
+                 <div className="watermark-container">
                     <p className="watermark-text">NDT Exchange</p>
                 </div>
                 <ReportHeader job={job} client={client} provider={provider} plan={plan} />
@@ -197,72 +199,12 @@ export default function ReportPage() {
                     <div><span className="font-semibold">Service Provider:</span> {provider?.name}</div>
                     <div><span className="font-semibold">Job Location:</span> {job.location}</div>
                     <div><span className="font-semibold">Inspection Date:</span> {format(new Date(job.scheduledStartDate || Date.now()), GLOBAL_DATE_FORMAT)}</div>
-                    <div><span className="font-semibold">Asset(s):</span> {job.assetIds?.join(', ')}</div>
-                    <div><span className="font-semibold">Inspector(s):</span> {assignedTechnicians.map(t => t.name).join(', ')}</div>
                 </div>
 
                 <Separator className="my-6" />
                 <Form {...form}>
-                <form onBlur={isAutoSaveEnabled ? handleSave : undefined} className="space-y-6">
-                    <h3 className="text-lg font-semibold border-b pb-2">Equipment & Setup</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="equipmentUsed" render={({ field }) => (
-                            <FormItem><FormLabel>UT Instrument & Probes</FormLabel><FormControl><Input placeholder="e.g., Olympus 45MG, M110-RM probe" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={form.control} name="calibrationBlock" render={({ field }) => (
-                            <FormItem><FormLabel>Calibration Block</FormLabel><FormControl><Input placeholder="e.g., IIW Type 1 Block, S/N: CB-54321" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={form.control} name="couplant" render={({ field }) => (
-                            <FormItem><FormLabel>Couplant</FormLabel><FormControl><Input placeholder="e.g., Sonotech Ultragel II" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                         <FormField control={form.control} name="surfaceCondition" render={({ field }) => (
-                            <FormItem><FormLabel>Surface Condition</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select surface condition..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="As-is">As-is</SelectItem><SelectItem value="Cleaned">Cleaned</SelectItem><SelectItem value="Ground">Ground</SelectItem></SelectContent></Select><FormMessage /></FormItem>
-                        )}/>
-                    </div>
-
-                    <Separator className="my-6" />
-                    <h3 className="text-lg font-semibold border-b pb-2">Inspection Findings</h3>
-                     <FormField control={form.control} name="inspectionArea" render={({ field }) => (
-                        <FormItem><FormLabel>General Area of Inspection</FormLabel><FormControl><Input placeholder="e.g., Vessel Shell Course 3, West Side" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    
-                    <div className="space-y-4">
-                        {fields.map((field, index) => (
-                            <div key={field.id} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-4 items-end border p-4 rounded-lg">
-                                <FormField control={form.control} name={`findings.${index}.location`} render={({ field }) => (
-                                    <FormItem><FormLabel>Measurement Location</FormLabel><FormControl><Input placeholder={`e.g., TML-${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={form.control} name={`findings.${index}.thickness`} render={({ field }) => (
-                                    <FormItem><FormLabel>Thickness (mm)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={form.control} name={`findings.${index}.notes`} render={({ field }) => (
-                                    <FormItem><FormLabel>Notes</FormLabel><FormControl><Input placeholder="Optional notes" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}><Trash2 /></Button>
-                            </div>
-                        ))}
-                         <Button type="button" variant="outline" size="sm" onClick={() => append({ location: "", thickness: 0, notes: "" })}>Add Measurement</Button>
-                    </div>
-
-                     <Separator className="my-6" />
-                    <h3 className="text-lg font-semibold border-b pb-2">Summary & Conclusion</h3>
-                     <FormField
-                        control={form.control}
-                        name="summary"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Summary of Findings</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder="Provide a detailed summary of the inspection results, including any recommendations."
-                                        className="min-h-[250px]"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                <form onBlur={isAutoSaveEnabled ? handleSave : undefined}>
+                    <ReportGenerator technique={job.technique} />
                 </form>
                 </Form>
             </Card>

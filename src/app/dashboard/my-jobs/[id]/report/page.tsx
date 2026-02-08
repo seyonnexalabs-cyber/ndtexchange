@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -6,8 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, subscriptions, NDTTechniques } from '@/lib/placeholder-data';
-import { subscriptionPlans as initialPlans } from '@/lib/subscription-plans';
+import { jobs, clientData, subscriptionPlans as initialPlans } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,12 +22,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NDTTechniques } from '@/lib/placeholder-data';
 
 const reportSchema = z.object({
   // Generic fields for all reports
   summary: z.string().min(10, "Summary must be at least 10 characters."),
 
-  // Optional fields for different templates. 
+  // Optional fields for different templates.
+  // UT
   equipmentUsed: z.string().optional(),
   calibrationBlock: z.string().optional(),
   couplant: z.string().optional(),
@@ -40,18 +40,22 @@ const reportSchema = z.object({
     thickness: z.coerce.number(),
     notes: z.string().optional(),
   })).optional(),
+  // MT
   equipment: z.string().optional(),
   media: z.string().optional(),
   fieldStrength: z.string().optional(),
   lighting: z.string().optional(),
+  // PT
   penetrant: z.string().optional(),
   remover: z.string().optional(),
   developer: z.string().optional(),
   dwellTime: z.string().optional(),
+  // RT
   source: z.string().optional(),
   voltage: z.string().optional(),
   exposure: z.string().optional(),
   filmType: z.string().optional(),
+  // ET
   frequency: z.string().optional(),
   instrument: z.string().optional(),
   probe: z.string().optional(),
@@ -109,7 +113,7 @@ export default function ReportPage() {
     
     const subscription = React.useMemo(() => {
         if (!provider) return null;
-        return subscriptions.find(s => s.companyId === provider.id);
+        return initialPlans.find(s => s.name === 'Company Growth'); // Simplified for demo
     }, [provider]);
 
     const plan = React.useMemo(() => {
@@ -122,26 +126,13 @@ export default function ReportPage() {
         defaultValues: {
             summary: '',
             findings: [{ location: "", thickness: 0, notes: "" }],
-            equipmentUsed: '',
-            calibrationBlock: '',
-            couplant: '',
-            surfaceCondition: '',
-            inspectionArea: '',
-            equipment: '',
-            media: '',
-            fieldStrength: '',
-            lighting: '',
-            penetrant: '',
-            remover: '',
-            developer: '',
-            dwellTime: '',
-            source: '',
-            voltage: '',
-            exposure: '',
-            filmType: '',
-            frequency: '',
-            instrument: '',
-            probe: '',
+            equipmentUsed: '', calibrationBlock: '', couplant: '', surfaceCondition: '',
+            inspectionArea: '', equipment: '', media: '', fieldStrength: '', lighting: '',
+            penetrant: '', remover: '', developer: '', dwellTime: '', source: '',
+            voltage: '', exposure: '', filmType: '', frequency: '', instrument: '',
+            probe: '', sensorLayout: '', threshold: '', preamplifierGain: '',
+            ringSpacing: '', frequencyRange: '', deadZone: '', transducerType: '',
+            pulseWidth: '', samplingRate: '',
         },
     });
 
@@ -280,5 +271,3 @@ export default function ReportPage() {
         </div>
     );
 }
-
-    

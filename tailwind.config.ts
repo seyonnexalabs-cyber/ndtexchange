@@ -19,7 +19,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Noto Sans', 'sans-serif'],
-        headline: ['Rajdhani', 'sans-serif'],
+        headline: ['Noto Sans', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

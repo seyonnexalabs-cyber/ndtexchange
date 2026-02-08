@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { format, parseISO } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ndtTechniques as allNdtTechniques, JobDocument } from '@/lib/ndt-techniques-data';
+import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -879,7 +879,7 @@ export default function JobDetailPage() {
                                                     ) : (
                                                         isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
                                                             <Button asChild size="sm">
-                                                                <Link href={constructUrl(`/dashboard/my-jobs/${jobDetails.id}/report`)}>
+                                                                <Link href={constructUrl(`/dashboard/my-jobs/${jobDetails.id}/report?inspectionId=${inspection.id}`)}>
                                                                     <FileUp className="mr-2 h-4 w-4" />
                                                                     Generate Report
                                                                 </Link>

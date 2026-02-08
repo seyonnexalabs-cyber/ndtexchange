@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData } from '@/lib/placeholder-data';
+import { jobs, clientData, Inspection } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import Link from 'next/link';
@@ -74,7 +74,7 @@ const reportSchema = z.object({
 });
 
 
-const ReportHeader = ({ job, client, provider, plan }: { job: any, client?: any, provider?: any, plan?: any }) => {
+const ReportHeader = ({ job, client, provider, plan, inspection }: { job: any, client?: any, provider?: any, plan?: any, inspection: Inspection }) => {
     let logoUrl = 'https://placehold.co/150x50/111827/FFFFFF/png?text=NDT+Exchange';
     let brandColor = '#4A6572'; // Default primary color
 
@@ -91,7 +91,7 @@ const ReportHeader = ({ job, client, provider, plan }: { job: any, client?: any,
             {logoUrl && <Image src={logoUrl} alt="Company Logo" width={150} height={50} className="object-contain" />}
             <div className="text-right">
                 <h2 className="text-2xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
-                <p className="text-sm font-semibold">Report #: {job.id}-REP-001</p>
+                <p className="text-sm font-semibold">Report #: {job.id}-REP-{inspection.id}</p>
             </div>
         </div>
     );
@@ -103,6 +103,7 @@ export default function ReportPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const id = params.id as string;
+    const inspectionId = searchParams.get('inspectionId');
     
     const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(false);
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
@@ -112,9 +113,14 @@ export default function ReportPage() {
     const isSubscriptionActive = false;
     
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
+    const inspection = React.useMemo(() => {
+        if (!job || !inspectionId) return null;
+        return job.inspections.find(i => i.id === inspectionId);
+    }, [job, inspectionId]);
+    
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
-    const [devTemplate, setDevTemplate] = React.useState<string>(job?.technique || '');
+    const [devTemplate, setDevTemplate] = React.useState<string>(inspection?.technique || job?.technique || '');
     
     const subscription = React.useMemo(() => {
         if (!provider) return null;
@@ -158,7 +164,7 @@ export default function ReportPage() {
         }
     }, [form, toast]);
     
-    if (!job) {
+    if (!job || !inspection) {
         notFound();
     }
     
@@ -245,20 +251,20 @@ export default function ReportPage() {
                  <div className="watermark-container">
                     <p className="watermark-text">NDT Exchange</p>
                 </div>
-                <ReportHeader job={job} client={client} provider={provider} plan={plan} />
+                <ReportHeader job={job} client={client} provider={provider} plan={plan} inspection={inspection} />
                 
                 <div className="grid grid-cols-2 gap-x-8 gap-y-4 my-6 text-sm">
                     <div><span className="font-semibold">Client:</span> {job.client}</div>
                     <div><span className="font-semibold">Service Provider:</span> {provider?.name}</div>
                     <div><span className="font-semibold">Job Location:</span> {job.location}</div>
-                    <div><span className="font-semibold">Inspection Date:</span> {format(new Date(job.scheduledStartDate || Date.now()), GLOBAL_DATE_FORMAT)}</div>
+                    <div><span className="font-semibold">Inspection Date:</span> {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</div>
                 </div>
 
                 <Separator className="my-6" />
                 <Form {...form}>
                 <fieldset disabled={!isSubscriptionActive}>
                     <form onBlur={isAutoSaveEnabled ? handleSave : undefined}>
-                        <ReportGenerator technique={job.technique} devOverrideTechnique={devTemplate} />
+                        <ReportGenerator technique={inspection.technique} devOverrideTechnique={devTemplate} />
                     </form>
                 </fieldset>
                 </Form>

@@ -108,6 +108,9 @@ export default function ReportPage() {
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     
+    // In a real app, this would come from a user context or subscription check.
+    const isSubscriptionActive = false;
+    
     const job = React.useMemo(() => jobs.find(j => j.id === id), [id]);
     const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
     const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
@@ -182,6 +185,15 @@ export default function ReportPage() {
 
     return (
         <div>
+             {!isSubscriptionActive && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Subscription Inactive</AlertTitle>
+                    <AlertDescription>
+                        Your plan is inactive, so this page is in read-only mode. Please visit settings to manage your subscription.
+                    </AlertDescription>
+                </Alert>
+            )}
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <Button asChild variant="outline" size="sm">
                     <Link href={constructUrl(`/dashboard/my-jobs/${id}`)}>
@@ -192,11 +204,11 @@ export default function ReportPage() {
                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center space-x-2">
-                            <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} />
+                            <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} disabled={!isSubscriptionActive} />
                             <Label htmlFor="autosave-toggle">Auto-save</Label>
                         </div>
                         {!isAutoSaveEnabled && (
-                            <Button variant="outline" onClick={() => handleSave()}>
+                            <Button variant="outline" onClick={() => handleSave()} disabled={!isSubscriptionActive}>
                                 <Save className="mr-2"/>
                                 Save Draft
                             </Button>
@@ -204,7 +216,7 @@ export default function ReportPage() {
                     </div>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Generate PDF</Button>
-                        <Button onClick={form.handleSubmit(onSubmit)}><FileText className="mr-2"/> Submit Report</Button>
+                        <Button onClick={form.handleSubmit(onSubmit)} disabled={!isSubscriptionActive}><FileText className="mr-2"/> Submit Report</Button>
                     </div>
                 </div>
             </div>
@@ -244,9 +256,11 @@ export default function ReportPage() {
 
                 <Separator className="my-6" />
                 <Form {...form}>
-                <form onBlur={isAutoSaveEnabled ? handleSave : undefined}>
-                    <ReportGenerator technique={job.technique} devOverrideTechnique={devTemplate} />
-                </form>
+                <fieldset disabled={!isSubscriptionActive}>
+                    <form onBlur={isAutoSaveEnabled ? handleSave : undefined}>
+                        <ReportGenerator technique={job.technique} devOverrideTechnique={devTemplate} />
+                    </form>
+                </fieldset>
                 </Form>
             </Card>
 

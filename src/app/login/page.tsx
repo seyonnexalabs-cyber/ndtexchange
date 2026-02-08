@@ -96,7 +96,7 @@ export default function LoginPage() {
             <Link href="/" className="flex items-center justify-center gap-2 text-primary">
                 <Hexagons7Icon className="w-8 h-8" />
                 <h1 className="text-3xl font-headline font-bold">
-                    NDT Connect
+                    NDT Exchange
                 </h1>
             </Link>
             <p className="text-muted-foreground">

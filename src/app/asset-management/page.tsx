@@ -14,7 +14,7 @@ import ShutdownPhases from '@/app/components/shutdown-phases';
 
 export const metadata: Metadata = {
   title: 'Total Lifecycle Asset Management for Clients',
-  description: 'Discover a powerful, unified platform to manage the entire lifecycle of your critical assets. Centralize data, track history, and ensure compliance with NDT Connect.',
+  description: 'Discover a powerful, unified platform to manage the entire lifecycle of your critical assets. Centralize data, track history, and ensure compliance with NDT Exchange.',
 };
 
 export default function AssetManagementPage() {
@@ -75,7 +75,7 @@ export default function AssetManagementPage() {
                                 Master Your Shutdown & Turnaround Maintenance
                             </h2>
                             <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                                NDT Connect provides a purpose-built toolkit to support all 5 phases of a successful shutdown, from initial scope definition to post-event evaluation.
+                                NDT Exchange provides a purpose-built toolkit to support all 5 phases of a successful shutdown, from initial scope definition to post-event evaluation.
                             </p>
                         </div>
                         <ShutdownPhases />

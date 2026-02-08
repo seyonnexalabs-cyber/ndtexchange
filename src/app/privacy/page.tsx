@@ -7,7 +7,7 @@ import PublicFooter from '@/app/components/layout/public-footer';
 
 export const metadata: Metadata = {
     title: 'Privacy Policy',
-    description: 'Read the NDT Connect privacy policy to understand how we collect, use, and protect your personal information and data.',
+    description: 'Read the NDT Exchange privacy policy to understand how we collect, use, and protect your personal information and data.',
 };
 
 export default function PrivacyPage() {
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           </h1>
           <div className="space-y-6 text-muted-foreground">
             <p>
-              Your privacy is important to us. It is NDT Connect's policy to respect your privacy regarding any information we may collect from you across our website, and other sites we own and operate.
+              Your privacy is important to us. It is NDT Exchange's policy to respect your privacy regarding any information we may collect from you across our website, and other sites we own and operate.
             </p>
             
             <h2 className="text-2xl font-headline text-foreground pt-4">1. Information We Collect</h2>

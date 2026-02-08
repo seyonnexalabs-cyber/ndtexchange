@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
       <div className="absolute top-8 left-8 flex items-center gap-2 text-primary">
           <Hexagons7Icon className="w-8 h-8" />
           <h1 className="text-2xl font-headline font-bold">
-              NDT Connect
+              NDT Exchange
           </h1>
       </div>
       <Card className="w-full max-w-sm">

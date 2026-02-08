@@ -75,7 +75,7 @@ export default function SignupPage() {
     console.log("New User Signup:", data);
     toast({
       title: "Account Created!",
-      description: "Welcome to NDT Connect. You can now log in.",
+      description: "Welcome to NDT Exchange. You can now log in.",
     });
     router.push(`/login`);
   };
@@ -90,7 +90,7 @@ export default function SignupPage() {
             <Link href="/" className="flex items-center justify-center gap-2 text-primary">
                 <Hexagons7Icon className="w-10 h-10" />
                 <h1 className="text-3xl font-headline font-bold">
-                    NDT Connect
+                    NDT Exchange
                 </h1>
             </Link>
             <p className="text-muted-foreground">Create your account to start your 14-day free trial.</p>

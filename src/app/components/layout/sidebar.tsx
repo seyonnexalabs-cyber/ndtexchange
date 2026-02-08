@@ -49,9 +49,9 @@ import { Hexagons7Icon } from '@/app/components/icons';
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
   inspector: { name: 'Jane Smith', role: 'Level II Inspector', fallback: 'JS', company: 'TEAM, Inc.' },
-  admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT Connect' },
+  admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT Exchange' },
   auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
-  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT Connect' },
+  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT Exchange' },
 };
 
 const clientMenu = [
@@ -303,7 +303,7 @@ const AppSidebar = () => {
         <Link href={constructUrl("/dashboard")} className="flex items-center gap-2">
             <Hexagons7Icon className="w-8 h-8 text-primary" />
             <h1 className="text-xl font-headline font-bold text-card-foreground">
-                NDT Connect
+                NDT Exchange
             </h1>
         </Link>
       </SidebarHeader>

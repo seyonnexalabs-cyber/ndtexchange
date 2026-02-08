@@ -56,7 +56,7 @@ export const Hexagons7Icon = (props: SVGProps<SVGSVGElement>) => (
         <path d="m8.7 13.9 3.3 1.9 3.3-1.9v-3.8L12 8.2l-3.3 1.9Z"/>
 
         {/* Bee */}
-        <g transform="translate(17.5 4.5) scale(0.35) rotate(-15)">
+        <g transform="translate(16, 17) scale(0.35) rotate(-45)">
             <ellipse cx="10" cy="15" rx="5" ry="8" fill="hsl(var(--accent))" stroke="currentColor" strokeWidth="3"/>
             <path d="M8 8 C 4 4, 8 2, 10 7" fill="none" stroke="currentColor" strokeWidth="4"/>
             <path d="M12 8 C 16 4, 12 2, 10 7" fill="none" stroke="currentColor" strokeWidth="4"/>

@@ -300,11 +300,8 @@ const AppSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <Link href={constructUrl("/dashboard")} className="flex items-center gap-2">
-            <Hexagons7Icon className="w-8 h-8 text-primary" />
-            <h1 className="text-xl font-headline font-bold text-card-foreground">
-                NDT Exchange
-            </h1>
+        <Link href={constructUrl("/dashboard")}>
+            <Hexagons7Icon className="h-10 w-auto" />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

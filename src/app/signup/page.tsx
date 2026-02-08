@@ -87,11 +87,8 @@ export default function SignupPage() {
         isMounted && "opacity-100"
       )}>
         <div className="space-y-2 text-center">
-            <Link href="/" className="flex items-center justify-center gap-2 text-primary">
-                <Hexagons7Icon className="w-10 h-10" />
-                <h1 className="text-3xl font-headline font-bold">
-                    NDT Exchange
-                </h1>
+            <Link href="/" className="flex items-center justify-center">
+                <Hexagons7Icon className="h-14 w-auto" />
             </Link>
             <p className="text-muted-foreground">Create your account to start your 14-day free trial.</p>
         </div>

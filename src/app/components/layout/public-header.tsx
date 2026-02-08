@@ -75,9 +75,8 @@ export default function PublicHeader() {
   return (
     <header className="container mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center py-6">
-        <Link href="/" className="flex items-center gap-2 text-2xl font-headline font-bold text-primary">
-          <Hexagons7Icon className="h-8 w-8" />
-          <span>NDT Exchange</span>
+        <Link href="/">
+          <Hexagons7Icon className="h-10 w-auto" />
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {mainNavLinks.map((link) => (
@@ -148,9 +147,8 @@ export default function PublicHeader() {
                 </SheetTrigger>
                 <SheetContent>
                     <SheetHeader>
-                        <SheetTitle className="flex items-center gap-2 text-2xl font-headline text-primary">
-                            <Hexagons7Icon className="h-8 w-8" />
-                            NDT Exchange
+                        <SheetTitle>
+                            <Hexagons7Icon className="h-10 w-auto" />
                         </SheetTitle>
                         <SheetDescription>Navigation Menu</SheetDescription>
                     </SheetHeader>

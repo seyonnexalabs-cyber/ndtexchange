@@ -30,9 +30,8 @@ export default function PublicFooter() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div className="md:col-span-1">
-                        <Link href="/" className="flex items-center gap-2 text-2xl font-headline font-bold">
-                            <Hexagons7Icon className="w-8 h-8" />
-                            NDT Exchange
+                        <Link href="/">
+                            <Hexagons7Icon className="h-10 w-auto" />
                         </Link>
                         <p className="mt-4 text-sm text-primary-foreground/80">
                             The premier marketplace for Non-Destructive Testing services.

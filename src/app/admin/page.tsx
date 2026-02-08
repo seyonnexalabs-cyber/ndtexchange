@@ -43,11 +43,8 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
-      <div className="absolute top-8 left-8 flex items-center gap-2 text-primary">
-          <Hexagons7Icon className="w-8 h-8" />
-          <h1 className="text-2xl font-headline font-bold">
-              NDT Exchange
-          </h1>
+      <div className="absolute top-8 left-8">
+          <Hexagons7Icon className="h-10 w-auto" />
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

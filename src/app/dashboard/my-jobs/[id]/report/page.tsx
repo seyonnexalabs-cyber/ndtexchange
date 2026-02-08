@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { jobs, clientData, subscriptions, NDTTechniques } from '@/lib/placeholder-data';
-import { subscriptionPlans } from '@/lib/subscription-plans';
+import { subscriptionPlans as initialPlans } from '@/lib/subscription-plans';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -77,7 +77,7 @@ const ReportHeader = ({ job, client, provider, plan }: { job: any, client?: any,
         brandColor = provider.brandColor || brandColor;
     } else if (client?.logoUrl) {
         logoUrl = client.logoUrl;
-        brandColor = client.brandColor || brandColor;
+        brandColor = client.brandColor || client.brandColor;
     }
 
     return (
@@ -280,3 +280,5 @@ export default function ReportPage() {
         </div>
     );
 }
+
+    

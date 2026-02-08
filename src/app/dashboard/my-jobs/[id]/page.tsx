@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -29,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { format, parseISO } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
+import { ndtTechniques as allNdtTechniques, JobDocument } from '@/lib/ndt-techniques-data';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -414,6 +415,8 @@ export default function JobDetailPage() {
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
 
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
+    const [documentsToView, setDocumentsToView] = React.useState<ViewerDocument[]>([]);
+    const [initialDocName, setInitialDocName] = React.useState<string | null>(null);
     const [viewingReport, setViewingReport] = useState<InspectionReport | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
@@ -524,6 +527,13 @@ export default function JobDetailPage() {
             });
             setIsSchedulingOpen(false);
         }
+    };
+    
+    const handleViewDocuments = (docs: JobDocument[] | undefined, initialDoc?: string) => {
+        if (!docs || docs.length === 0) return;
+        setDocumentsToView(docs.map(d => ({ ...d, source: 'Job Document' })));
+        setInitialDocName(initialDoc || docs[0]?.name || null);
+        setIsViewerOpen(true);
     };
 
     const handleAuditorApprove = () => {
@@ -832,63 +842,74 @@ export default function JobDetailPage() {
                         )}
 
                         <Card>
-                          <Tabs defaultValue="documents" className="w-full">
-                            <CardHeader className="p-4">
-                              <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
-                                <TabsTrigger value="activity">Activity Log</TabsTrigger>
-                              </TabsList>
-                            </CardHeader>
-                            <TabsContent value="documents">
-                              <CardContent className="space-y-6">
-                                <div>
-                                  <h3 className="text-base font-semibold mb-2">Job-Level Documents</h3>
-                                  {(jobDetails.documents && jobDetails.documents.length > 0) ? (
-                                      <ul className="space-y-2">
-                                          {jobDetails.documents.map((doc, i) => (
-                                              <li key={i} className="flex items-center justify-between rounded-md border p-2 bg-muted/50">
-                                                  <div className="flex items-center gap-2">
-                                                      <FileText className="h-4 w-4 text-primary" />
-                                                      <span className="font-medium text-sm">{doc.name}</span>
-                                                  </div>
-                                                  <Button asChild variant="ghost" size="sm"><Link href={doc.url}>Download</Link></Button>
-                                              </li>
-                                          ))}
-                                      </ul>
-                                  ) : <p className="text-sm text-muted-foreground">No job-level documents were provided.</p>}
-                                </div>
-                                <Separator />
-                                <div>
-                                  <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
-                                  {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
-                                      const report = inspection.report;
-                                      return (
-                                          <Card key={inspection.id} className="mb-4 bg-background">
-                                              <CardHeader className="p-4 flex flex-row items-center justify-between">
-                                                  <div>
-                                                      <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
-                                                      {report ? (
-                                                          <CardDescription className="text-xs">Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
-                                                      ) : (
-                                                          <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
-                                                      )}
-                                                  </div>
-                                                  {report && (
-                                                      <Button variant="outline" size="sm" onClick={() => setViewingReport(report)}>View Report</Button>
-                                                  )}
-                                              </CardHeader>
-                                          </Card>
-                                      );
-                                  }) : <p className="text-sm text-muted-foreground">No inspection reports have been submitted for this job yet.</p>}
-                                </div>
-                              </CardContent>
-                            </TabsContent>
-                            <TabsContent value="activity">
-                              <CardContent>
-                                <JobActivityLog history={jobDetails.history} />
-                              </CardContent>
-                            </TabsContent>
-                          </Tabs>
+                            <Tabs defaultValue="documents" className="w-full">
+                                <CardHeader className="p-4">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
+                                    <TabsTrigger value="activity">Activity Log</TabsTrigger>
+                                </TabsList>
+                                </CardHeader>
+                                <TabsContent value="documents">
+                                <CardContent className="space-y-6">
+                                    <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <h3 className="text-base font-semibold">Job-Level Documents</h3>
+                                            {(jobDetails.documents && jobDetails.documents.length > 0) && (
+                                                    <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
+                                                    <Maximize className="mr-2 h-4 w-4" />
+                                                    View All
+                                                </Button>
+                                            )}
+                                        </div>
+                                        {(jobDetails.documents && jobDetails.documents.length > 0) ? (
+                                            <div className="space-y-2 rounded-md border p-2">
+                                                {jobDetails.documents.map((doc, i) => (
+                                                    <button 
+                                                        key={i} 
+                                                        className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
+                                                        onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="h-4 w-4 text-primary" />
+                                                            <span className="font-medium text-sm">{doc.name}</span>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
+                                    </div>
+                                    <Separator />
+                                    <div>
+                                    <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
+                                    {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
+                                        const report = inspection.report;
+                                        return (
+                                            <Card key={inspection.id} className="mb-4 bg-background">
+                                                <CardHeader className="p-4 flex flex-row items-center justify-between">
+                                                    <div>
+                                                        <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
+                                                        {report ? (
+                                                            <CardDescription className="text-xs">Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
+                                                        ) : (
+                                                            <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
+                                                        )}
+                                                    </div>
+                                                    {report && (
+                                                        <Button variant="outline" size="sm" onClick={() => setViewingReport(report)}>View Report</Button>
+                                                    )}
+                                                </CardHeader>
+                                            </Card>
+                                        );
+                                    }) : <p className="text-sm text-muted-foreground">No inspection reports have been submitted for this job yet.</p>}
+                                    </div>
+                                </CardContent>
+                                </TabsContent>
+                                <TabsContent value="activity">
+                                <CardContent>
+                                    <JobActivityLog history={jobDetails.history} />
+                                </CardContent>
+                                </TabsContent>
+                            </Tabs>
                         </Card>
 
                         {isReviewable && !reviewSubmitted && (
@@ -1201,11 +1222,12 @@ export default function JobDetailPage() {
                 </Dialog>
 
                 <UniformDocumentViewer 
-                    isOpen={false}
+                    isOpen={isViewerOpen}
                     onOpenChange={setIsViewerOpen}
-                    documents={[]}
+                    documents={documentsToView}
                     title={`Documents for ${jobDetails.title}`}
                     description="Securely view all documents associated with this job."
+                    initialSelectedDocumentName={initialDocName}
                 />
 
                 <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>

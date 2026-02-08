@@ -837,7 +837,7 @@ export default function JobDetailPage() {
                                 <TabsTrigger value="activity">Activity Log</TabsTrigger>
                             </TabsList>
                             <TabsContent value="documents">
-                               <div className="space-y-6">
+                                <div className="space-y-6">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>Job-Level Documents</CardTitle>
@@ -865,39 +865,46 @@ export default function JobDetailPage() {
                                     <div>
                                         <h3 className="text-lg font-semibold mb-2">Inspection Reports</h3>
                                         {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
-                                            if (!inspection.report) return null;
                                             const report = inspection.report;
                                             return (
                                                 <Card key={inspection.id} className="mb-4">
                                                     <CardHeader>
-                                                        <CardTitle className="text-base">Report for {inspection.assetName}</CardTitle>
-                                                        <CardDescription>Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
+                                                        <CardTitle className="text-base">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
+                                                        {report ? (
+                                                            <CardDescription>Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
+                                                        ) : (
+                                                            <CardDescription>Report not yet submitted.</CardDescription>
+                                                        )}
                                                     </CardHeader>
                                                     <CardContent>
-                                                        <div className="space-y-4">
-                                                            <div>
-                                                                <h4 className="text-sm font-semibold mb-2">Digital Report</h4>
-                                                                <Button variant="outline" onClick={() => setViewingReport(report)}>View Digital Report</Button>
+                                                        {report ? (
+                                                            <div className="space-y-4">
+                                                                <div>
+                                                                    <h4 className="text-sm font-semibold mb-2">Digital Report</h4>
+                                                                    <Button variant="outline" onClick={() => setViewingReport(report)}>View Digital Report</Button>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-sm font-semibold mb-2">Supplementary Documents</h4>
+                                                                    {report.documents.length > 0 ? (
+                                                                        <ul className="space-y-2">
+                                                                            {report.documents.map((doc, i) => (
+                                                                                <li key={i} className="flex items-center justify-between rounded-md border p-2 bg-muted/50">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <FileText className="h-4 w-4 text-primary" />
+                                                                                        <span className="font-medium text-sm">{doc.name}</span>
+                                                                                    </div>
+                                                                                    <Button asChild variant="ghost" size="sm"><Link href={doc.url}>Download</Link></Button>
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    ) : (
+                                                                        <p className="text-sm text-muted-foreground">No supplementary documents for this report.</p>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <h4 className="text-sm font-semibold mb-2">Supplementary Documents</h4>
-                                                                {report.documents.length > 0 ? (
-                                                                    <ul className="space-y-2">
-                                                                        {report.documents.map((doc, i) => (
-                                                                            <li key={i} className="flex items-center justify-between rounded-md border p-2 bg-muted/50">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <FileText className="h-4 w-4 text-primary" />
-                                                                                    <span className="font-medium text-sm">{doc.name}</span>
-                                                                                </div>
-                                                                                <Button asChild variant="ghost" size="sm"><Link href={doc.url}>Download</Link></Button>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                ) : (
-                                                                    <p className="text-sm text-muted-foreground">No supplementary documents for this report.</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
+                                                        ) : (
+                                                            <p className="text-sm text-muted-foreground">The inspector has not submitted the report for this inspection yet.</p>
+                                                        )}
                                                     </CardContent>
                                                 </Card>
                                             );
@@ -1282,4 +1289,3 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-    

@@ -401,7 +401,6 @@ export default function JobDetailPage() {
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [documentsToView, setDocumentsToView] = React.useState<ViewerDocument[]>([]);
     const [initialDocName, setInitialDocName] = React.useState<string | null>(null);
-    const [viewingReport, setViewingReport] = useState<InspectionReport | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
     const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(false);
@@ -885,7 +884,9 @@ export default function JobDetailPage() {
                                                         )}
                                                     </div>
                                                     {report ? (
-                                                        <Button variant="outline" size="sm" onClick={() => setViewingReport(report)}>View Report</Button>
+                                                        <Button asChild variant="outline" size="sm">
+                                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                                        </Button>
                                                     ) : (
                                                         isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
                                                             <Button asChild size="sm">
@@ -1228,51 +1229,9 @@ export default function JobDetailPage() {
                     description="Securely view all documents associated with this job."
                     initialSelectedDocumentName={initialDocName}
                 />
-
-                <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>
-                    <DialogContent className="max-w-3xl">
-                        <DialogHeader>
-                            <DialogTitle>Digital Report: {jobDetails.title}</DialogTitle>
-                            <DialogDescription>
-                                Inspection for {viewingReport?.reportData.inspectionArea} on {viewingReport ? format(parseISO(viewingReport.submittedOn), GLOBAL_DATE_FORMAT) : ''}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4 space-y-4 text-sm">
-                            <h3 className="font-semibold">Equipment & Setup</h3>
-                            <div className="grid grid-cols-2 gap-4 p-4 border rounded-md">
-                                <div><span className="font-medium text-muted-foreground">Instrument:</span> {viewingReport?.reportData.equipmentUsed}</div>
-                                <div><span className="font-medium text-muted-foreground">Calibration Block:</span> {viewingReport?.reportData.calibrationBlock}</div>
-                                <div><span className="font-medium text-muted-foreground">Couplant:</span> {viewingReport?.reportData.couplant}</div>
-                                <div><span className="font-medium text-muted-foreground">Surface:</span> {viewingReport?.reportData.surfaceCondition}</div>
-                            </div>
-                            <h3 className="font-semibold">Findings</h3>
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Location</TableHead>
-                                        <TableHead>Thickness (mm)</TableHead>
-                                        <TableHead>Notes</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {viewingReport?.reportData.findings.map((finding: any, index: number) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{finding.location}</TableCell>
-                                            <TableCell>{finding.thickness}</TableCell>
-                                            <TableCell>{finding.notes}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                             <h3 className="font-semibold">Summary</h3>
-                             <div className="p-4 border rounded-md bg-muted/50 prose prose-sm max-w-none">
-                                {viewingReport?.reportData.summary}
-                             </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-
             </div>
         </TooltipProvider>
     );
 }
+
+    

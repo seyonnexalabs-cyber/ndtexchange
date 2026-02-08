@@ -299,9 +299,9 @@ const AppSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-4 flex justify-center">
         <Link href={constructUrl("/dashboard")}>
-            <Hexagons7Icon className="h-10 w-auto" />
+            <Hexagons7Icon className="h-12 w-auto" />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

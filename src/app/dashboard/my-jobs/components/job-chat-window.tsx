@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -86,7 +87,7 @@ export default function JobChatWindow({ job, onSendMessage }: JobChatWindowProps
                                                     </Avatar>
                                                 )}
                                                 <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-muted/50 border' )}>
-                                                    <p className="text-sm">{message.message}</p>
+                                                    <p className="text-sm font-chat">{message.message}</p>
                                                     <p className="text-xs mt-2 opacity-80">
                                                         {message.user} · {format(new Date(message.timestamp), 'p')}
                                                     </p>

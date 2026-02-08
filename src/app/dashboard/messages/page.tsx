@@ -184,7 +184,7 @@ export default function MessagesPage() {
                                                 </Avatar>
                                             )}
                                             <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-accent/10 border' )}>
-                                                <p className="text-sm">{message.message}</p>
+                                                <p className="text-sm font-chat">{message.message}</p>
                                                 <p className="text-xs mt-2 opacity-80">
                                                     {message.user} · {format(new Date(message.timestamp), 'p')}
                                                 </p>

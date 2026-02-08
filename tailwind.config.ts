@@ -20,6 +20,7 @@ export default {
       fontFamily: {
         body: ['Noto Sans', 'sans-serif'],
         headline: ['Noto Serif', 'serif'],
+        chat: ['Comic Neue', 'cursive'],
       },
       colors: {
         background: 'hsl(var(--background))',

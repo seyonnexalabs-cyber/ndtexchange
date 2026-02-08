@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -831,19 +832,20 @@ export default function JobDetailPage() {
                             />
                         )}
 
-                        <Tabs defaultValue="documents">
-                            <TabsList className="mb-4">
+                         <Tabs defaultValue="documents">
+                            <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
                                 <TabsTrigger value="activity">Activity Log</TabsTrigger>
                             </TabsList>
                             <TabsContent value="documents">
-                                <div className="space-y-6">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Job-Level Documents</CardTitle>
-                                            <CardDescription>Scope of work, contracts, or other files provided by the client at job creation.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Documents & Reports</CardTitle>
+                                        <CardDescription>All documents related to this job.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                        <div>
+                                            <h3 className="text-base font-semibold mb-2">Job-Level Documents</h3>
                                             {(jobDetails.documents && jobDetails.documents.length > 0) ? (
                                                 <ul className="space-y-2">
                                                     {jobDetails.documents.map((doc, i) => (
@@ -856,61 +858,34 @@ export default function JobDetailPage() {
                                                         </li>
                                                     ))}
                                                 </ul>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground">No job-level documents were provided.</p>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-2">Inspection Reports</h3>
-                                        {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
-                                            const report = inspection.report;
-                                            return (
-                                                <Card key={inspection.id} className="mb-4">
-                                                    <CardHeader>
-                                                        <CardTitle className="text-base">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
-                                                        {report ? (
-                                                            <CardDescription>Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
-                                                        ) : (
-                                                            <CardDescription>Report not yet submitted.</CardDescription>
-                                                        )}
-                                                    </CardHeader>
-                                                    <CardContent>
-                                                        {report ? (
-                                                            <div className="space-y-4">
-                                                                <div>
-                                                                    <h4 className="text-sm font-semibold mb-2">Digital Report</h4>
-                                                                    <Button variant="outline" onClick={() => setViewingReport(report)}>View Digital Report</Button>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-sm font-semibold mb-2">Supplementary Documents</h4>
-                                                                    {report.documents.length > 0 ? (
-                                                                        <ul className="space-y-2">
-                                                                            {report.documents.map((doc, i) => (
-                                                                                <li key={i} className="flex items-center justify-between rounded-md border p-2 bg-muted/50">
-                                                                                    <div className="flex items-center gap-2">
-                                                                                        <FileText className="h-4 w-4 text-primary" />
-                                                                                        <span className="font-medium text-sm">{doc.name}</span>
-                                                                                    </div>
-                                                                                    <Button asChild variant="ghost" size="sm"><Link href={doc.url}>Download</Link></Button>
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
-                                                                    ) : (
-                                                                        <p className="text-sm text-muted-foreground">No supplementary documents for this report.</p>
-                                                                    )}
-                                                                </div>
+                                            ) : <p className="text-sm text-muted-foreground">No job-level documents were provided.</p>}
+                                        </div>
+                                        <Separator />
+                                        <div>
+                                            <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
+                                            {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
+                                                const report = inspection.report;
+                                                return (
+                                                    <Card key={inspection.id} className="mb-4 bg-background">
+                                                        <CardHeader className="p-4 flex flex-row items-center justify-between">
+                                                            <div>
+                                                                <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
+                                                                {report ? (
+                                                                    <CardDescription className="text-xs">Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
+                                                                ) : (
+                                                                    <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
+                                                                )}
                                                             </div>
-                                                        ) : (
-                                                            <p className="text-sm text-muted-foreground">The inspector has not submitted the report for this inspection yet.</p>
-                                                        )}
-                                                    </CardContent>
-                                                </Card>
-                                            );
-                                        }) : <p className="text-sm text-muted-foreground p-4 text-center border rounded-md">No inspection reports have been submitted for this job yet.</p>}
-                                    </div>
-                                </div>
+                                                            {report && (
+                                                                <Button variant="outline" size="sm" onClick={() => setViewingReport(report)}>View Report</Button>
+                                                            )}
+                                                        </CardHeader>
+                                                    </Card>
+                                                );
+                                            }) : <p className="text-sm text-muted-foreground">No inspection reports have been submitted for this job yet.</p>}
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </TabsContent>
                             <TabsContent value="activity">
                                 <Card>

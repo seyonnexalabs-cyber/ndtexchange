@@ -1,140 +1,268 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, BarChart, HardHat, Building, Settings2, Download } from 'lucide-react';
+import * as React from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
+import { NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FileText, Filter, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format, isToday } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useSearch } from '@/app/components/layout/search-provider';
 
+const statusFilters = ['Scheduled', 'Completed', 'Requires Review'];
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Scheduled': 'secondary',
+    'Completed': 'success',
+    'Requires Review': 'destructive'
+};
 
-const ClientReports = () => {
+export default function ReportsListPage() {
+    const router = useRouter();
     const searchParams = useSearchParams();
-
+    const role = searchParams.get('role') || 'client';
+    const isMobile = useIsMobile();
+    const { searchQuery } = useSearch();
+    const [selectedTechniques, setSelectedTechniques] = React.useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = React.useState<string>('all');
+    
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
-    const reportTypes = [
-        {
-            title: "Asset Inspection History",
-            description: "Generate a detailed history of all inspections for a specific asset or group of assets.",
-            icon: <Building className="w-6 h-6 text-accent" />,
-            href: constructUrl('/dashboard/reports/asset-history'),
-            disabled: false,
-        },
-        {
-            title: "Job Cost & Duration Analysis",
-            description: "Analyze costs and timelines across all completed jobs to identify trends and outliers.",
-            icon: <BarChart className="w-6 h-6 text-accent" />,
-            href: constructUrl('/dashboard/reports/job-cost-analysis'),
-            disabled: false,
-        },
-        {
-            title: "Provider Performance Review",
-            description: "Compare performance metrics for service providers, including on-time delivery and report quality.",
-            icon: <HardHat className="w-6 h-6 text-accent" />,
-            href: constructUrl('/dashboard/reports/provider-performance'),
-            disabled: false,
-        },
-        {
-            title: "Custom Report Builder",
-            description: "Create your own report by selecting custom data points, filters, and date ranges.",
-            icon: <Settings2 className="w-6 h-6 text-accent" />,
-            href: constructUrl('/dashboard/reports/custom-report-builder'),
-            disabled: false,
+    const allInspections = useMemo(() => {
+        // In a real app, this would be based on user's company/permissions
+        let relevantJobs = jobs;
+        if (role === 'client') {
+            relevantJobs = jobs.filter(j => j.client === 'Global Energy Corp.');
+        } else if (role === 'inspector') {
+            relevantJobs = jobs.filter(j => j.providerId === 'provider-03');
         }
-    ];
-    
-    return (
-    <div>
-        <div className="grid gap-6 md:grid-cols-2">
-            {reportTypes.map(report => (
-                 <Card key={report.title}>
-                    <CardHeader className="flex flex-row items-center gap-4">
-                        <div className="bg-accent/10 p-4 rounded-full">
-                            {report.icon}
-                        </div>
-                        <div>
-                            <CardTitle>{report.title}</CardTitle>
-                            <CardDescription className="mt-1">{report.description}</CardDescription>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <Button asChild disabled={report.disabled}>
-                            <Link href={report.href}>
-                                <Download className="mr-2 h-4 w-4" />
-                                Generate Report
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-        <Card className="mt-6 bg-muted/50">
-            <CardHeader>
-                <CardTitle>What is this page for?</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-2">
-                <p>This <span className="font-semibold text-foreground">Reports</span> section is your business intelligence hub. It is designed for in-depth analysis and generating formal documentation from historical data.</p>
-                <p>Your <span className="font-semibold text-foreground">Dashboard</span>, on the other hand, provides a real-time, at-a-glance overview of current statuses and recent activities.</p>
-            </CardContent>
-        </Card>
-    </div>
-);
-}
+        return relevantJobs.flatMap(job => (job.inspections || []).map(inspection => ({...inspection, job})))
+    }, [role]);
 
-
-const InspectorReports = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle className="flex items-center gap-2"><HardHat /> Inspection Report Generation</CardTitle>
-            <CardDescription>This is your workspace to create, manage, and submit technical inspection reports for specific jobs.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-muted-foreground">After completing a job, you will come here to find technique-specific digital forms (UT, MT, PAUT, etc.). You'll fill out your findings, attach any necessary data or images, and submit the final report for review and approval.</p>
-        </CardContent>
-    </Card>
-);
-
-const AdminReports = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle className="flex items-center gap-2"><BarChart /> Platform Business Intelligence</CardTitle>
-            <CardDescription>Generate reports on platform-wide metrics, including revenue, user activity, and marketplace trends.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-muted-foreground">This area provides tools to generate formal business reports for stakeholders, conduct financial analysis, and track overall platform growth and health.</p>
-        </CardContent>
-    </Card>
-);
-
-
-export default function ReportsPage() {
-    const searchParams = useSearchParams();
-    const role = searchParams.get('role') || 'client';
-
-    const renderContentByRole = () => {
-        switch (role) {
-            case 'inspector':
-                return <InspectorReports />;
-            case 'admin':
-                return <AdminReports />;
-            case 'client':
-            default:
-                return <ClientReports />;
+    const augmentedAndFilteredInspections = useMemo(() => {
+        let filtered = allInspections.filter(i => i.report); // Only show inspections with reports
+        
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter(i => i.status === statusFilter);
         }
+
+        const augmented = filtered.map(inspection => {
+            const assignedTechnicians = inspection.job?.technicianIds
+                ?.map(techId => technicians.find(t => t.id === techId))
+                .filter((t): t is Technician => !!t) ?? [];
+            return {
+                ...inspection,
+                assignedTechnicians
+            };
+        });
+
+        return augmented.filter(inspection => {
+            const searchMatch = !searchQuery ||
+                inspection.assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                inspection.jobId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (inspection.assignedTechnicians.length > 0
+                    ? inspection.assignedTechnicians.some(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    : inspection.inspector.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(inspection.technique);
+            
+            return searchMatch && techniqueMatch;
+        });
+    }, [allInspections, searchQuery, selectedTechniques, statusFilter]);
+
+    const handleTechniqueChange = (techniqueId: string) => {
+        setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(id => id !== techniqueId) : [...prev, techniqueId]);
     };
 
+    const hasActiveFilters = selectedTechniques.length > 0 || statusFilter !== 'all';
+    
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <FileText />
-                    Reports
-                </h1>
+                <div>
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <FileText className="text-primary" />
+                        Inspection Reports
+                    </h1>
+                    <p className="text-muted-foreground mt-1">Browse all submitted inspection reports.</p>
+                </div>
             </div>
-            {renderContentByRole()}
+
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-4">
+                 <div className="flex gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                                <Filter className="mr-2 h-4 w-4 text-primary" />
+                                Technique ({selectedTechniques.length})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64">
+                             <div className="grid gap-4">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium leading-none">Filter by Technique</h4>
+                                </div>
+                                <div className="grid gap-2">
+                                    {NDTTechniques.map(tech => (
+                                        <div key={tech.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`tech-${tech.id}`}
+                                                checked={selectedTechniques.includes(tech.id)}
+                                                onCheckedChange={() => handleTechniqueChange(tech.id)}
+                                            />
+                                            <Label htmlFor={`tech-${tech.id}`}>{tech.name}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            {statusFilters.map(status => (
+                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 </div>
+            </div>
+
+             {hasActiveFilters && (
+                <div className="mb-4 flex items-center flex-wrap gap-2">
+                    <span className="text-sm font-medium">Active Filters:</span>
+                    {selectedTechniques.map(techId => (
+                        <Badge key={techId} variant="secondary">
+                            {NDTTechniques.find(t => t.id === techId)?.name}
+                            <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3 text-primary" />
+                            </button>
+                        </Badge>
+                    ))}
+                    {statusFilter !== 'all' && (
+                        <Badge variant="secondary">
+                            Status: {statusFilter}
+                             <button onClick={() => setStatusFilter('all')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                <X className="h-3 w-3 text-primary" />
+                            </button>
+                        </Badge>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedTechniques([]); setStatusFilter('all'); }}>Clear All</Button>
+                </div>
+            )}
+            
+            {isMobile ? (
+                <div className="space-y-4">
+                    {augmentedAndFilteredInspections.map(inspection => {
+                        const inspectionDate = new Date(inspection.date);
+                        return (
+                            <Card key={inspection.id}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="text-base">{inspection.assetName}</CardTitle>
+                                            <p className="font-extrabold text-xs text-muted-foreground">{inspection.jobId}</p>
+                                        </div>
+                                        <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
+                                    </div>
+                                    <CardDescription>
+                                        <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge>
+                                        <span className="mx-1.5">by</span>
+                                        {inspection.assignedTechnicians.length > 0 
+                                            ? inspection.assignedTechnicians.map(t => t.name).join(', ') 
+                                            : inspection.inspector
+                                        }
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                        Report Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}
+                                        {isToday(inspectionDate) && <Badge>Today</Badge>}
+                                    </p>
+                                </CardContent>
+                                 <CardFooter>
+                                    <Button asChild variant="outline" size="sm" className="w-full">
+                                        <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
+                </div>
+            ) : (
+                <Card>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Job ID</TableHead>
+                                <TableHead>Asset Name</TableHead>
+                                <TableHead>Technique</TableHead>
+                                <TableHead>Inspector(s)</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {augmentedAndFilteredInspections.map(inspection => {
+                                const inspectionDate = new Date(inspection.date);
+                                return (
+                                <TableRow key={inspection.id}>
+                                    <TableCell className="font-extrabold text-xs">{inspection.jobId}</TableCell>
+                                    <TableCell className="font-medium">{inspection.assetName}</TableCell>
+                                    <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            {inspection.assignedTechnicians.length > 0 
+                                                ? inspection.assignedTechnicians.map(t => <span key={t.id}>{t.name}</span>)
+                                                : <span>{inspection.inspector}</span>
+                                            }
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <span>{format(inspectionDate, GLOBAL_DATE_FORMAT)}</span>
+                                            {isToday(inspectionDate) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )})}
+                        </TableBody>
+                    </Table>
+                </Card>
+            )}
+
+             {augmentedAndFilteredInspections.length === 0 && (
+                <div className="text-center p-10 border rounded-lg">
+                    <div className="mx-auto h-12 w-12 text-primary"><FileText /></div>
+                    <h2 className="mt-4 text-xl font-headline">No Reports Found</h2>
+                    <p className="mt-2 text-muted-foreground">No reports match the current filters.</p>
+                </div>
+            )}
         </div>
     );
 }

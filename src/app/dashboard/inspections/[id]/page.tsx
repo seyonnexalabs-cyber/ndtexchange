@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useMemo } from 'react';
-import { notFound, useSearchParams, useParams } from 'next/navigation';
+import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { jobs, Inspection } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
@@ -28,6 +28,10 @@ export default function InspectionDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const role = searchParams.get('role') || 'client';
+    const isAuditor = role === 'auditor';
+
     const { toast } = useToast();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
@@ -49,9 +53,11 @@ export default function InspectionDetailPage() {
 
     const allDocuments: ViewerDocument[] = React.useMemo(() => {
         const docs: ViewerDocument[] = [];
+        if (!inspection?.report) return docs;
         docs.push({ name: `Inspection_Report_${inspection?.id}.pdf`, source: 'Provider (Main Report)' });
-        docs.push({ name: 'calibration_record.pdf', source: 'Provider' });
-        docs.push({ name: 'technician_certs.pdf', source: 'Provider' });
+        if (inspection.report.documents) {
+            docs.push(...inspection.report.documents.map(d => ({ ...d, source: 'Provider (Attachment)' })));
+        }
         return docs;
     }, [inspection]);
 
@@ -63,6 +69,9 @@ export default function InspectionDetailPage() {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const backLink = isAuditor ? "/dashboard/inspections" : "/dashboard/reports";
+    const backText = isAuditor ? "Back to Audit Queue" : "Back to Reports";
 
     const handleApprove = () => {
         toast({
@@ -84,9 +93,9 @@ export default function InspectionDetailPage() {
     return (
         <div>
             <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl("/dashboard/inspections")}>
+                <Link href={constructUrl(backLink)}>
                     <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                    Back to Inspections
+                    {backText}
                 </Link>
             </Button>
 
@@ -98,7 +107,7 @@ export default function InspectionDetailPage() {
                                 <div>
                                     <CardTitle className="text-2xl font-headline flex items-center gap-3">
                                         <FileText className="text-primary" />
-                                        Audit Report for {inspection.assetName}
+                                        Inspection Report for {inspection.assetName}
                                     </CardTitle>
                                     <CardDescription>Inspection ID: <span className="font-extrabold text-foreground">{inspection.id}</span></CardDescription>
                                 </div>
@@ -121,33 +130,40 @@ export default function InspectionDetailPage() {
                                             <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
                                         </div>
                                     ))}
+                                    {allDocuments.length === 0 && (
+                                        <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
+                                            No report documents found for this inspection.
+                                        </div>
+                                    )}
                                 </ScrollArea>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                         <CardHeader>
-                            <CardTitle>Auditor Actions</CardTitle>
-                            <CardDescription>Review the report and provide your decision.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div>
-                                <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
-                                <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2. The provided image is unclear...'" className="mt-2 min-h-[120px]"/>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end gap-2">
-                            <Button variant="destructive" onClick={handleReject}>
-                                <XCircle className="mr-2"/>
-                                Request Revisions
-                            </Button>
-                             <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
-                                <CheckCircle className="mr-2"/>
-                                Approve Report
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                    {isAuditor && (
+                         <Card>
+                             <CardHeader>
+                                <CardTitle>Auditor Actions</CardTitle>
+                                <CardDescription>Review the report and provide your decision.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
+                                    <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2. The provided image is unclear...'" className="mt-2 min-h-[120px]"/>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex justify-end gap-2">
+                                <Button variant="destructive" onClick={handleReject}>
+                                    <XCircle className="mr-2"/>
+                                    Request Revisions
+                                </Button>
+                                 <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
+                                    <CheckCircle className="mr-2"/>
+                                    Approve Report
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    )}
 
                 </div>
 

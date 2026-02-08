@@ -77,7 +77,7 @@ export default function PublicHeader() {
       <div className="flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-2 text-2xl font-headline font-bold text-primary">
           <Hexagons7Icon className="h-8 w-8" />
-          <span>NDT Exchange</span>
+          <span>NDT Connect</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {mainNavLinks.map((link) => (
@@ -150,7 +150,7 @@ export default function PublicHeader() {
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2 text-2xl font-headline text-primary">
                             <Hexagons7Icon className="h-8 w-8" />
-                            NDT Exchange
+                            NDT Connect
                         </SheetTitle>
                         <SheetDescription>Navigation Menu</SheetDescription>
                     </SheetHeader>

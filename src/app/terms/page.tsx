@@ -7,7 +7,7 @@ import PublicFooter from '@/app/components/layout/public-footer';
 
 export const metadata: Metadata = {
     title: 'Terms and Conditions',
-    description: 'Review the terms and conditions for using the NDT Exchange platform. Your use of the service is subject to these terms.',
+    description: 'Review the terms and conditions for using the NDT Connect platform. Your use of the service is subject to these terms.',
 };
 
 export default function TermsPage() {
@@ -22,10 +22,10 @@ export default function TermsPage() {
           </h1>
           <div className="space-y-6 text-muted-foreground">
             <p>
-              Welcome to NDT Exchange. These terms and conditions outline the rules and regulations for the use of NDT Exchange's Website, located at ndtexchange.com.
+              Welcome to NDT Connect. These terms and conditions outline the rules and regulations for the use of NDT Connect's Website, located at ndtconnect.com.
             </p>
             <p>
-              By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT Exchange if you do not agree to take all of the terms and conditions stated on this page.
+              By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT Connect if you do not agree to take all of the terms and conditions stated on this page.
             </p>
             
             <h2 className="text-2xl font-headline text-foreground pt-4">1. Definitions</h2>
@@ -35,32 +35,32 @@ export default function TermsPage() {
 
             <h2 className="text-2xl font-headline text-foreground pt-4">2. License to Use Website</h2>
             <p>
-              Unless otherwise stated, NDT Exchange and/or its licensors own the intellectual property rights for all material on NDT Exchange. All intellectual property rights are reserved. You may access this from NDT Exchange for your own personal use subjected to restrictions set in these terms and conditions.
+              Unless otherwise stated, NDT Connect and/or its licensors own the intellectual property rights for all material on NDT Connect. All intellectual property rights are reserved. You may access this from NDT Connect for your own personal use subjected to restrictions set in these terms and conditions.
             </p>
             <p>You must not:</p>
             <ul className="list-disc list-inside space-y-2 pl-4">
-              <li>Republish material from NDT Exchange</li>
-              <li>Sell, rent or sub-license material from NDT Exchange</li>
-              <li>Reproduce, duplicate or copy material from NDT Exchange</li>
-              <li>Redistribute content from NDT Exchange</li>
+              <li>Republish material from NDT Connect</li>
+              <li>Sell, rent or sub-license material from NDT Connect</li>
+              <li>Reproduce, duplicate or copy material from NDT Connect</li>
+              <li>Redistribute content from NDT Connect</li>
             </ul>
 
             <h2 className="text-2xl font-headline text-foreground pt-4">3. User Content</h2>
             <p>
-              In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT Exchange a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
+              In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT Connect a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
             </p>
             
             <h2 className="text-2xl font-headline text-foreground pt-4">4. Limitation of Liability</h2>
             <p>
-              In no event shall NDT Exchange, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT Exchange, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
+              In no event shall NDT Connect, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT Connect, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
             </p>
 
             <h2 className="text-2xl font-headline text-foreground pt-4">5. Financial Transactions</h2>
             <p>
-              NDT Exchange provides a platform to connect asset owners (Clients) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Clients and providers.
+              NDT Connect provides a platform to connect asset owners (Clients) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Clients and providers.
             </p>
             <p>
-              All payments for services rendered are to be handled directly between the Client and the service provider. NDT Exchange does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
+              All payments for services rendered are to be handled directly between the Client and the service provider. NDT Connect does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
             </p>
             
             <h2 className="text-2xl font-headline text-foreground pt-4">6. Governing Law & Jurisdiction</h2>

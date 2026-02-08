@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Noto Serif', 'serif'],
-        headline: ['Noto Sans', 'sans-serif'],
+        body: ['Noto Sans', 'sans-serif'],
+        headline: ['Noto Serif', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

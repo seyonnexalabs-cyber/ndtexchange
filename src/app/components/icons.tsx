@@ -1,3 +1,4 @@
+
 import type { SVGProps } from 'react';
 
 export const TankIcon = (props: SVGProps<SVGSVGElement>) => (
@@ -44,6 +45,7 @@ export const WeldIcon = (props: SVGProps<SVGSVGElement>) => (
 
 export const Hexagons7Icon = (props: SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        {/* Hive */}
         <path d="M5.3 4.3v3.9L2 10.1v3.8l3.3 1.9v3.9l3.4 1.9 3.3-1.9 3.3 1.9 3.4-1.9v-3.9l3.3-1.9v-3.8l-3.3-1.9V4.3l-3.4-1.9L12 4.3 8.7 2.4Z"/>
         <path d="M12 8.2V4.3"/>
         <path d="m18.7 8.2-3.4 1.9"/>
@@ -52,5 +54,13 @@ export const Hexagons7Icon = (props: SVGProps<SVGSVGElement>) => (
         <path d="m8.7 13.9-3.4 1.9"/>
         <path d="m5.3 8.2 3.4 1.9"/>
         <path d="m8.7 13.9 3.3 1.9 3.3-1.9v-3.8L12 8.2l-3.3 1.9Z"/>
+
+        {/* Bee */}
+        <g transform="translate(18 5) scale(0.3) rotate(-15)">
+            <ellipse cx="10" cy="15" rx="5" ry="8" fill="hsl(var(--primary))" stroke="currentColor" strokeWidth="2"/>
+            <circle cx="10" cy="8" r="3" fill="currentColor"/>
+            <path d="M8 8 C 4 4, 8 2, 10 7" fill="none" stroke="currentColor" strokeWidth="2"/>
+            <path d="M12 8 C 16 4, 12 2, 10 7" fill="none" stroke="currentColor" strokeWidth="2"/>
+        </g>
     </svg>
 );

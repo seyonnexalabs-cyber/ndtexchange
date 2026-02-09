@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { allUsers, inspectorAssets, serviceProviders, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -351,6 +351,10 @@ export default function MyJobsPage() {
                                                 <div className="flex items-center text-sm text-muted-foreground">
                                                     <MapPin className="w-4 h-4 mr-2 text-primary" />
                                                     <span>{job.location}</span>
+                                                </div>
+                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                    <Building className="w-4 h-4 mr-2 text-primary" />
+                                                    <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
                                                 </div>
                                                  <div className="flex items-center text-sm text-muted-foreground">
                                                     <Calendar className="w-4 h-4 mr-2 text-primary" />

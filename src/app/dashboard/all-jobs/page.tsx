@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { jobs, Job, clientData } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X } from "lucide-react";
+import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X, Building } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
@@ -248,6 +248,10 @@ export default function AllJobsPage() {
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 <div className="flex items-center text-sm text-muted-foreground">
+                                    <Building className="w-4 h-4 mr-2 text-primary" />
+                                    <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
                                     <MapPin className="w-4 h-4 mr-2 text-primary" />
                                     <span>{job.location}</span>
                                 </div>
@@ -280,6 +284,7 @@ export default function AllJobsPage() {
                                 <TableHead>Job ID</TableHead>
                                 <TableHead>Job Title</TableHead>
                                 <TableHead>Client</TableHead>
+                                <TableHead>Assets</TableHead>
                                 <TableHead>Technique</TableHead>
                                 <TableHead>Location</TableHead>
                                 <TableHead>Posted</TableHead>
@@ -293,6 +298,7 @@ export default function AllJobsPage() {
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{job.client}</TableCell>
+                                    <TableCell>{job.assetIds?.length || 0}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
                                     <TableCell>{job.location}</TableCell>
                                     <TableCell>

@@ -15,7 +15,8 @@ service cloud.firestore {
     }
 
     function isPlatformAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+      // Use exists() to prevent errors if the user doc doesn't exist yet during creation.
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
     }
 
     function isCompanyMember(companyId) {
@@ -26,15 +27,20 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == providerId;
     }
 
+    // --- BLANKET ADMIN ACCESS ---
+    // This rule grants full read/write access to any platform admin.
+    // This is necessary for operations like database seeding.
+    // More specific rules for other user roles are defined below.
+    match /{path=**} {
+      allow read, write: if isPlatformAdmin();
+    }
+
     /***********************************************************
      * User Profile Rules (/users)
      ***********************************************************/
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isPlatformAdmin();
-      allow create: if isOwner(userId) || isPlatformAdmin();
-      allow update: if isOwner(userId) || isPlatformAdmin();
-      allow delete: if isPlatformAdmin();
+      allow create, update: if isOwner(userId);
     }
 
     /***********************************************************
@@ -50,44 +56,34 @@ service cloud.firestore {
      * Equipment Rules (/equipment)
      ***********************************************************/
     match /equipment/{equipmentId} {
-      allow read, update, delete: if isProviderMember(resource.data.providerId) || isPlatformAdmin();
-      allow create: if isProviderMember(request.resource.data.providerId) || isPlatformAdmin();
+      allow read, update, delete: if isProviderMember(resource.data.providerId);
+      allow create: if isProviderMember(request.resource.data.providerId);
     }
     
     /***********************************************************
      * Job & Bidding Rules (/jobs, /bids)
      ***********************************************************/
     match /jobs/{jobId} {
-      // Any signed-in user can read job postings.
       allow get, list: if isSignedIn();
-      // Only the client who created the job can create or update it.
-      allow create: if (isSignedIn() && request.resource.data.clientId == request.auth.uid) || isPlatformAdmin();
-      allow update, delete: if (isSignedIn() && resource.data.clientId == request.auth.uid) || isPlatformAdmin();
+      allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.clientId == request.auth.uid;
     }
 
     match /bids/{bidId} {
-      // A bid can be read by the client of the job or the inspector who placed it.
       allow get: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid);
-      // The client of the job can list all bids for their job.
       allow list: if isSignedIn() && get(/databases/$(database)/documents/jobs/$(request.query.jobId)).data.clientId == request.auth.uid;
-      // An inspector can create a bid.
-      allow create: if (isSignedIn() && request.resource.data.inspectorId == request.auth.uid) || isPlatformAdmin();
-      // Only the inspector who created the bid can update or delete it.
-      allow update, delete: if (isSignedIn() && resource.data.inspectorId == request.auth.uid) || isPlatformAdmin();
+      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
 
     /***********************************************************
      * Inspection & Report Rules (/inspections, /reports)
      ***********************************************************/
     match /inspections/{inspectionId} {
-      // For now, allow any signed-in user to read/write.
-      // In a real app, access would be restricted to involved parties (client, provider).
       allow read, write: if isSignedIn();
     }
 
     match /reports/{reportId} {
-      // For now, allow any signed-in user to read/write.
-      // In a real app, access would be restricted to involved parties.
       allow read, write: if isSignedIn();
     }
 
@@ -96,24 +92,21 @@ service cloud.firestore {
      ***********************************************************/
     match /companies/{companyId} {
       allow get: if isSignedIn();
-      allow write: if isPlatformAdmin();
     }
 
     match /subscriptions/{subscriptionId} {
-      allow read: if isPlatformAdmin() || isCompanyMember(resource.data.companyId);
-      allow write: if isPlatformAdmin();
+      allow read: if isCompanyMember(resource.data.companyId);
     }
     
     /***********************************************************
      * Chat Rules
      ***********************************************************/
      match /chats/{chatId} {
-       allow get, update: if (isSignedIn() && request.auth.uid in resource.data.participants) || isPlatformAdmin();
-       allow create: if (isSignedIn() && request.auth.uid in request.resource.data.participants) || isPlatformAdmin();
-       allow delete: if isPlatformAdmin();
+       allow get, update: if isSignedIn() && request.auth.uid in resource.data.participants;
+       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
        
        match /messages/{messageId} {
-         allow read, create: if (isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants) || isPlatformAdmin();
+         allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
        }
      }
      
@@ -121,62 +114,41 @@ service cloud.firestore {
      * Support Chat Rules
      ***********************************************************/
      match /supportChats/{chatId} {
-       allow read, update: if isOwner(resource.data.userId) || isPlatformAdmin();
-       allow create: if isOwner(request.resource.data.userId) || isPlatformAdmin();
-       allow delete: if isPlatformAdmin();
+       allow read, update: if isOwner(resource.data.userId);
+       allow create: if isOwner(request.resource.data.userId);
 
        match /messages/{messageId} {
-         allow read, create: if isOwner(get(/databases/$(database)/documents/supportChats/$(chatId)).data.userId) || isPlatformAdmin();
+         allow read, create: if isOwner(get(/databases/$(database)/documents/supportChats/$(chatId)).data.userId);
        }
      }
      
     /***********************************************************
      * Audit Log Rules
      ***********************************************************/
-    match /userAuditLogs/{logId} {
-      allow read: if isPlatformAdmin();
-      allow write: if isPlatformAdmin();
-    }
-
-    match /jobAuditLogs/{logId} {
-      allow read: if isPlatformAdmin();
-      allow write: if isPlatformAdmin();
-    }
-
-    match /billingAuditLogs/{logId} {
-      allow read: if isPlatformAdmin();
-      allow write: if isPlatformAdmin();
-    }
+    // By default, only admins can read/write to these due to the blanket rule.
+    // No one else should have access.
+    match /userAuditLogs/{logId} { allow read, write: if false; }
+    match /jobAuditLogs/{logId} { allow read, write: if false; }
+    match /billingAuditLogs/{logId} { allow read, write: if false; }
     
     /***********************************************************
      * Payment Rules
      ***********************************************************/
-    match /payments/{paymentId} {
-        allow read, write: if isPlatformAdmin();
-    }
-
-    match /jobPayments/{paymentId} {
-        allow read, write: if isPlatformAdmin();
-    }
+    // By default, only admins can read/write to these due to the blanket rule.
+    match /payments/{paymentId} { allow read, write: if false; }
+    match /jobPayments/{paymentId} { allow read, write: if false; }
 
     /***********************************************************
      * Review Rules (/reviews)
      ***********************************************************/
     match /reviews/{reviewId} {
-      // Anyone can read approved reviews.
       allow get: if resource.data.status == 'Approved';
       allow list: if isSignedIn(); 
 
-      // The client who owns the job can create a review for it.
       function isJobClient(jobId) {
         return get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid;
       }
-      allow create: if (isSignedIn() && isJobClient(request.resource.data.jobId) && request.resource.data.clientId == request.auth.uid) || isPlatformAdmin();
-
-      // Only admins can update (for moderation) or delete reviews.
-      allow update, delete: if isPlatformAdmin();
+      allow create: if isSignedIn() && isJobClient(request.resource.data.jobId) && request.resource.data.clientId == request.auth.uid;
     }
   }
 }
-
-    

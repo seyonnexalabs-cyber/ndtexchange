@@ -24,13 +24,12 @@
         "id": { "type": "string", "description": "Unique identifier for the Inspection." },
         "jobId": { "type": "string", "description": "Reference to the Job this inspection is part of." },
         "assetId": { "type": "string", "description": "Reference to the Asset being inspected." },
-        "inspectorId": { "type": "string", "description": "Reference to the User (Inspector) performing the inspection." },
         "scheduleDate": { "type": "string", "format": "date-time", "description": "The date the inspection is scheduled." },
         "completionDate": { "type": "string", "format": "date-time", "description": "The date the inspection was completed." },
         "status": { "type": "string", "description": "The status of the inspection." },
         "reportId": { "type": "string", "description": "Reference to the generated InspectionReport." }
       },
-      "required": ["id", "jobId", "assetId", "inspectorId", "scheduleDate", "status"]
+      "required": ["id", "jobId", "assetId", "scheduleDate", "status"]
     },
     "Report": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -54,16 +53,27 @@
         "id": { "type": "string", "description": "Unique identifier for the Job." },
         "clientId": { "type": "string", "description": "Reference to the User (Client) who created the job." },
         "providerId": { "type": "string", "description": "Reference to the User (Provider) awarded the job." },
+        "auditorId": { "type": "string", "description": "Reference to the User (Auditor) assigned for review, if applicable." },
         "assetIds": {
           "type": "array",
           "description": "An array of Asset IDs this job pertains to. This is mandatory for client-created jobs.",
+          "items": { "type": "string" }
+        },
+        "technicianIds": {
+          "type": "array",
+          "description": "An array of User IDs (Inspectors) assigned to the job.",
+          "items": { "type": "string" }
+        },
+        "equipmentIds": {
+          "type": "array",
+          "description": "An array of Equipment IDs assigned to the job.",
           "items": { "type": "string" }
         },
         "location": { "type": "string", "description": "The location where the job needs to be performed." },
         "technique": { "type": "string", "description": "The NDT technique required for the job." },
         "status": { "type": "string", "description": "Current status of the job (e.g., Posted, Assigned, Completed)." }
       },
-      "required": ["id", "clientId", "assetIds", "location", "technique", "status"]
+      "required": ["id", "clientId", "location", "technique", "status"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",

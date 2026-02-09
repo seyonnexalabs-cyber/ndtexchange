@@ -87,11 +87,16 @@ const ReportHeader = ({ job, client, provider, plan, inspection }: { job: any, c
     }
 
     return (
-        <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
-            {logoUrl && <Image src={logoUrl} alt="Company Logo" width={150} height={50} className="object-contain" />}
-            <div className="text-right">
-                <h2 className="text-2xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
-                <p className="text-sm font-semibold">Report #: {job.id}-REP-{inspection.id}</p>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
+                {logoUrl && <Image src={logoUrl} alt="Company Logo" width={150} height={50} className="object-contain" />}
+                <div className="text-right">
+                    <h2 className="text-2xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
+                    <p className="text-sm font-semibold">Report #: {job.id}-REP-{inspection.id}</p>
+                </div>
+            </div>
+            <div className="text-xs text-muted-foreground text-center p-2 border border-dashed rounded-md">
+                <span className="font-bold">Disclaimer:</span> This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.
             </div>
         </div>
     );

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { jobs as initialJobs, Job, JobMessage, allUsers, PlatformUser } from '@/lib/placeholder-data';
+import { Job, allUsers, PlatformUser, jobChats as initialJobChats } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -12,17 +12,18 @@ import { MessageSquare, Send, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { cn, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { jobs } from '@/lib/placeholder-data';
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const role = searchParams.get('role') || 'client';
     
-    // Using state to manage jobs data to allow for in-memory message updates
-    const [jobsData, setJobsData] = useState(initialJobs);
+    const [jobChatsData, setJobChatsData] = useState(initialJobChats);
+    const [jobsData] = useState(jobs);
 
     const currentUser = useMemo(() => {
         const userMap: { [key: string]: PlatformUser | undefined } = {
@@ -35,70 +36,54 @@ export default function MessagesPage() {
     }, [role]);
 
     const conversations = useMemo(() => {
-        let relevantJobs: Job[];
-        switch(role) {
-            case 'client':
-                relevantJobs = jobsData.filter(j => j.client === currentUser.company);
-                break;
-            case 'inspector':
-                relevantJobs = jobsData.filter(j => j.providerId && serviceProviders.find(p => p.id === j.providerId)?.name === currentUser.company);
-                break;
-            case 'auditor':
-                 relevantJobs = jobsData.filter(j => j.workflow === 'level3' || j.workflow === 'auto');
-                break;
-            case 'admin':
-                relevantJobs = jobsData;
-                break;
-            default:
-                relevantJobs = [];
-        }
-
-        return relevantJobs
-            .filter(job => job.messages && job.messages.length > 0)
-            .sort((a,b) => 
-                new Date(b.messages![b.messages!.length - 1].timestamp).getTime() - 
-                new Date(a.messages![a.messages!.length - 1].timestamp).getTime()
-            );
-    }, [jobsData, role, currentUser.company]);
+        if (!currentUser) return [];
+        return jobChatsData
+            .filter(chat => chat.participants.includes(currentUser.id))
+            .map(chat => {
+                const job = jobsData.find(j => j.id === chat.jobId);
+                return { ...chat, job }; // combine chat and job info
+            })
+            .filter((c): c is typeof c & { job: Job } => !!c.job) // Type guard
+            .sort((a,b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
+    }, [jobChatsData, currentUser, jobsData]);
     
-    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+    const [selectedConversation, setSelectedConversation] = useState<typeof conversations[0] | null>(null);
     const [newMessage, setNewMessage] = useState('');
 
     useEffect(() => {
-        if (!isMobile && !selectedJob && conversations.length > 0) {
-            setSelectedJob(conversations[0]);
+        if (!isMobile && !selectedConversation && conversations.length > 0) {
+            setSelectedConversation(conversations[0]);
         }
-    }, [isMobile, selectedJob, conversations]);
+    }, [isMobile, selectedConversation, conversations]);
 
     const handleSendMessage = () => {
-        if (!newMessage.trim() || !currentUser || !selectedJob) return;
+        if (!newMessage.trim() || !currentUser || !selectedConversation) return;
 
-        const message: JobMessage = {
-            user: currentUser.name,
-            role: currentUser.role.split(' ')[0] as 'Client' | 'Inspector' | 'Auditor',
+        const message = {
+            id: `MSG-${Date.now()}`,
+            senderId: currentUser.id,
             timestamp: new Date().toISOString(),
-            message: newMessage.trim(),
+            text: newMessage.trim(),
         };
         
-        // This is an in-memory update for demonstration.
-        const updatedJob = {
-            ...selectedJob,
-            messages: [...(selectedJob.messages || []), message]
+        const updatedConversation = {
+            ...selectedConversation,
+            messages: [...(selectedConversation.messages || []), message],
+            lastMessage: message.text,
+            lastMessageTimestamp: message.timestamp,
         };
 
-        setSelectedJob(updatedJob);
-        setJobsData(prevJobs => prevJobs.map(job => job.id === selectedJob.id ? updatedJob : job));
+        setSelectedConversation(updatedConversation);
+        setJobChatsData(prevChats => prevChats.map(chat => chat.id === selectedConversation.id ? updatedConversation : chat));
         setNewMessage('');
     };
 
-    const isMyMessage = (message: JobMessage) => {
-        if (!currentUser || !message.user) return false;
-        return message.user === currentUser.name;
+    const getUserDetails = (senderId: string) => {
+        return allUsers.find(u => u.id === senderId);
     }
     
     const getAvatarFallback = (userName: string) => {
-        const user = allUsers.find(u => u.name === userName);
-        return user ? user.name.split(' ').map(n => n[0]).join('') : 'U';
+        return userName.split(' ').map(n => n[0]).join('');
     }
 
 
@@ -107,7 +92,7 @@ export default function MessagesPage() {
             {/* Conversation List Column */}
             <div className={cn(
                 "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
-                selectedJob && "hidden md:flex" // Hide on mobile when a chat is selected
+                selectedConversation && "hidden md:flex" // Hide on mobile when a chat is selected
             )}>
                  <div className="p-4 border-b">
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
@@ -117,25 +102,26 @@ export default function MessagesPage() {
                  </div>
                 <ScrollArea className="flex-1">
                     <div className="p-2 space-y-1">
-                        {conversations.map(job => {
-                            const lastMessage = job.messages![job.messages!.length - 1];
-                            const isSelected = selectedJob?.id === job.id;
-                            const provider = serviceProviders.find(p => p.id === job.providerId);
+                        {conversations.map(convo => {
+                            const isSelected = selectedConversation?.id === convo.id;
+                            const provider = serviceProviders.find(p => p.id === convo.job?.providerId);
+                            const lastMessageSender = getUserDetails(convo.messages[convo.messages.length - 1].senderId);
+                            const isMyLastMessage = lastMessageSender?.id === currentUser?.id;
                             return (
                                 <button
-                                    key={job.id}
-                                    onClick={() => setSelectedJob(job)}
+                                    key={convo.id}
+                                    onClick={() => setSelectedConversation(convo)}
                                     className={cn(
                                         "block w-full text-left p-3 rounded-lg border transition-colors",
                                         isSelected ? "bg-primary/10" : "hover:bg-primary/5"
                                     )}
                                 >
-                                    <p className="font-semibold text-sm truncate">{job.title}</p>
+                                    <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
                                     <p className="text-xs text-muted-foreground truncate">
-                                        {role === 'client' ? provider?.name : job.client}
+                                        {role === 'client' ? provider?.name : convo.job?.client}
                                     </p>
                                     <p className="text-xs text-muted-foreground truncate mt-1">
-                                        <span className="font-medium">{isMyMessage(lastMessage) ? 'You' : lastMessage.user.split(' ')[0]}:</span> {lastMessage.message}
+                                        <span className="font-medium">{isMyLastMessage ? 'You' : lastMessageSender?.name.split(' ')[0]}:</span> {convo.lastMessage}
                                     </p>
                                 </button>
                             )
@@ -152,21 +138,21 @@ export default function MessagesPage() {
             {/* Chat View Column */}
             <div className={cn(
                 "flex-1 flex-col",
-                selectedJob ? "flex" : "hidden md:flex" // Show when selected, or on desktop if nothing is selected
+                selectedConversation ? "flex" : "hidden md:flex" // Show when selected, or on desktop if nothing is selected
             )}>
-                {selectedJob ? (
+                {selectedConversation ? (
                    <>
                         {/* Chat Header */}
                         <div className="flex items-center gap-3 p-4 border-b">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedJob(null)}>
+                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
                                 <ChevronLeft />
                             </Button>
                             <div className="w-full">
-                                <p className="font-semibold">{selectedJob.title}</p>
+                                <p className="font-semibold">{selectedConversation.job.title}</p>
                                 <div className="text-sm text-muted-foreground">
-                                    {selectedJob.client}
-                                    {selectedJob.providerId && ` - ${serviceProviders.find(p => p.id === selectedJob.providerId)?.name}`}
-                                    <Badge variant="outline" className="ml-2">{selectedJob.technique}</Badge>
+                                    {selectedConversation.job.client}
+                                    {selectedConversation.job.providerId && ` - ${serviceProviders.find(p => p.id === selectedConversation.job.providerId)?.name}`}
+                                    <Badge variant="outline" className="ml-2">{selectedConversation.job.technique}</Badge>
                                 </div>
                             </div>
                         </div>
@@ -174,19 +160,20 @@ export default function MessagesPage() {
                         {/* Messages */}
                          <ScrollArea className="flex-1 p-6 bg-accent/5">
                             <div className="space-y-6">
-                                {selectedJob.messages?.map((message, index) => {
-                                    const myMessage = isMyMessage(message);
+                                {selectedConversation.messages?.map((message, index) => {
+                                    const sender = getUserDetails(message.senderId);
+                                    const myMessage = sender?.id === currentUser?.id;
                                     return (
                                         <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
-                                            {!myMessage && (
+                                            {!myMessage && sender && (
                                                 <Avatar className="h-8 w-8">
-                                                    <AvatarFallback>{getAvatarFallback(message.user)}</AvatarFallback>
+                                                    <AvatarFallback>{getAvatarFallback(sender.name)}</AvatarFallback>
                                                 </Avatar>
                                             )}
                                             <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-accent/10 border' )}>
-                                                <p className="text-sm font-chat">{message.message}</p>
+                                                <p className="text-sm font-chat">{message.text}</p>
                                                 <p className="text-xs mt-2 opacity-80">
-                                                    {message.user} · {format(new Date(message.timestamp), 'p')}
+                                                    {sender?.name} · {format(new Date(message.timestamp), 'p')}
                                                 </p>
                                             </div>
                                         </div>
@@ -219,5 +206,3 @@ export default function MessagesPage() {
         </Card>
     );
 };
-
-    

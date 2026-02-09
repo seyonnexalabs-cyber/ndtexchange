@@ -1,5 +1,4 @@
 
-
 import { serviceProviders } from './service-providers-data';
 
 export type AssetUpdate = {
@@ -49,13 +48,6 @@ export type JobUpdate = {
     statusChange?: Job['status'];
 };
 
-export type JobMessage = {
-    user: string;
-    role: 'Client' | 'Inspector' | 'Auditor';
-    timestamp: string;
-    message: string;
-};
-
 export type Job = {
     id: string;
     title: string;
@@ -74,7 +66,6 @@ export type Job = {
     workflow: 'standard' | 'level3' | 'auto';
     documents?: JobDocument[];
     history?: JobUpdate[];
-    messages?: JobMessage[];
     bids: Bid[];
     inspections: Inspection[];
     isInternal?: boolean;
@@ -208,6 +199,48 @@ export type JobPayment = {
     status: 'Paid' | 'Pending';
 };
 
+
+export type ChatMessage = {
+    id: string;
+    text: string;
+    senderId: string;
+    timestamp: string;
+};
+
+export type JobChat = {
+    id: string;
+    jobId: string;
+    participants: string[];
+    lastMessage: string;
+    lastMessageTimestamp: string;
+    messages: ChatMessage[];
+};
+
+export const jobChats: JobChat[] = [
+    {
+        id: 'CHAT-001',
+        jobId: 'JOB-002',
+        participants: ['user-client-01', 'user-TECH-01', 'user-TECH-05'],
+        lastMessage: "Thanks for the report. What was the outcome on that secondary hook?",
+        lastMessageTimestamp: '2024-06-22T10:00:00Z',
+        messages: [
+            { id: 'MSG-001', senderId: 'user-client-01', text: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.', timestamp: '2024-06-20T14:15:00Z' },
+            { id: 'MSG-002', senderId: 'user-TECH-01', text: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.', timestamp: '2024-06-20T15:00:00Z' },
+            { id: 'MSG-003', senderId: 'user-client-01', text: "Thanks for the report. What was the outcome on that secondary hook?", timestamp: '2024-06-22T10:00:00Z' },
+        ]
+    },
+    {
+        id: 'CHAT-002',
+        jobId: 'JOB-004',
+        participants: ['user-TECH-02', 'user-TECH-01', 'user-TECH-03'],
+        lastMessage: "Confirmed. I have the procedure documents ready.",
+        lastMessageTimestamp: '2024-07-01T11:05:00Z',
+        messages: [
+            { id: 'MSG-004', senderId: 'user-TECH-02', text: "Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.", timestamp: '2024-07-01T11:00:00Z'},
+            { id: 'MSG-005', senderId: 'user-TECH-01', text: "Confirmed. I have the procedure documents ready.", timestamp: '2024-07-01T11:05:00Z'},
+        ]
+    }
+];
 
 export type SupportMessage = {
     user: string;
@@ -490,11 +523,6 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { user: 'Carlos Ray', timestamp: '2024-06-18T14:00:00Z', action: 'Bid for $4,800 submitted by TEAM, Inc.', details: 'Includes on-site mobilization and reporting.' },
             { user: 'John Doe', timestamp: '2024-06-18T10:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
         ],
-        messages: [
-            { user: 'John Doe', role: 'Client', timestamp: '2024-06-20T14:15:00Z', message: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.' },
-            { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-06-20T15:00:00Z', message: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.' },
-            { user: 'John Doe', role: 'Client', timestamp: '2024-06-22T10:00:00Z', message: 'Thanks for the report. What was the outcome on that secondary hook?' },
-        ],
         documents: [
             { name: 'Crane_Maintenance_Manual.pdf', url: '#' },
             { name: 'Lifting_Procedure.pdf', url: '#' },
@@ -515,11 +543,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         technicianIds: ['user-TECH-01', 'user-TECH-03'], 
         equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], 
         assetIds: ['ASSET-002'], 
-        workflow: 'level3',
-        messages: [
-            { user: 'Ben Carter', role: 'Inspector', timestamp: '2024-07-01T11:00:00Z', message: 'Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.'},
-            { user: 'Carlos Ray', role: 'Inspector', timestamp: '2024-07-01T11:05:00Z', message: 'Confirmed. I have the procedure documents ready.'},
-        ]
+        workflow: 'level3'
     },
     { 
         id: 'JOB-005', 
@@ -939,6 +963,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

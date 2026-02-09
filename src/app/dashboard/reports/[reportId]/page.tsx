@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -5,8 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, Inspection } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
+import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
+import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -15,14 +16,14 @@ import { Form } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import Image from 'next/image';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques, subscriptionPlans as initialPlans } from '@/lib/placeholder-data';
+import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -200,7 +201,7 @@ const ReportViewerPage = ({ reportId }: { reportId: string }) => {
                                 <Calendar className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
                                     <p className="font-semibold">Inspection Date</p>
-                                    <p className="text-muted-foreground">{inspection.date}</p>
+                                    <p className="text-muted-foreground">{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -308,13 +309,58 @@ const ReportHeader = ({ job, client, provider, inspection }: { job: any, client?
     );
 };
 
-
-const ReportFooter = () => (
-    <div className="mt-8 pt-4 border-t text-xs text-muted-foreground text-center">
-        <p className="font-bold">Disclaimer</p>
-        <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
+const SignatureLine = ({ name, role, date }: { name?: string; role: string; date?: string }) => (
+    <div className="flex-1 border-t-2 border-dotted pt-2 mt-20 text-left">
+        <p className="font-semibold">{name || '\u00A0'}</p> {/* Use non-breaking space for empty line */}
+        <p className="text-xs text-muted-foreground">{role}</p>
+        {date && <p className="text-xs text-muted-foreground">Date: {date}</p>}
     </div>
 );
+
+const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Inspection, job?: Job, client?: Client, provider?: NDTServiceProvider }) => {
+    if (!job) {
+        return (
+            <div className="mt-8 pt-4 border-t text-xs text-muted-foreground text-center">
+                <p className="font-bold">Disclaimer</p>
+                <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
+            </div>
+        );
+    }
+    const inspectors = job.technicianIds?.map(id => allUsers.find(u => u.id === id)).filter(Boolean) as PlatformUser[] || [];
+    
+    return (
+        <div className="mt-16 pt-8 text-sm">
+            <h3 className="font-bold text-lg mb-4 text-center">Approvals</h3>
+            <div className="flex flex-col md:flex-row gap-12 md:gap-16">
+                <div className="flex-1">
+                    <p className="font-semibold text-center mb-2">Service Provider</p>
+                    {inspectors.length > 0 ? (
+                        inspectors.map(inspector => (
+                            <SignatureLine key={inspector.id} name={inspector.name} role={`${inspector.level} Inspector`} />
+                        ))
+                    ) : (
+                         <SignatureLine name={provider?.contactPerson} role="Provider Representative" />
+                    )}
+                </div>
+                {(job.workflow === 'level3' || job.workflow === 'auto') && (
+                    <div className="flex-1">
+                        <p className="font-semibold text-center mb-2">Auditor</p>
+                        <SignatureLine name={job.status === 'Audit Approved' || job.status === 'Client Approved' ? 'Alex Chen' : undefined} role="Level III Auditor" />
+                    </div>
+                )}
+                <div className="flex-1">
+                     <p className="font-semibold text-center mb-2">Client Representative</p>
+                    <SignatureLine name={job.status === 'Client Approved' || job.status === 'Completed' || job.status === 'Paid' ? client?.contactPerson : undefined} role="Client Representative" />
+                </div>
+            </div>
+            <div className="mt-16 pt-8 border-t text-xs text-muted-foreground text-center">
+                <p className="font-bold">Disclaimer</p>
+                <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
+            </div>
+        </div>
+    );
+};
+
 
 const ReportGeneratorPage = () => {
     const params = useParams();
@@ -462,7 +508,7 @@ const ReportGeneratorPage = () => {
                     </form>
                 </fieldset>
                 </Form>
-                <ReportFooter />
+                <ReportFooter job={job} inspection={inspection} client={client} provider={provider} />
             </Card>
 
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>

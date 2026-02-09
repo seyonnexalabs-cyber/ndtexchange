@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -355,14 +356,11 @@ export default function PostJobPage() {
                                   name="assets"
                                   render={() => (
                                   <FormItem>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <FormLabel>Select Asset(s) for Inspection</FormLabel>
-                                        <Button type="button" variant="secondary" size="sm" onClick={handleSelectAllVisible}>Select/Deselect All Visible</Button>
-                                    </div>
+                                    <FormLabel>Select Asset(s) for Inspection</FormLabel>
                                     <FormDescription>
                                         Use the filters to narrow down the list of assets, especially for planning large maintenance events.
                                     </FormDescription>
-                                     <Card className="p-4 bg-muted/50">
+                                     <Card className="p-4 bg-muted/50 space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                             <Input 
                                                 placeholder="Filter by asset name..."
@@ -387,6 +385,9 @@ export default function PostJobPage() {
                                                     {uniqueStatuses.map(status => <SelectItem key={status} value={status}>{status === 'all' ? 'All Statuses' : status}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <Button type="button" variant="secondary" size="sm" onClick={handleSelectAllVisible}>Select/Deselect All Visible</Button>
                                         </div>
                                     </Card>
                                       <ScrollArea className="h-60 w-full rounded-md border p-4">

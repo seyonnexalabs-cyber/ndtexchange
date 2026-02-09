@@ -13,6 +13,10 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    function isProviderMember(providerId) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == providerId;
+    }
 
     /***********************************************************
      * User Profile Rules (/users)
@@ -34,6 +38,14 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
+    /***********************************************************
+     * Equipment Rules (/equipment)
+     ***********************************************************/
+    match /equipment/{equipmentId} {
+      allow read, update, delete: if isSignedIn() && isProviderMember(resource.data.providerId);
+      allow create: if isSignedIn() && isProviderMember(request.resource.data.providerId);
+    }
+    
     /***********************************************************
      * Job & Bidding Rules (/jobs, /bids)
      ***********************************************************/

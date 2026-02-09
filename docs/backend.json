@@ -81,9 +81,25 @@
         "id": { "type": "string", "description": "Unique identifier for the User." },
         "name": { "type": "string", "description": "The name of the user." },
         "email": { "type": "string", "format": "email", "description": "The email address of the user." },
-        "role": { "type": "string", "enum": ["Client", "Inspector", "Auditor", "Admin"], "description": "The role of the user." }
+        "role": { "type": "string", "enum": ["Client", "Inspector", "Auditor", "Admin"], "description": "The role of the user." },
+        "providerId": { "type": "string", "description": "If the user is an Inspector, this is the ID of their provider company." }
       },
       "required": ["id", "name", "email", "role"]
+    },
+    "Equipment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Equipment",
+      "type": "object",
+      "description": "Represents a piece of NDT equipment used by an inspector or service provider.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the Equipment." },
+        "name": { "type": "string", "description": "The name of the equipment." },
+        "type": { "type": "string", "description": "The category of equipment (e.g., Instrument, Probe)." },
+        "providerId": { "type": "string", "description": "ID of the provider company that owns this equipment." },
+        "status": { "type": "string", "description": "Current status (e.g., Available, In Use, Calibration Due)." },
+        "nextCalibration": { "type": "string", "format": "date", "description": "Date of next required calibration." }
+      },
+      "required": ["id", "name", "type", "providerId", "status"]
     }
   },
   "auth": {
@@ -114,6 +130,10 @@
       {
         "path": "/reports/{reportId}",
         "definition": { "entityName": "Report", "schema": { "$ref": "#/entities/Report" }, "description": "Stores all reports for all inspections." }
+      },
+      {
+        "path": "/equipment/{equipmentId}",
+        "definition": { "entityName": "Equipment", "schema": { "$ref": "#/entities/Equipment" }, "description": "Stores all equipment for all providers." }
       }
     ],
     "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications."

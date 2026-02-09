@@ -190,11 +190,17 @@ export default function LoginPage() {
                       key={devUser!.id}
                       variant="outline"
                       onClick={() => {
-                        const role = (devUser!.role as string).toLowerCase();
-                        const params = new URLSearchParams();
-                        params.set('role', role);
-                        router.push(`/dashboard?${params.toString()}`);
+                        if (auth && devUser?.email && devUser?.password) {
+                          onSubmit({ email: devUser.email, password: devUser.password });
+                        } else {
+                          toast({
+                            variant: "destructive",
+                            title: "Developer Login Failed",
+                            description: "Could not find credentials for this dev user.",
+                          });
+                        }
                       }}
+                      disabled={isAuthenticating || isUserLoading}
                     >
                       {devUser!.role}
                     </Button>

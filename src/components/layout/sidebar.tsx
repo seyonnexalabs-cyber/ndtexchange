@@ -12,6 +12,7 @@ import {
   SidebarFooter,
   SidebarMenuBadge,
   SidebarSeparator,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -148,6 +149,7 @@ const adminMenu = [
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
+      { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
@@ -165,8 +167,7 @@ const auditorMenu = [
     title: 'Workspace',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList },
-      { id: 'audit-history', href: '/dashboard/audit-history', label: 'Audit History', icon: History },
+      { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
     ]
   },
   {
@@ -190,6 +191,7 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
@@ -266,6 +268,12 @@ const AppSidebar = () => {
     );
   }, [pathname, menuItems]);
 
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   const handleLogout = () => {
     router.push('/login');
   };
@@ -298,10 +306,10 @@ const AppSidebar = () => {
   }
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 flex justify-center">
-        <Link href={constructUrl("/dashboard")}>
-            <Hexagons7Icon className="h-14 w-auto" />
+        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick}>
+            <Hexagons7Icon className="h-12 w-auto" />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">
@@ -319,7 +327,7 @@ const AppSidebar = () => {
                       isActive={item.id === activeItem?.id}
                       tooltip={{ children: item.label }}
                     >
-                      <Link href={item.href ? constructUrl(item.href) : '#'}>
+                      <Link href={item.href ? constructUrl(item.href) : '#'} onClick={handleLinkClick}>
                         <item.icon className="text-primary" />
                         <span>{item.label}</span>
                         {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
@@ -343,7 +351,7 @@ const AppSidebar = () => {
                 Expires on {format(new Date(planDetails.expiry), GLOBAL_DATE_FORMAT)}
               </p>
             )}
-             <Link href={constructUrl('/dashboard/billing')} className="text-xs text-primary hover:underline font-medium mt-2 block">
+             <Link href={constructUrl('/dashboard/billing')} onClick={handleLinkClick} className="text-xs text-primary hover:underline font-medium mt-2 block">
                 Manage Subscription
             </Link>
           </div>

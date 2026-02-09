@@ -7,14 +7,14 @@
       "description": "Represents a physical asset such as equipment, structure, or component that needs inspection.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Asset." },
-        "companyId": { "type": "string", "description": "ID of the company that owns this asset. This is the source of truth for asset ownership." },
+        "clientCompanyId": { "type": "string", "description": "ID of the client company that owns this asset. This is the source of truth for asset ownership." },
         "name": { "type": "string", "description": "The name of the asset." },
         "description": { "type": "string", "description": "A detailed description of the asset." },
         "location": { "type": "string", "description": "The physical location of the asset." },
         "qrCode": { "type": "string", "description": "The QR code associated with the asset for easy identification." },
         "thumbnailUrl": { "type": "string", "description": "URL for the asset's thumbnail image." }
       },
-      "required": ["id", "name", "companyId"]
+      "required": ["id", "name", "clientCompanyId"]
     },
     "Inspection": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -285,7 +285,7 @@
       },
       {
         "path": "/assets/{assetId}",
-        "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Stores all assets. Each asset is explicitly owned by a company via the companyId field." }
+        "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Stores all assets. Each asset is explicitly owned by a client company via the clientCompanyId field." }
       },
       {
         "path": "/jobs/{jobId}",

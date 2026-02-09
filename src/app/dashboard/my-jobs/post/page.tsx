@@ -21,8 +21,8 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -211,6 +211,8 @@ export default function PostJobPage() {
         });
         router.push(constructUrl('/dashboard/my-jobs'));
     }
+    
+    const techniqueOptions = NDTTechniques.map(tech => ({ value: tech.id, label: `${tech.name} (${tech.id})` }));
 
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
@@ -288,49 +290,18 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
+                                 <FormField
                                     control={form.control}
                                     name="techniques"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
                                             <FormLabel>Required Technique(s)</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button
-                                                        variant="outline"
-                                                        role="combobox"
-                                                        className={cn(
-                                                            "w-full justify-between",
-                                                            !field.value?.length && "text-muted-foreground"
-                                                        )}
-                                                        >
-                                                        {field.value?.length > 0
-                                                            ? `${field.value.length} selected`
-                                                            : "Select techniques"}
-                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                                    <ScrollArea className="h-60">
-                                                        <div className="p-2">
-                                                            {NDTTechniques.map((tech) => (
-                                                                <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md cursor-pointer"
-                                                                    onClick={() => {
-                                                                        const selected = field.value || [];
-                                                                        const isSelected = selected.includes(tech.id);
-                                                                        field.onChange(isSelected ? selected.filter(id => id !== tech.id) : [...selected, tech.id]);
-                                                                    }}
-                                                                >
-                                                                    <Checkbox checked={field.value?.includes(tech.id)} />
-                                                                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full cursor-pointer">{tech.name} ({tech.id})</label>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </ScrollArea>
-                                                </PopoverContent>
-                                            </Popover>
+                                            <MultiSelect
+                                                options={techniqueOptions}
+                                                selected={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Select techniques..."
+                                            />
                                             <FormMessage />
                                         </FormItem>
                                     )}

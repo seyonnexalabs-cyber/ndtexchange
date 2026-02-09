@@ -1,4 +1,3 @@
-
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { clientAssets, NDTTechniques, Inspection } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
-import { PlusCircle, ChevronLeft, FileText, X, ChevronsUpDown, Check } from "lucide-react";
+import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -23,12 +22,11 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format } from 'date-fns';
-import { MultiSelect } from '@/components/ui/multi-select';
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   location: z.string().min(2, 'Location is required.'),
-  techniques: z.array(z.string()).min(1, "Please select at least one technique."),
+  technique: z.string({ required_error: "Please select a technique."}),
   description: z.string().optional(),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
@@ -62,7 +60,7 @@ export default function PostJobPage() {
       let schema = baseSchema;
       if (role === 'client') {
         schema = schema.extend({
-          assets: z.array(z.string()).refine(value => value.some(item => item), {
+          assets: z.array(z.string()).refine(value => value.length > 0, {
             message: "You have to select at least one asset for this job.",
           }),
         });
@@ -89,7 +87,7 @@ export default function PostJobPage() {
         defaultValues: {
             title: '',
             location: '',
-            techniques: [],
+            technique: undefined,
             description: '',
             assets: [],
             clientName: '',
@@ -173,34 +171,29 @@ export default function PostJobPage() {
             (values.assets || []).forEach(assetId => {
                 const asset = clientAssets.find(a => a.id === assetId);
                 if (asset) {
-                    values.techniques.forEach(technique => {
-                        inspections.push({
-                            assetName: asset.name,
-                            assetId: asset.id,
-                            technique: technique,
-                            inspector: 'Pending',
-                            date: inspectionDate,
-                            status: 'Scheduled',
-                        });
+                    inspections.push({
+                        assetName: asset.name,
+                        assetId: asset.id,
+                        technique: values.technique,
+                        inspector: 'Pending',
+                        date: inspectionDate,
+                        status: 'Scheduled',
                     });
                 }
             });
         } else if (role === 'inspector') {
-            values.techniques.forEach(technique => {
-                inspections.push({
-                    assetName: values.description!.substring(0, 50),
-                    assetId: 'N/A',
-                    technique: technique,
-                    inspector: 'Pending',
-                    date: inspectionDate,
-                    status: 'Scheduled',
-                });
+            inspections.push({
+                assetName: values.description!.substring(0, 50),
+                assetId: 'N/A',
+                technique: values.technique,
+                inspector: 'Pending',
+                date: inspectionDate,
+                status: 'Scheduled',
             });
         }
 
         const newJobData = {
             ...values,
-            technique: values.techniques.length > 1 ? 'Multi-technique' : values.techniques[0],
             inspections: inspections,
             isInternal: role === 'inspector'
         };
@@ -212,8 +205,6 @@ export default function PostJobPage() {
         });
         router.push(constructUrl('/dashboard/my-jobs'));
     }
-    
-    const techniqueOptions = NDTTechniques.map(tech => ({ value: tech.id, label: `${tech.name} (${tech.id})` }));
 
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
@@ -293,16 +284,22 @@ export default function PostJobPage() {
                                 />
                                  <FormField
                                     control={form.control}
-                                    name="techniques"
+                                    name="technique"
                                     render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>Required Technique(s)</FormLabel>
-                                            <MultiSelect
-                                                options={techniqueOptions}
-                                                selected={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select techniques..."
-                                            />
+                                        <FormItem>
+                                            <FormLabel>Required Technique</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a technique" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {NDTTechniques.map(tech => (
+                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}

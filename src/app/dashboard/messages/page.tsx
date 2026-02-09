@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -17,6 +16,20 @@ import { cn } from '@/lib/utils';
 import { format, isSameDay } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { jobs } from '@/lib/placeholder-data';
+
+// Component to safely render formatted time on the client to avoid hydration errors
+const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
+  const [formattedTime, setFormattedTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    // This effect runs only on the client, ensuring the time is formatted in the user's timezone
+    setFormattedTime(format(new Date(dateString), 'p'));
+  }, [dateString]);
+
+  // Return a placeholder or null during server-side rendering and initial client-side render
+  return <>{formattedTime || ' '}</>;
+};
+
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
@@ -119,7 +132,7 @@ export default function MessagesPage() {
                                 >
                                     <div className="flex justify-between items-start gap-2">
                                         <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
-                                        <span className="text-xs text-muted-foreground shrink-0">{format(new Date(convo.lastMessageTimestamp), 'p')}</span>
+                                        <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime dateString={convo.lastMessageTimestamp} /></span>
                                     </div>
                                     <p className="text-xs text-muted-foreground truncate">
                                         {role === 'client' ? provider?.name : convo.job?.client}
@@ -196,7 +209,7 @@ export default function MessagesPage() {
                                                     {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{sender?.name}</p>}
                                                     <p className="text-sm">{message.text}</p>
                                                     <p className="text-xs mt-2 opacity-80 text-right">
-                                                        {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : format(new Date(message.timestamp), 'p')}
+                                                        <ClientFormattedTime dateString={message.timestamp} />
                                                     </p>
                                                 </div>
                                             </div>

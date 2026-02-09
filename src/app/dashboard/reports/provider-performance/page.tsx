@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -206,7 +205,6 @@ export default function ProviderPerformanceReportPage() {
                                         />
                                         ))}
                                     </ScrollArea>
-                                    <FormMessage />
                                 </FormItem>
                                 )}
                             />

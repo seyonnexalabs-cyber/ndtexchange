@@ -1,16 +1,7 @@
 'use client';
 import React from 'react';
-import { Users, Wrench, Search, Briefcase, FileText, ArrowRight } from 'lucide-react';
-
-const Step = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
-    <div className="flex flex-col items-center text-center p-4 max-w-xs mx-auto">
-        <div className="bg-primary/10 text-primary p-4 rounded-full mb-4">
-            <Icon className="w-8 h-8" />
-        </div>
-        <h3 className="text-lg font-semibold font-headline text-primary">{title}</h3>
-        <p className="mt-1 text-muted-foreground text-sm">{description}</p>
-    </div>
-);
+import { Users, Wrench, Search, Briefcase, FileText } from 'lucide-react';
+import { FeatureCard } from '@/app/components/feature-card';
 
 const InspectorWorkflow = () => {
     const coreSteps = [
@@ -26,21 +17,17 @@ const InspectorWorkflow = () => {
             <div>
                 <h2 className="text-2xl font-headline font-semibold text-center mb-2">The Service Provider Workflow</h2>
                 <p className="text-muted-foreground text-center max-w-2xl mx-auto">From managing your company\'s resources to winning and completing jobs, here’s how to leverage the platform.</p>
-                <div className="relative w-full max-w-7xl mx-auto mt-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center">
-                        {coreSteps.map((stage, index) => (
-                            <React.Fragment key={stage.title}>
-                                <div className="flex-1 min-w-0">
-                                    <Step icon={stage.icon} title={stage.title} description={stage.description} />
-                                </div>
-                                {index < coreSteps.length - 1 && (
-                                    <div className="hidden md:flex flex-shrink-0 mx-4 text-muted-foreground/50">
-                                        <ArrowRight className="w-8 h-8" />
-                                    </div>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 max-w-7xl mx-auto">
+                    {coreSteps.map((step) => (
+                        <FeatureCard
+                            key={step.title}
+                            icon={<step.icon className="w-8 h-8 text-primary" />}
+                            title={step.title}
+                            description={step.description}
+                            cardClass="text-center"
+                            iconContainerClass="bg-primary/10"
+                        />
+                    ))}
                 </div>
             </div>
         </div>

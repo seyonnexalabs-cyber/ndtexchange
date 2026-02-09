@@ -134,9 +134,12 @@ export default function MessagesPage() {
                                         <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
                                         <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime dateString={convo.lastMessageTimestamp} /></span>
                                     </div>
-                                    <p className="text-xs text-muted-foreground truncate">
-                                        {role === 'client' ? provider?.name : convo.job?.client}
-                                    </p>
+                                    <div className="flex justify-between items-start gap-2 text-xs text-muted-foreground">
+                                        <p className="font-extrabold truncate">ID: {convo.job?.id}</p>
+                                        <p className="truncate text-right">
+                                            {role === 'client' ? provider?.name : convo.job?.client}
+                                        </p>
+                                    </div>
                                     <div className="text-xs text-muted-foreground mt-1 flex">
                                         <p className="truncate">
                                             <span className="font-medium mr-1">{isMyLastMessage ? 'You' : lastMessageSender?.name.split(' ')[0]}:</span>

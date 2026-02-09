@@ -1,10 +1,11 @@
+
 import { test, expect } from '@playwright/test';
 
 test('has title', async ({ page }) => {
   await page.goto('/');
 
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/The Digital Marketplace for Asset Integrity/);
+  await expect(page).toHaveTitle(/NDT EXCHANGE | The Digital Marketplace for Asset Integrity/);
 });
 
 test('get started link', async ({ page }) => {

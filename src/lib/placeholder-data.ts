@@ -772,7 +772,7 @@ export const reviews: Review[] = [
 
 export const allUsers: PlatformUser[] = [
     { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
-    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active', password: 'password123' },
+    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
     { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', password: 'password123' },
     { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
 ];
@@ -859,14 +859,14 @@ export type BillingAuditLog = {
 
 
 export const userAuditLog: UserAuditLog[] = [
-  { id: 'ACT-001', timestamp: '2024-07-28T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'Admin Promotion', targetUserName: 'Maria Garcia', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
-  { id: 'ACT-002', timestamp: '2024-07-27T15:30:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Disabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: '' },
-  { id: 'ACT-003', timestamp: '2024-07-26T11:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+  { id: 'ACT-001', timestamp: '2024-07-28T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'Admin Promotion', targetUserName: 'Maria Garcia', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
+  { id: 'ACT-002', timestamp: '2024-07-27T15:30:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Disabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: '' },
+  { id: 'ACT-003', timestamp: '2024-07-26T11:00:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
   { id: 'ACT-004', timestamp: '2024-07-25T09:20:00Z', actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
-  { id: 'ACT-005', timestamp: '2024-07-29T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Enabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
-  { id: 'ACT-006', timestamp: '2024-07-30T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Maria Garcia', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
-  { id: 'ACT-007', timestamp: '2024-07-25T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
-  { id: 'ACT-008', timestamp: '2024-07-30T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Energy Transfer', details: 'Invited as Client.' },
+  { id: 'ACT-005', timestamp: '2024-07-29T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Enabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
+  { id: 'ACT-006', timestamp: '2024-07-30T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'Maria Garcia', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
+  { id: 'ACT-007', timestamp: '2024-07-25T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
+  { id: 'ACT-008', timestamp: '2024-07-30T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Energy Transfer', details: 'Invited as Client.' },
 ];
 
 export const jobAuditLog: JobAuditLog[] = [
@@ -896,6 +896,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

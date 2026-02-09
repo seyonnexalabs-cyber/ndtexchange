@@ -34,7 +34,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const userDetails = {
     client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.', address: '123 Energy Corridor, Houston, TX 77079' },
     inspector: { name: 'Maria Garcia', role: 'Level II Inspector', email: 'maria.garcia@teaminc.com', company: 'TEAM, Inc.', address: '1 Fluor Daniel Dr, Sugar Land, TX 77478' },
-    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT Exchange', address: '123 Main St, Palo Alto, CA' },
+    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE', address: '123 Main St, Palo Alto, CA' },
     auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', address: '456 Gov Ave, Washington, D.C.' },
 };
 
@@ -429,7 +429,7 @@ const SubscriptionSettings = () => {
                         Your 30-day free trial gives you full access to all platform features. After the trial period ends, you will need to upgrade to a paid plan. Your subscription covers platform hosting costs, while data storage and user count are key components of our usage-based pricing.
                     </p>
                      <p className="mt-2 font-semibold">
-                       Note: NDT Exchange does not process payments directly through the platform. Our team will work with you to handle invoicing and payment.
+                       Note: NDT EXCHANGE does not process payments directly through the platform. Our team will work with you to handle invoicing and payment.
                     </p>
                 </div>
             </CardContent>
@@ -765,10 +765,10 @@ export default function SettingsPage() {
                     <ScrollArea className="h-[60vh] pr-6">
                         <div className="space-y-6 text-muted-foreground">
                             <p>
-                            Welcome to NDT Exchange. These terms and conditions outline the rules and regulations for the use of NDT Exchange's Website, located at ndt-exchange.com.
+                            Welcome to NDT EXCHANGE. These terms and conditions outline the rules and regulations for the use of NDT EXCHANGE's Website, located at ndt-exchange.com.
                             </p>
                             <p>
-                            By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT Exchange if you do not agree to take all of the terms and conditions stated on this page.
+                            By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT EXCHANGE if you do not agree to take all of the terms and conditions stated on this page.
                             </p>
                             
                             <h2 className="text-2xl font-headline text-foreground pt-4">1. Definitions</h2>
@@ -778,24 +778,24 @@ export default function SettingsPage() {
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">2. License to Use Website</h2>
                             <p>
-                            Unless otherwise stated, NDT Exchange and/or its licensors own the intellectual property rights for all material on NDT Exchange. All intellectual property rights are reserved. You may access this from NDT Exchange for your own personal use subjected to restrictions set in these terms and conditions.
+                            Unless otherwise stated, NDT EXCHANGE and/or its licensors own the intellectual property rights for all material on NDT EXCHANGE. All intellectual property rights are reserved. You may access this from NDT EXCHANGE for your own personal use subjected to restrictions set in these terms and conditions.
                             </p>
                             <p>You must not:</p>
                             <ul className="list-disc list-inside space-y-2 pl-4">
-                            <li>Republish material from NDT Exchange</li>
-                            <li>Sell, rent or sub-license material from NDT Exchange</li>
-                            <li>Reproduce, duplicate or copy material from NDT Exchange</li>
-                            <li>Redistribute content from NDT Exchange</li>
+                            <li>Republish material from NDT EXCHANGE</li>
+                            <li>Sell, rent or sub-license material from NDT EXCHANGE</li>
+                            <li>Reproduce, duplicate or copy material from NDT EXCHANGE</li>
+                            <li>Redistribute content from NDT EXCHANGE</li>
                             </ul>
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">3. User Content</h2>
                             <p>
-                            In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT Exchange a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
+                            In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT EXCHANGE a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
                             </p>
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform &amp; Disclaimer of Services</h2>
                             <p>
-                                NDT Exchange acts as a neutral digital platform to connect asset owners (Clients) with NDT service providers. We are not a party to the actual service agreement between the Client and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
+                                NDT EXCHANGE acts as a neutral digital platform to connect asset owners (Clients) with NDT service providers. We are not a party to the actual service agreement between the Client and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
                             </p>
                             <p>
                                 Therefore, we make no representations or warranties regarding the quality, accuracy, safety, or legality of the services provided or the reports generated by users on the platform. The responsibility for the inspection work, its results, and its conclusions lies solely with the service provider and the Client who engages them. Users are solely responsible for vetting and selecting appropriate counterparts.
@@ -803,15 +803,15 @@ export default function SettingsPage() {
                             
                             <h2 className="text-2xl font-headline text-foreground pt-4">5. Limitation of Liability</h2>
                             <p>
-                            In no event shall NDT Exchange, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT Exchange, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
+                            In no event shall NDT EXCHANGE, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT EXCHANGE, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
                             </p>
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">6. Financial Transactions</h2>
                             <p>
-                              NDT Exchange provides a platform to connect asset owners (Clients) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Clients and providers.
+                              NDT EXCHANGE provides a platform to connect asset owners (Clients) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Clients and providers.
                             </p>
                             <p>
-                              All payments for services rendered are to be handled directly between the Client and the service provider. NDT Exchange does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
+                              All payments for services rendered are to be handled directly between the Client and the service provider. NDT EXCHANGE does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
                             </p>
                             
                             <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law &amp; Jurisdiction</h2>

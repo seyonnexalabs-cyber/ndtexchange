@@ -67,7 +67,7 @@ export default function PublicHeader() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-3">
           <LogoIcon className="h-10 w-auto text-white" />
-          <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT Exchange</span>
+          <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT EXCHANGE</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => {
@@ -119,7 +119,7 @@ export default function PublicHeader() {
                         <SheetTitle>
                             <Link href="/" className="flex items-center gap-3">
                               <LogoIcon className="h-10 w-auto text-indigo-500" />
-                              <span className="text-xl font-headline font-bold text-card-foreground whitespace-nowrap">NDT Exchange</span>
+                              <span className="text-xl font-headline font-bold text-card-foreground whitespace-nowrap">NDT EXCHANGE</span>
                             </Link>
                         </SheetTitle>
                     </SheetHeader>

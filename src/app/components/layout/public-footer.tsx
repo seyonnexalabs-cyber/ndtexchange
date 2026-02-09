@@ -32,7 +32,7 @@ export default function PublicFooter() {
                     <div className="md:col-span-1">
                         <Link href="/" className="flex items-center gap-3">
                             <LogoIcon className="h-10 w-auto text-white" />
-                            <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT Exchange</span>
+                            <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT EXCHANGE</span>
                         </Link>
                         <p className="mt-4 text-sm text-primary-foreground/80">
                             The premier marketplace for Non-Destructive Testing services.
@@ -92,7 +92,7 @@ export default function PublicFooter() {
 
                 <div className="mt-12 border-t border-primary-foreground/20 pt-8">
                     <p className="text-sm text-center text-primary-foreground/80">
-                        &copy; {new Date().getFullYear()} NDT Exchange. All Rights Reserved.
+                        &copy; {new Date().getFullYear()} NDT EXCHANGE. All Rights Reserved.
                     </p>
                 </div>
             </div>

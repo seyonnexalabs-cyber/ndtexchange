@@ -631,26 +631,26 @@ export default function SubscriptionsPage() {
 
         switch (sub.status) {
             case 'Trialing':
-                subject = `Your NDT Exchange Trial is Ending Soon`;
-                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT Exchange. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${sub.endDate ? format(new Date(sub.endDate), GLOBAL_DATE_FORMAT): ''}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT Exchange Team`;
+                subject = `Your NDT EXCHANGE Trial is Ending Soon`;
+                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT EXCHANGE. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${sub.endDate ? format(new Date(sub.endDate), GLOBAL_DATE_FORMAT): ''}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT EXCHANGE Team`;
                 text = 'Encourage Upgrade';
                 variant = 'default';
                 break;
             case 'Past Due':
-                subject = `Action Required: Your NDT Exchange Subscription is Past Due`;
-                body = `Dear ${sub.companyName} team,\n\nOur records indicate that your NDT Exchange subscription payment is currently past due. To avoid any service interruption, please contact us to resolve this issue.\n\nThank you,\nThe NDT Exchange Team`;
+                subject = `Action Required: Your NDT EXCHANGE Subscription is Past Due`;
+                body = `Dear ${sub.companyName} team,\n\nOur records indicate that your NDT EXCHANGE subscription payment is currently past due. To avoid any service interruption, please contact us to resolve this issue.\n\nThank you,\nThe NDT EXCHANGE Team`;
                 text = 'Resolve Issue';
                 variant = 'destructive';
                 break;
             case 'Payment Failed':
-                subject = `Urgent: NDT Exchange Subscription Payment Failed`;
-                body = `Dear ${sub.companyName} team,\n\nWe were unable to process the payment for your NDT Exchange subscription. Please update your payment information or contact us immediately to avoid service disruption.\n\nThank you,\nThe NDT Exchange Team`;
+                subject = `Urgent: NDT EXCHANGE Subscription Payment Failed`;
+                body = `Dear ${sub.companyName} team,\n\nWe were unable to process the payment for your NDT EXCHANGE subscription. Please update your payment information or contact us immediately to avoid service disruption.\n\nThank you,\nThe NDT EXCHANGE Team`;
                 text = 'Resolve Issue';
                 variant = 'destructive';
                 break;
             case 'Canceled':
-                subject = `Regarding Your Canceled NDT Exchange Subscription`;
-                body = `Dear ${sub.companyName} team,\n\nWe noticed your subscription to NDT Exchange has been canceled. We'd appreciate any feedback you have, and we'd love to welcome you back. Please let us know if there's anything we can do to help.\n\nThank you,\nThe NDT Exchange Team`;
+                subject = `Regarding Your Canceled NDT EXCHANGE Subscription`;
+                body = `Dear ${sub.companyName} team,\n\nWe noticed your subscription to NDT EXCHANGE has been canceled. We'd appreciate any feedback you have, and we'd love to welcome you back. Please let us know if there's anything we can do to help.\n\nThank you,\nThe NDT EXCHANGE Team`;
                 text = 'Contact User';
                 variant = 'secondary';
                 break;

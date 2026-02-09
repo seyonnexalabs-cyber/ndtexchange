@@ -288,7 +288,7 @@ const reportSchema = z.object({
 
 const ReportHeader = ({ job, client, provider, inspection }: { job: any, client?: any, provider?: any, inspection: Inspection }) => {
     const clientLogo = client?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
-    const providerLogo = provider?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Provider+Logo';
+    const providerLogo = provider?.logoUrl || 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
     const brandColor = client?.brandColor || '#3B82F6'; // Client's color takes precedence
 
     return (
@@ -350,7 +350,7 @@ const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Insp
             </div>
              <div className="mt-16 pt-8 border-t text-xs text-muted-foreground text-center report-disclaimer">
                 <p className="font-bold">Disclaimer</p>
-                <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
+                <p>This report was generated via the NDT EXCHANGE platform. NDT EXCHANGE serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT EXCHANGE makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
             </div>
         </div>
     );
@@ -493,7 +493,7 @@ const ReportGeneratorPage = () => {
 
             <Card className="max-w-4xl mx-auto p-8 printable-area report-body">
                  <div className="watermark-container">
-                    <p className="watermark-text">NDT Exchange</p>
+                    <p className="watermark-text">NDT EXCHANGE</p>
                 </div>
                 <ReportHeader job={job} client={client} provider={provider} inspection={inspection} />
                 

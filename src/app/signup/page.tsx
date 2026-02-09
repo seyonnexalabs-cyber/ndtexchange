@@ -95,7 +95,7 @@ export default function SignupPage() {
             name: data.fullName,
             email: data.email,
             role: data.role.charAt(0).toUpperCase() + data.role.slice(1),
-            company: data.role === 'admin' ? 'NDT Exchange' : data.companyName || '',
+            company: data.role === 'admin' ? 'NDT EXCHANGE' : data.companyName || '',
             status: 'Active',
         };
 
@@ -111,7 +111,7 @@ export default function SignupPage() {
 
         toast({
             title: "Account Created!",
-            description: "Welcome to NDT Exchange. You can now log in.",
+            description: "Welcome to NDT EXCHANGE. You can now log in.",
         });
         router.push(`/login`);
 

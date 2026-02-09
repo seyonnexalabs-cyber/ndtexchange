@@ -14,7 +14,7 @@ import { FeatureCard } from '@/app/components/feature-card';
 
 export const metadata: Metadata = {
   title: 'The Digital Marketplace for Asset Integrity',
-  description: 'NDT Exchange is a purpose-built digital ecosystem connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.',
+  description: 'NDT EXCHANGE is a purpose-built digital ecosystem connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.',
 };
 
 export default function HomePage() {
@@ -46,7 +46,7 @@ export default function HomePage() {
                 The Digital Marketplace for Asset Integrity
               </h1>
               <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
-                NDT Exchange is a purpose-built ecosystem where asset owners ensure operational continuity and certified NDT professionals find opportunities to grow their business.
+                NDT EXCHANGE is a purpose-built ecosystem where asset owners ensure operational continuity and certified NDT professionals find opportunities to grow their business.
               </p>
               <div className="mt-8 flex justify-center gap-4">
                   <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
@@ -60,7 +60,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* What is NDT Exchange Section - REVISED */}
+        {/* What is NDT EXCHANGE Section - REVISED */}
         <section id="features" className="py-20">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
@@ -68,7 +68,7 @@ export default function HomePage() {
                         The Operating System for Asset Integrity
                     </h2>
                     <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                        NDT Exchange is more than a marketplace. It's a unified platform providing dedicated toolsets for every stakeholder in the inspection lifecycle.
+                        NDT EXCHANGE is more than a marketplace. It's a unified platform providing dedicated toolsets for every stakeholder in the inspection lifecycle.
                     </p>
                 </div>
 
@@ -132,7 +132,7 @@ export default function HomePage() {
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4 text-muted-foreground">
-                        <p>Managing asset integrity is complex and crucial. NDT Exchange simplifies the process of procuring inspection services, giving you confidence and control.</p>
+                        <p>Managing asset integrity is complex and crucial. NDT EXCHANGE simplifies the process of procuring inspection services, giving you confidence and control.</p>
                         <ul className="space-y-3">
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Ensure Operational Continuity:</strong> Proactively manage asset health by connecting with a global network of certified inspection professionals.</span></li>
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Streamline Procurement:</strong> Post jobs, evaluate competitive bids, and award contracts with full transparency and confidence.</span></li>
@@ -218,7 +218,7 @@ export default function HomePage() {
         <section className="py-20 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-headline font-semibold text-primary">
-              Ready to Join NDT Exchange?
+              Ready to Join NDT EXCHANGE?
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
               Experience the future of asset integrity management. Start your free trial today.

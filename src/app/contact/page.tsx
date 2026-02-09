@@ -1,3 +1,4 @@
+
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -225,12 +226,12 @@ export default function ContactPage() {
 
     const clientPlans = useMemo(() => activePlans
         .filter(p => p.audience === 'Client')
-        .sort((a, b) => priceToNumber(a.price[currency]) - priceToNumber(b.price[currency])), 
+        .sort((a, b) => priceToNumber(a.price.monthly[currency]) - priceToNumber(b.price.monthly[currency])), 
     [activePlans, currency]);
     
     const providerPlans = useMemo(() => activePlans
         .filter(p => p.audience === 'Provider')
-        .sort((a, b) => priceToNumber(a.price[currency]) - priceToNumber(b.price[currency])), 
+        .sort((a, b) => priceToNumber(a.price.monthly[currency]) - priceToNumber(b.price.monthly[currency])), 
     [activePlans, currency]);
 
     const auditorPlan = useMemo(() => activePlans.find(p => p.audience === 'Auditor'), [activePlans]);
@@ -325,7 +326,7 @@ export default function ContactPage() {
                                 <PricingCard
                                     key={plan.id}
                                     plan={plan.name}
-                                    price={plan.price[currency]}
+                                    price={plan.price.monthly[currency]}
                                     description={plan.description}
                                     features={plan.features}
                                     isFeatured={plan.isFeatured}
@@ -349,7 +350,7 @@ export default function ContactPage() {
                                 <PricingCard
                                     key={plan.id}
                                     plan={plan.name}
-                                    price={plan.price[currency]}
+                                    price={plan.price.monthly[currency]}
                                     description={plan.description}
                                     features={plan.features}
                                     isFeatured={plan.isFeatured}
@@ -447,7 +448,7 @@ export default function ContactPage() {
                          </div>
                     </div>
                      <div className="p-8 border-l-4 border-primary bg-background">
-                        <p className="text-lg italic text-muted-foreground">“NDT Exchange simplified multi‑vendor inspections during shutdowns.”</p>
+                        <p className="text-lg italic text-muted-foreground">“NDT EXCHANGE simplified multi‑vendor inspections during shutdowns.”</p>
                         <p className="mt-4 font-semibold">- Plant Manager, Oil & Gas Sector</p>
                     </div>
                 </div>

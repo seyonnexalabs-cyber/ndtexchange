@@ -237,7 +237,7 @@ export default function BillingPage() {
                 "key": "rzp_test_SCmu4c9MVES9Ei", // Public Test Key
                 "amount": amountInCents,
                 "currency": "USD",
-                "name": "NDT Exchange",
+                "name": "NDT EXCHANGE",
                 "description": `Subscription for ${plan}`,
                 "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",
                 "handler": function (response: any){

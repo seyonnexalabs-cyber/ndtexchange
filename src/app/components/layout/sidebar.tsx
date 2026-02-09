@@ -50,9 +50,9 @@ import { LogoIcon } from '@/app/components/icons';
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
   inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.' },
-  admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT Exchange' },
+  admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT EXCHANGE' },
   auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
-  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT Exchange' },
+  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
 const clientMenu = [
@@ -311,7 +311,7 @@ const AppSidebar = () => {
         <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
             <LogoIcon className="h-8 w-8 text-indigo-500 shrink-0" />
             <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
-                NDT Exchange
+                NDT EXCHANGE
             </h1>
         </Link>
       </SidebarHeader>

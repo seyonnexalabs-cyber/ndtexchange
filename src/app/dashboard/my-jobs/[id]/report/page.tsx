@@ -221,7 +221,7 @@ export default function ReportPage() {
                         )}
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><Printer className="mr-2"/> Generate PDF</Button>
+                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)} disabled={!isSubscriptionActive}><Printer className="mr-2"/> Generate PDF</Button>
                         <Button onClick={form.handleSubmit(onSubmit)} disabled={!isSubscriptionActive}><FileText className="mr-2"/> Submit Report</Button>
                     </div>
                 </div>

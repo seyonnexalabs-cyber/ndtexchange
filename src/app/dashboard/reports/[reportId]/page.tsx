@@ -289,19 +289,19 @@ const reportSchema = z.object({
 const ReportHeader = ({ job, client, provider, inspection }: { job: any, client?: any, provider?: any, inspection: Inspection }) => {
     const clientLogo = client?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
     const providerLogo = provider?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Provider+Logo';
-    const brandColor = provider?.brandColor || client?.brandColor || '#3B82F6'; // Default to primary blue
+    const brandColor = client?.brandColor || '#3B82F6'; // Client's color takes precedence
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
-                <div className="w-1/4">
+                <div className="w-1/3 flex justify-start">
                     <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" />
                 </div>
-                <div className="w-1/2 text-center">
-                    <h2 className="text-2xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
+                <div className="w-1/3 text-center">
+                    <h2 className="text-xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
                     <p className="text-sm font-semibold">Report #: {job.id}-REP-{inspection.id}</p>
                 </div>
-                <div className="w-1/4 flex justify-end">
+                <div className="w-1/3 flex justify-end">
                      <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" />
                 </div>
             </div>
@@ -319,17 +319,12 @@ const SignatureLine = ({ name, role, date }: { name?: string; role: string; date
 
 const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Inspection, job?: Job, client?: Client, provider?: NDTServiceProvider }) => {
     if (!job) {
-        return (
-            <div className="mt-8 pt-4 border-t text-xs text-muted-foreground text-center">
-                <p className="font-bold">Disclaimer</p>
-                <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
-            </div>
-        );
+        return null;
     }
     const inspectors = job.technicianIds?.map(id => allUsers.find(u => u.id === id)).filter(Boolean) as PlatformUser[] || [];
     
     return (
-        <div className="mt-16 pt-8 text-sm">
+        <div className="mt-16 pt-8 text-sm break-after-page">
             <h3 className="font-bold text-lg mb-4 text-center">Approvals</h3>
             <div className="flex flex-col md:flex-row gap-12 md:gap-16">
                 <div className="flex-1">
@@ -353,7 +348,7 @@ const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Insp
                     <SignatureLine name={job.status === 'Client Approved' || job.status === 'Completed' || job.status === 'Paid' ? client?.contactPerson : undefined} role="Client Representative" />
                 </div>
             </div>
-            <div className="mt-16 pt-8 border-t text-xs text-muted-foreground text-center">
+             <div className="mt-16 pt-8 border-t text-xs text-muted-foreground text-center report-disclaimer">
                 <p className="font-bold">Disclaimer</p>
                 <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
             </div>
@@ -373,6 +368,7 @@ const ReportGeneratorPage = () => {
     const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(false);
     const [saveLog, setSaveLog] = React.useState<string[]>([]);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+    const [orientation, setOrientation] = React.useState('portrait');
     
     const isSubscriptionActive = false;
     
@@ -434,7 +430,7 @@ const ReportGeneratorPage = () => {
     };
 
     return (
-        <div>
+        <div className={orientation}>
              {!isSubscriptionActive && (
                 <Alert variant="destructive" className="mb-6">
                     <AlertTriangle className="h-4 w-4" />
@@ -442,7 +438,7 @@ const ReportGeneratorPage = () => {
                     <AlertDescription>Your plan is inactive, so this page is in read-only mode. Please visit settings to manage your subscription.</AlertDescription>
                 </Alert>
             )}
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 print-hidden">
                 <Button asChild variant="outline" size="sm">
                     <Link href={constructUrl(`/dashboard/my-jobs/${jobId}`)}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
@@ -469,10 +465,10 @@ const ReportGeneratorPage = () => {
                 </div>
             </div>
 
-            <div className="mb-4 text-xs text-muted-foreground">{lastSavedMessage()}</div>
+            <div className="mb-4 text-xs text-muted-foreground print-hidden">{lastSavedMessage()}</div>
             
             {process.env.NODE_ENV === 'development' && (
-                <Alert className="mb-6">
+                <Alert className="mb-6 print-hidden">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Developer Controls</AlertTitle>
                     <AlertDescription className="flex items-center gap-4 mt-2">
@@ -483,11 +479,19 @@ const ReportGeneratorPage = () => {
                                 {NDTTechniques.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
+                        <Label>Orientation:</Label>
+                         <Select value={orientation} onValueChange={setOrientation}>
+                            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="portrait">Portrait</SelectItem>
+                                <SelectItem value="landscape">Landscape</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </AlertDescription>
                 </Alert>
             )}
 
-            <Card className="max-w-4xl mx-auto p-8 printable-area">
+            <Card className="max-w-4xl mx-auto p-8 printable-area report-body">
                  <div className="watermark-container">
                     <p className="watermark-text">NDT Exchange</p>
                 </div>
@@ -515,7 +519,7 @@ const ReportGeneratorPage = () => {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Generate PDF</DialogTitle>
-                        <DialogDescription>This will open your browser's print dialog. Review the content on the page, then use the print dialog to save as a PDF.</DialogDescription>
+                        <DialogDescription>This will open your browser's print dialog. For best results, ensure "Background graphics" is enabled and margins are set to default. You can then save the document as a PDF.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setIsPreviewOpen(false)}>Cancel</Button>

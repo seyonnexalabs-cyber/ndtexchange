@@ -57,7 +57,8 @@ export default function MyJobsPage() {
         'Client Review': 'secondary',
         'Client Approved': 'success',
         'Completed': 'success',
-        'Paid': 'success'
+        'Paid': 'success',
+        'Revisions Requested': 'destructive'
     };
 
     const { displayedJobs, title, Icon } = useMemo(() => {
@@ -432,4 +433,6 @@ export default function MyJobsPage() {
             )}
         </div>
     );
+}
+
     

@@ -21,7 +21,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 
 const reportSchema = z.object({
   providerIds: z.array(z.string()),
@@ -46,7 +46,7 @@ export default function JobCostAnalysisReportPage() {
     });
 
     const searchParams = useSearchParams();
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -256,6 +256,7 @@ export default function JobCostAnalysisReportPage() {
                                             />
                                             </PopoverContent>
                                         </Popover>
+                                         <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -374,5 +375,4 @@ export default function JobCostAnalysisReportPage() {
         </div>
     );
 }
-
     

@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { format, isSameDay } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { jobs } from '@/lib/placeholder-data';
 
 // Component to safely render formatted time on the client to avoid hydration errors
@@ -27,13 +27,13 @@ const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
   }, [dateString]);
 
   // Return a placeholder or null during server-side rendering and initial client-side render
-  return <>{formattedTime || ' '}</>;
+  return <>{formattedTime || ''}</>;
 };
 
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const role = searchParams.get('role') || 'client';
     
     const [jobChatsData, setJobChatsData] = useState(initialJobChats);
@@ -206,7 +206,7 @@ export default function MessagesPage() {
                                                     </Avatar>
                                                 )}
                                                 <div className={cn(
-                                                    "max-w-[75%] rounded-lg p-3", 
+                                                    "max-w-xs rounded-lg p-3", 
                                                     myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' 
                                                 )}>
                                                     {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{sender?.name}</p>}

@@ -17,7 +17,7 @@ import { clientAssets, jobs, inspectorAssets, Job, Inspection, allUsers, userAud
 import { serviceProviders } from "@/lib/service-providers-data";
 import { useSearchParams } from "next/navigation";
 import Link from 'next/link';
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import { useState, useEffect, useMemo } from "react";
 import { format, differenceInDays, isAfter, isToday, isWithinInterval } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ const clientChartConfig = {
 
 const ClientDashboard = () => {
     const searchParams = useSearchParams();
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
 
     useEffect(() => {
@@ -767,5 +767,4 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
     

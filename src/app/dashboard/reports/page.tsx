@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, Filter, X, Settings2, BarChart2, DollarSign, Star, History } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
@@ -85,7 +85,7 @@ const AnalyticalReports = ({ constructUrl }: { constructUrl: (path: string) => s
 
 
 const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], role: string, constructUrl: (path: string) => string }) => {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     
     if (inspections.length === 0) {
         return (

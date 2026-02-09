@@ -13,7 +13,7 @@ import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons"
 import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud, Check, Settings, History, AlertTriangle, QrCode, Printer } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
@@ -554,7 +554,7 @@ export default function AssetDetailPage() {
         }
     }, [role, router, searchParams]);
 
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
     

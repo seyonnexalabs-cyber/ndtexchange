@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, MoreVertical, Edit } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect } from "react";
@@ -291,7 +291,7 @@ const MobileView = ({ constructUrl, technicians, onEditClick }: { constructUrl: 
 
 
 export default function TechniciansPage() {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');

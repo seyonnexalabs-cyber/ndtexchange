@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, Snowflake } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +21,7 @@ const adminLoginSchema = z.object({
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const isMobile = useIsMobile();
+  const isMobile = useMobile();
 
   useEffect(() => {
     // Apply admin theme

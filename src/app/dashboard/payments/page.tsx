@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Calendar as CalendarIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
@@ -218,7 +218,7 @@ const userDetails = {
 };
 
 const PaymentsPage = () => {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
@@ -404,5 +404,4 @@ const PaymentsPage = () => {
 };
 
 export default PaymentsPage;
-
     

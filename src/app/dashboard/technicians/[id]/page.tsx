@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { allUsers, jobs, PlatformUser, Job, NDTTechniques, Certification } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle } from "lucide-react";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -189,7 +189,7 @@ export default function TechnicianDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
@@ -414,5 +414,4 @@ export default function TechnicianDetailPage() {
         </div>
     );
 }
-
     

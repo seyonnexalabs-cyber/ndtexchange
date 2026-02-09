@@ -8,12 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Hexagons7Icon } from '@/app/components/icons';
+import { Snowflake } from 'lucide-react';
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
@@ -22,7 +22,7 @@ const adminLoginSchema = z.object({
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const isMobile = useIsMobile();
+  const isMobile = useMobile();
 
   useEffect(() => {
     // Apply admin theme
@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8">
-          <Hexagons7Icon className="h-10 w-auto" />
+          <Snowflake className="h-10 w-auto text-indigo-500" />
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

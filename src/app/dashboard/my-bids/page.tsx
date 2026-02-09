@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Gavel, Calendar, DollarSign, Building, MoreVertical, Edit, Trash2, Info, FileText } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { Bid } from '@/lib/placeholder-data';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -45,7 +45,7 @@ const statusStyles: { [key in Bid['status']]: 'success' | 'default' | 'secondary
 type MappedBid = Bid & { job: Job };
 
 const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[], onEdit: (bid: MappedBid) => void, onWithdraw: (bid: MappedBid) => void, constructUrl: (path: string) => string }) => {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
 
     if (bids.length === 0) {
         return (
@@ -420,5 +420,4 @@ export default function MyBidsPage() {
         </div>
     );
 }
-
     

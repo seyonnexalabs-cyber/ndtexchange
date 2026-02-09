@@ -8,7 +8,7 @@ import { serviceProviders } from "@/lib/service-providers-data";
 import { auditFirms } from "@/lib/auditors-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check } from "lucide-react";
+import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,6 +41,13 @@ const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | '
 const userSchema = z.object({
   name: z.string().min(2, "Name is required."),
   email: z.string().email(),
+  role: z.string({required_error: "Please select a role."}),
+  company: z.string({required_error: "Please select a company."}),
+});
+
+const editUserSchema = z.object({
+  id: z.string(),
+  name: z.string().min(2, "Name is required."),
   role: z.string({required_error: "Please select a role."}),
   company: z.string({required_error: "Please select a company."}),
 });
@@ -182,7 +189,130 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
     );
 }
 
-const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void }) => {
+const EditUserForm = ({ user, onCancel, onSubmit }: { user: PlatformUser; onCancel: () => void; onSubmit: (values: z.infer<typeof editUserSchema>) => void; }) => {
+    const form = useForm<z.infer<typeof editUserSchema>>({
+        resolver: zodResolver(editUserSchema),
+        defaultValues: {
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            company: user.company,
+        },
+    });
+
+    const selectedRole = form.watch("role");
+
+    useEffect(() => {
+        if(user.role !== selectedRole) {
+            form.resetField("company");
+        }
+    }, [selectedRole, form, user.role]);
+
+    const companies = useMemo(() => {
+        switch (selectedRole) {
+            case "Client":
+                return clientData.map(c => ({ value: c.name, label: c.name }));
+            case "Inspector":
+                return serviceProviders.map(p => ({ value: p.name, label: p.name }));
+            case "Auditor":
+                return auditFirms.map(a => ({ value: a.name, label: a.name }));
+            default:
+                return [];
+        }
+    }, [selectedRole]);
+
+    const roles = ['Client', 'Inspector', 'Auditor'];
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                 <div>
+                    <Label>Email Address</Label>
+                    <Input value={user.email} disabled />
+                </div>
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Role</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="company"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Company</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn( "w-full justify-between", !field.value && "text-muted-foreground" )}
+                                    disabled={!selectedRole}
+                                    >
+                                    {field.value
+                                        ? companies.find( (company) => company.value === field.value )?.label
+                                        : "Select a company"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search company..." />
+                                    <CommandEmpty>No company found.</CommandEmpty>
+                                    <CommandGroup>
+                                    {companies.map((company) => (
+                                        <CommandItem
+                                        value={company.label}
+                                        key={company.value}
+                                        onSelect={() => { form.setValue("company", company.value) }}
+                                        >
+                                        <Check className={cn( "mr-2 h-4 w-4", company.value === field.value ? "opacity-100" : "opacity-0" )} />
+                                        {company.label}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                 <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+}
+
+const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void }) => {
     const isMobile = useIsMobile();
     const { searchQuery } = useSearch();
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -262,7 +392,11 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                                     <Button variant="ghost" size="sm">Manage</Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => onPromoteUser(user)} disabled={isCompanyAdmin(user)}>Make Company Admin</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onEditUser(user)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit User
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onPromoteUser(user)} disabled={isCompanyAdmin(user) || user.status !== 'Active'}>Make Company Admin</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onDisableUser(user)}>Disable User</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -412,6 +546,10 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser 
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => onEditUser(user)}>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                Edit User
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={() => onPromoteUser(user)}
                                                 disabled={isCompanyAdmin(user) || user.status !== 'Active'}
@@ -460,6 +598,7 @@ export default function UsersPage() {
     const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
     const [userToDisable, setUserToDisable] = useState<PlatformUser | null>(null);
     const [showAdminDisableError, setShowAdminDisableError] = useState(false);
+    const [editingUser, setEditingUser] = useState<PlatformUser | null>(null);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -483,6 +622,20 @@ export default function UsersPage() {
             title: 'User Invited',
             description: `An invitation email has been sent to ${values.email}.`,
         });
+    };
+
+    const handleEditClick = (user: PlatformUser) => {
+        setEditingUser(user);
+    };
+
+    const handleEditSubmit = (values: z.infer<typeof editUserSchema>) => {
+        setUsers(prevUsers =>
+            prevUsers.map(user =>
+                user.id === values.id ? { ...user, ...values } : user
+            )
+        );
+        toast({ title: 'User Updated', description: `${values.name}'s profile has been successfully updated.` });
+        setEditingUser(null);
     };
 
     const handleSetCompanyAdmin = (userToMakeAdmin: PlatformUser) => {
@@ -563,6 +716,7 @@ export default function UsersPage() {
                 companyAdmins={companyAdmins}
                 onPromoteUser={handleSetCompanyAdmin}
                 onDisableUser={handleDisableClick}
+                onEditUser={handleEditClick}
             />
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
@@ -574,6 +728,24 @@ export default function UsersPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} />
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogDescription>
+                            Modify the user's details and company assignment.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingUser && (
+                        <EditUserForm
+                            user={editingUser}
+                            onCancel={() => setEditingUser(null)}
+                            onSubmit={handleEditSubmit}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
 

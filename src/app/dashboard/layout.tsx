@@ -1,3 +1,4 @@
+
 import AppSidebar from '@/app/components/layout/sidebar';
 import AppHeader from '@/app/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -12,7 +13,7 @@ export default function DashboardLayout({
   return (
     <SearchProvider>
       <QRScannerProvider>
-        <SidebarProvider defaultOpen={false}>
+        <SidebarProvider defaultOpen={true}>
           <AppSidebar />
           <SidebarInset>
             <AppHeader />

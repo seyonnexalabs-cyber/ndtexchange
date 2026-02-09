@@ -61,7 +61,7 @@ service cloud.firestore {
       // Any signed-in user can read job postings.
       allow get, list: if isSignedIn();
       // Only the client who created the job can create or update it.
-      allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
+      allow create: if (isSignedIn() && request.resource.data.clientId == request.auth.uid) || isPlatformAdmin();
       allow update: if isSignedIn() && resource.data.clientId == request.auth.uid;
       // Only the client can delete their job posting (if needed).
       allow delete: if isSignedIn() && resource.data.clientId == request.auth.uid;
@@ -73,7 +73,7 @@ service cloud.firestore {
       // The client of the job can list all bids for their job.
       allow list: if isSignedIn() && get(/databases/$(database)/documents/jobs/$(request.query.jobId)).data.clientId == request.auth.uid;
       // An inspector can create a bid.
-      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+      allow create: if (isSignedIn() && request.resource.data.inspectorId == request.auth.uid) || isPlatformAdmin();
       // Only the inspector who created the bid can update or delete it.
       allow update, delete: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
@@ -134,17 +134,17 @@ service cloud.firestore {
      ***********************************************************/
     match /userAuditLogs/{logId} {
       allow read: if isPlatformAdmin();
-      allow write: if false; // Logs should be written by a trusted server process
+      allow write: if isPlatformAdmin();
     }
 
     match /jobAuditLogs/{logId} {
       allow read: if isPlatformAdmin();
-      allow write: if false;
+      allow write: if isPlatformAdmin();
     }
 
     match /billingAuditLogs/{logId} {
       allow read: if isPlatformAdmin();
-      allow write: if false;
+      allow write: if isPlatformAdmin();
     }
 
     /***********************************************************
@@ -159,7 +159,7 @@ service cloud.firestore {
       function isJobClient(jobId) {
         return get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid;
       }
-      allow create: if isSignedIn() && isJobClient(request.resource.data.jobId) && request.resource.data.clientId == request.auth.uid;
+      allow create: if (isSignedIn() && isJobClient(request.resource.data.jobId) && request.resource.data.clientId == request.auth.uid) || isPlatformAdmin();
 
       // Only admins can update (for moderation) or delete reviews.
       allow update, delete: if isPlatformAdmin();

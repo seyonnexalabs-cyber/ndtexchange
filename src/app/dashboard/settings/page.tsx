@@ -535,37 +535,46 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
                     onChange={(e) => handleLogoUpload(e.target.files?.[0] || null)}
                 />
             </div>
-            <div>
-                <Label htmlFor="brand-color">Brand Color</Label>
-                <div className="mt-2 flex items-center gap-2">
-                    <Input
-                        id="brand-color"
-                        type="color"
-                        value={brandColor}
-                        onChange={(e) => setBrandColor(e.target.value)}
-                        className="w-12 h-10 p-1"
-                    />
-                    <Input
-                        value={brandColor}
-                        onChange={(e) => setBrandColor(e.target.value)}
-                        placeholder="#3B82F6"
-                    />
-                </div>
-            </div>
+             {role === 'client' ? (
+              <div>
+                  <Label htmlFor="brand-color">Brand Color</Label>
+                  <div className="mt-2 flex items-center gap-2">
+                      <Input
+                          id="brand-color"
+                          type="color"
+                          value={brandColor}
+                          onChange={(e) => setBrandColor(e.target.value)}
+                          className="w-12 h-10 p-1"
+                      />
+                      <Input
+                          value={brandColor}
+                          onChange={(e) => setBrandColor(e.target.value)}
+                          placeholder="#3B82F6"
+                      />
+                  </div>
+              </div>
+            ) : (
+               <div>
+                  <Label>Brand Color</Label>
+                  <div className="mt-2 text-sm p-3 bg-muted/50 border rounded-md text-muted-foreground">
+                      The primary brand color is set by the Client on their reports.
+                  </div>
+              </div>
+            )}
         </div>
         <div>
             <Label>Report Preview</Label>
             <div className="mt-2 rounded-lg border p-4 shadow-md">
                 <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
-                    <div className="w-1/4">
-                       {clientLogo && <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" />}
+                    <div className="w-1/4 flex justify-start">
+                       {clientLogo ? <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
                     </div>
                     <div className="w-1/2 text-center">
                         <h3 className="font-bold text-lg" style={{ color: brandColor }}>INSPECTION REPORT</h3>
                         <p className="text-xs text-muted-foreground">Report #2024-123</p>
                     </div>
                     <div className="w-1/4 flex justify-end">
-                         {providerLogo && <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" />}
+                         {providerLogo ? <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
                     </div>
                 </div>
                 <div className="pt-4 text-sm text-muted-foreground space-y-2">
@@ -783,7 +792,7 @@ export default function SettingsPage() {
                             In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT Exchange a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
                             </p>
 
-                            <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform & Disclaimer of Services</h2>
+                            <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform &amp; Disclaimer of Services</h2>
                             <p>
                                 NDT Exchange acts as a neutral digital platform to connect asset owners (Clients) with NDT service providers. We are not a party to the actual service agreement between the Client and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
                             </p>
@@ -804,7 +813,7 @@ export default function SettingsPage() {
                               All payments for services rendered are to be handled directly between the Client and the service provider. NDT Exchange does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
                             </p>
                             
-                            <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law & Jurisdiction</h2>
+                            <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law &amp; Jurisdiction</h2>
                             <p>
                             These Terms will be governed by and interpreted in accordance with the laws of the State/Country, and you submit to the non-exclusive jurisdiction of the state and federal courts located in State/Country for the resolution of any disputes.
                             </p>
@@ -817,9 +826,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
-
-    
-
-

@@ -298,7 +298,7 @@ export default function BillingPage() {
             {renderPlansByRole()}
           </div>
            <p className="text-center text-muted-foreground mt-8 text-sm">
-              All plans are billed annually. Pricing is usage-based, determined by factors like platform hosting, data storage, and number of users. We do not process payments for jobs. Contact our sales team for a detailed quote tailored to your needs.
+              All subscription plans are billed annually. Pricing is usage-based, determined by factors like platform hosting, data storage, and number of users. <strong>Please note: we process payments for platform subscriptions, but we do not process payments for the NDT jobs themselves.</strong> Contact our sales team for a detailed quote tailored to your needs.
            </p>
       </section>
     </div>

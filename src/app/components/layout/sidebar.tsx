@@ -149,6 +149,7 @@ const adminMenu = [
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
+      { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
@@ -166,8 +167,7 @@ const auditorMenu = [
     title: 'Workspace',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'audit-queue', href: '/dashboard/inspections', label: 'Audit Queue', icon: ClipboardList },
-      { id: 'audit-history', href: '/dashboard/audit-history', label: 'Audit History', icon: History },
+      { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
     ]
   },
   {
@@ -316,8 +316,9 @@ const AppSidebar = () => {
         <SidebarMenu>
           {menuItems.map((group, groupIndex) => (
             <div key={group.title}>
-              <h3 className="px-3 py-1 text-sm font-semibold tracking-wide text-card-foreground/90">
-                {group.title}
+              <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
+                <span className="group-data-[state=expanded]:inline">{group.title}</span>
+                <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
               </h3>
               {group.items.map((item: any) => {
                 return (
@@ -336,7 +337,7 @@ const AppSidebar = () => {
                   </SidebarMenuItem>
                 );
               })}
-              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1" />}
+              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1 group-data-[state=collapsed]:hidden" />}
             </div>
           ))}
         </SidebarMenu>

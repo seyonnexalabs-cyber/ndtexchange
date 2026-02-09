@@ -678,6 +678,23 @@ const getLogIcon = (action: string) => {
     return <History className="h-4 w-4" />;
 }
 
+// Component to safely render formatted date on the client to avoid hydration errors
+const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
+    const [formattedDate, setFormattedDate] = useState<string | null>(null);
+
+    useEffect(() => {
+        // This effect runs only on the client, ensuring the time is formatted in the user's timezone
+        setFormattedDate(format(new Date(timestamp), 'dd-MMM p'));
+    }, [timestamp]);
+
+    // Return a placeholder or null during server-side rendering and initial client-side render
+    return (
+        <p className="text-xs text-muted-foreground/80">
+            {formattedDate || '...'}
+        </p>
+    );
+};
+
 const AdminDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
@@ -759,7 +776,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <p className="text-sm font-medium">{log.action}</p>
                                     <p className="text-xs text-muted-foreground">{log.targetUserName} ({log.targetCompany})</p>
-                                    <p className="text-xs text-muted-foreground/80">{format(new Date(log.timestamp), 'dd-MMM p')}</p>
+                                    <ClientFormattedDate timestamp={log.timestamp} />
                                 </div>
                             ))}
                         </div>

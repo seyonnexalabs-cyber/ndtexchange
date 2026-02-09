@@ -4,61 +4,61 @@
 
 @layer base {
   :root, .client-theme {
-    --background: 225 15% 97%;
-    --foreground: 225 10% 20%;
+    --background: 220 20% 97%;
+    --foreground: 210 10% 23%;
     --card: 0 0% 100%;
-    --card-foreground: 225 10% 20%;
+    --card-foreground: 210 10% 23%;
     --popover: 0 0% 100%;
-    --popover-foreground: 225 10% 20%;
-    --primary: 204 83% 45%;
+    --popover-foreground: 210 10% 23%;
+    --primary: 201 25% 37%; /* Dark Slate Blue */
     --primary-foreground: 0 0% 98%;
-    --secondary: 225 10% 94%;
-    --secondary-foreground: 225 10% 20%;
-    --muted: 225 10% 94%;
-    --muted-foreground: 225 7% 50%;
-    --accent: 174 63% 45%;
+    --secondary: 210 10% 94%;
+    --secondary-foreground: 210 10% 23%;
+    --muted: 210 10% 94%;
+    --muted-foreground: 210 7% 50%;
+    --accent: 174 63% 39%; /* Teal */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 225 15% 91%;
-    --input: 225 15% 91%;
-    --ring: 204 83% 45%;
+    --border: 210 15% 91%;
+    --input: 210 15% 91%;
+    --ring: 201 25% 37%;
 
     /* Chart Colors */
-    --chart-1: 221.2 83.2% 53.3%;
-    --chart-2: 170 70% 40%;
-    --chart-3: 221.2 83.2% 73.3%;
-    --chart-4: 170 70% 60%;
-    --chart-5: 225 10% 50%;
+    --chart-1: 201 25% 37%;
+    --chart-2: 174 63% 39%;
+    --chart-3: 201 25% 57%;
+    --chart-4: 174 63% 59%;
+    --chart-5: 210 10% 50%;
   }
 
   .inspector-theme {
-    --background: 240 17% 97%;
-    --foreground: 222 8% 25%;
+    --background: 220 20% 97%;
+    --foreground: 210 10% 23%;
     --card: 0 0% 100%;
-    --card-foreground: 222 8% 25%;
+    --card-foreground: 210 10% 23%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 8% 25%;
-    --primary: 170 70% 40%; /* Turquoise */
+    --popover-foreground: 210 10% 23%;
+    --primary: 174 63% 39%; /* Teal */
     --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 221.2 83.2% 53.3%; /* Blue */
-    --accent-foreground: 0 0% 98%;
+    --secondary: 170 20% 94%;
+    --secondary-foreground: 170 10% 23%;
+    --muted: 170 20% 94%;
+    --muted-foreground: 170 7% 50%;
+    --accent: 32 79% 60%; /* Gold */
+    --accent-foreground: 32 30% 15%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 170 70% 40%;
+    --border: 170 15% 91%;
+    --input: 170 15% 91%;
+    --ring: 174 63% 39%;
 
     /* Chart Colors */
-    --chart-1: 170 70% 40%;
-    --chart-2: 221.2 83.2% 53.3%;
-    --chart-3: 170 70% 60%;
-    --chart-4: 221.2 83.2% 73.3%;
-    --chart-5: 0 72% 51%;
+    --chart-1: 174 63% 39%;
+    --chart-2: 32 79% 60%;
+    --chart-3: 174 63% 59%;
+    --chart-4: 32 79% 80%;
+    --chart-5: 170 10% 50%;
   }
 
   .auditor-theme {
@@ -68,26 +68,26 @@
     --card-foreground: 270 15% 25%;
     --popover: 0 0% 100%;
     --popover-foreground: 270 15% 25%;
-    --primary: 270 50% 55%; /* Purple */
+    --primary: 252 29% 47%; /* Deep Purple */
     --primary-foreground: 0 0% 98%;
-    --secondary: 270 15% 94%;
-    --secondary-foreground: 270 15% 25%;
-    --muted: 270 15% 94%;
-    --muted-foreground: 270 10% 50%;
-    --accent: 150 70% 65%; /* Mint */
-    --accent-foreground: 270 15% 25%;
+    --secondary: 250 15% 94%;
+    --secondary-foreground: 250 15% 25%;
+    --muted: 250 15% 94%;
+    --muted-foreground: 250 10% 50%;
+    --accent: 287 29% 67%; /* Lavender */
+    --accent-foreground: 287 30% 15%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 270 15% 91%;
-    --input: 270 15% 91%;
-    --ring: 270 50% 55%;
+    --border: 250 15% 91%;
+    --input: 250 15% 91%;
+    --ring: 252 29% 47%;
 
     /* Chart Colors */
-    --chart-1: 270 50% 55%;
-    --chart-2: 150 70% 65%;
-    --chart-3: 270 50% 75%;
-    --chart-4: 150 70% 85%;
-    --chart-5: 270 10% 50%;
+    --chart-1: 252 29% 47%;
+    --chart-2: 287 29% 67%;
+    --chart-3: 252 29% 67%;
+    --chart-4: 287 29% 87%;
+    --chart-5: 250 10% 50%;
   }
 
   .admin-theme {
@@ -97,30 +97,30 @@
     --card-foreground: 220 20% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 15%;
-    --primary: 221.2 83.2% 53.3%;      /* Blue */
+    --primary: 210 10% 23%;      /* Dark Charcoal */
     --primary-foreground: 0 0% 98%;
     --secondary: 220 20% 94%;
     --secondary-foreground: 220 20% 15%;
     --muted: 220 20% 94%;
     --muted-foreground: 220 15% 45%;
-    --accent: 195 85% 55%;      /* Sky Blue */
-    --accent-foreground: 220 20% 9%;
+    --accent: 211 100% 50%;      /* Bright Blue */
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 210 10% 23%;
 
     /* Chart Colors */
-    --chart-1: 221.2 83.2% 53.3%;
-    --chart-2: 195 85% 55%;
-    --chart-3: 221.2 83.2% 73.3%;
-    --chart-4: 195 85% 75%;
+    --chart-1: 210 10% 23%;
+    --chart-2: 211 100% 50%;
+    --chart-3: 210 10% 43%;
+    --chart-4: 211 100% 70%;
     --chart-5: 220 20% 50%;
   }
 
   .dark {
-    /* Keeping dark theme somewhat sensible but focusing on light theme */
+    /* Keeping dark theme as a single consistent theme */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -133,7 +133,7 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215.4 16.3% 56.9%;
-    --accent: 174 63% 45%; /* A slightly lighter teal for dark mode */
+    --accent: 174 63% 45%; 
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;

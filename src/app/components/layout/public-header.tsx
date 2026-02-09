@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -72,11 +71,11 @@ export default function PublicHeader() {
   )
 
   return (
-    <header className="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center py-6">
+    <header className="bg-primary text-primary-foreground">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-3">
-          <Snowflake className="h-10 w-auto text-indigo-500" />
-          <span className="text-xl font-headline font-bold text-card-foreground whitespace-nowrap">NDT Exchange</span>
+          <Snowflake className="h-10 w-auto text-white" />
+          <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT Exchange</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {mainNavLinks.map((link) => (
@@ -84,8 +83,8 @@ export default function PublicHeader() {
               key={link.label}
               href={link.href}
               className={cn(
-                "text-sm font-medium text-foreground hover:text-primary",
-                (pathname === link.href || (pathname === '/' && link.href.startsWith('/#'))) && "font-bold"
+                "text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground",
+                (pathname === link.href || (pathname === '/' && link.href.startsWith('/#'))) && "font-bold text-primary-foreground"
               )}
             >
               {link.label}
@@ -93,8 +92,8 @@ export default function PublicHeader() {
           ))}
            <DropdownMenu>
                 <DropdownMenuTrigger className={cn(
-                    "flex items-center gap-1 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 focus:outline-none",
-                    isManagementActive && "font-bold"
+                    "flex items-center gap-1 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground focus:outline-none",
+                    isManagementActive && "font-bold text-primary-foreground"
                 )}>
                     Management
                     <ChevronDown className="relative top-[1px] h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
@@ -109,8 +108,8 @@ export default function PublicHeader() {
             </DropdownMenu>
            <DropdownMenu>
                 <DropdownMenuTrigger className={cn(
-                    "flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary focus:outline-none",
-                    isResourcesActive && "font-bold"
+                    "flex items-center gap-1 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground focus:outline-none",
+                    isResourcesActive && "font-bold text-primary-foreground"
                 )}>
                     Resources
                     <ChevronDown className="relative top-[1px] h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
@@ -128,8 +127,8 @@ export default function PublicHeader() {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                    "text-sm font-medium text-foreground hover:text-primary",
-                    pathname === link.href && "font-bold"
+                    "text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground",
+                    pathname === link.href && "font-bold text-primary-foreground"
                 )}
                 >
                 {link.label}
@@ -140,7 +139,7 @@ export default function PublicHeader() {
            <div className="md:hidden">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10">
                         <Menu className="h-6 w-6"/>
                         <span className="sr-only">Toggle Menu</span>
                     </Button>
@@ -179,7 +178,7 @@ export default function PublicHeader() {
            <div className="hidden md:flex items-center space-x-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10">
                     <Globe className="h-5 w-5" />
                     <span className="sr-only">Select language</span>
                   </Button>
@@ -190,7 +189,7 @@ export default function PublicHeader() {
                   <DropdownMenuItem>Deutsch</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" asChild className="hover:bg-primary-foreground/10">
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">

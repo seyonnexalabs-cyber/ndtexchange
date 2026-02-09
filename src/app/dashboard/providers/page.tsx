@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MapPin, Star, MoreVertical, Edit } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -306,7 +307,7 @@ const MobileView = ({ constructUrl, providers }: { constructUrl: (base: string) 
 
 
 export default function ProvidersPage() {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
@@ -323,7 +324,7 @@ export default function ProvidersPage() {
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+        return `${params.toString()}`;
     };
 
     const handleFormSubmit = (values: z.infer<typeof providerSchema>) => {

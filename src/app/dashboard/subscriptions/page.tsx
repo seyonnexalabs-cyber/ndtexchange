@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Mail, Users, Database, Edit, MoreVertical, Briefcase, Calendar as CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
@@ -520,7 +520,7 @@ const PlanManagementView = () => {
                             <TableRow key={plan.id}>
                                 <TableCell className="font-medium">{plan.name}</TableCell>
                                 <TableCell>{plan.audience}</TableCell>
-                                <TableCell>{plan.price.USD}</TableCell>
+                                <TableCell>{plan.price.monthly.USD}</TableCell>
                                 <TableCell>{plan.userLimit}</TableCell>
                                 <TableCell>{plan.dataLimitGB} GB</TableCell>
                                 <TableCell>
@@ -548,7 +548,7 @@ const PlanManagementView = () => {
 };
 
 export default function SubscriptionsPage() {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
@@ -765,7 +765,9 @@ export default function SubscriptionsPage() {
                     <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>{editingSubscription ? 'Edit Subscription' : 'Create New Subscription'}</DialogTitle>
                         <DialogDescription>
-                             {editingSubscription ? `Editing subscription for ${editingSubscription.companyName}.` : 'Create a new subscription plan for a company.'}
+                             {editingSubscription
+                                ? `Editing subscription for ${editingSubscription.companyName}.`
+                                : 'Create a new subscription plan for a company.'}
                         </DialogDescription>
                     </DialogHeader>
                      <div className="flex-grow overflow-y-auto px-6">

@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -9,7 +7,7 @@ import { auditFirms } from "@/lib/auditors-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check, Edit } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo, useEffect } from "react";
@@ -27,7 +25,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useSearch } from "@/app/components/layout/search-provider";
+import { useSearch } from "@/components/layout/search-provider";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -313,7 +311,7 @@ const EditUserForm = ({ user, onCancel, onSubmit }: { user: PlatformUser; onCanc
 }
 
 const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void }) => {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const { searchQuery } = useSearch();
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -690,7 +688,7 @@ export default function UsersPage() {
         );
         toast({
             title: "User Disabled",
-            description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
+            description: `${userToDisable.name} has been disabled and can no longer access the platform. Their records will be maintained.`,
         });
         setUserToDisable(null);
     };

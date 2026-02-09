@@ -9,24 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Hexagons7Icon } from '@/app/components/icons';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useFirebase, useUser } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { allUsers } from '@/lib/placeholder-data';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
 
@@ -38,7 +32,6 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const isMobile = useIsMobile();
   const { auth, firestore } = useFirebase();
   const { user, isUserLoading } = useUser();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -59,9 +52,9 @@ export default function LoginPage() {
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            const role = userData.role as UserType;
+            const role = (userData.role as string).toLowerCase() as UserType;
             const params = new URLSearchParams();
-            params.set('role', role.toLowerCase());
+            params.set('role', role);
             router.push(`/dashboard?${params.toString()}`);
           } else {
             // This case might happen if user profile creation failed during signup
@@ -104,6 +97,13 @@ export default function LoginPage() {
   };
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
+
+  const devLogins = [
+    allUsers.find(u => u.id === 'user-client-01'),
+    allUsers.find(u => u.id === 'user-tech-05'),
+    allUsers.find(u => u.id === 'user-auditor-01'),
+    allUsers.find(u => u.id === 'user-admin-01'),
+  ].filter(Boolean);
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -174,24 +174,40 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isAuthenticating}>
-                {isAuthenticating ? "Signing in..." : "Login"}
+              <Button type="submit" className="w-full" disabled={isAuthenticating || isUserLoading}>
+                {isAuthenticating || isUserLoading ? "Signing in..." : "Login"}
               </Button>
             </form>
           </Form>
+           {process.env.NODE_ENV === 'development' && (
+              <Card className="mt-6 border-dashed">
+                <CardHeader>
+                  <CardTitle className="text-base text-center">Quick Logins (Dev Only)</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-2">
+                  {devLogins.map(devUser => (
+                    <Button
+                      key={devUser!.id}
+                      variant="outline"
+                      onClick={() => {
+                        form.setValue('email', devUser!.email);
+                        form.setValue('password', devUser!.password || 'password123');
+                        form.handleSubmit(onSubmit)();
+                      }}
+                      disabled={isAuthenticating || isUserLoading}
+                    >
+                      {devUser!.role}
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline">
               Sign up
             </Link>
           </div>
-            {!isMobile && (
-              <div className="text-center">
-                  <Button variant="link" size="sm" asChild>
-                      <Link href="/">Return to Homepage</Link>
-                  </Button>
-              </div>
-            )}
         </div>
       </div>
     </div>

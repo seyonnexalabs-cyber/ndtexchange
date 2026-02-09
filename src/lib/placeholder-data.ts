@@ -165,6 +165,7 @@ export type PlatformUser = {
     role: string;
     company: string;
     status: 'Active' | 'Invited' | 'Disabled';
+    password?: string; // For dev login purposes
     // Technician-specific properties
     certifications?: Certification[];
     workStatus?: 'Available' | 'On Assignment';
@@ -792,16 +793,16 @@ export const reviews: Review[] = [
 ];
 
 export const allUsers: PlatformUser[] = [
-    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active' },
+    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
     { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active' },
-    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active' },
-    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active' },
+    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active', password: 'password123' },
+    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', password: 'password123' },
     { id: 'user-auditor-02', name: 'Brenda Vance', email: 'brenda.v@ndtauditors.gov', role: 'Senior Auditor', company: 'Aero-Compliance Partners', status: 'Active' },
     { id: 'user-TECH-01', name: 'Carlos Ray', email: 'carlos.ray@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II' },
     { id: 'user-TECH-02', name: 'Aisha Khan', email: 'aisha.khan@mistras.com', role: 'Inspector', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'RT', level: 'Level II'}, {method: 'VT', level: 'Level II'}, {method: 'ET', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-01', level: 'Level II' },
     { id: 'user-TECH-03', name: 'Ben Carter', email: 'ben.carter@mistras.com', role: 'Inspector', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'UT', level: 'Level III'}, {method: 'PAUT', level: 'Level III'}, {method: 'TOFD', level: 'Level II'}, {method: 'AE', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-01', level: 'Level III' },
     { id: 'user-TECH-04', name: 'David Lee', email: 'david.lee@applus.com', role: 'Inspector', company: 'Applus+', status: 'Active', certifications: [{method: 'MT', level: 'Level I'}, {method: 'PT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-02', level: 'Level I' },
-    { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II' },
+    { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
     { id: 'user-TECH-06', name: 'Frank Miller', email: 'frank.miller@applus.com', role: 'Inspector', company: 'Applus+', status: 'Active', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-02', level: 'Level II' },
     { id: 'user-TECH-07', name: 'Samantha Wu', email: 'samantha.wu@tuv.com', role: 'Inspector', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-04', level: 'Level III' },
     { id: 'user-TECH-08', name: 'James Wilson', email: 'james.wilson@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II' },
@@ -938,4 +939,5 @@ export { clientAssets as assets };
     
 
   
+
 

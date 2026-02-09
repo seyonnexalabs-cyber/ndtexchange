@@ -62,9 +62,9 @@ service cloud.firestore {
       allow get, list: if isSignedIn();
       // Only the client who created the job can create or update it.
       allow create: if (isSignedIn() && request.resource.data.clientId == request.auth.uid) || isPlatformAdmin();
-      allow update: if isSignedIn() && resource.data.clientId == request.auth.uid;
+      allow update: if (isSignedIn() && resource.data.clientId == request.auth.uid) || isPlatformAdmin();
       // Only the client can delete their job posting (if needed).
-      allow delete: if isSignedIn() && resource.data.clientId == request.auth.uid;
+      allow delete: if (isSignedIn() && resource.data.clientId == request.auth.uid) || isPlatformAdmin();
     }
 
     match /bids/{bidId} {
@@ -75,7 +75,7 @@ service cloud.firestore {
       // An inspector can create a bid.
       allow create: if (isSignedIn() && request.resource.data.inspectorId == request.auth.uid) || isPlatformAdmin();
       // Only the inspector who created the bid can update or delete it.
-      allow update, delete: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+      allow update, delete: if (isSignedIn() && resource.data.inspectorId == request.auth.uid) || isPlatformAdmin();
     }
 
     /***********************************************************

@@ -18,8 +18,7 @@ import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
-import { deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -245,18 +244,28 @@ export default function AssetsPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const handleApproveAsset = (assetId: string) => {
+    const handleApproveAsset = async (assetId: string) => {
         if (!firestore) return;
         const assetRef = doc(firestore, 'assets', assetId);
-        setDocumentNonBlocking(assetRef, { approvalStatus: 'Approved' }, { merge: true });
-        toast({ title: 'Asset Approved', description: 'The asset is now active.' });
+        try {
+            await setDoc(assetRef, { approvalStatus: 'Approved' }, { merge: true });
+            toast({ title: 'Asset Approved', description: 'The asset is now active.' });
+        } catch (error) {
+            console.error('Error approving asset:', error);
+            toast({ variant: 'destructive', title: 'Approval Failed', description: 'Could not approve the asset.' });
+        }
     };
 
-    const handleRejectAsset = (assetId: string) => {
+    const handleRejectAsset = async (assetId: string) => {
         if (!firestore) return;
         const assetRef = doc(firestore, 'assets', assetId);
-        deleteDocumentNonBlocking(assetRef);
-        toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
+        try {
+            await deleteDoc(assetRef);
+            toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
+        } catch (error) {
+            console.error('Error rejecting asset:', error);
+            toast({ variant: 'destructive', title: 'Rejection Failed', description: 'Could not remove the asset.' });
+        }
     };
     
     if (role && !['client', 'inspector'].includes(role)) {

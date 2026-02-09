@@ -13,8 +13,9 @@ import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, doc, query, orderBy } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, query, orderBy, setDoc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -81,6 +82,7 @@ export default function ReviewsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { firestore } = useFirebase();
+    const { toast } = useToast();
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -96,16 +98,28 @@ export default function ReviewsPage() {
     const { data: reviewList } = useCollection<Review>(reviewsQuery);
 
 
-    const handleApprove = (id: string) => {
+    const handleApprove = async (id: string) => {
         if (!firestore) return;
         const reviewRef = doc(firestore, 'reviews', id);
-        setDocumentNonBlocking(reviewRef, { status: 'Approved' }, { merge: true });
+        try {
+            await setDoc(reviewRef, { status: 'Approved' }, { merge: true });
+            toast({ title: 'Review Approved' });
+        } catch (error) {
+            console.error("Error approving review:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not approve review.' });
+        }
     };
 
-    const handleReject = (id: string) => {
+    const handleReject = async (id: string) => {
         if (!firestore) return;
         const reviewRef = doc(firestore, 'reviews', id);
-        setDocumentNonBlocking(reviewRef, { status: 'Rejected' }, { merge: true });
+        try {
+            await setDoc(reviewRef, { status: 'Rejected' }, { merge: true });
+            toast({ title: 'Review Rejected' });
+        } catch (error) {
+            console.error("Error rejecting review:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not reject review.' });
+        }
     };
 
     const mappedReviews = useMemo(() => {

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -24,8 +25,8 @@ import ClientMaintenanceWorkflow from './components/client-maintenance-workflow'
 import InspectorWorkflow from './components/inspector-workflow';
 import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
-import { useFirebase, useUser, useCollection, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, limit, doc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { useFirebase, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc } from 'firebase/firestore';
 
 
 // Define types for Firestore data
@@ -124,10 +125,10 @@ export default function SupportPage() {
                 timestamp: serverTimestamp(),
                 message: newMessage.trim(),
             };
-            addDocumentNonBlocking(messagesColRef, messageData);
+            await addDoc(messagesColRef, messageData);
             
             const threadDocRef = doc(firestore, 'supportChats', threadId);
-            setDocumentNonBlocking(threadDocRef, {
+            await setDoc(threadDocRef, {
                 lastMessage: newMessage.trim(),
                 lastMessageTimestamp: serverTimestamp(),
                 status: 'Open',
@@ -150,7 +151,7 @@ export default function SupportPage() {
         client: {
             component: ClientMaintenanceWorkflow,
             title: 'Client Maintenance Workflow',
-            description: 'A guide to how client-side maintenance activities are carried out within the NDT Exchange app.'
+            description: 'A guide to how client-side maintenance activities are carried out within the NDT EXCHANGE app.'
         },
         inspector: {
             component: InspectorWorkflow,

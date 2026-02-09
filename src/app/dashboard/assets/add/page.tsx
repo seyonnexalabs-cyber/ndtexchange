@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -21,8 +20,8 @@ import Image from 'next/image';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { useFirebase, addDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 
 
 const assetSchema = z.object({
@@ -114,11 +113,11 @@ export default function AddAssetPage() {
         }
 
         const newAssetData = {
-            ...values,
             companyId: 'client-01', // Replace with dynamic company ID from user profile
             status: 'Requires Inspection',
             approvalStatus: 'Pending Approval',
             createdAt: serverTimestamp(),
+            ...values,
             nextInspection: values.nextInspection.toISOString().split('T')[0],
             location: values.location === '__add_new__' ? values.newLocation : values.location,
         };
@@ -127,14 +126,23 @@ export default function AddAssetPage() {
         delete newAssetData.documents;
         delete newAssetData.thumbnail;
 
-        await addDocumentNonBlocking(collection(firestore, 'assets'), newAssetData);
-        
-        toast({
-            title: "Asset Submitted for Approval",
-            description: `${values.name} has been submitted and is awaiting approval from your company admin.`,
-        });
-
-        router.push(constructUrl('/dashboard/assets'));
+        try {
+            await addDoc(collection(firestore, 'assets'), newAssetData);
+            
+            toast({
+                title: "Asset Submitted for Approval",
+                description: `${values.name} has been submitted and is awaiting approval from your company admin.`,
+            });
+    
+            router.push(constructUrl('/dashboard/assets'));
+        } catch (error) {
+            console.error("Error adding asset:", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to add asset",
+                description: "There was a problem saving the new asset. Please check your connection and permissions.",
+            });
+        }
     };
 
     const handleFileChange = (file: File | null) => {

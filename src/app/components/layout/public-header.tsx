@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ export default function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '/platform-features', label: 'Features' },
+    { href: '/#features', label: 'Features' },
     {
       label: 'Management',
       isDropdown: true,

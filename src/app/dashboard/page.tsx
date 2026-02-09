@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award } from "lucide-react";
+import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -13,8 +13,9 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { clientAssets, jobs, inspectorAssets, Job, Inspection, allUsers, userAuditLog, reviews } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
+import { auditFirms } from '@/lib/auditors-data';
 import { useSearchParams } from "next/navigation";
 import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
@@ -23,6 +24,9 @@ import { format, differenceInDays, isAfter, isToday, isWithinInterval } from "da
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFirebase } from "@/firebase";
+import { writeBatch, doc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 
 // --- SHARED COMPONENTS & CONFIGS ---
@@ -699,6 +703,114 @@ const AdminDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
+    const [isSeeding, setIsSeeding] = useState(false);
+    const { firestore } = useFirebase();
+    const { toast } = useToast();
+
+    const handleSeedDatabase = async () => {
+        if (!firestore) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Firestore is not available.",
+            });
+            return;
+        }
+
+        setIsSeeding(true);
+        toast({
+            title: "Database Seeding Started",
+            description: "This may take a moment...",
+        });
+
+        try {
+            const batch = writeBatch(firestore);
+
+            clientAssets.forEach(asset => {
+                const docRef = doc(firestore, 'assets', asset.id);
+                batch.set(docRef, asset);
+            });
+            
+            allUsers.forEach(user => {
+                const docRef = doc(firestore, 'users', user.id);
+                const { password, ...userToSave } = user;
+                batch.set(docRef, userToSave);
+            });
+            
+            const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
+            allCompanies.forEach(company => {
+                const docRef = doc(firestore, 'companies', company.id);
+                batch.set(docRef, company);
+            });
+
+            jobs.forEach(job => {
+                const { bids, inspections, ...jobData } = job;
+                const jobRef = doc(firestore, 'jobs', job.id);
+                batch.set(jobRef, jobData);
+                
+                bids.forEach(bid => {
+                    const bidRef = doc(firestore, 'bids', bid.id);
+                    batch.set(bidRef, bid);
+                });
+                
+                inspections.forEach(inspection => {
+                    const { report, ...inspectionData } = inspection;
+                    const inspectionRef = doc(firestore, 'inspections', inspection.id);
+                    batch.set(inspectionRef, inspectionData);
+
+                    if(report) {
+                        const reportRef = doc(firestore, 'reports', report.id);
+                        batch.set(reportRef, report);
+                    }
+                });
+            });
+
+            inspectorAssets.forEach(equipment => {
+                const docRef = doc(firestore, 'equipment', equipment.id);
+                batch.set(docRef, equipment);
+            });
+
+            reviews.forEach(review => {
+                const docRef = doc(firestore, 'reviews', review.id);
+                batch.set(docRef, review);
+            });
+
+            subscriptions.forEach(sub => {
+                const docRef = doc(firestore, 'subscriptions', sub.id);
+                batch.set(docRef, sub);
+            });
+
+            userAuditLog.forEach(log => {
+                const docRef = doc(firestore, 'userAuditLogs', log.id);
+                batch.set(docRef, log);
+            });
+            jobAuditLog.forEach(log => {
+                const docRef = doc(firestore, 'jobAuditLogs', log.id);
+                batch.set(docRef, log);
+            });
+            billingAuditLog.forEach(log => {
+                const docRef = doc(firestore, 'billingAuditLogs', log.id);
+                batch.set(docRef, log);
+            });
+
+            await batch.commit();
+
+            toast({
+                title: "Database Seeded Successfully",
+                description: "Placeholder data has been written to Firestore.",
+            });
+
+        } catch (error: any) {
+            console.error("Error seeding database:", error);
+            toast({
+                variant: "destructive",
+                title: "Seeding Failed",
+                description: error.message || "An unexpected error occurred.",
+            });
+        } finally {
+            setIsSeeding(false);
+        }
+    };
 
     useEffect(() => {
         setToday(new Date());
@@ -858,6 +970,27 @@ const AdminDashboard = () => {
                     )}
                 </CardContent>
             </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2">
+                        <Database className="h-5 w-5 text-primary" />
+                        Database Management
+                    </CardTitle>
+                    <CardDescription>
+                        Use this tool to populate your Firestore database with the initial placeholder data. This is useful for development and testing.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-destructive">
+                        <strong>Warning:</strong> This will overwrite any existing data in the collections with the same document IDs.
+                    </p>
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={handleSeedDatabase} disabled={!firestore || isSeeding}>
+                        {isSeeding ? 'Seeding...' : 'Seed Database'}
+                    </Button>
+                </CardFooter>
+            </Card>
         </div>
     );
 };
@@ -880,3 +1013,4 @@ export default function DashboardPage() {
     return <div>{renderDashboardByRole()}</div>;
 }
     
+

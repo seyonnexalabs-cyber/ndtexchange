@@ -1,8 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, allUsers, inspectorAssets, clientData, Job } from "@/lib/placeholder-data";
-import { serviceProviders } from "@/lib/service-providers-data";
+import { allUsers, inspectorAssets, serviceProviders, Job } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel } from "lucide-react";
@@ -14,6 +13,9 @@ import { format, isToday } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
@@ -30,10 +32,18 @@ export default function MyJobsPage() {
     const role = searchParams.get('role') || 'client';
     const [view, setView] = useState<JobView>('active');
 
-    // New state for filters
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [auditFilter, setAuditFilter] = useState(false);
+
+    const { firestore } = useFirebase();
+
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'jobs');
+    }, [firestore]);
+
+    const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
     const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
         'Draft': 'outline',
@@ -51,13 +61,13 @@ export default function MyJobsPage() {
     };
 
     const { displayedJobs, title, Icon } = useMemo(() => {
+        const jobs = jobsFromDb || [];
         let jobsToShow: Job[] = [];
         let pageTitle = '';
         let PageIcon: React.ElementType = Briefcase;
         
-        // This logic assumes the inspector is from provider-03 and the client is Global Energy Corp for demonstration
         let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => j.providerId === 'provider-03' && ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Paid'].includes(j.status))
+            ? jobs.filter(j => j.providerId === 'provider-03' && ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Paid', 'Revisions Requested'].includes(j.status))
             : jobs.filter(j => j.client === 'Global Energy Corp.');
 
         switch(view) {
@@ -78,7 +88,6 @@ export default function MyJobsPage() {
                 break;
         }
 
-        // Apply new filters
         const filtered = jobsToShow.filter(job => {
             const providerMatch = selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
             const clientMatch = selectedClients.length === 0 || selectedClients.includes(job.client);
@@ -87,14 +96,13 @@ export default function MyJobsPage() {
         });
 
         return { displayedJobs: filtered, title: pageTitle, Icon: PageIcon };
-    }, [view, role, selectedProviders, selectedClients, auditFilter]);
+    }, [view, role, selectedProviders, selectedClients, auditFilter, jobsFromDb]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
-     // Handlers for filters
     const handleProviderChange = (providerId: string) => {
         setSelectedProviders(prev => prev.includes(providerId) ? prev.filter(id => id !== providerId) : [...prev, providerId]);
     };
@@ -111,8 +119,6 @@ export default function MyJobsPage() {
 
     const hasActiveFilters = selectedProviders.length > 0 || selectedClients.length > 0 || auditFilter;
 
-
-    // Grouping logic
     const groupedJobs = useMemo(() => {
         if (displayedJobs.length === 0) return null;
 
@@ -160,16 +166,46 @@ export default function MyJobsPage() {
     }
 
     const uniqueClients = useMemo(() => {
-        if (role !== 'inspector') return [];
-        const clients = new Set(jobs.filter(j => j.providerId === 'provider-03').map(j => j.client));
+        if (role !== 'inspector' || !jobsFromDb) return [];
+        const clients = new Set(jobsFromDb.filter(j => j.providerId === 'provider-03').map(j => j.client));
         return Array.from(clients);
-    }, [role]);
+    }, [role, jobsFromDb]);
 
     const uniqueProviders = useMemo(() => {
-        if (role !== 'client') return [];
-        const providerIds = new Set(jobs.filter(j => j.client === 'Global Energy Corp.' && j.providerId).map(j => j.providerId!));
+        if (role !== 'client' || !jobsFromDb) return [];
+        const providerIds = new Set(jobsFromDb.filter(j => j.client === 'Global Energy Corp.' && j.providerId).map(j => j.providerId!));
         return serviceProviders.filter(p => providerIds.has(p.id));
-    }, [role]);
+    }, [role, jobsFromDb]);
+
+    if (isLoadingJobs) {
+        return (
+            <div>
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <Briefcase className="text-primary" />
+                        My Jobs
+                    </h1>
+                </div>
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader>
+                                <Skeleton className="h-6 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-full" />
+                            </CardContent>
+                            <CardFooter>
+                                <Skeleton className="h-10 w-28" />
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -396,4 +432,4 @@ export default function MyJobsPage() {
             )}
         </div>
     );
-}
+    

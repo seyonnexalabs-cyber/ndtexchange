@@ -14,7 +14,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, Job } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, Job, payments, jobPayments, jobChats } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { auditFirms } from '@/lib/auditors-data';
 import { useSearchParams } from "next/navigation";
@@ -732,7 +732,7 @@ const AdminDashboard = () => {
                 batch.set(docRef, asset);
             });
             
-            const usersToSeed = allUsers.filter(u => u.company !== 'NDT EXCHANGE');
+            const usersToSeed = allUsers.filter(u => u.company !== 'NDT Exchange');
             usersToSeed.forEach(user => {
                 const docRef = doc(firestore, 'users', user.id);
                 const { password, ...userToSave } = user;
@@ -793,6 +793,27 @@ const AdminDashboard = () => {
             billingAuditLog.forEach(log => {
                 const docRef = doc(firestore, 'billingAuditLogs', log.id);
                 batch.set(docRef, log);
+            });
+
+            jobChats.forEach(chat => {
+                const { messages, ...chatData } = chat;
+                const chatRef = doc(firestore, 'chats', chat.id);
+                batch.set(chatRef, chatData);
+            
+                messages.forEach(message => {
+                    const messageRef = doc(firestore, 'chats', chat.id, 'messages', message.id);
+                    batch.set(messageRef, message);
+                });
+            });
+            
+            payments.forEach(payment => {
+                const paymentRef = doc(firestore, 'payments', payment.id);
+                batch.set(paymentRef, payment);
+            });
+            
+            jobPayments.forEach(payment => {
+                const paymentRef = doc(firestore, 'jobPayments', payment.id);
+                batch.set(paymentRef, payment);
             });
 
             await batch.commit();
@@ -1014,4 +1035,6 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+    
+
     

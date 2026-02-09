@@ -272,6 +272,39 @@
         "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"], "description": "The moderation status of the review." }
       },
       "required": ["jobId", "providerId", "clientId", "rating", "date", "status"]
+    },
+    "JobPayment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Job Payment",
+      "type": "object",
+      "description": "Represents a payment made for a completed job.",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "amount": { "type": "number" },
+        "payer": { "type": "string" },
+        "payee": { "type": "string" },
+        "payeeType": { "type": "string", "enum": ["Provider", "Auditor"] },
+        "paidOn": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["Paid", "Pending"] }
+      },
+      "required": ["id", "jobId", "jobTitle", "amount", "payer", "payee", "paidOn", "status"]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a subscription payment.",
+      "properties": {
+        "id": { "type": "string" },
+        "subscriptionId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["Succeeded", "Failed"] }
+      },
+      "required": ["id", "subscriptionId", "companyName", "amount", "date", "status"]
     }
   },
   "auth": {
@@ -338,8 +371,18 @@
       {
         "path": "/reviews/{reviewId}",
         "definition": { "entityName": "Review", "schema": { "$ref": "#/entities/Review" }, "description": "Stores all reviews submitted by clients for providers." }
+      },
+      {
+        "path": "/jobPayments/{paymentId}",
+        "definition": { "entityName": "JobPayment", "schema": { "$ref": "#/entities/JobPayment" }, "description": "Stores all payments made for jobs." }
+      },
+      {
+        "path": "/payments/{paymentId}",
+        "definition": { "entityName": "Payment", "schema": { "$ref": "#/entities/Payment" }, "description": "Stores subscription payment records." }
       }
     ],
     "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages and Support Messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."
   }
 }
+
+    

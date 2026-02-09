@@ -472,7 +472,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         providerId: 'provider-03',
         location: 'Long Beach, CA', 
         technique: 'MT', 
-        status: 'Report Submitted', 
+        status: 'Revisions Requested', 
         postedDate: '2024-06-18', 
         scheduledStartDate: '2024-06-21', 
         scheduledEndDate: '2024-06-21', 
@@ -481,6 +481,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
         history: [
+            { user: 'Alex Chen', timestamp: '2024-06-23T10:00:00Z', action: 'Auditor requested revisions.', details: 'Please clarify the distinction between the primary and secondary hooks in the summary. The client had specific concerns about the secondary hook that are not explicitly addressed.', statusChange: 'Revisions Requested' },
             { user: 'Carlos Ray', timestamp: '2024-06-22T09:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
             { user: 'Carlos Ray', timestamp: '2024-06-21T08:00:00Z', action: 'Assigned resources.', details: 'Assigned Carlos Ray, Parker B-300S' },
             { user: 'Maria Garcia', timestamp: '2024-06-20T08:00:00Z', action: 'Scheduled job.', details: 'Inspection scheduled for 2024-06-21', statusChange: 'Scheduled' },
@@ -937,3 +938,4 @@ export { clientAssets as assets };
     
 
   
+

@@ -100,7 +100,7 @@ export default function LoginPage() {
 
   const devLogins = [
     allUsers.find(u => u.id === 'user-client-01'),
-    allUsers.find(u => u.id === 'user-tech-05'),
+    allUsers.find(u => u.id === 'user-TECH-05'),
     allUsers.find(u => u.id === 'user-auditor-01'),
     allUsers.find(u => u.id === 'user-admin-01'),
   ].filter(Boolean);
@@ -190,11 +190,11 @@ export default function LoginPage() {
                       key={devUser!.id}
                       variant="outline"
                       onClick={() => {
-                        form.setValue('email', devUser!.email);
-                        form.setValue('password', devUser!.password || 'password123');
-                        form.handleSubmit(onSubmit)();
+                        const role = (devUser!.role as string).toLowerCase();
+                        const params = new URLSearchParams();
+                        params.set('role', role);
+                        router.push(`/dashboard?${params.toString()}`);
                       }}
-                      disabled={isAuthenticating || isUserLoading}
                     >
                       {devUser!.role}
                     </Button>

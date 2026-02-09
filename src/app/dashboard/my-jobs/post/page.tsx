@@ -62,13 +62,13 @@ export default function PostJobPage() {
       if (role === 'client') {
         schema = schema.extend({
           assets: z.array(z.string()).refine(value => value.some(item => item), {
-            message: "You have to select at least one asset.",
+            message: "You have to select at least one asset for this job.",
           }),
         });
       } else { // inspector
         schema = schema.extend({
           clientName: z.string().min(2, "Client Name is required."),
-          assetDescription: z.string().min(10, "Asset Description must be at least 10 characters."),
+          description: z.string().min(10, "A description of the asset(s) and scope of work is required."),
         });
       }
 
@@ -92,7 +92,6 @@ export default function PostJobPage() {
             description: '',
             assets: [],
             clientName: '',
-            assetDescription: '',
             workflow: 'standard',
         },
     });
@@ -185,10 +184,10 @@ export default function PostJobPage() {
                     });
                 }
             });
-        } else if (role === 'inspector' && 'assetDescription' in values) {
+        } else if (role === 'inspector') {
             values.techniques.forEach(technique => {
                 inspections.push({
-                    assetName: (values as any).assetDescription.substring(0, 50),
+                    assetName: values.description!.substring(0, 50),
                     assetId: 'N/A',
                     technique: technique,
                     inspector: 'Pending',
@@ -476,35 +475,28 @@ export default function PostJobPage() {
                               />
                             )}
 
-                            {isInspector && (
-                              <FormField
-                                  control={form.control}
-                                  name="assetDescription"
-                                  render={({ field }) => (
-                                      <FormItem>
-                                          <FormLabel>Asset Description</FormLabel>
-                                          <FormControl>
-                                              <Textarea placeholder="Describe the asset(s) to be inspected, e.g., '10-inch diameter carbon steel pipe rack, approx. 200 feet long'." {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                      </FormItem>
-                                  )}
-                              />
-                            )}
-                            
                             <FormField
                                 control={form.control}
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Job Description (Optional)</FormLabel>
+                                        <FormLabel>
+                                            {isClient ? 'Job Description (Optional)' : 'Asset(s) & Scope of Work'}
+                                        </FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Provide a detailed scope of work, requirements, and any specifications." {...field} />
+                                            <Textarea placeholder={
+                                                isClient 
+                                                    ? "Provide a detailed scope of work, requirements, and any specifications for the service providers." 
+                                                    : "Describe the asset(s) to be inspected, e.g., '10-inch diameter carbon steel pipe rack, approx. 200 feet long. Perform UT thickness readings at 50 designated locations.'"
+                                                }
+                                                {...field} 
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+                            
                             <div className="grid md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}

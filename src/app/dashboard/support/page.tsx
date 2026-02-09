@@ -14,7 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 import { LifeBuoy, MessageSquare, Send, BookOpen } from 'lucide-react';
 import { ACCEPTED_FILE_TYPES, cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSearchParams } from 'next/navigation';
@@ -62,7 +61,6 @@ const supportSchema = z.object({
 
 export default function SupportPage() {
   const { toast } = useToast();
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
   
@@ -95,10 +93,6 @@ export default function SupportPage() {
   const { data: messages } = useCollection<SupportMessage>(messagesQuery);
   
   const [newMessage, setNewMessage] = useState('');
-
-  const handleStartChat = () => {
-    setIsChatOpen(true);
-  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !firestore) return;
@@ -315,61 +309,51 @@ export default function SupportPage() {
                 </Card>
             </TabsContent>
             <TabsContent value="chat" className="mt-4">
-                 <Card>
+                 <Card className="flex flex-col h-[70vh]">
                     <CardHeader>
-                        <CardTitle>Live Chat Support</CardTitle>
-                        <CardDescription>Need immediate assistance? Our support agents are available to help you in real-time.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><MessageSquare className="text-primary" /> Live Chat Support</CardTitle>
+                        <CardDescription>You are now connected with a support agent. Ask your question below.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Button onClick={handleStartChat}>Start Live Chat</Button>
+                    <CardContent className="flex-1 flex flex-col p-0">
+                        <ScrollArea className="flex-1 p-6 bg-muted/30">
+                          <div className="space-y-6">
+                              {messages?.map((message, index) => {
+                                  const myMessage = message.userId === currentUser?.id;
+                                  return (
+                                      <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
+                                          {!myMessage && (
+                                              <Avatar className="h-8 w-8">
+                                                  <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                              </Avatar>
+                                          )}
+                                          <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
+                                              <p className="text-sm">{message.message}</p>
+                                              <p className="text-xs mt-2 opacity-80">
+                                                  {message.user} · {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
+                                              </p>
+                                          </div>
+                                      </div>
+                                  )
+                              })}
+                          </div>
+                        </ScrollArea>
+                        <div className="p-4 border-t bg-background">
+                            <div className="flex w-full items-center gap-2">
+                                <Input 
+                                  placeholder="Type your message..."
+                                  value={newMessage}
+                                  onChange={(e) => setNewMessage(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                                />
+                                <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>
+                                    {isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
         </Tabs>
-      
-      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <DialogContent className="sm:max-w-lg h-[70vh] flex flex-col p-0">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="flex items-center gap-2"><MessageSquare className="text-primary" /> Live Chat</DialogTitle>
-            <DialogDescription>You are now connected with a support agent.</DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="flex-1 p-6 bg-muted/30">
-            <div className="space-y-6">
-                {messages?.map((message, index) => {
-                     const myMessage = message.userId === currentUser?.id;
-                     return (
-                        <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
-                            {!myMessage && (
-                                <Avatar className="h-8 w-8">
-                                    <AvatarFallback>{message.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
-                            )}
-                            <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
-                                <p className="text-sm">{message.message}</p>
-                                <p className="text-xs mt-2 opacity-80">
-                                    {message.user} · {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
-                                </p>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-          </ScrollArea>
-          <DialogFooter className="p-4 border-t bg-background">
-            <div className="flex w-full items-center gap-2">
-                <Input 
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                />
-                <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>
-                    {isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}
-                </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

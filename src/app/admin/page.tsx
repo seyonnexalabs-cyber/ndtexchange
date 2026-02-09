@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield } from 'lucide-react';
+import { Shield, Snowflake } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,7 +13,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Hexagons7Icon } from '@/app/components/icons';
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
@@ -44,7 +43,9 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8">
-          <Hexagons7Icon className="h-10 w-auto" />
+          <Link href="/">
+            <Snowflake className="h-10 w-auto text-indigo-500" />
+          </Link>
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

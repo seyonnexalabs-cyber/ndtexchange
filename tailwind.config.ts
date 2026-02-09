@@ -18,9 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Noto Sans', 'sans-serif'],
-        headline: ['Noto Serif', 'serif'],
-        chat: ['Comic Neue', 'cursive'],
+        body: ['"Work Sans"', 'sans-serif'],
+        headline: ['"Work Sans"', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

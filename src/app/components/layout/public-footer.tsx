@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { Hexagons7Icon } from '@/app/components/icons';
+import { Snowflake } from 'lucide-react';
 
 export default function PublicFooter() {
     const platformLinks = [
@@ -30,8 +30,9 @@ export default function PublicFooter() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div className="md:col-span-1">
-                        <Link href="/">
-                            <Hexagons7Icon className="h-10 w-auto" />
+                        <Link href="/" className="flex items-center gap-3">
+                            <Snowflake className="h-10 w-auto text-white" />
+                            <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT Exchange</span>
                         </Link>
                         <p className="mt-4 text-sm text-primary-foreground/80">
                             The premier marketplace for Non-Destructive Testing services.

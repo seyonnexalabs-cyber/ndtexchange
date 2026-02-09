@@ -52,7 +52,7 @@
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Job." },
         "clientId": { "type": "string", "description": "Reference to the User (Client) who created the job." },
-        "providerId": { "type": "string", "description": "Reference to the User (Provider) awarded the job." },
+        "providerId": { "type": "string", "description": "Reference to the Company (Provider) awarded the job." },
         "auditorId": { "type": "string", "description": "Reference to the User (Auditor) assigned for review, if applicable." },
         "assetIds": {
           "type": "array",
@@ -261,7 +261,7 @@
       "description": "Represents a review submitted by a client for a service provider after a job is completed.",
       "properties": {
         "jobId": { "type": "string", "description": "Reference to the Job this review is for." },
-        "providerId": { "type": "string", "description": "Reference to the User (Provider) being reviewed." },
+        "providerId": { "type": "string", "description": "Reference to the Company (Provider) being reviewed." },
         "clientId": { "type": "string", "description": "Reference to the User (Client) who wrote the review." },
         "rating": { "type": "number", "description": "The star rating given, from 1 to 5." },
         "comment": { "type": "string", "description": "The text content of the review." },

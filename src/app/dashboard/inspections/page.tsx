@@ -29,7 +29,7 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'defaul
 export default function InspectionsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const role = searchParams.get('role');
+    const role = searchParams.get('role') || 'client';
 
     useEffect(() => {
         if (role && role !== 'auditor' && role !== 'admin') {
@@ -105,7 +105,7 @@ export default function InspectionsPage() {
     const pageDescription = isAuditor ? 'Review and approve submitted inspection reports.' : 'View all inspection reports across the platform.';
     const emptyStateTitle = isAuditor ? 'Audit Queue is Empty' : 'No Reports Found';
     const emptyStateDescription = isAuditor ? 'There are no reports currently awaiting your review.' : 'No inspection reports match the current filters.';
-    const buttonText = isAuditor ? 'Audit Report' : 'View Report';
+    const buttonText = isAuditor ? 'Audit Report' : 'View Inspection';
     const hasActiveFilters = selectedTechniques.length > 0 || (role === 'admin' && statusFilter !== 'all') || (role === 'auditor' && statusFilter !== 'Requires Review');
 
 

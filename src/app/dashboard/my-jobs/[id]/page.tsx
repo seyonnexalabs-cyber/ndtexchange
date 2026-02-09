@@ -873,7 +873,7 @@ export default function JobDetailPage() {
                                                     </div>
                                                     {report ? (
                                                         <Button asChild variant="outline" size="sm">
-                                                            <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Report</Link>
+                                                            <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Inspection</Link>
                                                         </Button>
                                                     ) : (
                                                         isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (

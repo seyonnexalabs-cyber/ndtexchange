@@ -739,7 +739,7 @@ export default function AssetDetailPage() {
                                                             <p className="text-xs text-muted-foreground/80 shrink-0">{format(parseISO(entry.timestamp), GLOBAL_DATETIME_FORMAT)}</p>
                                                         </div>
                                                         {entry.type === 'update' && entry.data.details && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.data.details}"</p>}
-                                                        {entry.type === 'inspection' && <Button asChild size="sm" variant="outline" className="mt-2"><Link href={constructUrl(`/dashboard/my-jobs/${(entry.data as any).jobId}`)}>View Report</Link></Button>}
+                                                        {entry.type === 'inspection' && (entry.data as any).report && <Button asChild size="sm" variant="outline" className="mt-2"><Link href={constructUrl(`/dashboard/reports/${(entry.data as any).report.id}`)}>View Inspection</Link></Button>}
                                                     </div>
                                                 )
                                             })}

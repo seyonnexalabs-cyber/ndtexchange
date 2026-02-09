@@ -36,7 +36,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 

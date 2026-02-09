@@ -191,7 +191,7 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
@@ -342,7 +342,7 @@ const AppSidebar = () => {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
-        {planDetails && (
+        {state === 'expanded' && planDetails && (
           <div>
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>
@@ -356,20 +356,6 @@ const AppSidebar = () => {
             </Link>
           </div>
         )}
-        {planDetails && <SidebarSeparator className="my-1 mx-0" />}
-         <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-                <AvatarFallback>{currentUser.fallback}</AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden">
-                <p className="font-semibold truncate">{currentUser.name}</p>
-                <p className="text-xs text-card-foreground/70 truncate">{currentUser.role}</p>
-                <p className="text-xs text-card-foreground/70 truncate">{currentUser.company}</p>
-            </div>
-            <Button variant="ghost" size="icon" className="ml-auto text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 text-primary" />
-            </Button>
-         </div>
       </SidebarFooter>
     </Sidebar>
   );

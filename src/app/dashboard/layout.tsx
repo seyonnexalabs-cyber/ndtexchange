@@ -12,7 +12,7 @@ export default function DashboardLayout({
   return (
     <SearchProvider>
       <QRScannerProvider>
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={false}>
           <AppSidebar />
           <SidebarInset>
             <AppHeader />

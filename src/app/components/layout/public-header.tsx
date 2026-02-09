@@ -18,6 +18,15 @@ export default function PublicHeader() {
   const navLinks = [
     { href: '/platform-features', label: 'Features' },
     {
+      label: 'Management',
+      isDropdown: true,
+      isActive: ['/asset-management', '/provider-tools'].includes(pathname),
+      items: [
+        { href: '/asset-management', label: 'Client Assets' },
+        { href: '/provider-tools', label: 'Provider Tools' },
+      ]
+    },
+    {
       label: 'Resources',
       isDropdown: true,
       isActive: ['/manufacturers', '/providers'].includes(pathname) || pathname === '/',

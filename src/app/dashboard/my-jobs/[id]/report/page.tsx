@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -178,8 +177,14 @@ export default function ReportPage() {
     }
     
     const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+        const newParams = new URLSearchParams();
+        const role = searchParams.get('role');
+        const plan = searchParams.get('plan');
+        if (role) newParams.set('role', role);
+        if (plan) newParams.set('plan', plan);
+
+        const queryString = newParams.toString();
+        return queryString ? `${base}?${queryString}` : base;
     }
 
     const onSubmit = (values: z.infer<typeof reportSchema>) => {

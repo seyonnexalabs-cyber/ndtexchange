@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -435,18 +434,14 @@ export default function JobDetailPage() {
     }
     
     const constructUrl = (base: string) => {
-        const [pathname, baseQuery] = base.split('?');
-        const newParams = new URLSearchParams(searchParams.toString());
-
-        if (baseQuery) {
-            const baseParams = new URLSearchParams(baseQuery);
-            baseParams.forEach((value, key) => {
-                newParams.set(key, value);
-            });
-        }
-
+        const newParams = new URLSearchParams();
+        const role = searchParams.get('role');
+        const plan = searchParams.get('plan');
+        if (role) newParams.set('role', role);
+        if (plan) newParams.set('plan', plan);
+        
         const queryString = newParams.toString();
-        return queryString ? `${pathname}?${queryString}` : pathname;
+        return queryString ? `${base}?${queryString}` : base;
     }
 
     const assignedTechnicians = allUsers.filter(u => u.role === 'Inspector' && jobDetails.technicianIds?.includes(u.id));
@@ -885,7 +880,7 @@ export default function JobDetailPage() {
                                                     </div>
                                                     {report ? (
                                                         <Button asChild variant="outline" size="sm">
-                                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
                                                         </Button>
                                                     ) : (
                                                         isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
@@ -1233,5 +1228,3 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-
-    

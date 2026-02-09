@@ -45,8 +45,14 @@ export default function InspectionsPage() {
     const [statusFilter, setStatusFilter] = React.useState<string>(role === 'admin' ? 'all' : 'Requires Review');
     
     const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+        const newParams = new URLSearchParams();
+        const role = searchParams.get('role');
+        const plan = searchParams.get('plan');
+        if (role) newParams.set('role', role);
+        if (plan) newParams.set('plan', plan);
+
+        const queryString = newParams.toString();
+        return queryString ? `${base}?${queryString}` : base;
     }
 
     const allInspections = useMemo(() => jobs.flatMap(job => (job.inspections || []).map(inspection => ({...inspection, job}))), []);
@@ -224,13 +230,13 @@ export default function InspectionsPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                        Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}
+                                        Report Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}
                                         {isToday(inspectionDate) && <Badge>Today</Badge>}
                                     </p>
                                 </CardContent>
                                  <CardFooter>
                                     <Button asChild variant="outline" size="sm" className="w-full">
-                                        <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>{buttonText}</Link>
+                                        <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>{buttonText}</Link>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -278,7 +284,7 @@ export default function InspectionsPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>{buttonText}</Link>
+                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>{buttonText}</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

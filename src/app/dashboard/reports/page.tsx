@@ -36,8 +36,14 @@ export default function ReportsListPage() {
     const [statusFilter, setStatusFilter] = React.useState<string>('all');
     
     const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+        const newParams = new URLSearchParams();
+        const role = searchParams.get('role');
+        const plan = searchParams.get('plan');
+        if (role) newParams.set('role', role);
+        if (plan) newParams.set('plan', plan);
+
+        const queryString = newParams.toString();
+        return queryString ? `${base}?${queryString}` : base;
     }
 
     const allInspections = useMemo(() => {
@@ -198,7 +204,7 @@ export default function ReportsListPage() {
                                 </CardContent>
                                  <CardFooter>
                                     <Button asChild variant="outline" size="sm" className="w-full">
-                                        <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                        <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -246,7 +252,7 @@ export default function ReportsListPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

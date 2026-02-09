@@ -47,18 +47,14 @@ export default function AuditHistoryPage() {
     }, [role, router, searchParams]);
     
     const constructUrl = (base: string) => {
-        const [pathname, baseQuery] = base.split('?');
-        const newParams = new URLSearchParams(searchParams.toString());
-
-        if (baseQuery) {
-            const baseParams = new URLSearchParams(baseQuery);
-            baseParams.forEach((value, key) => {
-                newParams.set(key, value);
-            });
-        }
+        const newParams = new URLSearchParams();
+        const role = searchParams.get('role');
+        const plan = searchParams.get('plan');
+        if (role) newParams.set('role', role);
+        if (plan) newParams.set('plan', plan);
 
         const queryString = newParams.toString();
-        return queryString ? `${pathname}?${queryString}` : pathname;
+        return queryString ? `${base}?${queryString}` : base;
     }
 
     const filteredInspections = useMemo(() => {
@@ -164,7 +160,7 @@ export default function AuditHistoryPage() {
                             </CardContent>
                              <CardFooter>
                                 <Button asChild variant="outline" size="sm" className="w-full">
-                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                    <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -195,7 +191,7 @@ export default function AuditHistoryPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>View Report</Link>
+                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -215,5 +211,3 @@ export default function AuditHistoryPage() {
         </div>
     );
 }
-
-    

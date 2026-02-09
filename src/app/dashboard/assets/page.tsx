@@ -1,7 +1,8 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { clientAssets as initialClientAssets, Asset } from "@/lib/placeholder-data";
+import { Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, Building, QrCode, Printer, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -19,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
-import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -37,7 +38,7 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { searchQuery } = useSearch();
     const role = searchParams.get('role');
-    const isCompanyAdmin = role === 'client';
+    const isCompanyAdmin = role === 'client'; // Simplified logic for demo
 
     const filteredAssets = useMemo(() => {
         if (!searchQuery) return assets;
@@ -60,13 +61,13 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
             }
             acc[asset.location].push(asset);
             return acc;
-        }, {} as Record<string, typeof initialClientAssets>);
+        }, {} as Record<string, Asset[]>);
     }, [filteredAssets]);
 
     if (isLoading) {
       return (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
+              {[...Array(8)].map((_, i) => (
                   <Card key={i}>
                       <CardHeader className="p-0">
                           <Skeleton className="h-48 w-full rounded-t-lg" />
@@ -115,9 +116,9 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                     <CardHeader className="p-0">
                                         <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
                                             {image ? (
-                                                <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                                <Image src={image.imageUrl} alt={image.description || asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
                                             ) : (
-                                                cloneElement(assetIcons[asset.type], { className: 'w-16 h-16 text-primary/50' })
+                                                cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-16 h-16 text-primary/50' })
                                             )}
                                         </div>
                                     </CardHeader>
@@ -129,7 +130,7 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                     )}
                                     <CardContent className="p-4 flex-grow">
                                         <div className="flex items-start justify-between">
-                                            {cloneElement(assetIcons[asset.type], { className: 'w-6 h-6 text-primary' })}
+                                            {cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-6 h-6 text-primary' })}
                                             <Badge variant={
                                                 asset.status === 'Operational' ? 'success' :
                                                 asset.status === 'Requires Inspection' ? 'destructive' :
@@ -218,11 +219,10 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
 export default function AssetsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const currentUserCompanyId = 'client-01'; 
+    const router = useRouter();
     const { setScanOpen } = useQRScanner();
     const { toast } = useToast();
-    const router = useRouter();
-
+    
     // In a real app, this would come from a user context or subscription check.
     const isSubscriptionActive = false;
 
@@ -232,19 +232,15 @@ export default function AssetsPage() {
         }
     }, [role, router, searchParams]);
 
-    const { firestore } = useFirebase();
-
+    const { firestore, user } = useFirebase();
+    
     const assetsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || !user) return null;
+        // In a real app, this would be a more complex query, e.g., using a 'companyId' field
         return collection(firestore, 'assets');
-    }, [firestore]);
+    }, [firestore, user]);
     
     const { data: assetsFromDb, isLoading } = useCollection<Asset>(assetsQuery);
-
-    const currentAssets = useMemo(() => {
-        if (!assetsFromDb) return [];
-        return assetsFromDb.filter(asset => asset.companyId === currentUserCompanyId);
-    }, [assetsFromDb, currentUserCompanyId]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -264,7 +260,7 @@ export default function AssetsPage() {
         deleteDocumentNonBlocking(assetRef);
         toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
     };
-
+    
     if (role && !['client', 'inspector'].includes(role)) {
         return null;
     }
@@ -289,7 +285,7 @@ export default function AssetsPage() {
                 </div>
             </div>
             
-            {role === 'client' ? <ClientAssetsView assets={currentAssets} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} isSubscriptionActive={isSubscriptionActive} /> : (
+            {role === 'client' ? <ClientAssetsView assets={assetsFromDb || []} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} isSubscriptionActive={isSubscriptionActive} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
                     <QrCode className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>

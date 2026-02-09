@@ -18,6 +18,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { NDTTechniques } from '@/lib/placeholder-data';
+import { useFirebase, setDocumentNonBlocking } from '@/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc } from 'firebase/firestore';
+
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required."),
@@ -52,7 +56,9 @@ const signupSchema = z.object({
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { auth, firestore } = useFirebase();
   const [isMounted, setIsMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -71,13 +77,47 @@ export default function SignupPage() {
 
   const role = form.watch('role');
 
-  const onSubmit = (data: z.infer<typeof signupSchema>) => {
-    console.log("New User Signup:", data);
-    toast({
-      title: "Account Created!",
-      description: "Welcome to NDT Exchange. You can now log in.",
-    });
-    router.push(`/login`);
+  const onSubmit = async (data: z.infer<typeof signupSchema>) => {
+    setIsSubmitting(true);
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        const user = userCredential.user;
+
+        const userProfile = {
+            id: user.uid,
+            name: data.fullName,
+            email: data.email,
+            company: data.companyName,
+            role: data.role.charAt(0).toUpperCase() + data.role.slice(1),
+            status: 'Active',
+            certifications: data.certifications?.map(c => ({ method: c, level: data.level! })) || [],
+            workStatus: 'Available',
+            providerId: data.role === 'inspector' ? 'provider-temp-id' : undefined, // Placeholder
+            level: data.level,
+        };
+
+        const userDocRef = doc(firestore, "users", user.uid);
+        await setDocumentNonBlocking(userDocRef, userProfile, { merge: false });
+
+        toast({
+            title: "Account Created!",
+            description: "Welcome to NDT Exchange. You can now log in.",
+        });
+        router.push(`/login`);
+
+    } catch (error: any) {
+        let description = 'An unexpected error occurred. Please try again.';
+        if (error.code === 'auth/email-already-in-use') {
+            description = 'This email address is already in use. Please log in or use a different email.';
+        }
+        toast({
+            variant: "destructive",
+            title: "Signup Failed",
+            description,
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -264,7 +304,9 @@ export default function SignupPage() {
                             </FormItem>
                           )}
                         />
-                        <Button type="submit" className="w-full">Create Account</Button>
+                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            {isSubmitting ? "Creating Account..." : "Create Account"}
+                        </Button>
                     </form>
                 </Form>
             </CardContent>

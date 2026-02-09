@@ -23,8 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useFirebase, useUser } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { toast } from '@/hooks/use-toast';
+import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 
-type UserType = 'client' | 'inspector' | 'auditor';
+type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -35,39 +39,68 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  
+  const { auth, firestore } = useFirebase();
+  const { user, isUserLoading } = useUser();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '', role: 'client' },
+    defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    // In a real app, this would involve an API call to an authentication service.
-    let role: UserType;
-    
-    // Dev mode allows role selection, otherwise determine from email
-    if (process.env.NODE_ENV === 'development' && data.role) {
-      role = data.role;
-    } else {
-      // For this prototype, we'll determine the role based on the email address.
-      role = 'client'; // Default to client
+  useEffect(() => {
+    if (isUserLoading || !firestore) return;
 
-      if (data.email.includes('inspector') || data.email.includes('teaminc')) {
-          role = 'inspector';
-      } else if (data.email.includes('auditor')) {
-          role = 'auditor';
+    if (user) {
+      const fetchUserRoleAndRedirect = async () => {
+        try {
+          const userDocRef = doc(firestore, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const role = userData.role as UserType;
+            const params = new URLSearchParams();
+            params.set('role', role.toLowerCase());
+            router.push(`/dashboard?${params.toString()}`);
+          } else {
+            // This case might happen if user profile creation failed during signup
+            toast({
+              variant: 'destructive',
+              title: 'Login Failed',
+              description: 'User profile not found. Please contact support.',
+            });
+            setIsAuthenticating(false);
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          toast({
+            variant: 'destructive',
+            title: 'Login Error',
+            description: 'Could not retrieve user profile.',
+          });
+          setIsAuthenticating(false);
+        }
+      };
+
+      fetchUserRoleAndRedirect();
+    } else {
+      // If user is null and we are not loading, authentication might have failed.
+      if (isAuthenticating) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: 'Invalid email or password. Please try again.',
+        });
+        setIsAuthenticating(false);
       }
     }
+  }, [user, isUserLoading, router, firestore, isAuthenticating]);
 
-    if (data.email.includes('admin')) {
-        // Redirect admins to the dedicated admin login
-        router.push('/admin');
-        return;
-    }
 
-    const params = new URLSearchParams();
-    params.set('role', role);
-    router.push(`/dashboard?${params.toString()}`);
+  const onSubmit = (data: z.infer<typeof loginSchema>) => {
+    setIsAuthenticating(true);
+    initiateEmailSignIn(auth, data.email, data.password);
   };
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
@@ -141,32 +174,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              {process.env.NODE_ENV === 'development' && (
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role (Dev Mode)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a role to login as" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="client">Client / Asset Owner</SelectItem>
-                          <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
-                          <SelectItem value="auditor">Auditor / Level-III</SelectItem>
-                        </SelectContent>
-                      </Select>
-                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" className="w-full" disabled={isAuthenticating}>
+                {isAuthenticating ? "Signing in..." : "Login"}
               </Button>
             </form>
           </Form>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
+import { NDTTechniques } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
@@ -20,8 +21,9 @@ import Image from 'next/image';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useFirebase, addDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
+
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -46,6 +48,7 @@ export default function AddAssetPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { toast } = useToast();
+    const { firestore, user } = useFirebase();
     const role = searchParams.get('role') || 'client';
 
     React.useEffect(() => {
@@ -54,6 +57,12 @@ export default function AddAssetPage() {
         }
     }, [role, router, searchParams]);
     
+    const assetsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'assets');
+    }, [firestore]);
+    const { data: existingAssets } = useCollection(assetsQuery);
+
     const form = useForm<z.infer<typeof assetSchema>>({
         resolver: zodResolver(assetSchema),
         defaultValues: {
@@ -71,9 +80,10 @@ export default function AddAssetPage() {
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
 
     const uniqueLocations = React.useMemo(() => {
-        const allLocations = clientAssets.map(asset => asset.location);
+        if (!existingAssets) return [];
+        const allLocations = existingAssets.map(asset => asset.location);
         return [...new Set(allLocations)];
-    }, []);
+    }, [existingAssets]);
     
     React.useEffect(() => {
         return () => {
@@ -88,19 +98,41 @@ export default function AddAssetPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
+    const handleFormSubmit = async (values: z.infer<typeof assetSchema>) => {
+        if (!firestore || !user) {
+            toast({ variant: 'destructive', title: "Error", description: "Database not available. Please try again later." });
+            return;
+        }
+
+        // In a real app, files would be uploaded to Firebase Storage and URLs would be stored.
+        // For this demo, we'll just log that they were "uploaded".
+        if (values.thumbnail) {
+            console.log("Uploaded thumbnail: ", values.thumbnail);
+        }
+        if (values.documents && values.documents.length > 0) {
+            console.log("Uploaded documents: ", values.documents);
+        }
+
+        const newAssetData = {
+            ...values,
+            companyId: 'client-01', // Replace with dynamic company ID from user profile
+            status: 'Requires Inspection',
+            approvalStatus: 'Pending Approval',
+            createdAt: serverTimestamp(),
+            nextInspection: values.nextInspection.toISOString().split('T')[0],
+            location: values.location === '__add_new__' ? values.newLocation : values.location,
+        };
+        // Remove fields not in the schema
+        delete newAssetData.newLocation;
+        delete newAssetData.documents;
+        delete newAssetData.thumbnail;
+
+        await addDocumentNonBlocking(collection(firestore, 'assets'), newAssetData);
+        
         toast({
             title: "Asset Submitted for Approval",
             description: `${values.name} has been submitted and is awaiting approval from your company admin.`,
         });
-        
-        if (values.thumbnail) {
-            console.log("Uploaded thumbnail: ", values.thumbnail);
-        }
-
-        if (values.documents && values.documents.length > 0) {
-            console.log("Uploaded documents: ", values.documents);
-        }
 
         router.push(constructUrl('/dashboard/assets'));
     };

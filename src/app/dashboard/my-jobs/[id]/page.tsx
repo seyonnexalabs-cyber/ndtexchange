@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -35,7 +36,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 
@@ -383,7 +384,7 @@ export default function JobDetailPage() {
     const router = useRouter();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     
     // State for the entire page's data to avoid hydration issues with direct mutation
     const [jobDetails, setJobDetails] = useState<Job | undefined>(() => JSON.parse(JSON.stringify(jobs.find(j => j.id === id))));
@@ -401,7 +402,7 @@ export default function JobDetailPage() {
     const [initialDocName, setInitialDocName] = React.useState<string | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
-    const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(false);
+    const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(true);
     const [rating, setRating] = React.useState(0);
     const [hoverRating, setHoverRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
@@ -1221,3 +1222,5 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+
+    

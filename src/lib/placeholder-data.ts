@@ -514,7 +514,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { name: 'Bridge_Structural_Plans.pdf', url: '#' }
         ] 
     },
-    { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3' },
+    { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3', assetIds: ['ASSET-007'] },
     { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-TECH-05'], workflow: 'level3' },
     { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['user-TECH-05'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { 
@@ -533,8 +533,8 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     },
     { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-009'], workflow: 'standard' },
     { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-007'], workflow: 'standard' },
-    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-05'], workflow: 'level3' },
-    { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', providerId: 'provider-09', location: 'Freeport, TX', technique: 'AE', status: 'Assigned', postedDate: '2024-07-20', assetIds: [], workflow: 'level3' },
+    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-007'], workflow: 'level3' },
+    { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', providerId: 'provider-09', location: 'Freeport, TX', technique: 'AE', status: 'Assigned', postedDate: '2024-07-20', assetIds: ['ASSET-003'], workflow: 'level3' },
     { 
         id: 'JOB-014', 
         title: 'Internal Corrosion Mapping of Piping', 
@@ -558,7 +558,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { user: 'John Doe', timestamp: '2024-07-18T09:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' }
         ]
     },
-    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-05'], workflow: 'standard' },
+    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', technique: 'MFL', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { 
         id: 'JOB-017', 
@@ -571,12 +571,12 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-25', 
         scheduledStartDate: nextWeek.toISOString().split('T')[0], 
         scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
-        assetIds: [], 
+        assetIds: ['ASSET-001', 'ASSET-004', 'ASSET-010'], 
         workflow: 'standard' 
     },
-    { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: [], workflow: 'level3' },
-    { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'ET', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: [], workflow: 'standard' },
-    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-TECH-05'], assetIds: [], workflow: 'standard' },
+    { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: ['ASSET-005'], workflow: 'level3' },
+    { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'ET', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: ['ASSET-005'], workflow: 'standard' },
+    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-006'], workflow: 'standard' },
     { 
         id: 'JOB-021', 
         title: 'Tank Wall Thickness UT', 
@@ -630,6 +630,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         technicianIds: ['user-TECH-05'],
         workflow: 'standard',
         isInternal: true,
+        assetIds: ['ASSET-001'],
     },
     { 
         id: 'JOB-024', 
@@ -643,6 +644,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: '2024-07-25',
         technicianIds: ['user-TECH-05'],
         workflow: 'level3',
+        assetIds: ['ASSET-007'],
         history: [
             { user: 'Maria Garcia', timestamp: '2024-07-26T14:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-024.pdf', statusChange: 'Report Submitted' }
         ]
@@ -658,7 +660,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-25', 
         scheduledStartDate: nextWeek.toISOString().split('T')[0], 
         scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
-        assetIds: [], 
+        assetIds: ['ASSET-003', 'ASSET-006'], 
         workflow: 'standard' 
     },
 ];
@@ -912,6 +914,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

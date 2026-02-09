@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Snowflake } from 'lucide-react';
+import { LogoIcon } from '@/app/components/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -128,7 +128,7 @@ export default function SignupPage() {
       )}>
         <div className="space-y-2 text-center">
             <Link href="/" className="flex items-center justify-center">
-                <Snowflake className="h-14 w-auto text-indigo-500" />
+                <LogoIcon className="h-14 w-auto text-indigo-500" />
             </Link>
             <p className="text-muted-foreground">Create your account to start your 14-day free trial.</p>
         </div>

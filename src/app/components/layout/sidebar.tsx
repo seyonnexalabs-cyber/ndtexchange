@@ -36,7 +36,6 @@ import {
   CreditCard,
   History,
   DollarSign,
-  Snowflake
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -45,7 +44,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { Hexagons7Icon } from '@/app/components/icons';
+import { LogoIcon } from '@/app/components/icons';
 
 
 const userDetails = {
@@ -310,7 +309,7 @@ const AppSidebar = () => {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
         <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
-            <Snowflake className="h-8 w-8 text-indigo-500 shrink-0 animate-spin-slow" />
+            <LogoIcon className="h-8 w-8 text-indigo-500 shrink-0" />
             <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
                 NDT Exchange
             </h1>

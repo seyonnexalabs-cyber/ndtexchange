@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Snowflake } from 'lucide-react';
+import { LogoIcon } from '@/app/components/icons';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -127,7 +127,7 @@ export default function LoginPage() {
         <div className="mx-auto grid w-full max-w-md gap-6">
           <div className="grid gap-2 text-center">
             <Link href="/" className="flex items-center justify-center gap-3">
-              <Snowflake className="h-14 w-auto text-indigo-500" />
+              <LogoIcon className="h-14 w-auto text-indigo-500" />
             </Link>
             <p className="text-muted-foreground">
               Sign in to your account to continue

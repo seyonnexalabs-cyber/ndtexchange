@@ -1,6 +1,27 @@
 
 import type { SVGProps } from 'react';
 
+export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <path d="M12 12 L12 5.5" />
+      <path d="M12 12 L12 18.5" />
+      <path d="M12 12 L17.5 15" />
+      <path d="M12 12 L6.5 15" />
+      <path d="M12 12 L17.5 9" />
+      <path d="M12 12 L6.5 9" />
+      
+      <path d="M10 7.5 L12 5.5 L14 7.5" />
+      <path d="M10 16.5 L12 18.5 L14 16.5" />
+
+      <path d="M16 14.2 L17.5 15 L16 15.8" />
+      <path d="M8 9.8 L6.5 9 L8 8.2" />
+      
+      <path d="M8 15.8 L6.5 15 L8 14.2" />
+      <path d="M16 8.2 L17.5 9 L16 9.8" />
+    </svg>
+);
+
 export const TankIcon = (props: SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <path d="M20 12.5a8.5 8.5 0 0 0-16 0v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5Z" />

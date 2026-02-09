@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Snowflake } from 'lucide-react';
+import { LogoIcon } from '@/app/components/icons';
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8">
-          <Snowflake className="h-10 w-auto text-indigo-500" />
+          <LogoIcon className="h-10 w-auto text-indigo-500" />
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

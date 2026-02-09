@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { serviceProviders } from "@/lib/service-providers-data";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, isToday } from "date-fns";
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -33,7 +33,8 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Review': 'secondary',
     'Client Approved': 'success',
     'Completed': 'success',
-    'Paid': 'success'
+    'Paid': 'success',
+    'Revisions Requested': 'destructive',
 };
 
 export default function AllJobsPage() {
@@ -44,7 +45,7 @@ export default function AllJobsPage() {
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
 
     useEffect(() => {
@@ -326,5 +327,3 @@ export default function AllJobsPage() {
         </div>
     );
 }
-
-    

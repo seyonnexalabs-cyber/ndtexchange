@@ -35,7 +35,8 @@ import {
   LifeBuoy,
   CreditCard,
   History,
-  DollarSign
+  DollarSign,
+  Snowflake
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -307,9 +308,12 @@ const AppSidebar = () => {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 flex justify-center">
-        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick}>
-            <Hexagons7Icon className="h-12 w-auto" />
+      <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
+        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
+            <Snowflake className="h-8 w-8 text-indigo-500 shrink-0" />
+            <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
+                NDT Exchange
+            </h1>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

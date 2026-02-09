@@ -18,13 +18,37 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSearchParams } from 'next/navigation';
-import { allUsers, supportThreads, SupportThread, SupportMessage, PlatformUser } from '@/lib/placeholder-data';
+import { allUsers, PlatformUser } from '@/lib/placeholder-data';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientMaintenanceWorkflow from './components/client-maintenance-workflow';
 import InspectorWorkflow from './components/inspector-workflow';
 import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
+import { useFirebase, useUser, useCollection, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, query, where, limit, doc, serverTimestamp, addDoc } from 'firebase/firestore';
+
+
+// Define types for Firestore data
+type SupportThread = {
+    id: string;
+    userId: string;
+    userName: string;
+    userCompany: string;
+    subject: string;
+    status: 'Open' | 'Closed';
+    lastMessage?: string;
+    lastMessageTimestamp?: any;
+};
+
+type SupportMessage = {
+    id: string;
+    userId: string;
+    user: string;
+    isAdmin: boolean;
+    timestamp: any;
+    message: string;
+};
 
 
 const supportSchema = z.object({
@@ -42,6 +66,9 @@ export default function SupportPage() {
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
   
+  const { firestore, user: authUser } = useFirebase();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const currentUser = useMemo(() => {
     const userMap: { [key: string]: PlatformUser | undefined } = {
       client: allUsers.find(u => u.id === 'user-client-01'),
@@ -52,47 +79,77 @@ export default function SupportPage() {
     return userMap[role] || userMap.client;
   }, [role]);
 
-  const [currentThread, setCurrentThread] = useState<SupportThread | null>(null);
+  const supportChatQuery = useMemoFirebase(() => {
+    if (!firestore || !authUser) return null;
+    return query(collection(firestore, 'supportChats'), where('userId', '==', authUser.uid), limit(1));
+  }, [firestore, authUser]);
+
+  const { data: supportThreadsData } = useCollection<SupportThread>(supportChatQuery);
+  const currentThread = useMemo(() => supportThreadsData?.[0] || null, [supportThreadsData]);
+
+  const messagesQuery = useMemoFirebase(() => {
+    if (!firestore || !currentThread) return null;
+    return collection(firestore, 'supportChats', currentThread.id, 'messages');
+  }, [firestore, currentThread]);
+
+  const { data: messages } = useCollection<SupportMessage>(messagesQuery);
+  
   const [newMessage, setNewMessage] = useState('');
 
   const handleStartChat = () => {
-    if (!currentUser) return;
-    let thread = supportThreads.find(t => t.userCompany === currentUser.company);
-    if (!thread) {
-      thread = {
-        id: `SUPPORT-NEW-${currentUser.company.replace(/\s+/g, '-')}`,
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userCompany: currentUser.company,
-        subject: 'General Support',
-        status: 'Open',
-        messages: [
-            { userId: 'user-admin-01', user: 'Admin User', isAdmin: true, timestamp: new Date().toISOString(), message: `Welcome to NDT Exchange Support! How can we help the team at ${currentUser.company} today?` },
-        ],
-      };
-    }
-    setCurrentThread(thread);
     setIsChatOpen(true);
   };
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !currentUser || !currentThread) return;
-
-    const message: SupportMessage = {
-      userId: currentUser.id,
-      user: currentUser.name,
-      isAdmin: currentUser.role === 'Admin',
-      timestamp: new Date().toISOString(),
-      message: newMessage.trim(),
-    };
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !currentUser || !firestore) return;
+    setIsSubmitting(true);
     
-    const updatedThread = {
-        ...currentThread,
-        messages: [...currentThread.messages, message]
-    };
+    try {
+        let threadId = currentThread?.id;
 
-    setCurrentThread(updatedThread);
-    setNewMessage('');
+        if (!threadId) {
+            const newThreadData = {
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userCompany: currentUser.company,
+                subject: 'Live Support Chat',
+                status: 'Open',
+                lastMessage: newMessage.trim(),
+                lastMessageTimestamp: serverTimestamp(),
+            };
+            const newThreadRef = await addDoc(collection(firestore, 'supportChats'), newThreadData);
+            threadId = newThreadRef.id;
+        }
+
+        if (threadId) {
+            const messagesColRef = collection(firestore, 'supportChats', threadId, 'messages');
+            const messageData = {
+                userId: currentUser.id,
+                user: currentUser.name,
+                isAdmin: currentUser.role === 'Admin',
+                timestamp: serverTimestamp(),
+                message: newMessage.trim(),
+            };
+            addDocumentNonBlocking(messagesColRef, messageData);
+            
+            const threadDocRef = doc(firestore, 'supportChats', threadId);
+            setDocumentNonBlocking(threadDocRef, {
+                lastMessage: newMessage.trim(),
+                lastMessageTimestamp: serverTimestamp(),
+                status: 'Open',
+            }, { merge: true });
+        }
+        setNewMessage('');
+    } catch (e) {
+        console.error("Error sending message: ", e);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not send message. Please try again.",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const roleGuides: { [key: string]: { component: React.ComponentType, title: string, description: string } } = {
@@ -278,7 +335,7 @@ export default function SupportPage() {
           </DialogHeader>
           <ScrollArea className="flex-1 p-6 bg-muted/30">
             <div className="space-y-6">
-                {currentThread?.messages.map((message, index) => {
+                {messages?.map((message, index) => {
                      const myMessage = message.userId === currentUser?.id;
                      return (
                         <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
@@ -290,7 +347,7 @@ export default function SupportPage() {
                             <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
                                 <p className="text-sm">{message.message}</p>
                                 <p className="text-xs mt-2 opacity-80">
-                                    {message.user} · {format(new Date(message.timestamp), 'p')}
+                                    {message.user} · {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
                                 </p>
                             </div>
                         </div>
@@ -306,7 +363,9 @@ export default function SupportPage() {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                 />
-                <Button onClick={handleSendMessage} disabled={!newMessage.trim()}><Send className="h-4 w-4" /></Button>
+                <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>
+                    {isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}
+                </Button>
             </div>
           </DialogFooter>
         </DialogContent>

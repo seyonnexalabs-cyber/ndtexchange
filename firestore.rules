@@ -111,10 +111,22 @@ service cloud.firestore {
      ***********************************************************/
      match /chats/{chatId} {
        allow get, update: if isSignedIn() && request.auth.uid in resource.data.participants;
+       match /messages/{messageId} {
+         allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+       }
      }
      
-     match /chats/{chatId}/messages/{messageId} {
-       allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+     /***********************************************************
+     * Support Chat Rules
+     ***********************************************************/
+     match /supportChats/{chatId} {
+       allow read, update: if isOwner(resource.data.userId) || isPlatformAdmin();
+       allow create: if isOwner(request.resource.data.userId) || isPlatformAdmin();
+       allow delete: if isPlatformAdmin();
+
+       match /messages/{messageId} {
+         allow read, create: if isOwner(get(/databases/$(database)/documents/supportChats/$(chatId)).data.userId) || isPlatformAdmin();
+       }
      }
   }
 }

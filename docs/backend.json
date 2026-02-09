@@ -161,6 +161,38 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "text", "senderId", "timestamp"]
+    },
+    "SupportChat": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SupportChat",
+      "type": "object",
+      "description": "A support chat thread between a user and the platform support team.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "ID of the user who initiated the chat." },
+        "userName": { "type": "string" },
+        "userCompany": { "type": "string" },
+        "subject": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Closed"] },
+        "lastMessage": { "type": "string" },
+        "lastMessageTimestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "status", "subject"]
+    },
+    "SupportMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SupportMessage",
+      "type": "object",
+      "description": "A single message within a support chat thread.",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "text", "senderId", "timestamp"]
     }
   },
   "auth": {
@@ -207,8 +239,12 @@
       {
         "path": "/chats/{chatId}",
         "definition": { "entityName": "Chat", "schema": { "$ref": "#/entities/Chat" }, "description": "Stores chat thread metadata." }
+      },
+      {
+        "path": "/supportChats/{supportChatId}",
+        "definition": { "entityName": "SupportChat", "schema": { "$ref": "#/entities/SupportChat" }, "description": "Stores support chat threads between users and the platform admin." }
       }
     ],
-    "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."
+    "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages and Support Messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."
   }
 }

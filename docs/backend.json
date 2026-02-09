@@ -7,13 +7,14 @@
       "description": "Represents a physical asset such as equipment, structure, or component that needs inspection.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Asset." },
+        "companyId": { "type": "string", "description": "ID of the company that owns this asset." },
         "name": { "type": "string", "description": "The name of the asset." },
         "description": { "type": "string", "description": "A detailed description of the asset." },
         "location": { "type": "string", "description": "The physical location of the asset." },
         "qrCode": { "type": "string", "description": "The QR code associated with the asset for easy identification." },
         "thumbnailUrl": { "type": "string", "description": "URL for the asset's thumbnail image." }
       },
-      "required": ["id", "name"]
+      "required": ["id", "name", "companyId"]
     },
     "Inspection": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -52,6 +53,7 @@
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Job." },
         "clientId": { "type": "string", "description": "Reference to the User (Client) who created the job." },
+        "clientCompanyId": { "type": "string", "description": "ID of the client company that created the job." },
         "providerId": { "type": "string", "description": "Reference to the Company (Provider) awarded the job." },
         "auditorId": { "type": "string", "description": "Reference to the User (Auditor) assigned for review, if applicable." },
         "assetIds": {
@@ -73,7 +75,7 @@
         "technique": { "type": "string", "description": "The NDT technique required for the job." },
         "status": { "type": "string", "description": "Current status of the job (e.g., Posted, Assigned, Completed)." }
       },
-      "required": ["id", "clientId", "location", "technique", "status"]
+      "required": ["id", "clientId", "clientCompanyId", "location", "technique", "status"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -98,7 +100,7 @@
         "name": { "type": "string", "description": "The name of the user." },
         "email": { "type": "string", "format": "email", "description": "The email address of the user." },
         "role": { "type": "string", "enum": ["Client", "Inspector", "Auditor", "Admin"], "description": "The role of the user." },
-        "companyId": { "type": "string", "description": "The ID of the company this user belongs to." }
+        "companyId": { "type": "string", "description": "The ID of the company this user belongs to. This is the source of truth for company affiliation." }
       },
       "required": ["id", "name", "email", "role", "companyId"]
     },
@@ -279,15 +281,15 @@
     "structure": [
       {
         "path": "/users/{userId}",
-        "definition": { "entityName": "User", "schema": { "$ref": "#/entities/User" }, "description": "Stores user profiles." }
+        "definition": { "entityName": "User", "schema": { "$ref": "#/entities/User" }, "description": "Stores user profiles. The companyId field determines a user's affiliation." }
       },
       {
         "path": "/assets/{assetId}",
-        "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Stores all assets." }
+        "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Stores all assets. Each asset is explicitly owned by a company via the companyId field." }
       },
       {
         "path": "/jobs/{jobId}",
-        "definition": { "entityName": "Job", "schema": { "$ref": "#/entities/Job" }, "description": "Stores all jobs from all clients." }
+        "definition": { "entityName": "Job", "schema": { "$ref": "#/entities/Job" }, "description": "Stores all jobs. Each job is explicitly owned by a client company via the clientCompanyId field." }
       },
       {
         "path": "/bids/{bidId}",

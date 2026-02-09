@@ -11,9 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clientAssets, NDTTechniques } from "@/lib/placeholder-data";
-import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
-import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
+import { clientAssets, NDTTechniques, Inspection } from "@/lib/placeholder-data";
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
+import { PlusCircle, ChevronLeft, FileText, X, ChevronsUpDown, Check } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -21,11 +21,13 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { format } from 'date-fns';
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   location: z.string().min(2, 'Location is required.'),
-  technique: z.enum(['UT', 'PAUT', 'TOFD', 'RT', 'CR', 'DR', 'CT', 'MT', 'PT', 'VT', 'RVI', 'ET', 'ACFM', 'RFT', 'MFL', 'AE', 'LT', 'IR', 'APR', 'GWT']),
+  techniques: z.array(z.string()).min(1, "Please select at least one technique."),
   description: z.string().optional(),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
@@ -86,7 +88,7 @@ export default function PostJobPage() {
         defaultValues: {
             title: '',
             location: '',
-            technique: 'UT',
+            techniques: [],
             description: '',
             assets: [],
             clientName: '',
@@ -164,7 +166,46 @@ export default function PostJobPage() {
     };
 
     function onSubmit(values: z.infer<typeof jobSchema>) {
-        console.log('New Job Submitted:', { ...values, isInternal: role === 'inspector' });
+        const inspections: Omit<Inspection, 'id' | 'jobId' | 'report'>[] = [];
+        const inspectionDate = values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+
+        if (role === 'client' && 'assets' in values) {
+            (values.assets || []).forEach(assetId => {
+                const asset = clientAssets.find(a => a.id === assetId);
+                if (asset) {
+                    values.techniques.forEach(technique => {
+                        inspections.push({
+                            assetName: asset.name,
+                            assetId: asset.id,
+                            technique: technique,
+                            inspector: 'Pending',
+                            date: inspectionDate,
+                            status: 'Scheduled',
+                        });
+                    });
+                }
+            });
+        } else if (role === 'inspector' && 'assetDescription' in values) {
+            values.techniques.forEach(technique => {
+                inspections.push({
+                    assetName: (values as any).assetDescription.substring(0, 50),
+                    assetId: 'N/A',
+                    technique: technique,
+                    inspector: 'Pending',
+                    date: inspectionDate,
+                    status: 'Scheduled',
+                });
+            });
+        }
+
+        const newJobData = {
+            ...values,
+            technique: values.techniques.length > 1 ? 'Multi-technique' : values.techniques[0],
+            inspections: inspections,
+            isInternal: role === 'inspector'
+        };
+
+        console.log('New Job Submitted:', newJobData);
         toast({
             title: 'Job Created Successfully',
             description: `${values.title} is now ready to be managed.`,
@@ -250,22 +291,47 @@ export default function PostJobPage() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="technique"
+                                    name="techniques"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Required Technique</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select a technique" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {NDTTechniques.map(tech => (
-                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Required Technique(s)</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        className={cn(
+                                                            "w-full justify-between",
+                                                            !field.value?.length && "text-muted-foreground"
+                                                        )}
+                                                        >
+                                                        {field.value?.length > 0
+                                                            ? `${field.value.length} selected`
+                                                            : "Select techniques"}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                    <ScrollArea className="h-60">
+                                                        <div className="p-2">
+                                                            {NDTTechniques.map((tech) => (
+                                                                <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md cursor-pointer"
+                                                                    onClick={() => {
+                                                                        const selected = field.value || [];
+                                                                        const isSelected = selected.includes(tech.id);
+                                                                        field.onChange(isSelected ? selected.filter(id => id !== tech.id) : [...selected, tech.id]);
+                                                                    }}
+                                                                >
+                                                                    <Checkbox checked={field.value?.includes(tech.id)} />
+                                                                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full cursor-pointer">{tech.name} ({tech.id})</label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </ScrollArea>
+                                                </PopoverContent>
+                                            </Popover>
                                             <FormMessage />
                                         </FormItem>
                                     )}

@@ -76,7 +76,7 @@ export type Inspection = {
     jobId: string;
     assetName: string;
     assetId: string;
-    technique: 'UT' | 'RT' | 'MT' | 'PT' | 'VT' | 'PAUT' | 'ET';
+    technique: string;
     inspector: string;
     date: string;
     status: 'Scheduled' | 'Completed' | 'Requires Review';
@@ -916,6 +916,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

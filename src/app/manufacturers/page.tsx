@@ -84,7 +84,7 @@ export default function ManufacturersPage() {
                  <div className="mt-16 text-center text-sm text-muted-foreground max-w-4xl mx-auto p-4 border rounded-lg bg-card">
                     <p className="font-semibold">Disclaimer</p>
                     <p className="mt-2">
-                        The manufacturers and links listed on this page are provided for informational purposes only. NDT Connect is an independent platform and is not affiliated with, endorsed by, or sponsored by any of the companies listed. All company names, logos, and trademarks are the property of their respective owners.
+                        The manufacturers and links listed on this page are provided for informational purposes only. NDT Exchange is an independent platform and is not affiliated with, endorsed by, or sponsored by any of the companies listed. All company names, logos, and trademarks are the property of their respective owners.
                     </p>
                 </div>
             </div>
@@ -93,7 +93,7 @@ export default function ManufacturersPage() {
         <section className="bg-card py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-headline font-semibold text-primary">
-              Ready to Join NDT Connect?
+              Ready to Join NDT Exchange?
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
               Experience the future of asset integrity management. Start your 14-day free trial today.

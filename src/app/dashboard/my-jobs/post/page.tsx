@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,20 +9,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { clientAssets, NDTTechniques, Inspection } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format } from 'date-fns';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -108,22 +105,6 @@ export default function PostJobPage() {
             return nameMatch && locationMatch && typeMatch && statusMatch;
         });
     }, [assetNameFilter, assetLocationFilter, assetTypeFilter, assetStatusFilter]);
-
-    const handleSelectAllVisible = () => {
-        const visibleAssetIds = filteredAssets.map(a => a.id);
-        const currentSelected = form.getValues('assets') || [];
-        const allVisibleSelected = visibleAssetIds.length > 0 && visibleAssetIds.every(id => currentSelected.includes(id));
-        
-        if (allVisibleSelected) {
-            // Deselect all visible
-            const newSelection = currentSelected.filter(id => !visibleAssetIds.includes(id));
-            form.setValue('assets', newSelection, { shouldValidate: true });
-        } else {
-            // Select all visible
-            const newSelection = [...new Set([...currentSelected, ...visibleAssetIds])];
-            form.setValue('assets', newSelection, { shouldValidate: true });
-        }
-    };
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -347,17 +328,17 @@ export default function PostJobPage() {
                                 />
                             </div>
                             
-                            {isClient && (
+                           {isClient && (
                               <FormField
                                   control={form.control}
                                   name="assets"
-                                  render={() => (
+                                  render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Select Asset(s) for Inspection</FormLabel>
                                     <FormDescription>
-                                        Use the filters to narrow down the list of assets, especially for planning large maintenance events.
+                                        Use the filters below to narrow down the list of assets available in the dropdown.
                                     </FormDescription>
-                                     <Card className="p-4 bg-muted/50 space-y-4">
+                                    <Card className="p-4 bg-muted/50 space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                             <Input 
                                                 placeholder="Filter by asset name..."
@@ -383,62 +364,16 @@ export default function PostJobPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="flex justify-end">
-                                            <Button type="button" variant="secondary" size="sm" onClick={handleSelectAllVisible}>Select/Deselect All Visible</Button>
-                                        </div>
                                     </Card>
-                                      <ScrollArea className="h-60 w-full rounded-md border p-4">
-                                          {filteredAssets.map((asset, index) => (
-                                          <FormField
-                                              key={asset.id}
-                                              control={form.control}
-                                              name="assets"
-                                              render={({ field }) => {
-                                              const image = PlaceHolderImages.find(p => p.id === `asset${index + 1}`);
-                                              return (
-                                                  <FormItem
-                                                  key={asset.id}
-                                                  className="flex flex-row items-center space-x-3 space-y-0 mb-3"
-                                                  >
-                                                  <FormControl>
-                                                      <Checkbox
-                                                      checked={field.value?.includes(asset.id)}
-                                                      onCheckedChange={(checked) => {
-                                                          return checked
-                                                          ? field.onChange([...(field.value || []), asset.id])
-                                                          : field.onChange(
-                                                              field.value?.filter(
-                                                                  (value) => value !== asset.id
-                                                              )
-                                                              )
-                                                      }}
-                                                      />
-                                                  </FormControl>
-                                                  <FormLabel className="font-normal flex items-center gap-3 w-full cursor-pointer">
-                                                      {image && (
-                                                          <div className="relative w-16 h-12 rounded-md overflow-hidden shrink-0">
-                                                              <Image
-                                                                  src={image.imageUrl}
-                                                                  alt={image.description}
-                                                                  fill
-                                                                  sizes="64px"
-                                                                  className="object-cover"
-                                                                  data-ai-hint={image.imageHint}
-                                                              />
-                                                          </div>
-                                                      )}
-                                                      <div>
-                                                          <p className="font-semibold leading-tight">{asset.name}</p>
-                                                          <p className="text-xs text-muted-foreground">{asset.location}</p>
-                                                      </div>
-                                                  </FormLabel>
-                                                  </FormItem>
-                                              )
-                                              }}
-                                          />
-                                          ))}
-                                      </ScrollArea>
-                                      <FormMessage />
+                                     <FormControl>
+                                        <MultiSelect
+                                            options={filteredAssets.map(asset => ({ value: asset.id, label: `${asset.name} (${asset.location})` }))}
+                                            selected={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Select assets from the filtered list..."
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
                                   </FormItem>
                                   )}
                               />
@@ -489,7 +424,7 @@ export default function PostJobPage() {
                                             {documentFiles.length > 0 && (
                                                 <div className="mt-2 space-y-2">
                                                      <p className="text-xs font-medium text-muted-foreground">{documentFiles.length} file(s) attached:</p>
-                                                     <ScrollArea className="max-h-24 rounded-md border p-2">
+                                                     <div className="max-h-24 rounded-md border p-2 space-y-1">
                                                         {documentFiles.map((file, index) => (
                                                             <div key={`${file.name}-${index}`} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
                                                                 <div className="flex items-center gap-2 truncate">
@@ -507,7 +442,7 @@ export default function PostJobPage() {
                                                                 </Button>
                                                             </div>
                                                         ))}
-                                                    </ScrollArea>
+                                                    </div>
                                                 </div>
                                             )}
                                             <FormDescription>
@@ -517,50 +452,6 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
-                                {isClient && (
-                                    <FormField
-                                        control={form.control}
-                                        name="workflow"
-                                        render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>Approval Workflow</FormLabel>
-                                            <FormControl>
-                                            <RadioGroup
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                                className="flex flex-col space-y-1"
-                                            >
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <RadioGroupItem value="standard" />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    Standard Workflow (Client Approval)
-                                                </FormLabel>
-                                                </FormItem>
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <RadioGroupItem value="level3" />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    Level III Approval Required
-                                                </FormLabel>
-                                                </FormItem>
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <RadioGroupItem value="auto" />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    Auto-select based on rules
-                                                </FormLabel>
-                                                </FormItem>
-                                            </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                )}
                             </div>
 
                             <div className="flex justify-end gap-2 pt-4">

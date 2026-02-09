@@ -3,7 +3,7 @@
 'use client';
 
 import * as React from 'react';
-import { userAuditLog, jobAuditLog, billingAuditLog, UserAuditLog, JobAuditLog, BillingAuditLog } from '@/lib/placeholder-data';
+import { UserAuditLog, JobAuditLog, BillingAuditLog } from '@/lib/placeholder-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,18 +14,19 @@ import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Client-side only component to prevent hydration mismatch on formatted dates
-const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
+
+const ClientFormattedDate = ({ timestamp }: { timestamp: string | Timestamp }) => {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        // This code runs only on the client, after the component has mounted.
-        setFormattedDate(format(new Date(timestamp), GLOBAL_DATETIME_FORMAT));
+        const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp.toDate();
+        setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
     }, [timestamp]);
 
-    // On the server and during the initial client render, formattedDate is null.
-    // We return a placeholder to prevent the mismatch.
     return <span className="text-xs text-muted-foreground/80 shrink-0">{formattedDate || '...'}</span>;
 };
 
@@ -82,6 +83,26 @@ export default function AuditLogPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
+
+    const userAuditLogQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'));
+    }, [firestore]);
+    const { data: userAuditLog, isLoading: isLoadingUserLog } = useCollection<UserAuditLog>(userAuditLogQuery);
+
+    const jobAuditLogQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'jobAuditLogs'), orderBy('timestamp', 'desc'));
+    }, [firestore]);
+    const { data: jobAuditLog, isLoading: isLoadingJobLog } = useCollection<JobAuditLog>(jobAuditLogQuery);
+
+    const billingAuditLogQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'billingAuditLogs'), orderBy('timestamp', 'desc'));
+    }, [firestore]);
+    const { data: billingAuditLog, isLoading: isLoadingBillingLog } = useCollection<BillingAuditLog>(billingAuditLogQuery);
+
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -92,6 +113,20 @@ export default function AuditLogPage() {
     if (role !== 'admin') {
         return null;
     }
+
+    const LogSkeleton = () => (
+        <div className="space-y-8">
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-[250px]" />
+                        <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
     
     const UserLog = () => (
         <Card>
@@ -99,7 +134,7 @@ export default function AuditLogPage() {
                 <ScrollArea className="max-h-[60vh]">
                      <div className="relative pl-6">
                         <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
-                        {userAuditLog.map(log => (
+                        {isLoadingUserLog ? <LogSkeleton /> : userAuditLog?.map(log => (
                             <div key={log.id} className="relative mb-8 pl-8">
                                 <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
                                     <div className="text-primary">{getUserEventIcon(log.action)}</div>
@@ -132,7 +167,7 @@ export default function AuditLogPage() {
                 <ScrollArea className="max-h-[60vh]">
                      <div className="relative pl-6">
                         <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
-                        {jobAuditLog.map(log => (
+                        {isLoadingJobLog ? <LogSkeleton /> : jobAuditLog?.map(log => (
                             <div key={log.id} className="relative mb-8 pl-8">
                                 <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
                                     <div className="text-primary">{getJobEventIcon(log.action)}</div>
@@ -166,7 +201,7 @@ export default function AuditLogPage() {
                 <ScrollArea className="max-h-[60vh]">
                      <div className="relative pl-6">
                         <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
-                        {billingAuditLog.map(log => (
+                        {isLoadingBillingLog ? <LogSkeleton /> : billingAuditLog?.map(log => (
                             <div key={log.id} className="relative mb-8 pl-8">
                                 <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
                                     <div className="text-primary">{getBillingEventIcon(log.action)}</div>

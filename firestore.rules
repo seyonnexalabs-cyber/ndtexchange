@@ -128,5 +128,23 @@ service cloud.firestore {
          allow read, create: if isOwner(get(/databases/$(database)/documents/supportChats/$(chatId)).data.userId) || isPlatformAdmin();
        }
      }
+     
+    /***********************************************************
+     * Audit Log Rules
+     ***********************************************************/
+    match /userAuditLogs/{logId} {
+      allow read: if isPlatformAdmin();
+      allow write: if false; // Logs should be written by a trusted server process
+    }
+
+    match /jobAuditLogs/{logId} {
+      allow read: if isPlatformAdmin();
+      allow write: if false;
+    }
+
+    match /billingAuditLogs/{logId} {
+      allow read: if isPlatformAdmin();
+      allow write: if false;
+    }
   }
 }

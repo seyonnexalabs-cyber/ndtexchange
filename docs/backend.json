@@ -198,6 +198,51 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "text", "senderId", "timestamp"]
+    },
+    "UserAuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Audit Log",
+      "type": "object",
+      "description": "Logs user management actions like invitations, status changes, and role promotions.",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time", "description": "The time the action occurred." },
+        "actorName": { "type": "string", "description": "Name of the user who performed the action." },
+        "actorCompany": { "type": "string", "description": "Company of the user who performed the action." },
+        "action": { "type": "string", "enum": ["User Invited", "User Disabled", "User Enabled", "Admin Promotion", "Admin Demotion"], "description": "The type of action performed." },
+        "targetUserName": { "type": "string", "description": "Name of the user who was the target of the action." },
+        "targetCompany": { "type": "string", "description": "Company of the target user." },
+        "details": { "type": "string", "description": "Optional additional details about the action." }
+      },
+      "required": ["timestamp", "actorName", "actorCompany", "action", "targetUserName", "targetCompany"]
+    },
+    "JobAuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Job Audit Log",
+      "type": "object",
+      "description": "Logs significant events in a job's lifecycle, such as creation, bidding, and status changes.",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time", "description": "The time the event occurred." },
+        "jobId": { "type": "string", "description": "ID of the job this log pertains to." },
+        "jobTitle": { "type": "string", "description": "Title of the job." },
+        "actorName": { "type": "string", "description": "Name of the user who performed the action." },
+        "actorRole": { "type": "string", "enum": ["Client", "Provider", "Admin"], "description": "Role of the actor." },
+        "action": { "type": "string", "enum": ["Job Created", "Bid Placed", "Job Awarded", "Status Changed", "Resource Assigned", "Report Submitted"], "description": "The type of action performed." },
+        "details": { "type": "string", "description": "Details about the action." }
+      },
+      "required": ["timestamp", "jobId", "jobTitle", "actorName", "actorRole", "action", "details"]
+    },
+    "BillingAuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Billing Audit Log",
+      "type": "object",
+      "description": "Logs billing-related events like subscription changes and payment statuses.",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time", "description": "The time the event occurred." },
+        "companyName": { "type": "string", "description": "The company associated with the billing event." },
+        "action": { "type": "string", "enum": ["Subscription Started", "Subscription Canceled", "Payment Succeeded", "Payment Failed", "Plan Changed"], "description": "The type of billing action." },
+        "details": { "type": "string", "description": "Details about the billing event." }
+      },
+      "required": ["timestamp", "companyName", "action", "details"]
     }
   },
   "auth": {
@@ -248,6 +293,18 @@
       {
         "path": "/supportChats/{supportChatId}",
         "definition": { "entityName": "SupportChat", "schema": { "$ref": "#/entities/SupportChat" }, "description": "Stores support chat threads between users and the platform admin." }
+      },
+      {
+        "path": "/userAuditLogs/{logId}",
+        "definition": { "entityName": "UserAuditLog", "schema": { "$ref": "#/entities/UserAuditLog" }, "description": "Stores user management audit logs." }
+      },
+      {
+        "path": "/jobAuditLogs/{logId}",
+        "definition": { "entityName": "JobAuditLog", "schema": { "$ref": "#/entities/JobAuditLog" }, "description": "Stores job lifecycle audit logs." }
+      },
+      {
+        "path": "/billingAuditLogs/{logId}",
+        "definition": { "entityName": "BillingAuditLog", "schema": { "$ref": "#/entities/BillingAuditLog" }, "description": "Stores billing-related audit logs." }
       }
     ],
     "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages and Support Messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."

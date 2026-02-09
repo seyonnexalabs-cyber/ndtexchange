@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { serviceProviders } from "@/lib/service-providers-data";
+import { serviceProviders as initialServiceProviders, NDTServiceProvider } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -222,7 +221,7 @@ const StarRating = ({ rating }: { rating: number }) => {
 };
 
 
-const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
+const DesktopView = ({ constructUrl, providers }: { constructUrl: (base: string) => string; providers: NDTServiceProvider[] }) => (
     <Card>
         <CardHeader>
             <CardTitle>Service Providers</CardTitle>
@@ -240,7 +239,7 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {serviceProviders.map(provider => (
+                    {providers.map(provider => (
                         <TableRow key={provider.id}>
                             <TableCell className="font-medium flex items-center gap-3">
                                 <Avatar className="h-10 w-10">
@@ -269,9 +268,9 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
     </Card>
 );
 
-const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
+const MobileView = ({ constructUrl, providers }: { constructUrl: (base: string) => string; providers: NDTServiceProvider[] }) => (
     <div className="space-y-4">
-        {serviceProviders.map(provider => (
+        {providers.map(provider => (
             <Card key={provider.id}>
                 <CardHeader>
                     <div className="flex items-center gap-3">
@@ -313,6 +312,8 @@ export default function ProvidersPage() {
     const role = searchParams.get('role');
     const { toast } = useToast();
     const [isAddProviderOpen, setAddProviderOpen] = useState(false);
+    const [providers, setProviders] = useState(initialServiceProviders);
+
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -323,10 +324,15 @@ export default function ProvidersPage() {
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
-    }
+    };
 
     const handleFormSubmit = (values: z.infer<typeof providerSchema>) => {
-        console.log("New Provider Data:", values);
+        const newProvider: NDTServiceProvider = {
+            id: `provider-${Date.now()}`,
+            rating: 0, // New providers start with 0 rating
+            ...values,
+        };
+        setProviders(prev => [newProvider, ...prev]);
         toast({
             title: "Provider Company Created",
             description: `${values.name} has been added. You can now invite users to this company.`,
@@ -350,7 +356,7 @@ export default function ProvidersPage() {
                 <Button className="w-full sm:w-auto" onClick={() => setAddProviderOpen(true)}>Add New Provider</Button>
             </div>
             
-            {isMobile ? <MobileView constructUrl={constructUrl}/> : <DesktopView constructUrl={constructUrl}/>}
+            {isMobile ? <MobileView constructUrl={constructUrl} providers={providers}/> : <DesktopView constructUrl={constructUrl} providers={providers} />}
 
             <Dialog open={isAddProviderOpen} onOpenChange={setAddProviderOpen}>
                 <DialogContent>

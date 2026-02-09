@@ -285,30 +285,29 @@ const reportSchema = z.object({
   samplingRate: z.string().optional(),
 });
 
-const ReportHeader = ({ job, client, provider, plan, inspection }: { job: any, client?: any, provider?: any, plan?: any, inspection: Inspection }) => {
-    let logoUrl = 'https://placehold.co/150x50/111827/FFFFFF/png?text=NDT+Exchange';
-    let brandColor = '#4A6572';
-
-    if (plan?.customBranding && provider?.logoUrl) {
-        logoUrl = provider.logoUrl;
-        brandColor = provider.brandColor || brandColor;
-    } else if (client?.logoUrl) {
-        logoUrl = client.logoUrl;
-        brandColor = client.brandColor || client.brandColor;
-    }
+const ReportHeader = ({ job, client, provider, inspection }: { job: any, client?: any, provider?: any, inspection: Inspection }) => {
+    const clientLogo = client?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
+    const providerLogo = provider?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Provider+Logo';
+    const brandColor = provider?.brandColor || client?.brandColor || '#3B82F6'; // Default to primary blue
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
-                {logoUrl && <Image src={logoUrl} alt="Company Logo" width={150} height={50} className="object-contain" />}
-                <div className="text-right">
+                <div className="w-1/4">
+                    <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" />
+                </div>
+                <div className="w-1/2 text-center">
                     <h2 className="text-2xl font-bold" style={{ color: brandColor }}>INSPECTION REPORT</h2>
                     <p className="text-sm font-semibold">Report #: {job.id}-REP-{inspection.id}</p>
+                </div>
+                <div className="w-1/4 flex justify-end">
+                     <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" />
                 </div>
             </div>
         </div>
     );
 };
+
 
 const ReportFooter = () => (
     <div className="mt-8 pt-4 border-t text-xs text-muted-foreground text-center">
@@ -446,7 +445,7 @@ const ReportGeneratorPage = () => {
                  <div className="watermark-container">
                     <p className="watermark-text">NDT Exchange</p>
                 </div>
-                <ReportHeader job={job} client={client} provider={provider} plan={plan} inspection={inspection} />
+                <ReportHeader job={job} client={client} provider={provider} inspection={inspection} />
                 
                 <div className="grid grid-cols-2 gap-x-8 gap-y-4 my-6 text-sm">
                     <div><span className="font-semibold">Client:</span> {job.client}</div>

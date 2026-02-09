@@ -442,7 +442,7 @@ const SubscriptionSettings = () => {
     );
 };
 
-const BrandingSettings = ({ companyName }: { companyName: string }) => {
+const BrandingSettings = ({ companyName, role }: { companyName: string, role: string }) => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [brandColor, setBrandColor] = useState('#3B82F6');
   const [isDragging, setIsDragging] = useState(false);
@@ -484,11 +484,15 @@ const BrandingSettings = ({ companyName }: { companyName: string }) => {
       toast({ title: 'Branding Saved', description: 'Your company branding has been updated.' });
   }
 
+  const isClient = role === 'client';
+  const clientLogo = isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
+  const providerLogo = !isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Provider+Logo';
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Company Branding</CardTitle>
-        <CardDescription>Manage your logo and brand color. These assets will be made available to service providers for automatically branding reports.</CardDescription>
+        <CardDescription>Manage your logo and brand color. These assets will appear on reports generated for your jobs.</CardDescription>
       </CardHeader>
       <CardContent className="grid md:grid-cols-2 gap-12 items-start">
         <div className="space-y-6">
@@ -552,15 +556,16 @@ const BrandingSettings = ({ companyName }: { companyName: string }) => {
         <div>
             <Label>Report Preview</Label>
             <div className="mt-2 rounded-lg border p-4 shadow-md">
-                <div className="flex justify-between items-center pb-4 border-b" style={{ borderBottomColor: brandColor }}>
-                    {logoPreview ? (
-                        <Image src={logoPreview} alt="Logo" width={128} height={48} className="object-contain h-12" />
-                    ) : (
-                        <span className="font-bold text-lg">{companyName}</span>
-                    )}
-                    <div className="text-right">
-                        <h3 className="font-bold text-xl" style={{ color: brandColor }}>INSPECTION REPORT</h3>
+                <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
+                    <div className="w-1/4">
+                       {clientLogo && <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" />}
+                    </div>
+                    <div className="w-1/2 text-center">
+                        <h3 className="font-bold text-lg" style={{ color: brandColor }}>INSPECTION REPORT</h3>
                         <p className="text-xs text-muted-foreground">Report #2024-123</p>
+                    </div>
+                    <div className="w-1/4 flex justify-end">
+                         {providerLogo && <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" />}
                     </div>
                 </div>
                 <div className="pt-4 text-sm text-muted-foreground space-y-2">
@@ -699,7 +704,7 @@ export default function SettingsPage() {
             />
         </TabsContent>
         <TabsContent value="branding">
-            <BrandingSettings companyName={currentUser.company} />
+            <BrandingSettings companyName={currentUser.company} role={role} />
         </TabsContent>
         <TabsContent value="team">
               {isSubscriptionActive ? (
@@ -816,4 +821,5 @@ export default function SettingsPage() {
     
 
     
+
 

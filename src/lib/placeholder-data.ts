@@ -221,24 +221,24 @@ export const jobChats: JobChat[] = [
     {
         id: 'CHAT-001',
         jobId: 'JOB-002',
-        participants: ['user-client-01', 'user-TECH-01', 'user-TECH-05'],
+        participants: ['user-client-01', 'user-TECH-05'],
         lastMessage: "Thanks for the report. What was the outcome on that secondary hook?",
         lastMessageTimestamp: '2024-06-22T10:00:00Z',
         messages: [
             { id: 'MSG-001', senderId: 'user-client-01', text: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.', timestamp: '2024-06-20T14:15:00Z' },
-            { id: 'MSG-002', senderId: 'user-TECH-01', text: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.', timestamp: '2024-06-20T15:00:00Z' },
+            { id: 'MSG-002', senderId: 'user-TECH-05', text: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.', timestamp: '2024-06-20T15:00:00Z' },
             { id: 'MSG-003', senderId: 'user-client-01', text: "Thanks for the report. What was the outcome on that secondary hook?", timestamp: '2024-06-22T10:00:00Z' },
         ]
     },
     {
         id: 'CHAT-002',
         jobId: 'JOB-004',
-        participants: ['user-TECH-02', 'user-TECH-01', 'user-TECH-03'],
+        participants: ['user-TECH-05'],
         lastMessage: "Confirmed. I have the procedure documents ready.",
         lastMessageTimestamp: '2024-07-01T11:05:00Z',
         messages: [
-            { id: 'MSG-004', senderId: 'user-TECH-02', text: "Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.", timestamp: '2024-07-01T11:00:00Z'},
-            { id: 'MSG-005', senderId: 'user-TECH-01', text: "Confirmed. I have the procedure documents ready.", timestamp: '2024-07-01T11:05:00Z'},
+            { id: 'MSG-004', senderId: 'user-TECH-05', text: "Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.", timestamp: '2024-07-01T11:00:00Z'},
+            { id: 'MSG-005', senderId: 'user-TECH-05', text: "Confirmed. I have the procedure documents ready.", timestamp: '2024-07-01T11:05:00Z'},
         ]
     }
 ];
@@ -559,14 +559,14 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         ]
     },
     { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-05'], workflow: 'standard' },
-    { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
+    { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', technique: 'MFL', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { 
         id: 'JOB-017', 
-        title: 'Shutdown Support - PT/MT', 
+        title: 'Shutdown Support - PT', 
         client: 'Global Energy Corp.', 
         providerId: 'provider-03', 
         location: 'Houston, TX', 
-        technique: 'Multi-technique', 
+        technique: 'PT', 
         status: 'Scheduled', 
         postedDate: '2024-07-25', 
         scheduledStartDate: nextWeek.toISOString().split('T')[0], 
@@ -647,6 +647,20 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { user: 'Maria Garcia', timestamp: '2024-07-26T14:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-024.pdf', statusChange: 'Report Submitted' }
         ]
     },
+    { 
+        id: 'JOB-025', 
+        title: 'Shutdown Support - MT', 
+        client: 'Global Energy Corp.', 
+        providerId: 'provider-03', 
+        location: 'Houston, TX', 
+        technique: 'MT', 
+        status: 'Scheduled', 
+        postedDate: '2024-07-25', 
+        scheduledStartDate: nextWeek.toISOString().split('T')[0], 
+        scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
+        assetIds: [], 
+        workflow: 'standard' 
+    },
 ];
 
 const bidsData: Bid[] = [
@@ -663,7 +677,7 @@ const bidsData: Bid[] = [
     { id: 'BID-013', jobId: 'JOB-013', providerId: 'provider-09', amount: 18000, status: 'Awarded', submittedDate: '2024-07-22' },
     { id: 'BID-015', jobId: 'JOB-015', providerId: 'provider-07', amount: 3500, status: 'Awarded', submittedDate: '2024-07-03' },
     { id: 'BID-016', jobId: 'JOB-016', providerId: 'provider-02', amount: 14000, status: 'Submitted', submittedDate: '2024-07-24' },
-    { id: 'BID-017', jobId: 'JOB-017', providerId: 'provider-03', amount: 19500, status: 'Awarded', submittedDate: '2024-07-26' },
+    { id: 'BID-017', jobId: 'JOB-017', providerId: 'provider-03', amount: 9500, status: 'Awarded', submittedDate: '2024-07-26' },
     { id: 'BID-018', jobId: 'JOB-018', providerId: 'provider-11', amount: 25000, status: 'Submitted', submittedDate: '2024-07-29' },
     { id: 'BID-019', jobId: 'JOB-019', providerId: 'provider-11', amount: 18000, status: 'Submitted', submittedDate: '2024-07-30' },
     { id: 'BID-020', jobId: 'JOB-020', providerId: 'provider-12', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20' },
@@ -671,7 +685,8 @@ const bidsData: Bid[] = [
     { id: 'BID-022', jobId: 'JOB-022', providerId: 'provider-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12' },
     { id: 'BID-023', jobId: 'JOB-023', providerId: 'provider-03', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29' },
     { id: 'BID-024', jobId: 'JOB-024', providerId: 'provider-04', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21' },
-    { id: 'BID-014', jobId: 'JOB-014', providerId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18' }
+    { id: 'BID-014', jobId: 'JOB-014', providerId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18' },
+    { id: 'BID-025', jobId: 'JOB-025', providerId: 'provider-03', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26' },
 ];
 
 const inspectionsData: Inspection[] = [
@@ -707,7 +722,7 @@ const inspectionsData: Inspection[] = [
     { id: 'INSP-008', jobId: 'JOB-014', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-26', status: 'Scheduled' },
     { id: 'INSP-009', jobId: 'JOB-015', assetName: 'Manufacturing Gearbox', assetId: 'N/A', technique: 'VT', inspector: 'Maria Garcia', date: '2024-07-10', status: 'Completed' },
     { id: 'INSP-010', jobId: 'JOB-017', assetName: 'Compressor Skid Piping', assetId: 'N/A', technique: 'PT', inspector: 'Pending', date: nextWeek.toISOString().split('T')[0], status: 'Scheduled' },
-    { id: 'INSP-010B', jobId: 'JOB-017', assetName: 'Support Structure Welds', assetId: 'N/A', technique: 'MT', inspector: 'Pending', date: new Date(nextWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'Scheduled' },
+    { id: 'INSP-010B', jobId: 'JOB-025', assetName: 'Support Structure Welds', assetId: 'N/A', technique: 'MT', inspector: 'Pending', date: new Date(nextWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'N/A', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-02', status: 'Completed' },
     { id: 'INSP-012', jobId: 'JOB-021', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-22', status: 'Completed' },
     { id: 'INSP-013', jobId: 'JOB-022', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PAUT', inspector: 'Maria Garcia', date: '2024-07-20', status: 'Requires Review' },
@@ -773,7 +788,7 @@ export const reviews: Review[] = [
 export const allUsers: PlatformUser[] = [
     { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
     { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
-    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', password: 'password123' },
+    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
     { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
 ];
 
@@ -875,9 +890,10 @@ export const jobAuditLog: JobAuditLog[] = [
     { id: 'JLOG-003', timestamp: '2024-06-19T15:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to TEAM, Inc. for $4,800.' },
     { id: 'JLOG-004', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Report Submitted', details: 'Inspection report uploaded.' },
     { id: 'JLOG-005', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'System', actorRole: 'Admin', action: 'Status Changed', details: 'Status changed to Report Submitted.' },
-    { id: 'JLOG-006', timestamp: '2024-07-26T10:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT/MT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $19,500.' },
-    { id: 'JLOG-007', timestamp: '2024-07-28T09:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT/MT', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Resource Assigned', details: 'Assigned Technicians: Maria Garcia, James Wilson' },
+    { id: 'JLOG-006', timestamp: '2024-07-26T10:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $9,500.' },
+    { id: 'JLOG-007', timestamp: '2024-07-28T09:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Resource Assigned', details: 'Assigned Technicians: Maria Garcia, James Wilson' },
     { id: 'JLOG-008', timestamp: '2024-06-20T11:00:00Z', jobId: 'JOB-020', jobTitle: 'Marine Riser Inspection', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to DNV (Det Norske Veritas) for $32,000.' },
+    { id: 'JLOG-009', timestamp: '2024-07-26T10:01:00Z', jobId: 'JOB-025', jobTitle: 'Shutdown Support - MT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $10,000.' },
 ];
 
 export const billingAuditLog: BillingAuditLog[] = [
@@ -896,6 +912,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

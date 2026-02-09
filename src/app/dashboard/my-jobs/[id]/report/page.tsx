@@ -95,12 +95,16 @@ const ReportHeader = ({ job, client, provider, plan, inspection }: { job: any, c
                     <p className="text-sm font-semibold">Report #: {job.id}-REP-{inspection.id}</p>
                 </div>
             </div>
-            <div className="text-xs text-muted-foreground text-center p-2 border border-dashed rounded-md">
-                <span className="font-bold">Disclaimer:</span> This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.
-            </div>
         </div>
     );
 };
+
+const ReportFooter = () => (
+    <div className="mt-8 pt-4 border-t text-xs text-muted-foreground text-center">
+        <p className="font-bold">Disclaimer</p>
+        <p>This report was generated via the NDT Exchange platform. NDT Exchange serves as a facilitator for job management and is not a party to the service agreement between the client and the provider. NDT Exchange makes no representations or warranties regarding the accuracy, completeness, or reliability of the inspection results herein. All findings, conclusions, and liabilities are the sole responsibility of the service provider and the client.</p>
+    </div>
+);
 
 export default function ReportPage() {
     const params = useParams();
@@ -273,6 +277,7 @@ export default function ReportPage() {
                     </form>
                 </fieldset>
                 </Form>
+                <ReportFooter />
             </Card>
 
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>

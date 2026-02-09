@@ -7,7 +7,7 @@
       "description": "Represents a physical asset such as equipment, structure, or component that needs inspection.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Asset." },
-        "companyId": { "type": "string", "description": "ID of the company that owns this asset." },
+        "companyId": { "type": "string", "description": "ID of the company that owns this asset. This is the source of truth for asset ownership." },
         "name": { "type": "string", "description": "The name of the asset." },
         "description": { "type": "string", "description": "A detailed description of the asset." },
         "location": { "type": "string", "description": "The physical location of the asset." },
@@ -41,7 +41,7 @@
         "id": { "type": "string", "description": "Unique identifier for the Report." },
         "inspectionId": { "type": "string", "description": "Reference to the Inspection this report is for." },
         "reportData": { "type": "string", "description": "The actual report data, likely stored as a JSON string." },
-        "auditorId": { "type": "string", "description": "Reference to the User (Auditor) who approved the report." }
+        "auditorId": { "type": "string", "description": "Reference to the User (Auditor) who approved the report. This creates a specific record of who performed the approval." }
       },
       "required": ["id", "inspectionId", "reportData"]
     },
@@ -53,9 +53,9 @@
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Job." },
         "clientId": { "type": "string", "description": "Reference to the User (Client) who created the job." },
-        "clientCompanyId": { "type": "string", "description": "ID of the client company that created the job." },
+        "clientCompanyId": { "type": "string", "description": "ID of the client company that created the job. This is the source of truth for job ownership." },
         "providerId": { "type": "string", "description": "Reference to the Company (Provider) awarded the job." },
-        "auditorId": { "type": "string", "description": "Reference to the User (Auditor) assigned for review, if applicable." },
+        "auditorId": { "type": "string", "description": "Reference to the User (Auditor) assigned for review. This tracks the individual, while their company affiliation is in their user profile." },
         "assetIds": {
           "type": "array",
           "description": "An array of Asset IDs this job pertains to. This is mandatory for client-created jobs.",
@@ -100,7 +100,7 @@
         "name": { "type": "string", "description": "The name of the user." },
         "email": { "type": "string", "format": "email", "description": "The email address of the user." },
         "role": { "type": "string", "enum": ["Client", "Inspector", "Auditor", "Admin"], "description": "The role of the user." },
-        "companyId": { "type": "string", "description": "The ID of the company this user belongs to. This is the source of truth for company affiliation." }
+        "companyId": { "type": "string", "description": "The ID of the company this user belongs to. This is the source of truth for company affiliation. Other records like 'Asset' or 'Job' should store their owning company's ID directly to avoid data being orphaned if a user changes companies." }
       },
       "required": ["id", "name", "email", "role", "companyId"]
     },
@@ -113,7 +113,7 @@
         "id": { "type": "string", "description": "Unique identifier for the Equipment." },
         "name": { "type": "string", "description": "The name of the equipment." },
         "type": { "type": "string", "description": "The category of equipment (e.g., Instrument, Probe)." },
-        "providerId": { "type": "string", "description": "ID of the provider company that owns this equipment." },
+        "providerId": { "type": "string", "description": "ID of the provider company that owns this equipment. This is the source of truth for equipment ownership." },
         "status": { "type": "string", "description": "Current status (e.g., Available, In Use, Calibration Due)." },
         "nextCalibration": { "type": "string", "format": "date", "description": "Date of next required calibration." },
         "thumbnailUrl": { "type": "string", "description": "URL for the equipment's thumbnail image." }
@@ -301,11 +301,11 @@
       },
       {
         "path": "/reports/{reportId}",
-        "definition": { "entityName": "Report", "schema": { "$ref": "#/entities/Report" }, "description": "Stores all reports for all inspections." }
+        "definition": { "entityName": "Report", "schema": { "$ref": "#/entities/Report" }, "description": "Stores all reports for all inspections. The auditorId links to a specific user for historical approval tracking." }
       },
       {
         "path": "/equipment/{equipmentId}",
-        "definition": { "entityName": "Equipment", "schema": { "$ref": "#/entities/Equipment" }, "description": "Stores all equipment for all providers." }
+        "definition": { "entityName": "Equipment", "schema": { "$ref": "#/entities/Equipment" }, "description": "Stores all equipment. Each piece of equipment is explicitly owned by a provider company via the providerId field." }
       },
        {
         "path": "/companies/{companyId}",

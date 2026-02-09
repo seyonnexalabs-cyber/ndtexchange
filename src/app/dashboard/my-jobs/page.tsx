@@ -1,7 +1,8 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { allUsers, inspectorAssets, serviceProviders, Job } from "@/lib/placeholder-data";
+import { allUsers, inspectorAssets, Job } from "@/lib/placeholder-data";
+import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building } from "lucide-react";
@@ -438,5 +439,7 @@ export default function MyJobsPage() {
         </div>
     );
 }
+
+    
 
     

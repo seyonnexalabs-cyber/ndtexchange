@@ -33,7 +33,6 @@ import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -879,7 +878,7 @@ export default function JobDetailPage() {
                                                     ) : (
                                                         isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
                                                             <Button asChild size="sm">
-                                                                <Link href={constructUrl(`/dashboard/my-jobs/${jobDetails.id}/report?inspectionId=${inspection.id}`)}>
+                                                                <Link href={constructUrl(`/dashboard/reports/new?jobId=${jobDetails.id}&inspectionId=${inspection.id}`)}>
                                                                     <FileUp className="mr-2 h-4 w-4" />
                                                                     Generate Report
                                                                 </Link>

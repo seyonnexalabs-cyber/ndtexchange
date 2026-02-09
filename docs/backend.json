@@ -54,6 +54,11 @@
         "id": { "type": "string", "description": "Unique identifier for the Job." },
         "clientId": { "type": "string", "description": "Reference to the User (Client) who created the job." },
         "providerId": { "type": "string", "description": "Reference to the User (Provider) awarded the job." },
+        "assetIds": {
+          "type": "array",
+          "description": "An array of Asset IDs this job pertains to. This is mandatory for client-created jobs.",
+          "items": { "type": "string" }
+        },
         "location": { "type": "string", "description": "The location where the job needs to be performed." },
         "technique": { "type": "string", "description": "The NDT technique required for the job." },
         "status": { "type": "string", "description": "Current status of the job (e.g., Posted, Assigned, Completed)." }

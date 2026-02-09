@@ -4,10 +4,10 @@ export type Plan = {
     name: string;
     audience: 'Client' | 'Provider' | 'Auditor';
     price: {
-        USD: string;
-        EUR: string;
-        INR: string;
+        monthly: { USD: string; EUR: string; INR: string; };
+        yearly: { USD: string; EUR: string; INR: string; };
     };
+    priceDescription?: string;
     description: string;
     userLimit: number;
     dataLimitGB: number;
@@ -31,7 +31,10 @@ export const subscriptionPlans: Plan[] = [
         id: 'client-free',
         name: 'Client Access',
         audience: 'Client',
-        price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+        price: {
+            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+        },
         description: "For plants, EPCs, and pilot teams.",
         userLimit: 5,
         dataLimitGB: 2,
@@ -56,7 +59,11 @@ export const subscriptionPlans: Plan[] = [
         id: 'client-plus',
         name: 'Client Plus',
         audience: 'Client',
-        price: { USD: '$99 / month', EUR: '€89 / month', INR: '₹7,999 / month' },
+        price: {
+            monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
+            yearly: { USD: '$990', EUR: '€890', INR: '₹79,990' },
+        },
+        priceDescription: '/ month',
         description: "For multi‑vendor operations.",
         userLimit: 200,
         dataLimitGB: 500,
@@ -81,7 +88,10 @@ export const subscriptionPlans: Plan[] = [
         id: 'provider-starter',
         name: 'Provider Starter',
         audience: 'Provider',
-        price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+        price: {
+            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+        },
         description: "For individual inspectors getting started.",
         userLimit: 1,
         dataLimitGB: 1,
@@ -105,7 +115,11 @@ export const subscriptionPlans: Plan[] = [
         id: 'provider-pro',
         name: 'Provider Pro',
         audience: 'Provider',
-        price: { USD: '$49 / company / month', EUR: '€45 / company / month', INR: '₹4,000 / company / month' },
+        price: {
+            monthly: { USD: '$49', EUR: '€45', INR: '₹4,000' },
+            yearly: { USD: '$490', EUR: '€450', INR: '₹40,000' },
+        },
+        priceDescription: '/ company / month',
         description: "For professional teams and growing companies.",
         userLimit: 50,
         dataLimitGB: 100,
@@ -131,7 +145,11 @@ export const subscriptionPlans: Plan[] = [
         id: 'provider-growth',
         name: 'Company Growth',
         audience: 'Provider',
-        price: { USD: '$120 / company / month', EUR: '€110 / company / month', INR: '₹10,000 / company / month' },
+        price: {
+            monthly: { USD: '$120', EUR: '€110', INR: '₹10,000' },
+            yearly: { USD: '$1200', EUR: '€1100', INR: '₹100,000' },
+        },
+        priceDescription: '/ company / month',
         description: "Per company",
         userLimit: 150,
         dataLimitGB: 200,
@@ -156,7 +174,10 @@ export const subscriptionPlans: Plan[] = [
         id: 'auditor-free',
         name: 'Free Access',
         audience: 'Auditor',
-        price: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+        price: {
+            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+        },
         description: "For Level-III professionals and auditors.",
         userLimit: 200,
         dataLimitGB: 500,

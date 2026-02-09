@@ -144,12 +144,13 @@
         "companyId": { "type": "string" },
         "plan": { "type": "string" },
         "status": { "type": "string", "enum": ["Active", "Trialing", "Past Due", "Canceled", "Payment Failed"] },
+        "billingCycle": { "type": "string", "enum": ["Monthly", "Yearly"] },
         "startDate": { "type": "string", "format": "date" },
         "endDate": { "type": "string", "format": "date" },
         "userLimit": { "type": "number" },
         "dataLimitGB": { "type": "number" }
       },
-      "required": ["id", "companyId", "plan", "status", "startDate"]
+      "required": ["id", "companyId", "plan", "status", "startDate", "billingCycle"]
     },
     "Chat": {
       "$schema": "http://json-schema.org/draft-07/schema#",

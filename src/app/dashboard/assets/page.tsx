@@ -8,7 +8,6 @@ import { MoreVertical, Building, QrCode, Printer, AlertTriangle } from "lucide-r
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, useState, cloneElement, useEffect } from "react";
@@ -106,7 +105,6 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                     <h2 className="text-xl font-semibold mb-4">{location}</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {locationAssets.map((asset) => {
-                            const image = asset.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined;
                             return (
                                 <Card key={asset.id} className={cn(
                                     "flex flex-col",
@@ -115,8 +113,8 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                 )}>
                                     <CardHeader className="p-0">
                                         <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
-                                            {image ? (
-                                                <Image src={image.imageUrl} alt={image.description || asset.name} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                            {asset.thumbnailUrl ? (
+                                                <Image src={asset.thumbnailUrl} alt={asset.name} fill className="object-cover rounded-t-lg" />
                                             ) : (
                                                 cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-16 h-16 text-primary/50' })
                                             )}

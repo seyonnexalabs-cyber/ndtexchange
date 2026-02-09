@@ -10,7 +10,8 @@
         "name": { "type": "string", "description": "The name of the asset." },
         "description": { "type": "string", "description": "A detailed description of the asset." },
         "location": { "type": "string", "description": "The physical location of the asset." },
-        "qrCode": { "type": "string", "description": "The QR code associated with the asset for easy identification." }
+        "qrCode": { "type": "string", "description": "The QR code associated with the asset for easy identification." },
+        "thumbnailUrl": { "type": "string", "description": "URL for the asset's thumbnail image." }
       },
       "required": ["id", "name"]
     },
@@ -97,7 +98,8 @@
         "type": { "type": "string", "description": "The category of equipment (e.g., Instrument, Probe)." },
         "providerId": { "type": "string", "description": "ID of the provider company that owns this equipment." },
         "status": { "type": "string", "description": "Current status (e.g., Available, In Use, Calibration Due)." },
-        "nextCalibration": { "type": "string", "format": "date", "description": "Date of next required calibration." }
+        "nextCalibration": { "type": "string", "format": "date", "description": "Date of next required calibration." },
+        "thumbnailUrl": { "type": "string", "description": "URL for the equipment's thumbnail image." }
       },
       "required": ["id", "name", "type", "providerId", "status"]
     }

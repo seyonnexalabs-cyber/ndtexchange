@@ -23,7 +23,7 @@ export type Asset = {
     serialNumber?: string;
     installationDate?: string;
     notes?: string;
-    imageId?: string;
+    thumbnailUrl?: string;
     history?: AssetUpdate[];
 };
 
@@ -115,7 +115,7 @@ export type InspectorAsset = {
     serialNumber?: string;
     history?: EquipmentHistory[];
     isPublic?: boolean;
-    imageId?: string;
+    thumbnailUrl?: string;
     parentId?: string;
 };
 
@@ -302,18 +302,18 @@ export const notifications: Notification[] = [
 
 
 export const clientAssets: Asset[] = [
-    { id: 'ASSET-001', companyId: 'client-02', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-A1B2C3D4', installationDate: '2018-05-20', imageId: 'asset1', approvalStatus: 'Approved', history: [
+    { id: 'ASSET-001', companyId: 'client-02', name: 'Storage Tank T-101', type: 'Tank', location: 'Refinery A', status: 'Operational', nextInspection: '2024-09-15', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-A1B2C3D4', installationDate: '2018-05-20', thumbnailUrl: 'https://images.unsplash.com/photo-1766560505794-3d3978bf5f89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmR1c3RyaWFsJTIwdGFua3xlbnwwfHx8fDE3NjkwMTUzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved', history: [
         { user: 'John Doe', timestamp: '2024-07-20T08:00:00Z', action: 'Routine Check Logged: Daily Visual', details: 'Issues Found: No. Notes: All clear.' },
         { user: 'Admin', timestamp: '2018-05-20T09:00:00Z', action: 'Asset Created' }
     ] },
-    { id: 'ASSET-006', companyId: 'client-01', name: 'Cooling Tower Piping', type: 'Piping', location: 'Refinery A', status: 'Operational', nextInspection: '2025-02-20', manufacturer: 'FlowLine Pipes', serialNumber: 'SN-E5F6G7H8', installationDate: '2019-11-10', imageId: 'asset6', approvalStatus: 'Approved' },
-    { id: 'ASSET-002', companyId: 'client-03', name: 'Main Steam Piping', type: 'Piping', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-07-20', manufacturer: 'US Pipe', serialNumber: 'SN-I9J0K1L2', installationDate: '2015-03-12', imageId: 'asset2', approvalStatus: 'Approved' },
-    { id: 'ASSET-003', companyId: 'client-01', name: 'Pressure Vessel PV-203', type: 'Vessel', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-01-10', manufacturer: 'Vessel Works', model: 'VW-2000', serialNumber: 'SN-M3N4O5P6', installationDate: '2020-01-15', imageId: 'asset5', approvalStatus: 'Approved' },
-    { id: 'ASSET-004', companyId: 'client-01', name: 'Overhead Crane C-01', type: 'Crane', location: 'Refinery A', status: 'Under Repair', nextInspection: '2024-08-01', manufacturer: 'Konecranes', model: 'CXT', serialNumber: 'SN-Q7R8S9T0', installationDate: '2017-09-01', notes: 'Motor requires replacement. Scheduled for Q3 service.', imageId: 'asset3', approvalStatus: 'Approved' },
-    { id: 'ASSET-005', companyId: 'client-04', name: 'Structural Weld SW-05', type: 'Weld Joint', location: 'Bridge E', status: 'Operational', nextInspection: '2024-11-22', notes: 'Critical load-bearing weld on main support beam.', imageId: 'asset4', approvalStatus: 'Approved' },
-    { id: 'ASSET-007', companyId: 'client-02', name: 'Condensate Storage Tank', type: 'Tank', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-08-30', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-U1V2W3X4', installationDate: '2016-07-22', imageId: 'asset7', approvalStatus: 'Approved' },
-    { id: 'ASSET-008', companyId: 'client-05', name: 'Process Piping Unit 5', type: 'Piping', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-03-01', manufacturer: 'FlowLine Pipes', serialNumber: 'SN-Y5Z6A7B8', installationDate: '2021-02-18', imageId: 'asset8', approvalStatus: 'Approved' },
-    { id: 'ASSET-009', companyId: 'client-07', name: 'Gantry Crane G-02', type: 'Crane', location: 'Port Terminal F', status: 'Operational', nextInspection: '2024-12-01', manufacturer: 'Liebherr', model: 'LTM 1050', serialNumber: 'SN-C9D0E1F2', installationDate: '2019-08-05', imageId: 'asset9', approvalStatus: 'Approved' },
+    { id: 'ASSET-006', companyId: 'client-01', name: 'Cooling Tower Piping', type: 'Piping', location: 'Refinery A', status: 'Operational', nextInspection: '2025-02-20', manufacturer: 'FlowLine Pipes', serialNumber: 'SN-E5F6G7H8', installationDate: '2019-11-10', thumbnailUrl: 'https://images.unsplash.com/photo-1729954924953-ff957b3e9edc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb29saW5nJTIwdG93ZXJ8ZW58MHx8fHwxNzY5MDE1MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-002', companyId: 'client-03', name: 'Main Steam Piping', type: 'Piping', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-07-20', manufacturer: 'US Pipe', serialNumber: 'SN-I9J0K1L2', installationDate: '2015-03-12', thumbnailUrl: 'https://images.unsplash.com/photo-1578337159840-ec3abc0b0d17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aW5kdXN0cmlhbCUyMHBpcGVzfGVufDB8fHx8MTc2OTAwNjgyMnww&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-003', companyId: 'client-01', name: 'Pressure Vessel PV-203', type: 'Vessel', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-01-10', manufacturer: 'Vessel Works', model: 'VW-2000', serialNumber: 'SN-M3N4O5P6', installationDate: '2020-01-15', thumbnailUrl: 'https://images.unsplash.com/photo-1588877981142-0851cb22ad89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcmVzc3VyZSUyMHZlc3NlbHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-004', companyId: 'client-01', name: 'Overhead Crane C-01', type: 'Crane', location: 'Refinery A', status: 'Under Repair', nextInspection: '2024-08-01', manufacturer: 'Konecranes', model: 'CXT', serialNumber: 'SN-Q7R8S9T0', installationDate: '2017-09-01', notes: 'Motor requires replacement. Scheduled for Q3 service.', thumbnailUrl: 'https://images.unsplash.com/photo-1575230167650-dce335edc7f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjb25zdHJ1Y3Rpb24lMjBjcmFuZXxlbnwwfHx8fDE3Njg5NTA2MjB8MA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-005', companyId: 'client-04', name: 'Structural Weld SW-05', type: 'Weld Joint', location: 'Bridge E', status: 'Operational', nextInspection: '2024-11-22', notes: 'Critical load-bearing weld on main support beam.', thumbnailUrl: 'https://images.unsplash.com/photo-1632838961436-26d62b5ffbc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3ZWxkJTIwam9pbnR8ZW58MHx8fHwxNzY5MDE1MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-007', companyId: 'client-02', name: 'Condensate Storage Tank', type: 'Tank', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-08-30', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-U1V2W3X4', installationDate: '2016-07-22', thumbnailUrl: 'https://images.unsplash.com/photo-1638294834907-d11608bc11d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdG9yYWdlJTIwdGFua3xlbnwwfHx8fDE3NjkwMDIyMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-008', companyId: 'client-05', name: 'Process Piping Unit 5', type: 'Piping', location: 'Chemical Plant C', status: 'Operational', nextInspection: '2025-03-01', manufacturer: 'FlowLine Pipes', serialNumber: 'SN-Y5Z6A7B8', installationDate: '2021-02-18', thumbnailUrl: 'https://images.unsplash.com/photo-1578776349090-de61da00ff1a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8fDE3NjODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
+    { id: 'ASSET-009', companyId: 'client-07', name: 'Gantry Crane G-02', type: 'Crane', location: 'Port Terminal F', status: 'Operational', nextInspection: '2024-12-01', manufacturer: 'Liebherr', model: 'LTM 1050', serialNumber: 'SN-C9D0E1F2', installationDate: '2019-08-05', thumbnailUrl: 'https://images.unsplash.com/photo-1759390304074-dc0bb44b5f4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FudHJ5JTIwY3JhbmV8ZW58MHx8fHwxNzY5MDAyMjE2fDA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
     { id: 'ASSET-010', companyId: 'client-01', name: 'Heat Exchanger E-401', type: 'Vessel', location: 'Refinery A', status: 'Requires Inspection', nextInspection: '2024-07-30', manufacturer: 'HeatEx Inc.', model: 'HE-500', serialNumber: 'SN-G3H4I5J6', installationDate: '2019-01-20', approvalStatus: 'Approved' },
     { id: 'ASSET-PEND-01', companyId: 'client-01', name: 'New Pipeline Segment', type: 'Piping', location: 'Refinery A', status: 'Requires Inspection', approvalStatus: 'Pending Approval', nextInspection: '2025-06-01', notes: 'Newly created asset awaiting admin approval.' },
 ];
@@ -332,7 +332,7 @@ export const inspectorAssets: InspectorAsset[] = [
         approvalStatus: 'Approved',
         nextCalibration: '2025-01-05',
         isPublic: true,
-        imageId: 'tech-ut',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
         history: [
             { event: 'Created', user: 'Admin', timestamp: '2023-01-05T10:00:00Z', notes: 'Item created in inventory.' },
             { event: 'Checked In', user: 'Jane Smith', timestamp: '2024-06-25T14:00:00Z', notes: 'Condition: Good. Job: Annual UT Thickness Survey.' },
@@ -352,7 +352,7 @@ export const inspectorAssets: InspectorAsset[] = [
         approvalStatus: 'Approved',
         nextCalibration: '2024-12-11',
         isPublic: true,
-        imageId: 'tech-ut',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
         parentId: 'UTM-1000',
         history: [
              { event: 'Assigned to Kit', user: 'Admin', timestamp: '2023-02-10T11:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
@@ -390,7 +390,7 @@ export const inspectorAssets: InspectorAsset[] = [
         approvalStatus: 'Approved',
         nextCalibration: '2024-07-30',
         isPublic: false,
-        imageId: 'tech-mt',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1729119578948-5c36e632fca6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFnbmV0aWMlMjBwYXJ0aWNsZXxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
         history: [
             { event: 'Set to Calibration Due', user: 'System', timestamp: '2024-07-15T00:00:00Z', notes: 'Automatic status change based on calibration date.' },
             { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },
@@ -411,7 +411,7 @@ export const inspectorAssets: InspectorAsset[] = [
         approvalStatus: 'Approved',
         nextCalibration: '2025-03-01',
         isPublic: true,
-        imageId: 'tech-apr',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8MTc2ODkyOTQzOHww&ixlib=rb-4.1.0&q=80&w=1080',
         history: [
              { event: 'Created', user: 'Admin', timestamp: '2024-05-20T10:00:00Z', notes: 'New advanced equipment added.' }
         ]
@@ -939,5 +939,6 @@ export { clientAssets as assets };
     
 
   
+
 
 

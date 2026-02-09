@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -23,7 +24,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -66,8 +66,7 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
         }
     });
     
-    const image = React.useMemo(() => equipment?.imageId ? PlaceHolderImages.find(p => p.id === equipment.imageId) : undefined, [equipment]);
-    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(image?.imageUrl || null);
+    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(equipment.thumbnailUrl || null);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -100,7 +99,7 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
             setThumbnailPreview(URL.createObjectURL(file));
             form.clearErrors('thumbnail');
         } else {
-            setThumbnailPreview(image?.imageUrl || null);
+            setThumbnailPreview(equipment.thumbnailUrl || null);
         }
     };
 
@@ -499,8 +498,6 @@ export default function EquipmentDetailPage() {
         notFound();
     }
 
-    const image = useMemo(() => equipment?.imageId ? PlaceHolderImages.find(p => p.id === equipment.imageId) : undefined, [equipment]);
-
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -634,9 +631,9 @@ export default function EquipmentDetailPage() {
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
                         <CardHeader className="p-0">
-                           {image && (
+                           {equipment.thumbnailUrl && (
                                 <div className="relative h-48 w-full block group">
-                                    <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                                    <Image src={equipment.thumbnailUrl} alt={equipment.name} fill className="object-cover rounded-t-lg" />
                                 </div>
                             )}
                         </CardHeader>

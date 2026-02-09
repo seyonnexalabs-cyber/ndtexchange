@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useRef, useEffect } from "react";
@@ -11,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
 import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud, Check, Settings, History, AlertTriangle, QrCode, Printer } from "lucide-react";
 import Image from "next/image";
-import { PlaceHolderImages, ImagePlaceholder } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format, parseISO } from 'date-fns';
@@ -56,9 +56,7 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
         }
     });
 
-    const image = React.useMemo(() => asset?.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined, [asset]);
-
-    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(image?.imageUrl || null);
+    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(asset.thumbnailUrl || null);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -91,7 +89,7 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
             form.clearErrors('thumbnail');
         } else {
              // When cleared, revert to the original asset image if it exists
-            setThumbnailPreview(image?.imageUrl || null);
+            setThumbnailPreview(asset.thumbnailUrl || null);
         }
     };
 
@@ -559,8 +557,6 @@ export default function AssetDetailPage() {
     const isMobile = useIsMobile();
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
-
-    const image = React.useMemo(() => asset?.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined, [asset]);
     
     const assetInspections = useMemo(() => jobs.filter(j => j.assetIds?.includes(id)).flatMap(j => j.inspections || []), [id]);
 
@@ -588,11 +584,11 @@ export default function AssetDetailPage() {
             { name: 'installation_photo.jpg', source: 'Asset Documentation', url: 'https://picsum.photos/seed/install/800/600' },
             { name: 'fabrication_cert.pdf', source: 'Asset Documentation', url: '' },
         ];
-        if (image) {
-            docs.unshift({ name: image.description, source: 'Asset Thumbnail', url: image.imageUrl });
+        if (asset?.thumbnailUrl) {
+            docs.unshift({ name: asset.name, source: 'Asset Thumbnail', url: asset.thumbnailUrl });
         }
         return docs;
-    }, [image]);
+    }, [asset]);
 
     if (!asset) {
         notFound();
@@ -623,9 +619,9 @@ export default function AssetDetailPage() {
             ...asset, 
             ...values, 
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
-            installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined
+            installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined,
+            // In a real app, you would handle thumbnail upload here and set the `thumbnailUrl`
         };
-        // In a real app, you would handle the imageId update here
         setAsset(updatedAsset as Asset);
         toast({
             title: "Asset Updated",
@@ -819,9 +815,9 @@ export default function AssetDetailPage() {
                 <div className="lg:col-span-1 space-y-6">
                      <Card>
                         <CardHeader className="p-0">
-                            {image && (
-                                <button onClick={() => handleOpenViewer(image.description)} className="relative h-48 w-full block group">
-                                    <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                            {asset.thumbnailUrl && (
+                                <button onClick={() => handleOpenViewer(asset.name)} className="relative h-48 w-full block group">
+                                    <Image src={asset.thumbnailUrl} alt={asset.name} fill className="object-cover rounded-t-lg"/>
                                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Maximize className="w-8 h-8 text-white" />
                                     </div>

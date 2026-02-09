@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, cloneElement, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
@@ -314,13 +314,12 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
     onServiceOutClick: (equipment: InspectorAsset) => void,
     isSubscriptionActive: boolean,
 }) => {
-    const image = asset.imageId ? PlaceHolderImages.find(p => p.id === asset.imageId) : undefined;
     return (
         <Card key={asset.id} className="flex flex-col">
             <CardHeader className="p-0">
                 <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
-                    {image ? (
-                        <Image src={image.imageUrl} alt={image.description} fill className="object-cover rounded-t-lg" data-ai-hint={image.imageHint}/>
+                    {asset.thumbnailUrl ? (
+                        <Image src={asset.thumbnailUrl} alt={asset.name} fill className="object-cover rounded-t-lg" />
                     ) : (
                         cloneElement(equipmentTypeIcons[asset.type] || <Wrench className="text-primary"/>, { className: 'w-16 h-16 text-primary/50' })
                     )}

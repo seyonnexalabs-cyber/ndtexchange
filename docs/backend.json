@@ -83,9 +83,9 @@
         "name": { "type": "string", "description": "The name of the user." },
         "email": { "type": "string", "format": "email", "description": "The email address of the user." },
         "role": { "type": "string", "enum": ["Client", "Inspector", "Auditor", "Admin"], "description": "The role of the user." },
-        "providerId": { "type": "string", "description": "If the user is an Inspector, this is the ID of their provider company." }
+        "companyId": { "type": "string", "description": "The ID of the company this user belongs to." }
       },
-      "required": ["id", "name", "email", "role"]
+      "required": ["id", "name", "email", "role", "companyId"]
     },
     "Equipment": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -102,6 +102,65 @@
         "thumbnailUrl": { "type": "string", "description": "URL for the equipment's thumbnail image." }
       },
       "required": ["id", "name", "type", "providerId", "status"]
+    },
+     "Company": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Company",
+      "type": "object",
+      "description": "Represents a company entity, which can be a Client, Provider, or Auditor.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Client", "Provider", "Auditor"] },
+        "contactPerson": { "type": "string" },
+        "contactEmail": { "type": "string", "format": "email" },
+        "logoUrl": { "type": "string", "format": "uri" },
+        "brandColor": { "type": "string" }
+      },
+      "required": ["id", "name", "type"]
+    },
+    "Subscription": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Subscription",
+      "type": "object",
+      "description": "Represents a company's subscription plan.",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "plan": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Trialing", "Past Due", "Canceled", "Payment Failed"] },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "userLimit": { "type": "number" },
+        "dataLimitGB": { "type": "number" }
+      },
+      "required": ["id", "companyId", "plan", "status", "startDate"]
+    },
+    "Chat": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Chat",
+      "type": "object",
+      "description": "A chat thread, usually associated with a job.",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" }
+      },
+      "required": ["id", "participants"]
+    },
+    "Message": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Message",
+      "type": "object",
+      "description": "A single message within a chat thread.",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "text", "senderId", "timestamp"]
     }
   },
   "auth": {
@@ -136,8 +195,20 @@
       {
         "path": "/equipment/{equipmentId}",
         "definition": { "entityName": "Equipment", "schema": { "$ref": "#/entities/Equipment" }, "description": "Stores all equipment for all providers." }
+      },
+       {
+        "path": "/companies/{companyId}",
+        "definition": { "entityName": "Company", "schema": { "$ref": "#/entities/Company" }, "description": "Stores all company profiles (clients, providers, auditors)." }
+      },
+      {
+        "path": "/subscriptions/{subscriptionId}",
+        "definition": { "entityName": "Subscription", "schema": { "$ref": "#/entities/Subscription" }, "description": "Stores subscription details for all companies." }
+      },
+      {
+        "path": "/chats/{chatId}",
+        "definition": { "entityName": "Chat", "schema": { "$ref": "#/entities/Chat" }, "description": "Stores chat thread metadata." }
       }
     ],
-    "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications."
+    "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."
   }
 }

@@ -13,6 +13,14 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+
+    function isPlatformAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+    }
+
+    function isCompanyMember(companyId) {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+    }
     
     function isProviderMember(providerId) {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == providerId;
@@ -23,10 +31,10 @@ service cloud.firestore {
      ***********************************************************/
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if false; // Do not allow listing all users
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if false; // Users should be disabled, not deleted
+      allow list: if isPlatformAdmin();
+      allow create: if isOwner(userId) || isPlatformAdmin();
+      allow update: if isOwner(userId) || isPlatformAdmin();
+      allow delete: if isPlatformAdmin();
     }
 
     /***********************************************************
@@ -42,8 +50,8 @@ service cloud.firestore {
      * Equipment Rules (/equipment)
      ***********************************************************/
     match /equipment/{equipmentId} {
-      allow read, update, delete: if isSignedIn() && isProviderMember(resource.data.providerId);
-      allow create: if isSignedIn() && isProviderMember(request.resource.data.providerId);
+      allow read, update, delete: if isProviderMember(resource.data.providerId) || isPlatformAdmin();
+      allow create: if isProviderMember(request.resource.data.providerId) || isPlatformAdmin();
     }
     
     /***********************************************************
@@ -84,5 +92,29 @@ service cloud.firestore {
       // In a real app, access would be restricted to involved parties.
       allow read, write: if isSignedIn();
     }
+
+    /***********************************************************
+     * Company & Subscription Rules
+     ***********************************************************/
+    match /companies/{companyId} {
+      allow get: if isSignedIn();
+      allow write: if isPlatformAdmin();
+    }
+
+    match /subscriptions/{subscriptionId} {
+      allow read: if isPlatformAdmin() || isCompanyMember(resource.data.companyId);
+      allow write: if isPlatformAdmin();
+    }
+    
+    /***********************************************************
+     * Chat Rules
+     ***********************************************************/
+     match /chats/{chatId} {
+       allow get, update: if isSignedIn() && request.auth.uid in resource.data.participants;
+     }
+     
+     match /chats/{chatId}/messages/{messageId} {
+       allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+     }
   }
 }

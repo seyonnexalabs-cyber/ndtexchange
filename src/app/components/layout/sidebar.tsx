@@ -12,6 +12,7 @@ import {
   SidebarFooter,
   SidebarMenuBadge,
   SidebarSeparator,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -190,6 +191,7 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
@@ -266,6 +268,12 @@ const AppSidebar = () => {
     );
   }, [pathname, menuItems]);
 
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   const handleLogout = () => {
     router.push('/login');
   };
@@ -298,9 +306,9 @@ const AppSidebar = () => {
   }
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 flex justify-center">
-        <Link href={constructUrl("/dashboard")}>
+        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick}>
             <Hexagons7Icon className="h-12 w-auto" />
         </Link>
       </SidebarHeader>
@@ -319,7 +327,7 @@ const AppSidebar = () => {
                       isActive={item.id === activeItem?.id}
                       tooltip={{ children: item.label }}
                     >
-                      <Link href={item.href ? constructUrl(item.href) : '#'}>
+                      <Link href={item.href ? constructUrl(item.href) : '#'} onClick={handleLinkClick}>
                         <item.icon className="text-primary" />
                         <span>{item.label}</span>
                         {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
@@ -343,7 +351,7 @@ const AppSidebar = () => {
                 Expires on {format(new Date(planDetails.expiry), GLOBAL_DATE_FORMAT)}
               </p>
             )}
-             <Link href={constructUrl('/dashboard/billing')} className="text-xs text-primary hover:underline font-medium mt-2 block">
+             <Link href={constructUrl('/dashboard/billing')} onClick={handleLinkClick} className="text-xs text-primary hover:underline font-medium mt-2 block">
                 Manage Subscription
             </Link>
           </div>

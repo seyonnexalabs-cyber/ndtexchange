@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import { Job, allUsers, PlatformUser, jobChats as initialJobChats } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { useMemo, useState, useEffect } from 'react';
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { jobs } from '@/lib/placeholder-data';
 
@@ -116,13 +117,19 @@ export default function MessagesPage() {
                                         isSelected ? "bg-primary/10" : "hover:bg-primary/5"
                                     )}
                                 >
-                                    <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
+                                    <div className="flex justify-between items-start gap-2">
+                                        <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
+                                        <span className="text-xs text-muted-foreground shrink-0">{format(new Date(convo.lastMessageTimestamp), 'p')}</span>
+                                    </div>
                                     <p className="text-xs text-muted-foreground truncate">
                                         {role === 'client' ? provider?.name : convo.job?.client}
                                     </p>
-                                    <p className="text-xs text-muted-foreground truncate mt-1">
-                                        <span className="font-medium">{isMyLastMessage ? 'You' : lastMessageSender?.name.split(' ')[0]}:</span> {convo.lastMessage}
-                                    </p>
+                                    <div className="text-xs text-muted-foreground mt-1 flex">
+                                        <p className="truncate">
+                                            <span className="font-medium mr-1">{isMyLastMessage ? 'You' : lastMessageSender?.name.split(' ')[0]}:</span>
+                                            {convo.lastMessage}
+                                        </p>
+                                    </div>
                                 </button>
                             )
                         })}
@@ -158,25 +165,42 @@ export default function MessagesPage() {
                         </div>
 
                         {/* Messages */}
-                         <ScrollArea className="flex-1 p-6 bg-accent/5">
-                            <div className="space-y-6">
+                        <ScrollArea className="flex-1 p-6 bg-accent/5">
+                            <div className="space-y-2">
                                 {selectedConversation.messages?.map((message, index) => {
                                     const sender = getUserDetails(message.senderId);
                                     const myMessage = sender?.id === currentUser?.id;
+                                    
+                                    const messageDate = new Date(message.timestamp);
+                                    const prevMessage = selectedConversation.messages[index - 1];
+                                    const prevMessageDate = prevMessage ? new Date(prevMessage.timestamp) : null;
+                                    const showDateSeparator = !prevMessageDate || !isSameDay(messageDate, prevMessageDate);
+
                                     return (
-                                        <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
-                                            {!myMessage && sender && (
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarFallback>{getAvatarFallback(sender.name)}</AvatarFallback>
-                                                </Avatar>
+                                        <React.Fragment key={message.id}>
+                                            {showDateSeparator && (
+                                                <div className="text-center text-xs text-muted-foreground my-4 font-semibold tracking-wider uppercase">
+                                                    {format(messageDate, 'MMMM d, yyyy')}
+                                                </div>
                                             )}
-                                            <div className={cn("max-w-xs md:max-w-md rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-accent/10 border' )}>
-                                                <p className="text-sm font-chat">{message.text}</p>
-                                                <p className="text-xs mt-2 opacity-80">
-                                                    {sender?.name} · {format(new Date(message.timestamp), 'p')}
-                                                </p>
+                                            <div className={cn("flex items-end gap-3", myMessage && "justify-end")}>
+                                                {!myMessage && sender && (
+                                                    <Avatar className="h-8 w-8 self-end">
+                                                        <AvatarFallback>{getAvatarFallback(sender.name)}</AvatarFallback>
+                                                    </Avatar>
+                                                )}
+                                                <div className={cn(
+                                                    "max-w-[75%] rounded-lg p-3", 
+                                                    myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' 
+                                                )}>
+                                                    {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{sender?.name}</p>}
+                                                    <p className="text-sm">{message.text}</p>
+                                                    <p className="text-xs mt-2 opacity-80 text-right">
+                                                        {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : format(new Date(message.timestamp), 'p')}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </React.Fragment>
                                     )
                                 })}
                             </div>

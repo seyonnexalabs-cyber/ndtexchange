@@ -36,7 +36,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 
@@ -434,14 +434,8 @@ export default function JobDetailPage() {
     }
     
     const constructUrl = (base: string) => {
-        const newParams = new URLSearchParams();
-        const role = searchParams.get('role');
-        const plan = searchParams.get('plan');
-        if (role) newParams.set('role', role);
-        if (plan) newParams.set('plan', plan);
-        
-        const queryString = newParams.toString();
-        return queryString ? `${base}?${queryString}` : base;
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
     }
 
     const assignedTechnicians = allUsers.filter(u => u.role === 'Inspector' && jobDetails.technicianIds?.includes(u.id));
@@ -880,7 +874,7 @@ export default function JobDetailPage() {
                                                     </div>
                                                     {report ? (
                                                         <Button asChild variant="outline" size="sm">
-                                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
+                                                            <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Report</Link>
                                                         </Button>
                                                     ) : (
                                                         isInspector && ['In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (

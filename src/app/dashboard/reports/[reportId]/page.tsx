@@ -38,7 +38,7 @@ export default function ReportDetailPage() {
         let inspection: Inspection | undefined;
         let job: (typeof jobs[0]) | undefined;
         for (const j of jobs) {
-            const found = j.inspections?.find(i => i.id === reportId);
+            const found = j.inspections?.find(i => i.report?.id === reportId);
             if (found) {
                 inspection = found;
                 job = j;

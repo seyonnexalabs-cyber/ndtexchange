@@ -235,9 +235,13 @@ export default function InspectionsPage() {
                                     </p>
                                 </CardContent>
                                  <CardFooter>
-                                    <Button asChild variant="outline" size="sm" className="w-full">
-                                        <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>{buttonText}</Link>
-                                    </Button>
+                                     {inspection.report ? (
+                                        <Button asChild variant="outline" size="sm" className="w-full">
+                                            <Link href={constructUrl(`/dashboard/reports/${inspection.report.id}`)}>{buttonText}</Link>
+                                        </Button>
+                                    ) : (
+                                        <Button variant="outline" size="sm" className="w-full" disabled>No Report</Button>
+                                    )}
                                 </CardFooter>
                             </Card>
                         )
@@ -283,9 +287,13 @@ export default function InspectionsPage() {
                                         <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>{buttonText}</Link>
-                                        </Button>
+                                        {inspection.report ? (
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={constructUrl(`/dashboard/reports/${inspection.report.id}`)}>{buttonText}</Link>
+                                            </Button>
+                                        ) : (
+                                            <Button variant="outline" size="sm" disabled>No Report</Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             )})}

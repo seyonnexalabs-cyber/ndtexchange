@@ -204,7 +204,7 @@ export default function ReportsListPage() {
                                 </CardContent>
                                  <CardFooter>
                                     <Button asChild variant="outline" size="sm" className="w-full">
-                                        <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
+                                        <Link href={constructUrl(`/dashboard/reports/${inspection.report!.id}`)}>View Report</Link>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -252,7 +252,7 @@ export default function ReportsListPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/reports/${inspection.id}`)}>View Report</Link>
+                                            <Link href={constructUrl(`/dashboard/reports/${inspection.report!.id}`)}>View Report</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

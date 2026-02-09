@@ -17,24 +17,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { NDTTechniques } from '@/lib/placeholder-data';
-import { useFirebase, setDocumentNonBlocking } from '@/firebase';
+import { NDTTechniques, PlatformUser } from '@/lib/placeholder-data';
+import { useFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required."),
-  companyName: z.string().min(2, "Company name is required."),
+  companyName: z.string().optional(),
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters."),
-  role: z.enum(["client", "inspector", "auditor"], { required_error: 'Please select your primary role.' }),
+  role: z.enum(["client", "inspector", "auditor", "admin"], { required_error: 'Please select your primary role.' }),
   agreedToTerms: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
   level: z.enum(["Level I", "Level II", "Level III"]).optional(),
   certifications: z.array(z.string()).optional(),
 }).superRefine((data, ctx) => {
+    if (data.role !== 'admin' && (!data.companyName || data.companyName.length < 2)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['companyName'],
+            message: 'Company name is required for this role.',
+        });
+    }
     if (data.role === 'inspector' || data.role === 'auditor') {
         if (!data.level) {
             ctx.addIssue({
@@ -83,21 +90,24 @@ export default function SignupPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
-        const userProfile = {
+        const userProfile: Omit<PlatformUser, 'password'> = {
             id: user.uid,
             name: data.fullName,
             email: data.email,
-            company: data.companyName,
             role: data.role.charAt(0).toUpperCase() + data.role.slice(1),
+            company: data.role === 'admin' ? 'NDT Exchange' : data.companyName || '',
             status: 'Active',
-            certifications: data.certifications?.map(c => ({ method: c, level: data.level! })) || [],
-            workStatus: 'Available',
-            providerId: data.role === 'inspector' ? 'provider-temp-id' : undefined, // Placeholder
-            level: data.level,
         };
 
+        if (data.role === 'inspector' || data.role === 'auditor') {
+            userProfile.certifications = data.certifications?.map(c => ({ method: c, level: data.level! })) || [];
+            userProfile.workStatus = 'Available';
+            userProfile.level = data.level;
+            userProfile.providerId = data.companyName?.toLowerCase().replace(/\s+/g, '-').substring(0, 10);
+        }
+
         const userDocRef = doc(firestore, "users", user.uid);
-        await setDocumentNonBlocking(userDocRef, userProfile, { merge: false });
+        await setDoc(userDocRef, userProfile);
 
         toast({
             title: "Account Created!",
@@ -151,17 +161,19 @@ export default function SignupPage() {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="companyName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Company Name</FormLabel>
-                                    <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {role !== 'admin' && (
+                             <FormField
+                                control={form.control}
+                                name="companyName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Company Name</FormLabel>
+                                        <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                         <FormField
                             control={form.control}
                             name="email"
@@ -196,6 +208,9 @@ export default function SignupPage() {
                                             <SelectItem value="client">Client / Asset Owner</SelectItem>
                                             <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
                                             <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                                            {process.env.NODE_ENV === 'development' && (
+                                                <SelectItem value="admin">Platform Admin</SelectItem>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

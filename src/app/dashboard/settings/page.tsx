@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -32,7 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const userDetails = {
     client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.', address: '123 Energy Corridor, Houston, TX 77079' },
-    inspector: { name: 'Jane Smith', role: 'Level II Inspector', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.', address: '1 Fluor Daniel Dr, Sugar Land, TX 77478' },
+    inspector: { name: 'Maria Garcia', role: 'Level II Inspector', email: 'maria.garcia@teaminc.com', company: 'TEAM, Inc.', address: '1 Fluor Daniel Dr, Sugar Land, TX 77478' },
     admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT Exchange', address: '123 Main St, Palo Alto, CA' },
     auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', address: '456 Gov Ave, Washington, D.C.' },
 };
@@ -486,7 +487,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
 
   const isClient = role === 'client';
   const clientLogo = isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
-  const providerLogo = !isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Provider+Logo';
+  const providerLogo = !isClient ? logoPreview : 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
 
   return (
     <Card>

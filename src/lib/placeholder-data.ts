@@ -321,9 +321,9 @@ export const inspectorAssets: InspectorAsset[] = [
         isPublic: true,
         thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
         history: [
-            { event: 'Created', user: 'Admin', timestamp: '2023-01-05T10:00:00Z', notes: 'Item created in inventory.' },
-            { event: 'Checked In', user: 'Jane Smith', timestamp: '2024-06-25T14:00:00Z', notes: 'Condition: Good. Job: Annual UT Thickness Survey.' },
-            { event: 'Checked Out', user: 'Jane Smith', timestamp: '2024-06-10T08:00:00Z', notes: 'Job: Annual UT Thickness Survey' },
+            { event: 'Created', user: 'Admin User', timestamp: '2023-01-05T10:00:00Z', notes: 'Item created in inventory.' },
+            { event: 'Checked In', user: 'Maria Garcia', timestamp: '2024-06-25T14:00:00Z', notes: 'Condition: Good. Job: Annual UT Thickness Survey.' },
+            { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-06-10T08:00:00Z', notes: 'Job: Annual UT Thickness Survey' },
         ]
     },
     { 
@@ -342,9 +342,9 @@ export const inspectorAssets: InspectorAsset[] = [
         thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
         parentId: 'UTM-1000',
         history: [
-             { event: 'Assigned to Kit', user: 'Admin', timestamp: '2023-02-10T11:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
-             { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
-             { event: 'Created', user: 'Admin', timestamp: '2023-02-10T11:00:00Z', notes: 'Item created in inventory.' }
+             { event: 'Assigned to Kit', user: 'Admin User', timestamp: '2023-02-10T11:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
+             { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
+             { event: 'Created', user: 'Admin User', timestamp: '2023-02-10T11:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
     { 
@@ -360,8 +360,8 @@ export const inspectorAssets: InspectorAsset[] = [
         isPublic: false,
         parentId: 'UTM-1000',
         history: [
-            { event: 'Assigned to Kit', user: 'Admin', timestamp: '2023-01-15T16:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
-            { event: 'Created', user: 'Admin', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
+            { event: 'Assigned to Kit', user: 'Admin User', timestamp: '2023-01-15T16:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
+            { event: 'Created', user: 'Admin User', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
     { 
@@ -380,9 +380,9 @@ export const inspectorAssets: InspectorAsset[] = [
         thumbnailUrl: 'https://images.unsplash.com/photo-1729119578948-5c36e632fca6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFnbmV0aWMlMjBwYXJ0aWNsZXxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
         history: [
             { event: 'Set to Calibration Due', user: 'System', timestamp: '2024-07-15T00:00:00Z', notes: 'Automatic status change based on calibration date.' },
-            { event: 'Checked In', user: 'Carlos Ray', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },
-            { event: 'Checked Out', user: 'Carlos Ray', timestamp: '2024-06-21T09:00:00Z', notes: 'Job: MT Inspection on Crane Hooks' },
-            { event: 'Created', user: 'Admin', timestamp: '2023-03-01T12:00:00Z', notes: 'Item created in inventory.' }
+            { event: 'Checked In', user: 'Maria Garcia', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },
+            { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-06-21T09:00:00Z', notes: 'Job: MT Inspection on Crane Hooks' },
+            { event: 'Created', user: 'Admin User', timestamp: '2023-03-01T12:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
     {
@@ -400,7 +400,7 @@ export const inspectorAssets: InspectorAsset[] = [
         isPublic: true,
         thumbnailUrl: 'https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8MTc2ODkyOTQzOHww&ixlib=rb-4.1.0&q=80&w=1080',
         history: [
-             { event: 'Created', user: 'Admin', timestamp: '2024-05-20T10:00:00Z', notes: 'New advanced equipment added.' }
+             { event: 'Created', user: 'Admin User', timestamp: '2024-05-20T10:00:00Z', notes: 'New advanced equipment added.' }
         ]
     },
     {
@@ -464,17 +464,17 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-06-18', 
         scheduledStartDate: '2024-06-21', 
         scheduledEndDate: '2024-06-21', 
-        technicianIds: ['user-TECH-01'], 
+        technicianIds: ['user-TECH-05'], 
         equipmentIds: ['YOKE-02'], 
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
         history: [
             { user: 'Alex Chen', timestamp: '2024-06-23T10:00:00Z', action: 'Auditor requested revisions.', details: 'Please clarify the distinction between the primary and secondary hooks in the summary. The client had specific concerns about the secondary hook that are not explicitly addressed.', statusChange: 'Revisions Requested' },
-            { user: 'Carlos Ray', timestamp: '2024-06-22T09:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
-            { user: 'Carlos Ray', timestamp: '2024-06-21T08:00:00Z', action: 'Assigned resources.', details: 'Assigned Carlos Ray, Parker B-300S' },
+            { user: 'Maria Garcia', timestamp: '2024-06-22T09:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-002.pdf', statusChange: 'Report Submitted' },
+            { user: 'Maria Garcia', timestamp: '2024-06-21T08:00:00Z', action: 'Assigned resources.', details: 'Assigned Carlos Ray, Parker B-300S' },
             { user: 'Maria Garcia', timestamp: '2024-06-20T08:00:00Z', action: 'Scheduled job.', details: 'Inspection scheduled for 2024-06-21', statusChange: 'Scheduled' },
             { user: 'John Doe', timestamp: '2024-06-19T15:00:00Z', action: 'Awarded job to provider "TEAM, Inc." for $4,800.', statusChange: 'Assigned' },
-            { user: 'Carlos Ray', timestamp: '2024-06-18T14:00:00Z', action: 'Bid for $4,800 submitted by TEAM, Inc.', details: 'Includes on-site mobilization and reporting.' },
+            { user: 'Maria Garcia', timestamp: '2024-06-18T14:00:00Z', action: 'Bid for $4,800 submitted by TEAM, Inc.', details: 'Includes on-site mobilization and reporting.' },
             { user: 'John Doe', timestamp: '2024-06-18T10:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
         ],
         documents: [
@@ -482,7 +482,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { name: 'Lifting_Procedure.pdf', url: '#' },
         ],
     },
-    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-TECH-02'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
+    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-TECH-05'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
     { 
         id: 'JOB-004', 
         title: 'Pipeline Weld Inspections', 
@@ -494,7 +494,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-01', 
         scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], 
         scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], 
-        technicianIds: ['user-TECH-01', 'user-TECH-03'], 
+        technicianIds: ['user-TECH-05'], 
         equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], 
         assetIds: ['ASSET-002'], 
         workflow: 'level3'
@@ -515,8 +515,8 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         ] 
     },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3' },
-    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-TECH-02'], workflow: 'level3' },
-    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['user-TECH-03'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-TECH-05'], workflow: 'level3' },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['user-TECH-05'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { 
         id: 'JOB-009', 
         title: 'APR Inspection of Boiler Tubes', 
@@ -529,11 +529,11 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         assetIds: ['ASSET-008'], 
         workflow: 'auto',
         documents: [ { name: 'Boiler_Tube_Diagram.pdf', url: '#' } ],
-        history: [ { user: 'New Client User', timestamp: '2024-07-12T11:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' } ]
+        history: [ { user: 'John Doe', timestamp: '2024-07-12T11:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' } ]
     },
-    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-TECH-07'], assetIds: ['ASSET-009'], workflow: 'standard' },
-    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['user-TECH-04', 'user-TECH-06'], assetIds: ['ASSET-007'], workflow: 'standard' },
-    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-03'], workflow: 'level3' },
+    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-009'], workflow: 'standard' },
+    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-007'], workflow: 'standard' },
+    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-05'], workflow: 'level3' },
     { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', providerId: 'provider-09', location: 'Freeport, TX', technique: 'AE', status: 'Assigned', postedDate: '2024-07-20', assetIds: [], workflow: 'level3' },
     { 
         id: 'JOB-014', 
@@ -546,19 +546,19 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-18', 
         scheduledStartDate: '2024-07-25', 
         scheduledEndDate: '2024-07-28', 
-        technicianIds: ['user-TECH-01', 'user-TECH-08'], 
+        technicianIds: ['user-TECH-05'], 
         equipmentIds: ['UTM-1000'], 
         assetIds: ['ASSET-002'], 
         workflow: 'standard',
         history: [
             { user: 'Maria Garcia', timestamp: '2024-07-25T08:00:00Z', action: 'Job status changed to In Progress.', statusChange: 'In Progress', details: 'Inspection work has commenced on site.' },
             { user: 'Maria Garcia', timestamp: '2024-07-24T10:00:00Z', action: 'Scheduled job.', statusChange: 'Scheduled', details: 'Inspection scheduled for 2024-07-25 to 2024-07-28' },
-            { user: 'Energy Transfer Admin', timestamp: '2024-07-19T13:00:00Z', action: 'Awarded job to provider "TEAM, Inc." for $15,000.', statusChange: 'Assigned' },
+            { user: 'John Doe', timestamp: '2024-07-19T13:00:00Z', action: 'Awarded job to provider "TEAM, Inc." for $15,000.', statusChange: 'Assigned' },
             { user: 'Maria Garcia', timestamp: '2024-07-18T16:00:00Z', action: 'Bid for $15,000 submitted by TEAM, Inc.', details: 'Standard rates for pipeline corrosion mapping.' },
-            { user: 'Energy Transfer Admin', timestamp: '2024-07-18T09:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' }
+            { user: 'John Doe', timestamp: '2024-07-18T09:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' }
         ]
     },
-    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-02'], workflow: 'standard' },
+    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-05'], workflow: 'standard' },
     { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { 
         id: 'JOB-017', 
@@ -576,7 +576,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     },
     { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: [], workflow: 'level3' },
     { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'ET', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: [], workflow: 'standard' },
-    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-TECH-15'], assetIds: [], workflow: 'standard' },
+    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-TECH-05'], assetIds: [], workflow: 'standard' },
     { 
         id: 'JOB-021', 
         title: 'Tank Wall Thickness UT', 
@@ -588,12 +588,12 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-15', 
         scheduledStartDate: '2024-07-22', 
         scheduledEndDate: '2024-07-22', 
-        technicianIds: ['user-TECH-03'], 
+        technicianIds: ['user-TECH-05'], 
         equipmentIds: ['UTM-1000'], 
         assetIds: ['ASSET-001'], 
         workflow: 'standard',
         history: [
-            { user: 'Ben Carter', timestamp: '2024-07-23T11:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-021.pdf', statusChange: 'Report Submitted' },
+            { user: 'Maria Garcia', timestamp: '2024-07-23T11:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-021.pdf', statusChange: 'Report Submitted' },
             { user: 'John Doe', timestamp: '2024-07-16T10:00:00Z', action: 'Awarded job to MISTRAS Group.', statusChange: 'Assigned' },
         ]
     },
@@ -608,13 +608,13 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-10', 
         scheduledStartDate: '2024-07-20', 
         scheduledEndDate: '2024-07-20', 
-        technicianIds: ['user-TECH-04'], 
+        technicianIds: ['user-TECH-05'], 
         equipmentIds: ['PA-Probe-5MHz'], 
         assetIds: ['ASSET-003'], 
         workflow: 'level3',
         history: [
              { user: 'Alex Chen', timestamp: '2024-07-24T10:00:00Z', action: 'Approved inspection report.', statusChange: 'Audit Approved' },
-             { user: 'David Lee', timestamp: '2024-07-21T16:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-022.pdf', statusChange: 'Report Submitted' },
+             { user: 'Maria Garcia', timestamp: '2024-07-21T16:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-022.pdf', statusChange: 'Report Submitted' },
         ]
     },
      { 
@@ -641,10 +641,10 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         status: 'Report Submitted', 
         postedDate: '2024-07-20', 
         scheduledStartDate: '2024-07-25',
-        technicianIds: ['user-TECH-07'],
+        technicianIds: ['user-TECH-05'],
         workflow: 'level3',
         history: [
-            { user: 'Samantha Wu', timestamp: '2024-07-26T14:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-024.pdf', statusChange: 'Report Submitted' }
+            { user: 'Maria Garcia', timestamp: '2024-07-26T14:00:00Z', action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-024.pdf', statusChange: 'Report Submitted' }
         ]
     },
 ];
@@ -675,13 +675,13 @@ const bidsData: Bid[] = [
 ];
 
 const inspectionsData: Inspection[] = [
-    { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Jane Smith', date: '2024-06-15', status: 'Completed' },
+    { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
-    { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Carlos Ray', date: '2024-06-21', status: 'Completed',
+    { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Maria Garcia', date: '2024-06-21', status: 'Completed',
       report: {
         id: 'REP-001',
         submittedOn: '2024-06-22T09:00:00Z',
-        submittedBy: 'Carlos Ray',
+        submittedBy: 'Maria Garcia',
         reportData: {
           equipmentUsed: 'Parker B-300S Yoke',
           calibrationBlock: 'N/A for MT',
@@ -700,19 +700,19 @@ const inspectionsData: Inspection[] = [
         ]
       }
     },
-    { id: 'INSP-004', jobId: 'JOB-007', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'ET', inspector: 'Aisha Khan', date: yesterday.toISOString().split('T')[0], status: 'Requires Review' },
-    { id: 'INSP-005', jobId: 'JOB-010', assetName: 'Gantry Crane G-02', assetId: 'ASSET-009', technique: 'VT', inspector: 'Samantha Wu', date: '2024-07-14', status: 'Completed' },
-    { id: 'INSP-006', jobId: 'JOB-011', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'UT', inspector: 'Frank Miller', date: '2024-06-21', status: 'Completed' },
-    { id: 'INSP-007', jobId: 'JOB-012', assetName: 'Turbine Blades Set 1', assetId: 'N/A', technique: 'RT', inspector: 'Ben Carter', date: '2024-05-25', status: 'Completed' },
-    { id: 'INSP-008', jobId: 'JOB-014', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'UT', inspector: 'Carlos Ray', date: '2024-07-26', status: 'Scheduled' },
-    { id: 'INSP-009', jobId: 'JOB-015', assetName: 'Manufacturing Gearbox', assetId: 'N/A', technique: 'VT', inspector: 'Aisha Khan', date: '2024-07-10', status: 'Completed' },
+    { id: 'INSP-004', jobId: 'JOB-007', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'ET', inspector: 'Maria Garcia', date: yesterday.toISOString().split('T')[0], status: 'Requires Review' },
+    { id: 'INSP-005', jobId: 'JOB-010', assetName: 'Gantry Crane G-02', assetId: 'ASSET-009', technique: 'VT', inspector: 'Maria Garcia', date: '2024-07-14', status: 'Completed' },
+    { id: 'INSP-006', jobId: 'JOB-011', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'UT', inspector: 'Maria Garcia', date: '2024-06-21', status: 'Completed' },
+    { id: 'INSP-007', jobId: 'JOB-012', assetName: 'Turbine Blades Set 1', assetId: 'N/A', technique: 'RT', inspector: 'Maria Garcia', date: '2024-05-25', status: 'Completed' },
+    { id: 'INSP-008', jobId: 'JOB-014', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-26', status: 'Scheduled' },
+    { id: 'INSP-009', jobId: 'JOB-015', assetName: 'Manufacturing Gearbox', assetId: 'N/A', technique: 'VT', inspector: 'Maria Garcia', date: '2024-07-10', status: 'Completed' },
     { id: 'INSP-010', jobId: 'JOB-017', assetName: 'Compressor Skid Piping', assetId: 'N/A', technique: 'PT', inspector: 'Pending', date: nextWeek.toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-010B', jobId: 'JOB-017', assetName: 'Support Structure Welds', assetId: 'N/A', technique: 'MT', inspector: 'Pending', date: new Date(nextWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'Scheduled' },
-    { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'N/A', technique: 'UT', inspector: 'Lars Andersen', date: '2024-07-02', status: 'Completed' },
-    { id: 'INSP-012', jobId: 'JOB-021', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Ben Carter', date: '2024-07-22', status: 'Completed' },
-    { id: 'INSP-013', jobId: 'JOB-022', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PAUT', inspector: 'David Lee', date: '2024-07-20', status: 'Requires Review' },
+    { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'N/A', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-02', status: 'Completed' },
+    { id: 'INSP-012', jobId: 'JOB-021', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-22', status: 'Completed' },
+    { id: 'INSP-013', jobId: 'JOB-022', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PAUT', inspector: 'Maria Garcia', date: '2024-07-20', status: 'Requires Review' },
     { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Flare Stack FS-01', assetId: 'N/A', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
-    { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Storage Tank T-205', assetId: 'N/A', technique: 'RT', inspector: 'Samantha Wu', date: '2024-07-25', status: 'Requires Review' },
+    { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Storage Tank T-205', assetId: 'N/A', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
 ];
 
 export const jobs: Job[] = jobsData.map(job => ({
@@ -772,30 +772,9 @@ export const reviews: Review[] = [
 
 export const allUsers: PlatformUser[] = [
     { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
-    { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', company: 'Marine Tankers Ltd.', status: 'Active' },
     { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT Exchange', status: 'Active', password: 'password123' },
     { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', password: 'password123' },
-    { id: 'user-auditor-02', name: 'Brenda Vance', email: 'brenda.v@ndtauditors.gov', role: 'Senior Auditor', company: 'Aero-Compliance Partners', status: 'Active' },
-    { id: 'user-TECH-01', name: 'Carlos Ray', email: 'carlos.ray@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II' },
-    { id: 'user-TECH-02', name: 'Aisha Khan', email: 'aisha.khan@mistras.com', role: 'Inspector', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'RT', level: 'Level II'}, {method: 'VT', level: 'Level II'}, {method: 'ET', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-01', level: 'Level II' },
-    { id: 'user-TECH-03', name: 'Ben Carter', email: 'ben.carter@mistras.com', role: 'Inspector', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'UT', level: 'Level III'}, {method: 'PAUT', level: 'Level III'}, {method: 'TOFD', level: 'Level II'}, {method: 'AE', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-01', level: 'Level III' },
-    { id: 'user-TECH-04', name: 'David Lee', email: 'david.lee@applus.com', role: 'Inspector', company: 'Applus+', status: 'Active', certifications: [{method: 'MT', level: 'Level I'}, {method: 'PT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-02', level: 'Level I' },
     { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
-    { id: 'user-TECH-06', name: 'Frank Miller', email: 'frank.miller@applus.com', role: 'Inspector', company: 'Applus+', status: 'Active', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-02', level: 'Level II' },
-    { id: 'user-TECH-07', name: 'Samantha Wu', email: 'samantha.wu@tuv.com', role: 'Inspector', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-04', level: 'Level III' },
-    { id: 'user-TECH-08', name: 'James Wilson', email: 'james.wilson@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II' },
-    { id: 'user-TECH-09', name: 'Steven Shaw', email: 'steven.shaw@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Disabled', certifications: [{method: 'RT', level: 'Level II'}], providerId: 'provider-03', level: 'Level II' },
-    { id: 'user-TECH-10', name: 'Olivia Chen', email: 'olivia.chen@tuv.com', role: 'Inspector', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'PT', level: 'Level II'}, {method: 'VT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-04', level: 'Level II' },
-    { id: 'user-TECH-11', name: 'Michael Brown', email: 'michael.brown@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level I'}, {method: 'MT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level I' },
-    { id: 'user-TECH-12', name: 'Emily Rodriguez', email: 'emily.rodriguez@mistras.com', role: 'Inspector', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'UT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-01', level: 'Level II' },
-    { id: 'user-TECH-13', name: 'Isabelle Laurent', email: 'isabelle.laurent@sgs.com', role: 'Inspector', company: 'SGS', status: 'Active', certifications: [{method: 'RT', level: 'Level III'}, {method: 'UT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-11', level: 'Level III' },
-    { id: 'user-TECH-14', name: 'Jean-Pierre', email: 'jp@sgs.com', role: 'Inspector', company: 'SGS', status: 'Active', certifications: [{method: 'ET', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-11', level: 'Level II' },
-    { id: 'user-TECH-15', name: 'Lars Andersen', email: 'lars.andersen@dnv.com', role: 'Inspector', company: 'DNV (Det Norske Veritas)', status: 'Active', certifications: [{method: 'VT', level: 'Level III'}, {method: 'AE', level: 'Level III'}], workStatus: 'Available', providerId: 'provider-12', level: 'Level III' },
-    { id: 'user-client-05', name: 'Invited User', email: 'new.user@clientcorp.com', role: 'Client', company: 'Global Energy Corp.', status: 'Invited' },
-    { id: 'user-client-06', name: 'New Client User', email: 'contact@chemc.com', role: 'Client', company: 'Chemical Plant C', status: 'Active' },
-    { id: 'user-client-07', name: 'Power Admin', email: 'admin@powergen.com', role: 'Client', company: 'Power Generation LLC', status: 'Active' },
-    { id: 'user-client-08', name: 'Factory Manager', email: 'fm@mansol.com', role: 'Client', company: 'Manufacturing Solutions Inc.', status: 'Active' },
-    { id: 'user-client-09', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', company: 'Aviation Maintenance Pros', status: 'Active' },
 ];
 
 export const subscriptions: Subscription[] = [
@@ -880,21 +859,21 @@ export type BillingAuditLog = {
 
 
 export const userAuditLog: UserAuditLog[] = [
-  { id: 'ACT-001', timestamp: '2024-07-28T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'Admin Promotion', targetUserName: 'Ben Carter', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
-  { id: 'ACT-002', timestamp: '2024-07-27T15:30:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Disabled', targetUserName: 'Steven Shaw', targetCompany: 'TEAM, Inc.', details: '' },
-  { id: 'ACT-003', timestamp: '2024-07-26T11:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'New User', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
-  { id: 'ACT-004', timestamp: '2024-07-25T09:20:00Z', actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'New Finance Person', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
-  { id: 'ACT-005', timestamp: '2024-07-29T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Enabled', targetUserName: 'Steven Shaw', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
-  { id: 'ACT-006', timestamp: '2024-07-30T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Sophia Rodriguez', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
-  { id: 'ACT-007', timestamp: '2024-07-25T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Chuck Yeager', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
-  { id: 'ACT-008', timestamp: '2024-07-30T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Kevin White', targetCompany: 'Energy Transfer', details: 'Invited as Client.' },
+  { id: 'ACT-001', timestamp: '2024-07-28T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'Admin Promotion', targetUserName: 'Maria Garcia', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
+  { id: 'ACT-002', timestamp: '2024-07-27T15:30:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Disabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: '' },
+  { id: 'ACT-003', timestamp: '2024-07-26T11:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+  { id: 'ACT-004', timestamp: '2024-07-25T09:20:00Z', actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+  { id: 'ACT-005', timestamp: '2024-07-29T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Enabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
+  { id: 'ACT-006', timestamp: '2024-07-30T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'Maria Garcia', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
+  { id: 'ACT-007', timestamp: '2024-07-25T10:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
+  { id: 'ACT-008', timestamp: '2024-07-30T14:00:00Z', actorName: 'Admin User', actorCompany: 'NDT Exchange', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Energy Transfer', details: 'Invited as Client.' },
 ];
 
 export const jobAuditLog: JobAuditLog[] = [
     { id: 'JLOG-001', timestamp: '2024-06-28T10:00:00Z', jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'John Doe', actorRole: 'Client', action: 'Job Created', details: 'Job posted to marketplace.' },
-    { id: 'JLOG-002', timestamp: '2024-06-29T11:30:00Z', jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'Ben Carter', actorRole: 'Provider', action: 'Bid Placed', details: 'Bid for $12,500 submitted by MISTRAS Group.' },
+    { id: 'JLOG-002', timestamp: '2024-06-29T11:30:00Z', jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Bid Placed', details: 'Bid for $12,500 submitted by MISTRAS Group.' },
     { id: 'JLOG-003', timestamp: '2024-06-19T15:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to TEAM, Inc. for $4,800.' },
-    { id: 'JLOG-004', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'Carlos Ray', actorRole: 'Provider', action: 'Report Submitted', details: 'Inspection report uploaded.' },
+    { id: 'JLOG-004', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Report Submitted', details: 'Inspection report uploaded.' },
     { id: 'JLOG-005', timestamp: '2024-06-22T09:00:00Z', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'System', actorRole: 'Admin', action: 'Status Changed', details: 'Status changed to Report Submitted.' },
     { id: 'JLOG-006', timestamp: '2024-07-26T10:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT/MT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $19,500.' },
     { id: 'JLOG-007', timestamp: '2024-07-28T09:00:00Z', jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT/MT', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Resource Assigned', details: 'Assigned Technicians: Maria Garcia, James Wilson' },
@@ -917,6 +896,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

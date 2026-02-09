@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -10,8 +11,8 @@ import { Search, Bell, Globe, QrCode, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearch } from './search-provider';
-import { useQRScanner } from './qr-scanner-provider';
+import { useSearch } from '@/app/components/layout/search-provider';
+import { useQRScanner } from '@/app/components/layout/qr-scanner-provider';
 import { notifications as initialNotifications, Notification } from '@/lib/placeholder-data';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -20,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 
 const userDetails = {
     client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.', location: 'Houston, TX', address: '123 Energy Corridor' },
-    inspector: { name: 'Jane Smith', role: 'Level II Inspector', fallback: 'JS', company: 'TEAM, Inc.', location: 'Sugar Land, TX', address: '1 Fluor Daniel Dr' },
+    inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.', location: 'Sugar Land, TX', address: '1 Fluor Daniel Dr' },
     admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT Exchange', location: 'Palo Alto, CA', address: '123 Main St' },
     auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC', location: 'Washington, D.C.', address: '456 Gov Ave' },
 };

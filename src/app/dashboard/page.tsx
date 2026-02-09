@@ -14,7 +14,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { assets as clientAssets, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData } from "@/lib/placeholder-data";
+import { assets as clientAssets, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, Job } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { auditFirms } from '@/lib/auditors-data';
 import { useSearchParams } from "next/navigation";
@@ -732,7 +732,8 @@ const AdminDashboard = () => {
                 batch.set(docRef, asset);
             });
             
-            allUsers.forEach(user => {
+            const usersToSeed = allUsers.filter(u => u.company !== 'NDT EXCHANGE');
+            usersToSeed.forEach(user => {
                 const docRef = doc(firestore, 'users', user.id);
                 const { password, ...userToSave } = user;
                 batch.set(docRef, userToSave);

@@ -1,4 +1,5 @@
 
+
 import { serviceProviders } from './service-providers-data';
 
 export type AssetUpdate = {
@@ -783,7 +784,7 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-TECH-06', name: 'Frank Miller', email: 'frank.miller@applus.com', role: 'Inspector', company: 'Applus+', status: 'Active', certifications: [{method: 'ET', level: 'Level II'}, {method: 'ACFM', level: 'Level II'}, {method: 'RFT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-02', level: 'Level II' },
     { id: 'user-TECH-07', name: 'Samantha Wu', email: 'samantha.wu@tuv.com', role: 'Inspector', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'VT', level: 'Level III'}, {method: 'RVI', level: 'Level II'}, {method: 'IR', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-04', level: 'Level III' },
     { id: 'user-TECH-08', name: 'James Wilson', email: 'james.wilson@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}, {method: 'PAUT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II' },
-    { id: 'user-TECH-09', name: 'Steven Shaw', email: 'steven.shaw@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Disabled', certifications: [{method: 'RT', level: 'Level II'}], workStatus: undefined, providerId: 'provider-03', level: 'Level II' },
+    { id: 'user-TECH-09', name: 'Steven Shaw', email: 'steven.shaw@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Disabled', certifications: [{method: 'RT', level: 'Level II'}], providerId: 'provider-03', level: 'Level II' },
     { id: 'user-TECH-10', name: 'Olivia Chen', email: 'olivia.chen@tuv.com', role: 'Inspector', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'PT', level: 'Level II'}, {method: 'VT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-04', level: 'Level II' },
     { id: 'user-TECH-11', name: 'Michael Brown', email: 'michael.brown@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level I'}, {method: 'MT', level: 'Level I'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level I' },
     { id: 'user-TECH-12', name: 'Emily Rodriguez', email: 'emily.rodriguez@mistras.com', role: 'Inspector', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'UT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-01', level: 'Level II' },
@@ -916,6 +917,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

@@ -3,8 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
-import { NDTTechniques, jobs, technicians, Technician, Inspection } from '@/lib/placeholder-data';
+import { useMemo, useEffect } from 'react';
+import { NDTTechniques, jobs, allUsers, PlatformUser, Inspection } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -60,8 +60,8 @@ export default function ReportsListPage() {
 
         const augmented = filtered.map(inspection => {
             const assignedTechnicians = inspection.job?.technicianIds
-                ?.map(techId => technicians.find(t => t.id === techId))
-                .filter((t): t is Technician => !!t) ?? [];
+                ?.map(techId => allUsers.find(t => t.id === techId))
+                .filter((t): t is PlatformUser => !!t) ?? [];
             return {
                 ...inspection,
                 assignedTechnicians

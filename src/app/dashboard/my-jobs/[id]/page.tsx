@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, allUsers, inspectorAssets, Bid, Job, reviews, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport } from '@/lib/placeholder-data';
+import { jobs, allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review } from '@/lib/placeholder-data';
 import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,8 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, query, where, limit, getDocs } from 'firebase/firestore';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -385,6 +388,7 @@ export default function JobDetailPage() {
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     const isMobile = useMobile();
+    const { firestore, user } = useFirebase();
     
     // State for the entire page's data to avoid hydration issues with direct mutation
     const [jobDetails, setJobDetails] = useState<Job | undefined>(() => JSON.parse(JSON.stringify(jobs.find(j => j.id === id))));
@@ -402,9 +406,8 @@ export default function JobDetailPage() {
     const [initialDocName, setInitialDocName] = React.useState<string | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
-    const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(true);
+    const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(false);
     const [rating, setRating] = React.useState(0);
-    const [hoverRating, setHoverRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
 
     // Re-initialize state if id changes
@@ -413,21 +416,29 @@ export default function JobDetailPage() {
         if (jobData) {
             setJobDetails(JSON.parse(JSON.stringify(jobData)));
             
-            const existingReview = reviews.find(r => r.jobId === id && r.clientId === 'client-01'); // Assuming client-01 for demo
-            if (existingReview) {
-                setRating(existingReview.rating);
-                setReviewComment(existingReview.comment);
-                setReviewSubmitted(true);
-                setHasBeenSubmittedOnce(true);
-            } else {
-                 // Reset review state if navigating to a job without a review
-                setRating(0);
-                setReviewComment("");
-                setReviewSubmitted(false);
-                setHasBeenSubmittedOnce(false);
-            }
+            const checkForReview = async () => {
+                if (!firestore) return;
+                const reviewsRef = collection(firestore, 'reviews');
+                // Assuming client-01 for demo purposes
+                const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'client-01'), limit(1));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const existingReview = querySnapshot.docs[0].data() as Review;
+                    setRating(existingReview.rating);
+                    setReviewComment(existingReview.comment);
+                    setReviewSubmitted(true);
+                    setHasBeenSubmittedOnce(true);
+                } else {
+                    setRating(0);
+                    setReviewComment("");
+                    setReviewSubmitted(false);
+                    setHasBeenSubmittedOnce(false);
+                }
+            };
+
+            checkForReview();
         }
-    }, [id]);
+    }, [id, firestore]);
 
     if (!jobDetails) {
         notFound();
@@ -570,7 +581,7 @@ export default function JobDetailPage() {
         });
     }
 
-    const handleReviewSubmit = () => {
+    const handleReviewSubmit = async () => {
         if (rating === 0) {
             toast({
                 variant: "destructive",
@@ -579,15 +590,29 @@ export default function JobDetailPage() {
             });
             return;
         }
-        console.log({
+    
+        if (!firestore || !user || !jobDetails?.providerId) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not submit review. Please try again.' });
+            return;
+        }
+    
+        const reviewData = {
             jobId: jobDetails.id,
-            rating,
+            providerId: jobDetails.providerId,
+            clientId: 'client-01', // Using placeholder for demo consistency
+            rating: rating,
             comment: reviewComment,
-        });
+            date: serverTimestamp(),
+            status: 'Pending',
+        };
+    
+        await addDocumentNonBlocking(collection(firestore, 'reviews'), reviewData);
+        
         toast({
-            title: hasBeenSubmittedOnce ? "Review Updated!" : "Review Submitted!",
-            description: "Thank you for your feedback.",
+            title: "Review Submitted!",
+            description: "Thank you for your feedback. Your review is pending approval.",
         });
+    
         setReviewSubmitted(true);
         if (!hasBeenSubmittedOnce) {
             setHasBeenSubmittedOnce(true);

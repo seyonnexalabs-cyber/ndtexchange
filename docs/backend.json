@@ -63,7 +63,7 @@
         "technique": { "type": "string", "description": "The NDT technique required for the job." },
         "status": { "type": "string", "description": "Current status of the job (e.g., Posted, Assigned, Completed)." }
       },
-      "required": ["id", "clientId", "location", "technique", "status"]
+      "required": ["id", "clientId", "assetIds", "location", "technique", "status"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -243,6 +243,22 @@
         "details": { "type": "string", "description": "Details about the billing event." }
       },
       "required": ["timestamp", "companyName", "action", "details"]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a review submitted by a client for a service provider after a job is completed.",
+      "properties": {
+        "jobId": { "type": "string", "description": "Reference to the Job this review is for." },
+        "providerId": { "type": "string", "description": "Reference to the User (Provider) being reviewed." },
+        "clientId": { "type": "string", "description": "Reference to the User (Client) who wrote the review." },
+        "rating": { "type": "number", "description": "The star rating given, from 1 to 5." },
+        "comment": { "type": "string", "description": "The text content of the review." },
+        "date": { "type": "string", "format": "date-time", "description": "The date the review was submitted." },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"], "description": "The moderation status of the review." }
+      },
+      "required": ["jobId", "providerId", "clientId", "rating", "date", "status"]
     }
   },
   "auth": {
@@ -305,6 +321,10 @@
       {
         "path": "/billingAuditLogs/{logId}",
         "definition": { "entityName": "BillingAuditLog", "schema": { "$ref": "#/entities/BillingAuditLog" }, "description": "Stores billing-related audit logs." }
+      },
+      {
+        "path": "/reviews/{reviewId}",
+        "definition": { "entityName": "Review", "schema": { "$ref": "#/entities/Review" }, "description": "Stores all reviews submitted by clients for providers." }
       }
     ],
     "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages and Support Messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."

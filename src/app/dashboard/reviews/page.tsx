@@ -4,20 +4,18 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { reviews, jobs, clientData } from "@/lib/placeholder-data";
+import { jobs, clientData, Review } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Check, X, MoreVertical } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Link from 'next/link';
-import { Review } from '@/lib/placeholder-data';
+import { Star, Check, X } from "lucide-react";
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, query, orderBy } from 'firebase/firestore';
+
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -63,7 +61,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                     <CardContent>
                         <StarRating rating={review.rating} />
                         <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-3 rounded-md border">{review.comment}</p>
-                        <p className="text-xs text-muted-foreground mt-2">{format(new Date(review.date), GLOBAL_DATE_FORMAT)}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'Just now'}</p>
                     </CardContent>
                     {review.status === 'Pending' && (
                         <CardFooter className="flex justify-end gap-2">
@@ -82,7 +80,7 @@ export default function ReviewsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const [reviewList, setReviewList] = useState(reviews);
+    const { firestore } = useFirebase();
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -90,15 +88,28 @@ export default function ReviewsPage() {
         }
     }, [role, router, searchParams]);
 
+    const reviewsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'reviews'), orderBy('date', 'desc'));
+    }, [firestore]);
+
+    const { data: reviewList } = useCollection<Review>(reviewsQuery);
+
+
     const handleApprove = (id: string) => {
-        setReviewList(prev => prev.map(r => r.id === id ? { ...r, status: 'Approved' } : r));
+        if (!firestore) return;
+        const reviewRef = doc(firestore, 'reviews', id);
+        setDocumentNonBlocking(reviewRef, { status: 'Approved' }, { merge: true });
     };
 
     const handleReject = (id: string) => {
-        setReviewList(prev => prev.map(r => r.id === id ? { ...r, status: 'Rejected' } : r));
+        if (!firestore) return;
+        const reviewRef = doc(firestore, 'reviews', id);
+        setDocumentNonBlocking(reviewRef, { status: 'Rejected' }, { merge: true });
     };
 
     const mappedReviews = useMemo(() => {
+        if (!reviewList) return [];
         return reviewList.map(review => ({
             ...review,
             job: jobs.find(j => j.id === review.jobId),

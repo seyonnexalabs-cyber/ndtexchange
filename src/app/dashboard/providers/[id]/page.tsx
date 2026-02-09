@@ -3,7 +3,7 @@
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
-import { notFound, useSearchParams, useParams } from "next/navigation";
+import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { serviceProviders } from "@/lib/service-providers-data";
-import { allUsers, inspectorAssets, InspectorAsset, subscriptions, reviews, clientData } from "@/lib/placeholder-data";
+import { allUsers, inspectorAssets, InspectorAsset, subscriptions, clientData, Review } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +21,8 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/comp
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -43,23 +45,34 @@ export default function ProviderDetailPage() {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
     
     const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
     const providerTechnicians = useMemo(() => allUsers.filter(u => u.providerId === id && u.status !== 'Disabled'), [id]);
     const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
     const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
 
+    const reviewsQuery = useMemoFirebase(() => {
+        if (!firestore || !id) return null;
+        return query(
+            collection(firestore, 'reviews'),
+            where('providerId', '==', id),
+            where('status', '==', 'Approved')
+        );
+    }, [firestore, id]);
+
+    const { data: reviewsData } = useCollection<Review>(reviewsQuery);
+
     const providerReviews = useMemo(() => {
-        return reviews
-            .filter(review => review.providerId === id && review.status === 'Approved')
-            .map(review => {
-                const client = clientData.find(c => c.id === review.clientId);
-                return {
-                    ...review,
-                    clientName: client ? client.name : 'Anonymous Client',
-                };
-            });
-    }, [id]);
+        if (!reviewsData) return [];
+        return reviewsData.map(review => {
+            const client = clientData.find(c => c.id === review.clientId);
+            return {
+                ...review,
+                clientName: client ? client.name : 'Anonymous Client',
+            };
+        });
+    }, [reviewsData]);
 
     if (!provider) {
         notFound();

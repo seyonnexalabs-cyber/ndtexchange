@@ -146,5 +146,23 @@ service cloud.firestore {
       allow read: if isPlatformAdmin();
       allow write: if false;
     }
+
+    /***********************************************************
+     * Review Rules (/reviews)
+     ***********************************************************/
+    match /reviews/{reviewId} {
+      // Anyone can read approved reviews.
+      allow get: if resource.data.status == 'Approved';
+      allow list: if isSignedIn(); 
+
+      // The client who owns the job can create a review for it.
+      function isJobClient(jobId) {
+        return get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid;
+      }
+      allow create: if isSignedIn() && isJobClient(request.resource.data.jobId) && request.resource.data.clientId == request.auth.uid;
+
+      // Only admins can update (for moderation) or delete reviews.
+      allow update, delete: if isPlatformAdmin();
+    }
   }
 }

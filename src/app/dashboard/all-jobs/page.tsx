@@ -17,9 +17,19 @@ import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, isToday } from "date-fns";
 import { useSearch } from "@/app/components/layout/search-provider";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+    PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 
 const statusFilters = ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'];
+const JOBS_PER_PAGE = 10;
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -47,6 +57,7 @@ export default function AllJobsPage() {
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -57,6 +68,10 @@ export default function AllJobsPage() {
     useEffect(() => {
         setToday(new Date());
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedProviders, selectedClients, selectedStatuses]);
     
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -87,6 +102,14 @@ export default function AllJobsPage() {
             return searchMatch && providerMatch && statusMatch && clientMatch;
         });
     }, [searchQuery, selectedProviders, selectedStatuses, selectedClients]);
+    
+    const pageCount = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
+
+    const paginatedJobs = useMemo(() => {
+        const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
+        return filteredJobs.slice(startIndex, startIndex + JOBS_PER_PAGE);
+    }, [filteredJobs, currentPage]);
+
 
     const handleProviderChange = (providerId: string) => {
         setSelectedProviders(prev => prev.includes(providerId) ? prev.filter(id => id !== providerId) : [...prev, providerId]);
@@ -105,6 +128,40 @@ export default function AllJobsPage() {
     if (role !== 'admin') {
         return null;
     }
+
+    const PaginationControls = () => (
+         pageCount > 1 && (
+            <div className="mt-6">
+                 <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                                }}
+                                className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                            />
+                        </PaginationItem>
+                         <PaginationItem>
+                            <span className="text-sm font-medium p-2">Page {currentPage} of {pageCount}</span>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setCurrentPage((prev) => Math.min(prev + 1, pageCount));
+                                }}
+                                 className={cn(currentPage === pageCount && "pointer-events-none opacity-50")}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            </div>
+        )
+    );
 
     return (
         <div>
@@ -233,93 +290,99 @@ export default function AllJobsPage() {
             )}
             
             {isMobile ? (
-                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                    {filteredJobs.map(job => (
-                        <Card key={job.id}>
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                        <p className="text-xs text-muted-foreground font-extrabold">{job.id}</p>
-                                    </div>
-                                    <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
-                                </div>
-                                <CardDescription>{job.client} - {job.technique}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                    <Building className="w-4 h-4 mr-2 text-primary" />
-                                    <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
-                                </div>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
-                                    <span>{job.location}</span>
-                                </div>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                    <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                    {today && isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
-                                </div>
-                                {job.bidExpiryDate && (
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <AlarmClock className="w-4 h-4 mr-2 text-primary" />
-                                        <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
-                                        {today && isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
-                                    </div>
-                                )}
-                            </CardContent>
-                            <CardFooter>
-                                <Button asChild>
-                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <Card>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Job ID</TableHead>
-                                <TableHead>Job Title</TableHead>
-                                <TableHead>Client</TableHead>
-                                <TableHead>Assets</TableHead>
-                                <TableHead>Technique</TableHead>
-                                <TableHead>Location</TableHead>
-                                <TableHead>Posted</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredJobs.map(job => (
-                                <TableRow key={job.id}>
-                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
-                                    <TableCell className="font-medium">{job.title}</TableCell>
-                                    <TableCell>{job.client}</TableCell>
-                                    <TableCell>{job.assetIds?.length || 0}</TableCell>
-                                    <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
-                                    <TableCell>{job.location}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                            {today && isToday(new Date(job.postedDate)) && <Badge>Today</Badge>}
+                <>
+                    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                        {paginatedJobs.map(job => (
+                            <Card key={job.id}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                                            <p className="text-xs text-muted-foreground font-extrabold">{job.id}</p>
                                         </div>
-                                    </TableCell>
-                                    <TableCell>
                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button asChild variant="outline" size="sm">
-                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Details</Link>
-                                        </Button>
-                                    </TableCell>
+                                    </div>
+                                    <CardDescription>{job.client} - {job.technique}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <Building className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <MapPin className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{job.location}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <Calendar className="w-4 h-4 mr-2 text-primary" />
+                                        <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                        {today && isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
+                                    </div>
+                                    {job.bidExpiryDate && (
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                            <AlarmClock className="w-4 h-4 mr-2 text-primary" />
+                                            <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
+                                            {today && isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
+                                        </div>
+                                    )}
+                                </CardContent>
+                                <CardFooter>
+                                    <Button asChild>
+                                        <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                     <PaginationControls />
+                </>
+            ) : (
+                <>
+                    <Card>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Job ID</TableHead>
+                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Client</TableHead>
+                                    <TableHead>Assets</TableHead>
+                                    <TableHead>Technique</TableHead>
+                                    <TableHead>Location</TableHead>
+                                    <TableHead>Posted</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </Card>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedJobs.map(job => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                        <TableCell className="font-medium">{job.title}</TableCell>
+                                        <TableCell>{job.client}</TableCell>
+                                        <TableCell>{job.assetIds?.length || 0}</TableCell>
+                                        <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
+                                        <TableCell>{job.location}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                                {today && isToday(new Date(job.postedDate)) && <Badge>Today</Badge>}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Details</Link>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Card>
+                    <PaginationControls />
+                </>
             )}
 
              {filteredJobs.length === 0 && (

@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,13 @@ import { doc, setDoc, collection } from 'firebase/firestore';
 import type { PlatformUser } from '@/lib/placeholder-data';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { clientData } from '@/lib/placeholder-data';
+import { serviceProviders } from '@/lib/service-providers-data';
+import { auditFirms } from '@/lib/auditors-data';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 
 const companySignupSchema = z.object({
@@ -40,11 +47,21 @@ export default function SignupPage() {
   const { auth, firestore } = useFirebase();
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [selectedCompany, setSelectedCompany] = useState<{ name: string; type: "client" | "inspector" | "auditor"; } | null>(null);
+  const [suggestions, setSuggestions] = useState<{ name: string; type: "client" | "inspector" | "auditor"; }[]>([]);
+  const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
   
+  const allCompanies = useMemo(() => [
+      ...clientData.map(c => ({ name: c.name, type: 'client' as const })),
+      ...serviceProviders.map(p => ({ name: p.name, type: 'inspector' as const })),
+      ...auditFirms.map(a => ({ name: a.name, type: 'auditor' as const }))
+  ], []);
+
   const form = useForm<z.infer<typeof companySignupSchema>>({
     resolver: zodResolver(companySignupSchema),
     defaultValues: {
@@ -57,6 +74,15 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: z.infer<typeof companySignupSchema>) => {
+    if (selectedCompany) {
+      toast({
+          variant: "destructive",
+          title: "Cannot Create Account",
+          description: "The selected company is already registered.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     if (!auth || !firestore) {
       toast({
@@ -167,21 +193,80 @@ export default function SignupPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Company Name</FormLabel>
-                                        <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
+                                        <Popover open={isSuggestionsOpen} onOpenChange={setSuggestionsOpen}>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Start typing your company name..."
+                                                        {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(e);
+                                                            const search = e.target.value;
+                                                            if (selectedCompany) setSelectedCompany(null);
+                                                            
+                                                            if (search.length >= 2) {
+                                                                const filtered = allCompanies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+                                                                setSuggestions(filtered);
+                                                                setSuggestionsOpen(filtered.length > 0);
+                                                            } else {
+                                                                setSuggestions([]);
+                                                                setSuggestionsOpen(false);
+                                                            }
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent 
+                                                className="w-[--radix-popover-trigger-width] p-0" 
+                                                onOpenAutoFocus={(e) => e.preventDefault()}
+                                            >
+                                                <Command>
+                                                    <CommandList>
+                                                        <CommandEmpty>No existing company found. You can create a new one.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {suggestions.map((company) => (
+                                                            <CommandItem
+                                                                key={company.name}
+                                                                onSelect={() => {
+                                                                    form.setValue("companyName", company.name);
+                                                                    form.setValue("companyType", company.type);
+                                                                    setSelectedCompany(company);
+                                                                    setSuggestionsOpen(false);
+                                                                }}
+                                                            >
+                                                                {company.name}
+                                                            </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
                                         <FormDescription>
-                                            Please ensure your company is not already registered. If it is, ask your company administrator to invite you.
+                                            If your company is already registered, please contact your administrator for an invitation.
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+
+                             {selectedCompany && (
+                                <Alert variant="destructive">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Company Already Registered</AlertTitle>
+                                    <AlertDescription>
+                                        <strong>{selectedCompany.name}</strong> is already on NDT EXCHANGE. You cannot create a duplicate company. If you work for this company, please contact your administrator to receive an invitation.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                            
                             <FormField
                                 control={form.control}
                                 name="companyType"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Company Type</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={!!selectedCompany}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select your company type" /></SelectTrigger></FormControl>
                                             <SelectContent>
                                                 <SelectItem value="client">Client / Asset Owner</SelectItem>
@@ -199,7 +284,7 @@ export default function SignupPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Your Full Name</FormLabel>
-                                        <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                                        <FormControl><Input placeholder="John Doe" {...field} disabled={!!selectedCompany} /></FormControl>
                                         <FormDescription>You will be the administrator for this company account.</FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -211,7 +296,7 @@ export default function SignupPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Your Work Email</FormLabel>
-                                        <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
+                                        <FormControl><Input type="email" placeholder="you@company.com" {...field} disabled={!!selectedCompany} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -222,7 +307,7 @@ export default function SignupPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Password</FormLabel>
-                                        <FormControl><Input type="password" {...field} /></FormControl>
+                                        <FormControl><Input type="password" {...field} disabled={!!selectedCompany} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -236,6 +321,7 @@ export default function SignupPage() {
                                     <Checkbox
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
+                                    disabled={!!selectedCompany}
                                     />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
@@ -255,7 +341,7 @@ export default function SignupPage() {
                                 </FormItem>
                             )}
                             />
-                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            <Button type="submit" className="w-full" disabled={isSubmitting || !!selectedCompany}>
                                 {isSubmitting ? "Creating Account..." : "Create Company Account"}
                             </Button>
                         </form>

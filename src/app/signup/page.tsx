@@ -149,6 +149,9 @@ export default function SignupPage() {
                                 <FormItem>
                                     <FormLabel>Company Name</FormLabel>
                                     <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
+                                    <FormDescription>
+                                        Please ensure your company is not already registered. If it is, ask your company administrator to invite you.
+                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}

@@ -20,6 +20,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { allUsers } from '@/lib/placeholder-data';
+import { Eye, EyeOff } from 'lucide-react';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
 
@@ -34,11 +35,7 @@ export default function LoginPage() {
   const { auth, firestore } = useFirebase();
   const { user, isUserLoading } = useUser();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isUserLoading || !firestore) return;
@@ -110,7 +107,7 @@ export default function LoginPage() {
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
-            alt="An abstract image of colorful doors on a grassy field."
+            alt={heroImage.description}
             fill
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}
@@ -166,9 +163,28 @@ export default function LoginPage() {
                         Forgot your password?
                       </Link>
                     </div>
-                    <FormControl>
-                      <Input id="password" type="password" {...field} />
-                    </FormControl>
+                    <div className="relative">
+                        <FormControl>
+                        <Input
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            className="pr-10"
+                            {...field}
+                        />
+                        </FormControl>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground hover:bg-transparent"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                        >
+                            {showPassword ? <EyeOff /> : <Eye />}
+                            <span className="sr-only">
+                                {showPassword ? 'Hide password' : 'Show password'}
+                            </span>
+                        </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

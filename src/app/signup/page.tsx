@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ import { clientData } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { auditFirms } from '@/lib/auditors-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
 
 const companySignupSchema = z.object({
@@ -45,13 +44,29 @@ export default function SignupPage() {
   const { auth, firestore } = useFirebase();
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const [selectedCompany, setSelectedCompany] = useState<{ name: string; type: "client" | "inspector" | "auditor"; } | null>(null);
   const [suggestions, setSuggestions] = useState<{ name: string; type: "client" | "inspector" | "auditor"; }[]>([]);
-  const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
+  const companyInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    
+    const handleClickOutside = (event: MouseEvent) => {
+        if (
+            companyInputRef.current && !companyInputRef.current.contains(event.target as Node) &&
+            suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)
+        ) {
+            setSuggestions([]);
+        }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
   
   const allCompanies = useMemo(() => [
@@ -157,7 +172,7 @@ export default function SignupPage() {
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
-            alt="A modern doorway, symbolizing a new opportunity."
+            alt={heroImage.description}
             fill
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}
@@ -194,6 +209,7 @@ export default function SignupPage() {
                                         <div className="relative">
                                             <FormControl>
                                                 <Input
+                                                    ref={companyInputRef}
                                                     placeholder="Start typing your company name..."
                                                     {...field}
                                                     onChange={(e) => {
@@ -204,38 +220,30 @@ export default function SignupPage() {
                                                         if (search.length >= 2) {
                                                             const filtered = allCompanies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
                                                             setSuggestions(filtered);
-                                                            setSuggestionsOpen(true);
                                                         } else {
                                                             setSuggestions([]);
-                                                            setSuggestionsOpen(false);
                                                         }
-                                                    }}
-                                                    onBlur={() => {
-                                                        // Delay to allow click on suggestion
-                                                        setTimeout(() => setSuggestionsOpen(false), 150);
                                                     }}
                                                 />
                                             </FormControl>
-                                            {isSuggestionsOpen && (
-                                                <div className="absolute z-10 w-full bg-popover text-popover-foreground shadow-md rounded-md border mt-1">
-                                                    {suggestions.length > 0 ? suggestions.map((company) => (
+                                            {suggestions.length > 0 && (
+                                                <div ref={suggestionsRef} className="absolute z-10 w-full bg-popover text-popover-foreground shadow-md rounded-md border mt-1">
+                                                    {suggestions.map((company) => (
                                                         <button
                                                             key={company.name}
                                                             type="button"
                                                             className="w-full text-left p-2 rounded-sm text-sm hover:bg-accent"
-                                                            onMouseDown={(e) => { // Use onMouseDown to fire before input's onBlur
+                                                            onMouseDown={(e) => {
                                                                 e.preventDefault();
                                                                 form.setValue("companyName", company.name);
                                                                 form.setValue("companyType", company.type);
                                                                 setSelectedCompany(company);
-                                                                setSuggestionsOpen(false);
+                                                                setSuggestions([]);
                                                             }}
                                                         >
                                                             {company.name}
                                                         </button>
-                                                    )) : (
-                                                        <p className="p-2 text-sm text-muted-foreground">No existing company found. You can create a new one.</p>
-                                                    )}
+                                                    ))}
                                                 </div>
                                             )}
                                         </div>
@@ -304,7 +312,29 @@ export default function SignupPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Password</FormLabel>
-                                        <FormControl><Input type="password" {...field} disabled={!!selectedCompany} /></FormControl>
+                                        <div className="relative">
+                                            <FormControl>
+                                                <Input
+                                                type={showPassword ? 'text' : 'password'}
+                                                className="pr-10"
+                                                {...field}
+                                                disabled={!!selectedCompany}
+                                                />
+                                            </FormControl>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground hover:bg-transparent"
+                                                onClick={() => setShowPassword((prev) => !prev)}
+                                                disabled={!!selectedCompany}
+                                            >
+                                                {showPassword ? <EyeOff /> : <Eye />}
+                                                <span className="sr-only">
+                                                {showPassword ? 'Hide password' : 'Show password'}
+                                                </span>
+                                            </Button>
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}

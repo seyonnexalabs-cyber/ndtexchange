@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFirebase, useUser } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { allUsers } from '@/lib/placeholder-data';
@@ -42,18 +42,38 @@ export default function LoginPage() {
 
     if (user) {
       const fetchUserRoleAndRedirect = async () => {
+        let userData;
         try {
+          // First, try to get the user document with the Firebase Auth UID.
+          // This is the standard and most secure way.
           const userDocRef = doc(firestore, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            const userData = userDoc.data();
+            userData = userDoc.data();
+          } else {
+            // If not found (which can happen in dev with seeded data),
+            // fall back to looking up by email. This is less secure and should
+            // only be a dev-time convenience.
+            console.warn("User document not found with UID. Falling back to email lookup for development environment.");
+            const usersRef = collection(firestore, "users");
+            const q = query(usersRef, where("email", "==", user.email), limit(1));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+              const userDocFromEmail = querySnapshot.docs[0];
+              userData = userDocFromEmail.data();
+              console.log("Found user by email:", userData);
+            }
+          }
+
+          if (userData) {
             const role = (userData.role as string).toLowerCase() as UserType;
             const params = new URLSearchParams();
             params.set('role', role);
             router.push(`/dashboard?${params.toString()}`);
           } else {
-            // This case might happen if user profile creation failed during signup
+            // If user exists in Auth but not in Firestore (even after fallback)
             toast({
               variant: 'destructive',
               title: 'Login Failed',
@@ -74,7 +94,7 @@ export default function LoginPage() {
 
       fetchUserRoleAndRedirect();
     } else {
-      // If user is null and we are not loading, authentication might have failed.
+      // If user is null and we are not loading, an authentication attempt might have just failed.
       if (isAuthenticating) {
         toast({
             variant: 'destructive',

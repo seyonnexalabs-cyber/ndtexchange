@@ -92,6 +92,7 @@ service cloud.firestore {
      ***********************************************************/
     match /companies/{companyId} {
       allow get: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.contactEmail == request.auth.token.email;
     }
 
     match /subscriptions/{subscriptionId} {

@@ -99,7 +99,7 @@ export default function LoginPage() {
 
   const devLogins = [
     allUsers.find(u => u.id === 'user-client-01'),
-    allUsers.find(u => u.id === 'user-tech-05'),
+    allUsers.find(u => u.id === 'user-TECH-05'),
     allUsers.find(u => u.id === 'user-auditor-01'),
     allUsers.find(u => u.id === 'user-admin-01'),
   ].filter(Boolean);
@@ -110,7 +110,7 @@ export default function LoginPage() {
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
-            alt="An open door symbolizing access to the platform."
+            alt="An abstract image of colorful doors on a grassy field."
             fill
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}

@@ -8,9 +8,9 @@
     },
     {
       "id": "hero-login",
-      "description": "A field of colorful, abstract doors on a grassy field.",
-      "imageUrl": "https://images.unsplash.com/photo-1551886362-e6c384805728?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhYnN0cmFjdCUyMGRvb3J8ZW58MHx8fHwxNzIwNzg0MjY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "abstract doors"
+      "description": "View of concrete buildings from window during daytime.",
+      "imageUrl": "https://images.unsplash.com/photo-1616091216799-413993355403?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfGFsbHx8fHx8fHx8fDE3MjE4MzY4ODd8&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "city view"
     },
     {
       "id": "hero-signup",

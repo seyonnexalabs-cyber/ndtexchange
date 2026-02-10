@@ -24,7 +24,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { clientData } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { auditFirms } from '@/lib/auditors-data';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
@@ -187,7 +186,7 @@ export default function SignupPage() {
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField
+                           <FormField
                                 control={form.control}
                                 name="companyName"
                                 render={({ field }) => (
@@ -217,29 +216,26 @@ export default function SignupPage() {
                                                 </FormControl>
                                             </PopoverTrigger>
                                             <PopoverContent 
-                                                className="w-[--radix-popover-trigger-width] p-0" 
+                                                className="w-[--radix-popover-trigger-width] p-1" 
                                                 onOpenAutoFocus={(e) => e.preventDefault()}
                                             >
-                                                <Command>
-                                                    <CommandList>
-                                                        <CommandEmpty>No existing company found. You can create a new one.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {suggestions.map((company) => (
-                                                            <CommandItem
-                                                                key={company.name}
-                                                                onSelect={() => {
-                                                                    form.setValue("companyName", company.name);
-                                                                    form.setValue("companyType", company.type);
-                                                                    setSelectedCompany(company);
-                                                                    setSuggestionsOpen(false);
-                                                                }}
-                                                            >
-                                                                {company.name}
-                                                            </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
+                                                {suggestions.length > 0 ? suggestions.map((company) => (
+                                                    <button
+                                                        key={company.name}
+                                                        type="button"
+                                                        className="w-full text-left p-2 rounded-sm text-sm hover:bg-accent"
+                                                        onClick={() => {
+                                                            form.setValue("companyName", company.name);
+                                                            form.setValue("companyType", company.type);
+                                                            setSelectedCompany(company);
+                                                            setSuggestionsOpen(false);
+                                                        }}
+                                                    >
+                                                        {company.name}
+                                                    </button>
+                                                )) : (
+                                                    <p className="p-2 text-sm text-muted-foreground">No existing company found. You can create a new one.</p>
+                                                )}
                                             </PopoverContent>
                                         </Popover>
                                         <FormDescription>

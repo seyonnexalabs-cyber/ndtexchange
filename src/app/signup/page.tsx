@@ -24,7 +24,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { clientData } from '@/lib/placeholder-data';
 import { serviceProviders } from '@/lib/service-providers-data';
 import { auditFirms } from '@/lib/auditors-data';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 
@@ -192,52 +191,54 @@ export default function SignupPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Company Name</FormLabel>
-                                        <Popover open={isSuggestionsOpen} onOpenChange={setSuggestionsOpen}>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Start typing your company name..."
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(e);
-                                                            const search = e.target.value;
-                                                            if (selectedCompany) setSelectedCompany(null);
-                                                            
-                                                            if (search.length >= 2) {
-                                                                const filtered = allCompanies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-                                                                setSuggestions(filtered);
-                                                                setSuggestionsOpen(filtered.length > 0);
-                                                            } else {
-                                                                setSuggestions([]);
-                                                                setSuggestionsOpen(false);
-                                                            }
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent 
-                                                className="w-[--radix-popover-trigger-width] p-1" 
-                                                onOpenAutoFocus={(e) => e.preventDefault()}
-                                            >
-                                                {suggestions.length > 0 ? suggestions.map((company) => (
-                                                    <button
-                                                        key={company.name}
-                                                        type="button"
-                                                        className="w-full text-left p-2 rounded-sm text-sm hover:bg-accent"
-                                                        onClick={() => {
-                                                            form.setValue("companyName", company.name);
-                                                            form.setValue("companyType", company.type);
-                                                            setSelectedCompany(company);
+                                        <div className="relative">
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Start typing your company name..."
+                                                    {...field}
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        const search = e.target.value;
+                                                        if (selectedCompany) setSelectedCompany(null);
+                                                        
+                                                        if (search.length >= 2) {
+                                                            const filtered = allCompanies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+                                                            setSuggestions(filtered);
+                                                            setSuggestionsOpen(true);
+                                                        } else {
+                                                            setSuggestions([]);
                                                             setSuggestionsOpen(false);
-                                                        }}
-                                                    >
-                                                        {company.name}
-                                                    </button>
-                                                )) : (
-                                                    <p className="p-2 text-sm text-muted-foreground">No existing company found. You can create a new one.</p>
-                                                )}
-                                            </PopoverContent>
-                                        </Popover>
+                                                        }
+                                                    }}
+                                                    onBlur={() => {
+                                                        // Delay to allow click on suggestion
+                                                        setTimeout(() => setSuggestionsOpen(false), 150);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            {isSuggestionsOpen && (
+                                                <div className="absolute z-10 w-full bg-popover text-popover-foreground shadow-md rounded-md border mt-1">
+                                                    {suggestions.length > 0 ? suggestions.map((company) => (
+                                                        <button
+                                                            key={company.name}
+                                                            type="button"
+                                                            className="w-full text-left p-2 rounded-sm text-sm hover:bg-accent"
+                                                            onMouseDown={(e) => { // Use onMouseDown to fire before input's onBlur
+                                                                e.preventDefault();
+                                                                form.setValue("companyName", company.name);
+                                                                form.setValue("companyType", company.type);
+                                                                setSelectedCompany(company);
+                                                                setSuggestionsOpen(false);
+                                                            }}
+                                                        >
+                                                            {company.name}
+                                                        </button>
+                                                    )) : (
+                                                        <p className="p-2 text-sm text-muted-foreground">No existing company found. You can create a new one.</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                         <FormDescription>
                                             If your company is already registered, please contact your administrator for an invitation.
                                         </FormDescription>

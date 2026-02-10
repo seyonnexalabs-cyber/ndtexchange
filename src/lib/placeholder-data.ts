@@ -155,6 +155,7 @@ export type PlatformUser = {
     name: string;
     email: string;
     role: string;
+    companyId: string;
     company: string;
     status: 'Active' | 'Invited' | 'Disabled';
     password?: string; // For dev login purposes
@@ -571,7 +572,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-25', 
         scheduledStartDate: nextWeek.toISOString().split('T')[0], 
         scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
-        assetIds: ['ASSET-001', 'ASSET-004', 'ASSET-010'], 
+        assetIds: ['ASSET-001', 'ASSET-004'], 
         workflow: 'standard' 
     },
     { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: ['ASSET-005'], workflow: 'level3' },
@@ -788,10 +789,10 @@ export const reviews: Review[] = [
 ];
 
 export const allUsers: PlatformUser[] = [
-    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
-    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
-    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
-    { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
+    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', companyId: 'client-01', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
+    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'NDTX', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
+    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
+    { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
 ];
 
 export const subscriptions: Subscription[] = [
@@ -914,6 +915,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

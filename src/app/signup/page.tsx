@@ -1,10 +1,8 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { LogoIcon } from '@/app/components/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,48 +14,21 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { NDTTechniques, PlatformUser } from '@/lib/placeholder-data';
 import { useFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection } from 'firebase/firestore';
+import type { PlatformUser } from '@/lib/placeholder-data';
 
 
-const signupSchema = z.object({
-  fullName: z.string().min(2, "Full name is required."),
-  companyName: z.string().optional(),
+const companySignupSchema = z.object({
+  companyName: z.string().min(2, "Company name is required."),
+  companyType: z.enum(["client", "inspector", "auditor"], { required_error: 'Please select a company type.' }),
+  fullName: z.string().min(2, "Your full name is required."),
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters."),
-  role: z.enum(["client", "inspector", "auditor", "admin"], { required_error: 'Please select your primary role.' }),
   agreedToTerms: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
-  level: z.enum(["Level I", "Level II", "Level III"]).optional(),
-  certifications: z.array(z.string()).optional(),
-}).superRefine((data, ctx) => {
-    if (data.role !== 'admin' && (!data.companyName || data.companyName.length < 2)) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['companyName'],
-            message: 'Company name is required for this role.',
-        });
-    }
-    if (data.role === 'inspector' || data.role === 'auditor') {
-        if (!data.level) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['level'],
-                message: 'Certification level is required for this role.',
-            });
-        }
-        if (!data.certifications || data.certifications.length === 0) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['certifications'],
-                message: 'Please select at least one certification.',
-            });
-        }
-    }
 });
 
 export default function SignupPage() {
@@ -71,8 +42,8 @@ export default function SignupPage() {
     setIsMounted(true);
   }, []);
   
-  const form = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema),
+  const form = useForm<z.infer<typeof companySignupSchema>>({
+    resolver: zodResolver(companySignupSchema),
     defaultValues: {
       fullName: '',
       companyName: '',
@@ -82,36 +53,57 @@ export default function SignupPage() {
     },
   });
 
-  const role = form.watch('role');
-
-  const onSubmit = async (data: z.infer<typeof signupSchema>) => {
+  const onSubmit = async (data: z.infer<typeof companySignupSchema>) => {
     setIsSubmitting(true);
+    if (!auth || !firestore) {
+      toast({
+        variant: "destructive",
+        title: "Signup Error",
+        description: "Firebase service is not available. Please try again later.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+        // 1. Create Firebase Auth user
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
-        const userProfile: Omit<PlatformUser, 'password'> = {
+        // 2. Create Company document
+        const companyRef = doc(collection(firestore, "companies")); // Creates a doc with a new auto-generated ID
+        await setDoc(companyRef, {
+            id: companyRef.id,
+            name: data.companyName,
+            type: data.companyType.charAt(0).toUpperCase() + data.companyType.slice(1),
+            contactPerson: data.fullName,
+            contactEmail: data.email,
+        });
+
+        // 3. Create User document
+        const userRole = data.companyType.charAt(0).toUpperCase() + data.companyType.slice(1);
+        const userDocRef = doc(firestore, "users", user.uid);
+        
+        const userProfile: Partial<PlatformUser> = {
             id: user.uid,
             name: data.fullName,
             email: data.email,
-            role: data.role.charAt(0).toUpperCase() + data.role.slice(1),
-            company: data.role === 'admin' ? 'NDT EXCHANGE' : data.companyName || '',
+            role: userRole,
+            companyId: companyRef.id, // Link user to the new company
+            company: data.companyName,
             status: 'Active',
         };
-
-        if (data.role === 'inspector' || data.role === 'auditor') {
-            userProfile.certifications = data.certifications?.map(c => ({ method: c, level: data.level! })) || [];
-            userProfile.workStatus = 'Available';
-            userProfile.level = data.level;
-            userProfile.providerId = data.companyName?.toLowerCase().replace(/\s+/g, '-').substring(0, 10);
+        
+        // Add provider-specific field if it's an inspector company
+        if (data.companyType === 'inspector') {
+            userProfile.providerId = companyRef.id;
         }
 
-        const userDocRef = doc(firestore, "users", user.uid);
         await setDoc(userDocRef, userProfile);
 
         toast({
             title: "Account Created!",
-            description: "Welcome to NDT EXCHANGE. You can now log in.",
+            description: "Welcome to NDT EXCHANGE. Your company is onboarded, and you can now log in.",
         });
         router.push(`/login`);
 
@@ -138,48 +130,65 @@ export default function SignupPage() {
       )}>
         <div className="space-y-2 text-center">
             <Link href="/" className="flex items-center justify-center">
-                <LogoIcon className="h-14 w-auto text-indigo-500" />
+                <LogoIcon className="h-14 w-auto text-primary" />
             </Link>
-            <p className="text-muted-foreground">Create your account to start your 14-day free trial.</p>
+            <p className="text-muted-foreground">Onboard your company to start your 14-day free trial.</p>
         </div>
       
         <Card>
             <CardHeader>
-                <CardTitle className="text-2xl font-headline text-center">Sign Up</CardTitle>
+                <CardTitle className="text-2xl font-headline text-center">Onboard Your Company</CardTitle>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="fullName"
+                            name="companyName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Full Name</FormLabel>
-                                    <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                                    <FormLabel>Company Name</FormLabel>
+                                    <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        {role !== 'admin' && (
-                             <FormField
-                                control={form.control}
-                                name="companyName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Company Name</FormLabel>
-                                        <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        )}
+                         <FormField
+                            control={form.control}
+                            name="companyType"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Company Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select your company type" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="client">Client / Asset Owner</SelectItem>
+                                            <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
+                                            <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="fullName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Your Full Name</FormLabel>
+                                    <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                                    <FormDescription>You will be the administrator for this company account.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <FormField
                             control={form.control}
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email Address</FormLabel>
+                                    <FormLabel>Your Work Email</FormLabel>
                                     <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -196,101 +205,6 @@ export default function SignupPage() {
                                 </FormItem>
                             )}
                         />
-                         <FormField
-                            control={form.control}
-                            name="role"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Your Role</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select your primary role" /></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="client">Client / Asset Owner</SelectItem>
-                                            <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
-                                            <SelectItem value="auditor">Auditor / Level-III</SelectItem>
-                                            {process.env.NODE_ENV === 'development' && (
-                                                <SelectItem value="admin">Platform Admin</SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {(role === 'inspector' || role === 'auditor') && (
-                            <>
-                                <FormField
-                                control={form.control}
-                                name="level"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Certification Level</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select your highest certification level" />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                        <SelectItem value="Level I">Level I</SelectItem>
-                                        <SelectItem value="Level II">Level II</SelectItem>
-                                        <SelectItem value="Level III">Level III</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                                />
-                                <FormField
-                                control={form.control}
-                                name="certifications"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>NDT Certifications</FormLabel>
-                                        <p className="text-sm text-muted-foreground">The level selected above will be applied to all checked methods.</p>
-                                        <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                            {NDTTechniques.map((item) => (
-                                            <FormField
-                                                key={item.id}
-                                                control={form.control}
-                                                name="certifications"
-                                                render={({ field }) => {
-                                                return (
-                                                    <FormItem
-                                                    key={item.id}
-                                                    className="flex flex-row items-center space-x-3 space-y-0 mb-3"
-                                                    >
-                                                    <FormControl>
-                                                        <Checkbox
-                                                        checked={field.value?.includes(item.id)}
-                                                        onCheckedChange={(checked) => {
-                                                            return checked
-                                                            ? field.onChange([...(field.value || []), item.id])
-                                                            : field.onChange(
-                                                                field.value?.filter(
-                                                                    (value) => value !== item.id
-                                                                )
-                                                                )
-                                                        }}
-                                                        />
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal">
-                                                        {item.name} ({item.id})
-                                                    </FormLabel>
-                                                    </FormItem>
-                                                )
-                                                }}
-                                            />
-                                            ))}
-                                        </ScrollArea>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                                />
-                            </>
-                        )}
-                        
                         <FormField
                           control={form.control}
                           name="agreedToTerms"
@@ -320,7 +234,7 @@ export default function SignupPage() {
                           )}
                         />
                         <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting ? "Creating Account..." : "Create Account"}
+                            {isSubmitting ? "Creating Account..." : "Create Company Account"}
                         </Button>
                     </form>
                 </Form>

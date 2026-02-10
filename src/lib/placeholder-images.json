@@ -8,9 +8,9 @@
     },
     {
       "id": "hero-login",
-      "description": "An open door, symbolizing entry and access.",
-      "imageUrl": "https://images.unsplash.com/photo-1643695211836-1b721438f9e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxvcGVuJTIwZG9vcnxlbnwwfHx8fDE3NzA3MzA2ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "open door"
+      "description": "A field of colorful, abstract doors on a grassy field.",
+      "imageUrl": "https://images.unsplash.com/photo-1551886362-e6c384805728?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhYnN0cmFjdCUyMGRvb3J8ZW58MHx8fHwxNzIwNzg0MjY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract doors"
     },
     {
       "id": "hero-signup",

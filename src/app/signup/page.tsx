@@ -125,7 +125,7 @@ export default function SignupPage() {
     }
   };
   
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-signup');
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -133,7 +133,7 @@ export default function SignupPage() {
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
-            alt="An industrial setting with a focus on metal structures, implying inspection and engineering."
+            alt="A modern doorway, symbolizing a new opportunity."
             fill
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}

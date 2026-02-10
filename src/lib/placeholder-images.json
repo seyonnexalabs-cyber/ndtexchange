@@ -7,6 +7,18 @@
       "imageHint": "industrial engineering"
     },
     {
+      "id": "hero-login",
+      "description": "An open door, symbolizing entry and access.",
+      "imageUrl": "https://images.unsplash.com/photo-1643695211836-1b721438f9e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxvcGVuJTIwZG9vcnxlbnwwfHx8fDE3NzA3MzA2ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "open door"
+    },
+    {
+      "id": "hero-signup",
+      "description": "An interesting architectural doorway, symbolizing a new beginning.",
+      "imageUrl": "https://images.unsplash.com/photo-1651627827235-f26656c62933?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmUlMjBkb29yd2F5fGVufDB8fHx8MTc3MDczMDY4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "architecture doorway"
+    },
+    {
       "id": "asset1",
       "description": "A large industrial tank.",
       "imageUrl": "https://images.unsplash.com/photo-1766560505794-3d3978bf5f89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmR1c3RyaWFsJTIwdGFua3xlbnwwfHx8fDE3NjkwMTUzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",

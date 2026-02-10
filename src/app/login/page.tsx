@@ -95,11 +95,11 @@ export default function LoginPage() {
     initiateEmailSignIn(auth, data.email, data.password);
   };
 
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-login');
 
   const devLogins = [
     allUsers.find(u => u.id === 'user-client-01'),
-    allUsers.find(u => u.id === 'user-TECH-05'),
+    allUsers.find(u => u.id === 'user-tech-05'),
     allUsers.find(u => u.id === 'user-auditor-01'),
     allUsers.find(u => u.id === 'user-admin-01'),
   ].filter(Boolean);
@@ -110,7 +110,7 @@ export default function LoginPage() {
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
-            alt="An industrial setting with a focus on metal structures, implying inspection and engineering."
+            alt="An open door symbolizing access to the platform."
             fill
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -420,7 +419,7 @@ export default function JobDetailPage() {
                 if (!firestore) return;
                 const reviewsRef = collection(firestore, 'reviews');
                 // Assuming client-01 for demo purposes
-                const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'client-01'), limit(1));
+                const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), limit(1));
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
                     const existingReview = querySnapshot.docs[0].data() as Review;
@@ -599,7 +598,7 @@ export default function JobDetailPage() {
         const reviewData = {
             jobId: jobDetails.id,
             providerId: jobDetails.providerId,
-            clientId: 'client-01', // Using placeholder for demo consistency
+            clientId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', // Using placeholder for demo consistency
             rating: rating,
             comment: reviewComment,
             date: serverTimestamp(),
@@ -623,10 +622,10 @@ export default function JobDetailPage() {
         if (!jobDetails) return;
 
         const currentUserDetails = {
-            client: allUsers.find(u => u.id === 'user-client-01'),
-            inspector: allUsers.find(u => u.id === 'user-tech-05'), // A representative inspector
-            auditor: allUsers.find(u => u.id === 'user-auditor-01'),
-            admin: allUsers.find(u => u.id === 'user-admin-01'),
+            client: allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'),
+            inspector: allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'), // A representative inspector
+            auditor: allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'),
+            admin: allUsers.find(u => u.id === 'JB5zgSrcKJX3dbNgPJmhlOcrUI62'),
         };
 
         const currentUser = currentUserDetails[role as keyof typeof currentUserDetails];

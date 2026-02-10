@@ -1,5 +1,4 @@
 
-
 import { serviceProviders } from './service-providers-data';
 
 export type AssetUpdate = {
@@ -222,24 +221,24 @@ export const jobChats: JobChat[] = [
     {
         id: 'CHAT-001',
         jobId: 'JOB-002',
-        participants: ['user-client-01', 'user-TECH-05'],
+        participants: ['nxHzdOkwW6RLPWEgVvVbHyzN8OR2', 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
         lastMessage: "Thanks for the report. What was the outcome on that secondary hook?",
         lastMessageTimestamp: '2024-06-22T10:00:00Z',
         messages: [
-            { id: 'MSG-001', senderId: 'user-client-01', text: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.', timestamp: '2024-06-20T14:15:00Z' },
-            { id: 'MSG-002', senderId: 'user-TECH-05', text: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.', timestamp: '2024-06-20T15:00:00Z' },
-            { id: 'MSG-003', senderId: 'user-client-01', text: "Thanks for the report. What was the outcome on that secondary hook?", timestamp: '2024-06-22T10:00:00Z' },
+            { id: 'MSG-001', senderId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', text: 'Carlos, please ensure you check the secondary hook as well. We had some concerns about it during the last visual inspection.', timestamp: '2024-06-20T14:15:00Z' },
+            { id: 'MSG-002', senderId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', text: 'Not a problem, John. I\'ve added it to the inspection plan. I will pay special attention to it.', timestamp: '2024-06-20T15:00:00Z' },
+            { id: 'MSG-003', senderId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', text: "Thanks for the report. What was the outcome on that secondary hook?", timestamp: '2024-06-22T10:00:00Z' },
         ]
     },
     {
         id: 'CHAT-002',
         jobId: 'JOB-004',
-        participants: ['user-TECH-05'],
+        participants: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
         lastMessage: "Confirmed. I have the procedure documents ready.",
         lastMessageTimestamp: '2024-07-01T11:05:00Z',
         messages: [
-            { id: 'MSG-004', senderId: 'user-TECH-05', text: "Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.", timestamp: '2024-07-01T11:00:00Z'},
-            { id: 'MSG-005', senderId: 'user-TECH-05', text: "Confirmed. I have the procedure documents ready.", timestamp: '2024-07-01T11:05:00Z'},
+            { id: 'MSG-004', senderId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', text: "Team, just confirming we are all set for the Midland job tomorrow. All equipment is calibrated.", timestamp: '2024-07-01T11:00:00Z'},
+            { id: 'MSG-005', senderId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', text: "Confirmed. I have the procedure documents ready.", timestamp: '2024-07-01T11:05:00Z'},
         ]
     }
 ];
@@ -465,7 +464,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-06-18', 
         scheduledStartDate: '2024-06-21', 
         scheduledEndDate: '2024-06-21', 
-        technicianIds: ['user-TECH-05'], 
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
         equipmentIds: ['YOKE-02'], 
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
@@ -483,7 +482,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { name: 'Lifting_Procedure.pdf', url: '#' },
         ],
     },
-    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-TECH-05'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
+    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', providerId: 'provider-01', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard' },
     { 
         id: 'JOB-004', 
         title: 'Pipeline Weld Inspections', 
@@ -495,7 +494,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-01', 
         scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], 
         scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], 
-        technicianIds: ['user-TECH-05'], 
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
         equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], 
         assetIds: ['ASSET-002'], 
         workflow: 'level3'
@@ -516,8 +515,8 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         ] 
     },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', location: 'Houston, TX', technique: 'RT', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3', assetIds: ['ASSET-007'] },
-    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-TECH-05'], workflow: 'level3' },
-    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['user-TECH-05'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', providerId: 'provider-01', location: 'Baton Rouge, LA', technique: 'ET', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], workflow: 'level3' },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', providerId: 'provider-03', location: 'Long Beach, CA', technique: 'UT', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { 
         id: 'JOB-009', 
         title: 'APR Inspection of Boiler Tubes', 
@@ -532,9 +531,9 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         documents: [ { name: 'Boiler_Tube_Diagram.pdf', url: '#' } ],
         history: [ { user: 'John Doe', timestamp: '2024-07-12T11:00:00Z', action: 'Created and posted job.', statusChange: 'Posted' } ]
     },
-    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-009'], workflow: 'standard' },
-    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-007'], workflow: 'standard' },
-    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-007'], workflow: 'level3' },
+    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', providerId: 'provider-04', location: 'Port Terminal F', technique: 'VT', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-009'], workflow: 'standard' },
+    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', providerId: 'provider-02', location: 'New Orleans, LA', technique: 'UT', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-007'], workflow: 'standard' },
+    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', providerId: 'provider-01', location: 'Houston, TX', technique: 'DR', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-007'], workflow: 'level3' },
     { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', providerId: 'provider-09', location: 'Freeport, TX', technique: 'AE', status: 'Assigned', postedDate: '2024-07-20', assetIds: ['ASSET-003'], workflow: 'level3' },
     { 
         id: 'JOB-014', 
@@ -547,7 +546,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-18', 
         scheduledStartDate: '2024-07-25', 
         scheduledEndDate: '2024-07-28', 
-        technicianIds: ['user-TECH-05'], 
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
         equipmentIds: ['UTM-1000'], 
         assetIds: ['ASSET-002'], 
         workflow: 'standard',
@@ -559,7 +558,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { user: 'John Doe', timestamp: '2024-07-18T09:00:00Z', action: 'Created job and posted to marketplace.', statusChange: 'Posted' }
         ]
     },
-    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-004'], workflow: 'standard' },
+    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', providerId: 'provider-07', location: 'Detroit, MI', technique: 'RVI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-004'], workflow: 'standard' },
     { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', technique: 'MFL', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto' },
     { 
         id: 'JOB-017', 
@@ -577,7 +576,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     },
     { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'RT', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: ['ASSET-005'], workflow: 'level3' },
     { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', technique: 'ET', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: ['ASSET-005'], workflow: 'standard' },
-    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-TECH-05'], assetIds: ['ASSET-006'], workflow: 'standard' },
+    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', location: 'Gulf of Mexico', technique: 'UT', status: 'Completed', postedDate: '2024-06-15', providerId: 'provider-12', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-006'], workflow: 'standard' },
     { 
         id: 'JOB-021', 
         title: 'Tank Wall Thickness UT', 
@@ -589,7 +588,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-15', 
         scheduledStartDate: '2024-07-22', 
         scheduledEndDate: '2024-07-22', 
-        technicianIds: ['user-TECH-05'], 
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
         equipmentIds: ['UTM-1000'], 
         assetIds: ['ASSET-001'], 
         workflow: 'standard',
@@ -609,7 +608,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-10', 
         scheduledStartDate: '2024-07-20', 
         scheduledEndDate: '2024-07-20', 
-        technicianIds: ['user-TECH-05'], 
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
         equipmentIds: ['PA-Probe-5MHz'], 
         assetIds: ['ASSET-003'], 
         workflow: 'level3',
@@ -628,7 +627,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         status: 'Scheduled', 
         postedDate: '2024-07-28', 
         scheduledStartDate: '2024-08-05', 
-        technicianIds: ['user-TECH-05'],
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
         workflow: 'standard',
         isInternal: true,
         assetIds: ['ASSET-001'],
@@ -643,7 +642,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         status: 'Report Submitted', 
         postedDate: '2024-07-20', 
         scheduledStartDate: '2024-07-25',
-        technicianIds: ['user-TECH-05'],
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
         workflow: 'level3',
         assetIds: ['ASSET-007'],
         history: [
@@ -789,10 +788,10 @@ export const reviews: Review[] = [
 ];
 
 export const allUsers: PlatformUser[] = [
-    { id: 'user-client-01', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', companyId: 'client-01', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
-    { id: 'user-admin-01', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'NDTX', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
-    { id: 'user-auditor-01', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
-    { id: 'user-TECH-05', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
+    { id: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', companyId: 'client-01', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
+    { id: 'JB5zgSrcKJX3dbNgPJmhlOcrUI62', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'NDTX', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
+    { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
+    { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
 ];
 
 export const subscriptions: Subscription[] = [
@@ -915,6 +914,7 @@ export { clientAssets as assets };
     
 
   
+
 
 
 

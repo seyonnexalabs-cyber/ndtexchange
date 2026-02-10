@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,8 @@ import { useFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, collection } from 'firebase/firestore';
 import type { PlatformUser } from '@/lib/placeholder-data';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 const companySignupSchema = z.object({
@@ -121,136 +124,153 @@ export default function SignupPage() {
         setIsSubmitting(false);
     }
   };
+  
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-background transition-all p-4">
-      <div className={cn(
-        "w-full max-w-md space-y-6 opacity-0 transition-opacity duration-500",
-        isMounted && "opacity-100"
-      )}>
-        <div className="space-y-2 text-center">
-            <Link href="/" className="flex items-center justify-center">
-                <LogoIcon className="h-14 w-auto text-primary" />
-            </Link>
-            <p className="text-muted-foreground">Onboard your company to start your 14-day free trial.</p>
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="hidden bg-muted lg:block relative">
+        {heroImage && (
+          <Image
+            src={heroImage.imageUrl}
+            alt="An industrial setting with a focus on metal structures, implying inspection and engineering."
+            fill
+            className="h-full w-full object-cover"
+            data-ai-hint={heroImage.imageHint}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-primary/40" />
+        <div className="absolute bottom-10 left-10 text-primary-foreground">
+          <h2 className="text-4xl font-bold font-headline">The Digital Marketplace for Asset Integrity</h2>
+          <p className="mt-4 text-lg max-w-xl">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
         </div>
-      
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-2xl font-headline text-center">Onboard Your Company</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="companyName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Company Name</FormLabel>
-                                    <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
-                                    <FormDescription>
-                                        Please ensure your company is not already registered. If it is, ask your company administrator to invite you.
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="companyType"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Company Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select your company type" /></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="client">Client / Asset Owner</SelectItem>
-                                            <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
-                                            <SelectItem value="auditor">Auditor / Level-III</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="fullName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Your Full Name</FormLabel>
-                                    <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
-                                    <FormDescription>You will be the administrator for this company account.</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Your Work Email</FormLabel>
-                                    <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Password</FormLabel>
-                                    <FormControl><Input type="password" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="agreedToTerms"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-2">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-normal text-muted-foreground">
-                                    I agree to the{' '}
-                                    <Link href="/terms" className="underline hover:text-primary" target="_blank">
-                                    Terms & Conditions
-                                    </Link>{' '}
-                                    and{' '}
-                                    <Link href="/privacy" className="underline hover:text-primary" target="_blank">
-                                    Privacy Policy
-                                    </Link>
-                                    .
-                                </FormLabel>
-                                <FormMessage />
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting ? "Creating Account..." : "Create Company Account"}
-                        </Button>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
-        <footer className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Button variant="link" asChild className="p-1">
-                <Link href="/login">
-                    Sign In
+      </div>
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-md gap-6">
+            <div className="space-y-2 text-center">
+                <Link href="/" className="flex items-center justify-center">
+                    <LogoIcon className="h-14 w-auto text-primary" />
                 </Link>
-            </Button>
-        </footer>
+                <p className="text-muted-foreground">Onboard your company to start your 14-day free trial.</p>
+            </div>
+        
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-2xl font-headline text-center">Onboard Your Company</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="companyName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Company Name</FormLabel>
+                                        <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
+                                        <FormDescription>
+                                            Please ensure your company is not already registered. If it is, ask your company administrator to invite you.
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="companyType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Company Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select your company type" /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="client">Client / Asset Owner</SelectItem>
+                                                <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
+                                                <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Your Full Name</FormLabel>
+                                        <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                                        <FormDescription>You will be the administrator for this company account.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Your Work Email</FormLabel>
+                                        <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl><Input type="password" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                            control={form.control}
+                            name="agreedToTerms"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-2">
+                                <FormControl>
+                                    <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="text-sm font-normal text-muted-foreground">
+                                        I agree to the{' '}
+                                        <Link href="/terms" className="underline hover:text-primary" target="_blank">
+                                        Terms & Conditions
+                                        </Link>{' '}
+                                        and{' '}
+                                        <Link href="/privacy" className="underline hover:text-primary" target="_blank">
+                                        Privacy Policy
+                                        </Link>
+                                        .
+                                    </FormLabel>
+                                    <FormMessage />
+                                </div>
+                                </FormItem>
+                            )}
+                            />
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                {isSubmitting ? "Creating Account..." : "Create Company Account"}
+                            </Button>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
+            <div className="text-center text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <Button variant="link" asChild className="p-1">
+                    <Link href="/login">
+                        Sign In
+                    </Link>
+                </Button>
+            </div>
+        </div>
       </div>
     </div>
   );

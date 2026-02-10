@@ -309,7 +309,7 @@ const AppSidebar = () => {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
         <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
-            <LogoIcon className="h-8 w-8 text-indigo-500 shrink-0" />
+            <LogoIcon className="h-8 w-8 text-primary shrink-0" />
             <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
                 NDT EXCHANGE
             </h1>

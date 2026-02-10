@@ -66,7 +66,7 @@ export default function PublicHeader() {
     <header className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-3">
-          <LogoIcon className="h-10 w-auto text-white" />
+          <LogoIcon className="h-10 w-auto" />
           <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT EXCHANGE</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
@@ -118,7 +118,7 @@ export default function PublicHeader() {
                     <SheetHeader>
                         <SheetTitle>
                             <Link href="/" className="flex items-center gap-3">
-                              <LogoIcon className="h-10 w-auto text-indigo-500" />
+                              <LogoIcon className="h-10 w-auto text-primary" />
                               <span className="text-xl font-headline font-bold text-card-foreground whitespace-nowrap">NDT EXCHANGE</span>
                             </Link>
                         </SheetTitle>

@@ -126,7 +126,7 @@ export default function LoginPage() {
         <div className="mx-auto grid w-full max-w-md gap-6">
           <div className="grid gap-2 text-center">
             <Link href="/" className="flex items-center justify-center gap-3">
-              <LogoIcon className="h-14 w-auto text-indigo-500" />
+              <LogoIcon className="h-14 w-auto text-primary" />
             </Link>
             <p className="text-muted-foreground">
               Sign in to your account to continue

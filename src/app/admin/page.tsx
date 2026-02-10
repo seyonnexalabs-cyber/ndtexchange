@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8">
           <Link href="/">
-            <LogoIcon className="h-10 w-auto text-indigo-500" />
+            <LogoIcon className="h-10 w-auto text-primary" />
           </Link>
       </div>
       <Card className="w-full max-w-sm">

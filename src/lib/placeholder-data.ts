@@ -1,6 +1,3 @@
-
-
-
 import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm } from '@/lib/types';
 import { clientAssets, clientData, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, payments, jobPayments, jobChats, notifications, serviceProviders, auditFirms, auditFirmServices, auditFirmIndustries } from './seed-data';
 
@@ -8,10 +5,10 @@ import { clientAssets, clientData, jobs, inspectorAssets, allUsers, userAuditLog
 // All data is now sourced from 'seed-data.ts' and seeded into Firestore.
 // Components should be updated to fetch data from Firestore directly.
 
-export { 
-    clientAssets, 
-    jobs, 
-    inspectorAssets, 
+export {
+    clientAssets,
+    jobs,
+    inspectorAssets,
     allUsers,
     userAuditLog,
     jobAuditLog,

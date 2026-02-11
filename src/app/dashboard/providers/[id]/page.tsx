@@ -1,5 +1,3 @@
-
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -11,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { serviceProviders, allUsers, inspectorAssets, InspectorAsset, subscriptions, clientData, Review } from "@/lib/placeholder-data";
+import { serviceProviders, allUsers, inspectorAssets, subscriptions, clientData, Review } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

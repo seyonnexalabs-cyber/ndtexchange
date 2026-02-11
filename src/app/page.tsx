@@ -7,9 +7,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { NDTTechniques } from '@/lib/placeholder-data';
 import { ndtTechniques as NDTTechniqueData } from '@/lib/ndt-techniques-data';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
+import { FeatureCard } from '@/app/components/feature-card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export const metadata: Metadata = {
   title: 'NDT EXCHANGE | The Digital Marketplace for Asset Integrity',
@@ -44,7 +45,7 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-20 md:py-32 bg-primary/10">
+        <section className="py-20 md:py-24 bg-primary/10">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
               <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary">
@@ -125,22 +126,24 @@ export default function HomePage() {
                 Our platform supports all major non-destructive testing methods, connecting you with providers certified in the specific techniques you need.
               </p>
             </div>
-            <div className="mt-12 grid gap-x-6 gap-y-10 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {NDTTechniqueData.map((tech) => {
-                const technique = NDTTechniques.find(t => t.id === tech.id);
-                return (
-                  <div key={tech.id} className="text-center group">
-                    <Card className="p-4 bg-muted/30 transition-all group-hover:bg-accent/50 group-hover:-translate-y-1">
-                      <p className="font-bold text-lg text-accent-foreground">{technique?.name}</p>
-                      <p className="text-sm font-mono text-muted-foreground">{tech.id.toUpperCase()}</p>
-                    </Card>
-                  </div>
-                )
-              })}
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {NDTTechniqueData.filter(tech => tech.isHighlighted).map((technique) => {
+                    const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
+                    return (
+                        <FeatureCard
+                            key={technique.id}
+                            imageUrl={techImage?.imageUrl}
+                            imageHint={techImage?.imageHint}
+                            altText={technique.title}
+                            title={`${technique.title} (${technique.id.toUpperCase()})`}
+                            description={technique.description}
+                        />
+                    )
+                })}
             </div>
              <div className="mt-12 text-center">
-                <Button asChild>
-                    <Link href="/manufacturers">View Equipment Manufacturers</Link>
+                <Button asChild variant="outline">
+                    <Link href="/manufacturers">View All Techniques & Manufacturers</Link>
                 </Button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries, AuditFirm } from '@/lib/auditors-data';
+import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries, AuditFirm } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -221,7 +222,7 @@ const MobileView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl:
 );
 
 
-export default function FindAuditorsPage() {
+export default function AuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
@@ -407,3 +408,5 @@ export default function FindAuditorsPage() {
         </div>
     );
 }
+
+    

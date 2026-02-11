@@ -406,7 +406,7 @@ export default function JobDetailPage() {
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
 
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
-    const [documentsToView, setDocumentsToView = React.useState<ViewerDocument[]>([]);
+    const [documentsToView, setDocumentsToView] = React.useState<ViewerDocument[]>([]);
     const [initialDocName, setInitialDocName] = React.useState<string | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
@@ -955,7 +955,7 @@ export default function JobDetailPage() {
                                         <CardDescription>ID: <span className="font-bold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
                                     </div>
                                     <div className="flex flex-wrap gap-1">
-                                        {(jobDetails.techniques || [(jobDetails as any).technique]).filter(Boolean).map((tech: string, i: number) => {
+                                        {(jobDetails.techniques || []).filter(Boolean).map((tech: string, i: number) => {
                                             const techData = allNdtTechniques.find(t => t.id.toUpperCase() === tech);
                                             return (
                                                 <Tooltip key={i}>
@@ -1147,6 +1147,7 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-    
 
     
+
+

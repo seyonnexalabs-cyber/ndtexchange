@@ -1,4 +1,3 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -77,7 +76,7 @@ const contactFormSchema = z.object({
   email: z.string().email(),
   phone: z.string().optional(),
   role: z.enum(["asset-owner", "ndt-company", "auditor"], {required_error: 'Please select your role.'}),
-  inquiryType: z.enum(["pricing", "partnership", "support", "general"], {required_error: 'Please select an inquiry type.'}),
+  inquiryType: z.enum(["pricing", "partnership", "support", "general", "oem-listing"], {required_error: 'Please select an inquiry type.'}),
   message: z.string().min(10, "Please provide a brief message (min. 10 characters)."),
 });
 
@@ -178,6 +177,7 @@ const ContactForm = () => {
                                             <SelectContent>
                                                 <SelectItem value="pricing">A Pricing Quote</SelectItem>
                                                 <SelectItem value="partnership">Partnership Inquiry</SelectItem>
+                                                <SelectItem value="oem-listing">OEM Listing Inquiry</SelectItem>
                                                 <SelectItem value="support">Technical Support</SelectItem>
                                                 <SelectItem value="general">A General Inquiry</SelectItem>
                                             </SelectContent>
@@ -484,8 +484,8 @@ export default function ContactPage() {
                 <h2 className="text-3xl font-headline font-semibold text-primary">
                 Have a Question?
                 </h2>
-                <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
-                    If you have questions about pricing, partnerships, or need support, please use the form below. Ready to sign up? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>.
+                <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
+                    If you have questions about pricing or partnerships, please use the form below. Ready to sign up? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>. OEMs interested in a free listing in our directory can also use this form.
                 </p>
             </div>
             <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 items-start">

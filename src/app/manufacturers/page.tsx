@@ -19,6 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type Manufacturer = {
   name: string;
@@ -33,7 +35,7 @@ export default function ManufacturersPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
 
-    const manufacturers = useMemo(() => {
+    const [shuffledManufacturers] = useState(() => {
         const manufacturerMap = new Map<string, Manufacturer>();
         ndtTechniques.forEach(technique => {
             technique.companies.forEach(company => {
@@ -47,16 +49,22 @@ export default function ManufacturersPage() {
                 }
             });
         });
-        return Array.from(manufacturerMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-    }, []);
+        const manufacturers = Array.from(manufacturerMap.values());
+        // Fisher-Yates shuffle algorithm
+        for (let i = manufacturers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [manufacturers[i], manufacturers[j]] = [manufacturers[j], manufacturers[i]];
+        }
+        return manufacturers;
+    });
 
     const filteredManufacturers = useMemo(() => {
-        return manufacturers.filter(manufacturer => {
+        return shuffledManufacturers.filter(manufacturer => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => manufacturer.techniques.includes(tech));
             const searchMatch = !searchTerm || manufacturer.name.toLowerCase().includes(searchTerm.toLowerCase());
             return techniqueMatch && searchMatch;
         });
-    }, [manufacturers, selectedTechniques, searchTerm]);
+    }, [shuffledManufacturers, selectedTechniques, searchTerm]);
     
     const pageCount = Math.ceil(filteredManufacturers.length / itemsPerPage);
     const paginatedManufacturers = useMemo(() => {
@@ -82,6 +90,15 @@ export default function ManufacturersPage() {
     const handleItemsPerPageChange = (value: string) => {
         setItemsPerPage(Number(value));
         setCurrentPage(1);
+    };
+
+    const getUniqueImageForManufacturer = (manufacturer: Manufacturer) => {
+        // Create a simple hash from the manufacturer's name to get a consistent index
+        const hash = manufacturer.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const techniqueIndex = hash % manufacturer.techniques.length;
+        const techniqueId = manufacturer.techniques[techniqueIndex]?.toLowerCase();
+        const techData = ndtTechniques.find(t => t.id === techniqueId);
+        return PlaceHolderImages.find(p => p.id === techData?.imageId);
     };
 
     return (
@@ -171,39 +188,41 @@ export default function ManufacturersPage() {
                         )}
                         
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {paginatedManufacturers.map(manufacturer => (
-                                <Card key={manufacturer.name} className="flex flex-col">
-                                    <CardHeader>
-                                        <div className="flex items-center gap-4">
-                                            <Avatar className="h-16 w-16">
-                                                <AvatarFallback className="text-xl">{manufacturer.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
+                            {paginatedManufacturers.map(manufacturer => {
+                                const image = getUniqueImageForManufacturer(manufacturer);
+                                return (
+                                    <Card key={manufacturer.name} className="flex flex-col">
+                                        <CardHeader>
+                                            <div className="flex items-center gap-4">
+                                                 <Avatar className="h-16 w-16">
+                                                    {image && <Image src={image.imageUrl} alt={manufacturer.name} fill className="object-cover" />}
+                                                    <AvatarFallback className="text-xl">{manufacturer.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="flex-grow">
-                                        {manufacturer.description && (
+                                        </CardHeader>
+                                        <CardContent className="flex-grow">
                                             <p className="text-sm text-muted-foreground line-clamp-2 h-10 mb-4">{manufacturer.description}</p>
-                                        )}
-                                        <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {manufacturer.techniques.map(tech => (
-                                                <Badge key={tech} variant="secondary">{tech}</Badge>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter>
-                                        <Button variant="outline" asChild className="w-full">
-                                            <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer">
-                                                Visit Website
-                                                <LinkIcon className="ml-2 h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            ))}
+                                            <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {manufacturer.techniques.map(tech => (
+                                                    <Badge key={tech} variant="secondary">{tech}</Badge>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Button variant="outline" asChild className="w-full">
+                                                <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer">
+                                                    Visit Website
+                                                    <LinkIcon className="ml-2 h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                )
+                            })}
                         </div>
                         
                         {filteredManufacturers.length === 0 && (

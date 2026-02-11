@@ -37,12 +37,7 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
             });
           })
           .catch((creationError) => {
-            if (creationError.code === 'auth/email-already-in-use') {
-              // This is the expected scenario when the password is wrong for an existing dev user.
-              // The initial signInWithEmailAndPassword already failed and the UI will show an error.
-              // We just suppress the confusing "failed to create user" console error.
-              console.log(`Dev login: User ${email} already exists. The password may be incorrect.`);
-            } else {
+            if (creationError.code !== 'auth/email-already-in-use') {
               // For other creation errors, log them.
               console.error("Dev login: Failed to create user after failed sign-in:", creationError);
             }

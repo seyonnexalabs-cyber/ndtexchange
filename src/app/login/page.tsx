@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFirebase, useUser } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { allUsers } from '@/lib/placeholder-data';
@@ -52,26 +52,39 @@ export default function LoginPage() {
       const fetchUserRoleAndRedirect = async () => {
         let userData;
         try {
-          // First, try to get the user document with the Firebase Auth UID.
-          // This is the standard and most secure way.
           const userDocRef = doc(firestore, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
             userData = userDoc.data();
           } else {
-            // If not found (which can happen in dev with seeded data),
-            // fall back to looking up by email. This is less secure and should
-            // only be a dev-time convenience.
-            console.warn("User document not found with UID. Falling back to email lookup for development environment.");
-            const usersRef = collection(firestore, "users");
-            const q = query(usersRef, where("email", "==", user.email), limit(1));
-            const querySnapshot = await getDocs(q);
+            // If user doc doesn't exist (can happen with dev quick logins), create it.
+            console.warn("User document not found with UID. Attempting to create it for development environment.");
             
-            if (!querySnapshot.empty) {
-              const userDocFromEmail = querySnapshot.docs[0];
-              userData = userDocFromEmail.data();
-              console.log("Found user by email:", userData);
+            const devUser = allUsers.find(u => u.email === user.email);
+
+            if (devUser) {
+              const { password, ...userProfileData } = devUser;
+              
+              // Ensure the ID in the seed data matches the actual auth UID
+              const profileToSave = { ...userProfileData, id: user.uid };
+
+              await setDoc(doc(firestore, 'users', user.uid), profileToSave);
+              console.log(`Dev login: Created Firestore document for ${user.email}`);
+              
+              userData = profileToSave;
+            } else {
+              console.error(`Dev login: Could not find seed data for user ${user.email}.`);
+              toast({
+                variant: 'destructive',
+                title: 'Login Error',
+                description: 'User profile not found and could not be created.',
+              });
+              setIsAuthenticating(false);
+              if (auth) {
+                  auth.signOut(); // Sign out the user since their profile is incomplete
+              }
+              return; // Stop execution
             }
           }
 
@@ -79,9 +92,15 @@ export default function LoginPage() {
             const role = (userData.role as string).toLowerCase() as UserType;
             const params = new URLSearchParams();
             params.set('role', role);
+
+            // Handle inspector plan type
+            if (role === 'inspector' && (userData as any).plan === 'operations') {
+                params.set('plan', 'operations');
+            }
+
             router.push(`/dashboard?${params.toString()}`);
           } else {
-            // If user exists in Auth but not in Firestore (even after fallback)
+            // This case should be less likely now, but kept as a safeguard.
             toast({
               variant: 'destructive',
               title: 'Login Failed',
@@ -91,18 +110,25 @@ export default function LoginPage() {
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
-          toast({
-            variant: 'destructive',
-            title: 'Login Error',
-            description: 'Could not retrieve user profile.',
-          });
+          if (error instanceof Error && 'code' in error && (error as any).code.includes('permission-denied')) {
+             toast({
+                variant: 'destructive',
+                title: 'Permission Denied',
+                description: 'You do not have permission to access user profiles. Check your Firestore rules.',
+            });
+          } else {
+            toast({
+                variant: 'destructive',
+                title: 'Login Error',
+                description: 'Could not retrieve user profile.',
+            });
+          }
           setIsAuthenticating(false);
         }
       };
 
       fetchUserRoleAndRedirect();
     } else {
-      // If user is null and we are not loading, an authentication attempt might have just failed.
       if (isAuthenticating) {
         toast({
             variant: 'destructive',
@@ -112,7 +138,7 @@ export default function LoginPage() {
         setIsAuthenticating(false);
       }
     }
-  }, [user, isUserLoading, router, firestore, isAuthenticating]);
+  }, [user, isUserLoading, router, firestore, isAuthenticating, auth]);
 
 
   const onSubmit = (data: z.infer<typeof loginSchema>) => {

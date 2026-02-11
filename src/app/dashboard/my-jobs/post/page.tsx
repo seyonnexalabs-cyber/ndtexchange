@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Asset, NDTTechniques, Inspection, clientData } from "@/lib/placeholder-data";
+import { Asset, NDTTechniques, Inspection, clientData, JobDocument } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
@@ -214,29 +215,43 @@ export default function PostJobPage() {
                 }
             });
         }
-
+        
+        const documentMetadata: JobDocument[] = [];
+        if (values.documents && values.documents.length > 0) {
+            Array.from(values.documents).forEach((file: File) => {
+                documentMetadata.push({ name: file.name, url: '#' }); // Placeholder URL
+            });
+        }
+        
         const newJobData = {
-            ...values,
             id: jobRef.id,
-            clientId: user.uid,
-            clientCompanyId: 'client-01', // Placeholder
+            title: values.title,
+            location: values.location,
+            technique: values.technique,
+            description: values.description || '',
+            workflow: values.workflow,
             isInternal: isInternalJob,
+            assetIds: 'assets' in values ? values.assets : [],
+            clientId: user.uid,
+            clientCompanyId: 'client-01',
+            client: 'clientName' in values ? values.clientName : (clientData.find(c => c.id === 'client-01')?.name || "Global Energy Corp."),
             status: newJobStatus,
-            inspections,
             postedDate: format(new Date(), 'yyyy-MM-dd'),
             createdAt: serverTimestamp(),
+            bidExpiryDate: values.bidExpiryDate ? format(values.bidExpiryDate, 'yyyy-MM-dd') : null,
+            scheduledStartDate: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : null,
+            scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : null,
+            inspections,
+            documents: documentMetadata,
             bids: [],
             history: [],
+            technicianIds: [],
+            equipmentIds: [],
         };
-
-        // Clean up data before saving
-        delete (newJobData as any).agreedToTerms;
-        if ('clientName' in newJobData) delete (newJobData as any).clientName;
-
-
+        
         setDoc(jobRef, newJobData)
           .catch(error => {
-            console.error("Failed to save job:", error)
+            console.error("Failed to save job:", error);
              toast({
                 variant: "destructive",
                 title: "Failed to create job",

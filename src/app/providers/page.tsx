@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Star, MapPin, X } from 'lucide-react';
 import Link from 'next/link';
-import { serviceProviders, NDTTechniques, auditFirmIndustries } from '@/lib/placeholder-data';
+import { serviceProviders, NDTTechniques, auditFirmIndustries, jobs } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -37,7 +37,12 @@ export default function ProvidersPage() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     
     const filteredProviders = useMemo(() => {
-        return serviceProviders.filter(provider => {
+        const providersWithStats = serviceProviders.map(provider => {
+            const completedJobs = jobs.filter(job => job.providerId === provider.id && (job.status === 'Completed' || job.status === 'Paid')).length;
+            return { ...provider, completedJobs };
+        });
+
+        return providersWithStats.filter(provider => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques.includes(tech));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => provider.industries.includes(ind));
             return techniqueMatch && industryMatch;
@@ -178,7 +183,13 @@ export default function ProvidersPage() {
                                             </div>
                                         </CardHeader>
                                         <CardContent className="flex-grow space-y-4">
-                                            <StarRating rating={provider.rating} />
+                                             <div className="flex justify-between items-center">
+                                                <StarRating rating={provider.rating} />
+                                                <div className="text-right">
+                                                    <p className="font-bold text-lg">{provider.completedJobs}</p>
+                                                    <p className="text-xs text-muted-foreground -mt-1">Jobs Completed</p>
+                                                </div>
+                                            </div>
                                             <p className="text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
                                             <div>
                                                 <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
@@ -198,6 +209,14 @@ export default function ProvidersPage() {
                                                             </Tooltip>
                                                         )
                                                     })}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {provider.industries.map(tech => (
+                                                        <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
+                                                    ))}
                                                 </div>
                                             </div>
                                         </CardContent>

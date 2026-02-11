@@ -75,8 +75,8 @@ const ClientDashboard = () => {
         }
     }, [authUser, firestore]);
 
-    const jobsQuery = useMemoFirebase(() => userProfile ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const assetsQuery = useMemoFirebase(() => userProfile ? query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const assetsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     
     const { data: clientJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: currentClientAssets, isLoading: isLoadingAssets } = useCollection<any>(assetsQuery);
@@ -360,9 +360,9 @@ const InspectorDashboard = () => {
         }
     }, [authUser, firestore]);
     
-    const jobsQuery = useMemoFirebase(() => userProfile ? query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const techniciansQuery = useMemoFirebase(() => userProfile ? query(collection(firestore, 'users'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const equipmentQuery = useMemoFirebase(() => userProfile ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const techniciansQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'users'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
 
     const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: providerTechnicians, isLoading: isLoadingTechs } = useCollection<PlatformUser>(techniciansQuery);

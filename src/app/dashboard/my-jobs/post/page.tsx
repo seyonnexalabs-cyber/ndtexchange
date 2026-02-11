@@ -22,6 +22,8 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const baseSchema = z.object({
@@ -199,7 +201,7 @@ export default function PostJobPage() {
         }
 
         const isInternalJob = role === 'inspector' || (role === 'client' && !values.isMarketplaceJob);
-        const newJobStatus = isDraft ? 'Draft' : 'Posted';
+        const newJobStatus = isDraft ? 'Draft' : (isInternalJob ? 'Assigned' : 'Posted');
         const jobRef = doc(collection(firestore, 'jobs'));
         
         let endDate = values.scheduledEndDate;
@@ -456,14 +458,14 @@ export default function PostJobPage() {
                                 )}
                             />
 
-                             {isClient && (
+                            {isClient && (
                                 <FormField
                                 control={form.control}
                                 name="isMarketplaceJob"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                     <div className="space-y-0.5">
-                                        <FormLabel className="text-base">Visibility</FormLabel>
+                                        <FormLabel className="text-base">Post to Marketplace</FormLabel>
                                         <FormDescription>
                                             Post this job publicly to all qualified providers on the marketplace.
                                         </FormDescription>
@@ -513,6 +515,103 @@ export default function PostJobPage() {
                                 </div>
                             )}
 
+                             {isClient && (
+                                <FormField
+                                    control={form.control}
+                                    name="assets"
+                                    render={() => (
+                                        <FormItem>
+                                            <div className="mb-4">
+                                                <FormLabel className="text-base">Select Assets for this Job</FormLabel>
+                                                <FormDescription>Choose which of your assets are included in this job's scope.</FormDescription>
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-4 mb-4">
+                                                <Input placeholder="Filter by name..." value={assetNameFilter} onChange={(e) => setAssetNameFilter(e.target.value)} />
+                                                <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueLocations.map(l => <SelectItem key={l} value={l}>{l === 'all' ? 'All Locations' : l}</SelectItem>)}</SelectContent></Select>
+                                                <Select value={assetTypeFilter} onValueChange={setAssetTypeFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueTypes.map(t => <SelectItem key={t} value={t}>{t === 'all' ? 'All Types' : t}</SelectItem>)}</SelectContent></Select>
+                                                <Select value={assetStatusFilter} onValueChange={setAssetStatusFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueStatuses.map(s => <SelectItem key={s} value={s}>{s === 'all' ? 'All Statuses' : s}</SelectItem>)}</SelectContent></Select>
+                                            </div>
+                                            <ScrollArea className="h-60 w-full rounded-md border">
+                                                <div className="p-4">
+                                                {isLoadingAssets ? <p>Loading assets...</p> : filteredAssets.length > 0 ? filteredAssets.map((asset) => (
+                                                    <FormField
+                                                        key={asset.id}
+                                                        control={form.control}
+                                                        name="assets"
+                                                        render={({ field }) => (
+                                                            <FormItem key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
+                                                                <FormControl>
+                                                                    <Checkbox
+                                                                        checked={field.value?.includes(asset.id)}
+                                                                        onCheckedChange={(checked) => {
+                                                                            return checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange(field.value?.filter((value) => value !== asset.id));
+                                                                        }}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location} / {asset.type})</span></FormLabel>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                )) : <p className="text-center text-muted-foreground">No assets match your filters.</p>}
+                                                </div>
+                                            </ScrollArea>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                            
+                             <FormField
+                                control={form.control}
+                                name="documents"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>Attach Scope Documents (Optional)</FormLabel>
+                                         <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>
+                                            Select Files to Attach
+                                        </Button>
+                                        <FormControl>
+                                            <Input
+                                                ref={documentsInputRef}
+                                                type="file"
+                                                multiple
+                                                accept={ACCEPTED_FILE_TYPES}
+                                                className="hidden"
+                                                onChange={handleDocumentSelection}
+                                            />
+                                        </FormControl>
+                                        {documentFiles.length > 0 && (
+                                            <div className="mt-4 space-y-2">
+                                                 <p className="text-sm font-medium">{documentFiles.length} file(s) attached:</p>
+                                                 <ScrollArea className="max-h-32 rounded-md border p-2">
+                                                    {documentFiles.map((file, index) => (
+                                                        <div key={`${file.name}-${index}`} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
+                                                            <div className="flex items-center gap-2 truncate">
+                                                                <FileText className="h-4 w-4 shrink-0 text-primary" />
+                                                                <span className="truncate">{file.name}</span>
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 shrink-0"
+                                                                onClick={() => handleRemoveDocument(index)}
+                                                            >
+                                                                <X className="h-4 w-4 text-primary" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </ScrollArea>
+                                            </div>
+                                        )}
+                                        <FormDescription>
+                                            Attach P&IDs, drawings, or other scope documents. Max {MAX_FILE_SIZE_MB}MB each.
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="submit" variant="outline" onClick={() => setIsDraft(true)}>Save as Draft</Button>
                                 <Button type="submit" onClick={() => setIsDraft(false)}>Publish Job Posting</Button>
@@ -524,3 +623,5 @@ export default function PostJobPage() {
         </div>
     );
 }
+
+    

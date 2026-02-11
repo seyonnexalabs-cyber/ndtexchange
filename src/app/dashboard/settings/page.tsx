@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -13,10 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { allUsers, clientData, serviceProviders, auditFirms, subscriptions } from '@/lib/placeholder-data';
+import { allUsers, clientData, serviceProviders, auditFirms, subscriptions, NDTTechniques, auditFirmIndustries } from '@/lib/placeholder-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -29,6 +27,8 @@ import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 
 const userDetails = {
@@ -46,14 +46,20 @@ const profileSchema = z.object({
 const companyProfileSchema = z.object({
   companyName: z.string().min(3, 'Company name must be at least 3 characters.'),
   companyAddress: z.string().optional(),
+  description: z.string().optional(),
+  techniques: z.array(z.string()).optional(),
+  industries: z.array(z.string()).optional(),
 });
 
-const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = false }: { companyName: string, companyAddress?: string, isReadOnly?: boolean }) => {
+const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role }: { companyDetails: any, isReadOnly?: boolean, role: string }) => {
   const form = useForm<z.infer<typeof companyProfileSchema>>({
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
-      companyName: companyName,
-      companyAddress: companyAddress || '',
+      companyName: companyDetails?.name || '',
+      companyAddress: (companyDetails as any)?.address || '',
+      description: companyDetails?.description || '',
+      techniques: companyDetails?.techniques || [],
+      industries: companyDetails?.industries || [],
     },
   });
 
@@ -64,6 +70,9 @@ const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = fals
     });
     console.log(data);
   };
+  
+  const techniqueOptions = useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.name} (${t.id})` })), []);
+  const industryOptions = useMemo(() => auditFirmIndustries.map(i => ({ value: i, label: i })), []);
 
   return (
     <Card>
@@ -100,6 +109,62 @@ const CompanyProfileSettings = ({ companyName, companyAddress, isReadOnly = fals
                 </FormItem>
               )}
             />
+            {role === 'inspector' && (
+                <>
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Company Description</FormLabel>
+                        <FormControl>
+                        <Textarea
+                            placeholder="Provide a brief summary of your company's services, history, and expertise. This will be visible on your public profile."
+                            className="min-h-[120px]"
+                            {...field}
+                            disabled={isReadOnly}
+                        />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="techniques"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Techniques Offered</FormLabel>
+                        <MultiSelect
+                        options={techniqueOptions}
+                        selected={field.value || []}
+                        onChange={field.onChange}
+                        placeholder="Select techniques..."
+                        />
+                        <FormDescription>The NDT methods your company is certified to perform.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="industries"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Industries Served</FormLabel>
+                        <MultiSelect
+                        options={industryOptions}
+                        selected={field.value || []}
+                        onChange={field.onChange}
+                        placeholder="Select industries..."
+                        />
+                        <FormDescription>The primary industries you provide services for.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                </>
+            )}
             {!isReadOnly && <Button type="submit">Save Changes</Button>}
           </form>
         </Form>
@@ -372,7 +437,7 @@ const SubscriptionSettings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
                  {trialDetails.daysRemaining < 10 && (
-                    <Alert className="border-amber-500/50 text-amber-900 bg-amber-500/10 [&gt;svg]:text-amber-600">
+                    <Alert className="border-amber-500/50 text-amber-900 bg-amber-500/10 [&>svg]:text-amber-600">
                         <AlertTriangle className="h-4 w-4" />
                         <AlertTitle>Your free trial is ending soon!</AlertTitle>
                         <AlertDescription>
@@ -607,10 +672,15 @@ export default function SettingsPage() {
     }
     
     const currentUser = useMemo(() => {
-        const details = userDetails[role as keyof typeof userDetails] || userDetails.client;
-        const address = (userDetails[role as keyof typeof userDetails] as any)?.address || '';
-        return { ...details, address };
+        return userDetails[role as keyof typeof userDetails] || userDetails.client;
     }, [role]);
+
+    const companyDetails = useMemo(() => {
+        if (role === 'client') return clientData.find(c => c.name === currentUser.company);
+        if (role === 'inspector') return serviceProviders.find(p => p.name === currentUser.company);
+        if (role === 'auditor') return auditFirms.find(a => a.name === currentUser.company);
+        return null;
+    }, [role, currentUser.company]);
 
     const subscription = useMemo(() => {
         return subscriptions.find(s => s.companyName === currentUser.company);
@@ -708,9 +778,9 @@ export default function SettingsPage() {
         </TabsContent>
         <TabsContent value="company">
              <CompanyProfileSettings 
-                companyName={currentUser.company} 
-                companyAddress={currentUser.address} 
+                companyDetails={companyDetails}
                 isReadOnly={role === 'admin'}
+                role={role}
             />
         </TabsContent>
         <TabsContent value="branding">

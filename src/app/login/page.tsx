@@ -117,6 +117,15 @@ export default function LoginPage() {
 
   const onSubmit = (data: z.infer<typeof loginSchema>) => {
     setIsAuthenticating(true);
+    if (!auth) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: 'Authentication service not available.',
+        });
+        setIsAuthenticating(false);
+        return;
+    }
     initiateEmailSignIn(auth, data.email, data.password);
   };
 
@@ -137,6 +146,7 @@ export default function LoginPage() {
             src={heroImage.imageUrl}
             alt={heroImage.description}
             fill
+            sizes="50vw"
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}
             priority

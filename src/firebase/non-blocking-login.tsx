@@ -29,6 +29,13 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
       if (error.code === 'auth/invalid-credential' && process.env.NODE_ENV === 'development') {
         console.log(`Dev login: User ${email} not found. Attempting to create user...`);
         createUserWithEmailAndPassword(authInstance, email, password)
+          .then(() => {
+            // After creating, try to sign in again so onAuthStateChanged fires correctly
+            console.log(`Dev login: User ${email} created. Signing in...`);
+            signInWithEmailAndPassword(authInstance, email, password).catch((signInError) => {
+                console.error("Dev login: Sign in after creation failed:", signInError);
+            });
+          })
           .catch((creationError) => {
             console.error("Dev login: Failed to create user after failed sign-in:", creationError);
           });

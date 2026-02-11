@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -23,7 +22,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
@@ -222,7 +221,7 @@ const MobileView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl:
 );
 
 
-export default function FindAuditorsPage() {
+export default function AuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
@@ -231,7 +230,7 @@ export default function FindAuditorsPage() {
     const { toast } = useToast();
     const [firms, setFirms] = useState<AuditFirm[]>(initialAuditFirms);
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
 
     useEffect(() => {
         if (role && !['client', 'admin'].includes(role)) {

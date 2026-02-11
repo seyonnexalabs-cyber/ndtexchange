@@ -12,10 +12,14 @@ const withPWA = withPWAInit({
 const nextConfig = {
   /* config options here */
   typescript: {
-    ignoreBuildErrors: true,
+    // Set to false to hide build errors.
+    // Recommended to set to true for production builds.
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Set to false to hide lint errors.
+    // Recommended to set to true for production builds.
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: [

@@ -37,6 +37,14 @@ export default function LoginPage() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
   useEffect(() => {
     if (isUserLoading || !firestore) return;
 
@@ -115,10 +123,10 @@ export default function LoginPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-login');
 
   const devLogins = [
-    allUsers.find(u => u.id === 'user-client-01'),
-    allUsers.find(u => u.id === 'user-TECH-05'),
-    allUsers.find(u => u.id === 'user-auditor-01'),
-    allUsers.find(u => u.id === 'user-admin-01'),
+    allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), // client
+    allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'), // inspector
+    allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'), // auditor
+    allUsers.find(u => u.id === 'JB5zgSrcKJX3dbNgPJmhlOcrUI62'), // admin
   ].filter(Boolean);
 
   return (

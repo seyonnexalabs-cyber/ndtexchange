@@ -16,10 +16,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 type Manufacturer = {
   name: string;
@@ -172,48 +171,39 @@ export default function ManufacturersPage() {
                         )}
                         
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {paginatedManufacturers.map(manufacturer => {
-                                // Deterministically pick an image based on the manufacturer name
-                                const nameHash = manufacturer.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                                const techniqueIndex = nameHash % manufacturer.techniques.length;
-                                const techniqueId = manufacturer.techniques[techniqueIndex]?.toLowerCase();
-                                const imageId = `tech-${techniqueId}`;
-                                const image = PlaceHolderImages.find(p => p.id === imageId);
-
-                                return (
-                                    <Card key={manufacturer.name} className="flex flex-col">
-                                        <div className="relative h-40 w-full">
-                                            <Image
-                                                src={image?.imageUrl || 'https://placehold.co/600x400/E2E8F0/475569?text=Image+Not+Found'}
-                                                alt={manufacturer.name}
-                                                fill
-                                                className="object-cover rounded-t-lg"
-                                                data-ai-hint={image?.imageHint || 'technology'}
-                                            />
-                                        </div>
-                                        <CardHeader>
-                                            <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
-                                            <CardDescription>{manufacturer.description}</CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="flex-grow">
-                                            <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {manufacturer.techniques.map(tech => (
-                                                    <Badge key={tech} variant="secondary">{tech}</Badge>
-                                                ))}
+                            {paginatedManufacturers.map(manufacturer => (
+                                <Card key={manufacturer.name} className="flex flex-col">
+                                    <CardHeader>
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-16 w-16">
+                                                <AvatarFallback className="text-xl">{manufacturer.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
+                                                {manufacturer.description && (
+                                                    <CardDescription className="pt-1 line-clamp-2">{manufacturer.description}</CardDescription>
+                                                )}
                                             </div>
-                                        </CardContent>
-                                        <CardFooter>
-                                            <Button variant="outline" asChild className="w-full">
-                                                <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer">
-                                                    Visit Website
-                                                    <LinkIcon className="ml-2 h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
-                                )
-                            })}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow">
+                                        <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {manufacturer.techniques.map(tech => (
+                                                <Badge key={tech} variant="secondary">{tech}</Badge>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button variant="outline" asChild className="w-full">
+                                            <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer">
+                                                Visit Website
+                                                <LinkIcon className="ml-2 h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
                         </div>
                         
                         {filteredManufacturers.length === 0 && (

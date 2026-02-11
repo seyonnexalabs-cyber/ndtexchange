@@ -143,8 +143,11 @@ export default function ManufacturersPage() {
                         
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {filteredManufacturers.map(manufacturer => {
-                                const firstTechniqueId = manufacturer.techniques[0]?.toLowerCase();
-                                const imageId = `tech-${firstTechniqueId}`;
+                                // Deterministically pick an image based on the manufacturer name
+                                const nameHash = manufacturer.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                                const techniqueIndex = nameHash % manufacturer.techniques.length;
+                                const techniqueId = manufacturer.techniques[techniqueIndex]?.toLowerCase();
+                                const imageId = `tech-${techniqueId}`;
                                 const image = PlaceHolderImages.find(p => p.id === imageId);
 
                                 return (

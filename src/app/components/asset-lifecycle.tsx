@@ -36,7 +36,7 @@ const AssetLifecycleDiagram = () => {
         {
             icon: FileArchive,
             title: '3. Centralize Documents',
-            description: 'Upload and store all relevant files—drawings, certificates, and photos—in a secure digital vault.'
+            description: 'Upload and store all relevant files—Piping & Instrumentation Diagrams (P&IDs), fabrication drawings, and certificates—in a secure digital vault.'
         },
         {
             icon: History,

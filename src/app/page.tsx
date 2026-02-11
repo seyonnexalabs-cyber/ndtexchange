@@ -120,10 +120,10 @@ export default function HomePage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                   <h2 className="text-3xl font-headline font-semibold text-primary">
-                      A Transparent & Efficient Workflow
+                      A Seamless Inspection Lifecycle
                   </h2>
                   <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                      From job creation to final approval, our platform streamlines the entire inspection lifecycle.
+                      Our platform provides a clear, collaborative, and auditable path for every inspection, connecting asset owners, NDT providers, and auditors at every stage.
                   </p>
               </div>
               <UserActivityDiagram />

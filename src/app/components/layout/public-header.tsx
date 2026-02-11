@@ -88,15 +88,21 @@ export default function PublicHeader() {
                            <MobileNavLink key={link.label} href={link.href}>{link.label}</MobileNavLink>
                         ))}
                     </div>
-                     <div className="mt-8 pt-6 border-t">
-                      <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                          <Link href="/signup">Get Started</Link>
-                      </Button>
+                     <div className="mt-8 pt-6 border-t space-y-2">
+                        <Button asChild className="w-full" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/login">Login</Link>
+                        </Button>
+                        <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/signup">Get Started</Link>
+                        </Button>
                    </div>
                 </SheetContent>
               </Sheet>
            </div>
            <div className="hidden md:flex items-center space-x-2">
+              <Button asChild variant="ghost" className={cn(isLightBg ? "text-foreground" : "text-white hover:bg-white/10 hover:text-white")}>
+                  <Link href="/login">Login</Link>
+              </Button>
               <Button asChild>
                 <Link href="/signup">Get Started</Link>
               </Button>

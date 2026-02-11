@@ -66,6 +66,176 @@ const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
   return <>{formattedTime || ''}</>;
 };
 
+const getAvatarFallback = (userName: string) => {
+    return userName.split(' ').map(n => n[0]).join('');
+}
+
+const AdminChatInterface = ({
+    isMobile,
+    supportThreadsData,
+    selectedThreadId,
+    setSelectedThreadId,
+    currentThread,
+    messages,
+    newMessage,
+    setNewMessage,
+    handleSendMessage,
+    isSubmitting
+}: {
+    isMobile: boolean,
+    supportThreadsData: SupportThread[] | null,
+    selectedThreadId: string | null,
+    setSelectedThreadId: (id: string | null) => void,
+    currentThread: SupportThread | null,
+    messages: SupportMessage[] | null,
+    newMessage: string,
+    setNewMessage: (msg: string) => void,
+    handleSendMessage: () => void,
+    isSubmitting: boolean
+}) => (
+    <Card className="h-[70vh] flex overflow-hidden">
+        <div className={cn(
+            "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
+            isMobile && selectedThreadId && "hidden"
+        )}>
+            <div className="p-4 border-b">
+                <h2 className="text-xl font-semibold">Support Inquiries</h2>
+            </div>
+            <ScrollArea className="flex-1">
+                <div className="p-2 space-y-1">
+                    {supportThreadsData?.map(thread => (
+                        <button
+                            key={thread.id}
+                            onClick={() => setSelectedThreadId(thread.id)}
+                            className={cn(
+                                "block w-full text-left p-3 rounded-lg border transition-colors",
+                                selectedThreadId === thread.id ? "bg-primary/10" : "hover:bg-primary/5"
+                            )}
+                        >
+                             <div className="flex justify-between items-start gap-2">
+                                <p className="font-semibold text-sm truncate">{thread.companyName}</p>
+                                <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>
+                        </button>
+                    ))}
+                    {supportThreadsData?.length === 0 && <p className="p-4 text-center text-muted-foreground">No open support chats.</p>}
+                </div>
+            </ScrollArea>
+        </div>
+        <div className={cn(
+            "flex-1 flex-col",
+            isMobile && !selectedThreadId ? "hidden" : "flex",
+            !isMobile && !selectedThreadId && "hidden md:flex"
+        )}>
+            {currentThread ? (
+                 <>
+                    <div className="flex items-center gap-3 p-4 border-b">
+                        {isMobile && <Button variant="ghost" size="icon" onClick={() => setSelectedThreadId(null)}><ChevronLeft /></Button>}
+                        <div>
+                            <p className="font-semibold">{currentThread.companyName}</p>
+                            <p className="text-sm text-muted-foreground">{currentThread.subject}</p>
+                        </div>
+                    </div>
+                     <ScrollArea className="flex-1 p-6 bg-muted/30">
+                        <div className="space-y-6">
+                            {messages?.map((message, index) => {
+                                const myMessage = message.isAdmin;
+                                return (
+                                    <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
+                                        {!myMessage && (
+                                            <Avatar className="h-8 w-8"><AvatarFallback>{getAvatarFallback(message.senderName)}</AvatarFallback></Avatar>
+                                        )}
+                                        <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
+                                            {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{message.senderName}</p>}
+                                            <p className="text-sm">{message.text}</p>
+                                            <p className="text-xs mt-2 opacity-80 text-right">
+                                                {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </ScrollArea>
+                    <div className="p-4 border-t bg-background">
+                        <div className="flex w-full items-center gap-2">
+                            <Input placeholder="Type your message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} />
+                            <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>{isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}</Button>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className="flex-1 hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/30">
+                    <MessageSquare className="w-16 h-16 text-muted-foreground/50" />
+                    <h2 className="mt-4 text-xl font-semibold">Select a conversation</h2>
+                    <p className="text-muted-foreground">Choose a support chat from the list to view the conversation.</p>
+                </div>
+            )}
+        </div>
+    </Card>
+  );
+
+const ClientChatInterface = ({
+    currentUser,
+    messages,
+    authUser,
+    newMessage,
+    setNewMessage,
+    handleSendMessage,
+    isSubmitting
+}: {
+    currentUser: PlatformUser | undefined,
+    messages: SupportMessage[] | null,
+    authUser: any | null,
+    newMessage: string,
+    setNewMessage: (msg: string) => void,
+    handleSendMessage: () => void,
+    isSubmitting: boolean
+}) => (
+    <Card className="flex flex-col h-[70vh]">
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2"><MessageSquare className="text-primary" /> Live Chat Support</CardTitle>
+            <CardDescription>
+                You are in the shared support channel for {currentUser?.company}. All messages are visible to your company's admins and our support team.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col p-0">
+            <ScrollArea className="flex-1 p-6 bg-muted/30">
+                <div className="space-y-6">
+                    {messages?.map((message, index) => {
+                        const myMessage = message.senderId === authUser?.uid;
+                        return (
+                            <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
+                                {!myMessage && (
+                                    <Avatar className="h-8 w-8"><AvatarFallback>SA</AvatarFallback></Avatar>
+                                )}
+                                <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
+                                    {!myMessage && <p className="text-xs font-semibold text-primary mb-1">Support Agent</p>}
+                                    <p className="text-sm">{message.text}</p>
+                                    <p className="text-xs mt-2 opacity-80 text-right">
+                                        {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    })}
+                    {(messages === null || messages?.length === 0) && (
+                        <div className="text-center text-muted-foreground">Start the conversation by sending a message.</div>
+                    )}
+                </div>
+            </ScrollArea>
+            <div className="p-4 border-t bg-background">
+                <div className="flex w-full items-center gap-2">
+                    <Input placeholder="Type your message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} />
+                    <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>{isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}</Button>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+);
+
 export default function SupportPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -206,138 +376,6 @@ export default function SupportPage() {
     });
     form.reset();
   };
-  
-  const getAvatarFallback = (userName: string) => {
-    return userName.split(' ').map(n => n[0]).join('');
-  }
-
-  const AdminChatInterface = () => (
-    <Card className="h-[70vh] flex overflow-hidden">
-        <div className={cn(
-            "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
-            isMobile && selectedThreadId && "hidden"
-        )}>
-            <div className="p-4 border-b">
-                <h2 className="text-xl font-semibold">Support Inquiries</h2>
-            </div>
-            <ScrollArea className="flex-1">
-                <div className="p-2 space-y-1">
-                    {supportThreadsData?.map(thread => (
-                        <button
-                            key={thread.id}
-                            onClick={() => setSelectedThreadId(thread.id)}
-                            className={cn(
-                                "block w-full text-left p-3 rounded-lg border transition-colors",
-                                selectedThreadId === thread.id ? "bg-primary/10" : "hover:bg-primary/5"
-                            )}
-                        >
-                             <div className="flex justify-between items-start gap-2">
-                                <p className="font-semibold text-sm truncate">{thread.companyName}</p>
-                                <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
-                            <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>
-                        </button>
-                    ))}
-                    {supportThreadsData?.length === 0 && <p className="p-4 text-center text-muted-foreground">No open support chats.</p>}
-                </div>
-            </ScrollArea>
-        </div>
-        <div className={cn(
-            "flex-1 flex-col",
-            isMobile && !selectedThreadId ? "hidden" : "flex",
-            !isMobile && !selectedThreadId && "hidden md:flex"
-        )}>
-            {currentThread ? (
-                 <>
-                    <div className="flex items-center gap-3 p-4 border-b">
-                        {isMobile && <Button variant="ghost" size="icon" onClick={() => setSelectedThreadId(null)}><ChevronLeft /></Button>}
-                        <div>
-                            <p className="font-semibold">{currentThread.companyName}</p>
-                            <p className="text-sm text-muted-foreground">{currentThread.subject}</p>
-                        </div>
-                    </div>
-                     <ScrollArea className="flex-1 p-6 bg-muted/30">
-                        <div className="space-y-6">
-                            {messages?.map((message, index) => {
-                                const myMessage = message.isAdmin;
-                                return (
-                                    <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
-                                        {!myMessage && (
-                                            <Avatar className="h-8 w-8"><AvatarFallback>{getAvatarFallback(message.senderName)}</AvatarFallback></Avatar>
-                                        )}
-                                        <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
-                                            {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{message.senderName}</p>}
-                                            <p className="text-sm">{message.text}</p>
-                                            <p className="text-xs mt-2 opacity-80 text-right">
-                                                {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </ScrollArea>
-                    <div className="p-4 border-t bg-background">
-                        <div className="flex w-full items-center gap-2">
-                            <Input placeholder="Type your message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} />
-                            <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>{isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}</Button>
-                        </div>
-                    </div>
-                </>
-            ) : (
-                <div className="flex-1 hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/30">
-                    <MessageSquare className="w-16 h-16 text-muted-foreground/50" />
-                    <h2 className="mt-4 text-xl font-semibold">Select a conversation</h2>
-                    <p className="text-muted-foreground">Choose a support chat from the list to view the conversation.</p>
-                </div>
-            )}
-        </div>
-    </Card>
-  );
-
-  const ClientChatInterface = () => (
-    <Card className="flex flex-col h-[70vh]">
-        <CardHeader>
-            <CardTitle className="flex items-center gap-2"><MessageSquare className="text-primary" /> Live Chat Support</CardTitle>
-            <CardDescription>
-                You are in the shared support channel for {currentUser?.company}. All messages are visible to your company's admins and our support team.
-            </CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 p-6 bg-muted/30">
-                <div className="space-y-6">
-                    {messages?.map((message, index) => {
-                        const myMessage = message.senderId === authUser?.uid;
-                        return (
-                            <div key={index} className={cn("flex items-end gap-3", myMessage && "justify-end")}>
-                                {!myMessage && (
-                                    <Avatar className="h-8 w-8"><AvatarFallback>SA</AvatarFallback></Avatar>
-                                )}
-                                <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
-                                    {!myMessage && <p className="text-xs font-semibold text-primary mb-1">Support Agent</p>}
-                                    <p className="text-sm">{message.text}</p>
-                                    <p className="text-xs mt-2 opacity-80 text-right">
-                                        {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
-                                    </p>
-                                </div>
-                            </div>
-                        )
-                    })}
-                    {(messages === null || messages?.length === 0) && (
-                        <div className="text-center text-muted-foreground">Start the conversation by sending a message.</div>
-                    )}
-                </div>
-            </ScrollArea>
-            <div className="p-4 border-t bg-background">
-                <div className="flex w-full items-center gap-2">
-                    <Input placeholder="Type your message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} />
-                    <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isSubmitting}>{isSubmitting ? 'Sending...' : <Send className="h-4 w-4" />}</Button>
-                </div>
-            </div>
-        </CardContent>
-    </Card>
-  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -459,7 +497,28 @@ export default function SupportPage() {
                 </Card>
             </TabsContent>
             <TabsContent value="chat" className="mt-4">
-                 {role === 'admin' ? <AdminChatInterface /> : <ClientChatInterface />}
+                 {role === 'admin' 
+                 ? <AdminChatInterface 
+                    isMobile={isMobile} 
+                    supportThreadsData={supportThreadsData}
+                    selectedThreadId={selectedThreadId}
+                    setSelectedThreadId={setSelectedThreadId}
+                    currentThread={currentThread}
+                    messages={messages}
+                    newMessage={newMessage}
+                    setNewMessage={setNewMessage}
+                    handleSendMessage={handleSendMessage}
+                    isSubmitting={isSubmitting}
+                  /> 
+                 : <ClientChatInterface 
+                    currentUser={currentUser}
+                    messages={messages}
+                    authUser={authUser}
+                    newMessage={newMessage}
+                    setNewMessage={setNewMessage}
+                    handleSendMessage={handleSendMessage}
+                    isSubmitting={isSubmitting}
+                 />}
             </TabsContent>
         </Tabs>
     </div>

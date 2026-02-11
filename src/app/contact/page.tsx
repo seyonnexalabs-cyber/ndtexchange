@@ -99,95 +99,89 @@ const ContactForm = () => {
             <CardContent className="p-6">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           <FormField
-                                control={form.control}
-                                name="name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Full Name</FormLabel>
-                                        <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="companyName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Company Name</FormLabel>
-                                        <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="phone"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Phone Number (Optional)</FormLabel>
-                                        <FormControl><Input type="tel" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <FormField
-                                control={form.control}
-                                name="role"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>You are a...</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select your role" /></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="asset-owner">Asset Owner / Client</SelectItem>
-                                                <SelectItem value="ndt-company">NDT Company / Inspector</SelectItem>
-                                                <SelectItem value="auditor">Auditor / Level-III</SelectItem>
-                                                <SelectItem value="oem-other">OEM / Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="inquiryType"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Reason for Contact</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a topic" /></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="pricing">A Pricing Quote</SelectItem>
-                                                <SelectItem value="partnership">Partnership Inquiry</SelectItem>
-                                                <SelectItem value="oem-listing">OEM Listing Inquiry</SelectItem>
-                                                <SelectItem value="support">Technical Support</SelectItem>
-                                                <SelectItem value="general">A General Inquiry</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Full Name</FormLabel>
+                                    <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="companyName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Company Name</FormLabel>
+                                    <FormControl><Input placeholder="Your Company Inc." {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Email</FormLabel>
+                                    <FormControl><Input type="email" placeholder="you@company.com" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone Number (Optional)</FormLabel>
+                                    <FormControl><Input type="tel" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                           control={form.control}
+                           name="role"
+                           render={({ field }) => (
+                               <FormItem>
+                                   <FormLabel>You are a...</FormLabel>
+                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                       <FormControl><SelectTrigger><SelectValue placeholder="Select your role" /></SelectTrigger></FormControl>
+                                       <SelectContent>
+                                           <SelectItem value="asset-owner">Asset Owner / Client</SelectItem>
+                                           <SelectItem value="ndt-company">NDT Company / Inspector</SelectItem>
+                                           <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                                           <SelectItem value="oem-other">OEM / Other</SelectItem>
+                                       </SelectContent>
+                                   </Select>
+                                   <FormMessage />
+                               </FormItem>
+                           )}
+                       />
+                        <FormField
+                           control={form.control}
+                           name="inquiryType"
+                           render={({ field }) => (
+                               <FormItem>
+                                   <FormLabel>Reason for Contact</FormLabel>
+                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                       <FormControl><SelectTrigger><SelectValue placeholder="Select a topic" /></SelectTrigger></FormControl>
+                                       <SelectContent>
+                                           <SelectItem value="pricing">A Pricing Quote</SelectItem>
+                                           <SelectItem value="partnership">Partnership Inquiry</SelectItem>
+                                           <SelectItem value="oem-listing">OEM Listing Inquiry</SelectItem>
+                                           <SelectItem value="support">Technical Support</SelectItem>
+                                           <SelectItem value="general">A General Inquiry</SelectItem>
+                                       </SelectContent>
+                                   </Select>
+                                   <FormMessage />
+                               </FormItem>
+                           )}
+                       />
                          <FormField
                             control={form.control}
                             name="message"

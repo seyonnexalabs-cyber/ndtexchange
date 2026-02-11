@@ -18,6 +18,7 @@ export default function PublicFooter() {
         { href: '/#techniques', label: 'NDT Techniques' },
         { href: '/manufacturers', label: 'Manufacturers' },
         { href: '/providers', label: 'Providers' },
+        { href: '/auditors', label: 'Auditors' },
     ];
 
     const companyLinks = [
@@ -100,3 +101,5 @@ export default function PublicFooter() {
         </footer>
     );
 }
+
+    

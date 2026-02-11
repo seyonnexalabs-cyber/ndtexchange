@@ -11,6 +11,7 @@ import { ndtTechniques as NDTTechniqueData } from '@/lib/ndt-techniques-data';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { clientData, serviceProviders, auditFirms } from '@/lib/placeholder-data';
 
 export const metadata: Metadata = {
   title: 'NDT EXCHANGE | The Digital Marketplace for Asset Integrity',
@@ -53,6 +54,8 @@ export default function HomePage() {
       ]
     },
   ];
+  
+  const manufacturerCount = new Set(NDTTechniqueData.flatMap(t => t.companies.map(c => c.name))).size;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -123,8 +126,40 @@ export default function HomePage() {
             </div>
         </section>
 
-        {/* How it works Section */}
+        {/* Social Proof Section */}
         <section className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-headline font-semibold text-primary">
+                Trusted by the Industry
+              </h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                Join a growing ecosystem of asset owners, service providers, and technology leaders.
+              </p>
+            </div>
+            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div>
+                <p className="text-5xl font-bold text-accent">{clientData.length}+</p>
+                <p className="mt-2 text-lg font-semibold text-muted-foreground">Clients</p>
+              </div>
+              <div>
+                <p className="text-5xl font-bold text-accent">{serviceProviders.length}+</p>
+                <p className="mt-2 text-lg font-semibold text-muted-foreground">Service Providers</p>
+              </div>
+              <div>
+                <p className="text-5xl font-bold text-accent">{auditFirms.length}+</p>
+                <p className="mt-2 text-lg font-semibold text-muted-foreground">Auditors</p>
+              </div>
+              <div>
+                <p className="text-5xl font-bold text-accent">{manufacturerCount}+</p>
+                <p className="mt-2 text-lg font-semibold text-muted-foreground">OEM Partners</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works Section */}
+        <section className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                   <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -139,7 +174,7 @@ export default function HomePage() {
         </section>
         
         {/* NDT Techniques Section */}
-        <section id="techniques" className="py-20">
+        <section id="techniques" className="py-20 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -194,3 +229,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

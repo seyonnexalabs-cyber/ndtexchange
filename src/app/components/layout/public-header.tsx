@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,10 @@ export default function PublicHeader() {
 
   const navLinks = [
     { href: '/about', label: 'About' },
-    { href: '/platform-features', label: 'Features' },
-    { href: '/platform-workflow', label: 'How It Works' },
+    { href: '/providers', label: 'Providers' },
+    { href: '/manufacturers', label: 'Manufacturers' },
+    { href: '/auditors', label: 'Auditors' },
+    { href: '/platform-workflow', label: 'Workflow' },
     { href: '/contact', label: 'Pricing & Contact' },
   ];
 
@@ -100,3 +103,5 @@ export default function PublicHeader() {
     </header>
   );
 }
+
+    

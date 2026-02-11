@@ -16,10 +16,14 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(25);
 
     const filteredAuditors = useMemo(() => {
         return initialAuditFirms.filter(firm => {
@@ -28,6 +32,12 @@ export default function AuditorsPage() {
             return serviceMatch && industryMatch;
         });
     }, [selectedServices, selectedIndustries]);
+    
+    const pageCount = Math.ceil(filteredAuditors.length / itemsPerPage);
+    const paginatedAuditors = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredAuditors.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredAuditors, currentPage, itemsPerPage]);
 
     const handleServiceChange = (service: string) => {
         setSelectedServices(prev =>
@@ -35,6 +45,7 @@ export default function AuditorsPage() {
                 ? prev.filter(t => t !== service)
                 : [...prev, service]
         );
+        setCurrentPage(1);
     };
 
     const handleIndustryChange = (industry: string) => {
@@ -43,12 +54,19 @@ export default function AuditorsPage() {
                 ? prev.filter(t => t !== industry)
                 : [...prev, industry]
         );
+        setCurrentPage(1);
     };
 
     const clearFilters = () => {
         setSelectedServices([]);
         setSelectedIndustries([]);
+        setCurrentPage(1);
     }
+    
+    const handleItemsPerPageChange = (value: string) => {
+        setItemsPerPage(Number(value));
+        setCurrentPage(1);
+    };
 
     const hasActiveFilters = selectedServices.length > 0 || selectedIndustries.length > 0;
 
@@ -72,8 +90,8 @@ export default function AuditorsPage() {
                 <section className="py-16">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                            <h2 className="text-2xl font-headline font-semibold">Auditor Firm Directory</h2>
-                            <div className="flex gap-2">
+                            <h2 className="text-2xl font-headline font-semibold">Auditor Firm Directory ({filteredAuditors.length})</h2>
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline">Filter by Service ({selectedServices.length})</Button>
@@ -119,6 +137,19 @@ export default function AuditorsPage() {
                                     </PopoverContent>
                                 </Popover>
                                 <Button variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>Clear</Button>
+                                 <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">Per Page:</span>
+                                    <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+                                        <SelectTrigger className="w-[75px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="25">25</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
 
@@ -145,7 +176,7 @@ export default function AuditorsPage() {
                         )}
 
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {filteredAuditors.map(firm => (
+                            {paginatedAuditors.map(firm => (
                                 <Card key={firm.id} className="flex flex-col">
                                     <CardHeader>
                                         <div className="flex items-center gap-4">
@@ -187,6 +218,32 @@ export default function AuditorsPage() {
                                 </div>
                             )}
                         </div>
+
+                         {pageCount > 1 && (
+                            <div className="mt-12 flex justify-center">
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                                                className={currentPage === 1 ? 'pointer-events-none opacity-50' : undefined}
+                                            />
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <span className="p-2 text-sm font-medium">Page {currentPage} of {pageCount}</span>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(pageCount, p + 1)); }}
+                                                className={currentPage === pageCount ? 'pointer-events-none opacity-50' : undefined}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        )}
                     </div>
                 </section>
                 
@@ -210,5 +267,3 @@ export default function AuditorsPage() {
         </div>
     );
 }
-
-    

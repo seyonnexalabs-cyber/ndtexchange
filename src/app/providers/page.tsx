@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -17,6 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -35,6 +38,9 @@ const StarRating = ({ rating }: { rating: number }) => {
 export default function ProvidersPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+    const [sortBy, setSortBy] = useState('rating-desc');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(25);
     
     const filteredProviders = useMemo(() => {
         const providersWithStats = serviceProviders.map(provider => {
@@ -42,32 +48,48 @@ export default function ProvidersPage() {
             return { ...provider, completedJobs };
         });
 
-        return providersWithStats.filter(provider => {
+        let providers = providersWithStats.filter(provider => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques.includes(tech));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => provider.industries.includes(ind));
             return techniqueMatch && industryMatch;
         });
-    }, [selectedTechniques, selectedIndustries]);
+
+        switch (sortBy) {
+            case 'rating-desc': providers.sort((a, b) => b.rating - a.rating); break;
+            case 'rating-asc': providers.sort((a, b) => a.rating - b.rating); break;
+            case 'name-asc': providers.sort((a, b) => a.name.localeCompare(b.name)); break;
+            case 'name-desc': providers.sort((a, b) => b.name.localeCompare(a.name)); break;
+            default: break;
+        }
+
+        return providers;
+    }, [selectedTechniques, selectedIndustries, sortBy]);
+
+    const pageCount = Math.ceil(filteredProviders.length / itemsPerPage);
+    const paginatedProviders = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredProviders.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredProviders, currentPage, itemsPerPage]);
     
     const handleTechniqueChange = (techniqueId: string) => {
-        setSelectedTechniques(prev =>
-            prev.includes(techniqueId)
-                ? prev.filter(t => t !== techniqueId)
-                : [...prev, techniqueId]
-        );
+        setSelectedTechniques(prev => prev.includes(techniqueId) ? prev.filter(t => t !== techniqueId) : [...prev, techniqueId]);
+        setCurrentPage(1);
     };
 
     const handleIndustryChange = (industry: string) => {
-        setSelectedIndustries(prev =>
-            prev.includes(industry)
-                ? prev.filter(i => i !== industry)
-                : [...prev, industry]
-        );
+        setSelectedIndustries(prev => prev.includes(industry) ? prev.filter(i => i !== industry) : [...prev, industry]);
+        setCurrentPage(1);
     };
     
     const clearFilters = () => {
         setSelectedTechniques([]);
         setSelectedIndustries([]);
+        setCurrentPage(1);
+    };
+
+    const handleItemsPerPageChange = (value: string) => {
+        setItemsPerPage(Number(value));
+        setCurrentPage(1);
     };
     
     const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0;
@@ -93,23 +115,17 @@ export default function ProvidersPage() {
                     <section className="py-16">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                <h2 className="text-2xl font-headline font-semibold">Service Provider Directory</h2>
-                                <div className="flex gap-2">
+                                <h2 className="text-2xl font-headline font-semibold">Service Provider Directory ({filteredProviders.length})</h2>
+                                <div className="flex flex-wrap items-center gap-2">
                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline">Technique ({selectedTechniques.length})</Button>
-                                        </PopoverTrigger>
+                                        <PopoverTrigger asChild><Button variant="outline">Technique ({selectedTechniques.length})</Button></PopoverTrigger>
                                         <PopoverContent className="w-80">
                                             <div className="grid gap-4">
                                                 <h4 className="font-medium leading-none">Techniques</h4>
                                                 <ScrollArea className="grid gap-2 max-h-60 p-1">
                                                     {NDTTechniques.map(tech => (
                                                         <div key={tech.id} className="flex items-center space-x-2 p-1">
-                                                            <Checkbox
-                                                                id={`tech-${tech.id}`}
-                                                                checked={selectedTechniques.includes(tech.id)}
-                                                                onCheckedChange={() => handleTechniqueChange(tech.id)}
-                                                            />
+                                                            <Checkbox id={`tech-${tech.id}`} checked={selectedTechniques.includes(tech.id)} onCheckedChange={() => handleTechniqueChange(tech.id)} />
                                                             <Label htmlFor={`tech-${tech.id}`}>{tech.name}</Label>
                                                         </div>
                                                     ))}
@@ -118,20 +134,14 @@ export default function ProvidersPage() {
                                         </PopoverContent>
                                     </Popover>
                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline">Industry ({selectedIndustries.length})</Button>
-                                        </PopoverTrigger>
+                                        <PopoverTrigger asChild><Button variant="outline">Industry ({selectedIndustries.length})</Button></PopoverTrigger>
                                         <PopoverContent className="w-80">
                                             <div className="grid gap-4">
                                                 <h4 className="font-medium leading-none">Industries</h4>
                                                 <ScrollArea className="grid gap-2 max-h-60 p-1">
                                                     {auditFirmIndustries.map(ind => (
                                                         <div key={ind} className="flex items-center space-x-2 p-1">
-                                                            <Checkbox
-                                                                id={`ind-${ind.replace(/\s+/g, '-')}`}
-                                                                checked={selectedIndustries.includes(ind)}
-                                                                onCheckedChange={() => handleIndustryChange(ind)}
-                                                            />
+                                                            <Checkbox id={`ind-${ind.replace(/\s+/g, '-')}`} checked={selectedIndustries.includes(ind)} onCheckedChange={() => handleIndustryChange(ind)} />
                                                             <Label htmlFor={`ind-${ind.replace(/\s+/g, '-')}`}>{ind}</Label>
                                                         </div>
                                                     ))}
@@ -139,7 +149,31 @@ export default function ProvidersPage() {
                                             </div>
                                         </PopoverContent>
                                     </Popover>
+                                    <Select value={sortBy} onValueChange={setSortBy}>
+                                        <SelectTrigger className="w-full sm:w-[180px]">
+                                            <SelectValue placeholder="Sort by" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
+                                            <SelectItem value="rating-asc">Rating: Low to High</SelectItem>
+                                            <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                                            <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <Button variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>Clear</Button>
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-sm text-muted-foreground">Per Page:</span>
+                                        <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+                                            <SelectTrigger className="w-[75px]">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="25">25</SelectItem>
+                                                <SelectItem value="50">50</SelectItem>
+                                                <SelectItem value="100">100</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -149,24 +183,20 @@ export default function ProvidersPage() {
                                     {selectedTechniques.map(techId => (
                                         <Badge key={techId} variant="secondary">
                                             {NDTTechniques.find(t => t.id === techId)?.name}
-                                            <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                                <X className="h-3 w-3" />
-                                            </button>
+                                            <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5"><X className="h-3 w-3" /></button>
                                         </Badge>
                                     ))}
                                     {selectedIndustries.map(ind => (
                                         <Badge key={ind} variant="outline">
                                             {ind}
-                                            <button onClick={() => handleIndustryChange(ind)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                                <X className="h-3 w-3" />
-                                            </button>
+                                            <button onClick={() => handleIndustryChange(ind)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5"><X className="h-3 w-3" /></button>
                                         </Badge>
                                     ))}
                                 </div>
                             )}
 
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {filteredProviders.map(provider => (
+                                {paginatedProviders.map(provider => (
                                     <Card key={provider.id} className="flex flex-col">
                                         <CardHeader>
                                             <div className="flex items-center gap-4">
@@ -228,6 +258,32 @@ export default function ProvidersPage() {
                                     </div>
                                 )}
                             </div>
+
+                             {pageCount > 1 && (
+                                <div className="mt-12 flex justify-center">
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href="#"
+                                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : undefined}
+                                                />
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <span className="p-2 text-sm font-medium">Page {currentPage} of {pageCount}</span>
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href="#"
+                                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(pageCount, p + 1)); }}
+                                                    className={currentPage === pageCount ? 'pointer-events-none opacity-50' : undefined}
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
+                                </div>
+                            )}
                         </div>
                     </section>
                     

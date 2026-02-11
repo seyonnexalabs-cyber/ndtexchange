@@ -18,6 +18,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Manufacturer = {
   name: string;
@@ -29,6 +31,8 @@ type Manufacturer = {
 export default function ManufacturersPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(25);
 
     const manufacturers = useMemo(() => {
         const manufacturerMap = new Map<string, Manufacturer>();
@@ -54,6 +58,12 @@ export default function ManufacturersPage() {
             return techniqueMatch && searchMatch;
         });
     }, [manufacturers, selectedTechniques, searchTerm]);
+    
+    const pageCount = Math.ceil(filteredManufacturers.length / itemsPerPage);
+    const paginatedManufacturers = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredManufacturers.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredManufacturers, currentPage, itemsPerPage]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev =>
@@ -61,11 +71,18 @@ export default function ManufacturersPage() {
                 ? prev.filter(t => t !== techniqueId)
                 : [...prev, techniqueId]
         );
+        setCurrentPage(1);
     };
     
     const clearFilters = () => {
         setSelectedTechniques([]);
         setSearchTerm('');
+        setCurrentPage(1);
+    };
+
+    const handleItemsPerPageChange = (value: string) => {
+        setItemsPerPage(Number(value));
+        setCurrentPage(1);
     };
 
     return (
@@ -93,9 +110,9 @@ export default function ManufacturersPage() {
                                 placeholder="Search by manufacturer name..."
                                 className="max-w-xs"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                             />
-                            <div className="flex gap-2">
+                             <div className="flex flex-wrap items-center gap-2">
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline">Filter by Technique ({selectedTechniques.length})</Button>
@@ -124,6 +141,19 @@ export default function ManufacturersPage() {
                                     </PopoverContent>
                                 </Popover>
                                 <Button variant="ghost" onClick={clearFilters} disabled={selectedTechniques.length === 0 && searchTerm === ''}>Clear</Button>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">Per Page:</span>
+                                    <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+                                        <SelectTrigger className="w-[75px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="25">25</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
 
@@ -142,7 +172,7 @@ export default function ManufacturersPage() {
                         )}
                         
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {filteredManufacturers.map(manufacturer => {
+                            {paginatedManufacturers.map(manufacturer => {
                                 // Deterministically pick an image based on the manufacturer name
                                 const nameHash = manufacturer.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
                                 const techniqueIndex = nameHash % manufacturer.techniques.length;
@@ -190,6 +220,32 @@ export default function ManufacturersPage() {
                             <div className="col-span-full text-center py-20">
                                 <p className="text-xl font-semibold">No Manufacturers Found</p>
                                 <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
+                            </div>
+                        )}
+
+                        {pageCount > 1 && (
+                            <div className="mt-12 flex justify-center">
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                                                className={currentPage === 1 ? 'pointer-events-none opacity-50' : undefined}
+                                            />
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <span className="p-2 text-sm font-medium">Page {currentPage} of {pageCount}</span>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(pageCount, p + 1)); }}
+                                                className={currentPage === pageCount ? 'pointer-events-none opacity-50' : undefined}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
                             </div>
                         )}
                     </div>

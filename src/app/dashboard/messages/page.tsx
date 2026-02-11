@@ -1,35 +1,24 @@
 'use client';
 
 import * as React from 'react';
-import { Job, allUsers, PlatformUser, jobChats as initialJobChats } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
+import { Job, allUsers, PlatformUser, jobChats as initialJobChats, jobs } from '@/lib/placeholder-data';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Send, ChevronLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { format, isSameDay } from 'date-fns';
 import { useMobile } from '@/hooks/use-mobile';
-import { jobs } from '@/lib/placeholder-data';
+import ConversationList from './components/ConversationList';
+import ChatView from './components/ChatView';
 
-// Component to safely render formatted time on the client to avoid hydration errors
-const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
-  const [formattedTime, setFormattedTime] = useState<string | null>(null);
-
-  useEffect(() => {
-    // This effect runs only on the client, ensuring the time is formatted in the user's timezone
-    setFormattedTime(format(new Date(dateString), 'p'));
-  }, [dateString]);
-
-  // Return a placeholder or null during server-side rendering and initial client-side render
-  return <>{formattedTime || ''}</>;
+// Define Conversation type in the main page component
+type Conversation = {
+    id: string;
+    jobId: string;
+    participants: string[];
+    lastMessage: string;
+    lastMessageTimestamp: string;
+    messages: { id: string; text: string; senderId: string; timestamp: string; }[];
+    job: Job;
 };
-
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
@@ -41,27 +30,27 @@ export default function MessagesPage() {
 
     const currentUser = useMemo(() => {
         const userMap: { [key: string]: PlatformUser | undefined } = {
-            client: allUsers.find(u => u.id === 'user-client-01'),
-            inspector: allUsers.find(u => u.id === 'user-tech-05'),
-            auditor: allUsers.find(u => u.id === 'user-auditor-01'),
-            admin: allUsers.find(u => u.id === 'user-admin-01'),
+            client: allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'),
+            inspector: allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'),
+            auditor: allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'),
+            admin: allUsers.find(u => u.id === 'JB5zgSrcKJX3dbNgPJmhlOcrUI62'),
         };
         return userMap[role] || allUsers.find(u => u.id === 'user-client-01')!;
     }, [role]);
 
-    const conversations = useMemo(() => {
+    const conversations = useMemo((): Conversation[] => {
         if (!currentUser) return [];
         return jobChatsData
             .filter(chat => chat.participants.includes(currentUser.id))
             .map(chat => {
                 const job = jobsData.find(j => j.id === chat.jobId);
-                return { ...chat, job }; // combine chat and job info
+                return { ...chat, job };
             })
             .filter((c): c is typeof c & { job: Job } => !!c.job) // Type guard
             .sort((a,b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
     }, [jobChatsData, currentUser, jobsData]);
     
-    const [selectedConversation, setSelectedConversation] = useState<typeof conversations[0] | null>(null);
+    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const [newMessage, setNewMessage] = useState('');
 
     useEffect(() => {
@@ -96,153 +85,26 @@ export default function MessagesPage() {
         return allUsers.find(u => u.id === senderId);
     }
     
-    const getAvatarFallback = (userName: string) => {
-        return userName.split(' ').map(n => n[0]).join('');
-    }
-
-
     return (
         <Card className="h-[calc(100vh_-_theme(spacing.16)_-_theme(spacing.12))] flex overflow-hidden">
-            {/* Conversation List Column */}
-            <div className={cn(
-                "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
-                selectedConversation && "hidden md:flex" // Hide on mobile when a chat is selected
-            )}>
-                 <div className="p-4 border-b">
-                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <MessageSquare className="text-primary" />
-                        Job Conversations
-                    </h1>
-                 </div>
-                <ScrollArea className="flex-1">
-                    <div className="p-2 space-y-1">
-                        {conversations.map(convo => {
-                            const isSelected = selectedConversation?.id === convo.id;
-                            const provider = serviceProviders.find(p => p.id === convo.job?.providerId);
-                            const lastMessageSender = getUserDetails(convo.messages[convo.messages.length - 1].senderId);
-                            const isMyLastMessage = lastMessageSender?.id === currentUser?.id;
-                            return (
-                                <button
-                                    key={convo.id}
-                                    onClick={() => setSelectedConversation(convo)}
-                                    className={cn(
-                                        "block w-full text-left p-3 rounded-lg border transition-colors",
-                                        isSelected ? "bg-primary/10" : "hover:bg-primary/5"
-                                    )}
-                                >
-                                    <div className="flex justify-between items-start gap-2">
-                                        <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
-                                        <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime dateString={convo.lastMessageTimestamp} /></span>
-                                    </div>
-                                    <div className="flex justify-between items-start gap-2 text-xs text-muted-foreground">
-                                        <p className="font-extrabold truncate">ID: {convo.job?.id}</p>
-                                        <p className="truncate text-right">
-                                            {role === 'client' ? provider?.name : convo.job?.client}
-                                        </p>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground mt-1 flex">
-                                        <p className="truncate">
-                                            <span className="font-medium mr-1">{isMyLastMessage ? 'You' : lastMessageSender?.name.split(' ')[0]}:</span>
-                                            {convo.lastMessage}
-                                        </p>
-                                    </div>
-                                </button>
-                            )
-                        })}
-                         {conversations.length === 0 && (
-                            <div className="text-center text-muted-foreground py-10">
-                                No active job conversations.
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
-            </div>
-
-            {/* Chat View Column */}
-            <div className={cn(
-                "flex-1 flex-col",
-                selectedConversation ? "flex" : "hidden md:flex" // Show when selected, or on desktop if nothing is selected
-            )}>
-                {selectedConversation ? (
-                   <>
-                        {/* Chat Header */}
-                        <div className="flex items-center gap-3 p-4 border-b">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
-                                <ChevronLeft />
-                            </Button>
-                            <div className="w-full">
-                                <p className="font-semibold">{selectedConversation.job.title}</p>
-                                <div className="text-sm text-muted-foreground">
-                                    {selectedConversation.job.client}
-                                    {selectedConversation.job.providerId && ` - ${serviceProviders.find(p => p.id === selectedConversation.job.providerId)?.name}`}
-                                    <Badge variant="outline" className="ml-2">{selectedConversation.job.technique}</Badge>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Messages */}
-                        <ScrollArea className="flex-1 p-6 bg-accent/5">
-                            <div className="space-y-2">
-                                {selectedConversation.messages?.map((message, index) => {
-                                    const sender = getUserDetails(message.senderId);
-                                    const myMessage = sender?.id === currentUser?.id;
-                                    
-                                    const messageDate = new Date(message.timestamp);
-                                    const prevMessage = selectedConversation.messages[index - 1];
-                                    const prevMessageDate = prevMessage ? new Date(prevMessage.timestamp) : null;
-                                    const showDateSeparator = !prevMessageDate || !isSameDay(messageDate, prevMessageDate);
-
-                                    return (
-                                        <React.Fragment key={message.id}>
-                                            {showDateSeparator && (
-                                                <div className="text-center text-xs text-muted-foreground my-4 font-semibold tracking-wider uppercase">
-                                                    {format(messageDate, 'MMMM d, yyyy')}
-                                                </div>
-                                            )}
-                                            <div className={cn("flex items-end gap-3", myMessage && "justify-end")}>
-                                                {!myMessage && sender && (
-                                                    <Avatar className="h-8 w-8 self-end">
-                                                        <AvatarFallback>{getAvatarFallback(sender.name)}</AvatarFallback>
-                                                    </Avatar>
-                                                )}
-                                                <div className={cn(
-                                                    "max-w-xs rounded-lg p-3", 
-                                                    myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' 
-                                                )}>
-                                                    {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{sender?.name}</p>}
-                                                    <p className="text-sm">{message.text}</p>
-                                                    <p className="text-xs mt-2 opacity-80 text-right">
-                                                        <ClientFormattedTime dateString={message.timestamp} />
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </React.Fragment>
-                                    )
-                                })}
-                            </div>
-                        </ScrollArea>
-
-                        {/* Input */}
-                        <div className="p-4 border-t bg-background">
-                           <div className="flex w-full items-center gap-2">
-                                <Input 
-                                  placeholder="Type your message..."
-                                  value={newMessage}
-                                  onChange={(e) => setNewMessage(e.target.value)}
-                                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                                />
-                                <Button onClick={handleSendMessage} disabled={!newMessage.trim()}><Send className="h-4 w-4" /></Button>
-                           </div>
-                        </div>
-                   </>
-                ) : (
-                    <div className="flex-1 hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/30">
-                        <MessageSquare className="w-16 h-16 text-muted-foreground/50" />
-                        <h2 className="mt-4 text-xl font-semibold">Select a conversation</h2>
-                        <p className="text-muted-foreground">Choose a job conversation from the list to start chatting.</p>
-                    </div>
-                )}
-            </div>
+            <ConversationList
+                conversations={conversations}
+                selectedConversation={selectedConversation}
+                onSelectConversation={setSelectedConversation}
+                currentUser={currentUser}
+                getUserDetails={getUserDetails}
+                role={role}
+            />
+            <ChatView
+                isMobile={isMobile}
+                selectedConversation={selectedConversation}
+                onBack={() => setSelectedConversation(null)}
+                currentUser={currentUser}
+                getUserDetails={getUserDetails}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                handleSendMessage={handleSendMessage}
+            />
         </Card>
     );
 };

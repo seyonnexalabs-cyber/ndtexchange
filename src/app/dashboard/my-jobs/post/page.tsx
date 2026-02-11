@@ -1,4 +1,3 @@
-
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -321,6 +320,34 @@ export default function PostJobPage() {
                                     </FormControl>
                                     </FormItem>
                                 )}
+                                />
+                            )}
+                            
+                            {isMarketplaceJob && (
+                                <FormField
+                                    control={form.control}
+                                    name="workflow"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Approval Workflow</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a workflow" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="standard">Standard (Client Review Only)</SelectItem>
+                                                    <SelectItem value="level3">Level III Audit (Manual)</SelectItem>
+                                                    <SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormDescription>
+                                                Choose if a Level III auditor review is required. This is recommended for critical jobs.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
                                 />
                             )}
 

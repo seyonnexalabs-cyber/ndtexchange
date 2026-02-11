@@ -69,7 +69,7 @@ const workflowData = [
     steps: [
         { number: 16, title: 'Final Report Submission', description: "Provider uploads structured final report: all findings, defect classifications, recommended actions, and NDT data files — stored permanently in the client's asset register.", actor: 'Service Provider' },
         { number: 17, title: 'Client Sign-off', description: "Client reviews and approves the final deliverables. Any disputes are handled via the platform's structured dispute resolution process before final release.", actor: 'Client' },
-        { number: 18, title: 'Final Payment & Platform Fee', description: "Remaining escrow released to provider. Platform deducts commission (5–10%). Invoice issued to client. Transaction recorded for tax reporting.", actor: 'Platform' },
+        { number: 18, title: 'Final Payment & Closeout', description: "Remaining escrow released to provider. An invoice is issued to the client, and the transaction is recorded for historical reporting.", actor: 'Platform' },
         { number: 19, title: 'Mutual Ratings & Review', description: "Both parties rate each other. Ratings feed the platform's reputation engine, improving match quality for future jobs. Disputes flagged to trust & safety team.", actor: 'Both Parties' }
     ]
   },

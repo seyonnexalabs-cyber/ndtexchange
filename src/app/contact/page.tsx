@@ -459,9 +459,9 @@ export default function ContactPage() {
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-3">
-                        <AccordionTrigger>When do commissions start?</AccordionTrigger>
+                        <AccordionTrigger>How does NDT EXCHANGE make money?</AccordionTrigger>
                         <AccordionContent>
-                        After a successful pilot phase. We will provide ample notice.
+                        NDT EXCHANGE operates on a subscription (SaaS) model. We charge a monthly or annual fee for access to our platform features, depending on the plan you choose. We do not take a commission on jobs awarded through the marketplace.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-4">

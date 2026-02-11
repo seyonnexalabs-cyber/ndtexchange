@@ -1,4 +1,3 @@
-
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -68,7 +67,7 @@ export default function PostJobPage() {
         });
       }
 
-      return schema.refine(data => {
+      let finalSchema = schema.refine(data => {
         if (data.scheduledStartDate && data.scheduledEndDate) {
             return data.scheduledEndDate >= data.scheduledStartDate;
         }
@@ -77,6 +76,31 @@ export default function PostJobPage() {
           message: "End date cannot be before start date.",
           path: ["scheduledEndDate"],
       });
+
+      if (role === 'client') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of today to compare dates properly
+
+        finalSchema = finalSchema.refine(data => {
+            if (data.bidExpiryDate) {
+                return data.bidExpiryDate >= today;
+            }
+            return true;
+        }, {
+            message: "Bid expiry date cannot be in the past.",
+            path: ["bidExpiryDate"],
+        }).refine(data => {
+            if (data.scheduledStartDate) {
+                return data.scheduledStartDate >= today;
+            }
+            return true;
+        }, {
+            message: "Target start date cannot be in the past.",
+            path: ["scheduledStartDate"],
+        });
+      }
+
+      return finalSchema;
     }, [role]);
 
     const form = useForm<z.infer<typeof jobSchema>>({

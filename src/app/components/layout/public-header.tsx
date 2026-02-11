@@ -1,27 +1,13 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Globe, ChevronDown, Menu } from 'lucide-react';
+import { Globe, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-const SeyonNexaLogo = () => (
-    <div className="flex items-center gap-2 text-white">
-        <div className="w-10 h-10 bg-primary flex items-center justify-center rounded-md">
-            <span className="font-bold text-lg">EN</span>
-        </div>
-        <div>
-            <div className="font-bold leading-tight">SEYON NEXA</div>
-            <div className="text-xs tracking-widest">LABS</div>
-        </div>
-    </div>
-);
+import { NdtExchangeLogo } from '@/app/components/icons';
 
 
 export default function PublicHeader() {
@@ -45,8 +31,9 @@ export default function PublicHeader() {
   return (
     <header className="absolute top-0 left-0 right-0 z-20 bg-transparent">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
-        <Link href="/">
-          <SeyonNexaLogo />
+        <Link href="/" className="flex items-center gap-3">
+          <NdtExchangeLogo className="h-10 w-auto text-white" />
+          <span className="text-xl font-bold text-white tracking-tighter">NDT EXCHANGE</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
@@ -74,7 +61,10 @@ export default function PublicHeader() {
                 <SheetContent>
                     <SheetHeader>
                         <SheetTitle>
-                           <SeyonNexaLogo />
+                           <Link href="/" className="flex items-center gap-3">
+                                <NdtExchangeLogo className="h-8 w-auto text-primary" />
+                                <span className="text-lg font-bold text-foreground tracking-tighter">NDT EXCHANGE</span>
+                            </Link>
                         </SheetTitle>
                     </SheetHeader>
                     <div className="mt-8 flex flex-col items-start space-y-4">

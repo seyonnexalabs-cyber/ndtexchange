@@ -7,7 +7,6 @@ import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 import { Building, UserCheck, Globe, CheckCircle, HardHat } from 'lucide-react';
 import { ndtTechniques } from '@/lib/ndt-techniques-data';
 import { FeatureCard } from '@/app/components/feature-card';
@@ -97,16 +96,6 @@ export default function HomePage() {
                         </Button>
                     </Card>
                 </div>
-
-                <div className="mt-20 text-center">
-                    <h3 className="text-2xl font-headline font-semibold text-primary">
-                        Connected by a Transparent Marketplace
-                    </h3>
-                    <p className="mt-2 max-w-3xl mx-auto text-lg text-muted-foreground">
-                        Our core engine is a digital marketplace that streamlines procurement and connects clients with qualified inspectors through a standardized workflow.
-                    </p>
-                </div>
-                <UserActivityDiagram />
             </div>
         </section>
 

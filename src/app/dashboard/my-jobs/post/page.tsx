@@ -45,6 +45,29 @@ const baseSchema = z.object({
 });
 
 
+const industries = [
+    'Oil & Gas — Upstream',
+    'Oil & Gas — Midstream',
+    'Oil & Gas — Downstream/Refinery',
+    'Power Generation — Fossil Fuel',
+    'Power Generation — Nuclear',
+    'Power Generation — Renewables',
+    'Aerospace & Defense',
+    'Manufacturing',
+    'Infrastructure & Construction',
+    'Marine & Shipbuilding',
+    'Chemical Processing',
+];
+
+const certificationBodies = [
+    'ASNT (American Society for Nondestructive Testing)',
+    'PCN (Personnel Certification in Non-Destructive Testing)',
+    'CSWIP (Certification Scheme for Welding Inspection Personnel)',
+    'API (American Petroleum Institute)',
+    'ACCP (ASNT Central Certification Program)',
+    'Other/Equivalent (Specify in description)',
+];
+
 export default function PostJobPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
@@ -121,17 +144,17 @@ export default function PostJobPage() {
     const form = useForm<z.infer<typeof jobSchema>>({
         resolver: zodResolver(jobSchema),
         defaultValues: {
-            title: 'Annual Shutdown Inspection — Crude Unit C3',
-            jobType: 'shutdown',
-            industry: 'Oil & Gas — Refinery',
-            location: 'Jamnagar, Gujarat, India',
-            scheduledStartDate: new Date('2026-03-15'),
-            durationDays: 21,
+            title: '',
+            jobType: 'project',
+            industry: undefined,
+            location: '',
+            scheduledStartDate: undefined,
+            durationDays: undefined,
             techniques: [],
-            estimatedBudget: '₹25L – ₹50L',
-            certificationsRequired: 'ASNT Level II minimum',
-            description: 'Full inspection of crude distillation unit including: 8 pressure vessels (API 510), 2.4km process piping (API 570), all welds on new construction. Previous report and P&IDs available on request. Access equipment provided by client. Bidders must have valid OISD compliance documentation.',
-            bidExpiryDate: new Date('2026-02-28'),
+            estimatedBudget: '',
+            certificationsRequired: undefined,
+            description: '',
+            bidExpiryDate: undefined,
             assets: [],
             workflow: 'standard',
             isMarketplaceJob: true,
@@ -358,7 +381,12 @@ export default function PostJobPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Industry / Sector</FormLabel>
-                                            <FormControl><Input placeholder="e.g., Oil & Gas — Refinery" {...field} /></FormControl>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select an industry" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    {industries.map(industry => <SelectItem key={industry} value={industry}>{industry}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -384,7 +412,7 @@ export default function PostJobPage() {
                                     name="scheduledStartDate"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                            <FormLabel>Shutdown Start Date</FormLabel>
+                                            <FormLabel>Target Start Date</FormLabel>
                                             <FormControl><CustomDateInput {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -395,7 +423,7 @@ export default function PostJobPage() {
                                     name="durationDays"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Duration (Days)</FormLabel>
+                                            <FormLabel>Estimated Duration (Days)</FormLabel>
                                             <FormControl><Input type="number" placeholder="e.g., 21" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -425,7 +453,7 @@ export default function PostJobPage() {
                                     name="estimatedBudget"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Estimated Budget</FormLabel>
+                                            <FormLabel>Estimated Budget (Optional)</FormLabel>
                                             <FormControl><Input placeholder="e.g., ₹25L – ₹50L" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -436,8 +464,13 @@ export default function PostJobPage() {
                                     name="certificationsRequired"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Certifications Required</FormLabel>
-                                            <FormControl><Input placeholder="e.g., ASNT Level II minimum" {...field} /></FormControl>
+                                            <FormLabel>Primary Certification Required</FormLabel>
+                                             <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select required certification" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    {certificationBodies.map(cert => <SelectItem key={cert} value={cert}>{cert}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -538,19 +571,21 @@ export default function PostJobPage() {
                                                         key={asset.id}
                                                         control={form.control}
                                                         name="assets"
-                                                        render={({ field }) => (
-                                                            <FormItem key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={field.value?.includes(asset.id)}
-                                                                        onCheckedChange={(checked) => {
-                                                                            return checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange(field.value?.filter((value) => value !== asset.id));
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location} / {asset.type})</span></FormLabel>
-                                                            </FormItem>
-                                                        )}
+                                                        render={({ field }) => {
+                                                            return (
+                                                                <FormItem key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
+                                                                    <FormControl>
+                                                                        <Checkbox
+                                                                            checked={field.value?.includes(asset.id)}
+                                                                            onCheckedChange={(checked) => {
+                                                                                return checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange(field.value?.filter((value) => value !== asset.id));
+                                                                            }}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location} / {asset.type})</span></FormLabel>
+                                                                </FormItem>
+                                                            )
+                                                        }}
                                                     />
                                                 )) : <p className="text-center text-muted-foreground">No assets match your filters.</p>}
                                                 </div>
@@ -624,4 +659,3 @@ export default function PostJobPage() {
     );
 }
 
-    

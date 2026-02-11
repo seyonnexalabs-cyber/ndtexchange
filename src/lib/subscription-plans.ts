@@ -116,8 +116,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Provider Pro',
         audience: 'Provider',
         price: {
-            monthly: { USD: '$49', EUR: '€45', INR: '₹4,000' },
-            yearly: { USD: '$490', EUR: '€450', INR: '₹40,000' },
+            monthly: { USD: '$29', EUR: '€25', INR: '₹2,499' },
+            yearly: { USD: '$290', EUR: '€250', INR: '₹24,990' },
         },
         priceDescription: '/ company / month',
         description: "For professional teams and growing companies.",
@@ -146,8 +146,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Company Growth',
         audience: 'Provider',
         price: {
-            monthly: { USD: '$120', EUR: '€110', INR: '₹10,000' },
-            yearly: { USD: '$1200', EUR: '€1100', INR: '₹100,000' },
+            monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
+            yearly: { USD: '$990', EUR: '€890', INR: '₹79,990' },
         },
         priceDescription: '/ company / month',
         description: "Per company",

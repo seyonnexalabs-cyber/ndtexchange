@@ -114,7 +114,7 @@ const ProviderPlans = ({ onUpgradeClick }: { onUpgradeClick: (plan: string, pric
     <>
         <PricingCard
             plan="Provider Starter"
-            price="$49"
+            price="$29"
             description="For individual inspectors or small teams."
             features={[
                 "Access to job marketplace",
@@ -128,7 +128,7 @@ const ProviderPlans = ({ onUpgradeClick }: { onUpgradeClick: (plan: string, pric
         />
         <PricingCard
             plan="Provider Growth"
-            price="$149"
+            price="$99"
             description="For established NDT companies."
             features={[
                 "Unlimited bids",

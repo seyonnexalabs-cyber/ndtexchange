@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -30,9 +31,8 @@ import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, 
 // Define types for Firestore data
 type SupportThread = {
     id: string;
-    userId: string;
-    userName: string;
-    userCompany: string;
+    companyId: string;
+    companyName: string;
     subject: string;
     status: 'Open' | 'Closed';
     lastMessage?: string;
@@ -87,12 +87,13 @@ export default function SupportPage() {
   }, [role]);
 
   const supportChatQuery = useMemoFirebase(() => {
-    if (!firestore || !authUser) return null;
+    if (!firestore || !authUser || !currentUser?.companyId) return null;
     if (role === 'admin') {
-      return query(collection(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
+        return query(collection(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
     }
-    return query(collection(firestore, 'supportChats'), where('userId', '==', authUser.uid), limit(1));
-  }, [firestore, authUser, role]);
+    return query(collection(firestore, 'supportChats'), where('companyId', '==', currentUser.companyId), limit(1));
+  }, [firestore, authUser, role, currentUser?.companyId]);
+
 
   const { data: supportThreadsData } = useCollection<SupportThread>(supportChatQuery);
   
@@ -121,9 +122,8 @@ export default function SupportPage() {
 
         if (!threadId && role !== 'admin') {
             const newThreadData = {
-                userId: authUser.uid,
-                userName: currentUser.name,
-                userCompany: currentUser.company,
+                companyId: currentUser.companyId,
+                companyName: currentUser.company,
                 subject: 'Live Support Chat',
                 status: 'Open' as 'Open' | 'Closed',
                 lastMessage: newMessage.trim(),
@@ -232,10 +232,10 @@ export default function SupportPage() {
                             )}
                         >
                              <div className="flex justify-between items-start gap-2">
-                                <p className="font-semibold text-sm truncate">{thread.userName}</p>
+                                <p className="font-semibold text-sm truncate">{thread.companyName}</p>
                                 <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
                             </div>
-                            <p className="text-xs text-muted-foreground truncate">{thread.userCompany}</p>
+                            <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
                             <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>
                         </button>
                     ))}
@@ -253,8 +253,8 @@ export default function SupportPage() {
                     <div className="flex items-center gap-3 p-4 border-b">
                         {isMobile && <Button variant="ghost" size="icon" onClick={() => setSelectedThreadId(null)}><ChevronLeft /></Button>}
                         <div>
-                            <p className="font-semibold">{currentThread.userName}</p>
-                            <p className="text-sm text-muted-foreground">{currentThread.userCompany}</p>
+                            <p className="font-semibold">{currentThread.companyName}</p>
+                            <p className="text-sm text-muted-foreground">{currentThread.subject}</p>
                         </div>
                     </div>
                      <ScrollArea className="flex-1 p-6 bg-muted/30">
@@ -267,6 +267,7 @@ export default function SupportPage() {
                                             <Avatar className="h-8 w-8"><AvatarFallback>{getAvatarFallback(message.senderName)}</AvatarFallback></Avatar>
                                         )}
                                         <div className={cn("max-w-xs rounded-lg p-3", myMessage ? 'bg-primary text-primary-foreground' : 'bg-background border' )}>
+                                            {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{message.senderName}</p>}
                                             <p className="text-sm">{message.text}</p>
                                             <p className="text-xs mt-2 opacity-80 text-right">
                                                 {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
@@ -299,7 +300,9 @@ export default function SupportPage() {
     <Card className="flex flex-col h-[70vh]">
         <CardHeader>
             <CardTitle className="flex items-center gap-2"><MessageSquare className="text-primary" /> Live Chat Support</CardTitle>
-            <CardDescription>You are now connected with a support agent. Ask your question below.</CardDescription>
+            <CardDescription>
+                You are in the shared support channel for {currentUser?.company}. All messages are visible to your company's admins and our support team.
+            </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
             <ScrollArea className="flex-1 p-6 bg-muted/30">

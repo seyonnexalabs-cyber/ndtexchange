@@ -121,11 +121,11 @@ service cloud.firestore {
      * Support Chat Rules
      ***********************************************************/
      match /supportChats/{chatId} {
-       allow read, update: if isOwner(resource.data.userId) || isPlatformAdmin();
-       allow create: if isOwner(request.resource.data.userId);
+       allow read, update: if isCompanyMember(resource.data.companyId) || isPlatformAdmin();
+       allow create: if isCompanyMember(request.resource.data.companyId);
 
        match /messages/{messageId} {
-         allow read, create: if isOwner(get(/databases/$(database)/documents/supportChats/$(chatId)).data.userId) || isPlatformAdmin();
+         allow read, create: if isCompanyMember(get(/databases/$(database)/documents/supportChats/$(chatId)).data.companyId) || isPlatformAdmin();
        }
      }
      

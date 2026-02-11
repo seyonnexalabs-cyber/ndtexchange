@@ -184,18 +184,17 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SupportChat",
       "type": "object",
-      "description": "A support chat thread between a user and the platform support team.",
+      "description": "A support chat thread between a company and the platform support team.",
       "properties": {
         "id": { "type": "string" },
-        "userId": { "type": "string", "description": "ID of the user who initiated the chat." },
-        "userName": { "type": "string" },
-        "userCompany": { "type": "string" },
+        "companyId": { "type": "string", "description": "ID of the company this chat belongs to." },
+        "companyName": { "type": "string", "description": "Name of the company." },
         "subject": { "type": "string" },
         "status": { "type": "string", "enum": ["Open", "Closed"] },
         "lastMessage": { "type": "string" },
         "lastMessageTimestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "userId", "status", "subject"]
+      "required": ["id", "companyId", "companyName", "status", "subject"]
     },
     "SupportMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -384,5 +383,3 @@
     "reasoning": "The Firestore structure is designed with a flattened data model. Each major entity (users, assets, jobs, companies, etc.) is a top-level collection. This approach simplifies querying (e.g., fetching all open jobs) and makes security rules more direct and manageable. Relationships between documents are maintained using stored IDs (e.g., a 'job' document contains a 'clientId'). This avoids deep nesting, which can complicate security and data retrieval, adhering to Firestore best practices for scalable and secure applications. Chat messages and Support Messages are stored in a subcollection under a chat document to allow for efficient loading of message history for a specific chat."
   }
 }
-
-    

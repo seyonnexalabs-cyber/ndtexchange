@@ -18,6 +18,8 @@ import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format } from 'date-fns';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Switch } from '@/components/ui/switch';
+
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -26,6 +28,7 @@ const baseSchema = z.object({
   description: z.string().optional(),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
+  isMarketplaceJob: z.boolean().default(true),
   bidExpiryDate: z.date().optional(),
   scheduledStartDate: z.date().optional(),
   scheduledEndDate: z.date().optional(),
@@ -82,7 +85,7 @@ export default function PostJobPage() {
         today.setHours(0, 0, 0, 0); // Set to start of today to compare dates properly
 
         finalSchema = finalSchema.refine(data => {
-            if (data.bidExpiryDate) {
+            if (data.isMarketplaceJob && data.bidExpiryDate) {
                 return data.bidExpiryDate >= today;
             }
             return true;
@@ -90,7 +93,7 @@ export default function PostJobPage() {
             message: "Bid expiry date cannot be in the past.",
             path: ["bidExpiryDate"],
         }).refine(data => {
-            if (data.scheduledStartDate) {
+            if (data.isMarketplaceJob && data.scheduledStartDate) {
                 return data.scheduledStartDate >= today;
             }
             return true;
@@ -113,8 +116,13 @@ export default function PostJobPage() {
             assets: [],
             clientName: '',
             workflow: 'standard',
+            isMarketplaceJob: true,
+            bidExpiryDate: new Date(),
+            scheduledStartDate: new Date(),
         },
     });
+
+    const isMarketplaceJob = form.watch('isMarketplaceJob');
 
     const uniqueLocations = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.location))], []);
     const uniqueTypes = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.type))], []);
@@ -171,6 +179,9 @@ export default function PostJobPage() {
     function onSubmit(values: z.infer<typeof jobSchema>) {
         const inspections: Omit<Inspection, 'id' | 'jobId' | 'report'>[] = [];
         const inspectionDate = values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+        
+        const isInternalJob = role === 'inspector' || (role === 'client' && !values.isMarketplaceJob);
+        const newJobStatus = isInternalJob ? 'Draft' : 'Posted';
 
         if (role === 'client' && 'assets' in values) {
             (values.assets || []).forEach(assetId => {
@@ -200,7 +211,8 @@ export default function PostJobPage() {
         const newJobData = {
             ...values,
             inspections: inspections,
-            isInternal: role === 'inspector'
+            isInternal: isInternalJob,
+            status: newJobStatus,
         };
 
         console.log('New Job Submitted:', newJobData);
@@ -245,6 +257,30 @@ export default function PostJobPage() {
                 <CardContent className="pt-6">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                            
+                             {isClient && (
+                                <FormField
+                                control={form.control}
+                                name="isMarketplaceJob"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-base">Post to Marketplace</FormLabel>
+                                        <FormDescription>
+                                            Turn this on to post the job publicly for providers to bid on. Turn it off to create an internal record.
+                                        </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    </FormItem>
+                                )}
+                                />
+                            )}
+
                             <div className="grid md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}
@@ -309,7 +345,7 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
-                                {isClient && (
+                                {isClient && isMarketplaceJob && (
                                   <FormField
                                       control={form.control}
                                       name="bidExpiryDate"
@@ -480,7 +516,7 @@ export default function PostJobPage() {
 
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-                                <Button type="submit">{isClient ? 'Post Job' : 'Create Job'}</Button>
+                                <Button type="submit">{isClient && isMarketplaceJob ? 'Post Job' : 'Create Job'}</Button>
                             </div>
                         </form>
                     </Form>

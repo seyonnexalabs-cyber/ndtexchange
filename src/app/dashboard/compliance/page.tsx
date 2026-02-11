@@ -58,9 +58,8 @@ export default function CompliancePage() {
     }, [authUser, firestore]);
     
     const assetsQuery = useMemoFirebase(() => {
-        if (!firestore || !userProfile) return null;
-        // In a real app this should use userProfile.companyId
-        return query(collection(firestore, 'assets'), where('companyId', '==', 'client-01'));
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId));
     }, [firestore, userProfile]);
 
     const { data: assets, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);

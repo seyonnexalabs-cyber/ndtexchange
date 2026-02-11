@@ -51,7 +51,7 @@ export default function MyJobsPage() {
     }, [user, firestore]);
 
     const jobsQuery = useMemoFirebase(() => {
-        if (!firestore || !userProfile) return null;
+        if (!firestore || !userProfile?.companyId) return null;
         if (role === 'client') {
             return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
         }
@@ -425,5 +425,6 @@ export default function MyJobsPage() {
     
 
     
+
 
 

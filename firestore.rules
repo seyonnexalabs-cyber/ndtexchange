@@ -20,11 +20,15 @@ service cloud.firestore {
     }
 
     function isCompanyMember(companyId) {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
     
     function isProviderMember(providerId) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == providerId;
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == providerId;
     }
 
     // --- BLANKET ADMIN ACCESS ---

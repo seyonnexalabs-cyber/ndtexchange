@@ -5,9 +5,10 @@ import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messagi
 import { useFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { firebaseConfig } from '@/firebase/config';
 
 // IMPORTANT: Generate this key in your Firebase console under Project Settings > Cloud Messaging > Web configuration
-const VAPID_KEY = 'YOUR_PUBLIC_VAPID_KEY_FROM_FIREBASE_CONSOLE';
+const VAPID_KEY = firebaseConfig.measurementId;
 
 export const FCMInitializer = () => {
   const { firestore, user } = useFirebase();
@@ -24,8 +25,8 @@ export const FCMInitializer = () => {
         
         const messaging = getMessaging();
 
-        if (VAPID_KEY === 'YOUR_PUBLIC_VAPID_KEY_FROM_FIREBASE_CONSOLE') {
-          console.warn("FCM VAPID key not set. Push notifications will not work. Please add it to src/app/components/layout/fcm-initializer.tsx");
+        if (!VAPID_KEY) {
+          console.warn("FCM VAPID key not set. Push notifications will not work. Please add a 'measurementId' to your firebase/config.ts");
           return;
         }
         
@@ -56,16 +57,20 @@ export const FCMInitializer = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      const messaging = getMessaging();
-      const unsubscribe = onMessage(messaging, (payload) => {
-        console.log('Foreground message received.', payload);
-        toast({
-          title: payload.notification?.title,
-          description: payload.notification?.body,
-        });
-      });
-
-      return () => unsubscribe();
+        try {
+            const messaging = getMessaging();
+            const unsubscribe = onMessage(messaging, (payload) => {
+              console.log('Foreground message received.', payload);
+              toast({
+                title: payload.notification?.title,
+                description: payload.notification?.body,
+              });
+            });
+      
+            return () => unsubscribe();
+        } catch(e) {
+            console.error('FCM onMessage error:', e);
+        }
     }
   }, [toast]);
 

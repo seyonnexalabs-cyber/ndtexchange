@@ -15,7 +15,7 @@ export default function PrivacyPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
 
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-headline font-bold text-primary mb-8">
             Privacy Policy

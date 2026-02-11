@@ -107,7 +107,7 @@ export default function PlatformWorkflowPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <PublicHeader />
-            <main className="py-16">
+            <main className="pt-32 pb-16">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
                     <div className="text-center mb-12">
                         <h1 className="text-4xl font-headline font-bold">Job Bidding Workflow</h1>

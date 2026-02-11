@@ -28,12 +28,23 @@ export default function PublicHeader() {
     </Link>
   );
 
+  const lightBgPages = ['/platform-workflow', '/privacy', '/terms'];
+  const isLightBg = lightBgPages.includes(pathname);
+
   return (
-    <header className="absolute top-0 left-0 right-0 z-20 bg-transparent">
+    <header className={cn(
+        "z-20",
+        isLightBg 
+          ? "sticky top-0 bg-background/95 backdrop-blur-sm border-b"
+          : "absolute top-0 left-0 right-0 bg-transparent"
+    )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-3">
-          <LogoIcon className="h-10 w-auto text-white" />
-          <span className="text-xl font-bold text-white tracking-tighter">NDT EXCHANGE</span>
+          <LogoIcon className={cn("h-10 w-auto", isLightBg ? "text-primary" : "text-white")} />
+          <span className={cn(
+              "text-xl font-bold tracking-tighter",
+               isLightBg ? "text-foreground" : "text-white"
+          )}>NDT EXCHANGE</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
@@ -41,8 +52,11 @@ export default function PublicHeader() {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground",
-                  pathname === link.href && "font-bold text-primary-foreground"
+                  "text-sm font-medium",
+                  isLightBg
+                    ? "text-muted-foreground hover:text-primary"
+                    : "text-primary-foreground/80 hover:text-primary-foreground",
+                  pathname === link.href && (isLightBg ? "text-primary font-semibold" : "font-bold text-primary-foreground")
                 )}
               >
                 {link.label}
@@ -53,7 +67,7 @@ export default function PublicHeader() {
            <div className="md:hidden">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                    <Button variant="ghost" size="icon" className={cn(isLightBg ? "text-foreground" : "text-white hover:bg-white/10")}>
                         <Menu className="h-6 w-6"/>
                         <span className="sr-only">Toggle Menu</span>
                     </Button>

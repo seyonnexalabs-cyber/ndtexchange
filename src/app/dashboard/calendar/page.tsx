@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -10,13 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Briefcase, MapPin, CheckCircle, Users, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { addDays, startOfWeek, format, isSameDay, addWeeks, subWeeks, eachDayOfInterval, parseISO } from 'date-fns';
+import {
+    addMonths,
+    subMonths,
+    startOfMonth,
+    endOfMonth,
+    startOfWeek,
+    endOfWeek,
+    eachDayOfInterval,
+    format,
+    isSameDay,
+    isSameMonth,
+    parseISO
+} from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { Calendar } from "@/components/ui/calendar";
 
 type CalendarEvent = {
   id: string;
@@ -119,12 +129,11 @@ export default function CalendarPage() {
         return [];
     }, [role, activeTab]);
 
-    const weekStartsOn = 0; // Sunday
-    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn });
-
-    const weekDays = useMemo(() => {
-        return Array.from({ length: 7 }).map((_, i) => addDays(startOfCurrentWeek, i));
-    }, [startOfCurrentWeek]);
+    const firstDayOfMonth = startOfMonth(currentDate);
+    const lastDayOfMonth = endOfMonth(currentDate);
+    const firstDayOfGrid = startOfWeek(firstDayOfMonth);
+    const lastDayOfGrid = endOfWeek(lastDayOfMonth);
+    const daysInGrid = useMemo(() => eachDayOfInterval({ start: firstDayOfGrid, end: lastDayOfGrid }), [firstDayOfGrid, lastDayOfGrid]);
 
     const eventsByDate = useMemo(() => {
         return events.reduce((acc, event) => {
@@ -272,10 +281,10 @@ export default function CalendarPage() {
                 </h1>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" onClick={() => setCurrentDate(subWeeks(currentDate, 1))}>
+                        <Button variant="outline" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
-                         <Button variant="outline" size="icon" onClick={() => setCurrentDate(addWeeks(currentDate, 1))}>
+                         <Button variant="outline" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
@@ -293,8 +302,13 @@ export default function CalendarPage() {
                                 {currentDate ? format(currentDate, "MMMM yyyy") : <span>Pick a date</span>}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-4" align="start">
-                            <CustomDateInput value={currentDate || new Date()} onChange={(d) => d && setCurrentDate(d)} />
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={currentDate}
+                                onSelect={(date) => date && setCurrentDate(date)}
+                                initialFocus
+                            />
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -313,12 +327,17 @@ export default function CalendarPage() {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="jobs">
-                    <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
-                        {weekDays.map(day => (
-                            <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
-                                <div className={cn('font-semibold text-center mb-2', today && isSameDay(day, today) && 'text-primary')}>
-                                    <p className="text-sm">{format(day, 'EEE')}</p>
-                                    <p className="text-2xl">{format(day, 'd')}</p>
+                     <div className="grid grid-cols-7 border-t border-l">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+                            <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
+                        ))}
+                        {daysInGrid.map(day => (
+                             <div key={day.toString()} className={cn(
+                                "border-b border-r p-2 flex flex-col min-h-[120px]",
+                                !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
+                             )}>
+                                <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
+                                    {format(day, 'd')}
                                 </div>
                                 <div className="flex-grow space-y-2 overflow-y-auto">
                                 {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
@@ -328,12 +347,17 @@ export default function CalendarPage() {
                     </div>
                 </TabsContent>
                 <TabsContent value="technicians">
-                     <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
-                        {weekDays.map(day => (
-                            <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
-                                <div className={cn('font-semibold text-center mb-2', today && isSameDay(day, today) && 'text-primary')}>
-                                    <p className="text-sm">{format(day, 'EEE')}</p>
-                                    <p className="text-2xl">{format(day, 'd')}</p>
+                     <div className="grid grid-cols-7 border-t border-l">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+                            <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
+                        ))}
+                        {daysInGrid.map(day => (
+                             <div key={day.toString()} className={cn(
+                                "border-b border-r p-2 flex flex-col min-h-[120px]",
+                                !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
+                             )}>
+                                <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
+                                    {format(day, 'd')}
                                 </div>
                                 <div className="flex-grow space-y-2 overflow-y-auto">
                                 {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
@@ -343,12 +367,17 @@ export default function CalendarPage() {
                     </div>
                 </TabsContent>
                 <TabsContent value="equipment">
-                    <div className="flex-grow grid grid-cols-1 md:grid-cols-7 border-t border-l">
-                        {weekDays.map(day => (
-                            <div key={day.toString()} className="border-b border-r p-2 flex flex-col min-h-[120px]">
-                                <div className={cn('font-semibold text-center mb-2', today && isSameDay(day, today) && 'text-primary')}>
-                                    <p className="text-sm">{format(day, 'EEE')}</p>
-                                    <p className="text-2xl">{format(day, 'd')}</p>
+                    <div className="grid grid-cols-7 border-t border-l">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+                            <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
+                        ))}
+                        {daysInGrid.map(day => (
+                             <div key={day.toString()} className={cn(
+                                "border-b border-r p-2 flex flex-col min-h-[120px]",
+                                !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
+                             )}>
+                                <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
+                                    {format(day, 'd')}
                                 </div>
                                 <div className="flex-grow space-y-2 overflow-y-auto">
                                 {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}

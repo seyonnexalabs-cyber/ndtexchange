@@ -18,6 +18,7 @@ export default function PublicHeader() {
 
   const navLinks = [
     { href: '/#features', label: 'Features' },
+    { href: '/platform-workflow', label: 'How It Works' },
     {
       label: 'Management',
       isDropdown: true,

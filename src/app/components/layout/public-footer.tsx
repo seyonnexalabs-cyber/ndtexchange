@@ -5,6 +5,7 @@ import { LogoIcon } from '@/app/components/icons';
 export default function PublicFooter() {
     const platformLinks = [
         { href: '/login', label: 'Login / Dashboard' },
+        { href: '/platform-workflow', label: 'How It Works' },
         { href: '/contact', label: 'Contact Us' },
     ];
 

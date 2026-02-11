@@ -26,7 +26,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase
 import { writeBatch, doc, collection, query, where, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog } from "@/lib/types";
-import { clientAssets, jobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms } from "@/lib/seed-data";
+import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -221,7 +221,7 @@ const ClientDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{'N/A'}</TableCell>
+                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                         <TableCell>{getNextStep(job.status)}</TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
@@ -296,7 +296,7 @@ const ClientDashboard = () => {
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell>{job.title}</TableCell>
-                                        <TableCell>{'N/A'}</TableCell>
+                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
                                                 <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
@@ -605,7 +605,7 @@ const AuditorDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
-                                    <TableCell>{'N/A'}</TableCell>
+                                    <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
                                     <TableCell>{format(new Date(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || Date.now()), GLOBAL_DATE_FORMAT)}</TableCell>
                                     <TableCell className="text-right">
@@ -704,7 +704,7 @@ const AdminDashboard = () => {
                 batch.set(docRef, company);
             });
 
-            jobs.forEach(job => {
+            seedJobs.forEach(job => {
                 const { bids, inspections, ...jobData } = job;
                 const jobRef = doc(firestore, 'jobs', job.id);
                 batch.set(jobRef, jobData);

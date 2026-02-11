@@ -73,6 +73,7 @@ export type Job = {
     durationDays?: number;
     estimatedBudget?: string;
     certificationsRequired?: string;
+    clientCompanyId?: string;
 };
 
 export type Inspection = {

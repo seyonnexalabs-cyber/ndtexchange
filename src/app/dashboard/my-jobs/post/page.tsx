@@ -424,7 +424,7 @@ export default function PostJobPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Estimated Duration (Days)</FormLabel>
-                                            <FormControl><Input type="number" placeholder="e.g., 21" {...field} /></FormControl>
+                                            <FormControl><Input type="number" placeholder="e.g., 21" {...field} value={field.value ?? ''} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}

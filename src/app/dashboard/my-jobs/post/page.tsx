@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { clientAssets, NDTTechniques, Inspection, clientData } from "@/lib/placeholder-data";
+import { Asset, NDTTechniques, Inspection, clientData } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
@@ -19,8 +19,8 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format } from 'date-fns';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 
 const baseSchema = z.object({
@@ -43,6 +43,14 @@ export default function PostJobPage() {
     const router = useRouter();
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
+
+    const assetsQuery = useMemoFirebase(() => {
+        if (!firestore || role !== 'client') return null;
+        // In a real app, this should be filtered by the user's companyId
+        return collection(firestore, 'assets');
+    }, [firestore, role]);
+
+    const { data: clientAssets, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
 
     React.useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
@@ -117,7 +125,6 @@ export default function PostJobPage() {
             technique: undefined,
             description: '',
             assets: [],
-            clientName: '',
             workflow: 'standard',
             isMarketplaceJob: true,
             bidExpiryDate: new Date(),
@@ -127,11 +134,12 @@ export default function PostJobPage() {
 
     const isMarketplaceJob = form.watch('isMarketplaceJob');
 
-    const uniqueLocations = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.location))], []);
-    const uniqueTypes = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.type))], []);
-    const uniqueStatuses = React.useMemo(() => ['all', ...new Set(clientAssets.map(a => a.status))], []);
+    const uniqueLocations = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.location))], [clientAssets]);
+    const uniqueTypes = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.type))], [clientAssets]);
+    const uniqueStatuses = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.status))], [clientAssets]);
 
     const filteredAssets = React.useMemo(() => {
+        if (!clientAssets) return [];
         return clientAssets.filter(asset => {
             const nameMatch = asset.name.toLowerCase().includes(assetNameFilter.toLowerCase());
             const locationMatch = assetLocationFilter === 'all' || asset.location === assetLocationFilter;
@@ -139,7 +147,7 @@ export default function PostJobPage() {
             const statusMatch = assetStatusFilter === 'all' || asset.status === assetStatusFilter;
             return nameMatch && locationMatch && typeMatch && statusMatch;
         });
-    }, [assetNameFilter, assetLocationFilter, assetTypeFilter, assetStatusFilter]);
+    }, [clientAssets, assetNameFilter, assetLocationFilter, assetTypeFilter, assetStatusFilter]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -190,7 +198,7 @@ export default function PostJobPage() {
         const jobRef = doc(collection(firestore, 'jobs'));
 
         const inspections: Omit<Inspection, 'id' | 'report'>[] = [];
-        if ('assets' in values) {
+        if ('assets' in values && clientAssets) {
             (values.assets || []).forEach((assetId: string) => {
                 const asset = clientAssets.find(a => a.id === assetId);
                 if (asset) {
@@ -226,7 +234,15 @@ export default function PostJobPage() {
         if ('clientName' in newJobData) delete (newJobData as any).clientName;
 
 
-        addDocumentNonBlocking(collection(firestore, 'jobs'), newJobData);
+        setDoc(jobRef, newJobData)
+          .catch(error => {
+            console.error("Failed to save job:", error)
+             toast({
+                variant: "destructive",
+                title: "Failed to create job",
+                description: "There was a problem saving your job to the database. Please try again.",
+            });
+          });
 
         toast({
             title: 'Job Created Successfully',

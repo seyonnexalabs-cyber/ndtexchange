@@ -1,175 +1,278 @@
-
+/**
+ * # Core Philosophy
+ * This ruleset enforces a security model based on user roles (Admin, Client, Inspector)
+ * and direct ownership or participation in data. Administrative users, identified by
+ * their presence in the `/roles_admin` collection, have elevated privileges. For all
+ * other users, access is granted based on specific fields within documents, such as
+ * `clientId` on a Job, `inspectorId` on an Inspection, or `senderId`/`receiverId` on
+ * a Message.
+ *
+ * # Data Structure
+ * The data is organized into several top-level collections representing the core
+ * entities of the application (users, assets, jobs, etc.). This flat structure is
+ * chosen to simplify queries and security rules. Subcollections are used only when
+ * data is intrinsically nested and always accessed in the context of its parent,
+ * such as Bids within a Job.
+ *
+ * # Key Security Decisions
+ * - Admin Access: A user is considered an admin if a document with their UID exists
+ *   in the `/roles_admin` collection. Admins generally have full read/write access.
+ *   The admin role collection itself is write-protected to prevent self-promotion.
+ * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
+ *   They are the only ones who can read or write their own document. Listing all
+ *   users is disabled to protect user privacy.
+ * - Public Data: The `/asset_types` collection is considered public template data,
+ *   readable by anyone (including unauthenticated users), but writable only by admins.
+ * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
+ *   UIDs stored directly on the document (e.g., `clientId`, `senderId`). This avoids
+ *   complex lookups and ensures performant, secure access.
+ *
+ * # Denormalization for Authorization
+ * To create simpler and more performant rules, authorization-critical data is
+ * denormalized. For instance, instead of looking up a Job's owner to see a Bid, the
+ * rules for a Bid will perform a direct `get()` on the parent Job document. Similarly,
+ * a Report contains an `inspectorId`, and a Message contains a `senderId` and
+ * `receiverId`, making authorization checks fast and self-contained without needing
+ * joins or complex queries.
+ *
+ * # Structural Segregation
+ * Data is segregated by its access pattern. For example, private user data is in
+ * `/users/{userId}`, while public template data is in `/asset_types`. This is more
+ * secure and efficient for list operations than mixing public and private data in a
+ * single collection with a boolean flag.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /***********************************************************
-     * Helper Functions
-     ***********************************************************/
+    // --------------------------------
+    // Helper Functions
+    // --------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * Checks if the user's UID matches the provided userId.
+     * This is the foundation of the ownership model.
+     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isPlatformAdmin() {
-      // Use exists() to prevent errors if the user doc doesn't exist yet during creation.
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+    /**
+     * Checks if the document being accessed already exists.
+     * Crucial for protecting update and delete operations from acting on non-existent data.
+     */
+    function isExistingDoc() {
+      return resource != null;
     }
 
-    function isCompanyMember(companyId) {
-      return isSignedIn() && 
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
-    }
-    
-    function isProviderMember(providerId) {
-      return isSignedIn() &&
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == providerId;
+    /**
+     * Combines ownership and existence checks for update/delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && isExistingDoc();
     }
 
-    // --- BLANKET ADMIN ACCESS ---
-    // This rule grants full read/write access to any platform admin.
-    // This is necessary for operations like database seeding.
-    // More specific rules for other user roles are defined below.
-    match /{path=**} {
-      allow read, write: if isPlatformAdmin();
+    /**
+     * Checks if the requesting user has admin privileges by looking for
+     * their UID in the `/roles_admin` collection.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /***********************************************************
-     * User Profile Rules (/users)
-     ***********************************************************/
+    /**
+     * Validates that the user is the creator of a resource on creation.
+     */
+    function isResourceCreator(key) {
+      return request.resource.data[key] == request.auth.uid;
+    }
+
+    /**
+     * Validates that a critical relational ID field is immutable on update.
+     */
+    function isImmutable(key) {
+      return request.resource.data[key] == resource.data[key];
+    }
+
+    // --------------------------------
+    // Collection Rules
+    // --------------------------------
+
+    /**
+     * @description Manages user profile data.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their own profile document.
+     * @deny (get) A user trying to read another user's profile.
+     * @principle Restricts access to a user's own data tree.
+     */
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create, update: if isOwner(userId);
-      
-      // Allow users to manage their own FCM tokens
-      match /fcmTokens/{tokenId} {
-        allow read, write: if isOwner(userId);
-      }
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if false; // Disallow listing users for privacy.
+      allow create: if isOwner(userId) && isResourceCreator('id');
+      allow update: if isExistingOwner(userId) && isImmutable('id');
+      allow delete: if isExistingOwner(userId) || isAdmin();
     }
 
-    /***********************************************************
-     * Asset Rules (/assets)
-     ***********************************************************/
+    /**
+     * @description Manages core asset data.
+     * @path /assets/{assetId}
+     * @allow (get) Any authenticated user can read asset details.
+     * @deny (create) Any user trying to create an asset without a valid ownerId.
+     * @principle Public read with owner-only writes.
+     */
     match /assets/{assetId} {
-      // For now, allow any signed-in user to read/write.
-      // In a real app, this would be restricted based on company/ownership.
-      allow read, write: if isSignedIn();
+      allow get, list: if isSignedIn() || isAdmin();
+      // CRITICAL: Cannot implement owner-only writes. The 'Asset' entity is missing an 'ownerId' or 'creatorId' field.
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
 
-    /***********************************************************
-     * Equipment Rules (/equipment)
-     ***********************************************************/
-    match /equipment/{equipmentId} {
-      allow read, update, delete: if isProviderMember(resource.data.providerId);
-      allow create: if isProviderMember(request.resource.data.providerId);
-    }
-    
-    /***********************************************************
-     * Job & Bidding Rules (/jobs, /bids)
-     ***********************************************************/
-    match /jobs/{jobId} {
-      allow get: if isSignedIn() && (
-                    resource.data.clientId == request.auth.uid || 
-                    (resource.data.clientCompanyId != null && isCompanyMember(resource.data.clientCompanyId)) || 
-                    (resource.data.providerId != null && isCompanyMember(resource.data.providerId)) || 
-                    isPlatformAdmin());
-
-      allow list: if isSignedIn() && 
-                    (isPlatformAdmin() || 
-                     (request.query.where.clientCompanyId != null && isCompanyMember(request.query.where.clientCompanyId)) ||
-                     (request.query.where.providerId != null && isCompanyMember(request.query.where.providerId)));
-
-      allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (resource.data.clientId == request.auth.uid || isCompanyMember(resource.data.clientCompanyId));
+    /**
+     * @description Manages asset type templates, which are publicly readable.
+     * @path /asset_types/{assetTypeId}
+     * @allow (get) Any user, including unauthenticated ones, can read asset types.
+     * @deny (create) A non-admin user trying to create a new asset type.
+     * @principle Public read with admin-only writes.
+     */
+    match /asset_types/{assetTypeId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
-    match /bids/{bidId} {
-      allow get: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid);
-      allow list: if isSignedIn() && get(/databases/$(database)/documents/jobs/$(request.query.jobId)).data.clientId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+    /**
+     * @description Manages inspection records for a specific asset.
+     * @path /assets/{assetId}/inspections/{inspectionId}
+     * @allow (create) An inspector creating an inspection for an asset.
+     * @deny (get) A user who is not the inspector or an admin trying to read an inspection.
+     * @principle Secures a subcollection based on roles denormalized onto the document.
+     */
+    match /assets/{assetId}/inspections/{inspectionId} {
+      // Access depends on being an admin or the designated inspector. Asset ownership check is pending schema update.
+      allow get, list: if isAdmin() || isOwner(resource.data.inspectorId);
+      allow create: if isSignedIn() && isResourceCreator('inspectorId');
+      allow update: if isAdmin() || (isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId'));
+      allow delete: if isAdmin() || isExistingOwner(resource.data.inspectorId);
     }
 
-    /***********************************************************
-     * Inspection & Report Rules (/inspections, /reports)
-     ***********************************************************/
-    match /inspections/{inspectionId} {
-      allow read, write: if isSignedIn();
-    }
-
+    /**
+     * @description Manages detailed inspection reports.
+     * @path /reports/{reportId}
+     * @allow (get) The inspector or Level 3 approver reading the report.
+     * @deny (update) The inspector trying to change the Level 3 approver ID.
+     * @principle Shared access based on multiple participant roles stored on the document.
+     */
     match /reports/{reportId} {
-      allow read, write: if isSignedIn();
-    }
-
-    /***********************************************************
-     * Company & Subscription Rules
-     ***********************************************************/
-    match /companies/{companyId} {
-      allow get: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.contactEmail == request.auth.token.email;
-    }
-
-    match /subscriptions/{subscriptionId} {
-      allow read: if isCompanyMember(resource.data.companyId);
-    }
-    
-    /***********************************************************
-     * Chat Rules
-     ***********************************************************/
-     match /chats/{chatId} {
-       allow get, update: if isSignedIn() && request.auth.uid in resource.data.participants;
-       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
-       
-       match /messages/{messageId} {
-         allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-       }
-     }
-     
-     /***********************************************************
-     * Support Chat Rules
-     ***********************************************************/
-     match /supportChats/{chatId} {
-       allow read, update: if isCompanyMember(resource.data.companyId) || isPlatformAdmin();
-       allow create: if isCompanyMember(request.resource.data.companyId);
-
-       match /messages/{messageId} {
-         allow read, create: if isCompanyMember(get(/databases/$(database)/documents/supportChats/$(chatId)).data.companyId) || isPlatformAdmin();
-       }
-     }
-     
-    /***********************************************************
-     * Audit Log Rules
-     ***********************************************************/
-    // By default, only admins can read/write to these due to the blanket rule.
-    // No one else should have access.
-    match /userAuditLogs/{logId} { allow read, write: if false; }
-    match /jobAuditLogs/{logId} { allow read, write: if false; }
-    match /billingAuditLogs/{logId} { allow read, write: if false; }
-    
-    /***********************************************************
-     * Payment Rules
-     ***********************************************************/
-    // By default, only admins can read/write to these due to the blanket rule.
-    match /payments/{paymentId} { allow read, write: if false; }
-    match /jobPayments/{paymentId} { allow read, write: if false; }
-
-    /***********************************************************
-     * Review Rules (/reviews)
-     ***********************************************************/
-    match /reviews/{reviewId} {
-      allow get: if resource.data.status == 'Approved';
-      allow list: if isSignedIn(); 
-
-      function isJobClient(jobId) {
-        return get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid;
+      function isReportParticipant() {
+        return isOwner(resource.data.inspectorId) || isOwner(resource.data.level3ApproverId);
       }
-      allow create: if isSignedIn() && isJobClient(request.resource.data.jobId) && request.resource.data.clientId == request.auth.uid;
+      allow get, list: if isReportParticipant() || isAdmin();
+      allow create: if isSignedIn() && isResourceCreator('inspectorId');
+      allow update: if (isReportParticipant() || isAdmin()) && isExistingDoc() && isImmutable('inspectionId') && isImmutable('inspectorId');
+      allow delete: if (isReportParticipant() || isAdmin()) && isExistingDoc();
     }
+
+    /**
+     * @description Manages defects found during an inspection.
+     * @path /defects/{defectId}
+     * @allow (get) An inspector reading a defect linked to a report they are assigned to.
+     * @deny (create) A user trying to create a defect for a report they are not part of.
+     * @principle Grants access based on a lookup to a related document.
+     */
+    match /defects/{defectId} {
+      function canAccessRelatedReport(reportId) {
+        let report = get(/databases/$(database)/documents/reports/$(reportId)).data;
+        return request.auth.uid == report.inspectorId || request.auth.uid == report.level3ApproverId;
+      }
+      allow get: if isAdmin() || canAccessRelatedReport(resource.data.reportId);
+      allow list: if isAdmin(); // Listing all defects is admin-only. Query by reportId instead.
+      allow create: if isSignedIn() && canAccessRelatedReport(request.resource.data.reportId);
+      allow update, delete: if (isAdmin() || canAccessRelatedReport(resource.data.reportId)) && isExistingDoc();
+    }
+
+    /**
+     * @description Manages job postings in the marketplace.
+     * @path /jobs/{jobId}
+     * @allow (get) Any authenticated user can read job details.
+     * @deny (update) The awarded inspector trying to change the client ID.
+     * @principle Shared access model where a creator and an assigned user can interact.
+     */
+    match /jobs/{jobId} {
+      function isJobParticipant() {
+        return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
+      }
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isResourceCreator('clientId');
+      allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
+      allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
+    }
+
+    /**
+     * @description Manages bids submitted by inspectors for jobs.
+     * @path /jobs/{jobId}/bids/{bidId}
+     * @allow (get) The job's client or the inspector who made the bid can read it.
+     * @deny (get) Another inspector trying to read a competitor's bid.
+     * @principle Subcollection access is determined by ownership of the bid and ownership of the parent document.
+     */
+    match /jobs/{jobId}/bids/{bidId} {
+      function isJobClient() {
+        return isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId);
+      }
+      allow get, list: if isJobClient() || isOwner(resource.data.inspectorId) || isAdmin();
+      allow create: if isSignedIn() && isResourceCreator('inspectorId');
+      allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId') && isImmutable('jobId');
+      allow delete: if isExistingOwner(resource.data.inspectorId) || isAdmin();
+    }
+
+    /**
+     * @description Manages direct messages between two users.
+     * @path /messages/{messageId}
+     * @allow (get) The sender or receiver reading their message.
+     * @deny (get) A third-party user trying to read a private conversation.
+     * @principle Grants access only to the participants listed in the document.
+     */
+    match /messages/{messageId} {
+      function isMessageParticipant() {
+        return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
+      }
+      allow get: if isMessageParticipant() || isAdmin();
+      allow list: if false; // Users must query for messages where they are a participant.
+      allow create: if isSignedIn() && isResourceCreator('senderId');
+      allow update: if (isOwner(resource.data.receiverId) || isAdmin()) && isExistingDoc(); // Only receiver can mark as read.
+      allow delete: if false; // Messages are generally immutable.
+    }
+
+    /**
+     * @description Manages user-specific notifications.
+     * @path /notifications/{notificationId}
+     * @allow (get) A user reading their own notification.
+     * @deny (get) A user reading someone else's notification.
+     * @principle Enforces strict document ownership based on a 'userId' field.
+     */
+    match /notifications/{notificationId} {
+      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow list: if false; // Users must query for notifications where their userId matches.
+      allow create: if isSignedIn() && isResourceCreator('userId');
+      allow update: if isExistingOwner(resource.data.userId) && isImmutable('userId');
+      allow delete: if isExistingOwner(resource.data.userId) || isAdmin();
+    }
+
+    /**
+     * @description Manages which users have administrative privileges.
+     * @path /roles_admin/{userId}
+     * @allow (get) An admin checking if another user is an admin.
+     * @deny (create) A non-admin user trying to grant themselves admin rights.
+     * @principle A restricted collection used as a lookup table for role-based access control.
+     */
+    match /roles_admin/{userId} {
+      allow get, list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
   }
 }

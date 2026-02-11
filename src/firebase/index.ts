@@ -3,9 +3,7 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, addDoc, CollectionReference } from 'firebase/firestore'
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { getFirestore } from 'firebase/firestore'
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -42,21 +40,11 @@ export function getSdks(firebaseApp: FirebaseApp) {
   };
 }
 
-export function addDocumentNonBlocking(ref: CollectionReference, data: any) {
-  addDoc(ref, data)
-    .catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: ref.path,
-        operation: 'create',
-        requestResourceData: data,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
-}
-
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
+export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
+export * from './error-emitter';

@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Globe, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -29,25 +29,14 @@ export default function PublicHeader() {
     </Link>
   );
 
-  const pagesWithHero = ['/', '/about', '/asset-management', '/contact', '/manufacturers', '/platform-features', '/provider-tools', '/providers'];
-  const hasHero = pagesWithHero.includes(pathname);
-  const isLightBg = !hasHero;
-
-
   return (
-    <header className={cn(
-        "z-20",
-        isLightBg 
-          ? "sticky top-0 bg-background/95 backdrop-blur-sm border-b"
-          : "absolute top-0 left-0 right-0 bg-transparent"
-    )}>
+    <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-3">
-          <LogoIcon className={cn("h-10 w-auto", isLightBg ? "text-primary" : "text-white")} />
-          <span className={cn(
-              "text-xl font-bold tracking-tighter",
-               isLightBg ? "text-foreground" : "text-white"
-          )}>NDT EXCHANGE</span>
+          <LogoIcon className="h-10 w-auto text-primary" />
+          <span className="text-xl font-bold tracking-tighter text-foreground">
+            NDT EXCHANGE
+          </span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
@@ -55,11 +44,8 @@ export default function PublicHeader() {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "text-sm font-medium",
-                  isLightBg
-                    ? "text-muted-foreground hover:text-primary"
-                    : "text-primary-foreground/80 hover:text-primary-foreground",
-                  pathname === link.href && (isLightBg ? "text-primary font-semibold" : "font-bold text-primary-foreground")
+                  "text-sm font-medium text-muted-foreground hover:text-primary",
+                  pathname === link.href && "font-semibold text-primary"
                 )}
               >
                 {link.label}
@@ -70,7 +56,7 @@ export default function PublicHeader() {
            <div className="md:hidden">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn(isLightBg ? "text-foreground" : "text-white hover:bg-white/10")}>
+                    <Button variant="ghost" size="icon" className="text-foreground">
                         <Menu className="h-6 w-6"/>
                         <span className="sr-only">Toggle Menu</span>
                     </Button>
@@ -101,14 +87,9 @@ export default function PublicHeader() {
               </Sheet>
            </div>
            <div className="hidden md:flex items-center space-x-2">
-              <Button 
-                asChild 
-                variant="outline" 
-                className={cn(
-                  isLightBg 
-                    ? "" 
-                    : "text-white border-white hover:bg-white/10 hover:text-white"
-                )}
+              <Button
+                asChild
+                variant="outline"
               >
                 <Link href="/login">Login</Link>
               </Button>

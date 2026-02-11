@@ -6,121 +6,153 @@
   :root, .client-theme {
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
+
     --card: 0 0% 100%;
     --card-foreground: 224 71.4% 4.1%;
+
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 222.2 47.4% 11.2%;
+
+    --primary: 217 91% 60%; /* Vibrant Blue */
     --primary-foreground: 210 40% 98%;
+
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 224 71.4% 4.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 35 92% 58%; /* Amber */
+    --accent-foreground: 24 9.8% 10%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 217 91% 60%;
 
     /* Chart Colors */
-    --chart-1: 222.2 47.4% 11.2%;
-    --chart-2: 22.2 84% 4.9%;
+    --chart-1: 217 91% 60%;
+    --chart-2: 35 92% 58%;
     --chart-3: 174 63% 39%;
     --chart-4: 201 25% 57%;
     --chart-5: 210 10% 50%;
   }
 
   .inspector-theme {
-    --background: 220 20% 97%;
-    --foreground: 210 10% 23%;
+    --background: 0 0% 100%;
+    --foreground: 158 25% 15%;
+
     --card: 0 0% 100%;
-    --card-foreground: 210 10% 23%;
+    --card-foreground: 158 25% 15%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 210 10% 23%;
-    --primary: 174 63% 39%; /* Teal */
+    --popover-foreground: 158 25% 15%;
+    
+    --primary: 158 44% 33%; /* Forest Green */
     --primary-foreground: 0 0% 98%;
-    --secondary: 170 20% 94%;
-    --secondary-foreground: 170 10% 23%;
-    --muted: 170 20% 94%;
-    --muted-foreground: 170 7% 50%;
-    --accent: 32 79% 60%; /* Gold */
-    --accent-foreground: 32 30% 15%;
+    
+    --secondary: 158 20% 94%;
+    --secondary-foreground: 158 25% 15%;
+    
+    --muted: 158 20% 94%;
+    --muted-foreground: 158 10% 45%;
+
+    --accent: 24 95% 53%; /* Punchy Orange */
+    --accent-foreground: 0 0% 98%;
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 170 15% 91%;
-    --input: 170 15% 91%;
-    --ring: 174 63% 39%;
+    
+    --border: 158 15% 91%;
+    --input: 158 15% 91%;
+    --ring: 158 44% 33%;
 
     /* Chart Colors */
-    --chart-1: 174 63% 39%;
-    --chart-2: 32 79% 60%;
-    --chart-3: 174 63% 59%;
-    --chart-4: 32 79% 80%;
-    --chart-5: 170 10% 50%;
+    --chart-1: 158 44% 33%;
+    --chart-2: 24 95% 53%;
+    --chart-3: 158 44% 53%;
+    --chart-4: 24 95% 73%;
+    --chart-5: 158 15% 50%;
   }
 
   .auditor-theme {
-    --background: 270 20% 97%;
-    --foreground: 270 15% 25%;
+    --background: 0 0% 100%;
+    --foreground: 220 15% 20%;
+    
     --card: 0 0% 100%;
-    --card-foreground: 270 15% 25%;
+    --card-foreground: 220 15% 20%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 270 15% 25%;
-    --primary: 252 29% 47%; /* Deep Purple */
+    --popover-foreground: 220 15% 20%;
+    
+    --primary: 244 67% 54%; /* Strong Indigo */
     --primary-foreground: 0 0% 98%;
-    --secondary: 250 15% 94%;
-    --secondary-foreground: 250 15% 25%;
-    --muted: 250 15% 94%;
-    --muted-foreground: 250 10% 50%;
-    --accent: 287 29% 67%; /* Lavender */
-    --accent-foreground: 287 30% 15%;
+    
+    --secondary: 240 15% 94%;
+    --secondary-foreground: 240 15% 20%;
+
+    --muted: 240 15% 94%;
+    --muted-foreground: 240 10% 50%;
+    
+    --accent: 220 13% 69%; /* Cool Gray */
+    --accent-foreground: 220 15% 20%;
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 250 15% 91%;
-    --input: 250 15% 91%;
-    --ring: 252 29% 47%;
+    
+    --border: 240 15% 91%;
+    --input: 240 15% 91%;
+    --ring: 244 67% 54%;
 
     /* Chart Colors */
-    --chart-1: 252 29% 47%;
-    --chart-2: 287 29% 67%;
-    --chart-3: 252 29% 67%;
-    --chart-4: 287 29% 87%;
-    --chart-5: 250 10% 50%;
+    --chart-1: 244 67% 54%;
+    --chart-2: 220 13% 69%;
+    --chart-3: 244 67% 74%;
+    --chart-4: 220 13% 89%;
+    --chart-5: 220 10% 50%;
   }
 
   .admin-theme {
-    --background: 220 25% 98%;
-    --foreground: 220 20% 15%;
+    --background: 0 0% 100%;
+    --foreground: 220 15% 20%;
+
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 220 15% 20%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
-    --primary: 210 10% 23%;      /* Dark Charcoal */
+    --popover-foreground: 220 15% 20%;
+    
+    --primary: 220 14% 28%; /* Deep Slate */
     --primary-foreground: 0 0% 98%;
+    
     --secondary: 220 20% 94%;
-    --secondary-foreground: 220 20% 15%;
+    --secondary-foreground: 220 15% 20%;
+    
     --muted: 220 20% 94%;
     --muted-foreground: 220 15% 45%;
-    --accent: 211 100% 50%;      /* Bright Blue */
+
+    --accent: 142 76% 40%; /* Electric Green */
     --accent-foreground: 0 0% 98%;
+
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
+    
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 210 10% 23%;
+    --ring: 220 14% 28%;
 
     /* Chart Colors */
-    --chart-1: 210 10% 23%;
-    --chart-2: 211 100% 50%;
-    --chart-3: 210 10% 43%;
-    --chart-4: 211 100% 70%;
-    --chart-5: 220 20% 50%;
+    --chart-1: 220 14% 28%;
+    --chart-2: 142 76% 40%;
+    --chart-3: 220 14% 48%;
+    --chart-4: 142 76% 60%;
+    --chart-5: 220 15% 50%;
   }
 
   .dark {
-    /* Keeping dark theme as a single consistent theme */
+    /* Keeping dark theme as a single consistent theme for now */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -133,13 +165,13 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215.4 16.3% 56.9%;
-    --accent: 174 63% 45%; 
+    --accent: 142 76% 40%; 
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 174 63% 45%;
+    --ring: 142 76% 40%;
   }
 }
 

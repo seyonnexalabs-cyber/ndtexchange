@@ -36,6 +36,7 @@ import {
   CreditCard,
   History,
   DollarSign,
+  ShieldCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -60,8 +61,20 @@ const clientMenu = [
     title: 'Workspace',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building },
+    ]
+  },
+  {
+    title: 'Asset Management',
+    items: [
+      { id: 'assets', href: '/dashboard/assets', label: 'Asset Register', icon: Building },
+      { id: 'compliance', href: '/dashboard/compliance', label: 'Compliance Tracker', icon: ShieldCheck },
+    ]
+  },
+  {
+    title: 'Jobs',
+    items: [
       { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
     ]
   },
   {
@@ -69,7 +82,6 @@ const clientMenu = [
     items: [
       { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: Users },
       { id: 'find-auditors', href: '/dashboard/find-auditors', label: 'Find Auditors', icon: Eye },
-      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
     ]
   },
   {

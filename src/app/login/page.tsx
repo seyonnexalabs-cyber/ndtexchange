@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -139,6 +139,7 @@ export default function LoginPage() {
             fill
             className="h-full w-full object-cover"
             data-ai-hint={heroImage.imageHint}
+            priority
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-primary/40" />

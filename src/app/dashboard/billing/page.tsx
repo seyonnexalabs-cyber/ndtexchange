@@ -10,6 +10,11 @@ import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { allPayments, subscriptions } from '@/lib/placeholder-data';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 
 function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
     plan: string; 
@@ -195,12 +200,62 @@ const AdminView = ({ constructUrl }: { constructUrl: (url: string) => string }) 
     </Card>
 );
 
+const PaymentHistory = ({ companyName }: { companyName: string }) => {
+    const companyPayments = allPayments.filter(p => p.companyName === companyName)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const companySubscriptions = subscriptions.filter(s => s.companyName === companyName);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Billing History</CardTitle>
+                <CardDescription>A record of your subscription payments to NDT EXCHANGE.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Plan</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Invoice</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {companyPayments.length > 0 ? companyPayments.map(payment => {
+                            const sub = companySubscriptions.find(s => s.id === payment.subscriptionId);
+                            return (
+                                <TableRow key={payment.id}>
+                                    <TableCell>{format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                                    <TableCell>{sub?.plan || 'N/A'}</TableCell>
+                                    <TableCell><Badge variant={payment.status === 'Succeeded' ? 'success' : 'destructive'}>{payment.status}</Badge></TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="outline" size="sm">Download</Button>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        }) : (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center h-24">No payment history found.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+};
+
+
 // Simplified user details for pre-filling payment form
 const userDetails = {
-    client: { name: 'John Doe', email: 'john.d@globalenergy.corp' },
-    inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com' },
-    auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov' },
-    admin: { name: 'Admin User', email: 'admin@ndtexchange.com' },
+    client: { name: 'John Doe', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.' },
+    inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.' },
+    auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC' },
+    admin: { name: 'Admin User', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE' },
 };
 
 
@@ -293,7 +348,7 @@ export default function BillingPage() {
         </div>
       </div>
       
-      <section id="pricing" className="py-8">
+      <section id="pricing" className="py-8 space-y-8">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {renderPlansByRole()}
           </div>
@@ -301,6 +356,11 @@ export default function BillingPage() {
               All subscription plans are billed annually. Pricing is usage-based, determined by factors like platform hosting, data storage, and number of users. <strong>Please note: we process payments for platform subscriptions, but we do not process payments for the NDT jobs themselves.</strong> Contact our sales team for a detailed quote tailored to your needs.
            </p>
       </section>
+        {(role === 'client' || role === 'inspector') && (
+            <section id="payment-history">
+                <PaymentHistory companyName={currentUser.company} />
+            </section>
+        )}
     </div>
   );
 }

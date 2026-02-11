@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { NdtExchangeLogo } from '@/app/components/icons';
+import { LogoIcon } from '@/app/components/icons';
 
 
 export default function PublicHeader() {
@@ -32,7 +32,7 @@ export default function PublicHeader() {
     <header className="absolute top-0 left-0 right-0 z-20 bg-transparent">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
         <Link href="/" className="flex items-center gap-3">
-          <NdtExchangeLogo className="h-10 w-auto text-white" />
+          <LogoIcon className="h-10 w-auto text-white" />
           <span className="text-xl font-bold text-white tracking-tighter">NDT EXCHANGE</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
@@ -62,7 +62,7 @@ export default function PublicHeader() {
                     <SheetHeader>
                         <SheetTitle>
                            <Link href="/" className="flex items-center gap-3">
-                                <NdtExchangeLogo className="h-8 w-auto text-primary" />
+                                <LogoIcon className="h-8 w-auto text-primary" />
                                 <span className="text-lg font-bold text-foreground tracking-tighter">NDT EXCHANGE</span>
                             </Link>
                         </SheetTitle>

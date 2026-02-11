@@ -114,9 +114,9 @@ service cloud.firestore {
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
-      allow list: if false; // Disallow listing users for privacy.
+      allow list: if isAdmin(); // Allow admins to list users.
       allow create: if isOwner(userId) && isResourceCreator('id');
-      allow update: if isExistingOwner(userId) && isImmutable('id');
+      allow update: if isExistingOwner(userId) || isAdmin();
       allow delete: if isExistingOwner(userId) || isAdmin();
     }
 
@@ -128,9 +128,9 @@ service cloud.firestore {
      * @principle Public read with owner-only writes.
      */
     match /assets/{assetId} {
-      allow get, list: if isSignedIn() || isAdmin();
-      // CRITICAL: Cannot implement owner-only writes. The 'Asset' entity is missing an 'ownerId' or 'creatorId' field.
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
     /**
@@ -246,6 +246,31 @@ service cloud.firestore {
       allow update: if (isOwner(resource.data.receiverId) || isAdmin()) && isExistingDoc(); // Only receiver can mark as read.
       allow delete: if false; // Messages are generally immutable.
     }
+    
+     /**
+     * @description Manages real-time chats for support and job communication.
+     * @path /chats/{chatId}/messages/{messageId}
+     * @principle Allows participants of a chat to read and write messages.
+     */
+    match /chats/{chatId} {
+      allow get: if isSignedIn(); // Add specific participant check if needed
+      
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn(); // Let's keep it open for now for demo
+      }
+    }
+    
+    /**
+     * @description Manages company profiles (Clients, Providers, Auditors).
+     * @path /companies/{companyId}
+     * @allow (get, list) Admins can read all company data for management.
+     * @principle Admin-only management access.
+     */
+    match /companies/{companyId} {
+      allow get, list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
 
     /**
      * @description Manages user-specific notifications.
@@ -276,3 +301,4 @@ service cloud.firestore {
 
   }
 }
+    

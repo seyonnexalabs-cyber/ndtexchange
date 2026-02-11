@@ -61,7 +61,7 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Client',
         price: {
             monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
-            yearly: { USD: '$990', EUR: '€890', INR: '₹79,990' },
+            yearly: { USD: '$950', EUR: '€854', INR: '₹76,799' },
         },
         priceDescription: '/ month',
         description: "For multi‑vendor operations.",
@@ -89,8 +89,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Provider Starter',
         audience: 'Provider',
         price: {
-            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
-            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            monthly: { USD: '$29', EUR: '€25', INR: '₹2,499' },
+            yearly: { USD: '$278', EUR: '€240', INR: '₹23,990' },
         },
         description: "For individual inspectors getting started.",
         userLimit: 1,
@@ -116,8 +116,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Provider Pro',
         audience: 'Provider',
         price: {
-            monthly: { USD: '$29', EUR: '€25', INR: '₹2,499' },
-            yearly: { USD: '$290', EUR: '€250', INR: '₹24,990' },
+            monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
+            yearly: { USD: '$950', EUR: '€854', INR: '₹76,799' },
         },
         priceDescription: '/ company / month',
         description: "For professional teams and growing companies.",
@@ -146,8 +146,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Company Growth',
         audience: 'Provider',
         price: {
-            monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
-            yearly: { USD: '$990', EUR: '€890', INR: '₹79,990' },
+            monthly: { USD: '$299', EUR: '€279', INR: '₹24,999' },
+            yearly: { USD: '$2870', EUR: '€2678', INR: '₹239,990' },
         },
         priceDescription: '/ company / month',
         description: "Per company",

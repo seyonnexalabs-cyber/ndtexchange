@@ -274,23 +274,20 @@ export default function ContactPage() {
         </section>
 
         <div id="pricing-tabs" className="py-20">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex flex-col items-center gap-4">
-                <div className="flex justify-center gap-2">
-                    {(['USD', 'EUR', 'INR'] as Currency[]).map((c) => (
-                        <Button key={c} variant={currency === c ? 'default' : 'outline'} onClick={() => setCurrency(c)}>
-                            {c} ({c === 'USD' ? '$' : c === 'EUR' ? '€' : '₹'})
-                        </Button>
-                    ))}
-                </div>
-            </div>
-            <Tabs defaultValue="asset-owners" className="w-full">
-                {/* 2. WHO IS THIS FOR? (ROLE SELECTOR) */}
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex justify-center">
-                    <TabsList className="grid w-full max-w-xl grid-cols-3">
+             <Tabs defaultValue="asset-owners" className="w-full">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex flex-col md:flex-row justify-center md:justify-between items-center gap-4">
+                    <TabsList className="grid w-full max-w-xl md:w-auto grid-cols-3">
                         <TabsTrigger value="asset-owners" className="gap-2"><Building /> Asset Owners</TabsTrigger>
                         <TabsTrigger value="ndt-companies" className="gap-2"><HardHat /> NDT Companies</TabsTrigger>
                         <TabsTrigger value="auditors" className="gap-2"><Eye /> Level‑III & Auditors</TabsTrigger>
                     </TabsList>
+                    <div className="flex justify-center gap-2">
+                        {(['USD', 'EUR', 'INR'] as Currency[]).map((c) => (
+                            <Button key={c} variant={currency === c ? 'default' : 'outline'} onClick={() => setCurrency(c)} size="sm">
+                                {c} ({c === 'USD' ? '$' : c === 'EUR' ? '€' : '₹'})
+                            </Button>
+                        ))}
+                    </div>
                 </div>
                 
                 <TabsContent value="asset-owners" className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -483,13 +480,13 @@ export default function ContactPage() {
                     If you have questions about pricing or partnerships, please use the form below. Ready to sign up? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>. OEMs interested in a free listing in our directory can also use this form.
                 </p>
             </div>
-            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 items-start">
-                <div className="space-y-6">
+            <div className="max-w-2xl mx-auto grid grid-cols-1 gap-12 items-start">
+                <div className="space-y-6 text-center md:text-left">
                     <h3 className="text-2xl font-headline font-semibold">Contact Information</h3>
                     <p className="text-muted-foreground">
                         Our team is available to answer your questions. We aim to respond to all inquiries within one business day.
                     </p>
-                    <div className="space-y-4">
+                    <div className="space-y-4 inline-block text-left">
                         <div className="flex items-center gap-4">
                             <Mail className="w-5 h-5 text-primary" />
                             <div>

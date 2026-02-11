@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { clientAssets, NDTTechniques, Inspection } from "@/lib/placeholder-data";
+import { clientAssets, NDTTechniques, Inspection, clientData } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
@@ -19,6 +19,8 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format } from 'date-fns';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
+import { useFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 
 
 const baseSchema = z.object({
@@ -40,6 +42,7 @@ export default function PostJobPage() {
     const role = searchParams.get('role') || 'client';
     const router = useRouter();
     const { toast } = useToast();
+    const { firestore, user } = useFirebase();
 
     React.useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
@@ -177,45 +180,54 @@ export default function PostJobPage() {
     };
 
     function onSubmit(values: z.infer<typeof jobSchema>) {
-        const inspections: Omit<Inspection, 'id' | 'jobId' | 'report'>[] = [];
-        const inspectionDate = values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-        
+        if (!firestore || !user) {
+            toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to create a job." });
+            return;
+        }
+
         const isInternalJob = role === 'inspector' || (role === 'client' && !values.isMarketplaceJob);
         const newJobStatus = isInternalJob ? 'Draft' : 'Posted';
+        const jobRef = doc(collection(firestore, 'jobs'));
 
-        if (role === 'client' && 'assets' in values) {
-            (values.assets || []).forEach(assetId => {
+        const inspections: Omit<Inspection, 'id' | 'report'>[] = [];
+        if ('assets' in values) {
+            (values.assets || []).forEach((assetId: string) => {
                 const asset = clientAssets.find(a => a.id === assetId);
                 if (asset) {
                     inspections.push({
+                        jobId: jobRef.id,
                         assetName: asset.name,
                         assetId: asset.id,
                         technique: values.technique,
                         inspector: 'Pending',
-                        date: inspectionDate,
+                        date: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
                         status: 'Scheduled',
                     });
                 }
-            });
-        } else if (role === 'inspector') {
-            inspections.push({
-                assetName: values.description!.substring(0, 50),
-                assetId: 'N/A',
-                technique: values.technique,
-                inspector: 'Pending',
-                date: inspectionDate,
-                status: 'Scheduled',
             });
         }
 
         const newJobData = {
             ...values,
-            inspections: inspections,
+            id: jobRef.id,
+            clientId: user.uid,
+            clientCompanyId: 'client-01', // Placeholder
             isInternal: isInternalJob,
             status: newJobStatus,
+            inspections,
+            postedDate: format(new Date(), 'yyyy-MM-dd'),
+            createdAt: serverTimestamp(),
+            bids: [],
+            history: [],
         };
 
-        console.log('New Job Submitted:', newJobData);
+        // Clean up data before saving
+        delete (newJobData as any).agreedToTerms;
+        if ('clientName' in newJobData) delete (newJobData as any).clientName;
+
+
+        addDocumentNonBlocking(collection(firestore, 'jobs'), newJobData);
+
         toast({
             title: 'Job Created Successfully',
             description: `${values.title} is now ready to be managed.`,

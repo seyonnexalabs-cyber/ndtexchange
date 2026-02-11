@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { jobs, allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review } from '@/lib/placeholder-data';
+import { allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review } from '@/lib/placeholder-data';
 import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,8 +38,8 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc } from 'firebase/firestore';
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -390,7 +390,7 @@ export default function JobDetailPage() {
     const { firestore, user } = useFirebase();
     
     // State for the entire page's data to avoid hydration issues with direct mutation
-    const [jobDetails, setJobDetails] = useState<Job | undefined>(() => JSON.parse(JSON.stringify(jobs.find(j => j.id === id))));
+    const [jobDetails, setJobDetails] = useState<Job | undefined>(undefined);
     
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
@@ -409,35 +409,46 @@ export default function JobDetailPage() {
     const [rating, setRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
 
+    const jobRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id) : null), [firestore, id]);
+    const { data: jobFromDb, isLoading: isLoadingJob } = useDoc<Job>(jobRef);
+
+    useEffect(() => {
+        if(jobFromDb) {
+            setJobDetails(jobFromDb);
+        }
+    }, [jobFromDb]);
+
+
     // Re-initialize state if id changes
     useEffect(() => {
-        const jobData = jobs.find(j => j.id === id);
-        if (jobData) {
-            setJobDetails(JSON.parse(JSON.stringify(jobData)));
-            
-            const checkForReview = async () => {
-                if (!firestore) return;
-                const reviewsRef = collection(firestore, 'reviews');
-                // Assuming client-01 for demo purposes
-                const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), limit(1));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    const existingReview = querySnapshot.docs[0].data() as Review;
-                    setRating(existingReview.rating);
-                    setReviewComment(existingReview.comment);
-                    setReviewSubmitted(true);
-                    setHasBeenSubmittedOnce(true);
-                } else {
-                    setRating(0);
-                    setReviewComment("");
-                    setReviewSubmitted(false);
-                    setHasBeenSubmittedOnce(false);
-                }
-            };
+        if (!jobDetails) return;
 
-            checkForReview();
-        }
-    }, [id, firestore]);
+        const checkForReview = async () => {
+            if (!firestore || !jobDetails.providerId) return;
+            const reviewsRef = collection(firestore, 'reviews');
+            // Assuming client-01 for demo purposes
+            const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), limit(1));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const existingReview = querySnapshot.docs[0].data() as Review;
+                setRating(existingReview.rating);
+                setReviewComment(existingReview.comment);
+                setReviewSubmitted(true);
+                setHasBeenSubmittedOnce(true);
+            } else {
+                setRating(0);
+                setReviewComment("");
+                setReviewSubmitted(false);
+                setHasBeenSubmittedOnce(false);
+            }
+        };
+
+        checkForReview();
+    }, [id, firestore, jobDetails]);
+
+    if (isLoadingJob) {
+        return <div className="text-center p-10">Loading job details...</div>;
+    }
 
     if (!jobDetails) {
         notFound();
@@ -924,104 +935,6 @@ export default function JobDetailPage() {
                                 </TabsContent>
                             </Tabs>
                         </Card>
-
-                        {isReviewable && !reviewSubmitted && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><Star className="h-5 w-5 text-primary" /> Leave a Review</CardTitle>
-                                    <CardDescription>Share your experience with the service provider for this job.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <Label>Overall Rating</Label>
-                                        <div className="flex items-center gap-1 mt-2">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star
-                                                    key={star}
-                                                    className={cn(
-                                                        "h-8 w-8 cursor-pointer transition-colors",
-                                                        (hoverRating || rating) >= star
-                                                        ? "fill-amber-400 text-amber-400"
-                                                        : "fill-muted-foreground/30 text-muted-foreground/30"
-                                                    )}
-                                                    onClick={() => setRating(star)}
-                                                    onMouseEnter={() => setHoverRating(star)}
-                                                    onMouseLeave={() => setHoverRating(0)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="review-comment">Comments</Label>
-                                        <Textarea
-                                            id="review-comment"
-                                            placeholder="Describe your experience with the provider..."
-                                            className="mt-2 min-h-[120px]"
-                                            value={reviewComment}
-                                            onChange={(e) => setReviewComment(e.target.value)}
-                                        />
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Button onClick={handleReviewSubmit}>{hasBeenSubmittedOnce ? 'Update Review' : 'Submit Review'}</Button>
-                                </CardFooter>
-                            </Card>
-                        )}
-
-                        {isReviewable && reviewSubmitted && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><Star className="h-5 w-5 text-primary" /> Your Review</CardTitle>
-                                    <CardDescription>
-                                        Thank you for your feedback! Your review is now pending approval.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <Label>Your Rating</Label>
-                                        <div className="flex items-center gap-1 mt-2">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star
-                                                    key={star}
-                                                    className={cn(
-                                                        "h-6 w-6",
-                                                        rating >= star
-                                                        ? "fill-amber-400 text-amber-400"
-                                                        : "fill-muted-foreground/30 text-muted-foreground/30"
-                                                    )}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {reviewComment && (
-                                        <div>
-                                            <Label>Your Comments</Label>
-                                            <p className="text-sm text-muted-foreground mt-2 p-3 bg-muted/50 rounded-md border">{reviewComment}</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                                <CardFooter>
-                                    <Button variant="outline" onClick={() => setReviewSubmitted(false)}>Edit Review</Button>
-                                </CardFooter>
-                            </Card>
-                        )}
-
-                        <ClientReviewActions
-                            status={jobDetails.status}
-                            workflow={jobDetails.workflow}
-                            isClient={isClient}
-                            onApprove={handleClientApprove}
-                            onReject={handleClientReject}
-                        />
-
-                        <AuditorActions 
-                            status={jobDetails.status} 
-                            workflow={jobDetails.workflow} 
-                            isAuditor={isAuditor}
-                            reportSubmitted={reportSubmitted}
-                            onApprove={handleAuditorApprove}
-                            onReject={handleAuditorReject}
-                        />
                     </div>
 
                     <div className="space-y-6">
@@ -1082,169 +995,7 @@ export default function JobDetailPage() {
                         </Card>
                     </div>
                 </div>
-
-                {!isMobile && <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />}
-
-                {/* Technician Assignment Dialog */}
-                <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
-                    <DialogContent className="sm:max-w-lg">
-                        <DialogHeader>
-                            <DialogTitle>Assign Technicians</DialogTitle>
-                            <DialogDescription>Select the technicians to assign to this job.</DialogDescription>
-                        </DialogHeader>
-                        <ScrollArea className="max-h-64 p-1">
-                            <div className="space-y-2 p-3">
-                            {allUsers.filter(u => u.role === 'Inspector').map(tech => (
-                                <div key={tech.id} className="flex items-center space-x-2">
-                                    <Checkbox 
-                                        id={`tech-${tech.id}`} 
-                                        checked={tempSelectedTechs.includes(tech.id)}
-                                        onCheckedChange={(checked) => {
-                                            setTempSelectedTechs(prev => checked ? [...prev, tech.id] : prev.filter(id => id !== tech.id))
-                                        }}
-                                    />
-                                    <Label htmlFor={`tech-${tech.id}`} className="flex-grow">{tech.name} <span className="text-muted-foreground">({tech.level})</span></Label>
-                                    <Badge variant={tech.workStatus === 'Available' ? 'success' : 'default'}>{tech.workStatus}</Badge>
-                                </div>
-                            ))}
-                            </div>
-                        </ScrollArea>
-                        <DialogFooter>
-                            <Button variant="ghost" onClick={() => setIsTechDialogOpen(false)}>Cancel</Button>
-                            <Button onClick={handleAssignTechs}>Assign Technicians</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                {/* Equipment Assignment Dialog */}
-                <Dialog open={isEquipDialogOpen} onOpenChange={setIsEquipDialogOpen}>
-                    <DialogContent className="sm:max-w-lg">
-                        <DialogHeader>
-                            <DialogTitle>Assign Equipment</DialogTitle>
-                            <DialogDescription>Select the equipment to assign to this job.</DialogDescription>
-                        </DialogHeader>
-                        <ScrollArea className="max-h-64 p-1">
-                            <div className="space-y-2 p-3">
-                            {inspectorAssets.map(equip => (
-                                <div key={equip.id} className="flex items-center space-x-2">
-                                    <Checkbox 
-                                        id={`equip-${equip.id}`}
-                                        checked={tempSelectedEquip.includes(equip.id)}
-                                        onCheckedChange={(checked) => {
-                                            setTempSelectedEquip(prev => checked ? [...prev, equip.id] : prev.filter(id => id !== equip.id))
-                                        }}
-                                    />
-                                    <Label htmlFor={`equip-${equip.id}`} className="flex-grow">{equip.name} <span className="text-muted-foreground">({equip.techniques.join(', ')})</span></Label>
-                                    <Badge variant={equip.status === 'Available' ? 'success' : 'secondary'}>{equip.status}</Badge>
-                                </div>
-                            ))}
-                            </div>
-                        </ScrollArea>
-                        <DialogFooter>
-                            <Button variant="ghost" onClick={() => setIsEquipDialogOpen(false)}>Cancel</Button>
-                            <Button onClick={handleAssignEquip}>Assign Equipment</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-                
-                 <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Schedule Job: {jobDetails.title}</DialogTitle>
-                            <DialogDescription>Select the start and end dates for the inspection.</DialogDescription>
-                        </DialogHeader>
-                        <ScheduleJobForm
-                            onSubmit={handleScheduleSubmit}
-                            onCancel={() => setIsSchedulingOpen(false)}
-                            defaultValues={{
-                                scheduledStartDate: jobDetails.scheduledStartDate ? parseISO(jobDetails.scheduledStartDate) : new Date(),
-                                scheduledEndDate: jobDetails.scheduledEndDate ? parseISO(jobDetails.scheduledEndDate) : undefined,
-                            }}
-                        />
-                    </DialogContent>
-                </Dialog>
-
-                <Dialog open={!!reviewingBid} onOpenChange={(open) => !open && setReviewingBid(null)}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>Review Bid</DialogTitle>
-                            {reviewingBid?.provider && (
-                                <DialogDescription>
-                                From {reviewingBid.provider.name} for job: {jobDetails.title}
-                                </DialogDescription>
-                            )}
-                        </DialogHeader>
-                        {reviewingBid && (
-                        <div className="space-y-6 py-4">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-16 w-16">
-                                    <AvatarImage src={reviewingBid.provider.logoUrl} alt={`${reviewingBid.provider.name} logo`} data-ai-hint={`${reviewingBid.provider.name} logo`} />
-                                    <AvatarFallback className="text-xl">{reviewingBid.provider.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <h3 className="text-lg font-bold">{reviewingBid.provider.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{reviewingBid.provider.location}</p>
-                                    <StarRating rating={reviewingBid.provider.rating} />
-                                </div>
-                            </div>
-                            <Separator />
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Bid Amount</Label>
-                                    <p className="text-2xl font-bold">${reviewingBid.amount.toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    <Label>Date Submitted</Label>
-                                    <p>{format(new Date(reviewingBid.submittedDate), GLOBAL_DATE_FORMAT)}</p>
-                                </div>
-                            </div>
-                            {reviewingBid.proposedTechnique && reviewingBid.proposedTechnique !== jobDetails.technique && (
-                                <div>
-                                    <Label>Proposed Technique Change</Label>
-                                    <Alert variant="destructive" className="mt-2">
-                                        <AlertTriangle className="h-4 w-4" />
-                                        <AlertTitle>New Technique Proposed: <Badge variant="outline">{reviewingBid.proposedTechnique}</Badge></AlertTitle>
-                                        <AlertDescription>{reviewingBid.proposalJustification || "No justification provided."}</AlertDescription>
-                                    </Alert>
-                                </div>
-                            )}
-                            <div>
-                                <Label>Provider Comments</Label>
-                                <p className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border min-h-[60px] mt-2">
-                                    {reviewingBid.comments || "No comments provided."}
-                                </p>
-                            </div>
-                            <div>
-                                <Label>Attached Documents</Label>
-                                <p className="text-sm text-muted-foreground mt-2">Provider documents would be listed here for download.</p>
-                            </div>
-                        </div>
-                        )}
-                        <DialogFooter>
-                            <Button variant="ghost" onClick={() => setReviewingBid(null)}>Close</Button>
-                            <Button onClick={() => {
-                                if (reviewingBid) {
-                                    handleAwardBid(reviewingBid.id, reviewingBid.providerId);
-                                }
-                                setReviewingBid(null);
-                            }}>
-                                <Award className="mr-2 h-4 w-4" /> Award Job to {reviewingBid?.provider?.name}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                <UniformDocumentViewer 
-                    isOpen={isViewerOpen}
-                    onOpenChange={setIsViewerOpen}
-                    documents={documentsToView}
-                    title={`Documents for ${jobDetails.title}`}
-                    description="Securely view all documents associated with this job."
-                    initialSelectedDocumentName={initialDocName}
-                />
             </div>
         </TooltipProvider>
     );
 }
-
-    

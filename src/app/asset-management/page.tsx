@@ -10,6 +10,7 @@ import AssetLifecycleDiagram from '@/app/components/asset-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
 import { FolderKanban, History, CalendarCheck, QrCode, TrendingUp, TriangleAlert } from 'lucide-react';
 import ShutdownPhases from '@/app/components/shutdown-phases';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 
 export const metadata: Metadata = {
@@ -111,9 +112,99 @@ export default function AssetManagementPage() {
                         </div>
                     </div>
                 </section>
+
+                <section className="py-20 bg-card">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                      <h2 className="text-3xl font-headline font-semibold text-primary">
+                        Ensuring Compliance with Industry Standards
+                      </h2>
+                      <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                        Our platform is built with a deep understanding of the critical standards that govern asset integrity in the refinery and process industries.
+                      </p>
+                    </div>
+                    <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Pressure Vessels</CardTitle>
+                          <CardDescription>Fixed Equipment</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-sm">
+                          <div>
+                            <h4 className="font-semibold">Design & Construction (New)</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">ASME Section VIII, Div 1:</span> Design-by-Rule for vessels up to 3,000 psi.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">In-Service Inspection</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 510:</span> Governs internal/external inspections, repairs, and rerating.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Auxiliary Standard</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API RP 572:</span> Best practices for conducting inspections.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Piping Systems</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-sm">
+                          <div>
+                            <h4 className="font-semibold">Design & Construction (New)</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">ASME B31.3:</span> Global standard for process piping design and testing.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">In-Service Inspection</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 570:</span> Specifies inspection and repair for metallic and FRP piping.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Auxiliary Standard</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API RP 574:</span> Guidance for inspecting components like valves and fittings.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Aboveground Storage Tanks</CardTitle>
+                          <CardDescription>ASTs</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-sm">
+                          <div>
+                            <h4 className="font-semibold">Design & Construction (New)</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 650:</span> For welded steel tanks operating at low pressures.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">In-Service Inspection</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 653:</span> Covers inspection, repair, alteration, and reconstruction.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Cross-Cutting Standards</CardTitle>
+                          <CardDescription>Recommended Practices</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-sm">
+                          <div>
+                            <h4 className="font-semibold">Damage Mechanisms</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API RP 571:</span> Identifies mechanisms like sulfidation, creep, and CUI.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Risk-Based Inspection (RBI)</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API RP 580/581:</span> Framework to adjust inspection intervals based on risk.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Fitness-for-Service (FFS)</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 579-1 / ASME FFS-1:</span> Evaluate if flawed equipment can remain in service.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </section>
                 
                 {/* Features Section */}
-                <section id="asset-management-features" className="py-20 bg-card">
+                <section id="asset-management-features" className="py-20 bg-background">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-headline font-semibold text-primary">

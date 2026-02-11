@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,9 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Star, MapPin, X, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { serviceProviders } from '@/lib/service-providers-data';
-import { NDTTechniques } from '@/lib/placeholder-data';
-import { auditFirmIndustries } from '@/lib/auditors-data';
+import { serviceProviders, NDTTechniques, auditFirmIndustries } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';

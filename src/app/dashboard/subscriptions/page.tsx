@@ -9,9 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobs, subscriptions as initialSubscriptions, Subscription, clientData, payments as allPayments, Payment } from "@/lib/placeholder-data";
-import { serviceProviders } from '@/lib/service-providers-data';
-import { auditFirms } from '@/lib/auditors-data';
+import { jobs, subscriptions as initialSubscriptions, Subscription, clientData, payments as allPayments, Payment, serviceProviders, auditFirms } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Mail, Users, Database, Edit, MoreVertical, Briefcase, Calendar as CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";

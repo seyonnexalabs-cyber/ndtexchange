@@ -1,8 +1,8 @@
 'use client';
-import { Job, JobUpdate, allUsers } from '@/lib/placeholder-data';
+import { Job, JobUpdate } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import * as React from 'react';
 import { FileText, PlusCircle, Gavel, Award, History, Users, Calendar } from 'lucide-react';
@@ -20,19 +20,18 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Review': 'secondary',
     'Client Approved': 'success',
     'Completed': 'success',
-    'Paid': 'success'
+    'Paid': 'success',
+    'Revisions Requested': 'destructive',
 };
 
-const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
+const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        // This code runs only on the client, after the component has mounted.
-        setFormattedDate(format(new Date(timestamp), GLOBAL_DATETIME_FORMAT));
+        const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
+        setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
     }, [timestamp]);
 
-    // On the server and during the initial client render, formattedDate is null.
-    // We return a placeholder to prevent the mismatch.
     return (
         <p className="text-xs text-muted-foreground/80 shrink-0">
             {formattedDate || '...'}
@@ -58,7 +57,11 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
         return <p className="text-sm text-muted-foreground text-center py-4">No activity log available for this job.</p>
     }
     
-    const sortedHistory = [...history].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const sortedHistory = [...history].sort((a, b) => {
+        const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
+        const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
+        return dateB.getTime() - dateA.getTime();
+    });
 
     return (
         <ScrollArea className="max-h-96">
@@ -67,7 +70,6 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
                 <div className="absolute left-6 top-2 h-[calc(100%_-_1rem)] w-0.5 bg-border -translate-x-1/2" />
                 
                 {sortedHistory.map((entry, index) => {
-                    const userDetails = allUsers.find(u => u.name === entry.user);
                     const icon = getEventIcon(entry.action);
 
                     return (
@@ -78,9 +80,7 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-sm font-medium">{entry.user}</p>
-                                    {userDetails && (
-                                        <p className="text-xs text-muted-foreground">{userDetails.role}, {userDetails.company}</p>
-                                    )}
+                                    {/* User role and company can be added if available */}
                                 </div>
                                 <ClientFormattedDate timestamp={entry.timestamp} />
                             </div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -6,8 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, clientData } from '@/lib/placeholder-data';
-import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
+import { allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, clientData, serviceProviders, NDTServiceProvider } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -416,7 +416,7 @@ export default function JobDetailPage() {
         const checkForReview = async () => {
             if (!firestore || !jobDetails.providerId) return;
             const reviewsRef = collection(firestore, 'reviews');
-            // Assuming client-01 for demo purposes
+            // Assuming client-01 for demo consistency
             const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), limit(1));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {

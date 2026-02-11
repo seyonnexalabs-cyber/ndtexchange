@@ -1,10 +1,9 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { allUsers, PlatformUser, clientData } from "@/lib/placeholder-data";
-import { serviceProviders } from "@/lib/service-providers-data";
-import { auditFirms } from "@/lib/auditors-data";
+import { allUsers, PlatformUser, clientData, serviceProviders, auditFirms } from "@/lib/placeholder-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check, Edit } from "lucide-react";

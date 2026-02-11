@@ -3,7 +3,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { serviceProviders as initialServiceProviders, NDTServiceProvider } from "@/lib/service-providers-data";
+import { serviceProviders as initialServiceProviders, NDTServiceProvider } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { NDTTechniques } from '@/lib/placeholder-data';
-import { auditFirmIndustries } from '@/lib/auditors-data';
+import { NDTTechniques, auditFirmIndustries } from '@/lib/placeholder-data';
 
 
 const providerSchema = z.object({
@@ -324,7 +323,7 @@ export default function ProvidersPage() {
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        return `${params.toString()}`;
+        return `${base}?${params.toString()}`;
     };
 
     const handleFormSubmit = (values: z.infer<typeof providerSchema>) => {

@@ -11,8 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { serviceProviders } from "@/lib/service-providers-data";
-import { allUsers, inspectorAssets, InspectorAsset, subscriptions, clientData, Review } from "@/lib/placeholder-data";
+import { serviceProviders, allUsers, inspectorAssets, InspectorAsset, subscriptions, clientData, Review } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -199,7 +198,7 @@ export default function ProviderDetailPage() {
                                                             <StarRating rating={review.rating} />
                                                         </div>
                                                     </div>
-                                                    <p className="text-sm text-muted-foreground">{format(new Date(review.date), GLOBAL_DATE_FORMAT)}</p>
+                                                    <p className="text-sm text-muted-foreground">{review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : ''}</p>
                                                 </div>
                                                 <p className="mt-4 text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md">
                                                     "{review.comment}"

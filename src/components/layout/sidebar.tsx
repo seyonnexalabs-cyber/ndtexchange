@@ -35,7 +35,7 @@ import {
   LifeBuoy,
   CreditCard,
   History,
-  DollarSign
+  DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -44,15 +44,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { Hexagons7Icon } from '@/app/components/icons';
+import { LogoIcon } from '@/app/components/icons';
 
 
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
-  inspector: { name: 'Jane Smith', role: 'Level II Inspector', fallback: 'JS', company: 'TEAM, Inc.' },
-  admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT Exchange' },
+  inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.' },
+  admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT EXCHANGE' },
   auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
-  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT Exchange' },
+  common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
 const clientMenu = [
@@ -139,6 +139,7 @@ const adminMenu = [
       { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
       { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star },
       { id: 'audit-log', href: '/dashboard/audit-log', label: 'Audit Log', icon: History },
+      { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy },
     ]
   },
   {
@@ -191,7 +192,7 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
@@ -307,17 +308,21 @@ const AppSidebar = () => {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 flex justify-center">
-        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick}>
-            <Hexagons7Icon className="h-12 w-auto" />
+      <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
+        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
+            <LogoIcon className="h-8 w-8 text-primary shrink-0" />
+            <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
+                NDT EXCHANGE
+            </h1>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
           {menuItems.map((group, groupIndex) => (
             <div key={group.title}>
-              <h3 className="px-3 py-1 text-sm font-semibold tracking-wide text-card-foreground/90">
-                {group.title}
+              <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
+                <span className="group-data-[state=expanded]:inline">{group.title}</span>
+                <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
               </h3>
               {group.items.map((item: any) => {
                 return (
@@ -336,13 +341,13 @@ const AppSidebar = () => {
                   </SidebarMenuItem>
                 );
               })}
-              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1" />}
+              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1 group-data-[state=collapsed]:hidden" />}
             </div>
           ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
-        {planDetails && (
+        {state === 'expanded' && planDetails && (
           <div>
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>
@@ -356,20 +361,6 @@ const AppSidebar = () => {
             </Link>
           </div>
         )}
-        {planDetails && <SidebarSeparator className="my-1 mx-0" />}
-         <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-                <AvatarFallback>{currentUser.fallback}</AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden">
-                <p className="font-semibold truncate">{currentUser.name}</p>
-                <p className="text-xs text-card-foreground/70 truncate">{currentUser.role}</p>
-                <p className="text-xs text-card-foreground/70 truncate">{currentUser.company}</p>
-            </div>
-            <Button variant="ghost" size="icon" className="ml-auto text-card-foreground hover:bg-accent hover:text-accent-foreground" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 text-primary" />
-            </Button>
-         </div>
       </SidebarFooter>
     </Sidebar>
   );

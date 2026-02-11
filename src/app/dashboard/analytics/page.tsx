@@ -1,9 +1,9 @@
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { jobs, NDTTechniques, allUsers } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
+import { jobs, NDTTechniques, allUsers, serviceProviders } from '@/lib/placeholder-data';
 import { useMemo, useEffect } from 'react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck } from 'lucide-react';

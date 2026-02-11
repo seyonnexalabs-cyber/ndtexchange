@@ -5,7 +5,7 @@ import { FeatureCard } from '@/app/components/feature-card';
 
 const AuditorWorkflow = () => {
     const coreSteps = [
-        { icon: ClipboardList, title: '1. Monitor Queue', description: 'Reports from jobs requiring Level III review will automatically appear in your Audit Queue.' },
+        { icon: ClipboardList, title: '1. Monitor Queue', description: 'Reports from jobs requiring Level III review will automatically appear in your Reports page.' },
         { icon: FileSearch, title: '2. Review Report', description: 'Open the job to securely view the inspection report and all associated documents.' },
         { icon: CheckCircle, title: '3. Approve Report', description: 'If the report meets all standards and requirements, approve it to send it to the client for final review.' },
         { icon: XCircle, title: '4. Request Revisions', description: 'If the report is incomplete or incorrect, reject it with comments to send it back to the provider for revision.' },

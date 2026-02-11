@@ -13,7 +13,7 @@ const AdminWorkflow = () => {
         {
             icon: <Briefcase className="w-8 h-8 text-primary" />,
             title: 'Job Oversight',
-            description: 'The "All Jobs" and "Inspections" pages give you a global view of all marketplace activity. You can monitor progress and access details for any job on the platform.'
+            description: 'The "All Jobs" and "Reports" pages give you a global view of all marketplace activity. You can monitor progress and access details for any job on the platform.'
         },
         {
             icon: <BarChart3 className="w-8 h-8 text-primary" />,

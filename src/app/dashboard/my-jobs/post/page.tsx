@@ -143,7 +143,7 @@ export default function PostJobPage() {
     const uniqueLocations = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.location))], [clientAssets]);
     const uniqueTypes = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.type))], [clientAssets]);
     const uniqueStatuses = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.status))], [clientAssets]);
-    const techniqueOptions = useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.name} (${t.id})`})), []);
+    const techniqueOptions = React.useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.name} (${t.id})`})), []);
 
     const filteredAssets = React.useMemo(() => {
         if (!clientAssets) return [];

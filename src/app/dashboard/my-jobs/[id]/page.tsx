@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -14,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, AlertTriangle } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, AlertTriangle, Clock, Factory, DollarSign } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,7 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInDays } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 import { useForm } from 'react-hook-form';
@@ -40,6 +39,15 @@ import { useMobile } from '@/hooks/use-mobile';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, query, where, limit, getDocs, doc } from 'firebase/firestore';
+
+
+const bidSchema = z.object({
+    amount: z.coerce.number().positive("Bid amount must be a positive number."),
+    mobilizationDate: z.date({ required_error: "Please select a mobilization date." }),
+    teamSize: z.coerce.number().int().min(1, "Team size must be at least 1."),
+    certifications: z.array(z.string()).optional(),
+    coverNote: z.string().max(1200, "Cover note cannot exceed 200 words (approx. 1200 characters).").optional(),
+});
 
 
 const statusDescriptions: Record<Job['status'], string> = {
@@ -753,8 +761,147 @@ export default function JobDetailPage() {
 
     const lastRejection = jobDetails.history?.find(h => h.statusChange === 'Revisions Requested');
 
+    const isBiddingView = jobDetails.status === 'Posted' && role === 'inspector';
+
+    const JobBiddingView = () => {
+        const form = useForm<z.infer<typeof bidSchema>>({
+            resolver: zodResolver(bidSchema),
+            defaultValues: {
+                certifications: [],
+                mobilizationDate: jobDetails.scheduledStartDate ? new Date(jobDetails.scheduledStartDate) : new Date(),
+            },
+        });
+        
+        function onBidSubmit(values: z.infer<typeof bidSchema>) {
+            toast({
+                title: "Bid Submitted (Simulation)",
+                description: `Your bid of ${values.amount} has been submitted for ${jobDetails.title}.`,
+            });
+            console.log(values);
+             router.push(constructUrl('/dashboard/my-bids'));
+        }
+        
+        const certificationsForChecklist = [ "ASNT UT L-II", "TOFD", "PAUT", "RT Source", "PCN", "API 510", "API 570" ];
+        const allJobTags = [...(jobDetails.techniques || []), ...(jobDetails.certificationsRequired?.split(',').map(s => s.trim()) || [])];
+        const duration = jobDetails.scheduledStartDate && jobDetails.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails.durationDays;
+        
+        return (
+            <div className="grid lg:grid-cols-5 gap-8">
+                {/* Left Column (Job Details) */}
+                <div className="lg:col-span-3 space-y-6">
+                    <Card className="overflow-hidden">
+                        <CardHeader className="p-0">
+                            <div className="bg-primary text-primary-foreground p-4">
+                                <Badge variant="destructive">CRITICAL WINDOW</Badge>
+                            </div>
+                            <div className="p-6">
+                                <CardTitle className="text-2xl font-headline">{jobDetails.title}</CardTitle>
+                                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-4 text-muted-foreground">
+                                    <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {jobDetails.location}</div>
+                                    {jobDetails.scheduledStartDate && <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> {format(parseISO(jobDetails.scheduledStartDate), 'dd MMM')} &ndash; {jobDetails.scheduledEndDate ? format(parseISO(jobDetails.scheduledEndDate), 'dd MMM yyyy') : ''}</div>}
+                                    {duration && <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {duration} days</div>}
+                                    {jobDetails.industry && <div className="flex items-center gap-2"><Factory className="h-4 w-4 text-primary" /> {jobDetails.industry}</div>}
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="px-6 space-y-6">
+                            <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Est. Value</p>
+                                    <p className="text-xl font-bold text-primary">{jobDetails.estimatedBudget}</p>
+                                </div>
+                                <div className="border-l pl-4">
+                                    <p className="text-sm text-muted-foreground">Bidding</p>
+                                    <p className="font-semibold">{jobDetails.bids.length} bids · Closes {jobDetails.bidExpiryDate ? format(parseISO(jobDetails.bidExpiryDate), 'dd MMM') : 'N/A'}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {allJobTags.map((tag, i) => <Badge key={i} variant="secondary">{tag}</Badge>)}
+                            </div>
+
+                            <p className="text-muted-foreground whitespace-pre-wrap">{jobDetails.description}</p>
+                            
+                            <div>
+                                <h3 className="font-semibold text-lg mb-2">Requirements</h3>
+                                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                   {jobDetails.certificationsRequired?.split(',').map(req => <li key={req}>{req.trim()}</li>)}
+                                   {/* Add more static requirements if needed from description */}
+                                   <li>Minimum 5 years refinery inspection experience</li>
+                                   <li>Valid OISD / PESO certifications</li>
+                                   <li>Team of minimum 6 inspectors on-site</li>
+                                </ul>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                
+                {/* Right Column (Bid Form) */}
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader><CardTitle>Submit Your Bid</CardTitle></CardHeader>
+                        <CardContent>
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onBidSubmit)} className="space-y-4">
+                                    <FormField control={form.control} name="amount" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Your Price (₹)</FormLabel>
+                                            <FormControl><Input type="number" placeholder="e.g. 8,200,000" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="mobilizationDate" render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Mobilization Date</FormLabel>
+                                            <FormControl><CustomDateInput {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="teamSize" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Team Size</FormLabel>
+                                            <FormControl><Input type="number" placeholder="e.g. 8 inspectors" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="certifications" render={() => (
+                                        <FormItem>
+                                            <FormLabel>Certifications (select all held)</FormLabel>
+                                            <ScrollArea className="h-32 w-full rounded-md border p-4">
+                                                {certificationsForChecklist.map((cert) => (
+                                                    <FormField key={cert} control={form.control} name="certifications" render={({ field }) => (
+                                                        <FormItem key={cert} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
+                                                            <FormControl>
+                                                                <Checkbox checked={field.value?.includes(cert)} onCheckedChange={(checked) => ( checked ? field.onChange([...(field.value || []), cert]) : field.onChange( field.value?.filter((value) => value !== cert) ) )}/>
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal text-sm">{cert}</FormLabel>
+                                                        </FormItem>
+                                                    )} />
+                                                ))}
+                                            </ScrollArea>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                     <FormField control={form.control} name="coverNote" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Cover Note <span className="text-xs text-muted-foreground">(max 200 words)</span></FormLabel>
+                                            <FormControl><Textarea placeholder="Describe your team's specific experience..." className="min-h-[120px]" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <Button type="submit" className="w-full">Submit Bid &rarr;</Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        )
+    }
+
     return (
-        <TooltipProvider>
+       <TooltipProvider>
+        {isBiddingView ? <JobBiddingView /> : (
             <div>
                 <Button asChild variant="outline" size="sm" className="mb-4">
                      <Link href={constructUrl(backLink)}>
@@ -809,7 +956,7 @@ export default function JobDetailPage() {
                                     </div>
                                     <Tooltip>
                                         <TooltipTrigger>
-                                            <Badge>{jobDetails.technique}</Badge>
+                                            <Badge>{jobDetails.techniques[0]}</Badge>
                                         </TooltipTrigger>
                                         {technique && (
                                             <TooltipContent className="max-w-xs">
@@ -989,6 +1136,8 @@ export default function JobDetailPage() {
                     </div>
                 </div>
             </div>
+        )}
         </TooltipProvider>
     );
 }
+    

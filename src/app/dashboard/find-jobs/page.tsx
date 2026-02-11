@@ -1,49 +1,24 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { jobs, NDTTechniques, Job, JobDocument } from '@/lib/placeholder-data';
+import { jobs as initialJobs, NDTTechniques, Job, JobDocument } from '@/lib/placeholder-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, DollarSign, X, FileText, Upload, Info, AlarmClock, Maximize } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Briefcase, MapPin, Calendar, Gavel, Filter, Search as SearchIcon, X, AlarmClock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSearch } from '@/app/components/layout/search-provider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
-import UniformDocumentViewer from '@/app/dashboard/components/uniform-document-viewer';
+import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-const bidSchema = z.object({
-  amount: z.coerce.number().positive("Bid amount must be positive."),
-  comments: z.string().optional(),
-  quote: z.any().optional().refine((files: FileList | undefined) => {
-      if (!files || files.length === 0) return true;
-      for (let i = 0; i < files.length; i++) {
-          if (files[i].size > MAX_FILE_SIZE_BYTES) return false;
-      }
-      return true;
-  }, `Each file must be less than ${MAX_FILE_SIZE_MB}MB.`),
-  proposedTechnique: z.string(),
-  proposalJustification: z.string().optional(),
-});
+import Link from 'next/link';
 
 export default function FindJobsPage() {
-    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
     const { searchQuery } = useSearch();
-    const [isViewerOpen, setIsViewerOpen] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
@@ -54,54 +29,26 @@ export default function FindJobsPage() {
         }
     }, [role, router, searchParams]);
 
-    const form = useForm<z.infer<typeof bidSchema>>({
-        resolver: zodResolver(bidSchema),
-        defaultValues: {
-            amount: 0,
-            comments: '',
-            proposalJustification: '',
-        },
-    });
-
-    const proposedTechnique = useWatch({
-      control: form.control,
-      name: 'proposedTechnique',
-    });
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     const filteredJobs = useMemo(() => {
-        const openJobs = jobs.filter(j => j.status === 'Posted' || (j.status === 'Posted' && j.bidExpiryDate && new Date(j.bidExpiryDate) < new Date()));
+        const openJobs = initialJobs.filter(j => j.status === 'Posted' || (j.status === 'Posted' && j.bidExpiryDate && new Date(j.bidExpiryDate) < new Date()));
         
         return openJobs.filter(job => {
             const searchMatch = !searchQuery || 
                 job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.client.toLowerCase().includes(searchQuery.toLowerCase());
 
-            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.includes(job.technique);
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.some(tech => job.techniques.includes(tech));
             const locationMatch = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase());
 
             return searchMatch && techniqueMatch && locationMatch;
         });
     }, [searchQuery, selectedTechniques, locationFilter]);
 
-    const handleOpenDialog = (job: Job) => {
-        form.reset({
-            amount: 0,
-            comments: '',
-            proposedTechnique: job.technique,
-            proposalJustification: '',
-        });
-        setSelectedJob(job);
-    };
-    
-    function onBidSubmit(values: z.infer<typeof bidSchema>) {
-        console.log('New Bid Submitted:', { jobId: selectedJob?.id, ...values });
-        handleCloseDialog();
-    }
-
-    const handleCloseDialog = () => {
-        setSelectedJob(null);
-        form.reset();
-    };
 
     if (role && role !== 'inspector') {
         return null;
@@ -185,7 +132,9 @@ export default function FindJobsPage() {
                                 {isExpired ? (
                                     <Badge variant="destructive">Bidding Expired</Badge>
                                 ) : (
-                                    <Badge>{job.technique}</Badge>
+                                    <div className="flex flex-wrap gap-1 justify-end">
+                                      {job.techniques.map(t => <Badge key={t}>{t}</Badge>)}
+                                    </div>
                                 )}
                             </div>
                             <CardDescription>Posted by {job.client}</CardDescription>
@@ -216,9 +165,11 @@ export default function FindJobsPage() {
                             )}
                         </CardContent>
                         <CardFooter>
-                            <Button onClick={() => handleOpenDialog(job)} disabled={isExpired}>
-                                <Gavel className="mr-2"/>
-                                {isExpired ? 'Bidding Closed' : 'Place Bid'}
+                           <Button asChild>
+                                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>
+                                    <Gavel className="mr-2"/>
+                                    {isExpired ? 'View Details' : 'View & Bid'}
+                                </Link>
                             </Button>
                         </CardFooter>
                     </Card>
@@ -232,141 +183,7 @@ export default function FindJobsPage() {
                     <p className="mt-2 text-muted-foreground">There are currently no new jobs matching your filters.</p>
                 </div>
             )}
-
-            <Dialog open={!!selectedJob} onOpenChange={(open) => !open && handleCloseDialog()}>
-                <DialogContent className="sm:max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>Place Bid on: {selectedJob?.title}</DialogTitle>
-                        <DialogDescription>
-                            Job ID: <span className="font-extrabold text-foreground">{selectedJob?.id}</span> <br/>
-                            Review the job details and attached documents, then submit your bid and quotation.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 pt-4">
-                        <div className="space-y-4">
-                             <h3 className="font-semibold text-lg">Job Documents</h3>
-                             <div className="space-y-2">
-                                {selectedJob?.documents && selectedJob.documents.length > 0 ? (
-                                    <Button variant="outline" className="w-full" onClick={() => setIsViewerOpen(true)}>
-                                        <Maximize className="mr-2 h-4 w-4 text-primary" />
-                                        View All Job Documents ({selectedJob.documents.length})
-                                    </Button>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No documents were attached to this job.</p>
-                                )}
-                             </div>
-                        </div>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onBidSubmit)} className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="amount"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Your Bid Amount ($USD)</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                                                    <Input type="number" placeholder="5000.00" className="pl-8" {...field} />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="proposedTechnique"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Proposed Technique</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select a technique" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {NDTTechniques.map(tech => (
-                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 {proposedTechnique !== selectedJob?.technique && (
-                                    <FormField
-                                        control={form.control}
-                                        name="proposalJustification"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Justification for Change</FormLabel>
-                                                <FormControl>
-                                                    <Textarea placeholder="Explain why this technique is a better choice for this job..." {...field} />
-                                                </FormControl>
-                                                 <Alert variant="destructive" className="p-2 text-sm flex items-center gap-2">
-                                                    <Info className="h-4 w-4"/>
-                                                    <AlertDescription>Client must approve technique changes.</AlertDescription>
-                                                 </Alert>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                 )}
-
-                                 <FormField
-                                    control={form.control}
-                                    name="comments"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Comments (Optional)</FormLabel>
-                                            <FormControl>
-                                                <Textarea placeholder="Add any notes or conditions for your bid..." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 <FormField
-                                    control={form.control}
-                                    name="quote"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Upload Quotation / Documents</FormLabel>
-                                            <FormControl>
-                                                <Input type="file" multiple accept={ACCEPTED_FILE_TYPES} onChange={e => field.onChange(e.target.files)} />
-                                            </FormControl>
-                                            <FormDescription>
-                                                You can upload multiple files. Max {MAX_FILE_SIZE_MB}MB per file.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <DialogFooter className="pt-4 flex-col sm:flex-row sm:space-x-2">
-                                    <Button type="button" variant="ghost" onClick={handleCloseDialog}>Cancel</Button>
-                                    <Button type="submit">
-                                        <Gavel className="mr-2"/>
-                                        Submit Bid
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </Form>
-                    </div>
-                </DialogContent>
-            </Dialog>
-            
-            {selectedJob && (
-                 <UniformDocumentViewer 
-                    isOpen={isViewerOpen}
-                    onOpenChange={setIsViewerOpen}
-                    documents={selectedJob.documents?.map(d => ({...d, source: 'Client'})) || []}
-                    title={`Documents for ${selectedJob.title}`}
-                    description="Securely view all documents associated with this job."
-                />
-            )}
         </div>
     );
 }
+    

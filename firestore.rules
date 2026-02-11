@@ -28,7 +28,7 @@ service cloud.firestore {
     function isProviderMember(providerId) {
       return isSignedIn() &&
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.providerId == providerId;
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == providerId;
     }
 
     // --- BLANKET ADMIN ACCESS ---
@@ -74,9 +74,19 @@ service cloud.firestore {
      * Job & Bidding Rules (/jobs, /bids)
      ***********************************************************/
     match /jobs/{jobId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn() && (
+                    resource.data.clientId == request.auth.uid || 
+                    (resource.data.clientCompanyId != null && isCompanyMember(resource.data.clientCompanyId)) || 
+                    (resource.data.providerId != null && isCompanyMember(resource.data.providerId)) || 
+                    isPlatformAdmin());
+
+      allow list: if isSignedIn() && 
+                    (isPlatformAdmin() || 
+                     (request.query.where.clientCompanyId != null && isCompanyMember(request.query.where.clientCompanyId)) ||
+                     (request.query.where.providerId != null && isCompanyMember(request.query.where.providerId)));
+
       allow create: if isSignedIn() && request.resource.data.clientId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.clientId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.clientId == request.auth.uid || isCompanyMember(resource.data.clientCompanyId));
     }
 
     match /bids/{bidId} {

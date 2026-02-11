@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review } from '@/lib/placeholder-data';
+import { allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, clientData } from '@/lib/placeholder-data';
 import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -389,9 +389,6 @@ export default function JobDetailPage() {
     const isMobile = useMobile();
     const { firestore, user } = useFirebase();
     
-    // State for the entire page's data to avoid hydration issues with direct mutation
-    const [jobDetails, setJobDetails] = useState<Job | undefined>(undefined);
-    
     const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
     const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
@@ -410,15 +407,8 @@ export default function JobDetailPage() {
     const [reviewComment, setReviewComment] = React.useState("");
 
     const jobRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id) : null), [firestore, id]);
-    const { data: jobFromDb, isLoading: isLoadingJob } = useDoc<Job>(jobRef);
-
-    useEffect(() => {
-        if(jobFromDb) {
-            setJobDetails(jobFromDb);
-        }
-    }, [jobFromDb]);
-
-
+    const { data: jobDetails, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(jobRef);
+    
     // Re-initialize state if id changes
     useEffect(() => {
         if (!jobDetails) return;
@@ -450,8 +440,33 @@ export default function JobDetailPage() {
         return <div className="text-center p-10">Loading job details...</div>;
     }
 
+    if (jobError) {
+        return (
+            <div className="text-center p-10">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Error Loading Job</AlertTitle>
+                    <AlertDescription>
+                        There was an error fetching the job details. This could be due to a network issue or insufficient permissions.
+                        <p className="mt-2 text-xs">{jobError.message}</p>
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
+    
     if (!jobDetails) {
-        notFound();
+        return (
+             <div className="text-center p-10">
+                <Alert>
+                    <Briefcase className="h-4 w-4" />
+                    <AlertTitle>Job Not Found</AlertTitle>
+                    <AlertDescription>
+                        The job you are looking for does not exist or you may not have permission to view it.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )
     }
     
     const constructUrl = (base: string) => {
@@ -473,39 +488,30 @@ export default function JobDetailPage() {
     };
 
     const handleAssignTechs = () => {
-        setJobDetails(prev => prev ? { ...prev, technicianIds: tempSelectedTechs } : undefined);
+        // In a real app, this would be a database update.
+        // For now, we simulate by just closing.
+        // setJobDetails(prev => prev ? { ...prev, technicianIds: tempSelectedTechs } : undefined);
+        toast({ title: 'Technicians updated (simulation).' });
         setIsTechDialogOpen(false);
     };
     
     const handleAssignEquip = () => {
-        setJobDetails(prev => prev ? { ...prev, equipmentIds: tempSelectedEquip } : undefined);
+        // setJobDetails(prev => prev ? { ...prev, equipmentIds: tempSelectedEquip } : undefined);
+        toast({ title: 'Equipment updated (simulation).' });
         setIsEquipDialogOpen(false);
     };
 
     const handleStatusChange = (newStatus: Job['status']) => {
-        if (jobDetails) {
-            setJobDetails({ ...jobDetails, status: newStatus });
-        }
+        // setJobDetails({ ...jobDetails, status: newStatus });
+        toast({ title: `Status changed to ${newStatus} (simulation).` });
     };
 
     const handleAwardBid = (awardedBidId: string, providerId: string) => {
         if (!jobDetails) return;
-
-        // Update job status and provider
-        setJobDetails(prev => {
-            if (!prev) return undefined;
-            const updatedBids = prev.bids.map(bid => {
-                if (bid.id === awardedBidId) return { ...bid, status: 'Awarded' as const };
-                if (bid.status === 'Submitted') return { ...bid, status: 'Rejected' as const };
-                return bid;
-            });
-            return {...prev, status: 'Assigned', providerId: providerId, bids: updatedBids };
-        });
-
-        const provider = serviceProviders.find(p => p.id === providerId);
+        // This would be a backend transaction
         toast({
-            title: "Job Awarded!",
-            description: `${provider?.name} has been awarded the job: ${jobDetails.title}.`,
+            title: "Job Awarded! (simulation)",
+            description: `Provider has been awarded the job: ${jobDetails.title}.`,
         });
     };
 
@@ -518,14 +524,14 @@ export default function JobDetailPage() {
     
     const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
         if (jobDetails) {
-            setJobDetails({ 
-                ...jobDetails, 
-                status: 'Scheduled',
-                scheduledStartDate: format(values.scheduledStartDate, 'yyyy-MM-dd'),
-                scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : format(values.scheduledStartDate, 'yyyy-MM-dd'),
-            });
+            // setJobDetails({ 
+            //     ...jobDetails, 
+            //     status: 'Scheduled',
+            //     scheduledStartDate: format(values.scheduledStartDate, 'yyyy-MM-dd'),
+            //     scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : format(values.scheduledStartDate, 'yyyy-MM-dd'),
+            // });
             toast({
-                title: 'Job Scheduled',
+                title: 'Job Scheduled (simulation)',
                 description: 'The job has been scheduled and the client has been notified.',
             });
             setIsSchedulingOpen(false);
@@ -541,7 +547,7 @@ export default function JobDetailPage() {
 
     const handleAuditorApprove = () => {
         toast({
-            title: "Report Approved by Auditor",
+            title: "Report Approved by Auditor (simulation)",
             description: `The inspection report has been approved. The client will now perform the final review.`,
         });
         handleStatusChange('Audit Approved');
@@ -552,20 +558,13 @@ export default function JobDetailPage() {
             toast({ variant: 'destructive', title: 'Comments Required', description: 'Please provide comments to the provider when requesting revisions.' });
             return;
         }
-        const historyEntry: JobUpdate = {
-            user: 'Alex Chen', // Placeholder for current auditor
-            timestamp: new Date().toISOString(),
-            action: 'Auditor requested revisions.',
-            details: comments,
-            statusChange: 'Revisions Requested',
-        };
-        setJobDetails(prev => prev ? { ...prev, status: 'Revisions Requested', history: [historyEntry, ...(prev.history || [])] } : undefined);
-        toast({ variant: "destructive", title: "Revisions Requested by Auditor", description: "The report has been sent back to the provider for revisions." });
+        // ... create history entry ...
+        toast({ variant: "destructive", title: "Revisions Requested by Auditor (simulation)", description: "The report has been sent back to the provider for revisions." });
     }
 
     const handleClientApprove = () => {
         toast({
-            title: "Job Approved!",
+            title: "Job Approved! (simulation)",
             description: `You have approved the report. The job is now ready for completion.`,
         });
         handleStatusChange('Client Approved');
@@ -576,17 +575,10 @@ export default function JobDetailPage() {
             toast({ variant: 'destructive', title: 'Comments Required', description: 'Please provide comments to the provider when requesting revisions.' });
             return;
         }
-        const historyEntry: JobUpdate = {
-            user: 'John Doe', // Placeholder for current client
-            timestamp: new Date().toISOString(),
-            action: 'Client requested revisions.',
-            details: comments,
-            statusChange: 'Revisions Requested',
-        };
-        setJobDetails(prev => prev ? { ...prev, status: 'Revisions Requested', history: [historyEntry, ...(prev.history || [])] } : undefined);
+        // ... create history entry ...
         toast({
             variant: "destructive",
-            title: "Revisions Requested by Client",
+            title: "Revisions Requested by Client (simulation)",
             description: `The report has been sent back to the provider for revisions.`,
         });
     }
@@ -650,13 +642,14 @@ export default function JobDetailPage() {
             message: message,
         };
 
-        setJobDetails(prev => {
-            if (!prev) return undefined;
-            return {
-                ...prev,
-                messages: [...(prev.messages || []), newMessage],
-            };
-        });
+        // setJobDetails(prev => {
+        //     if (!prev) return undefined;
+        //     return {
+        //         ...prev,
+        //         messages: [...(prev.messages || []), newMessage],
+        //     };
+        // });
+        toast({title: 'Message sent (simulation)'});
     };
 
     const BidsSection = () => {

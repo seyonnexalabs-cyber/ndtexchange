@@ -1,21 +1,21 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { allUsers, inspectorAssets, Job } from "@/lib/placeholder-data";
+import { allUsers, inspectorAssets, Job, PlatformUser } from "@/lib/placeholder-data";
 import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { format, isToday } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where, doc, getDoc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -37,12 +37,31 @@ export default function MyJobsPage() {
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [auditFilter, setAuditFilter] = useState(false);
 
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
+    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
+
+    useEffect(() => {
+        if (user && firestore) {
+            const userDocRef = doc(firestore, 'users', user.uid);
+            getDoc(userDocRef).then(docSnap => {
+                if (docSnap.exists()) {
+                    setUserProfile(docSnap.data() as PlatformUser);
+                }
+            });
+        }
+    }, [user, firestore]);
 
     const jobsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || !userProfile) return null;
+        if (role === 'client') {
+            return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
+        }
+        if (role === 'inspector') {
+            return query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId));
+        }
         return collection(firestore, 'jobs');
-    }, [firestore]);
+    }, [firestore, userProfile, role]);
+
 
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
@@ -68,23 +87,19 @@ export default function MyJobsPage() {
         let pageTitle = '';
         let PageIcon: React.ElementType = Briefcase;
         
-        let relevantJobs = role === 'inspector' 
-            ? jobs.filter(j => j.providerId === 'provider-03' && ['In Progress', 'Completed', 'Assigned', 'Scheduled', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Paid', 'Revisions Requested'].includes(j.status))
-            : jobs.filter(j => j.client === 'Global Energy Corp.');
-
         switch(view) {
             case 'active':
-                jobsToShow = relevantJobs.filter(job => job.status === 'In Progress');
+                jobsToShow = jobs.filter(job => job.status === 'In Progress');
                 pageTitle = 'Active Jobs';
                 PageIcon = CheckCircle;
                 break;
             case 'completed':
-                jobsToShow = relevantJobs.filter(job => ['Completed', 'Paid'].includes(job.status));
+                jobsToShow = jobs.filter(job => ['Completed', 'Paid'].includes(job.status));
                 pageTitle = 'Completed Jobs';
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = relevantJobs.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status));
+                jobsToShow = jobs.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status));
                 pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
                 PageIcon = Award;
                 break;
@@ -121,31 +136,6 @@ export default function MyJobsPage() {
 
     const hasActiveFilters = selectedProviders.length > 0 || selectedClients.length > 0 || auditFilter;
 
-    const groupedJobs = useMemo(() => {
-        if (displayedJobs.length === 0) return null;
-
-        if (role === 'client') {
-            return displayedJobs.reduce((acc, job) => {
-                const provider = serviceProviders.find(p => p.id === job.providerId);
-                const groupName = provider ? provider.name : 'Unassigned / Pending Bids';
-                if (!acc[groupName]) acc[groupName] = [];
-                acc[groupName].push(job);
-                return acc;
-            }, {} as Record<string, Job[]>);
-        }
-
-        if (role === 'inspector') {
-            return displayedJobs.reduce((acc, job) => {
-                const groupName = job.client;
-                if (!acc[groupName]) acc[groupName] = [];
-                acc[groupName].push(job);
-                return acc;
-            }, {} as Record<string, Job[]>);
-        }
-
-        return { 'All Jobs': displayedJobs };
-    }, [displayedJobs, role]);
-
     const getEmptyStateAction = () => {
         if (role === 'client') {
             return (
@@ -169,17 +159,17 @@ export default function MyJobsPage() {
 
     const uniqueClients = useMemo(() => {
         if (role !== 'inspector' || !jobsFromDb) return [];
-        const clients = new Set(jobsFromDb.filter(j => j.providerId === 'provider-03').map(j => j.client));
+        const clients = new Set(jobsFromDb.map(j => j.client));
         return Array.from(clients);
     }, [role, jobsFromDb]);
 
     const uniqueProviders = useMemo(() => {
         if (role !== 'client' || !jobsFromDb) return [];
-        const providerIds = new Set(jobsFromDb.filter(j => j.client === 'Global Energy Corp.' && j.providerId).map(j => j.providerId!));
+        const providerIds = new Set(jobsFromDb.filter(j => j.providerId).map(j => j.providerId!));
         return serviceProviders.filter(p => providerIds.has(p.id));
     }, [role, jobsFromDb]);
 
-    if (isLoadingJobs) {
+    if (isLoadingJobs || !userProfile) {
         return (
             <div>
                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -443,3 +433,4 @@ export default function MyJobsPage() {
     
 
     
+

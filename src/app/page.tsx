@@ -107,7 +107,7 @@ export default function HomePage() {
                                     {solution.features.map((feature, i) => (
                                         <li key={i} className="flex items-start">
                                             <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 shrink-0" />
-                                            <span className="text-muted-foreground text-sm">{feature}</span>
+                                            <span className="text-sm text-muted-foreground">{feature}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -158,7 +158,7 @@ export default function HomePage() {
                             imageUrl={techImage?.imageUrl}
                             imageHint={techImage?.imageHint}
                             altText={technique.title}
-                            title={`${technique.title} (${technique.id.toUpperCase()})`}
+                            title={technique.title}
                             description={technique.description}
                         />
                     )

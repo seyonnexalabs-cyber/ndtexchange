@@ -25,7 +25,7 @@ const workflowData = [
     actor: 'Client',
     steps: [
       { number: 1, title: 'Create Job Posting', description: 'Client fills in the job wizard: facility type, location, inspection techniques, asset count, access window, and deadline. NDT type tags auto-suggested.', actor: 'Client' },
-      { number: 2, title: 'Upload Scope Documents', description: 'Attach P&IDs, previous inspection reports, isometric drawings, and HSE requirements. Documents are shared only with shortlisted bidders.', actor: 'Client' },
+      { number: 2, title: 'Upload Scope Documents', description: 'Attach Piping and Instrumentation Diagrams (P&IDs), previous inspection reports, isometric drawings, and HSE requirements. Documents are shared only with shortlisted bidders.', actor: 'Client' },
       { number: 3, title: 'Set Budget & Visibility', description: 'Choose budget type (fixed, indicative range, or open). Select visibility: public open bid, invited tender, or private to preferred providers.', actor: 'Client' },
       { number: 4, title: 'Platform Verification & Publishing', description: 'NDT EXCHANGE auto-validates required certification types, flags incomplete scopes, and publishes to the matching provider pool.', actor: 'Platform' }
     ]

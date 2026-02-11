@@ -68,6 +68,7 @@ const clientMenu = [
     items: [
       { id: 'assets', href: '/dashboard/assets', label: 'Asset Register', icon: Building },
       { id: 'compliance', href: '/dashboard/compliance', label: 'Compliance Tracker', icon: ShieldCheck },
+      { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
     ]
   },
   {
@@ -88,7 +89,6 @@ const clientMenu = [
     title: 'Tools',
     items: [
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
-      { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]

@@ -4,28 +4,28 @@
 
 @layer base {
   :root, .client-theme {
-    --background: 220 20% 97%;
-    --foreground: 210 10% 23%;
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
-    --card-foreground: 210 10% 23%;
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 210 10% 23%;
-    --primary: 201 25% 37%; /* Dark Slate Blue */
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 24.6 95% 53.1%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 210 10% 94%;
-    --secondary-foreground: 210 10% 23%;
-    --muted: 210 10% 94%;
-    --muted-foreground: 210 7% 50%;
-    --accent: 174 63% 39%; /* Teal */
-    --accent-foreground: 0 0% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 224 71.4% 4.1%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 15% 91%;
-    --input: 210 15% 91%;
-    --ring: 201 25% 37%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
     /* Chart Colors */
-    --chart-1: 201 25% 37%;
+    --chart-1: 24.6 95% 53.1%;
     --chart-2: 174 63% 39%;
     --chart-3: 201 25% 57%;
     --chart-4: 174 63% 59%;
@@ -265,4 +265,17 @@
 
 .animate-spin-slow {
   animation: spin-slow 20s linear infinite;
+}
+
+@keyframes scan-glow {
+  0%, 100% {
+    box-shadow: 0 0 2px 1px hsl(var(--primary) / 0.7);
+  }
+  50% {
+    box-shadow: 0 0 8px 3px hsl(var(--primary) / 0.9);
+  }
+}
+
+.animate-scan-glow {
+  animation: scan-glow 2.5s infinite;
 }

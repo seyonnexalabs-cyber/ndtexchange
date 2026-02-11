@@ -25,6 +25,26 @@ export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+export const NdtExchangeLogo = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <g clipPath="url(#clip0_105_2)">
+    <path d="M25.3333 40H54.6667" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M40 25.3333V54.6667" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M60 13.3333H66.6667V20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 13.3333H13.3333V20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M60 66.6667H66.6667V60" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 66.6667H13.3333V60" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+    </g>
+    <rect x="1.5" y="1.5" width="77" height="77" rx="3.5" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3"/>
+    <defs>
+    <clipPath id="clip0_105_2">
+    <rect width="80" height="80" fill="white"/>
+    </clipPath>
+    </defs>
+  </svg>
+);
+
+
 export const TankIcon = (props: SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <path d="M20 12.5a8.5 8.5 0 0 0-16 0v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5Z" />

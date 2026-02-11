@@ -1,4 +1,3 @@
-
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
-  industry: z.string().optional(),
+  industry: z.string({ required_error: 'Please select an industry.' }),
   location: z.string().min(2, 'Location is required.'),
   techniques: z.array(z.string()).min(1, "At least one technique is required."),
   description: z.string().optional(),
@@ -40,7 +39,7 @@ const baseSchema = z.object({
   scheduledStartDate: z.date().optional(),
   durationDays: z.coerce.number().int().positive().optional(),
   estimatedBudget: z.string().optional(),
-  certificationsRequired: z.string().optional(),
+  certificationsRequired: z.string({ required_error: 'Please select a certification body.' }),
   scheduledEndDate: z.date().optional(), // This is for internal calculation, not a form field
 });
 
@@ -393,20 +392,21 @@ export default function PostJobPage() {
                                 />
                             </div>
 
+                             <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Site Location</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                              <div className="grid md:grid-cols-2 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="location"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Site Location</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
                                 <FormField
                                     control={form.control}
                                     name="scheduledStartDate"
@@ -429,23 +429,23 @@ export default function PostJobPage() {
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="techniques"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>NDT Techniques Required</FormLabel>
-                                            <MultiSelect
-                                                options={techniqueOptions}
-                                                selected={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select techniques..."
-                                            />
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
                             </div>
+                            <FormField
+                                control={form.control}
+                                name="techniques"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>NDT Techniques Required</FormLabel>
+                                        <MultiSelect
+                                            options={techniqueOptions}
+                                            selected={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Select techniques..."
+                                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
                              <div className="grid md:grid-cols-2 gap-6">
                                  <FormField
@@ -492,63 +492,6 @@ export default function PostJobPage() {
                             />
 
                             {isClient && (
-                                <FormField
-                                control={form.control}
-                                name="isMarketplaceJob"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                                    <div className="space-y-0.5">
-                                        <FormLabel className="text-base">Post to Marketplace</FormLabel>
-                                        <FormDescription>
-                                            Post this job publicly to all qualified providers on the marketplace.
-                                        </FormDescription>
-                                    </div>
-                                    <FormControl>
-                                        <Switch
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    </FormItem>
-                                )}
-                                />
-                            )}
-                            
-                            {isMarketplaceJob && (
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="bidExpiryDate"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-col">
-                                            <FormLabel>Bid Closing Date</FormLabel>
-                                            <FormControl><CustomDateInput {...field} /></FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="workflow"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Approval Workflow</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="standard">Standard (Client Review Only)</SelectItem>
-                                                        <SelectItem value="level3">Level III Audit (Manual)</SelectItem>
-                                                        <SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            )}
-
-                             {isClient && (
                                 <FormField
                                     control={form.control}
                                     name="assets"
@@ -647,9 +590,76 @@ export default function PostJobPage() {
                                 )}
                             />
 
+                            {isClient && (
+                                <Card className="bg-muted/50">
+                                    <CardHeader>
+                                        <CardTitle>Marketplace Options</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                        <FormField
+                                            control={form.control}
+                                            name="isMarketplaceJob"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-background p-4">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base">Post to Marketplace</FormLabel>
+                                                    <FormDescription>
+                                                        Post this job publicly to all qualified providers on the marketplace.
+                                                    </FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        
+                                        {isMarketplaceJob && (
+                                            <div className="grid md:grid-cols-2 gap-6">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="bidExpiryDate"
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-col">
+                                                        <FormLabel>Bid Closing Date</FormLabel>
+                                                        <FormControl><CustomDateInput {...field} /></FormControl>
+                                                        <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name="workflow"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Approval Workflow</FormLabel>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="standard">Standard (Client Review Only)</SelectItem>
+                                                                    <SelectItem value="level3">Level III Audit (Manual)</SelectItem>
+                                                                    <SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
+
+
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="submit" variant="outline" onClick={() => setIsDraft(true)}>Save as Draft</Button>
-                                <Button type="submit" onClick={() => setIsDraft(false)}>Publish Job Posting</Button>
+                                <Button type="submit" onClick={() => setIsDraft(false)}>
+                                    {isClient ? 'Publish Job Posting' : 'Create Job'}
+                                </Button>
                             </div>
                         </form>
                     </Form>
@@ -658,4 +668,3 @@ export default function PostJobPage() {
         </div>
     );
 }
-

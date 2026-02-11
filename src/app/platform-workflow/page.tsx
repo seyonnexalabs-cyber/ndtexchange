@@ -13,10 +13,9 @@ export const metadata: Metadata = {
 
 const actors = [
     { name: 'Customer', color: 'bg-orange-500' },
-    { name: 'Service Provider / OEM', color: 'bg-blue-600' },
+    { name: 'Service Provider', color: 'bg-blue-600' },
     { name: 'Platform', color: 'bg-gray-800' },
     { name: 'Both Parties', color: 'bg-red-600' },
-    { name: 'OEM Specific', color: 'bg-green-600' }
 ];
 
 const workflowData = [
@@ -34,12 +33,12 @@ const workflowData = [
   {
     phase: 'PHASE 02',
     title: 'Discovery & Bid Preparation',
-    actor: 'Provider / OEM',
+    actor: 'Service Provider',
     steps: [
         { number: 5, title: 'Smart Matching & Notifications', description: "Platform matches job requirements against provider profiles: location, technique certifications (ASNT Level II/III), industry experience, and capacity calendar.", actor: 'Platform' },
-        { number: 6, title: 'Review Scope & Express Interest', description: "Provider reads the scope, downloads documents (NDA-gated if required), and signals intent to bid — activating the Q&A channel with the customer.", actor: 'Provider' },
+        { number: 6, title: 'Review Scope & Express Interest', description: "Provider reads the scope, downloads documents (NDA-gated if required), and signals intent to bid — activating the Q&A channel with the customer.", actor: 'Service Provider' },
         { number: 7, title: 'Pre-Bid Q&A', description: "Provider asks clarification questions via the platform's structured Q&A. Customer answers are visible to all registered bidders to ensure fair information.", actor: 'Both Parties' },
-        { number: 8, title: 'Build & Submit Bid', description: "Provider completes structured bid: lump-sum price, team CVs, certifications, method statement summary, mobilisation date, and payment schedule.", actor: 'Provider' }
+        { number: 8, title: 'Build & Submit Bid', description: "Provider completes structured bid: lump-sum price, team CVs, certifications, method statement summary, mobilisation date, and payment schedule.", actor: 'Service Provider' }
     ]
   },
     {
@@ -56,12 +55,11 @@ const workflowData = [
   {
     phase: 'PHASE 04',
     title: 'Mobilisation & Execution',
-    actor: 'Provider / OEM',
+    actor: 'Service Provider',
     steps: [
-        { number: 13, title: 'Team & Equipment Mobilisation', description: "Provider confirms team roster, equipment manifest, and site arrival schedule. Customer approves access via the platform's site permit module.", actor: 'Provider' },
-        { number: 14, title: 'OEM Equipment Dispatch (if applicable)', description: "For OEM-bid jobs, specialist instruments are dispatched from the OEM or distributor directly to the site, tracked via the platform logistics module.", actor: 'OEM Specific' },
-        { number: 15, title: 'Daily Progress Updates', description: "Provider submits structured daily field reports: work completed, defects found, delays flagged. Customer reviews in real-time via the job dashboard.", actor: 'Provider' },
-        { number: 16, title: 'Milestone Payment Releases', description: "Platform releases partial escrow payments as customer approves completion milestones (e.g. 30% on mobilisation, 40% on inspection complete, 30% on report accepted).", actor: 'Platform' }
+        { number: 13, title: 'Team & Equipment Mobilisation', description: "Provider confirms team roster, equipment manifest, and site arrival schedule. Customer approves access via the platform's site permit module.", actor: 'Service Provider' },
+        { number: 14, title: 'Daily Progress Updates', description: "Provider submits structured daily field reports: work completed, defects found, delays flagged. Customer reviews in real-time via the job dashboard.", actor: 'Service Provider' },
+        { number: 15, title: 'Milestone Payment Releases', description: "Platform releases partial escrow payments as customer approves completion milestones (e.g. 30% on mobilisation, 40% on inspection complete, 30% on report accepted).", actor: 'Platform' }
     ]
   },
   {
@@ -69,10 +67,10 @@ const workflowData = [
     title: 'Reporting, Closeout & Review',
     actor: 'Both Parties',
     steps: [
-        { number: 17, title: 'Final Report Submission', description: "Provider uploads structured final report: all findings, defect classifications, recommended actions, and NDT data files — stored permanently in the customer's asset register.", actor: 'Provider' },
-        { number: 18, title: 'Customer Sign-off', description: "Customer reviews and approves the final deliverables. Any disputes are handled via the platform's structured dispute resolution process before final release.", actor: 'Customer' },
-        { number: 19, title: 'Final Payment & Platform Fee', description: "Remaining escrow released to provider. Platform deducts commission (5–10%). Invoice issued to customer. Transaction recorded for tax reporting.", actor: 'Platform' },
-        { number: 20, title: 'Mutual Ratings & Review', description: "Both parties rate each other. Ratings feed the platform's reputation engine, improving match quality for future jobs. Disputes flagged to trust & safety team.", actor: 'Both Parties' }
+        { number: 16, title: 'Final Report Submission', description: "Provider uploads structured final report: all findings, defect classifications, recommended actions, and NDT data files — stored permanently in the customer's asset register.", actor: 'Service Provider' },
+        { number: 17, title: 'Customer Sign-off', description: "Customer reviews and approves the final deliverables. Any disputes are handled via the platform's structured dispute resolution process before final release.", actor: 'Customer' },
+        { number: 18, title: 'Final Payment & Platform Fee', description: "Remaining escrow released to provider. Platform deducts commission (5–10%). Invoice issued to customer. Transaction recorded for tax reporting.", actor: 'Platform' },
+        { number: 19, title: 'Mutual Ratings & Review', description: "Both parties rate each other. Ratings feed the platform's reputation engine, improving match quality for future jobs. Disputes flagged to trust & safety team.", actor: 'Both Parties' }
     ]
   },
 ];
@@ -87,8 +85,7 @@ const ActorBadge = ({ actor, full = false }: { actor: string, full?: boolean }) 
             color = 'text-orange-800';
             bgColor = 'bg-orange-100';
             break;
-        case 'Provider':
-        case 'Provider / OEM':
+        case 'Service Provider':
             color = 'text-blue-800';
             bgColor = 'bg-blue-100';
             text = full ? actor : 'Provider';
@@ -101,11 +98,6 @@ const ActorBadge = ({ actor, full = false }: { actor: string, full?: boolean }) 
             color = 'text-red-800';
             bgColor = 'bg-red-100';
             text = full ? actor : 'Both Parties';
-            break;
-        case 'OEM Specific':
-            color = 'text-green-800';
-            bgColor = 'bg-green-100';
-            text = full ? actor : 'OEM Specific';
             break;
     }
     return <Badge className={`font-bold ${color} ${bgColor}`}>{text}</Badge>

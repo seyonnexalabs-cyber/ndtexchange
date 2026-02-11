@@ -180,13 +180,13 @@ export default function ManufacturersPage() {
                                             </Avatar>
                                             <div>
                                                 <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
-                                                {manufacturer.description && (
-                                                    <CardDescription className="pt-1 line-clamp-2">{manufacturer.description}</CardDescription>
-                                                )}
                                             </div>
                                         </div>
                                     </CardHeader>
                                     <CardContent className="flex-grow">
+                                        {manufacturer.description && (
+                                            <p className="text-sm text-muted-foreground line-clamp-2 h-10 mb-4">{manufacturer.description}</p>
+                                        )}
                                         <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
                                         <div className="flex flex-wrap gap-1.5">
                                             {manufacturer.techniques.map(tech => (

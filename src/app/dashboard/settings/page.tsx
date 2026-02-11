@@ -475,7 +475,7 @@ const SubscriptionSettings = () => {
                         </div>
                         <Progress value={storageProgress} />
                         <p className="text-xs text-muted-foreground mt-1">
-                            Storage includes all uploaded documents, inspection data, and asset photos.
+                            Your data storage includes all asset documents, job files, and final inspection reports.
                         </p>
                     </div>
                     <div>
@@ -492,7 +492,7 @@ const SubscriptionSettings = () => {
 
                 <div className="text-sm text-muted-foreground">
                     <p>
-                        Your 30-day free trial gives you full access to all platform features. After the trial period ends, you will need to upgrade to a paid plan. Your subscription covers platform hosting costs, while data storage and user count are key components of our usage-based pricing.
+                        Your 30-day free trial gives you full access to all platform features. Your subscription covers platform hosting costs, while data storage and user count are key components of our usage-based pricing. The Client (asset owner) is responsible for the data storage costs for all documents related to their jobs.
                     </p>
                      <p className="mt-2 font-semibold">
                        Note: NDT EXCHANGE does not process payments directly through the platform. Our team will work with you to handle invoicing and payment.
@@ -877,7 +877,7 @@ export default function SettingsPage() {
                             In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT EXCHANGE a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
                             </p>
 
-                            <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform &amp; Disclaimer of Services</h2>
+                            <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform & Disclaimer of Services</h2>
                             <p>
                                 NDT EXCHANGE acts as a neutral digital platform to connect asset owners (Clients) with NDT service providers. We are not a party to the actual service agreement between the Client and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
                             </p>
@@ -898,7 +898,7 @@ export default function SettingsPage() {
                               All payments for services rendered are to be handled directly between the Client and the service provider. NDT EXCHANGE does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
                             </p>
                             
-                            <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law &amp; Jurisdiction</h2>
+                            <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law & Jurisdiction</h2>
                             <p>
                             These Terms will be governed by and interpreted in accordance with the laws of the State/Country, and you submit to the non-exclusive jurisdiction of the state and federal courts located in State/Country for the resolution of any disputes.
                             </p>

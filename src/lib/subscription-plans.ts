@@ -51,7 +51,7 @@ export const subscriptionPlans: Plan[] = [
         features: [
             'Post unlimited jobs to marketplace',
             'Manage up to 200 assets',
-            'Secure Document & Data Vault (2GB)',
+            '2GB Data Vault for all job reports & documents',
             'Standard historical reporting'
         ],
     },
@@ -79,7 +79,7 @@ export const subscriptionPlans: Plan[] = [
         features: [
             "All Client Access features",
             "Manage unlimited assets",
-            "Secure Document & Data Vault (50GB)",
+            "50GB Data Vault for all job reports & documents",
             "Advanced analytics & reporting",
         ],
     },

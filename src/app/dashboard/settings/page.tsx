@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -509,157 +510,170 @@ const SubscriptionSettings = () => {
 };
 
 const BrandingSettings = ({ companyName, role }: { companyName: string, role: string }) => {
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [brandColor, setBrandColor] = useState('#3B82F6');
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const [brandColor, setBrandColor] = useState('#3B82F6');
+    const [isLogoDragging, setIsLogoDragging] = useState(false);
+    const [isThumbnailDragging, setIsThumbnailDragging] = useState(false);
+    const logoFileInputRef = useRef<HTMLInputElement>(null);
+    const thumbnailFileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogoUpload = (file: File | null) => {
-    if (file) {
-      if (!['image/png', 'image/jpeg', 'image/svg+xml'].includes(file.type)) {
-        toast({ variant: 'destructive', title: 'Invalid File Type', description: 'Please upload a PNG, JPG, or SVG file.' });
-        return;
-      }
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        toast({ variant: 'destructive', title: 'File Too Large', description: 'Logo image must be smaller than 2MB.' });
-        return;
-      }
+    const handleFileUpload = (
+        file: File | null,
+        setPreview: React.Dispatch<React.SetStateAction<string | null>>,
+        maxSizeMB: number,
+        allowedTypes: string[]
+    ) => {
+        if (file) {
+            if (!allowedTypes.includes(file.type)) {
+                toast({ variant: 'destructive', title: 'Invalid File Type', description: `Please upload one of: ${allowedTypes.join(', ')}` });
+                return;
+            }
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast({ variant: 'destructive', title: 'File Too Large', description: `Image must be smaller than ${maxSizeMB}MB.` });
+                return;
+            }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleLogoUpload(e.dataTransfer.files[0]);
-      e.dataTransfer.clearData();
-    }
-  };
-  
-  const handleSaveBranding = () => {
-      toast({ title: 'Branding Saved', description: 'Your company branding has been updated.' });
-  }
+    const createDragHandlers = (setIsDragging: React.Dispatch<React.SetStateAction<boolean>>, handleFile: (file: File | null) => void) => ({
+        handleDragEnter: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); },
+        handleDragLeave: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); },
+        handleDragOver: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); },
+        handleDrop: (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDragging(false);
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+                e.dataTransfer.clearData();
+            }
+        },
+    });
 
-  const isClient = role === 'client';
-  const clientLogo = isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
-  const providerLogo = !isClient ? logoPreview : 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
+    const logoDragHandlers = createDragHandlers(setIsLogoDragging, (file) => handleFileUpload(file, setLogoPreview, 2, ['image/png', 'image/jpeg', 'image/svg+xml']));
+    const thumbnailDragHandlers = createDragHandlers(setIsThumbnailDragging, (file) => handleFileUpload(file, setThumbnailPreview, 1, ['image/png', 'image/jpeg']));
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Company Branding</CardTitle>
-        <CardDescription>Manage your logo and brand color. These assets will appear on reports generated for your jobs.</CardDescription>
-      </CardHeader>
-      <CardContent className="grid md:grid-cols-2 gap-12 items-start">
-        <div className="space-y-6">
-            <div
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                    "relative w-full aspect-video rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
-                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
-                )}
-            >
-                {logoPreview ? (
-                    <>
-                        <Image
-                            src={logoPreview}
-                            alt="Company Logo Preview"
-                            fill
-                            className="object-contain rounded-md p-4"
-                        />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
-                            <p className="text-white font-semibold">Click or drag to replace logo</p>
+    const handleSaveBranding = () => {
+        toast({ title: 'Branding Saved', description: 'Your company branding has been updated.' });
+    };
+
+    const isClient = role === 'client';
+    const clientLogo = isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
+    const providerLogo = !isClient ? logoPreview : 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Company Branding</CardTitle>
+                <CardDescription>Manage your logo, thumbnail, and brand color. These assets will appear on reports and listings.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-12 items-start">
+                <div className="space-y-6">
+                    <div>
+                        <Label htmlFor="logo-upload">Company Logo</Label>
+                        <div
+                            {...logoDragHandlers}
+                            onClick={() => logoFileInputRef.current?.click()}
+                            className={cn(
+                                "relative mt-2 w-full aspect-video rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                isLogoDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                            )}
+                        >
+                            {logoPreview ? (
+                                <>
+                                    <Image src={logoPreview} alt="Company Logo Preview" fill className="object-contain rounded-md p-4" />
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
+                                        <p className="text-white font-semibold">Click or drag to replace logo</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                    <Building className="w-10 h-10" />
+                                    <p>Click or drag &amp; drop logo</p>
+                                    <p className="text-xs">PNG, JPG, or SVG up to 2MB</p>
+                                </div>
+                            )}
+                            <Input ref={logoFileInputRef} id="logo-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/svg+xml" onChange={(e) => handleFileUpload(e.target.files?.[0] || null, setLogoPreview, 2, ['image/png', 'image/jpeg', 'image/svg+xml'])} />
                         </div>
-                    </>
-                ) : (
-                    <div className="flex flex-col items-center gap-2">
-                        <Building className="w-10 h-10" />
-                        <p>Click or drag &amp; drop logo</p>
-                        <p className="text-xs">PNG, JPG, or SVG up to 2MB</p>
                     </div>
-                )}
-                <Input
-                    ref={fileInputRef}
-                    id="logo-upload"
-                    type="file"
-                    className="hidden"
-                    accept="image/png, image/jpeg, image/svg+xml"
-                    onChange={(e) => handleLogoUpload(e.target.files?.[0] || null)}
-                />
-            </div>
-             {role === 'client' ? (
-              <div>
-                  <Label htmlFor="brand-color">Brand Color</Label>
-                  <div className="mt-2 flex items-center gap-2">
-                      <Input
-                          id="brand-color"
-                          type="color"
-                          value={brandColor}
-                          onChange={(e) => setBrandColor(e.target.value)}
-                          className="w-12 h-10 p-1"
-                      />
-                      <Input
-                          value={brandColor}
-                          onChange={(e) => setBrandColor(e.target.value)}
-                          placeholder="#3B82F6"
-                      />
-                  </div>
-              </div>
-            ) : (
-               <div>
-                  <Label>Brand Color</Label>
-                  <div className="mt-2 text-sm p-3 bg-muted/50 border rounded-md text-muted-foreground">
-                      The primary brand color is set by the Client on their reports.
-                  </div>
-              </div>
-            )}
-        </div>
-        <div>
-            <Label>Report Preview</Label>
-            <div className="mt-2 rounded-lg border p-4 shadow-md">
-                <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
-                    <div className="w-1/4 flex justify-start">
-                       {clientLogo ? <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
+
+                    <div>
+                        <Label htmlFor="thumbnail-upload">Company Thumbnail</Label>
+                        <div
+                            {...thumbnailDragHandlers}
+                            onClick={() => thumbnailFileInputRef.current?.click()}
+                            className={cn(
+                                "relative mt-2 w-40 h-40 rounded-full border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                isThumbnailDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                            )}
+                        >
+                            {thumbnailPreview ? (
+                                <>
+                                    <Image src={thumbnailPreview} alt="Company Thumbnail Preview" fill className="object-cover rounded-full" />
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-full">
+                                        <p className="text-white font-semibold text-xs text-center">Replace</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                    <p className="text-xs">Upload Thumbnail</p>
+                                    <p className="text-xs">(Square)</p>
+                                </div>
+                            )}
+                            <Input ref={thumbnailFileInputRef} id="thumbnail-upload" type="file" className="hidden" accept="image/png, image/jpeg" onChange={(e) => handleFileUpload(e.target.files?.[0] || null, setThumbnailPreview, 1, ['image/png', 'image/jpeg'])} />
+                        </div>
+                        <FormDescription className="mt-2">Used for smaller icons and avatars. A square image (1:1 ratio) works best.</FormDescription>
                     </div>
-                    <div className="w-1/2 text-center">
-                        <h3 className="font-bold text-lg" style={{ color: brandColor }}>INSPECTION REPORT</h3>
-                        <p className="text-xs text-muted-foreground">Report #2024-123</p>
-                    </div>
-                    <div className="w-1/4 flex justify-end">
-                         {providerLogo ? <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
+
+                    {role === 'client' && (
+                        <div>
+                            <Label htmlFor="brand-color">Brand Color</Label>
+                            <div className="mt-2 flex items-center gap-2">
+                                <Input id="brand-color" type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="w-12 h-10 p-1" />
+                                <Input value={brandColor} onChange={(e) => setBrandColor(e.target.value)} placeholder="#3B82F6" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <Label>Report Preview</Label>
+                    <div className="mt-2 rounded-lg border p-4 shadow-md">
+                        <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
+                            <div className="w-1/4 flex justify-start">
+                                {clientLogo ? <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
+                            </div>
+                            <div className="w-1/2 text-center">
+                                <h3 className="font-bold text-lg" style={{ color: brandColor }}>INSPECTION REPORT</h3>
+                                <p className="text-xs text-muted-foreground">Report #2024-123</p>
+                            </div>
+                            <div className="w-1/4 flex justify-end">
+                                {providerLogo ? <Image src={providerLogo} alt="Provider Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
+                            </div>
+                        </div>
+                        <div className="pt-4 text-sm text-muted-foreground space-y-2">
+                            <div className="grid grid-cols-2 gap-4">
+                                <p><strong>Asset:</strong> Storage Tank T-101</p>
+                                <p><strong>Date:</strong> {format(new Date(), 'dd-MMM-yyyy')}</p>
+                                <p><strong>Job ID:</strong> JOB-001</p>
+                                <p><strong>Technique:</strong> UT</p>
+                            </div>
+                            <p className="pt-4">Report summary and findings will appear here...</p>
+                        </div>
                     </div>
                 </div>
-                <div className="pt-4 text-sm text-muted-foreground space-y-2">
-                    <div className="grid grid-cols-2 gap-4">
-                        <p><strong>Asset:</strong> Storage Tank T-101</p>
-                        <p><strong>Date:</strong> {format(new Date(), 'dd-MMM-yyyy')}</p>
-                        <p><strong>Job ID:</strong> JOB-001</p>
-                        <p><strong>Technique:</strong> UT</p>
-                    </div>
-                    <p className="pt-4">Report summary and findings will appear here...</p>
-                </div>
-            </div>
-        </div>
-      </CardContent>
-       <CardFooter>
-          <Button onClick={handleSaveBranding}>Save Branding</Button>
-       </CardFooter>
-    </Card>
-  );
+            </CardContent>
+            <CardFooter>
+                <Button onClick={handleSaveBranding}>Save Branding</Button>
+            </CardFooter>
+        </Card>
+    );
 };
 
 
@@ -897,3 +911,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

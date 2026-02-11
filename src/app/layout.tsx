@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Suspense } from 'react';
 import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import CookieConsent from '@/app/components/cookie-consent';
 
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ export default function RootLayout({
           </FirebaseClientProvider>
         </Suspense>
         <Toaster />
+        <CookieConsent />
       </body>
     </html>
   );

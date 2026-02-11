@@ -46,6 +46,7 @@ import { useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { LogoIcon } from '@/app/components/icons';
+import { useUser } from '@/firebase';
 
 
 const userDetails = {
@@ -205,17 +206,29 @@ const AppSidebar = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMobile, setOpenMobile, state } = useSidebar();
+  const { user, isUserLoading } = useUser();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
   const planParam = searchParams.get('plan');
 
   useEffect(() => {
-    // If there is no role or the role is not a valid one, redirect to login
+    if (isUserLoading) {
+        return; // Wait until the auth state is determined
+    }
+
+    // If there is no authenticated user, redirect to login page.
+    if (!user) {
+        router.replace('/login');
+        return;
+    }
+    
+    // If there is a user, but no valid role in the URL,
+    // it's an inconsistent state. Redirect to login to re-establish the session.
     if (!roleParam || !validRoles.includes(roleParam as string)) {
       router.replace('/login');
     }
-  }, [roleParam, router]);
+  }, [roleParam, router, user, isUserLoading]);
   
   const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : null;
 
@@ -314,8 +327,19 @@ const AppSidebar = () => {
 
   const planDetails = getPlanDetails();
 
-  if (!role) {
-    return null; // Render nothing while redirecting
+  if (!role || isUserLoading) {
+    return (
+        <Sidebar collapsible="icon">
+          <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
+            <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
+                <LogoIcon className="h-8 w-8 text-primary shrink-0" />
+                <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
+                    NDT EXCHANGE
+                </h1>
+            </Link>
+          </SidebarHeader>
+        </Sidebar>
+    );
   }
 
   return (

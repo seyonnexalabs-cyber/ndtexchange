@@ -406,7 +406,7 @@ export default function JobDetailPage() {
     const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
 
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
-    const [documentsToView, setDocumentsToView] = React.useState<ViewerDocument[]>([]);
+    const [documentsToView, setDocumentsToView = React.useState<ViewerDocument[]>([]);
     const [initialDocName, setInitialDocName] = React.useState<string | null>(null);
     
     const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
@@ -754,7 +754,6 @@ export default function JobDetailPage() {
     const isReviewable = isClient && (jobDetails.status === 'Completed' || jobDetails.status === 'Paid');
     const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid', 'Revisions Requested'].includes(jobDetails.status);
     const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
-    const technique = allNdtTechniques.find(t => t.id.toUpperCase() === jobDetails.technique);
     
     const backLink = isAdmin ? "/dashboard/all-jobs" : isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs";
     const backText = isAdmin ? "All Jobs" : isAuditor ? "Inspections" : "My Jobs";
@@ -830,6 +829,7 @@ export default function JobDetailPage() {
                                    <li>Minimum 5 years refinery inspection experience</li>
                                    <li>Valid OISD / PESO certifications</li>
                                    <li>Team of minimum 6 inspectors on-site</li>
+                                   <li>RT source licence required</li>
                                 </ul>
                             </div>
                         </CardContent>
@@ -846,7 +846,7 @@ export default function JobDetailPage() {
                                     <FormField control={form.control} name="amount" render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Your Price (₹)</FormLabel>
-                                            <FormControl><Input type="number" placeholder="e.g. 8,200,000" {...field} /></FormControl>
+                                            <FormControl><Input type="number" placeholder="e.g. 82,00,000" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
@@ -954,17 +954,24 @@ export default function JobDetailPage() {
                                         </CardTitle>
                                         <CardDescription>ID: <span className="font-bold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
                                     </div>
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Badge>{jobDetails.techniques[0]}</Badge>
-                                        </TooltipTrigger>
-                                        {technique && (
-                                            <TooltipContent className="max-w-xs">
-                                                <p className="font-bold">{technique.title}</p>
-                                                <p>{technique.description}</p>
-                                            </TooltipContent>
-                                        )}
-                                    </Tooltip>
+                                    <div className="flex flex-wrap gap-1">
+                                        {(jobDetails.techniques || [(jobDetails as any).technique]).filter(Boolean).map((tech: string, i: number) => {
+                                            const techData = allNdtTechniques.find(t => t.id.toUpperCase() === tech);
+                                            return (
+                                                <Tooltip key={i}>
+                                                    <TooltipTrigger>
+                                                        <Badge>{tech}</Badge>
+                                                    </TooltipTrigger>
+                                                    {techData && (
+                                                        <TooltipContent className="max-w-xs">
+                                                            <p className="font-bold">{techData.title}</p>
+                                                            <p>{techData.description}</p>
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -1140,4 +1147,6 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+    
+
     

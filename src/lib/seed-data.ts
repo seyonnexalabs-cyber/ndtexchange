@@ -477,7 +477,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
             { user: 'Maria Garcia', timestamp: new Date('2024-07-24T10:00:00Z'), action: 'Scheduled job.', statusChange: 'Scheduled', details: 'Inspection scheduled for 2024-07-25 to 2024-07-28' },
             { user: 'John Doe', timestamp: new Date('2024-07-19T13:00:00Z'), action: 'Awarded job to provider "TEAM, Inc." for $15,000.', statusChange: 'Assigned' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-18T16:00:00Z'), action: 'Bid for $15,000 submitted by TEAM, Inc.', details: 'Standard rates for pipeline corrosion mapping.' },
-            { user: 'John Doe', timestamp: new Date('2024-07-18T09:00:00Z'), action: 'Created job and posted to marketplace.', statusChange: 'Posted' }
+            { user: 'John Doe', timestamp: new Date('2024-07-18T09:00:00Z'), action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
         ],
         techniques: ['UT'],
         jobType: 'project',
@@ -700,7 +700,7 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-client-03', name: 'Mike Williams', email: 'm.williams@energytransfer.com', role: 'Client', companyId: 'client-03', company: 'Energy Transfer', status: 'Active', password: 'password123' },
     { id: 'user-client-04', name: 'Carlos Ruiz', email: 'c.ruiz@chemc.com', role: 'Client', companyId: 'client-05', company: 'Chemical Plant C', status: 'Active', password: 'password123' },
     { id: 'user-client-05', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', companyId: 'client-09', company: 'Aviation Maintenance Pros', status: 'Active', password: 'password123' },
-    { id: 'JB5zgSrcKJX3dbNgPJmhlOcrUI62', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'NDTX', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
+    { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'NDTX', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
     { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
     { id: 'user-auditor-02', name: 'Brenda Vance', email: 'b.vance@aerocompliance.com', role: 'Auditor', companyId: 'auditor-firm-02', company: 'Aero-Compliance Partners', status: 'Active', password: 'password123', certifications: [{method: 'ET', level: 'Level III'}, {method: 'UT', level: 'Level III'}], level: 'Level III' },
     { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },

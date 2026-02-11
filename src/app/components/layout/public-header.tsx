@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -100,8 +101,16 @@ export default function PublicHeader() {
               </Sheet>
            </div>
            <div className="hidden md:flex items-center space-x-2">
-              <Button asChild variant="ghost" className={cn(isLightBg ? "text-foreground" : "text-white hover:bg-white/10 hover:text-white")}>
-                  <Link href="/login">Login</Link>
+              <Button 
+                asChild 
+                variant="outline" 
+                className={cn(
+                  isLightBg 
+                    ? "" 
+                    : "text-white border-white hover:bg-white/10 hover:text-white"
+                )}
+              >
+                <Link href="/login">Login</Link>
               </Button>
               <Button asChild>
                 <Link href="/signup">Get Started</Link>

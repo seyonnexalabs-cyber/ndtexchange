@@ -123,16 +123,18 @@ export default function PlatformWorkflowPage() {
                         ))}
                     </div>
 
-                    <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-0">
+                    <Accordion type="multiple" collapsible className="w-full space-y-4">
                         {workflowData.map((phase, index) => (
                              <AccordionItem key={phase.phase} value={`item-${index}`} className="border-none">
                                 <AccordionTrigger className="bg-muted hover:bg-muted/80 px-4 py-3 rounded-t-lg data-[state=closed]:rounded-b-lg transition-all text-lg font-semibold hover:no-underline">
-                                    <div className="flex items-center gap-4">
-                                        <Badge className="bg-primary text-primary-foreground">{phase.phase}</Badge>
-                                        <span>{phase.title}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <ActorBadge actor={phase.actor} full={true} />
+                                    <div className="flex justify-between items-center w-full">
+                                        <div className="flex items-center gap-4">
+                                            <Badge className="bg-primary text-primary-foreground">{phase.phase}</Badge>
+                                            <span>{phase.title}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mr-2">
+                                            <ActorBadge actor={phase.actor} full={true} />
+                                        </div>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="border border-t-0 rounded-b-lg p-6 space-y-8">

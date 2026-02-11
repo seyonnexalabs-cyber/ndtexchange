@@ -40,7 +40,7 @@ export type InspectionReport = {
 
 export type JobUpdate = {
     user: string;
-    timestamp: string;
+    timestamp: any;
     action: string;
     details?: string;
     documentName?: string;
@@ -53,7 +53,7 @@ export type Job = {
     client: string;
     providerId?: string; // The service provider company awarded the job
     location: string;
-    technique: string;
+    techniques: string[];
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid' | 'Revisions Requested';
     postedDate: string;
     bidExpiryDate?: string;
@@ -68,6 +68,11 @@ export type Job = {
     bids: Bid[];
     inspections: Inspection[];
     isInternal?: boolean;
+    jobType?: 'shutdown' | 'project' | 'callout';
+    industry?: string;
+    durationDays?: number;
+    estimatedBudget?: string;
+    certificationsRequired?: string;
 };
 
 export type Inspection = {

@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Asset": {
@@ -73,7 +74,11 @@
           "items": { "type": "string" }
         },
         "location": { "type": "string", "description": "The location where the job needs to be performed." },
-        "technique": { "type": "string", "description": "The NDT technique required for the job." },
+        "techniques": {
+          "type": "array",
+          "description": "An array of NDT technique IDs required for the job.",
+          "items": { "type": "string" }
+        },
         "status": { "type": "string", "description": "Current status of the job (e.g., Posted, Assigned, Completed)." },
         "title": { "type": "string", "description": "The title of the job." },
         "description": { "type": "string", "description": "A detailed description of the job scope and requirements." },
@@ -102,9 +107,14 @@
             "type": "array",
             "description": "An array of document objects associated with this job.",
             "items": { "type": "object" }
-        }
+        },
+        "jobType": { "type": "string", "enum": ["shutdown", "project", "callout"], "description": "The type of job." },
+        "industry": { "type": "string", "description": "The industry sector for the job." },
+        "durationDays": { "type": "number", "description": "The expected duration of the job in days." },
+        "estimatedBudget": { "type": "string", "description": "The estimated budget range for the job." },
+        "certificationsRequired": { "type": "string", "description": "Specific certifications required for the technicians." }
       },
-      "required": ["id", "clientId", "clientCompanyId", "location", "technique", "status", "title"]
+      "required": ["id", "clientId", "clientCompanyId", "location", "status", "title"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",

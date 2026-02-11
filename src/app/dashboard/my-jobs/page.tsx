@@ -1,8 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { allUsers, inspectorAssets, Job, PlatformUser } from "@/lib/placeholder-data";
-import { serviceProviders } from "@/lib/service-providers-data";
+import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building } from "lucide-react";
@@ -14,7 +13,7 @@ import { format, isToday } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc, getDoc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -307,116 +306,109 @@ export default function MyJobsPage() {
                 </div>
             )}
              
-            {groupedJobs ? (
-                <div className="space-y-8">
-                    {Object.entries(groupedJobs).map(([groupName, jobsInGroup]) => (
-                        <div key={groupName}>
-                            <h2 className="text-xl font-semibold mb-4 text-primary">{groupName}</h2>
-                            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                                {jobsInGroup.map(job => {
-                                    const assignedTechnicians = allUsers.filter(t => t.role === 'Inspector' && job.technicianIds?.includes(t.id));
-                                    const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
-                                    const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
-            
-                                    const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
+            {displayedJobs.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                    {displayedJobs.map(job => {
+                        const assignedTechnicians = allUsers.filter(t => t.role === 'Inspector' && job.technicianIds?.includes(t.id));
+                        const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
+                        const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
 
-                                    return (
-                                        <Card key={job.id}>
-                                            <CardHeader className={cn(job.isInternal && 'bg-accent/10')}>
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <CardTitle className="font-headline text-xl flex items-center gap-2">
-                                                            <span>{job.title}</span>
-                                                            {job.isInternal && <Badge variant="outline">Internal</Badge>}
-                                                        </CardTitle>
-                                                        <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
+                        const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
+
+                        return (
+                            <Card key={job.id}>
+                                <CardHeader className={cn(job.isInternal && 'bg-accent/10')}>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="font-headline text-xl flex items-center gap-2">
+                                                <span>{job.title}</span>
+                                                {job.isInternal && <Badge variant="outline">Internal</Badge>}
+                                            </CardTitle>
+                                            <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
+                                            <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                        </div>
+                                    </div>
+                                    <CardDescription>{job.client} - {job.technique}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <MapPin className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{job.location}</span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                        <Building className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
+                                    </div>
+                                     <div className="flex items-center text-sm text-muted-foreground">
+                                        <Calendar className="w-4 h-4 mr-2 text-primary" />
+                                        <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
+                                        {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
+                                    </div>
+                                     {job.bidExpiryDate && (
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                            <AlarmClock className="w-4 h-4 mr-2 text-primary" />
+                                            <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
+                                            {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
+                                        </div>
+                                    )}
+                                    {job.scheduledStartDate && (
+                                        <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
+                                            <Calendar className="w-4 h-4 mr-2 text-primary" />
+                                            <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
+                                            {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
+                                        </div>
+                                    )}
+                                    
+                                    {role === 'client' && job.status === 'Posted' && submittedBids > 0 && (
+                                        <div className="flex items-center text-sm font-semibold text-primary pt-2">
+                                            <Gavel className="w-4 h-4 mr-2" />
+                                            <span>{submittedBids} Bid(s) Received - Ready for Review</span>
+                                        </div>
+                                    )}
+
+                                    {(view === 'active' || view === 'upcoming') && role === 'inspector' && (
+                                        <>
+                                            <div>
+                                                <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Assigned Technicians</h4>
+                                                {assignedTechnicians.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {assignedTechnicians.map(tech => (
+                                                            <Badge key={tech.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
+                                                                <User className="w-3 h-3 text-primary"/>
+                                                                {tech.name}
+                                                            </Badge>
+                                                        ))}
                                                     </div>
-                                                    <div className="flex items-center gap-2 shrink-0">
-                                                        {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
-                                                        <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                                ) : <p className="text-xs text-muted-foreground">No technicians assigned yet.</p>}
+                                            </div>
+
+                                             <div>
+                                                <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4 text-primary"/> Assigned Equipment</h4>
+                                                 {assignedEquipment.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {assignedEquipment.map(equip => (
+                                                             <Badge key={equip.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
+                                                                {equipmentIcons[equip.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-3 h-3"/>}
+                                                                {equip.name}
+                                                            </Badge>
+                                                        ))}
                                                     </div>
-                                                </div>
-                                                <CardDescription>{job.client} - {job.technique}</CardDescription>
-                                            </CardHeader>
-                                            <CardContent className="space-y-4">
-                                                <div className="flex items-center text-sm text-muted-foreground">
-                                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
-                                                    <span>{job.location}</span>
-                                                </div>
-                                                <div className="flex items-center text-sm text-muted-foreground">
-                                                    <Building className="w-4 h-4 mr-2 text-primary" />
-                                                    <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
-                                                </div>
-                                                 <div className="flex items-center text-sm text-muted-foreground">
-                                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                                    <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                                    {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
-                                                </div>
-                                                 {job.bidExpiryDate && (
-                                                    <div className="flex items-center text-sm text-muted-foreground">
-                                                        <AlarmClock className="w-4 h-4 mr-2 text-primary" />
-                                                        <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
-                                                        {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
-                                                    </div>
-                                                )}
-                                                {job.scheduledStartDate && (
-                                                    <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
-                                                        <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                                        <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
-                                                        {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
-                                                    </div>
-                                                )}
-                                                
-                                                {role === 'client' && job.status === 'Posted' && submittedBids > 0 && (
-                                                    <div className="flex items-center text-sm font-semibold text-primary pt-2">
-                                                        <Gavel className="w-4 h-4 mr-2" />
-                                                        <span>{submittedBids} Bid(s) Received - Ready for Review</span>
-                                                    </div>
-                                                )}
-            
-                                                {(view === 'active' || view === 'upcoming') && role === 'inspector' && (
-                                                    <>
-                                                        <div>
-                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Assigned Technicians</h4>
-                                                            {assignedTechnicians.length > 0 ? (
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {assignedTechnicians.map(tech => (
-                                                                        <Badge key={tech.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
-                                                                            <User className="w-3 h-3 text-primary"/>
-                                                                            {tech.name}
-                                                                        </Badge>
-                                                                    ))}
-                                                                </div>
-                                                            ) : <p className="text-xs text-muted-foreground">No technicians assigned yet.</p>}
-                                                        </div>
-            
-                                                         <div>
-                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4 text-primary"/> Assigned Equipment</h4>
-                                                             {assignedEquipment.length > 0 ? (
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {assignedEquipment.map(equip => (
-                                                                         <Badge key={equip.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
-                                                                            {equipmentIcons[equip.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-3 h-3"/>}
-                                                                            {equip.name}
-                                                                        </Badge>
-                                                                    ))}
-                                                                </div>
-                                                            ) : <p className="text-xs text-muted-foreground">No equipment assigned yet.</p>}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </CardContent>
-                                            <CardFooter>
-                                                <Button asChild>
-                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
-                                                </Button>
-                                            </CardFooter>
-                                        </Card>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    ))}
+                                                ) : <p className="text-xs text-muted-foreground">No equipment assigned yet.</p>}
+                                            </div>
+                                        </>
+                                    )}
+                                </CardContent>
+                                <CardFooter>
+                                    <Button asChild>
+                                        <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
                 </div>
             ) : (
                  <div className="text-center p-10 border rounded-lg">
@@ -433,4 +425,5 @@ export default function MyJobsPage() {
     
 
     
+
 

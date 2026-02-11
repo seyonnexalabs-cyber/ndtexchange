@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +17,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
@@ -25,15 +26,20 @@ import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
+  jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
+  industry: z.string().optional(),
   location: z.string().min(2, 'Location is required.'),
-  technique: z.string({ required_error: "Please select a technique."}),
+  techniques: z.array(z.string()).min(1, "At least one technique is required."),
   description: z.string().optional(),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
   isMarketplaceJob: z.boolean().default(true),
   bidExpiryDate: z.date().optional(),
   scheduledStartDate: z.date().optional(),
-  scheduledEndDate: z.date().optional(),
+  durationDays: z.coerce.number().int().positive().optional(),
+  estimatedBudget: z.string().optional(),
+  certificationsRequired: z.string().optional(),
+  scheduledEndDate: z.date().optional(), // This is for internal calculation, not a form field
 });
 
 
@@ -60,6 +66,7 @@ export default function PostJobPage() {
     
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
     const documentsInputRef = React.useRef<HTMLInputElement>(null);
+    const [isDraft, setIsDraft] = React.useState(false);
 
     const [assetNameFilter, setAssetNameFilter] = React.useState('');
     const [assetLocationFilter, setAssetLocationFilter] = React.useState('all');
@@ -81,15 +88,7 @@ export default function PostJobPage() {
         });
       }
 
-      let finalSchema = schema.refine(data => {
-        if (data.scheduledStartDate && data.scheduledEndDate) {
-            return data.scheduledEndDate >= data.scheduledStartDate;
-        }
-        return true;
-      }, {
-          message: "End date cannot be before start date.",
-          path: ["scheduledEndDate"],
-      });
+      let finalSchema = schema;
 
       if (role === 'client') {
         const today = new Date();
@@ -120,15 +119,20 @@ export default function PostJobPage() {
     const form = useForm<z.infer<typeof jobSchema>>({
         resolver: zodResolver(jobSchema),
         defaultValues: {
-            title: '',
-            location: '',
-            technique: undefined,
-            description: '',
+            title: 'Annual Shutdown Inspection — Crude Unit C3',
+            jobType: 'shutdown',
+            industry: 'Oil & Gas — Refinery',
+            location: 'Jamnagar, Gujarat, India',
+            scheduledStartDate: new Date('2026-03-15'),
+            durationDays: 21,
+            techniques: [],
+            estimatedBudget: '₹25L – ₹50L',
+            certificationsRequired: 'ASNT Level II minimum',
+            description: 'Full inspection of crude distillation unit including: 8 pressure vessels (API 510), 2.4km process piping (API 570), all welds on new construction. Previous report and P&IDs available on request. Access equipment provided by client. Bidders must have valid OISD compliance documentation.',
+            bidExpiryDate: new Date('2026-02-28'),
             assets: [],
             workflow: 'standard',
             isMarketplaceJob: true,
-            bidExpiryDate: new Date(),
-            scheduledStartDate: new Date(),
         },
     });
 
@@ -137,6 +141,7 @@ export default function PostJobPage() {
     const uniqueLocations = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.location))], [clientAssets]);
     const uniqueTypes = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.type))], [clientAssets]);
     const uniqueStatuses = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.status))], [clientAssets]);
+    const techniqueOptions = useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.name} (${t.id})`})), []);
 
     const filteredAssets = React.useMemo(() => {
         if (!clientAssets) return [];
@@ -194,23 +199,30 @@ export default function PostJobPage() {
         }
 
         const isInternalJob = role === 'inspector' || (role === 'client' && !values.isMarketplaceJob);
-        const newJobStatus = isInternalJob ? 'Draft' : 'Posted';
+        const newJobStatus = isDraft ? 'Draft' : 'Posted';
         const jobRef = doc(collection(firestore, 'jobs'));
+        
+        let endDate = values.scheduledEndDate;
+        if(values.scheduledStartDate && values.durationDays) {
+            endDate = addDays(values.scheduledStartDate, values.durationDays);
+        }
 
         const inspections: Omit<Inspection, 'id' | 'report'>[] = [];
         if ('assets' in values && clientAssets) {
             (values.assets || []).forEach((assetId: string) => {
                 const asset = clientAssets.find(a => a.id === assetId);
                 if (asset) {
-                    inspections.push({
-                        jobId: jobRef.id,
-                        assetName: asset.name,
-                        assetId: asset.id,
-                        technique: values.technique,
-                        inspector: 'Pending',
-                        date: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-                        status: 'Scheduled',
-                    });
+                    values.techniques.forEach(technique => {
+                        inspections.push({
+                            jobId: jobRef.id,
+                            assetName: asset.name,
+                            assetId: asset.id,
+                            technique: technique,
+                            inspector: 'Pending',
+                            date: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+                            status: 'Scheduled',
+                        });
+                    })
                 }
             });
         }
@@ -226,7 +238,7 @@ export default function PostJobPage() {
             id: jobRef.id,
             title: values.title,
             location: values.location,
-            technique: values.technique,
+            techniques: values.techniques,
             description: values.description || '',
             workflow: values.workflow,
             isInternal: isInternalJob,
@@ -239,13 +251,18 @@ export default function PostJobPage() {
             createdAt: serverTimestamp(),
             bidExpiryDate: values.bidExpiryDate ? format(values.bidExpiryDate, 'yyyy-MM-dd') : null,
             scheduledStartDate: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : null,
-            scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : null,
+            scheduledEndDate: endDate ? format(endDate, 'yyyy-MM-dd') : null,
             inspections,
             documents: documentMetadata,
             bids: [],
             history: [],
             technicianIds: [],
             equipmentIds: [],
+            jobType: values.jobType,
+            industry: values.industry,
+            durationDays: values.durationDays,
+            estimatedBudget: values.estimatedBudget,
+            certificationsRequired: values.certificationsRequired,
         };
         
         setDoc(jobRef, newJobData)
@@ -259,8 +276,8 @@ export default function PostJobPage() {
           });
 
         toast({
-            title: 'Job Created Successfully',
-            description: `${values.title} is now ready to be managed.`,
+            title: isDraft ? 'Draft Saved' : 'Job Posted Successfully',
+            description: `${values.title} is now available in your jobs list.`,
         });
         router.push(constructUrl('/dashboard/my-jobs'));
     }
@@ -300,6 +317,145 @@ export default function PostJobPage() {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             
+                             <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Job Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Annual Shutdown Inspection — Crude Unit C3" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="jobType"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Job Type</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select a job type" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="shutdown">Plant Shutdown</SelectItem>
+                                                    <SelectItem value="project">Project-Based</SelectItem>
+                                                    <SelectItem value="callout">Emergency Call-Out</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="industry"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Industry / Sector</FormLabel>
+                                            <FormControl><Input placeholder="e.g., Oil & Gas — Refinery" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                             <div className="grid md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="location"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Site Location</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="scheduledStartDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Shutdown Start Date</FormLabel>
+                                            <FormControl><CustomDateInput {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="durationDays"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Duration (Days)</FormLabel>
+                                            <FormControl><Input type="number" placeholder="e.g., 21" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="techniques"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>NDT Techniques Required</FormLabel>
+                                            <MultiSelect
+                                                options={techniqueOptions}
+                                                selected={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Select techniques..."
+                                            />
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                             <div className="grid md:grid-cols-2 gap-6">
+                                 <FormField
+                                    control={form.control}
+                                    name="estimatedBudget"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Estimated Budget</FormLabel>
+                                            <FormControl><Input placeholder="e.g., ₹25L – ₹50L" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="certificationsRequired"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Certifications Required</FormLabel>
+                                            <FormControl><Input placeholder="e.g., ASNT Level II minimum" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Scope Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea placeholder="Provide a detailed scope of work..." {...field} className="min-h-[150px]" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                              {isClient && (
                                 <FormField
                                 control={form.control}
@@ -307,9 +463,9 @@ export default function PostJobPage() {
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                     <div className="space-y-0.5">
-                                        <FormLabel className="text-base">Post to Marketplace</FormLabel>
+                                        <FormLabel className="text-base">Visibility</FormLabel>
                                         <FormDescription>
-                                            Turn this on to post the job publicly for providers to bid on. Turn it off to create an internal record.
+                                            Post this job publicly to all qualified providers on the marketplace.
                                         </FormDescription>
                                     </div>
                                     <FormControl>
@@ -324,269 +480,42 @@ export default function PostJobPage() {
                             )}
                             
                             {isMarketplaceJob && (
-                                <FormField
-                                    control={form.control}
-                                    name="workflow"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Approval Workflow</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select a workflow" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="standard">Standard (Client Review Only)</SelectItem>
-                                                    <SelectItem value="level3">Level III Audit (Manual)</SelectItem>
-                                                    <SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormDescription>
-                                                Choose if a Level III auditor review is required. This is recommended for critical jobs.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            )}
-
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="title"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Job Title</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="e.g., PAUT on Pressure Vessel Welds" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                {isInspector && (
+                                <div className="grid md:grid-cols-2 gap-6">
                                     <FormField
                                         control={form.control}
-                                        name="clientName"
+                                        name="bidExpiryDate"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                            <FormLabel>Bid Closing Date</FormLabel>
+                                            <FormControl><CustomDateInput {...field} /></FormControl>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="workflow"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Client Name</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Enter your client's company name" {...field} />
-                                                </FormControl>
+                                                <FormLabel>Approval Workflow</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="standard">Standard (Client Review Only)</SelectItem>
+                                                        <SelectItem value="level3">Level III Audit (Manual)</SelectItem>
+                                                        <SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                )}
-                                <FormField
-                                    control={form.control}
-                                    name="location"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Location</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="City, State" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 <FormField
-                                    control={form.control}
-                                    name="technique"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Required Technique</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select a technique" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {NDTTechniques.map(tech => (
-                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                {isClient && isMarketplaceJob && (
-                                  <FormField
-                                      control={form.control}
-                                      name="bidExpiryDate"
-                                      render={({ field }) => (
-                                          <FormItem className="flex flex-col">
-                                          <FormLabel>Bid Expiry Date</FormLabel>
-                                           <FormControl>
-                                            <CustomDateInput {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                          </FormItem>
-                                      )}
-                                  />
-                                )}
-                                <FormField
-                                    control={form.control}
-                                    name="scheduledStartDate"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                        <FormLabel>Target Start Date (Optional)</FormLabel>
-                                        <FormControl>
-                                            <CustomDateInput {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="scheduledEndDate"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                        <FormLabel>Target End Date (Optional)</FormLabel>
-                                         <FormControl>
-                                            <CustomDateInput {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            
-                           {isClient && (
-                              <FormField
-                                  control={form.control}
-                                  name="assets"
-                                  render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Select Asset(s) for Inspection</FormLabel>
-                                    <FormDescription>
-                                        Use the filters below to narrow down the list of assets available in the dropdown.
-                                    </FormDescription>
-                                    <Card className="p-4 bg-muted/50 space-y-4">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                            <Input 
-                                                placeholder="Filter by asset name..."
-                                                value={assetNameFilter}
-                                                onChange={(e) => setAssetNameFilter(e.target.value)}
-                                            />
-                                            <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}>
-                                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>
-                                                    {uniqueLocations.map(loc => <SelectItem key={loc} value={loc}>{loc === 'all' ? 'All Locations' : loc}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={assetTypeFilter} onValueChange={setAssetTypeFilter}>
-                                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>
-                                                    {uniqueTypes.map(type => <SelectItem key={type} value={type}>{type === 'all' ? 'All Types' : type}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={assetStatusFilter} onValueChange={setAssetStatusFilter}>
-                                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>
-                                                    {uniqueStatuses.map(status => <SelectItem key={status} value={status}>{status === 'all' ? 'All Statuses' : status}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </Card>
-                                     <FormControl>
-                                        <MultiSelect
-                                            options={filteredAssets.map(asset => ({ value: asset.id, label: `${asset.name} (${asset.location})` }))}
-                                            selected={field.value || []}
-                                            onChange={field.onChange}
-                                            placeholder="Select assets from the filtered list..."
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                  )}
-                              />
+                                </div>
                             )}
 
-                            <FormField
-                                control={form.control}
-                                name="description"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>
-                                            {isClient ? 'Job Description (Optional)' : 'Asset(s) & Scope of Work'}
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder={
-                                                isClient 
-                                                    ? "Provide a detailed scope of work, requirements, and any specifications for the service providers." 
-                                                    : "Describe the asset(s) to be inspected, e.g., '10-inch diameter carbon steel pipe rack, approx. 200 feet long. Perform UT thickness readings at 50 designated locations.'"
-                                                }
-                                                {...field} 
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="documents"
-                                    render={() => (
-                                        <FormItem>
-                                            <FormLabel>Attach Documents</FormLabel>
-                                            <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>
-                                                Select Files to Attach
-                                            </Button>
-                                            <FormControl>
-                                                <Input
-                                                    ref={documentsInputRef}
-                                                    type="file"
-                                                    multiple
-                                                    accept={ACCEPTED_FILE_TYPES}
-                                                    className="hidden"
-                                                    onChange={handleDocumentSelection}
-                                                />
-                                            </FormControl>
-                                            {documentFiles.length > 0 && (
-                                                <div className="mt-2 space-y-2">
-                                                     <p className="text-xs font-medium text-muted-foreground">{documentFiles.length} file(s) attached:</p>
-                                                     <div className="max-h-24 rounded-md border p-2 space-y-1">
-                                                        {documentFiles.map((file, index) => (
-                                                            <div key={`${file.name}-${index}`} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
-                                                                <div className="flex items-center gap-2 truncate">
-                                                                    <FileText className="h-4 w-4 shrink-0 text-primary" />
-                                                                    <span className="truncate">{file.name}</span>
-                                                                </div>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-6 w-6 shrink-0"
-                                                                    onClick={() => handleRemoveDocument(index)}
-                                                                >
-                                                                    <X className="h-4 w-4 text-primary" />
-                                                                </Button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            <FormDescription>
-                                                You can upload multiple files. Max {MAX_FILE_SIZE_MB}MB per file.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
                             <div className="flex justify-end gap-2 pt-4">
-                                <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-                                <Button type="submit">{isClient && isMarketplaceJob ? 'Post Job' : 'Create Job'}</Button>
+                                <Button type="submit" variant="outline" onClick={() => setIsDraft(true)}>Save as Draft</Button>
+                                <Button type="submit" onClick={() => setIsDraft(false)}>Publish Job Posting</Button>
                             </div>
                         </form>
                     </Form>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -13,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, AlertTriangle, Clock, Factory, DollarSign } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, AlertTriangle, Clock, Factory, DollarSign, Workflow, UserCheck } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -443,6 +442,8 @@ export default function JobDetailPage() {
 
         checkForReview();
     }, [id, firestore, jobDetails]);
+    
+    const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
     if (isLoadingJob) {
         return <div className="text-center p-10">Loading job details...</div>;
@@ -782,7 +783,6 @@ export default function JobDetailPage() {
         
         const certificationsForChecklist = [ "ASNT UT L-II", "TOFD", "PAUT", "RT Source", "PCN", "API 510", "API 570" ];
         const allJobTags = [...(jobDetails.techniques || []), ...(jobDetails.certificationsRequired?.split(',').map(s => s.trim()) || [])];
-        const duration = jobDetails.scheduledStartDate && jobDetails.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails.durationDays;
         
         return (
             <div className="grid lg:grid-cols-5 gap-8">
@@ -975,18 +975,21 @@ export default function JobDetailPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
-                                    <span>{jobDetails.location}</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 text-sm text-muted-foreground border-t pt-4">
+                                    <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> <span>{jobDetails.location}</span></div>
+                                    <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span></div>
+                                    <div className="flex items-center gap-2"><Workflow className="w-4 h-4 text-primary" /> <span>Workflow: {jobDetails.workflow}</span></div>
+                                    <div className="flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> <span>Job Type: {jobDetails.jobType}</span></div>
+                                    <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-primary" /> <span>Industry: {jobDetails.industry}</span></div>
+                                    <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> <span>Duration: {duration} days</span></div>
+                                    <div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-primary" /> <span>Budget: {jobDetails.estimatedBudget}</span></div>
+                                    <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {jobDetails.certificationsRequired}</span></div>
                                 </div>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                    <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                </div>
+
                                 <div className="border-t pt-4">
                                     <h3 className="font-semibold text-lg">Job Description</h3>
                                     <p className="mt-2 text-muted-foreground">
-                                        Full job description will be displayed here, including scope of work, technical requirements, and any client specifications.
+                                        {jobDetails.description || "No description provided."}
                                     </p>
                                 </div>
                             </CardContent>
@@ -1149,5 +1152,6 @@ export default function JobDetailPage() {
 }
 
     
+
 
 

@@ -31,7 +31,7 @@ type JobView = 'active' | 'completed' | 'upcoming';
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const [view, setView] = useState<JobView>('active');
+    const [view, setView] = useState<JobView>(role === 'client' ? 'upcoming' : 'active');
 
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);

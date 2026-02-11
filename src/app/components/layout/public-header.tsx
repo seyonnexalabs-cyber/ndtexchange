@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -17,10 +16,9 @@ export default function PublicHeader() {
 
   const navLinks = [
     { href: '/about', label: 'About' },
-    { href: '/#solutions', label: 'Solutions' },
+    { href: '/platform-features', label: 'Features' },
     { href: '/platform-workflow', label: 'How It Works' },
-    { href: '/#features', label: 'Features' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/contact', label: 'Pricing & Contact' },
   ];
 
   const MobileNavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
@@ -31,7 +29,7 @@ export default function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
         <Link href="/" className="flex items-center gap-3">
           <LogoIcon className="h-10 w-auto text-primary" />
           <span className="text-xl font-bold tracking-tighter text-foreground">
@@ -76,7 +74,7 @@ export default function PublicHeader() {
                         ))}
                     </div>
                      <div className="mt-8 pt-6 border-t space-y-2">
-                        <Button asChild className="w-full" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                        <Button asChild className="w-full" variant="outline" onClick={() => setMobileMenuOpen(false)}>
                             <Link href="/login">Login</Link>
                         </Button>
                         <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>

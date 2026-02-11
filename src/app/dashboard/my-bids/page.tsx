@@ -9,8 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Gavel, Calendar, DollarSign, Building, MoreVertical, Edit, Trash2, Info, FileText } from 'lucide-react';
+import { Gavel, Calendar, DollarSign, Building, MoreVertical, Edit, Trash2, Info, FileText, Star, Check } from 'lucide-react';
 import { useMobile } from '@/hooks/use-mobile';
 import { Bid } from '@/lib/placeholder-data';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -35,12 +34,15 @@ const bidSchema = z.object({
 });
 
 
-const statusStyles: { [key in Bid['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
-    Submitted: 'secondary',
-    Awarded: 'success',
-    Rejected: 'destructive',
-    Withdrawn: 'outline',
+const statusConfig: { [key in Bid['status']]: { variant: 'success' | 'default' | 'secondary' | 'destructive' | 'outline', icon?: React.ReactNode, label: string } } = {
+    Submitted: { variant: 'secondary', label: 'Submitted' },
+    Shortlisted: { variant: 'default', icon: <Star className="h-3.5 w-3.5" />, label: 'Shortlisted' },
+    Awarded: { variant: 'success', icon: <Check className="h-3.5 w-3.5" />, label: 'Awarded' },
+    Rejected: { variant: 'destructive', label: 'Rejected' },
+    Withdrawn: { variant: 'outline', label: 'Withdrawn' },
+    'Not Selected': { variant: 'destructive', label: 'Not Selected' },
 };
+
 
 type MappedBid = Bid & { job: Job };
 
@@ -52,7 +54,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
             <div className="text-center p-10 border rounded-lg">
                 <Gavel className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h2 className="mt-4 text-xl font-headline">No Bids Found</h2>
-                <p className="mt-2 text-muted-foreground">There are no bids in this category.</p>
+                <p className="mt-2 text-muted-foreground">There are no bids to display.</p>
             </div>
         );
     }
@@ -65,21 +67,23 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <CardTitle className="text-lg font-semibold leading-tight">{bid.job?.title}</CardTitle>
-                                <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
+                                <Badge variant={statusConfig[bid.status].variant} className="gap-1">
+                                    {statusConfig[bid.status].icon}
+                                    {statusConfig[bid.status].label}
+                                </Badge>
                             </div>
                             <p className="font-extrabold text-xs text-muted-foreground">{bid.job?.id}</p>
                              <CardDescription className="flex items-center pt-1"><Building className="w-4 h-4 mr-2"/> {bid.job?.client}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-2"/>Bid Amount</span>
+                                <span className="text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-2"/>Your Bid</span>
                                 <span className="font-medium">${bid.amount.toLocaleString()}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Date Submitted</span>
+                                <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Decision By</span>
                                 <span className="font-medium flex items-center gap-2">
-                                  {format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}
-                                  {isToday(new Date(bid.submittedDate)) && <Badge>Today</Badge>}
+                                  {bid.job.bidExpiryDate ? format(new Date(bid.job.bidExpiryDate), GLOBAL_DATE_FORMAT) : 'N/A'}
                                 </span>
                             </div>
                         </CardContent>
@@ -113,33 +117,37 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Job ID</TableHead>
-                        <TableHead>Job Title</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Bid Amount</TableHead>
-                        <TableHead>Date Submitted</TableHead>
+                        <TableHead>Job</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Your Bid</TableHead>
+                        <TableHead>Competitors</TableHead>
+                        <TableHead>Decision By</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {bids.map(bid => (
                         <TableRow key={bid.id}>
-                            <TableCell className="font-extrabold text-xs">{bid.job?.id}</TableCell>
-                            <TableCell className="font-medium">{bid.job?.title}</TableCell>
-                            <TableCell>{bid.job?.client}</TableCell>
+                            <TableCell>
+                                <div className="font-medium">{bid.job?.title}</div>
+                                <div className="text-xs text-muted-foreground">{bid.job?.client} &bull; {bid.job?.location}</div>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={statusConfig[bid.status].variant} className="gap-1">
+                                    {statusConfig[bid.status].icon}
+                                    {statusConfig[bid.status].label}
+                                </Badge>
+                            </TableCell>
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
+                            <TableCell>{bid.job.bids.length} bids</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <span>{format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</span>
-                                  {isToday(new Date(bid.submittedDate)) && <Badge>Today</Badge>}
+                                  <span>{bid.job.bidExpiryDate ? format(new Date(bid.job.bidExpiryDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                  {bid.job.bidExpiryDate && isToday(new Date(bid.job.bidExpiryDate)) && <Badge>Today</Badge>}
                                 </div>
                             </TableCell>
-                            <TableCell>
-                                <Badge variant={statusStyles[bid.status]}>{bid.status}</Badge>
-                            </TableCell>
                             <TableCell className="text-right">
-                                {bid.status === 'Submitted' ? (
+                                {bid.status === 'Submitted' || bid.status === 'Shortlisted' ? (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -213,7 +221,8 @@ export default function MyBidsPage() {
         return jobs
             .flatMap(job => (job.bids || []).map(bid => ({ ...bid, job })))
             .filter((bid): bid is MappedBid => !!bid.job)
-            .filter(bid => bid.providerId === 'provider-03');
+            .filter(bid => bid.providerId === 'provider-03')
+            .sort((a, b) => new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime());
     }, [jobs]);
 
     const handleEditClick = (bid: MappedBid) => {
@@ -251,9 +260,13 @@ export default function MyBidsPage() {
         setEditingBid(null);
     }
     
-    const activeBids = myBids.filter(bid => bid.status === 'Submitted');
-    const awardedBids = myBids.filter(bid => bid.status === 'Awarded');
-    const archivedBids = myBids.filter(bid => ['Rejected', 'Withdrawn'].includes(bid.status));
+    const stats = useMemo(() => {
+        const activeBids = myBids.filter(b => b.status === 'Submitted').length;
+        const shortlistedBids = myBids.filter(b => b.status === 'Shortlisted').length;
+        const awardedBids = myBids.filter(b => b.status === 'Awarded').length;
+        const revenueYTD = myBids.filter(b => b.status === 'Awarded').reduce((acc, b) => acc + b.amount, 0);
+        return { activeBids, shortlistedBids, awardedBids, revenueYTD };
+    }, [myBids]);
 
     if (role && role !== 'inspector') {
         return null;
@@ -270,23 +283,38 @@ export default function MyBidsPage() {
                    <Link href={constructUrl("/dashboard/find-jobs")}>Find New Jobs</Link>
                 </Button>
             </div>
+            
+            <div className="mb-6">
+                <h2 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mb-2">YOUR BID ACTIVITY DASHBOARD</h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                     <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>ACTIVE BIDS</CardDescription>
+                            <CardTitle className="text-4xl text-primary">{stats.activeBids}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                     <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>SHORTLISTED</CardDescription>
+                            <CardTitle className="text-4xl text-primary">{stats.shortlistedBids}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                     <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>AWARDED</CardDescription>
+                            <CardTitle className="text-4xl text-primary">{stats.awardedBids}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                     <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>REVENUE (YTD)</CardDescription>
+                            <CardTitle className="text-4xl text-primary">${stats.revenueYTD.toLocaleString()}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            </div>
 
-            <Tabs defaultValue="active">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="active">Active ({activeBids.length})</TabsTrigger>
-                    <TabsTrigger value="awarded">Awarded ({awardedBids.length})</TabsTrigger>
-                    <TabsTrigger value="archived">Archived ({archivedBids.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="active">
-                    <BidsList bids={activeBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
-                </TabsContent>
-                <TabsContent value="awarded">
-                    <BidsList bids={awardedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
-                </TabsContent>
-                <TabsContent value="archived">
-                    <BidsList bids={archivedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
-                </TabsContent>
-            </Tabs>
+            <BidsList bids={myBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-3xl">

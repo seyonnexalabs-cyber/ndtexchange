@@ -124,7 +124,7 @@ export type Bid = {
     jobId: string;
     providerId: string; // The company placing the bid
     amount: number;
-    status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn';
+    status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Shortlisted' | 'Not Selected';
     submittedDate: string;
     comments?: string;
     proposedTechnique?: string;

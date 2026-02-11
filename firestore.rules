@@ -15,12 +15,12 @@
  * such as Bids within a Job.
  *
  * # Key Security Decisions
- * - Admin Access: A user is considered an admin if a document with their UID exists
- *   in the `/roles_admin` collection. Admins generally have full read/write access.
- *   The admin role collection itself is write-protected to prevent self-promotion.
+ * - Admin Access: A user is considered an admin if their user document in `/users`
+ *   has the `role` field set to 'Admin'. This is a reliable check as the user
+ *   document must exist for an authenticated user.
  * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
  *   They are the only ones who can read or write their own document. Listing all
- *   users is disabled to protect user privacy.
+ *   users is disabled to protect user privacy (except for admins).
  * - Public Data: The `/asset_types` collection is considered public template data,
  *   readable by anyone (including unauthenticated users), but writable only by admins.
  * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
@@ -81,10 +81,10 @@ service cloud.firestore {
 
     /**
      * Checks if the requesting user has admin privileges by looking for
-     * their UID in the `/roles_admin` collection.
+     * their role in their own user document.
      */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
     }
 
     /**
@@ -114,7 +114,7 @@ service cloud.firestore {
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin(); // Allow admins to list users.
+      allow list: if isAdmin();
       allow create: if isOwner(userId) && isResourceCreator('id');
       allow update: if isExistingOwner(userId) || isAdmin();
       allow delete: if isExistingOwner(userId) || isAdmin();

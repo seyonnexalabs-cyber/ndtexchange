@@ -161,7 +161,7 @@ export default function LoginPage() {
     allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), // client
     allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'), // inspector
     allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'), // auditor
-    allUsers.find(u => u.id === 'JB5zgSrcKJX3dbNgPJmhlOcrUI62'), // admin
+    allUsers.find(u => u.id === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2'), // admin
   ].filter(Boolean);
 
   return (

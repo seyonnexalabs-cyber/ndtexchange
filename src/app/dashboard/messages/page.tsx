@@ -28,12 +28,12 @@ export default function MessagesPage() {
     const [jobChatsData, setJobChatsData] = useState(initialJobChats);
     const [jobsData] = useState(jobs);
 
-    const currentUser = useMemo(() => {
+    const currentUser = useMemo((): PlatformUser | undefined => {
         const userMap: { [key: string]: PlatformUser | undefined } = {
             client: allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'),
             inspector: allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'),
             auditor: allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'),
-            admin: allUsers.find(u => u.id === 'JB5zgSrcKJX3dbNgPJmhlOcrUI62'),
+            admin: allUsers.find(u => u.id === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2'),
         };
         return userMap[role] || allUsers.find(u => u.id === 'user-client-01')!;
     }, [role]);

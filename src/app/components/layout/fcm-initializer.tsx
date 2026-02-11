@@ -5,10 +5,10 @@ import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messagi
 import { useFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { firebaseConfig } from '@/firebase/config';
 
-// IMPORTANT: Generate this key in your Firebase console under Project Settings > Cloud Messaging > Web configuration
-const VAPID_KEY = firebaseConfig.measurementId;
+// IMPORTANT: Generate a VAPID key in your Firebase console under Project Settings > Cloud Messaging > Web configuration
+// and paste it here.
+const VAPID_KEY = 'YOUR_FCM_VAPID_KEY_FROM_FIREBASE_CONSOLE';
 
 export const FCMInitializer = () => {
   const { firestore, user } = useFirebase();
@@ -25,8 +25,8 @@ export const FCMInitializer = () => {
         
         const messaging = getMessaging();
 
-        if (!VAPID_KEY) {
-          console.warn("FCM VAPID key not set. Push notifications will not work. Please add a 'measurementId' to your firebase/config.ts");
+        if (!VAPID_KEY || VAPID_KEY === 'YOUR_FCM_VAPID_KEY_FROM_FIREBASE_CONSOLE') {
+          console.warn("FCM VAPID key not set in src/app/components/layout/fcm-initializer.tsx. Push notifications will not work. Please generate a key in your Firebase console and add it.");
           return;
         }
         

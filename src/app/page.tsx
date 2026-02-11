@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ShieldCheck, Search, Users } from 'lucide-react';
+import { Building, UserCheck, Globe, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
@@ -20,22 +20,37 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const solutions = [
     {
-      icon: <CheckCircle className="w-8 h-8 text-primary" />,
+      icon: <Building className="w-8 h-8 text-primary" />,
       title: 'For Asset Owners',
-      description: 'Find qualified inspectors, manage competitive bids, and centralize all your asset inspection data in one secure platform.',
-      link: '/asset-management'
+      description: 'A complete toolkit to manage asset integrity, from procurement to decommissioning.',
+      link: '/asset-management',
+      features: [
+          "Ensure operational continuity by managing asset health.",
+          "Streamline procurement with transparent bidding.",
+          "Centralize all reports and data in a secure IP vault."
+      ]
     },
     {
-      icon: <ShieldCheck className="w-8 h-8 text-primary" />,
+      icon: <UserCheck className="w-8 h-8 text-primary" />,
       title: 'For NDT Providers',
-      description: 'Access a marketplace of inspection jobs, manage your team and equipment, and deliver professional digital reports.',
-       link: '/provider-tools'
+      description: 'Find new opportunities and streamline your operations with professional tools.',
+      link: '/provider-tools',
+      features: [
+        "Access a marketplace of inspection jobs from qualified clients.",
+        "Manage your team, equipment, and certifications in one place.",
+        "Use professional digital tools to deliver high-quality reports."
+      ]
     },
      {
-      icon: <Users className="w-8 h-8 text-primary" />,
+      icon: <Globe className="w-8 h-8 text-primary" />,
       title: 'For Auditors & Regulators',
-      description: 'Ensure compliance with a complete, tamper-proof audit trail of the entire inspection lifecycle.',
-       link: '/platform-workflow'
+      description: 'Ensure compliance with tools designed for transparency and traceability.',
+      link: '/platform-workflow',
+      features: [
+        "Participate in workflows requiring Level III review.",
+        "Access a complete, tamper-proof audit trail of the inspection lifecycle.",
+        "Review documentation in a secure, read-only environment."
+      ]
     },
   ];
 
@@ -79,17 +94,25 @@ export default function HomePage() {
                 </div>
                 <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                     {solutions.map((solution, index) => (
-                        <Card key={index} className="text-center p-2">
+                        <Card key={index} className="text-center flex flex-col p-2">
                            <CardHeader>
                                 <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
                                     {solution.icon}
                                 </div>
                                 <CardTitle className="mt-4 text-2xl font-headline">{solution.title}</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-muted-foreground">{solution.description}</p>
+                            <CardContent className="flex-grow text-left">
+                                <p className="text-muted-foreground mb-4 text-center">{solution.description}</p>
+                                 <ul className="space-y-3">
+                                    {solution.features.map((feature, i) => (
+                                        <li key={i} className="flex items-start">
+                                            <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 shrink-0" />
+                                            <span className="text-muted-foreground text-sm">{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </CardContent>
-                            <CardFooter className="justify-center">
+                            <CardFooter className="justify-center pt-6">
                                 <Button variant="secondary" asChild>
                                     <Link href={solution.link}>Learn More</Link>
                                 </Button>

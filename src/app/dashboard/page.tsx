@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database } from "lucide-react";
@@ -21,7 +22,7 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase";
-import { writeBatch, doc, collection, query, where, getDoc } from "firebase/firestore";
+import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog } from "@/lib/types";
 import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms } from "@/lib/placeholder-data";
@@ -941,3 +942,5 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    

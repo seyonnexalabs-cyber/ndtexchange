@@ -19,8 +19,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { subscriptionPlans } from '@/lib/subscription-plans';
@@ -214,7 +212,6 @@ const ContactForm = () => {
 export default function ContactPage() {
     type Currency = 'USD' | 'EUR' | 'INR';
     const [currency, setCurrency] = React.useState<Currency>('USD');
-    const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
     
     const [activePlans, setActivePlans] = useState(() => subscriptionPlans.filter(p => p.isActive && p.isPublic));
 
@@ -257,36 +254,23 @@ export default function ContactPage() {
       <PublicHeader />
       <main className="flex-grow">
         {/* 1. HERO SECTION */}
-        <section className="relative py-20 md:py-24 text-primary-foreground">
-           <div className="absolute inset-0">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt="NDT inspector working in an industrial setting, representing professional services"
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                priority
-              />
-            )}
-            <div className="absolute inset-0 bg-primary/60" />
-          </div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
+        <section className="py-20 md:py-24 bg-primary/10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Simple, Transparent Pricing for the NDT Industry
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-foreground/90">
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 Start free. Scale as your inspections, teams, and projects grow.
               </p>
-              <p className="mt-4 text-sm text-primary-foreground/80">
+              <p className="mt-4 text-sm text-muted-foreground">
                   14-Day Free Trial • No credit card required • Clients & Level‑III are free.
               </p>
               <div className="mt-8 flex justify-center gap-4">
                   <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
                     <Link href="/signup">Start Your Free Trial</Link>
                   </Button>
-                  <Button size="lg" asChild variant="outline" className="bg-background/20 text-white border-white hover:bg-background/30">
+                  <Button size="lg" asChild variant="outline">
                     <Link href="#pricing-tabs">View Plans Below</Link>
                   </Button>
               </div>

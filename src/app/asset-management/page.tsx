@@ -2,10 +2,8 @@
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AssetLifecycleDiagram from '@/app/components/asset-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
 import { FolderKanban, History, CalendarCheck, QrCode, TrendingUp, TriangleAlert } from 'lucide-react';
@@ -19,34 +17,19 @@ export const metadata: Metadata = {
 };
 
 export default function AssetManagementPage() {
-    const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
-
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <PublicHeader />
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative py-20 md:py-32">
-                    <div className="absolute inset-0">
-                        {heroImage && (
-                            <Image
-                                src={heroImage.imageUrl}
-                                alt="An industrial facility with large storage tanks, representing asset management."
-                                fill
-                                className="object-cover"
-                                data-ai-hint={heroImage.imageHint}
-                                priority
-                            />
-                        )}
-                        <div className="absolute inset-0 bg-primary/60" />
-                    </div>
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+                <section className="py-20 md:py-32 bg-primary/10">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-3xl mx-auto text-center">
-                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
+                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                                 Total Lifecycle Asset Management
                             </h1>
-                            <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
+                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                                 Go beyond simple NDT. Our platform provides a complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.
                             </p>
                         </div>

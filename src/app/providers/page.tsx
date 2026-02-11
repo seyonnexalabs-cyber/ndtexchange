@@ -1,5 +1,4 @@
 
-
 import type { Metadata } from 'next';
 import * as React from 'react';
 import { useMemo } from 'react';
@@ -14,8 +13,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -54,8 +51,6 @@ export default function ProvidersPage({ searchParams }: { searchParams?: { [key:
         if (typeof industries === 'string') return [industries];
         return [];
     }, [searchParams]);
-
-    const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
 
     const filteredProviders = useMemo(() => {
         return serviceProviders.filter(provider => {
@@ -145,26 +140,13 @@ export default function ProvidersPage({ searchParams }: { searchParams?: { [key:
             <PublicHeader />
 
             <main className="flex-grow">
-                <section className="relative py-20 md:py-32">
-                  <div className="absolute inset-0">
-                    {heroImage && (
-                      <Image
-                        src={heroImage.imageUrl}
-                        alt="A team of NDT service providers collaborating on a project."
-                        fill
-                        className="object-cover"
-                        data-ai-hint={heroImage.imageHint}
-                        priority
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-primary/60" />
-                  </div>
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+                <section className="py-20 md:py-32 bg-primary/10">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-3xl mx-auto text-center">
-                      <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
+                      <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                         Find NDT Service Providers
                       </h1>
-                      <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
+                      <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                         Browse our directory of leading NDT companies from around the world. Filter by technique to find the right partner for your inspection needs.
                       </p>
                     </div>

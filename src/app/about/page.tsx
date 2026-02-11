@@ -6,8 +6,6 @@ import { ShieldCheck, Building, UserCheck, CheckCircle, Globe } from 'lucide-rea
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -15,33 +13,18 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-providers');
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
 
       <main className="flex-grow">
-        <section className="relative py-20 md:py-24 text-primary-foreground">
-           <div className="absolute inset-0">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt="A team of engineers collaborating on a project."
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                priority
-              />
-            )}
-            <div className="absolute inset-0 bg-primary/60" />
-          </div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <section className="py-20 md:py-24 bg-primary/10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Connecting the World of Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-foreground/90">
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 NDT EXCHANGE is a purpose-built digital ecosystem where asset owners ensure operational continuity and certified NDT professionals find opportunities to grow their business.
               </p>
             </div>

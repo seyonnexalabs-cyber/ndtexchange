@@ -7,7 +7,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { NDTTechniques } from '@/lib/placeholder-data';
 import { ndtTechniques as NDTTechniqueData } from '@/lib/ndt-techniques-data';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
@@ -18,8 +17,6 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
-
   const solutions = [
     {
       icon: <CheckCircle className="w-8 h-8 text-primary" />,
@@ -47,33 +44,20 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-32">
-          <div className="absolute inset-0">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                priority
-              />
-            )}
-            <div className="absolute inset-0 bg-primary/60" />
-          </div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <section className="py-20 md:py-32 bg-primary/10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
-              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">
+              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary">
                 The Digital Marketplace for Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-foreground/90">
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex justify-center gap-4">
                 <Button size="lg" asChild>
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white/10 hover:text-white">
+                <Button size="lg" variant="outline">
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>

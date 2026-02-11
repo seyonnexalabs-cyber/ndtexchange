@@ -6,10 +6,10 @@ import { Link as LinkIcon, Building } from 'lucide-react';
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ndtTechniques } from '@/lib/ndt-techniques-data';
 import { FeatureCard } from '@/app/components/feature-card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'NDT Equipment Manufacturers Directory',
@@ -17,33 +17,18 @@ export const metadata: Metadata = {
 };
 
 export default function ManufacturersPage() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-manufacturers');
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
 
       <main className="flex-grow">
-        <section className="relative py-20 md:py-32">
-          <div className="absolute inset-0">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt="An assembly line of industrial equipment being manufactured."
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                priority
-              />
-            )}
-            <div className="absolute inset-0 bg-primary/60" />
-          </div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <section className="py-20 md:py-32 bg-primary/10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Leading NDT Equipment Manufacturers
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 A curated list of prominent Original Equipment Manufacturers (OEMs) who are at the forefront of Non-Destructive Testing technology. This list focuses on manufacturers, not resellers or service companies.
               </p>
             </div>

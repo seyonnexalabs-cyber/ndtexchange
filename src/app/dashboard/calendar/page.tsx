@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -271,6 +272,26 @@ export default function CalendarPage() {
         }
     };
 
+    const calendarGrid = (
+        <div className="grid grid-cols-7 border-t border-l">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+                <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
+            ))}
+            {daysInGrid.map(day => (
+                 <div key={day.toString()} className={cn(
+                    "border-b border-r p-2 flex flex-col min-h-[120px]",
+                    !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
+                 )}>
+                    <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
+                        {format(day, 'd')}
+                    </div>
+                    <div className="flex-grow space-y-2 overflow-y-auto">
+                    {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <div className="flex flex-col h-full">
@@ -315,76 +336,27 @@ export default function CalendarPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-4">
-                    <TabsTrigger value="jobs" className="gap-2">
-                        <Briefcase className="text-primary" /> Jobs
-                    </TabsTrigger>
-                    <TabsTrigger value="technicians" className="gap-2">
-                        <Users className="text-primary" /> Technicians
-                    </TabsTrigger>
-                    <TabsTrigger value="equipment" className="gap-2">
-                        <Wrench className="text-primary" /> Equipment
-                    </TabsTrigger>
-                </TabsList>
+                {role === 'inspector' && (
+                    <TabsList className="grid w-full grid-cols-3 mb-4">
+                        <TabsTrigger value="jobs" className="gap-2">
+                            <Briefcase className="text-primary" /> Jobs
+                        </TabsTrigger>
+                        <TabsTrigger value="technicians" className="gap-2">
+                            <Users className="text-primary" /> Technicians
+                        </TabsTrigger>
+                        <TabsTrigger value="equipment" className="gap-2">
+                            <Wrench className="text-primary" /> Equipment
+                        </TabsTrigger>
+                    </TabsList>
+                )}
                 <TabsContent value="jobs">
-                     <div className="grid grid-cols-7 border-t border-l">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                            <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
-                        ))}
-                        {daysInGrid.map(day => (
-                             <div key={day.toString()} className={cn(
-                                "border-b border-r p-2 flex flex-col min-h-[120px]",
-                                !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
-                             )}>
-                                <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
-                                    {format(day, 'd')}
-                                </div>
-                                <div className="flex-grow space-y-2 overflow-y-auto">
-                                {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                     {calendarGrid}
                 </TabsContent>
                 <TabsContent value="technicians">
-                     <div className="grid grid-cols-7 border-t border-l">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                            <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
-                        ))}
-                        {daysInGrid.map(day => (
-                             <div key={day.toString()} className={cn(
-                                "border-b border-r p-2 flex flex-col min-h-[120px]",
-                                !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
-                             )}>
-                                <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
-                                    {format(day, 'd')}
-                                </div>
-                                <div className="flex-grow space-y-2 overflow-y-auto">
-                                {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                     {calendarGrid}
                 </TabsContent>
                 <TabsContent value="equipment">
-                    <div className="grid grid-cols-7 border-t border-l">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                            <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
-                        ))}
-                        {daysInGrid.map(day => (
-                             <div key={day.toString()} className={cn(
-                                "border-b border-r p-2 flex flex-col min-h-[120px]",
-                                !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
-                             )}>
-                                <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
-                                    {format(day, 'd')}
-                                </div>
-                                <div className="flex-grow space-y-2 overflow-y-auto">
-                                {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    {calendarGrid}
                 </TabsContent>
             </Tabs>
 

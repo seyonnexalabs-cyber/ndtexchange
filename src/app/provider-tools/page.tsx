@@ -6,12 +6,12 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import ProviderWorkflowDiagram from '@/app/components/provider-workflow';
 import { FeatureCard } from '@/app/components/feature-card';
-import { Users, Wrench, QrCode } from 'lucide-react';
+import { Users, Wrench, QrCode, Search, FileText, Gavel } from 'lucide-react';
 
 
 export const metadata: Metadata = {
-  title: 'Operations Hub for NDT Service Providers',
-  description: 'Streamline your NDT operations with powerful tools for team and equipment management. Track certifications, manage calibrations, and optimize your fieldwork.',
+  title: 'Operations Hub & Marketplace for NDT Service Providers',
+  description: 'Find jobs, manage your team and equipment, and streamline your NDT operations with powerful tools for team and equipment management.',
 };
 
 export default function ProviderToolsPage() {
@@ -25,21 +25,56 @@ export default function ProviderToolsPage() {
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-3xl mx-auto text-center">
                             <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-                                Streamline Your NDT Operations
+                                Grow and Streamline Your NDT Business
                             </h1>
                             <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-                                Move beyond spreadsheets. Our platform provides a dedicated suite of tools to manage your team and equipment, improving efficiency and ensuring your resources are always ready for the next job.
+                                From finding new clients in our marketplace to managing your day-to-day operations, our platform is your end-to-end solution for growth and efficiency.
                             </p>
                         </div>
                     </div>
                 </section>
+                
+                 {/* Grow Business Section */}
+                <section id="provider-marketplace" className="py-20">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-headline font-semibold text-accent">Grow Your Business in the Marketplace</h2>
+                        <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                            Connect with a global network of asset owners actively seeking your expertise.
+                        </p>
+                    </div>
+                    <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                      <FeatureCard
+                        icon={<Search className="w-8 h-8 text-accent" />}
+                        title="Find Qualified Jobs"
+                        description="Discover a continuous stream of job opportunities from qualified asset owners. Filter jobs by technique and location to find the perfect match for your expertise."
+                        cardClass="hover:border-accent/20"
+                        iconContainerClass="bg-accent/10"
+                      />
+                      <FeatureCard
+                        icon={<Gavel className="w-8 h-8 text-accent" />}
+                        title="Submit Competitive Bids"
+                        description="Use our structured bidding process to clearly present your technical qualifications, certifications, and pricing to win more work."
+                        cardClass="hover:border-accent/20"
+                        iconContainerClass="bg-accent/10"
+                      />
+                      <FeatureCard
+                        icon={<FileText className="w-8 h-8 text-accent" />}
+                        title="Deliver Professional Reports"
+                        description="Utilize standardized, technique-specific templates to generate high-quality, consistent digital reports that impress clients and streamline your submission process."
+                        cardClass="hover:border-accent/20"
+                        iconContainerClass="bg-accent/10"
+                      />
+                    </div>
+                  </div>
+                </section>
 
                 {/* Workflow Diagram Section */}
-                <section className="py-20">
+                <section className="py-20 bg-card">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <h2 className="text-3xl font-headline font-semibold text-accent">
-                                An Integrated Operations Workflow
+                                An Integrated Operations Hub
                             </h2>
                             <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
                                 From onboarding technicians to optimizing equipment usage in the field, our platform provides the tools to manage your entire operational lifecycle.
@@ -50,11 +85,11 @@ export default function ProviderToolsPage() {
                 </section>
                 
                 {/* Features Section */}
-                <section id="provider-features" className="py-20 bg-card">
+                <section id="provider-features" className="py-20">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-headline font-semibold text-accent">
-                        The Ultimate Operations Hub for NDT Providers
+                        The Ultimate Toolkit for NDT Providers
                       </h2>
                       <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
                         Our platform empowers you with the tools needed for comprehensive team and equipment management.
@@ -87,7 +122,7 @@ export default function ProviderToolsPage() {
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-20">
+                <section className="py-20 bg-card">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
                       Ready to Optimize Your Operations?

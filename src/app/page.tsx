@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, UserCheck, Globe, CheckCircle } from 'lucide-react';
+import { Building, UserCheck, Globe, CheckCircle, HardHat, Factory } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
@@ -18,20 +18,20 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const solutions = [
+  const pillars = [
     {
       icon: <Building className="w-8 h-8 text-primary" />,
       title: 'For Asset Owners',
       description: 'A complete toolkit to manage asset integrity, from procurement to decommissioning.',
       link: '/asset-management',
       features: [
-          "Ensure operational continuity by managing asset health.",
-          "Streamline procurement with transparent bidding.",
-          "Centralize all reports and data in a secure IP vault."
+          "Centralize all asset data and history in a secure IP vault.",
+          "Streamline inspection procurement with a competitive marketplace.",
+          "Automate compliance tracking and reporting."
       ]
     },
     {
-      icon: <UserCheck className="w-8 h-8 text-primary" />,
+      icon: <HardHat className="w-8 h-8 text-primary" />,
       title: 'For NDT Providers',
       description: 'Find new opportunities and streamline your operations with professional tools.',
       link: '/provider-tools',
@@ -42,14 +42,14 @@ export default function HomePage() {
       ]
     },
      {
-      icon: <Globe className="w-8 h-8 text-primary" />,
-      title: 'For Auditors & Regulators',
-      description: 'Ensure compliance with tools designed for transparency and traceability.',
-      link: '/platform-workflow',
+      icon: <Factory className="w-8 h-8 text-primary" />,
+      title: 'For Equipment OEMs',
+      description: 'Showcase your products to a targeted audience of NDT professionals and asset owners.',
+      link: '/oem-solutions',
       features: [
-        "Participate in workflows requiring Level III review.",
-        "Access a complete, tamper-proof audit trail of the inspection lifecycle.",
-        "Review documentation in a secure, read-only environment."
+        "Position your brand in front of active buyers.",
+        "Generate qualified sales leads from the NDT community.",
+        "Integrate your equipment with digital inspection workflows."
       ]
     },
   ];
@@ -86,25 +86,25 @@ export default function HomePage() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
-                        A Unified Platform for All Stakeholders
+                        A Unified Platform for the Entire NDT Ecosystem
                     </h2>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                        Whether you own the asset or perform the inspection, NDT EXCHANGE provides the tools you need.
+                        Whether you own the asset, perform the inspection, or manufacture the equipment, NDT EXCHANGE provides the tools you need.
                     </p>
                 </div>
                 <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                    {solutions.map((solution, index) => (
+                    {pillars.map((pillar, index) => (
                         <Card key={index} className="text-center flex flex-col p-2">
                            <CardHeader>
                                 <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-                                    {solution.icon}
+                                    {pillar.icon}
                                 </div>
-                                <CardTitle className="mt-4 text-2xl font-headline">{solution.title}</CardTitle>
+                                <CardTitle className="mt-4 text-2xl font-headline">{pillar.title}</CardTitle>
                             </CardHeader>
                             <CardContent className="flex-grow text-left">
-                                <p className="text-muted-foreground mb-4 text-center">{solution.description}</p>
+                                <p className="text-muted-foreground mb-4 text-center">{pillar.description}</p>
                                  <ul className="space-y-3">
-                                    {solution.features.map((feature, i) => (
+                                    {pillar.features.map((feature, i) => (
                                         <li key={i} className="flex items-start">
                                             <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 shrink-0" />
                                             <span className="text-sm text-muted-foreground">{feature}</span>
@@ -114,7 +114,7 @@ export default function HomePage() {
                             </CardContent>
                             <CardFooter className="justify-center pt-6">
                                 <Button variant="secondary" asChild>
-                                    <Link href={solution.link}>Learn More</Link>
+                                    <Link href={pillar.link}>Learn More</Link>
                                 </Button>
                             </CardFooter>
                         </Card>

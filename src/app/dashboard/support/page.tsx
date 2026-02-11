@@ -26,6 +26,7 @@ import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
 import { useFirebase, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy } from 'firebase/firestore';
+import { useMobile } from '@/hooks/use-mobile';
 
 
 // Define types for Firestore data
@@ -72,7 +73,7 @@ export default function SupportPage() {
   const role = searchParams.get('role') || 'client';
   const { firestore, user: authUser } = useFirebase();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { isMobile } = useMobile();
+  const isMobile = useMobile();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 

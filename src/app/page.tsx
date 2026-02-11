@@ -37,7 +37,7 @@ export default function HomePage() {
       icon: <Users className="w-8 h-8 text-primary" />,
       title: 'For Auditors & Regulators',
       description: 'Ensure compliance with a complete, tamper-proof audit trail of the entire inspection lifecycle.',
-       link: '/about'
+       link: '/platform-workflow'
     },
   ];
 

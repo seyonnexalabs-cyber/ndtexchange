@@ -28,8 +28,10 @@ export default function PublicHeader() {
     </Link>
   );
 
-  const lightBgPages = ['/platform-workflow', '/privacy', '/terms'];
-  const isLightBg = lightBgPages.includes(pathname);
+  const pagesWithHero = ['/', '/about', '/asset-management', '/contact', '/manufacturers', '/platform-features', '/provider-tools', '/providers'];
+  const hasHero = pagesWithHero.includes(pathname);
+  const isLightBg = !hasHero;
+
 
   return (
     <header className={cn(

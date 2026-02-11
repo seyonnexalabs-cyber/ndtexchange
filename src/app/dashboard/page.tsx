@@ -22,7 +22,7 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase";
-import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit } from "firebase/firestore";
+import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog } from "@/lib/types";
 import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms } from "@/lib/placeholder-data";
@@ -695,6 +695,11 @@ const AdminDashboard = () => {
                 const docRef = doc(firestore, 'users', user.id);
                 const { password, ...userToSave } = user;
                 batch.set(docRef, userToSave);
+                // Add admin user to roles_admin collection for security rules
+                if (user.role === 'Admin') {
+                    const adminRoleRef = doc(firestore, 'roles_admin', user.id);
+                    batch.set(adminRoleRef, { role: 'admin' });
+                }
             });
             
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
@@ -942,5 +947,3 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
-    

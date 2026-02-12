@@ -731,16 +731,16 @@ const inspectionsData: Inspection[] = [
     { id: 'INSP-004', jobId: 'JOB-007', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'ET', inspector: 'Maria Garcia', date: yesterday.toISOString().split('T')[0], status: 'Requires Review' },
     { id: 'INSP-005', jobId: 'JOB-010', assetName: 'Gantry Crane G-02', assetId: 'ASSET-009', technique: 'VT', inspector: 'Maria Garcia', date: '2024-07-14', status: 'Completed' },
     { id: 'INSP-006', jobId: 'JOB-011', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'UT', inspector: 'Maria Garcia', date: '2024-06-21', status: 'Completed' },
-    { id: 'INSP-007', jobId: 'JOB-012', assetName: 'Turbine Blades Set 1', assetId: 'N/A', technique: 'RT', inspector: 'Maria Garcia', date: '2024-05-25', status: 'Completed' },
+    { id: 'INSP-007', jobId: 'JOB-012', assetName: 'Turbine Blades Set 1', assetId: 'ASSET-007', technique: 'RT', inspector: 'Maria Garcia', date: '2024-05-25', status: 'Completed' },
     { id: 'INSP-008', jobId: 'JOB-014', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-26', status: 'Scheduled' },
-    { id: 'INSP-009', jobId: 'JOB-015', assetName: 'Manufacturing Gearbox', assetId: 'N/A', technique: 'VT', inspector: 'Maria Garcia', date: '2024-07-10', status: 'Completed' },
-    { id: 'INSP-010', jobId: 'JOB-017', assetName: 'Compressor Skid Piping', assetId: 'N/A', technique: 'PT', inspector: 'Pending', date: nextWeek.toISOString().split('T')[0], status: 'Scheduled' },
-    { id: 'INSP-010B', jobId: 'JOB-025', assetName: 'Support Structure Welds', assetId: 'N/A', technique: 'MT', inspector: 'Pending', date: new Date(nextWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'Scheduled' },
-    { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'N/A', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-02', status: 'Completed' },
+    { id: 'INSP-009', jobId: 'JOB-015', assetName: 'Manufacturing Gearbox', assetId: 'ASSET-004', technique: 'VT', inspector: 'Maria Garcia', date: '2024-07-10', status: 'Completed' },
+    { id: 'INSP-010', jobId: 'JOB-017', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PT', inspector: 'Pending', date: nextWeek.toISOString().split('T')[0], status: 'Scheduled' },
+    { id: 'INSP-010B', jobId: 'JOB-025', assetName: 'Cooling Tower Piping', assetId: 'ASSET-006', technique: 'MT', inspector: 'Pending', date: new Date(nextWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'Scheduled' },
+    { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'ASSET-006', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-02', status: 'Completed' },
     { id: 'INSP-012', jobId: 'JOB-021', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-22', status: 'Completed' },
     { id: 'INSP-013', jobId: 'JOB-022', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PAUT', inspector: 'Maria Garcia', date: '2024-07-20', status: 'Requires Review' },
-    { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Flare Stack FS-01', assetId: 'N/A', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
-    { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Storage Tank T-205', assetId: 'N/A', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
+    { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
+    { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
 ];
 
 export const jobs: Job[] = jobsData.map(job => ({

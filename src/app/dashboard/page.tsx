@@ -731,7 +731,7 @@ const AdminDashboard = () => {
 
             console.group("Step 5: Operational Data (Jobs, Bids, Inspections, Reports)");
             try {
-                console.log(`[SEED] Starting: jobs, bids, inspections, reports...`);
+                console.log(`[SEED] Starting: jobs, bids, inspections, reports... (${seedJobs.length} jobs)`);
                 const jobsBatch = writeBatch(firestore);
                 seedJobs.forEach(job => {
                     const { bids, inspections, ...jobData } = job;
@@ -739,7 +739,7 @@ const AdminDashboard = () => {
                     jobsBatch.set(jobRef, jobData);
                     
                     bids.forEach(bid => {
-                        const bidRef = doc(firestore, 'bids', bid.id);
+                        const bidRef = doc(firestore, 'jobs', job.id, 'bids', bid.id);
                         jobsBatch.set(bidRef, bid);
                     });
                     
@@ -749,7 +749,7 @@ const AdminDashboard = () => {
                             console.warn(`Skipping inspection ${inspection.id} due to invalid assetId.`);
                             return;
                         }
-                        const inspectionRef = doc(firestore, 'inspections', inspection.id);
+                        const inspectionRef = doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id);
                         jobsBatch.set(inspectionRef, inspectionData);
 
                         if(report) {

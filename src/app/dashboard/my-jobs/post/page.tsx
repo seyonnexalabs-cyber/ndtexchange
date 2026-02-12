@@ -97,9 +97,12 @@ export default function PostJobPage() {
     const [assetTypeFilter, setAssetTypeFilter] = React.useState('all');
     const [assetStatusFilter, setAssetStatusFilter] = React.useState('all');
 
+    const isClient = role === 'client';
+    const isInspector = role === 'inspector';
+
     const jobSchema = React.useMemo(() => {
       let schema = baseSchema;
-      if (role === 'client') {
+      if (isClient) {
         schema = schema.extend({
           assets: z.array(z.string()).refine(value => value.length > 0, {
             message: "You have to select at least one asset for this job.",
@@ -114,7 +117,7 @@ export default function PostJobPage() {
 
       let finalSchema = schema;
 
-      if (role === 'client') {
+      if (isClient) {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of today to compare dates properly
 
@@ -138,7 +141,7 @@ export default function PostJobPage() {
       }
 
       return finalSchema;
-    }, [role]);
+    }, [isClient]);
 
     const form = useForm<z.infer<typeof jobSchema>>({
         resolver: zodResolver(jobSchema),
@@ -222,7 +225,7 @@ export default function PostJobPage() {
             return;
         }
 
-        const isInternalJob = role === 'inspector' || (role === 'client' && !values.isMarketplaceJob);
+        const isInternalJob = isInspector || (isClient && !values.isMarketplaceJob);
         const newJobStatus = isDraft ? 'Draft' : (isInternalJob ? 'Assigned' : 'Posted');
         const jobRef = doc(collection(firestore, 'jobs'));
         
@@ -306,9 +309,6 @@ export default function PostJobPage() {
         router.push(constructUrl('/dashboard/my-jobs'));
     }
 
-    const isClient = role === 'client';
-    const isInspector = role === 'inspector';
-
     if (role && !['client', 'inspector'].includes(role)) {
         return null;
     }
@@ -346,7 +346,7 @@ export default function PostJobPage() {
                                 name="title"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Job Title</FormLabel>
+                                        <FormLabel>Job Title <span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="e.g., Annual Shutdown Inspection — Crude Unit C3" {...field} />
                                         </FormControl>
@@ -355,13 +355,29 @@ export default function PostJobPage() {
                                 )}
                             />
 
+                            {isInspector && (
+                                <FormField
+                                    control={form.control}
+                                    name="clientName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Client Name <span className="text-destructive">*</span></FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter the name of your client" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
                             <div className="grid md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}
                                     name="jobType"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Job Type</FormLabel>
+                                            <FormLabel>Job Type <span className="text-destructive">*</span></FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl><SelectTrigger><SelectValue placeholder="Select a job type" /></SelectTrigger></FormControl>
                                                 <SelectContent>
@@ -379,7 +395,7 @@ export default function PostJobPage() {
                                     name="industry"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Industry / Sector</FormLabel>
+                                            <FormLabel>Industry / Sector <span className="text-destructive">*</span></FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl><SelectTrigger><SelectValue placeholder="Select an industry" /></SelectTrigger></FormControl>
                                                 <SelectContent>
@@ -397,7 +413,7 @@ export default function PostJobPage() {
                                 name="location"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Site Location</FormLabel>
+                                        <FormLabel>Site Location <span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} />
                                         </FormControl>
@@ -435,7 +451,7 @@ export default function PostJobPage() {
                                 name="techniques"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel>NDT Techniques Required</FormLabel>
+                                        <FormLabel>NDT Techniques Required <span className="text-destructive">*</span></FormLabel>
                                         <MultiSelect
                                             options={techniqueOptions}
                                             selected={field.value}
@@ -464,7 +480,7 @@ export default function PostJobPage() {
                                     name="certificationsRequired"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Primary Certification Required</FormLabel>
+                                            <FormLabel>Primary Certification Required <span className="text-destructive">*</span></FormLabel>
                                              <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl><SelectTrigger><SelectValue placeholder="Select required certification" /></SelectTrigger></FormControl>
                                                 <SelectContent>
@@ -482,7 +498,7 @@ export default function PostJobPage() {
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Scope Description</FormLabel>
+                                        <FormLabel>Scope Description {isInspector && <span className="text-destructive">*</span>}</FormLabel>
                                         <FormControl>
                                             <Textarea placeholder="Provide a detailed scope of work..." {...field} className="min-h-[150px]" />
                                         </FormControl>
@@ -498,7 +514,7 @@ export default function PostJobPage() {
                                     render={() => (
                                         <FormItem>
                                             <div className="mb-4">
-                                                <FormLabel className="text-base">Select Assets for this Job</FormLabel>
+                                                <FormLabel className="text-base">Select Assets for this Job <span className="text-destructive">*</span></FormLabel>
                                                 <FormDescription>Choose which of your assets are included in this job's scope.</FormDescription>
                                             </div>
                                             <div className="grid grid-cols-4 gap-4 mb-4">

@@ -15,13 +15,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, collection } from 'firebase/firestore';
-import type { PlatformUser } from '@/lib/seed-data';
+import type { PlatformUser, Client, NDTServiceProvider, AuditFirm } from '@/lib/types';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { clientData, serviceProviders, auditFirms } from '@/lib/seed-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
@@ -50,6 +49,9 @@ export default function SignupPage() {
   const companyInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
+  const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+  const { data: companiesFromDb } = useCollection<Client | NDTServiceProvider | AuditFirm>(companiesQuery);
+
   useEffect(() => {
     setIsMounted(true);
     
@@ -68,11 +70,13 @@ export default function SignupPage() {
     };
   }, []);
   
-  const allCompanies = useMemo(() => [
-      ...clientData.map(c => ({ name: c.name, type: 'client' as const })),
-      ...serviceProviders.map(p => ({ name: p.name, type: 'inspector' as const })),
-      ...auditFirms.map(a => ({ name: a.name, type: 'auditor' as const }))
-  ], []);
+  const allCompanies = useMemo(() => {
+    if (!companiesFromDb) return [];
+    return companiesFromDb.map(c => ({
+        name: c.name,
+        type: c.type.toLowerCase() as "client" | "inspector" | "auditor"
+    }));
+  }, [companiesFromDb]);
 
   const form = useForm<z.infer<typeof companySignupSchema>>({
     resolver: zodResolver(companySignupSchema),
@@ -107,12 +111,10 @@ export default function SignupPage() {
     }
 
     try {
-        // 1. Create Firebase Auth user
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
-        // 2. Create Company document
-        const companyRef = doc(collection(firestore, "companies")); // Creates a doc with a new auto-generated ID
+        const companyRef = doc(collection(firestore, "companies"));
         await setDoc(companyRef, {
             id: companyRef.id,
             name: data.companyName,
@@ -121,7 +123,6 @@ export default function SignupPage() {
             contactEmail: data.email,
         });
 
-        // 3. Create User document
         const userRole = data.companyType.charAt(0).toUpperCase() + data.companyType.slice(1);
         const userDocRef = doc(firestore, "users", user.uid);
         
@@ -130,12 +131,11 @@ export default function SignupPage() {
             name: data.fullName,
             email: data.email,
             role: userRole,
-            companyId: companyRef.id, // Link user to the new company
+            companyId: companyRef.id,
             company: data.companyName,
             status: 'Active',
         };
         
-        // Add provider-specific field if it's an inspector company
         if (data.companyType === 'inspector') {
             userProfile.providerId = companyRef.id;
         }

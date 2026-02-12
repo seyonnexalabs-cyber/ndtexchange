@@ -1,13 +1,16 @@
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { jobs, NDTTechniques, allUsers, serviceProviders } from '@/lib/seed-data';
 import { useMemo, useEffect } from 'react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const jobsByMonthChartConfig = {
   count: { label: "Jobs", color: "hsl(var(--accent))" },
@@ -39,6 +42,18 @@ export default function AnalyticsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
+
+    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+
+    const usersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
+    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(usersQuery);
+
+    const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
+    
+    const serviceProviders = useMemo(() => allCompanies?.filter(c => c.type === 'Provider') || [], [allCompanies]);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -47,6 +62,8 @@ export default function AnalyticsPage() {
     }, [role, router, searchParams]);
 
     const analyticsData = useMemo(() => {
+        if (!jobs) return { jobsByMonthData: [], revenueByMonthData: [], jobsByTechniqueData: [], totalRevenue: 0 };
+
         const jobsByMonth: { [key: string]: number } = {};
         const revenueByMonth: { [key: string]: number } = {};
         const jobsByTechnique: { [key: string]: number } = {};
@@ -74,7 +91,27 @@ export default function AnalyticsPage() {
         const totalRevenue = Object.values(revenueByMonth).reduce((acc, val) => acc + val, 0);
 
         return { jobsByMonthData, revenueByMonthData, jobsByTechniqueData, totalRevenue };
-    }, []);
+    }, [jobs]);
+
+    const isLoading = isLoadingJobs || isLoadingUsers || isLoadingCompanies;
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                 <Skeleton className="h-8 w-1/3 mb-6" />
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+                </div>
+                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-6">
+                    <Skeleton className="h-80" />
+                    <Skeleton className="h-80" />
+                </div>
+                <div className="grid gap-6 mt-6">
+                    <Skeleton className="h-96" />
+                </div>
+            </div>
+        )
+    }
 
     if (role !== 'admin') {
         return null;
@@ -116,7 +153,7 @@ export default function AnalyticsPage() {
                         <FileCheck className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{jobs.length}</div>
+                        <div className="text-2xl font-bold">{jobs?.length || 0}</div>
                         <p className="text-xs text-muted-foreground">All jobs created on the platform</p>
                     </CardContent>
                 </Card>

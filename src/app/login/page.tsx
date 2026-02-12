@@ -20,7 +20,6 @@ import { useFirebase, useUser } from '@/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
-import { allUsers } from '@/lib/seed-data';
 import { Eye, EyeOff } from 'lucide-react';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
@@ -59,34 +58,19 @@ export default function LoginPage() {
           if (userDoc.exists()) {
             userData = userDoc.data();
           } else {
-            // If user doc doesn't exist (can happen with dev quick logins), create it.
-            console.warn("User document not found with UID. Attempting to create it for development environment.");
-            
-            const devUser = allUsers.find(u => u.email === user.email);
-
-            if (devUser) {
-              const { password, ...userProfileData } = devUser;
-              
-              // Ensure the ID in the seed data matches the actual auth UID
-              const profileToSave = { ...userProfileData, id: user.uid };
-
-              await setDoc(doc(firestore, 'users', user.uid), profileToSave);
-              console.log(`Dev login: Created Firestore document for ${user.email}`);
-              
-              userData = profileToSave;
-            } else {
-              console.error(`Dev login: Could not find seed data for user ${user.email}.`);
-              toast({
-                variant: 'destructive',
-                title: 'Login Error',
-                description: 'User profile not found and could not be created.',
-              });
-              setIsAuthenticating(false);
-              if (auth) {
-                  auth.signOut(); // Sign out the user since their profile is incomplete
-              }
-              return; // Stop execution
+             // Non-blocking login will create the user on the fly if they exist in auth but not firestore.
+             // This might happen in dev if you clear firestore but not auth.
+            console.warn("User document not found. This might be a new user or a dev environment sync issue.");
+            toast({
+              variant: 'destructive',
+              title: 'Login Error',
+              description: 'User profile not found. If this is your first time, please sign up.',
+            });
+            setIsAuthenticating(false);
+            if (auth) {
+                auth.signOut();
             }
+            return;
           }
 
           if (userData) {
@@ -94,14 +78,12 @@ export default function LoginPage() {
             const params = new URLSearchParams();
             params.set('role', role);
 
-            // Handle inspector plan type
             if (role === 'inspector' && (userData as any).plan === 'operations') {
                 params.set('plan', 'operations');
             }
 
             router.push(`/dashboard?${params.toString()}`);
           } else {
-            // This case should be less likely now, but kept as a safeguard.
             toast({
               variant: 'destructive',
               title: 'Login Failed',
@@ -111,7 +93,7 @@ export default function LoginPage() {
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
-          if (error instanceof Error && 'code' in error && (error as any).code.includes('permission-denied')) {
+           if (error instanceof Error && 'code' in error && (error as any).code.includes('permission-denied')) {
              toast({
                 variant: 'destructive',
                 title: 'Permission Denied',
@@ -159,11 +141,11 @@ export default function LoginPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-login');
 
   const devLogins = [
-    allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), // client
-    allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'), // inspector
-    allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'), // auditor
-    allUsers.find(u => u.id === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2'), // admin
-    allUsers.find(u => u.id === 'admin-seyon'), // admin 2
+    { name: 'Client', email: 'john.d@globalenergy.corp', password: 'password123' },
+    { name: 'Inspector', email: 'maria.garcia@teaminc.com', password: 'password123' },
+    { name: 'Auditor', email: 'alex.c@ndtauditors.gov', password: 'password123' },
+    { name: 'Admin', email: 'admin@ndtexchange.com', password: 'password123' },
+    { name: 'Seyon', email: 'seyonnexalabs@gmail.com', password: 'password123' },
   ].filter(Boolean);
 
   return (
@@ -269,7 +251,7 @@ export default function LoginPage() {
                 <CardContent className="grid grid-cols-2 gap-2">
                   {devLogins.map(devUser => (
                     <Button
-                      key={devUser!.id}
+                      key={devUser!.name}
                       variant="outline"
                       onClick={() => {
                         if (auth && devUser?.email && devUser?.password) {

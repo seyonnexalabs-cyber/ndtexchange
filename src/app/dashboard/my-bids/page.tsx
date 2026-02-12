@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -26,8 +25,7 @@ import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
-import type { Job, Bid } from '@/lib/types';
-import { NDTTechniques } from '@/lib/seed-data';
+import type { Job, Bid, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const bidSchema = z.object({
@@ -200,16 +198,14 @@ export default function MyBidsPage() {
         }
     }, [role, router, searchParams]);
 
-    const jobsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        // In a real-world scenario with many jobs, you would query a top-level 'bids' collection
-        // where providerId matches the current user's company, then fetch the associated jobs.
-        // For this demo, we fetch all jobs and filter client-side, which is feasible for a small dataset.
-        return collection(firestore, 'jobs');
-    }, [firestore]);
-
+    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => firestore ? collection(firestore, 'bids') : null, [firestore]));
+    
+    const allBidsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'bids') : null, [firestore]);
+    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(allBidsQuery);
+
+    const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
+    const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -283,11 +279,9 @@ export default function MyBidsPage() {
         return { activeBids, shortlistedBids, awardedBids, revenueYTD };
     }, [myBids]);
 
-    if (role && role !== 'inspector') {
-        return null;
-    }
-    
-    if (isLoadingJobs || isLoadingBids) {
+    const isLoading = isLoadingJobs || isLoadingBids || isLoadingTechniques;
+
+    if (isLoading) {
         return (
             <div>
                 <Skeleton className="h-8 w-1/4 mb-6" />
@@ -297,6 +291,10 @@ export default function MyBidsPage() {
                 <Skeleton className="h-64 w-full" />
             </div>
         )
+    }
+    
+    if (role && role !== 'inspector') {
+        return null;
     }
 
     return (
@@ -403,8 +401,8 @@ export default function MyBidsPage() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {NDTTechniques.map(tech => (
-                                                        <SelectItem key={tech.id} value={tech.id}>{tech.name} ({tech.id})</SelectItem>
+                                                    {ndtTechniques?.map(tech => (
+                                                        <SelectItem key={tech.id} value={tech.acronym}>{tech.title} ({tech.acronym})</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>

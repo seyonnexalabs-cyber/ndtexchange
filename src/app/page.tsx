@@ -1,9 +1,10 @@
 
+'use client';
 
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, UserCheck, Globe, CheckCircle, HardHat, Factory } from 'lucide-react';
+import { Building, HardHat, Factory, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
@@ -11,13 +12,12 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { clientData, serviceProviders, auditFirms } from '@/lib/seed-data';
-import { NDTTechniques } from '@/lib/seed-data';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { NDTServiceProvider, AuditFirm, Client, NDTTechnique } from '@/lib/types';
+import { useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export const metadata: Metadata = {
-  title: 'NDT EXCHANGE | The Digital Marketplace for Asset Integrity',
-  description: 'The premier marketplace connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.',
-};
 
 export default function HomePage() {
   const pillars = [
@@ -56,7 +56,25 @@ export default function HomePage() {
     },
   ];
   
-  const manufacturerCount = 10; // This should be dynamic in a real app
+  const { firestore } = useFirebase();
+
+  const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+  const { data: companies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider | AuditFirm | Client>(companiesQuery);
+
+  const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
+  const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
+
+  const { clientCount, providerCount, auditorCount, manufacturerCount } = useMemo(() => {
+    if (!companies) return { clientCount: 0, providerCount: 0, auditorCount: 0, manufacturerCount: 0 };
+    return {
+      clientCount: companies.filter(c => c.type === 'Client').length,
+      providerCount: companies.filter(c => c.type === 'Provider').length,
+      auditorCount: companies.filter(c => c.type === 'Auditor').length,
+      manufacturerCount: 10, // Placeholder, as manufacturers are not in the 'companies' collection
+    };
+  }, [companies]);
+
+  const isLoading = isLoadingCompanies || isLoadingTechniques;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -140,19 +158,19 @@ export default function HomePage() {
             </div>
             <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
-                <p className="text-5xl font-bold text-accent">{clientData.length}+</p>
+                {isLoading ? <Skeleton className="h-12 w-24 mx-auto" /> : <p className="text-5xl font-bold text-accent">{clientCount}+</p>}
                 <p className="mt-2 text-lg font-semibold text-muted-foreground">Clients</p>
               </div>
               <div>
-                <p className="text-5xl font-bold text-accent">{serviceProviders.length}+</p>
+                {isLoading ? <Skeleton className="h-12 w-24 mx-auto" /> : <p className="text-5xl font-bold text-accent">{providerCount}+</p>}
                 <p className="mt-2 text-lg font-semibold text-muted-foreground">Service Providers</p>
               </div>
               <div>
-                <p className="text-5xl font-bold text-accent">{auditFirms.length}+</p>
+                {isLoading ? <Skeleton className="h-12 w-24 mx-auto" /> : <p className="text-5xl font-bold text-accent">{auditorCount}+</p>}
                 <p className="mt-2 text-lg font-semibold text-muted-foreground">Auditors</p>
               </div>
               <div>
-                <p className="text-5xl font-bold text-accent">{manufacturerCount}+</p>
+                 {isLoading ? <Skeleton className="h-12 w-24 mx-auto" /> : <p className="text-5xl font-bold text-accent">{manufacturerCount}+</p>}
                 <p className="mt-2 text-lg font-semibold text-muted-foreground">OEM Partners</p>
               </div>
             </div>
@@ -186,7 +204,8 @@ export default function HomePage() {
               </p>
             </div>
             <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {NDTTechniques.filter(tech => tech.isHighlighted).map((technique) => {
+                {isLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) :
+                (ndtTechniques || []).filter(tech => tech.isHighlighted).map((technique) => {
                     const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
                     return (
                         <FeatureCard

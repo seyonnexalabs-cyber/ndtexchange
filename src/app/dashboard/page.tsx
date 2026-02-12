@@ -25,7 +25,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog } from "@/lib/types";
-import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms } from "@/lib/placeholder-data";
+import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -617,7 +617,7 @@ const AuditorDashboard = () => {
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
-                                    <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
+                                    <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
                                     <TableCell>{format(new Date(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || Date.now()), GLOBAL_DATE_FORMAT)}</TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild>
@@ -731,6 +731,16 @@ const AdminDashboard = () => {
             inspectorAssets.forEach(equipment => {
                 const docRef = doc(firestore, 'equipment', equipment.id);
                 batch.set(docRef, equipment);
+            });
+            
+            NDTTechniques.forEach(technique => {
+                const docRef = doc(firestore, 'techniques', technique.id);
+                batch.set(docRef, technique);
+            });
+
+            manufacturersData.forEach(manufacturer => {
+                const docRef = doc(firestore, 'manufacturers', manufacturer.id);
+                batch.set(docRef, manufacturer);
             });
 
             reviewsData.forEach(review => {

@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "next/navigation";
 import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { format, differenceInDays, isAfter, isToday, isWithinInterval } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,9 +53,9 @@ const getRelativeDateBadge = (date: Date, today: Date | undefined) => {
 };
 
 const ClientFormattedDate = ({ timestamp, formatString = 'dd-MMM p' }: { timestamp: any, formatString?: string }) => {
-    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+    const [formattedDate, setFormattedDate] = useState<string | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!timestamp) return;
         const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
         setFormattedDate(format(date, formatString));
@@ -862,7 +862,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <p className="text-sm font-medium">{log.action}</p>
                                     <p className="text-xs text-muted-foreground">{log.targetUserName} ({log.targetCompany})</p>
-                                    <p className="text-xs text-muted-foreground/80"><ClientFormattedDate timestamp={log.timestamp} /></p>
+                                    <ClientFormattedDate timestamp={log.timestamp} />
                                 </div>
                             ))}
                         </div>

@@ -112,7 +112,7 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree, but allows an admin check.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
+      allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId) && isResourceCreator('id');
       allow update: if isExistingOwner(userId) || isAdmin();
@@ -239,8 +239,7 @@ service cloud.firestore {
       function isMessageParticipant() {
         return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       }
-      allow get: if isMessageParticipant() || isAdmin();
-      allow list: if isSignedIn(); // Client queries must filter by senderId or receiverId
+      allow read: if isMessageParticipant() || isAdmin();
       allow create: if isSignedIn() && isResourceCreator('senderId');
       allow update: if (isOwner(resource.data.receiverId) || isAdmin()) && isExistingDoc(); // Only receiver can mark as read.
       allow delete: if false; // Messages are generally immutable.
@@ -278,8 +277,7 @@ service cloud.firestore {
      * @principle Grants read access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-      allow get: if isOwner(resource.data.userId) || isAdmin();
-      allow list: if isSignedIn(); // Client queries must filter by userId
+      allow read: if isOwner(resource.data.userId) || isAdmin();
       allow create: if isSignedIn() && isResourceCreator('userId');
       allow update: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc() && isImmutable('userId');
       allow delete: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc();
@@ -295,8 +293,7 @@ service cloud.firestore {
      * @principle Admin moderation of user-generated content.
      */
     match /reviews/{reviewId} {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update, delete: if isAdmin();
     }

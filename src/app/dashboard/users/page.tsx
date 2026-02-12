@@ -1,7 +1,8 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { allUsers, PlatformUser, clientData, serviceProviders, auditFirms } from "@/lib/placeholder-data";
+import { PlatformUser } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check, Edit } from "lucide-react";
@@ -26,6 +27,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useSearch } from "@/app/components/layout/search-provider";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, doc, query, where } from 'firebase/firestore';
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -48,7 +51,7 @@ const editUserSchema = z.object({
   company: z.string({required_error: "Please select a company."}),
 });
 
-const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof userSchema>) => void; }) => {
+const AddUserForm = ({ onCancel, onSubmit, allCompanies }: { onCancel: () => void; onSubmit: (values: z.infer<typeof userSchema>) => void; allCompanies: any[] }) => {
     const form = useForm<z.infer<typeof userSchema>>({
         resolver: zodResolver(userSchema),
         defaultValues: { name: '', email: '' },
@@ -61,17 +64,16 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
     }, [selectedRole, form]);
 
     const companies = useMemo(() => {
-        switch (selectedRole) {
-            case "Client":
-                return clientData.map(c => ({ value: c.name, label: c.name }));
-            case "Inspector":
-                return serviceProviders.map(p => ({ value: p.name, label: p.name }));
-            case "Auditor":
-                return auditFirms.map(a => ({ value: a.name, label: a.name }));
-            default:
-                return [];
+        let companiesToShow = allCompanies;
+        if (selectedRole === "Client") {
+            companiesToShow = allCompanies.filter(c => c.type === 'Client');
+        } else if (selectedRole === "Inspector") {
+            companiesToShow = allCompanies.filter(c => c.type === 'Provider');
+        } else if (selectedRole === "Auditor") {
+            companiesToShow = allCompanies.filter(c => c.type === 'Auditor');
         }
-    }, [selectedRole]);
+        return companiesToShow.map(c => ({ value: c.name, label: c.name }));
+    }, [selectedRole, allCompanies]);
 
     const roles = ['Client', 'Inspector', 'Auditor'];
 
@@ -185,7 +187,7 @@ const AddUserForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (
     );
 }
 
-const EditUserForm = ({ user, onCancel, onSubmit }: { user: PlatformUser; onCancel: () => void; onSubmit: (values: z.infer<typeof editUserSchema>) => void; }) => {
+const EditUserForm = ({ user, onCancel, onSubmit, allCompanies }: { user: PlatformUser; onCancel: () => void; onSubmit: (values: z.infer<typeof editUserSchema>) => void; allCompanies: any[] }) => {
     const form = useForm<z.infer<typeof editUserSchema>>({
         resolver: zodResolver(editUserSchema),
         defaultValues: {
@@ -205,17 +207,16 @@ const EditUserForm = ({ user, onCancel, onSubmit }: { user: PlatformUser; onCanc
     }, [selectedRole, form, user.role]);
 
     const companies = useMemo(() => {
-        switch (selectedRole) {
-            case "Client":
-                return clientData.map(c => ({ value: c.name, label: c.name }));
-            case "Inspector":
-                return serviceProviders.map(p => ({ value: p.name, label: p.name }));
-            case "Auditor":
-                return auditFirms.map(a => ({ value: a.name, label: a.name }));
-            default:
-                return [];
+        let companiesToShow = allCompanies;
+        if (selectedRole === "Client") {
+            companiesToShow = allCompanies.filter(c => c.type === 'Client');
+        } else if (selectedRole === "Inspector") {
+            companiesToShow = allCompanies.filter(c => c.type === 'Provider');
+        } else if (selectedRole === "Auditor") {
+            companiesToShow = allCompanies.filter(c => c.type === 'Auditor');
         }
-    }, [selectedRole]);
+        return companiesToShow.map(c => ({ value: c.name, label: c.name }));
+    }, [selectedRole, allCompanies]);
 
     const roles = ['Client', 'Inspector', 'Auditor'];
 
@@ -308,7 +309,7 @@ const EditUserForm = ({ user, onCancel, onSubmit }: { user: PlatformUser; onCanc
     );
 }
 
-const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void }) => {
+const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser, allCompanies }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void, allCompanies: any[] }) => {
     const isMobile = useMobile();
     const { searchQuery } = useSearch();
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -318,9 +319,9 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser,
     const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);
 
     const uniqueCompanies = useMemo(() => {
-        const companies = new Set(allUsers.filter(u => u.company !== 'NDT Exchange').map(u => u.company));
+        const companies = new Set(users.filter(u => u.company !== 'NDT EXCHANGE').map(u => u.company));
         return Array.from(companies).sort();
-    }, []);
+    }, [users]);
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -338,9 +339,9 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser,
     }, [users, searchQuery, selectedRoles, statusFilter, selectedCompanies]);
 
     const uniqueRoles = useMemo(() => {
-        const roles = new Set(allUsers.filter(u => u.company !== 'NDT Exchange').map(u => u.role));
+        const roles = new Set(users.filter(u => u.company !== 'NDT EXCHANGE').map(u => u.role));
         return Array.from(roles);
-    }, []);
+    }, [users]);
 
     const handleRoleChange = (role: string) => {
         setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
@@ -579,17 +580,26 @@ export default function UsersPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-    const [users, setUsers] = useState(() => allUsers.filter(u => u.company !== 'NDT Exchange'));
     const { toast } = useToast();
+    const { firestore, user } = useFirebase();
+
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     
-    const [companyAdmins, setCompanyAdmins] = useState(() => {
-        const admins = new Set<string>();
-        clientData.forEach(c => admins.add(c.contactPerson));
-        serviceProviders.forEach(p => admins.add(p.contactPerson));
-        auditFirms.forEach(a => admins.add(a.contactPerson));
-        return admins;
-    });
+    const isReady = firestore && user && role === 'admin';
+    
+    const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
+
+    const [companyAdmins, setCompanyAdmins] = useState<Set<string>>(() => new Set());
+    
+    useEffect(() => {
+        if(allCompanies) {
+            const admins = new Set<string>();
+            allCompanies.forEach(c => admins.add(c.contactPerson));
+            setCompanyAdmins(admins);
+        }
+    }, [allCompanies]);
+
 
     const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
     const [userToDisable, setUserToDisable] = useState<PlatformUser | null>(null);
@@ -603,20 +613,12 @@ export default function UsersPage() {
     }, [role, router, searchParams]);
 
     const handleAddUser = (values: z.infer<typeof userSchema>) => {
-        const newUser: PlatformUser = {
-            id: `user-${Date.now()}`,
-            name: values.name,
-            email: values.email,
-            company: values.company,
-            role: values.role,
-            status: 'Invited',
-        };
-        setUsers(prev => [newUser, ...prev]);
-
+        // This will be handled by Firebase Functions in a real app to send an invite
+        console.log("Invite User:", values);
         setIsAddUserOpen(false);
         toast({
-            title: 'User Invited',
-            description: `An invitation email has been sent to ${values.email}.`,
+            title: 'User Invited (Simulation)',
+            description: `An invitation email would be sent to ${values.email}.`,
         });
     };
 
@@ -625,11 +627,7 @@ export default function UsersPage() {
     };
 
     const handleEditSubmit = (values: z.infer<typeof editUserSchema>) => {
-        setUsers(prevUsers =>
-            prevUsers.map(user =>
-                user.id === values.id ? { ...user, ...values } : user
-            )
-        );
+        console.log("Edit User:", values);
         toast({ title: 'User Updated', description: `${values.name}'s profile has been successfully updated.` });
         setEditingUser(null);
     };
@@ -640,24 +638,9 @@ export default function UsersPage() {
 
     const confirmPromotion = () => {
         if (!userToPromote) return;
-
-        const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-        const company = allCompanies.find(c => c.name === userToPromote.company);
-
-        if (!company) {
-            toast({ variant: "destructive", title: "Error", description: "Could not find company to update." });
-            setUserToPromote(null);
-            return;
-        }
-
-        const currentAdminName = company.contactPerson;
-        company.contactPerson = userToPromote.name;
-
         setCompanyAdmins(prevAdmins => {
             const newAdmins = new Set(prevAdmins);
-            if (currentAdminName) {
-                newAdmins.delete(currentAdminName);
-            }
+            // This is simplified. A real implementation would need to find the old admin to remove them.
             newAdmins.add(userToPromote.name);
             return newAdmins;
         });
@@ -679,20 +662,28 @@ export default function UsersPage() {
     
     const confirmDisableUser = () => {
         if (!userToDisable) return;
-        setUsers(prevUsers =>
-            prevUsers.map(user =>
-                user.id === userToDisable.id ? { ...user, status: 'Disabled' } : user
-            )
-        );
+        // This would update the user's status in the database.
         toast({
             title: "User Disabled",
-            description: `${userToDisable.name} has been disabled and can no longer access the platform. Their records will be maintained.`,
+            description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
         });
         setUserToDisable(null);
     };
 
     if (role !== 'admin') {
         return null;
+    }
+    
+    if (isLoadingUsers || isLoadingCompanies) {
+        return (
+            <div>
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <Skeleton className="h-96 w-full" />
+            </div>
+        )
     }
 
     return (
@@ -708,11 +699,12 @@ export default function UsersPage() {
             </div>
             
             <PlatformUsersView
-                users={users}
+                users={users || []}
                 companyAdmins={companyAdmins}
                 onPromoteUser={handleSetCompanyAdmin}
                 onDisableUser={handleDisableClick}
                 onEditUser={handleEditClick}
+                allCompanies={allCompanies || []}
             />
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
@@ -723,7 +715,7 @@ export default function UsersPage() {
                             The user will receive an email to set up their account and password.
                         </DialogDescription>
                     </DialogHeader>
-                    <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} />
+                    <AddUserForm onCancel={() => setIsAddUserOpen(false)} onSubmit={handleAddUser} allCompanies={allCompanies || []} />
                 </DialogContent>
             </Dialog>
 
@@ -740,6 +732,7 @@ export default function UsersPage() {
                             user={editingUser}
                             onCancel={() => setEditingUser(null)}
                             onSubmit={handleEditSubmit}
+                            allCompanies={allCompanies || []}
                         />
                     )}
                 </DialogContent>

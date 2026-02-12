@@ -4,8 +4,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobs, clientData, Review } from "@/lib/placeholder-data";
-import { serviceProviders } from "@/lib/service-providers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Check, X } from "lucide-react";
@@ -13,9 +11,10 @@ import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import type { Review, Job, Client, NDTServiceProvider } from '@/lib/types';
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -81,8 +80,10 @@ export default function ReviewsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
     const { toast } = useToast();
+
+    const isReady = firestore && user && role === 'admin';
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -91,12 +92,13 @@ export default function ReviewsPage() {
     }, [role, router, searchParams]);
 
     const reviewsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!isReady) return null;
         return query(collection(firestore, 'reviews'), orderBy('date', 'desc'));
-    }, [firestore]);
-
+    }, [isReady, firestore]);
     const { data: reviewList } = useCollection<Review>(reviewsQuery);
-
+    
+    const { data: allJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
+    const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
 
     const handleApprove = async (id: string) => {
         if (!firestore) return;
@@ -123,14 +125,14 @@ export default function ReviewsPage() {
     };
 
     const mappedReviews = useMemo(() => {
-        if (!reviewList) return [];
+        if (!reviewList || !allJobs || !allCompanies) return [];
         return reviewList.map(review => ({
             ...review,
-            job: jobs.find(j => j.id === review.jobId),
-            provider: serviceProviders.find(p => p.id === review.providerId),
-            client: clientData.find(c => c.id === review.clientId)
+            job: allJobs.find(j => j.id === review.jobId),
+            provider: allCompanies.find(p => p.id === review.providerId),
+            client: allCompanies.find(c => c.id === review.clientId)
         }));
-    }, [reviewList]);
+    }, [reviewList, allJobs, allCompanies]);
 
     const pendingReviews = mappedReviews.filter(r => r.status === 'Pending');
     const approvedReviews = mappedReviews.filter(r => r.status === 'Approved');

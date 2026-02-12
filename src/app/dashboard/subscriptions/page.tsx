@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -31,7 +32,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { subscriptionPlans as initialPlans, Plan, subscriptionPlanDetails } from '@/lib/subscription-plans';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Subscription, Payment } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -543,7 +544,7 @@ export default function SubscriptionsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
     const { toast } = useToast();
 
     const [activeTab, setActiveTab] = useState("subscriptions");
@@ -553,13 +554,15 @@ export default function SubscriptionsPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
 
-    const subscriptionsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'subscriptions'), orderBy('companyName')) : null, [firestore]);
+    const isReady = firestore && user && role === 'admin';
+
+    const subscriptionsQuery = useMemoFirebase(() => isReady ? query(collection(firestore, 'subscriptions'), orderBy('companyName')) : null, [isReady, firestore]);
     const { data: allSubscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(subscriptionsQuery);
 
-    const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+    const companiesQuery = useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]);
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
 
-    const paymentsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'payments'), orderBy('date', 'desc')) : null, [firestore]);
+    const paymentsQuery = useMemoFirebase(() => isReady ? query(collection(firestore, 'payments'), orderBy('date', 'desc')) : null, [isReady, firestore]);
     const { data: allPayments, isLoading: isLoadingPayments } = useCollection<Payment>(paymentsQuery);
 
     useEffect(() => {

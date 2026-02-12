@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -11,7 +12,7 @@ import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { UserAuditLog, JobAuditLog, BillingAuditLog } from '@/lib/types';
@@ -81,24 +82,26 @@ export default function AuditLogPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
+
+    const isReady = firestore && user && role === 'admin';
 
     const userAuditLogQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!isReady) return null;
         return query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'));
-    }, [firestore]);
+    }, [isReady, firestore]);
     const { data: userAuditLog, isLoading: isLoadingUserLog } = useCollection<UserAuditLog>(userAuditLogQuery);
 
     const jobAuditLogQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!isReady) return null;
         return query(collection(firestore, 'jobAuditLogs'), orderBy('timestamp', 'desc'));
-    }, [firestore]);
+    }, [isReady, firestore]);
     const { data: jobAuditLog, isLoading: isLoadingJobLog } = useCollection<JobAuditLog>(jobAuditLogQuery);
 
     const billingAuditLogQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!isReady) return null;
         return query(collection(firestore, 'billingAuditLogs'), orderBy('timestamp', 'desc'));
-    }, [firestore]);
+    }, [isReady, firestore]);
     const { data: billingAuditLog, isLoading: isLoadingBillingLog } = useCollection<BillingAuditLog>(billingAuditLogQuery);
 
 

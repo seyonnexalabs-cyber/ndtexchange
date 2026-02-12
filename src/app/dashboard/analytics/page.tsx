@@ -7,7 +7,7 @@ import { useMemo, useEffect } from 'react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -42,15 +42,17 @@ export default function AnalyticsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
 
-    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
+    const isReady = firestore && user && role === 'admin';
+
+    const jobsQuery = useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
-    const usersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
+    const usersQuery = useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]);
     const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(usersQuery);
 
-    const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+    const companiesQuery = useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]);
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
     
     const serviceProviders = useMemo(() => allCompanies?.filter(c => c.type === 'Provider') || [], [allCompanies]);

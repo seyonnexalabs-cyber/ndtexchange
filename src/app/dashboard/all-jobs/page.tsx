@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { jobs, Job, clientData, serviceProviders } from "@/lib/placeholder-data";
+import { clientData, serviceProviders } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X, Building } from "lucide-react";
@@ -20,11 +20,13 @@ import {
     Pagination,
     PaginationContent,
     PaginationItem,
-    PaginationLink,
     PaginationNext,
     PaginationPrevious,
-    PaginationEllipsis,
 } from "@/components/ui/pagination";
+import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
+import type { Job } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const statusFilters = ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'];
@@ -58,6 +60,13 @@ export default function AllJobsPage() {
     const [today, setToday] = useState<Date | undefined>(undefined);
     const [currentPage, setCurrentPage] = useState(1);
 
+    const { firestore } = useFirebase();
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'jobs');
+    }, [firestore]);
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+
     useEffect(() => {
         if (role && role !== 'admin') {
             router.replace(`/dashboard?${searchParams.toString()}`);
@@ -88,7 +97,8 @@ export default function AllJobsPage() {
     }
 
     const filteredJobs = useMemo(() => {
-        return jobs.filter(job => {
+        const jobsToFilter = jobs || [];
+        return jobsToFilter.filter(job => {
             const searchMatch = !searchQuery ||
                 job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -100,7 +110,7 @@ export default function AllJobsPage() {
 
             return searchMatch && providerMatch && statusMatch && clientMatch;
         });
-    }, [searchQuery, selectedProviders, selectedStatuses, selectedClients]);
+    }, [jobs, searchQuery, selectedProviders, selectedStatuses, selectedClients]);
     
     const pageCount = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
 
@@ -161,6 +171,51 @@ export default function AllJobsPage() {
             </div>
         )
     );
+    
+    if (isLoadingJobs) {
+        return (
+             <div>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
+                        <Briefcase className="text-primary" />
+                        All Jobs
+                    </h1>
+                </div>
+                <Card>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
+                                <TableHead>Client</TableHead>
+                                <TableHead>Assets</TableHead>
+                                <TableHead>Technique</TableHead>
+                                <TableHead>Location</TableHead>
+                                <TableHead>Posted</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {[...Array(5)].map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-8 w-24" /></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Card>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -394,4 +449,5 @@ export default function AllJobsPage() {
 
         </div>
     );
-}
+
+    

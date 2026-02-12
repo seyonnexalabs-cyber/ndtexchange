@@ -1,5 +1,4 @@
 'use client';
-
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
@@ -662,42 +661,11 @@ export default function JobDetailPage() {
     };
 
     const BidsSection = () => {
-        if (!jobDetails) return null;
-        const isClient = role === 'client';
+        if (!jobDetails || (role !== 'client' && role !== 'admin')) return null;
+    
         const jobBids = jobDetails.bids || [];
-        
-        // After job is assigned, show who it was assigned to.
-        if (jobDetails.status !== 'Posted') {
-            const assignedProvider = serviceProviders.find(p => p.id === jobDetails.providerId);
-            const awardedBid = jobBids.find(b => b.status === 'Awarded');
     
-            if (!assignedProvider || !awardedBid) return null;
-    
-            return (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Award className="h-5 w-5 text-primary" /> Awarded Provider</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={assignedProvider.logoUrl} alt={`${assignedProvider.name} logo`} data-ai-hint={`${assignedProvider.name} logo`} />
-                                <AvatarFallback>{assignedProvider.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="font-bold text-lg">{assignedProvider.name}</p>
-                                <p className="text-muted-foreground">Awarded bid: ${awardedBid.amount.toLocaleString()}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )
-        }
-    
-        // If job is still posted, show bids.
-        const submittedBids = jobBids.filter(b => b.status === 'Submitted');
-
-        if (submittedBids.length === 0) {
+        if (jobBids.length === 0) {
             return (
                 <Card>
                     <CardHeader>
@@ -713,19 +681,24 @@ export default function JobDetailPage() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Gavel className="h-5 w-5 text-primary" />Bids Received ({submittedBids.length})</CardTitle>
-                    {isClient && <CardDescription>Review the bids below and award the job to a provider.</CardDescription>}
+                    <CardTitle className="flex items-center gap-2"><Gavel className="h-5 w-5 text-primary" />Bids Received ({jobBids.length})</CardTitle>
+                    {jobDetails.status === 'Posted' && <CardDescription>Review the bids below and award the job to a provider.</CardDescription>}
+                    {jobDetails.status !== 'Posted' && <CardDescription>A historical record of all bids submitted for this job.</CardDescription>}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {submittedBids.map(bid => {
+                    {jobBids.map(bid => {
                         const provider = serviceProviders.find(p => p.id === bid.providerId);
                         if (!provider) return null;
+                        const isAwarded = bid.status === 'Awarded';
                         return (
-                            <div key={bid.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
+                            <div key={bid.id} className={cn(
+                                "flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4",
+                                isAwarded && "bg-green-500/10 border-green-500"
+                            )}>
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-12 w-12">
-                                         <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} data-ai-hint={`${provider.name} logo`} />
-                                         <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} data-ai-hint={`${provider.name} logo`} />
+                                        <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <p className="font-semibold">{provider.name}</p>
@@ -733,11 +706,20 @@ export default function JobDetailPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-6 w-full sm:w-auto">
-                                   <div className="text-left sm:text-right flex-grow">
+                                    <div className="text-left sm:text-right flex-grow">
                                         <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
                                         <p className="text-xs text-muted-foreground">Submitted on {format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</p>
                                     </div>
-                                    {isClient && <Button onClick={() => handleReviewBid(bid)}>Review Bid</Button>}
+                                    {isAwarded ? (
+                                        <Badge variant="success" className="gap-2">
+                                            <Award className="h-4 w-4" />
+                                            Awarded
+                                        </Badge>
+                                    ) : jobDetails.status === 'Posted' ? (
+                                        <Button onClick={() => handleReviewBid(bid)}>Review Bid</Button>
+                                    ) : (
+                                         <Badge variant="outline">{bid.status}</Badge>
+                                    )}
                                 </div>
                             </div>
                         )
@@ -1152,6 +1134,7 @@ export default function JobDetailPage() {
 }
 
     
+
 
 
 

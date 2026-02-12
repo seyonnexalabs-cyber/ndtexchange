@@ -19,7 +19,7 @@
  * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
  *   They are the only ones who can read or write their own document. Listing all
  *   users is disabled to protect user privacy (except for admins).
- * - Public Data: The `/asset_types` collection is considered public template data,
+ * - Public Data: The `/asset_types`, `/techniques`, and `/manufacturers` collections are considered public template data,
  *   readable by anyone (including unauthenticated users), but writable only by admins.
  * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
  *   UIDs stored directly on the document (e.g., `clientId`, `senderId`). This avoids
@@ -156,6 +156,26 @@ service cloud.firestore {
     match /asset_types/{assetTypeId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
+    }
+    
+    /**
+     * @description Manages NDT techniques, which are publicly readable.
+     * @path /techniques/{techniqueId}
+     * @principle Public read with admin-only writes.
+     */
+    match /techniques/{techniqueId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+    }
+    
+    /**
+     * @description Manages NDT equipment manufacturers, which are publicly readable.
+     * @path /manufacturers/{manufacturerId}
+     * @principle Public read with admin-only writes.
+     */
+    match /manufacturers/{manufacturerId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
     }
 
     /**
@@ -331,3 +351,4 @@ service cloud.firestore {
   }
 }
     
+  

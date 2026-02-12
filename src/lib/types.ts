@@ -286,24 +286,22 @@ export type AuditFirm = {
     contactEmail: string;
 };
 
-export type NDTTechniqueData = {
-  id: string,
-  name: string
-};
-
-export type NDTCompany = {
-    name: string;
-    url: string;
-    description?: string;
+export type Manufacturer = {
+  id: string;
+  name: string;
+  url:string;
+  description?: string;
+  logoUrl?: string;
+  techniqueIds: string[];
 };
 
 export type NDTTechnique = {
     id: string;
+    acronym: string;
     title: string;
     description: string;
     isHighlighted: boolean;
     imageId: string;
-    companies: NDTCompany[];
 };
 
   

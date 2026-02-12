@@ -508,11 +508,7 @@
         "title": { "type": "string" },
         "description": { "type": "string" },
         "isHighlighted": { "type": "boolean" },
-        "imageId": { "type": "string" },
-        "companies": {
-          "type": "array",
-          "items": { "$ref": "#/backend/entities/Manufacturer" }
-        }
+        "imageId": { "type": "string" }
       },
       "required": ["id", "acronym", "title", "description", "isHighlighted", "imageId"]
     },
@@ -521,11 +517,39 @@
       "type": "object",
       "description": "Represents a manufacturer of NDT equipment.",
       "properties": {
-        "name": { "type": "string" },
-        "url": { "type": "string", "format": "uri" },
-        "description": { "type": "string" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Manufacturer entity."
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        },
+        "logoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the manufacturer's logo."
+        },
+        "techniqueIds": {
+          "type": "array",
+          "description": "An array of NDT Technique IDs that this manufacturer specializes in.",
+          "items": {
+            "type": "string"
+          }
+        }
       },
-      "required": ["name", "url"]
+      "required": [
+        "id",
+        "name",
+        "url",
+        "techniqueIds"
+      ]
     }
   },
   "auth": {
@@ -709,10 +733,21 @@
         "definition": {
           "entityName": "NDTTechnique",
           "schema": { "$ref": "#/backend/entities/NDTTechnique" },
-          "description": "Stores NDT technique information, including associated equipment manufacturers."
+          "description": "Stores NDT technique information."
+        }
+      },
+      {
+        "path": "/manufacturers/{manufacturerId}",
+        "definition": {
+          "entityName": "Manufacturer",
+          "schema": {
+            "$ref": "#/backend/entities/Manufacturer"
+          },
+          "description": "Stores information about NDT equipment manufacturers."
         }
       }
     ],
     "reasoning": "This Firestore structure is designed to support the NDT Exchange application's asset management, job marketplace, and inspection workflows while adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). The structure prioritizes path-based ownership for user-related data and uses membership maps where collaboration is required. Authorization Independence is achieved through denormalization of authorization data within subcollections, eliminating the need for `get()` calls in security rules.\n\n**Key Structural Decisions and Justifications:**\n\n*   **/users/{userId}**: Stores user profiles. Path-based ownership ensures that only the user can read/write their own profile data. \n*   **/assets/{assetId}**: Stores asset data. Each asset includes an `ownerId` field. This enables QAPs by allowing listing of all assets, with rules filtering based on `ownerId` for access control. \n*   **/asset_types/{assetTypeId}**: Stores asset type templates. Open read access is assumed for all users, but write access is restricted to admins (enforced via a `/roles_admin/{uid}` check).\n*   **/assets/{assetId}/inspections/{inspectionId}**: Stores inspection data for each asset. Includes a denormalized `inspectorId` field. Path-based ownership (within the asset) and the explicit `inspectorId` field on each inspection allows granular access control without `get()` calls.\n*   **/reports/{reportId}**: Reports are top-level collections to avoid complex subcollection listing. Each report has `assetId` and `inspectorId` fields, denormalizing necessary authorization data. A `level3ApproverId` field determines who can approve the report.\n*   **/defects/{defectId}**: Defects are top-level collections to avoid complex subcollection listing. Each defect has a `reportId` field. The `reportId` links the defect to a report, which then contains the `assetId`, allowing rules to easily check ownership of defects based on asset ownership.\n*   **/jobs/{jobId}**: Stores job requests. Includes a `clientId` field to indicate who created the job and an `awardedInspectorId` when a bid is accepted. This supports QAPs by allowing listing of all jobs, with rules filtering based on `clientId` for clients and admin role for all.\n*   **/jobs/{jobId}/bids/{bidId}**: Stores bids for each job. Each bid has a `inspectorId` field. This structure, combined with the `awardedInspectorId` on the `job` document, simplifies rules for bid access.\n*   **/messages/{messageId}**: Stores messages between users. Messages are placed in a top-level collection to facilitate simpler querying. Each message has `senderId` and `receiverId`, ensuring that only the sender and receiver can access the message.\n*   **/notifications/{notificationId}**: Stores notifications for users. Path-based ownership (`/notifications/{notificationId}`) and the explicit `userId` field on each notification allows granular access control.\n*   **/roles_admin/{userId}**: Used for role-based access control. The existence of a document with the user's ID implies admin privileges. This is used in rules to grant admin access.  This existence-based check is simple and efficient.\n\n**Authorization Independence (Denormalization):**\n\n*   The structure avoids using `get()` calls in security rules by denormalizing authorization data. For example, the `Inspection` entity, located as a subcollection of `Asset`, duplicates the `inspectorId`. The `Report` and `Defect` entities, are stored as top-level collections but contain fields like `assetId` and `inspectorId` to determine authorization context.\n\n**QAPs (Rules Are Not Filters):**\n\n*   The design separates data with different access requirements into different collections or subcollections. For example, user profiles are stored in `/users/{userId}`, ensuring that only the user can access their own profile. Publicly readable data, if any, would be stored in separate collections (not defined here, but good practice).\n*   The top-level `assets`, `reports`, `defects` and `jobs` collections, combined with the denormalized owner/user ID fields enable listing the collections, then filtering the data on the client-side based on the security rules. This satisfies QAPs."
   }
 }
+  

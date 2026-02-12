@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -8,7 +7,6 @@ import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ndtTechniques } from '@/lib/ndt-techniques-data';
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,53 +16,34 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Manufacturer, NDTTechnique } from '@/lib/types';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
-type Manufacturer = {
-  name: string;
-  url: string;
-  description?: string;
-  techniques: string[];
-};
 
 export default function ManufacturersPage() {
+    const { firestore } = useFirebase();
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
 
-    const [shuffledManufacturers] = useState(() => {
-        const manufacturerMap = new Map<string, Manufacturer>();
-        ndtTechniques.forEach(technique => {
-            technique.companies.forEach(company => {
-                if (manufacturerMap.has(company.name)) {
-                    manufacturerMap.get(company.name)?.techniques.push(technique.id.toUpperCase());
-                } else {
-                    manufacturerMap.set(company.name, {
-                        ...company,
-                        techniques: [technique.id.toUpperCase()]
-                    });
-                }
-            });
-        });
-        const manufacturers = Array.from(manufacturerMap.values());
-        // Fisher-Yates shuffle algorithm
-        for (let i = manufacturers.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [manufacturers[i], manufacturers[j]] = [manufacturers[j], manufacturers[i]];
-        }
-        return manufacturers;
-    });
+    const manufacturersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'manufacturers') : null, [firestore]);
+    const { data: manufacturers, isLoading: isLoadingManufacturers } = useCollection<Manufacturer>(manufacturersQuery);
+    
+    const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
+    const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
 
     const filteredManufacturers = useMemo(() => {
-        return shuffledManufacturers.filter(manufacturer => {
-            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => manufacturer.techniques.includes(tech));
+        if (!manufacturers) return [];
+        return manufacturers.filter(manufacturer => {
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => manufacturer.techniqueIds.includes(tech));
             const searchMatch = !searchTerm || manufacturer.name.toLowerCase().includes(searchTerm.toLowerCase());
             return techniqueMatch && searchMatch;
         });
-    }, [shuffledManufacturers, selectedTechniques, searchTerm]);
+    }, [manufacturers, selectedTechniques, searchTerm]);
     
     const pageCount = Math.ceil(filteredManufacturers.length / itemsPerPage);
     const paginatedManufacturers = useMemo(() => {
@@ -91,15 +70,8 @@ export default function ManufacturersPage() {
         setItemsPerPage(Number(value));
         setCurrentPage(1);
     };
-
-    const getUniqueImageForManufacturer = (manufacturer: Manufacturer) => {
-        // Create a simple hash from the manufacturer's name to get a consistent index
-        const hash = manufacturer.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const techniqueIndex = hash % manufacturer.techniques.length;
-        const techniqueId = manufacturer.techniques[techniqueIndex]?.toLowerCase();
-        const techData = ndtTechniques.find(t => t.id === techniqueId);
-        return PlaceHolderImages.find(p => p.id === techData?.imageId);
-    };
+    
+    const isLoading = isLoadingManufacturers || isLoadingTechniques;
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -127,11 +99,12 @@ export default function ManufacturersPage() {
                                 className="max-w-xs"
                                 value={searchTerm}
                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                disabled={isLoading}
                             />
                              <div className="flex flex-wrap items-center gap-2">
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline">Filter by Technique ({selectedTechniques.length})</Button>
+                                        <Button variant="outline" disabled={isLoading}>Filter by Technique ({selectedTechniques.length})</Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-80">
                                         <div className="grid gap-4">
@@ -142,12 +115,12 @@ export default function ManufacturersPage() {
                                                 </p>
                                             </div>
                                             <ScrollArea className="grid gap-2 max-h-60 p-1">
-                                                {ndtTechniques.map(tech => (
+                                                {ndtTechniques?.map(tech => (
                                                     <div key={tech.id} className="flex items-center space-x-2 p-1">
                                                         <Checkbox
                                                             id={`tech-${tech.id}`}
-                                                            checked={selectedTechniques.includes(tech.id.toUpperCase())}
-                                                            onCheckedChange={() => handleTechniqueChange(tech.id.toUpperCase())}
+                                                            checked={selectedTechniques.includes(tech.acronym)}
+                                                            onCheckedChange={() => handleTechniqueChange(tech.acronym)}
                                                         />
                                                         <Label htmlFor={`tech-${tech.id}`}>{tech.title}</Label>
                                                     </div>
@@ -178,7 +151,7 @@ export default function ManufacturersPage() {
                                 <span className="text-sm font-medium">Active Filters:</span>
                                 {selectedTechniques.map(techId => (
                                     <Badge key={techId} variant="secondary">
-                                        {ndtTechniques.find(t => t.id.toUpperCase() === techId)?.title || techId}
+                                        {ndtTechniques?.find(t => t.acronym === techId)?.title || techId}
                                         <button onClick={() => handleTechniqueChange(techId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                             <X className="h-3 w-3" />
                                         </button>
@@ -187,45 +160,63 @@ export default function ManufacturersPage() {
                             </div>
                         )}
                         
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {paginatedManufacturers.map(manufacturer => {
-                                const image = getUniqueImageForManufacturer(manufacturer);
-                                return (
-                                    <Card key={manufacturer.name} className="flex flex-col">
+                         {isLoading ? (
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {[...Array(8)].map((_, i) => (
+                                    <Card key={i}>
                                         <CardHeader>
-                                            <div className="flex items-center gap-4">
-                                                 <Avatar className="h-16 w-16">
-                                                    {image && <Image src={image.imageUrl} alt={manufacturer.name} fill className="object-cover" />}
-                                                    <AvatarFallback className="text-xl">{manufacturer.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
-                                                </div>
-                                            </div>
+                                            <Skeleton className="h-16 w-16 rounded-full" />
                                         </CardHeader>
-                                        <CardContent className="flex-grow">
-                                            <p className="text-sm text-muted-foreground line-clamp-2 h-10 mb-4">{manufacturer.description}</p>
-                                            <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {manufacturer.techniques.map(tech => (
-                                                    <Badge key={tech} variant="secondary">{tech}</Badge>
-                                                ))}
-                                            </div>
+                                        <CardContent>
+                                            <Skeleton className="h-4 w-3/4 mb-2" />
+                                            <Skeleton className="h-10 w-full" />
                                         </CardContent>
                                         <CardFooter>
-                                            <Button variant="outline" asChild className="w-full">
-                                                <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer">
-                                                    Visit Website
-                                                    <LinkIcon className="ml-2 h-4 w-4" />
-                                                </Link>
-                                            </Button>
+                                            <Skeleton className="h-10 w-full" />
                                         </CardFooter>
                                     </Card>
-                                )
-                            })}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {paginatedManufacturers.map(manufacturer => {
+                                    return (
+                                        <Card key={manufacturer.name} className="flex flex-col">
+                                            <CardHeader>
+                                                <div className="flex items-center gap-4">
+                                                    <Avatar className="h-16 w-16">
+                                                        {manufacturer.logoUrl && <AvatarImage src={manufacturer.logoUrl} alt={manufacturer.name} />}
+                                                        <AvatarFallback className="text-xl">{manufacturer.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <CardTitle className="font-headline">{manufacturer.name}</CardTitle>
+                                                    </div>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="flex-grow">
+                                                <p className="text-sm text-muted-foreground line-clamp-2 h-10 mb-4">{manufacturer.description}</p>
+                                                <h4 className="text-sm font-semibold mb-2">Specialized Techniques</h4>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {manufacturer.techniqueIds.map(tech => (
+                                                        <Badge key={tech} variant="secondary">{tech}</Badge>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                            <CardFooter>
+                                                <Button variant="outline" asChild className="w-full">
+                                                    <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer">
+                                                        Visit Website
+                                                        <LinkIcon className="ml-2 h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    )
+                                })}
+                            </div>
+                        )}
                         
-                        {filteredManufacturers.length === 0 && (
+                        {!isLoading && filteredManufacturers.length === 0 && (
                             <div className="col-span-full text-center py-20">
                                 <p className="text-xl font-semibold">No Manufacturers Found</p>
                                 <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
@@ -264,3 +255,4 @@ export default function ManufacturersPage() {
         </div>
     );
 }
+  

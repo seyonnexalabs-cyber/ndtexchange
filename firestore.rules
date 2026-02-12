@@ -294,7 +294,8 @@ service cloud.firestore {
      * @principle A restricted collection used as a lookup table for role-based access control.
      */
     match /roles_admin/{userId} {
-      allow get, list: if isAdmin();
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
     

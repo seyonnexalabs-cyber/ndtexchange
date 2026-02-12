@@ -141,7 +141,8 @@ service cloud.firestore {
       
       allow get: if isAssetCompanyMember() || isAdmin();
       allow list: if isSignedIn();
-      allow create: if isAdmin() || isCompanyMember(request.resource.data.companyId);
+      allow create: if isAdmin();
+      allow create: if isCompanyMember(request.resource.data.companyId);
       allow update: if (isAssetCompanyMember() || isAdmin()) && isImmutable('companyId');
       allow delete: if isAdmin() || isAssetCompanyMember();
     }
@@ -243,7 +244,7 @@ service cloud.firestore {
         return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
       }
       allow read, list, write: if isAdmin();
-      allow read, list: if isSignedIn();
+      allow read, list: if true;
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
       allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
@@ -277,7 +278,8 @@ service cloud.firestore {
             let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
             return user != null && user.data.companyId == resource.data.providerId;
         }
-        allow read, write: if isAdmin() || isEquipmentCompanyMember();
+        allow read, write: if isAdmin();
+        allow read, write: if isEquipmentCompanyMember();
     }
 
     /**

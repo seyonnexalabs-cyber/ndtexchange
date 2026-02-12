@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { allUsers, clientData, serviceProviders, auditFirms, subscriptions } from '@/lib/placeholder-data';
+import { allUsers, clientData, serviceProviders, auditFirms, subscriptions, PlatformUser } from '@/lib/placeholder-data';
 import { NDTTechniques, auditFirmIndustries } from '@/lib/seed-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, Building } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -210,6 +210,54 @@ const TeamManagementSettings = ({ user }: { user: { name: string, email: string,
         </Card>
     );
 };
+
+const PlatformAdminTeamSettings = () => {
+    const platformAdmins = allUsers.filter(u => u.role === 'Admin');
+
+    const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
+        Active: 'success',
+        Invited: 'secondary',
+        Disabled: 'destructive',
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Platform Administrators</CardTitle>
+                <CardDescription>A list of users with platform-wide administrative privileges.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {platformAdmins.map(admin => (
+                            <TableRow key={admin.id}>
+                                <TableCell className="font-medium flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarFallback>{admin.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    {admin.name}
+                                </TableCell>
+                                <TableCell>{admin.email}</TableCell>
+                                <TableCell><Badge variant={statusStyles[admin.status]}>{admin.status}</Badge></TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+            <CardFooter>
+                <p className="text-xs text-muted-foreground">To add or remove platform administrators, please use the main User Management page.</p>
+            </CardFooter>
+        </Card>
+    );
+};
+
 
 const NotificationSettings = ({ role }: { role: string }) => {
   const clientEmailSettings = [
@@ -549,7 +597,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
                                 </>
                             ) : (
                                 <div className="flex flex-col items-center gap-2">
-                                    <Building className="w-10 h-10" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                                     <p>Click or drag &amp; drop logo</p>
                                     <p className="text-xs">PNG, JPG, or SVG up to 2MB</p>
                                 </div>
@@ -755,30 +803,10 @@ export default function SettingsPage() {
             <BrandingSettings companyName={currentUser.company} role={role} />
         </TabsContent>
         <TabsContent value="team">
-              {isSubscriptionActive ? (
-                role === 'admin' ? 
-                    (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>User Management</CardTitle>
-                                <CardDescription>
-                                    As a platform administrator, you manage all users across the platform from the main User Management page.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground">
-                                    This central dashboard allows you to view, invite, edit, and manage permissions for all clients, providers, and auditors.
-                                </p>
-                            </CardContent>
-                            <CardFooter>
-                                <Button asChild>
-                                    <Link href={constructUrl("/dashboard/users")}>Go to User Management</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    )
-                     : 
-                    <TeamManagementSettings user={currentUser} />
+              {role === 'admin' ? (
+                <PlatformAdminTeamSettings />
+              ) : isSubscriptionActive ? (
+                <TeamManagementSettings user={currentUser} />
               ) : (
                 <Card>
                     <CardHeader>
@@ -885,4 +913,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

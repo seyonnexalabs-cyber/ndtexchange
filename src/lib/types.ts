@@ -1,6 +1,5 @@
 
 
-
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -170,6 +169,7 @@ export type PlatformUser = {
     workStatus?: 'Available' | 'On Assignment';
     providerId?: string;
     level?: 'Level I' | 'Level II' | 'Level III';
+    createdAt?: any;
 };
 
 export type Subscription = {

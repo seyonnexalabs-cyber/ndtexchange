@@ -43,15 +43,15 @@ export const manufacturersData: Manufacturer[] = [
 ];
 
 export const clientData: Client[] = [
-    { id: 'client-01', name: 'Global Energy Corp.', type: 'Client', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
-    { id: 'client-02', name: 'Marine Tankers Ltd.', type: 'Client', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
-    { id: 'client-03', name: 'Energy Transfer', type: 'Client', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
-    { id: 'client-04', name: 'State Department of Transportation', type: 'Client', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
-    { id: 'client-05', name: 'Chemical Plant C', type: 'Client', contactPerson: 'Carlos Ruiz', contactEmail: 'c.ruiz@chemc.com', activeJobs: 2, totalSpend: 24500 },
-    { id: 'client-06', name: 'Power Generation LLC', type: 'Client', contactPerson: 'Power Admin', contactEmail: 'admin@powergen.com', activeJobs: 2, totalSpend: 56500 },
-    { id: 'client-07', name: 'Port Authority', type: 'Client', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
-    { id: 'client-08', name: 'Manufacturing Solutions Inc.', type: 'Client', contactPerson: 'Factory Manager', contactEmail: 'fm@mansol.com', activeJobs: 1, totalSpend: 3500 },
-    { id: 'client-09', name: 'Aviation Maintenance Pros', type: 'Client', contactPerson: 'Chuck Yeager', contactEmail: 'chuck@avpros.com', activeJobs: 2, totalSpend: 45000 },
+    { id: 'client-01', type: 'Client', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
+    { id: 'client-02', type: 'Client', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
+    { id: 'client-03', type: 'Client', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
+    { id: 'client-04', type: 'Client', name: 'State Department of Transportation', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
+    { id: 'client-05', type: 'Client', name: 'Chemical Plant C', contactPerson: 'Carlos Ruiz', contactEmail: 'c.ruiz@chemc.com', activeJobs: 2, totalSpend: 24500 },
+    { id: 'client-06', type: 'Client', name: 'Power Generation LLC', contactPerson: 'Power Admin', contactEmail: 'admin@powergen.com', activeJobs: 2, totalSpend: 56500 },
+    { id: 'client-07', type: 'Client', name: 'Port Authority', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
+    { id: 'client-08', type: 'Client', name: 'Manufacturing Solutions Inc.', contactPerson: 'Factory Manager', contactEmail: 'fm@mansol.com', activeJobs: 1, totalSpend: 3500 },
+    { id: 'client-09', type: 'Client', name: 'Aviation Maintenance Pros', contactPerson: 'Chuck Yeager', contactEmail: 'chuck@avpros.com', activeJobs: 2, totalSpend: 45000 },
 ];
 
 export const serviceProviders: NDTServiceProvider[] = [
@@ -750,20 +750,20 @@ export const jobs: Job[] = jobsData.map(job => ({
 }));
 
 export const allUsers: PlatformUser[] = [
-    { id: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', companyId: 'client-01', company: 'Global Energy Corp.', status: 'Active', password: 'password123' },
-    { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', companyId: 'client-02', company: 'Marine Tankers Ltd.', status: 'Active', password: 'password123' },
-    { id: 'user-client-03', name: 'Mike Williams', email: 'm.williams@energytransfer.com', role: 'Client', companyId: 'client-03', company: 'Energy Transfer', status: 'Active', password: 'password123' },
-    { id: 'user-client-04', name: 'Carlos Ruiz', email: 'c.ruiz@chemc.com', role: 'Client', companyId: 'client-05', company: 'Chemical Plant C', status: 'Active', password: 'password123' },
-    { id: 'user-client-05', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', companyId: 'client-09', company: 'Aviation Maintenance Pros', status: 'Active', password: 'password123' },
-    { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
-    { id: 'admin-seyon', name: 'Seyon', email: 'seyonnexalabs@gmail.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
-    { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
-    { id: 'user-auditor-02', name: 'Brenda Vance', email: 'b.vance@aerocompliance.com', role: 'Auditor', companyId: 'auditor-firm-02', company: 'Aero-Compliance Partners', status: 'Active', password: 'password123', certifications: [{method: 'ET', level: 'Level III'}, {method: 'UT', level: 'Level III'}], level: 'Level III' },
-    { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
-    { id: 'user-tech-01', name: 'Ben Carter', email: 'ben.carter@mistras.com', role: 'Inspector', companyId: 'provider-01', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'ET', level: 'Level III'}], workStatus: 'Available', providerId: 'provider-01', level: 'Level III', password: 'password123' },
-    { id: 'user-tech-02', name: 'David Lee', email: 'david.lee@applus.com', role: 'Inspector', companyId: 'provider-02', company: 'Applus+', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-02', level: 'Level II', password: 'password123' },
-    { id: 'user-tech-03', name: 'Samantha Wu', email: 'samantha.wu@tuv.com', role: 'Inspector', companyId: 'provider-04', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'TOFD', level: 'Level II'}, {method: 'PAUT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-04', level: 'Level II', password: 'password123' },
-    { id: 'user-tech-04', name: 'James Wilson', email: 'james.wilson@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II', password: 'password123' },
+    { id: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', companyId: 'client-01', company: 'Global Energy Corp.', status: 'Active', password: 'password123', createdAt: '2024-01-15T10:00:00Z' },
+    { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', companyId: 'client-02', company: 'Marine Tankers Ltd.', status: 'Active', password: 'password123', createdAt: '2024-02-10T10:00:00Z' },
+    { id: 'user-client-03', name: 'Mike Williams', email: 'm.williams@energytransfer.com', role: 'Client', companyId: 'client-03', company: 'Energy Transfer', status: 'Active', password: 'password123', createdAt: '2024-02-20T10:00:00Z' },
+    { id: 'user-client-04', name: 'Carlos Ruiz', email: 'c.ruiz@chemc.com', role: 'Client', companyId: 'client-05', company: 'Chemical Plant C', status: 'Active', password: 'password123', createdAt: '2024-03-05T10:00:00Z' },
+    { id: 'user-client-05', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', companyId: 'client-09', company: 'Aviation Maintenance Pros', status: 'Active', password: 'password123', createdAt: '2024-03-15T10:00:00Z' },
+    { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123', createdAt: '2024-01-01T10:00:00Z' },
+    { id: 'admin-seyon', name: 'Seyon', email: 'seyonnexalabs@gmail.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123', createdAt: '2024-01-01T10:00:00Z' },
+    { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III', createdAt: '2024-04-01T10:00:00Z' },
+    { id: 'user-auditor-02', name: 'Brenda Vance', email: 'b.vance@aerocompliance.com', role: 'Auditor', companyId: 'auditor-firm-02', company: 'Aero-Compliance Partners', status: 'Active', password: 'password123', certifications: [{method: 'ET', level: 'Level III'}, {method: 'UT', level: 'Level III'}], level: 'Level III', createdAt: '2024-04-05T10:00:00Z' },
+    { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123', createdAt: '2024-05-10T10:00:00Z' },
+    { id: 'user-tech-01', name: 'Ben Carter', email: 'ben.carter@mistras.com', role: 'Inspector', companyId: 'provider-01', company: 'MISTRAS Group', status: 'Active', certifications: [{method: 'PAUT', level: 'Level II'}, {method: 'ET', level: 'Level III'}], workStatus: 'Available', providerId: 'provider-01', level: 'Level III', password: 'password123', createdAt: '2024-05-12T10:00:00Z' },
+    { id: 'user-tech-02', name: 'David Lee', email: 'david.lee@applus.com', role: 'Inspector', companyId: 'provider-02', company: 'Applus+', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-02', level: 'Level II', password: 'password123', createdAt: '2024-06-01T10:00:00Z' },
+    { id: 'user-tech-03', name: 'Samantha Wu', email: 'samantha.wu@tuv.com', role: 'Inspector', companyId: 'provider-04', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'TOFD', level: 'Level II'}, {method: 'PAUT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-04', level: 'Level II', password: 'password123', createdAt: '2024-06-15T10:00:00Z' },
+    { id: 'user-tech-04', name: 'James Wilson', email: 'james.wilson@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II', password: 'password123', createdAt: '2024-07-01T10:00:00Z' },
 ];
 
 export const subscriptions: Subscription[] = [
@@ -844,6 +844,7 @@ export const jobChats: JobChat[] = [
 export const notifications: Notification[] = [
     {
         id: 'NOTIF-001',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
         title: 'New Bid on "PAUT on Pressure Vessel Welds"',
         description: 'TEAM, Inc. has placed a bid for $11,800.',
         timestamp: '2024-07-01T11:30:00Z',
@@ -852,6 +853,7 @@ export const notifications: Notification[] = [
     },
     {
         id: 'NOTIF-002',
+        userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2',
         title: 'Job Awarded: "MT Inspection on Crane Hooks"',
         description: 'Your bid for $4,800 has been accepted by Global Energy Corp.',
         timestamp: '2024-06-19T15:05:00Z',
@@ -860,14 +862,16 @@ export const notifications: Notification[] = [
     },
     {
         id: 'NOTIF-003',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
         title: 'New Message on "MT Inspection on Crane Hooks"',
-        description: 'John Doe: "Thanks for the report. What was the outcome on that secondary hook?"',
-        timestamp: '2024-06-22T10:00:00Z',
+        description: 'Maria Garcia: "Not a problem, John. I\'ve added it to the inspection plan..."',
+        timestamp: '2024-06-20T15:00:00Z',
         read: false,
         href: '/dashboard/messages'
     },
     {
         id: 'NOTIF-004',
+        userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2',
         title: 'Report Approved for "Tank Floor Corrosion Mapping"',
         description: 'The client has approved your report for JOB-011.',
         timestamp: '2024-07-03T16:00:00Z',

@@ -17,15 +17,15 @@ import { useSearchParams } from "next/navigation";
 import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
 import React, { useState, useEffect, useMemo } from "react";
-import { format, differenceInDays, isAfter, isToday, isWithinInterval } from "date-fns";
+import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog } from "@/lib/types";
-import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData } from "@/lib/seed-data";
+import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client } from "@/lib/types";
+import { jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -637,10 +637,6 @@ const AuditorDashboard = () => {
 
 
 // --- ADMIN DASHBOARD ---
-const adminUserGrowthData = [
-  { month: "Jan", users: 12 }, { month: "Feb", users: 15 }, { month: "Mar", users: 20 },
-  { month: "Apr", users: 22 }, { month: "May", users: 28 }, { month: "Jun", users: 35 },
-];
 const userGrowthChartConfig = { users: { label: "New Users", color: "hsl(var(--chart-1))" } } satisfies ChartConfig;
 
 const getLogIcon = (action: string) => {
@@ -676,7 +672,7 @@ const AdminDashboard = () => {
     
         const seedCollection = async (collectionName: string, data: any[], customizer?: (item: any) => any) => {
             try {
-                console.log(`[SEED] Starting: ${collectionName}...`);
+                console.log(`[SEED] Starting: ${collectionName} (${data.length} docs)...`);
                 const batch = writeBatch(firestore);
                 data.forEach(item => {
                     const itemData = customizer ? customizer(item) : item;
@@ -684,7 +680,7 @@ const AdminDashboard = () => {
                     batch.set(docRef, itemData);
                 });
                 await batch.commit();
-                console.log(`[SEED] ✅ Success: ${collectionName} seeded with ${data.length} documents.`);
+                console.log(`[SEED] ✅ Success: ${collectionName} seeded.`);
             } catch (error: any) {
                 console.error(`[SEED] ❌ Failed to seed ${collectionName}:`, error);
                 toast({
@@ -697,21 +693,21 @@ const AdminDashboard = () => {
         };
     
         try {
-            console.groupCollapsed("Step 1: Foundational Data (No Dependencies)");
+            console.group("Step 1: Foundational Data (No Dependencies)");
             await seedCollection('techniques', NDTTechniques);
             await seedCollection('manufacturers', manufacturersData);
             console.groupEnd();
 
-            console.groupCollapsed("Step 2: Core Entities (Users, Companies)");
+            console.group("Step 2: Core Entities (Users, Companies)");
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
             await seedCollection('companies', allCompanies);
             await seedCollection('users', allUsers, (user) => {
                 const { password, ...userToSave } = user;
-                return userToSave;
+                return { ...userToSave, createdAt: new Date(user.createdAt) };
             });
             console.groupEnd();
             
-            console.groupCollapsed("Step 3: Role & Subscription Management");
+            console.group("Step 3: Role & Subscription Management");
             try {
                 console.log(`[SEED] Starting: roles_admin...`);
                 const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
@@ -728,12 +724,12 @@ const AdminDashboard = () => {
             await seedCollection('subscriptions', subscriptionsData);
             console.groupEnd();
 
-            console.groupCollapsed("Step 4: Operational Data (Assets & Equipment)");
+            console.group("Step 4: Operational Data (Assets & Equipment)");
             await seedCollection('assets', clientAssets);
             await seedCollection('equipment', inspectorAssets);
             console.groupEnd();
 
-            console.groupCollapsed("Step 5: Operational Data (Jobs, Bids, Inspections, Reports)");
+            console.group("Step 5: Operational Data (Jobs, Bids, Inspections, Reports)");
             try {
                 console.log(`[SEED] Starting: jobs, bids, inspections, reports...`);
                 const jobsBatch = writeBatch(firestore);
@@ -743,13 +739,17 @@ const AdminDashboard = () => {
                     jobsBatch.set(jobRef, jobData);
                     
                     bids.forEach(bid => {
-                        const bidRef = doc(firestore, 'jobs', job.id, 'bids', bid.id);
+                        const bidRef = doc(firestore, 'bids', bid.id);
                         jobsBatch.set(bidRef, bid);
                     });
                     
                     inspections.forEach(inspection => {
                         const { report, ...inspectionData } = inspection;
-                        const inspectionRef = doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id);
+                        if (!inspection.assetId || inspection.assetId === 'N/A') {
+                            console.warn(`Skipping inspection ${inspection.id} due to invalid assetId.`);
+                            return;
+                        }
+                        const inspectionRef = doc(firestore, 'inspections', inspection.id);
                         jobsBatch.set(inspectionRef, inspectionData);
 
                         if(report) {
@@ -771,7 +771,7 @@ const AdminDashboard = () => {
             }
             console.groupEnd();
 
-            console.groupCollapsed("Step 6: Relational & Log Data");
+            console.group("Step 6: Relational & Log Data");
             await seedCollection('reviews', reviewsData, (review) => ({ ...review, date: new Date(review.date) }));
             await seedCollection('userAuditLogs', userAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
             await seedCollection('jobAuditLogs', jobAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
@@ -799,7 +799,7 @@ const AdminDashboard = () => {
             }
             console.groupEnd();
             
-            console.groupCollapsed("Step 7: Financial Data");
+            console.group("Step 7: Financial Data");
             await seedCollection('payments', paymentsData);
             await seedCollection('jobPayments', jobPaymentsData);
             console.groupEnd();
@@ -823,6 +823,38 @@ const AdminDashboard = () => {
         pendingReviews: reviews?.filter(r => r.status === 'Pending').length || 0,
         activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
+
+    const userGrowthData = useMemo(() => {
+        if (!users) return [];
+        
+        const usersByMonth: { [key: string]: number } = {};
+        const monthOrder: string[] = [];
+
+        // Get last 6 months
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const monthKey = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            usersByMonth[monthKey] = 0;
+            monthOrder.push(monthKey);
+        }
+        
+        users.forEach(user => {
+            if (!user.createdAt) return;
+            const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
+            if (isValid(date)) {
+                const monthKey = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+                if (monthKey in usersByMonth) {
+                    usersByMonth[monthKey]++;
+                }
+            }
+        });
+
+        return monthOrder.map(month => ({
+            name: month,
+            users: usersByMonth[month],
+        }));
+    }, [users]);
     
     if (isLoadingUsers || isLoadingCompanies || isLoadingJobs || isLoadingReviews || isLoadingAuditLog) {
         return <DashboardSkeleton />;
@@ -856,9 +888,9 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={userGrowthChartConfig} className="h-[250px] w-full">
-                            <BarChart data={adminUserGrowthData}>
+                            <BarChart data={userGrowthData}>
                                 <CartesianGrid vertical={false} />
-                                <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
+                                <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis />
                                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                                 <Bar dataKey="users" fill="var(--color-users)" radius={4}>

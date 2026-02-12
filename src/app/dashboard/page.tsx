@@ -52,6 +52,18 @@ const getRelativeDateBadge = (date: Date, today: Date | undefined) => {
     return null;
 };
 
+const ClientFormattedDate = ({ timestamp, formatString = 'dd-MMM p' }: { timestamp: any, formatString?: string }) => {
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        if (!timestamp) return;
+        const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
+        setFormattedDate(format(date, formatString));
+    }, [timestamp, formatString]);
+
+    return <>{formattedDate || '...'}</>;
+};
+
 
 // --- CLIENT DASHBOARD ---
 const clientChartConfig = {
@@ -638,21 +650,6 @@ const getLogIcon = (action: string) => {
     return <History className="h-4 w-4" />;
 }
 
-// Component to safely render formatted date on the client to avoid hydration errors
-const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
-    const [formattedDate, setFormattedDate] = useState<string | null>(null);
-
-    useEffect(() => {
-        setFormattedDate(format(new Date(timestamp), 'dd-MMM p'));
-    }, [timestamp]);
-
-    return (
-        <p className="text-xs text-muted-foreground/80">
-            {formattedDate || '...'}
-        </p>
-    );
-};
-
 const AdminDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
@@ -865,7 +862,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <p className="text-sm font-medium">{log.action}</p>
                                     <p className="text-xs text-muted-foreground">{log.targetUserName} ({log.targetCompany})</p>
-                                    <p className="text-xs text-muted-foreground/80">{format(log.timestamp.toDate(), 'dd-MMM p')}</p>
+                                    <p className="text-xs text-muted-foreground/80"><ClientFormattedDate timestamp={log.timestamp} /></p>
                                 </div>
                             ))}
                         </div>

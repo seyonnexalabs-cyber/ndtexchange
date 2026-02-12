@@ -1,6 +1,6 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { clientData, serviceProviders } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X, Building } from "lucide-react";
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/pagination";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
-import type { Job } from "@/lib/types";
+import type { Job, Client, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -65,6 +65,15 @@ export default function AllJobsPage() {
         return collection(firestore, 'jobs');
     }, [firestore]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const companiesQuery = useMemoFirebase(() => {
+        if(!firestore) return null;
+        return collection(firestore, 'companies');
+    }, [firestore]);
+    const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
+
+    const clientData = useMemo(() => companies?.filter(c => c.type === 'Client') || [], [companies]);
+    const serviceProviders = useMemo(() => companies?.filter(c => c.type === 'Provider') || [], [companies]);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -171,7 +180,7 @@ export default function AllJobsPage() {
         )
     );
     
-    if (isLoadingJobs) {
+    if (isLoadingJobs || isLoadingCompanies) {
         return (
              <div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
@@ -342,6 +342,12 @@ export default function MyJobsPage() {
                                         <Building className="w-4 h-4 mr-2 text-primary" />
                                         <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
                                     </div>
+                                     {job.estimatedBudget && (
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                            <DollarSign className="w-4 h-4 mr-2 text-primary" />
+                                            <span>Budget: {job.estimatedBudget}</span>
+                                        </div>
+                                    )}
                                      <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
                                         <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
@@ -425,6 +431,7 @@ export default function MyJobsPage() {
     
 
     
+
 
 
 

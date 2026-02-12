@@ -1,11 +1,10 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign } from "lucide-react";
-import Link from "next/link";
+import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
@@ -342,12 +341,22 @@ export default function MyJobsPage() {
                                         <Building className="w-4 h-4 mr-2 text-primary" />
                                         <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
                                     </div>
-                                     {job.estimatedBudget && (
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                            <DollarSign className="w-4 h-4 mr-2 text-primary" />
-                                            <span>Budget: {job.estimatedBudget}</span>
-                                        </div>
-                                    )}
+                                     {job.estimatedBudget && (() => {
+                                        const budgetString = job.estimatedBudget;
+                                        let budgetIcon = <DollarSign className="w-4 h-4 mr-2 text-primary" />;
+                                        if (budgetString?.includes('₹')) {
+                                            budgetIcon = <span className="font-semibold mr-2">₹</span>;
+                                        } else if (budgetString?.includes('€')) {
+                                            budgetIcon = <span className="font-semibold mr-2">€</span>;
+                                        }
+
+                                        return (
+                                            <div className="flex items-center text-sm text-muted-foreground">
+                                                {budgetIcon}
+                                                <span>Budget: {budgetString}</span>
+                                            </div>
+                                        );
+                                    })()}
                                      <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
                                         <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
@@ -427,11 +436,3 @@ export default function MyJobsPage() {
         </div>
     );
 }
-
-    
-
-    
-
-
-
-

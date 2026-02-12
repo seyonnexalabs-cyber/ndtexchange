@@ -224,7 +224,7 @@ service cloud.firestore {
       }
       allow get: if isAdmin() || canAccessRelatedReport(resource.data.reportId);
       allow list: if isAdmin(); // Listing all defects is admin-only. Query by reportId instead.
-      allow create: if isSignedIn() && canAccessRelatedReport(request.resource.data.reportId);
+      allow create: if (isSignedIn() && canAccessRelatedReport(request.resource.data.reportId)) || isAdmin();
       allow update, delete: if (isAdmin() || canAccessRelatedReport(resource.data.reportId)) && isExistingDoc();
     }
 
@@ -289,7 +289,7 @@ service cloud.firestore {
         return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       }
       allow read: if isMessageParticipant() || isAdmin();
-      allow create: if isSignedIn() && isResourceCreator('senderId');
+      allow create: if (isSignedIn() && isResourceCreator('senderId')) || isAdmin();
       allow update: if (isOwner(resource.data.receiverId) || isAdmin()) && isExistingDoc(); // Only receiver can mark as read.
       allow delete: if false; // Messages are generally immutable.
     }
@@ -297,13 +297,17 @@ service cloud.firestore {
      /**
      * @description Manages real-time chats for support and job communication.
      * @path /chats/{chatId}/messages/{messageId}
-     * @principle Allows participants of a chat to read and write messages.
+     * @principle Allows participants of a chat to read and write messages. Admin has full access for moderation.
      */
     match /chats/{chatId} {
-      allow get: if isSignedIn(); // Add specific participant check if needed
+      // In a real app, read/write would be restricted to participants.
+      // For now, this allows any signed-in user to read, but only admin to create/update top-level chat docs.
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
       
       match /messages/{messageId} {
-        allow read, write: if isSignedIn();
+        // Allows participants of a chat to send messages, and admin to moderate.
+        allow read, write: if isAdmin() || (isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants);
       }
     }
     
@@ -328,7 +332,7 @@ service cloud.firestore {
      */
     match /notifications/{notificationId} {
       allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if isSignedIn() && isResourceCreator('userId');
+      allow create: if (isSignedIn() && isResourceCreator('userId')) || isAdmin();
       allow update: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc() && isImmutable('userId');
       allow delete: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc();
     }

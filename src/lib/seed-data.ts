@@ -149,6 +149,17 @@ export const serviceProviders: NDTServiceProvider[] = [
         techniques: ['UT', 'AE', 'GWT', 'VT', 'MT', 'PT'],
         industries: ['Marine', 'Oil & Gas', 'Power Generation'],
         description: 'An independent expert in assurance and risk management. Driven by its purpose, to safeguard life, property and the environment, DNV empowers its customers and their stakeholders with facts and reliable insights.'
+    },
+    {
+        id: 'provider-ndtx',
+        name: 'NDT EXCHANGE',
+        contactPerson: 'Admin User',
+        contactEmail: 'admin@ndtexchange.com',
+        location: 'Palo Alto, CA',
+        rating: 5.0,
+        techniques: ['ALL'],
+        industries: ['Software'],
+        description: 'The platform provider.'
     }
 ];
 
@@ -204,7 +215,7 @@ export const clientAssets: Asset[] = [
 
 export const inspectorAssets: InspectorAsset[] = [
     { 
-        id: 'UTM-1000', 
+        id: 'EQUIP-1000', 
         name: 'Olympus 45MG', 
         type: 'Instrument',
         manufacturer: 'Olympus',
@@ -224,7 +235,7 @@ export const inspectorAssets: InspectorAsset[] = [
         ]
     },
     { 
-        id: 'PA-Probe-5MHz', 
+        id: 'EQUIP-1001', 
         name: '5MHz Phased Array Probe', 
         type: 'Probe',
         manufacturer: 'Olympus',
@@ -237,7 +248,7 @@ export const inspectorAssets: InspectorAsset[] = [
         nextCalibration: '2024-12-11',
         isPublic: true,
         thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        parentId: 'UTM-1000',
+        parentId: 'EQUIP-1000',
         history: [
              { event: 'Assigned to Kit', user: 'Admin User', timestamp: '2023-02-10T11:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
              { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
@@ -245,7 +256,7 @@ export const inspectorAssets: InspectorAsset[] = [
         ]
     },
     { 
-        id: 'CAL-BLK-01', 
+        id: 'EQUIP-1002', 
         name: 'IIW Type 1 Block',
         type: 'Calibration Standard',
         manufacturer: 'Generic',
@@ -255,14 +266,14 @@ export const inspectorAssets: InspectorAsset[] = [
         approvalStatus: 'Approved',
         nextCalibration: 'N/A',
         isPublic: false,
-        parentId: 'UTM-1000',
+        parentId: 'EQUIP-1000',
         history: [
             { event: 'Assigned to Kit', user: 'Admin User', timestamp: '2023-01-15T16:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
             { event: 'Created', user: 'Admin User', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
         ]
     },
     { 
-        id: 'YOKE-02', 
+        id: 'EQUIP-1003', 
         name: 'Parker B-300S Yoke', 
         type: 'Visual Aid',
         manufacturer: 'Parker Research Corp',
@@ -283,7 +294,7 @@ export const inspectorAssets: InspectorAsset[] = [
         ]
     },
     {
-        id: 'APR-G3',
+        id: 'EQUIP-1004',
         name: 'Dolphin G3',
         type: 'Instrument',
         manufacturer: 'Talcyon',
@@ -301,7 +312,7 @@ export const inspectorAssets: InspectorAsset[] = [
         ]
     },
     {
-        id: 'EQ-PEND-01',
+        id: 'EQUIP-PEND-01',
         name: 'New Eddy Current Probe',
         type: 'Probe',
         techniques: ['ET'],
@@ -367,7 +378,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: '2024-06-21', 
         scheduledEndDate: '2024-06-21', 
         technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
-        equipmentIds: ['YOKE-02'], 
+        equipmentIds: ['EQUIP-1003'], 
         assetIds: ['ASSET-004'], 
         workflow: 'level3',
         history: [
@@ -389,7 +400,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         estimatedBudget: '$5,000',
         certificationsRequired: 'ASNT MT L-II'
     },
-    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', providerId: 'provider-01', location: 'Vessel MT-Alpha', techniques: ['UT'], status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-tech-01'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-001'], workflow: 'standard', jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT UT L-I' },
+    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', providerId: 'provider-01', location: 'Vessel MT-Alpha', techniques: ['UT'], status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-tech-01'], equipmentIds: ['EQUIP-1000'], assetIds: ['ASSET-001'], workflow: 'standard', jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT UT L-I' },
     { 
         id: 'JOB-004', 
         title: 'Pipeline Weld Inspections', 
@@ -402,7 +413,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: dayAfterTomorrow.toISOString().split('T')[0], 
         scheduledEndDate: twoDaysAfterTomorrow.toISOString().split('T')[0], 
         technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
-        equipmentIds: ['UTM-1000', 'PA-Probe-5MHz'], 
+        equipmentIds: ['EQUIP-1000', 'EQUIP-1001'], 
         assetIds: ['ASSET-002'], 
         workflow: 'level3',
         techniques: ['PAUT'],
@@ -429,7 +440,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     },
     { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', clientCompanyId: 'client-06', location: 'Houston, TX', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3', assetIds: ['ASSET-007'], techniques: ['RT'], jobType: 'shutdown', industry: 'Power Generation — Fossil Fuel', certificationsRequired: 'ASNT RT L-II' },
     { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', clientCompanyId: 'client-05', providerId: 'provider-01', location: 'Baton Rouge, LA', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-tech-01'], workflow: 'level3', techniques: ['ET'], jobType: 'project', industry: 'Chemical Processing', certificationsRequired: 'ASNT ET L-II' },
-    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-03', location: 'Long Beach, CA', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], equipmentIds: ['UTM-1000'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['UT'], jobType: 'callout', industry: 'Oil & Gas — Downstream/Refinery', certificationsRequired: 'ASNT UT L-II' },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-03', location: 'Long Beach, CA', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], equipmentIds: ['EQUIP-1000'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['UT'], jobType: 'callout', industry: 'Oil & Gas — Downstream/Refinery', certificationsRequired: 'ASNT UT L-II' },
     { 
         id: 'JOB-009', 
         title: 'APR Inspection of Boiler Tubes', 
@@ -464,7 +475,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: '2024-07-25', 
         scheduledEndDate: '2024-07-28', 
         technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], 
-        equipmentIds: ['UTM-1000'], 
+        equipmentIds: ['EQUIP-1000'], 
         assetIds: ['ASSET-002'], 
         workflow: 'standard',
         history: [
@@ -514,7 +525,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: '2024-07-22', 
         scheduledEndDate: '2024-07-22', 
         technicianIds: ['user-tech-01'], 
-        equipmentIds: ['UTM-1000'], 
+        equipmentIds: ['EQUIP-1000'], 
         assetIds: ['ASSET-001'], 
         workflow: 'standard',
         history: [
@@ -538,7 +549,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         scheduledStartDate: '2024-07-20', 
         scheduledEndDate: '2024-07-20', 
         technicianIds: ['user-tech-01'], 
-        equipmentIds: ['PA-Probe-5MHz'], 
+        equipmentIds: ['EQUIP-1001'], 
         assetIds: ['ASSET-003'], 
         workflow: 'level3',
         history: [
@@ -689,7 +700,7 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-client-03', name: 'Mike Williams', email: 'm.williams@energytransfer.com', role: 'Client', companyId: 'client-03', company: 'Energy Transfer', status: 'Active', password: 'password123' },
     { id: 'user-client-04', name: 'Carlos Ruiz', email: 'c.ruiz@chemc.com', role: 'Client', companyId: 'client-05', company: 'Chemical Plant C', status: 'Active', password: 'password123' },
     { id: 'user-client-05', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', companyId: 'client-09', company: 'Aviation Maintenance Pros', status: 'Active', password: 'password123' },
-    { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'NDTX', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
+    { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
     { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
     { id: 'user-auditor-02', name: 'Brenda Vance', email: 'b.vance@aerocompliance.com', role: 'Auditor', companyId: 'auditor-firm-02', company: 'Aero-Compliance Partners', status: 'Active', password: 'password123', certifications: [{method: 'ET', level: 'Level III'}, {method: 'UT', level: 'Level III'}], level: 'Level III' },
     { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
@@ -851,3 +862,5 @@ export const reviews: Review[] = [
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
+
+    

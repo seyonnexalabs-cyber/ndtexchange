@@ -21,7 +21,8 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
+import type { PlatformUser } from '@/lib/types';
 
 
 const assetSchema = z.object({
@@ -49,6 +50,17 @@ export default function AddAssetPage() {
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
     const role = searchParams.get('role') || 'client';
+    const [userProfile, setUserProfile] = React.useState<PlatformUser | null>(null);
+
+    React.useEffect(() => {
+        if (user && firestore) {
+            getDoc(doc(firestore, 'users', user.uid)).then(docSnap => {
+                if (docSnap.exists()) {
+                    setUserProfile(docSnap.data() as PlatformUser);
+                }
+            });
+        }
+    }, [user, firestore]);
 
     React.useEffect(() => {
         if (role && role !== 'client') {
@@ -98,8 +110,8 @@ export default function AddAssetPage() {
     }
 
     const handleFormSubmit = async (values: z.infer<typeof assetSchema>) => {
-        if (!firestore || !user) {
-            toast({ variant: 'destructive', title: "Error", description: "Database not available. Please try again later." });
+        if (!firestore || !user || !userProfile) {
+            toast({ variant: 'destructive', title: "Error", description: "Database or user profile not available. Please try again later." });
             return;
         }
 
@@ -115,7 +127,7 @@ export default function AddAssetPage() {
 
         const newAssetData = {
             id: assetRef.id,
-            companyId: 'client-01', // Replace with dynamic company ID from user profile
+            companyId: userProfile.companyId,
             status: 'Requires Inspection',
             approvalStatus: 'Pending Approval',
             createdAt: serverTimestamp(),
@@ -467,3 +479,5 @@ export default function AddAssetPage() {
         </div>
     );
 }
+
+    

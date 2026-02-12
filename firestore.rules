@@ -99,6 +99,14 @@ service cloud.firestore {
     function isImmutable(key) {
       return request.resource.data[key] == resource.data[key];
     }
+    
+    /**
+     * Checks if the user is a member of a given company.
+     */
+    function isCompanyMember(companyId) {
+        let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
+        return user != null && user.data.companyId == companyId;
+    }
 
     // --------------------------------
     // Collection Rules
@@ -122,14 +130,20 @@ service cloud.firestore {
     /**
      * @description Manages core asset data.
      * @path /assets/{assetId}
-     * @allow (get) Any authenticated user can read asset details.
-     * @deny (create) Any user trying to create an asset without a valid ownerId.
-     * @principle Public read with owner-only writes.
+     * @allow (list) Any authenticated user can list assets, but queries must be filtered by companyId on the client.
+     * @deny (create) Any user trying to create an asset for a company they do not belong to.
+     * @principle Client queries are secured by companyId, writes are validated against user's company.
      */
     match /assets/{assetId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
+      function isAssetCompanyMember() {
+        return isCompanyMember(resource.data.companyId);
+      }
+      
+      allow get: if isAssetCompanyMember() || isAdmin();
+      allow list: if isSignedIn();
+      allow create: if isCompanyMember(request.resource.data.companyId);
+      allow update: if (isAssetCompanyMember() || isAdmin()) && isImmutable('companyId');
+      allow delete: if isAdmin() || isAssetCompanyMember();
     }
 
     /**

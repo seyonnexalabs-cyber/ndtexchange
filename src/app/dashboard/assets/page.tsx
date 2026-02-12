@@ -2,7 +2,6 @@
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Asset } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, Building, QrCode, Printer, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -17,10 +16,11 @@ import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, doc, setDoc, deleteDoc, getDoc, query, where } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { Asset, PlatformUser } from '@/lib/types';
 
 
 const assetIcons = {
@@ -223,19 +223,27 @@ export default function AssetsPage() {
     // In a real app, this would come from a user context or subscription check.
     const isSubscriptionActive = false;
 
+    const { firestore, user: authUser } = useFirebase();
+    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
+
     useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
     }, [role, router, searchParams]);
 
-    const { firestore, user } = useFirebase();
+    useEffect(() => {
+        if (authUser && firestore) {
+            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
+                if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
+            });
+        }
+    }, [authUser, firestore]);
     
     const assetsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        // In a real app, this would be a more complex query, e.g., using a 'companyId' field
-        return collection(firestore, 'assets');
-    }, [firestore, user]);
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId));
+    }, [firestore, userProfile]);
     
     const { data: assetsFromDb, isLoading } = useCollection<Asset>(assetsQuery);
 
@@ -302,3 +310,5 @@ export default function AssetsPage() {
         </div>
     );
 }
+
+    

@@ -79,12 +79,14 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if the requesting user has admin privileges by reading their user document.
+     * Checks if the requesting user has admin privileges.
+     * It does this by checking for the existence of a document in the `/roles_admin` collection.
+     * This is a fast and non-recursive way to check for admin status.
      */
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
-
+    
     /**
      * Validates that the user is the creator of a resource on creation.
      */
@@ -106,7 +108,7 @@ service cloud.firestore {
     /**
      * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow (get) An authenticated user can read their own profile. This rule is critical for the `isAdmin` function to work without recursion.
+     * @allow (get) An authenticated user can read their own profile.
      * @deny (get) A user trying to read another user's profile directly.
      * @principle Restricts access to a user's own data tree, but allows an admin check.
      */
@@ -285,10 +287,27 @@ service cloud.firestore {
     }
 
     /**
-     * @description Manages which users have administrative privileges. This collection is no longer used for checks.
+     * @description Manages client reviews of providers.
+     * @path /reviews/{reviewId}
+     * @allow (get) Any signed-in user can read reviews.
+     * @allow (list) Only admins can list all reviews.
+     * @allow (create) A user can create a review if they are the client on the job.
+     * @deny (update) A user cannot update a review unless they are an admin.
+     * @principle Admin moderation of user-generated content.
+     */
+    match /reviews/{reviewId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && isResourceCreator('clientId');
+      allow update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Manages which users have administrative privileges.
+     * This collection is used as a fast, non-recursive lookup for the isAdmin() function.
      * @path /roles_admin/{userId}
-     * @allow (get) An admin checking if another user is an admin.
-     * @deny (create) A non-admin user trying to grant themselves admin rights.
+     * @allow (get) Any signed-in user can check for the existence of an admin role.
+     * @deny (create, update, delete) Only admins can manage roles.
      * @principle A restricted collection used as a lookup table for role-based access control.
      */
     match /roles_admin/{userId} {

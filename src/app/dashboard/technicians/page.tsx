@@ -1,10 +1,10 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { allUsers, jobs, NDTTechniques, PlatformUser, Certification } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, MoreVertical, Edit } from "lucide-react";
 import { useMobile } from "@/hooks/use-mobile";
@@ -23,6 +23,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { useFirebase, useUser, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, where, doc, getDoc, updateDoc } from 'firebase/firestore';
+import type { PlatformUser, Job, Certification } from '@/lib/types';
+import { NDTTechniques } from '@/lib/seed-data';
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 const technicianSchema = z.object({
   id: z.string().optional(), // For editing
@@ -296,26 +302,49 @@ export default function TechniciansPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { toast } = useToast();
+    const { firestore, user } = useFirebase();
+
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingTechnician, setEditingTechnician] = useState<PlatformUser | null>(null);
+    const [statusFilter, setStatusFilter] = useState('all');
+    
+    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
 
     useEffect(() => {
         if (role && role !== 'inspector') {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
-    }, [role, router, searchParams]);
+        if (user && firestore) {
+            getDoc(doc(firestore, 'users', user.uid)).then(docSnap => {
+                if (docSnap.exists()) {
+                    setUserProfile(docSnap.data() as PlatformUser);
+                }
+            });
+        }
+    }, [role, router, searchParams, user, firestore]);
     
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingTechnician, setEditingTechnician] = useState<PlatformUser | null>(null);
-    const [technicianList, setTechnicianList] = useState(() => allUsers.filter(u => u.providerId === 'provider-03' && u.role === 'Inspector'));
-    const [statusFilter, setStatusFilter] = useState('all');
+    const techniciansQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'users'), where('companyId', '==', userProfile.companyId), where('role', '==', 'Inspector'));
+    }, [firestore, userProfile]);
+    
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId));
+    }, [firestore, userProfile]);
+
+    const { data: technicianList, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(techniciansQuery);
+    const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
     const technicianListWithStats = useMemo(() => {
+        if (!technicianList || !providerJobs) return [];
         return technicianList.map(tech => {
-            const completedJobs = jobs.filter(job => 
+            const completedJobs = providerJobs.filter(job => 
                 job.technicianIds?.includes(tech.id) && (job.status === 'Completed' || job.status === 'Paid')
             ).length;
             return { ...tech, completedJobs };
         });
-    }, [technicianList]);
+    }, [technicianList, providerJobs]);
 
     const filteredTechnicians = useMemo(() => {
         return technicianListWithStats.filter(tech => {
@@ -346,7 +375,8 @@ export default function TechniciansPage() {
         setEditingTechnician(null);
     }
     
-    const handleFormSubmit = (values: TechnicianFormValues) => {
+    const handleFormSubmit = async (values: TechnicianFormValues) => {
+        if (!firestore || !userProfile) return;
         const isEditing = !!editingTechnician;
 
         const newCertifications: Certification[] = values.certifications.map(certMethod => ({
@@ -354,45 +384,58 @@ export default function TechniciansPage() {
             level: values.level,
         }));
 
-        if (isEditing) {
-            setTechnicianList(prev => prev.map(tech => 
-                tech.id === editingTechnician.id ? { 
-                    ...tech, 
-                    name: values.name, 
-                    certifications: newCertifications, 
-                    level: values.level,
-                    workStatus: values.workStatus || tech.workStatus,
-                    status: values.status || tech.status,
-                } : tech
-            ));
+        if (isEditing && editingTechnician) {
+             const techRef = doc(firestore, "users", editingTechnician.id);
+             await updateDoc(techRef, {
+                name: values.name,
+                certifications: newCertifications,
+                level: values.level,
+                workStatus: values.workStatus || editingTechnician.workStatus,
+                status: values.status || editingTechnician.status,
+             });
             toast({
                 title: "Technician Updated",
                 description: `${values.name}'s profile has been updated.`,
             });
         } else {
-             const newTechnician: PlatformUser = {
-                id: `user-TECH-${String(technicianList.length + 1).padStart(2, '0')}`,
+             const newUser: Omit<PlatformUser, 'id'> = {
                 name: values.name,
-                email: `${values.name.toLowerCase().replace(' ', '.')}@teaminc.com`,
+                email: `${values.name.toLowerCase().replace(/\s/g, '.')}@${userProfile.company.toLowerCase().replace(/\s/g, '')}.com`,
                 role: 'Inspector',
-                company: 'TEAM, Inc.',
-                status: 'Active',
+                companyId: userProfile.companyId,
+                company: userProfile.company,
+                status: 'Invited',
                 certifications: newCertifications,
                 workStatus: 'Available',
-                providerId: 'provider-03', // This would be dynamic in a real app
+                providerId: userProfile.companyId,
                 level: values.level,
             };
-            setTechnicianList(prev => [newTechnician, ...prev]);
+            await addDocumentNonBlocking(collection(firestore, "users"), newUser);
             toast({
-                title: "Technician Added",
-                description: `${values.name} has been added to your roster.`,
+                title: "Technician Invited",
+                description: `An invitation has been sent to ${newUser.email}.`,
             });
         }
         closeDialog();
     };
 
-    if (role && role !== 'inspector') {
+    if (role !== 'inspector') {
         return null;
+    }
+    
+    if (isLoadingJobs || isLoadingTechnicians) {
+        return (
+            <div>
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <Skeleton className="h-8 w-48" />
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </div>
+                <Skeleton className="h-96 w-full" />
+            </div>
+        )
     }
 
     return (
@@ -455,3 +498,5 @@ export default function TechniciansPage() {
         </div>
     );
 }
+
+    

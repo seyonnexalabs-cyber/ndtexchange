@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -7,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobs, subscriptions as initialSubscriptions, Subscription, clientData, payments as allPayments, Payment, serviceProviders, auditFirms } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Mail, Users, Database, Edit, MoreVertical, Briefcase, Calendar as CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
@@ -31,6 +31,10 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { subscriptionPlans as initialPlans, Plan, subscriptionPlanDetails } from '@/lib/subscription-plans';
 import { Switch } from '@/components/ui/switch';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, doc, setDoc, updateDoc } from 'firebase/firestore';
+import type { Subscription, Payment } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const subscriptionSchema = z.object({
@@ -50,12 +54,14 @@ const SubscriptionForm = ({
     formId,
     onSubmit, 
     defaultValues,
-    isEditing
+    isEditing,
+    allCompanies
 }: { 
     formId: string, 
     onSubmit: (values: SubscriptionFormValues) => void,
     defaultValues?: Partial<SubscriptionFormValues>,
-    isEditing: boolean
+    isEditing: boolean,
+    allCompanies: any[]
 }) => {
     const form = useForm<SubscriptionFormValues>({
         resolver: zodResolver(subscriptionSchema),
@@ -88,14 +94,8 @@ const SubscriptionForm = ({
             }
         }
     }, [userLimit, dataLimitGB, plan, form]);
-
-    const allCompanies = useMemo(() => {
-        return [
-            ...clientData.map(c => ({ id: c.id, name: c.name, type: 'Client' })),
-            ...serviceProviders.map(p => ({ id: p.id, name: p.name, type: 'Provider' })),
-            ...auditFirms.map(a => ({ id: a.id, name: a.name, type: 'Auditor' }))
-        ].sort((a, b) => a.name.localeCompare(b.name));
-    }, []);
+    
+    const companyOptions = useMemo(() => allCompanies.map(c => ({ id: c.id, name: c.name })).sort((a,b) => a.name.localeCompare(b.name)), [allCompanies]);
 
     return (
         <Form {...form}>
@@ -111,7 +111,7 @@ const SubscriptionForm = ({
                                     <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {allCompanies.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                    {companyOptions.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -222,11 +222,6 @@ const subscriptionStatusStyles: { [key in Subscription['status']]: 'success' | '
 const paymentStatusStyles: { [key in Payment['status']]: 'success' | 'destructive' } = {
     Succeeded: 'success',
     Failed: 'destructive',
-};
-
-const getContactEmailForSubscription = (subscription: Subscription) => {
-    const client = clientData.find(c => c.id === subscription.companyId);
-    return client?.contactEmail || '';
 };
 
 type MailtoDetails = { link: string; text: string; variant: 'destructive' | 'secondary' | 'default' | 'outline' | 'ghost' | 'link' | null | undefined };
@@ -418,7 +413,7 @@ const SubscriptionsMobileView = ({
 );
 
 
-const PaymentHistoryDesktopView = () => (
+const PaymentHistoryDesktopView = ({ allPayments }: { allPayments: Payment[] }) => (
     <Card>
         <Table>
             <TableHeader>
@@ -452,7 +447,7 @@ const PaymentHistoryDesktopView = () => (
     </Card>
 );
 
-const PaymentHistoryMobileView = () => (
+const PaymentHistoryMobileView = ({ allPayments }: { allPayments: Payment[] }) => (
     <div className="space-y-4">
         {allPayments.map(payment => (
             <Card key={payment.id}>
@@ -548,14 +543,24 @@ export default function SubscriptionsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
+    const { toast } = useToast();
+
     const [activeTab, setActiveTab] = useState("subscriptions");
     const [selectedSubscriptions, setSelectedSubscriptions] = useState<string[]>([]);
     const [isBulkMailOpen, setBulkMailOpen] = useState(false);
-    const { toast } = useToast();
     
-    const [subscriptions, setSubscriptions] = useState(initialSubscriptions);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
+
+    const subscriptionsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'subscriptions'), orderBy('companyName')) : null, [firestore]);
+    const { data: allSubscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(subscriptionsQuery);
+
+    const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
+
+    const paymentsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'payments'), orderBy('date', 'desc')) : null, [firestore]);
+    const { data: allPayments, isLoading: isLoadingPayments } = useCollection<Payment>(paymentsQuery);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -578,42 +583,33 @@ export default function SubscriptionsPage() {
         setEditingSubscription(null);
     }
     
-    const handleFormSubmit = (values: SubscriptionFormValues) => {
-        const company = [...clientData, ...serviceProviders, ...auditFirms].find(c => c.id === values.companyId);
+    const handleFormSubmit = async (values: SubscriptionFormValues) => {
+        if (!firestore) return;
+        const isEditing = !!editingSubscription;
+        const company = allCompanies?.find(c => c.id === values.companyId);
         
-        if (editingSubscription) {
-            // Update existing subscription
-            setSubscriptions(prev => prev.map(s => 
-                s.id === editingSubscription.id 
-                    ? { 
-                        ...s,
-                        ...values,
-                        companyName: company?.name || s.companyName, 
-                        startDate: format(values.startDate, 'yyyy-MM-dd'), 
-                        endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined 
-                      } 
-                    : s
-            ));
+        const dataToSave = {
+            ...values,
+            companyName: company?.name || 'Unknown Company',
+            startDate: format(values.startDate, 'yyyy-MM-dd'), 
+            endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined,
+        };
+
+        if (isEditing && editingSubscription) {
+            const subRef = doc(firestore, 'subscriptions', editingSubscription.id);
+            await updateDoc(subRef, dataToSave);
             toast({ title: "Subscription Updated", description: `The subscription for ${company?.name} has been updated.` });
         } else {
-            // Create new subscription
-            const newSubscription: Subscription = {
-                id: `SUB-${Date.now()}`,
-                companyId: values.companyId,
-                companyName: company?.name || 'Unknown Company',
-                plan: values.plan,
-                status: values.status,
-                startDate: format(values.startDate, 'yyyy-MM-dd'),
-                endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : undefined,
-                userCount: 0,
-                dataUsageGB: 0,
-                userLimit: values.userLimit,
-                dataLimitGB: values.dataLimitGB,
-            };
-            setSubscriptions(prev => [newSubscription, ...prev]);
+            const subRef = doc(collection(firestore, "subscriptions"));
+            await setDoc(subRef, { id: subRef.id, userCount: 0, dataUsageGB: 0, ...dataToSave });
             toast({ title: "Subscription Created", description: `A new subscription has been created for ${company?.name}.` });
         }
         closeDialog();
+    };
+
+    const getContactEmailForSubscription = (subscription: Subscription) => {
+        const company = allCompanies?.find(c => c.id === subscription.companyId);
+        return company?.contactEmail || '';
     };
 
     const getMailtoLink = (sub: Subscription): MailtoDetails => {
@@ -659,7 +655,7 @@ export default function SubscriptionsPage() {
     };
     
     const bulkMailSummary = useMemo(() => {
-        if (!isBulkMailOpen) return null;
+        if (!isBulkMailOpen || !allSubscriptions) return null;
 
         const summary: {[key: string]: {count: number, template: string}} = {
             'Trialing': { count: 0, template: 'Trial Ending Reminder' },
@@ -669,14 +665,14 @@ export default function SubscriptionsPage() {
         };
 
         selectedSubscriptions.forEach(subId => {
-            const sub = subscriptions.find(s => s.id === subId);
+            const sub = allSubscriptions.find(s => s.id === subId);
             if (sub && sub.status in summary) {
                 summary[sub.status as keyof typeof summary].count++;
             }
         });
 
         return summary;
-    }, [isBulkMailOpen, selectedSubscriptions, subscriptions]);
+    }, [isBulkMailOpen, selectedSubscriptions, allSubscriptions]);
 
     const handleBulkEmailSend = () => {
         if (selectedSubscriptions.length === 0) {
@@ -694,6 +690,15 @@ export default function SubscriptionsPage() {
         setBulkMailOpen(false);
         setSelectedSubscriptions([]);
     };
+    
+    if (isLoadingSubscriptions || isLoadingCompanies || isLoadingPayments) {
+        return (
+             <div className="space-y-6">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        )
+    }
 
     if (role !== 'admin') {
         return null;
@@ -737,14 +742,14 @@ export default function SubscriptionsPage() {
                             getMailtoLink={getMailtoLink} 
                             selectedSubscriptions={selectedSubscriptions} 
                             setSelectedSubscriptions={setSelectedSubscriptions}
-                            allSubscriptions={subscriptions}
+                            allSubscriptions={allSubscriptions || []}
                           /> 
                         : <SubscriptionsDesktopView 
                             onEdit={handleEditClick}
                             getMailtoLink={getMailtoLink}
                             selectedSubscriptions={selectedSubscriptions} 
                             setSelectedSubscriptions={setSelectedSubscriptions}
-                            allSubscriptions={subscriptions}
+                            allSubscriptions={allSubscriptions || []}
                           />
                     }
                 </TabsContent>
@@ -752,7 +757,7 @@ export default function SubscriptionsPage() {
                     <PlanManagementView />
                 </TabsContent>
                 <TabsContent value="payment-history">
-                    {isMobile ? <PaymentHistoryMobileView /> : <PaymentHistoryDesktopView />}
+                    {isMobile ? <PaymentHistoryMobileView allPayments={allPayments || []} /> : <PaymentHistoryDesktopView allPayments={allPayments || []} />}
                 </TabsContent>
             </Tabs>
             
@@ -776,6 +781,7 @@ export default function SubscriptionsPage() {
                                 endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
                             } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5, plan: 'Free Trial', status: 'Trialing' }}
                             isEditing={!!editingSubscription}
+                            allCompanies={allCompanies || []}
                         />
                      </div>
                      <DialogFooter className="p-6 pt-4 border-t">

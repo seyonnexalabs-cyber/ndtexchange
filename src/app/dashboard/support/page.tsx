@@ -15,17 +15,18 @@ import { LifeBuoy, MessageSquare, Send, BookOpen } from 'lucide-react';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { allUsers, PlatformUser } from '@/lib/seed-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientMaintenanceWorkflow from './components/client-maintenance-workflow';
 import InspectorWorkflow from './components/inspector-workflow';
 import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy, getDoc } from 'firebase/firestore';
 import { useMobile } from '@/hooks/use-mobile';
 import AdminChatInterface from './components/admin-chat-interface';
 import ClientChatInterface from './components/client-chat-interface';
+import type { PlatformUser } from '@/lib/types';
+
 
 // Define types for Firestore data
 type SupportThread = {
@@ -61,21 +62,26 @@ export default function SupportPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
-  const { firestore, user: authUser } = useFirebase();
+  const { firestore } = useFirebase();
+  const { user: authUser } = useUser();
+  const [currentUser, setCurrentUser] = useState<PlatformUser | null>(null);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useMobile();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
-  const currentUser = useMemo(() => {
-    const userMap: { [key: string]: PlatformUser | undefined } = {
-      client: allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'),
-      inspector: allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'),
-      auditor: allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'),
-      admin: allUsers.find(u => u.id === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2'),
-    };
-    return userMap[role] || userMap.client;
-  }, [role]);
+  useEffect(() => {
+    if (authUser && firestore) {
+        getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
+            if (docSnap.exists()) {
+                setCurrentUser(docSnap.data() as PlatformUser);
+            }
+        });
+    } else {
+        setCurrentUser(null);
+    }
+  }, [authUser, firestore]);
 
   const supportChatQuery = useMemoFirebase(() => {
     if (!firestore || !authUser || !currentUser?.companyId) return null;

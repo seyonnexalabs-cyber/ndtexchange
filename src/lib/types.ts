@@ -290,3 +290,20 @@ export type NDTTechniqueData = {
   id: string,
   name: string
 };
+
+export type NDTCompany = {
+    name: string;
+    url: string;
+    description?: string;
+};
+
+export type NDTTechnique = {
+    id: string;
+    title: string;
+    description: string;
+    isHighlighted: boolean;
+    imageId: string;
+    companies: NDTCompany[];
+};
+
+  

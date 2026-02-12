@@ -1,8 +1,7 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useRef, useEffect } from "react";
-import { assets, jobs, clientAssets, Asset, AssetUpdate } from "@/lib/placeholder-data";
+import { Asset, AssetUpdate, Inspection } from "@/lib/types";
 import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { Paperclip, FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, UploadCloud, Check, Settings, History, AlertTriangle, QrCode, Printer } from "lucide-react";
+import { FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, Check, Settings, History, AlertTriangle, QrCode, Printer } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMobile } from '@/hooks/use-mobile';
@@ -30,6 +29,9 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, collection, query, where } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const assetSchema = z.object({
@@ -538,8 +540,11 @@ export default function AssetDetailPage() {
     const [isEditing, setIsEditing] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
+    const { firestore } = useFirebase();
+
+    const assetRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'assets', id) : null), [firestore, id]);
+    const { data: asset, isLoading: isLoadingAsset, error: assetError } = useDoc<Asset>(assetRef);
     
-    const [asset, setAsset] = React.useState(() => assets.find(a => a.id === id));
     const [isCheckLogOpen, setIsCheckLogOpen] = useState(false);
 
     const searchParams = useSearchParams();
@@ -558,12 +563,13 @@ export default function AssetDetailPage() {
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
     
-    const assetInspections = useMemo(() => jobs.filter(j => j.assetIds?.includes(id)).flatMap(j => j.inspections || []), [id]);
+    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'inspections'), where('assetId', '==', id)) : null), [firestore, id]);
+    const { data: assetInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
 
     const combinedHistory = useMemo(() => {
         if (!asset) return [];
 
-        const inspectionHistory = assetInspections.map(insp => ({
+        const inspectionHistory = (assetInspections || []).map(insp => ({
             type: 'inspection' as const,
             timestamp: parseISO(insp.date).toISOString(),
             data: insp,
@@ -590,6 +596,14 @@ export default function AssetDetailPage() {
         return docs;
     }, [asset]);
 
+    if (isLoadingAsset) {
+        return <div>Loading...</div>;
+    }
+    
+    if (assetError) {
+        return <div>Error loading asset: {assetError.message}</div>;
+    }
+
     if (!asset) {
         notFound();
     }
@@ -611,30 +625,38 @@ export default function AssetDetailPage() {
         }
     };
     
-    const handleFormSubmit = (values: z.infer<typeof assetSchema>) => {
-        if (values.thumbnail) {
-            console.log("Uploaded thumbnail: ", values.thumbnail);
-        }
-        const updatedAsset = { 
-            ...asset, 
-            ...values, 
+    const handleFormSubmit = async (values: z.infer<typeof assetSchema>) => {
+        if (!asset || !firestore) return;
+
+        const { thumbnail, ...assetData } = values;
+
+        const updatedAssetData: Partial<Asset> = {
+            ...assetData,
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
             installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined,
-            // In a real app, you would handle thumbnail upload here and set the `thumbnailUrl`
         };
-        setAsset(updatedAsset as Asset);
-        toast({
-            title: "Asset Updated",
-            description: `${values.name} has been updated successfully.`,
-        });
-        setIsEditing(false);
+
+        try {
+            await updateDoc(doc(firestore, 'assets', asset.id), updatedAssetData);
+
+            if (thumbnail) {
+                console.log("Uploaded thumbnail: ", thumbnail);
+                // In a real app, upload to storage and update thumbnailUrl field.
+            }
+
+            toast({ title: "Asset Updated", description: `${values.name} has been updated successfully.` });
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Error updating asset:", error);
+            toast({ variant: "destructive", title: "Update Failed", description: "Could not save changes." });
+        }
     };
     
-    const handleCheckLogSubmit = (values: z.infer<typeof checkLogSchema>) => {
-        if (!asset) return;
+    const handleCheckLogSubmit = async (values: z.infer<typeof checkLogSchema>) => {
+        if (!asset || !firestore) return;
 
         let newStatus = asset.status;
-        if (values.issuesFound) {
+        if (values.issuesFound && asset.status !== 'Requires Inspection') {
             newStatus = 'Requires Inspection';
         }
 
@@ -650,14 +672,23 @@ export default function AssetDetailPage() {
             // In a real app, you would upload this photo and add the URL to the history entry.
         }
 
-        const updatedAsset = {
-            ...asset,
+        const updatedAssetData = {
             status: newStatus,
             history: [newHistoryEntry, ...(asset.history || [])]
         };
-        setAsset(updatedAsset as Asset);
-        setIsCheckLogOpen(false);
-        toast({ title: 'Routine Check Logged' });
+
+        try {
+            await updateDoc(doc(firestore, 'assets', asset.id), updatedAssetData);
+            setIsCheckLogOpen(false);
+            toast({ title: 'Routine Check Logged' });
+        } catch (error) {
+             console.error("Error logging check:", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to log check",
+                description: "There was a problem saving the routine check.",
+            });
+        }
     };
 
     const isClient = role === 'client';

@@ -319,6 +319,33 @@ service cloud.firestore {
     }
 
     /**
+     * @description Manages company subscription plans. Admin-only.
+     * @path /subscriptions/{subscriptionId}
+     * @principle Grants full access to administrators for billing management.
+     */
+    match /subscriptions/{subscriptionId} {
+      allow read, write: if isAdmin();
+    }
+
+    /**
+     * @description Manages payment records for subscriptions. Admin-only.
+     * @path /payments/{paymentId}
+     * @principle Grants full access to administrators for financial oversight.
+     */
+    match /payments/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    /**
+     * @description Manages payment records for specific jobs. Admin-only.
+     * @path /jobPayments/{paymentId}
+     * @principle Grants full access to administrators for financial oversight.
+     */
+    match /jobPayments/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    /**
      * @description Manages client reviews of providers.
      * @path /reviews/{reviewId}
      * @allow (get, list) Any user can read reviews, enabling public display.

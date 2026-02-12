@@ -105,8 +105,7 @@ service cloud.firestore {
      * Checks if the user is a member of a given company.
      */
     function isCompanyMember(companyId) {
-        let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
-        return user != null && user.data.companyId == companyId;
+        return exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
 
     // --------------------------------
@@ -137,19 +136,12 @@ service cloud.firestore {
      */
     match /assets/{assetId} {
       // Admins have full access
-      allow read, list, write: if isAdmin();
-
-      // Allow any signed-in user to list assets. Client-side queries must enforce security.
+      allow write: if isAdmin();
+      allow read: if isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
       allow list: if isSignedIn();
-
-      // Allow users to read an asset if they belong to the same company
-      allow get: if isCompanyMember(resource.data.companyId);
 
       // Allow users to create an asset for their own company, or if they are an admin
       allow create: if isAdmin() || isCompanyMember(request.resource.data.companyId);
-      
-      // Allow users to update/delete an asset if they belong to the same company
-      allow update, delete: if isAdmin() || isCompanyMember(resource.data.companyId);
     }
 
     /**
@@ -248,8 +240,9 @@ service cloud.firestore {
       function isJobParticipant() {
         return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
       }
-      allow read, list, write: if isAdmin();
-      allow read, list: if true;
+      allow read, write: if isAdmin();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
       allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
@@ -266,7 +259,7 @@ service cloud.firestore {
       function isJobClient() {
         return isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId);
       }
-      allow read, list, write: if isAdmin();
+      allow read, write: if isAdmin();
       allow get, list: if isJobClient() || isOwner(resource.data.inspectorId);
       allow create: if isSignedIn() && isResourceCreator('inspectorId');
       allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId') && isImmutable('jobId');
@@ -279,19 +272,16 @@ service cloud.firestore {
      * @principle A user can manage equipment if they belong to the provider company that owns it.
      */
     match /equipment/{equipmentId} {
-        // Admins have full access
-        allow read, write: if isAdmin(); 
+        allow read, list, write: if isAdmin(); 
         
-        // Granular rules for non-admins
-        function isEquipmentProviderMember(providerId) {
+        function isEquipmentProviderMember() {
             let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
-            return user != null && user.data.companyId == providerId;
+            return user != null && user.data.companyId == resource.data.providerId;
         }
-        
-        allow list: if isSignedIn();
-        allow get: if isEquipmentProviderMember(resource.data.providerId);
-        allow create: if isAdmin() || isEquipmentProviderMember(request.resource.data.providerId);
-        allow update, delete: if isAdmin() || isEquipmentProviderMember(resource.data.providerId);
+
+        allow create: if isAdmin() || isCompanyMember(request.resource.data.providerId);
+        allow read: if isEquipmentProviderMember();
+        allow update, delete: if isEquipmentProviderMember();
     }
 
     /**
@@ -319,10 +309,10 @@ service cloud.firestore {
      */
     match /chats/{chatId} {
       allow read, write: if isAdmin();
-      allow read: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId;
+      allow read, list: if isCompanyMember(resource.data.companyId);
       
       match /messages/{messageId} {
-        allow read, write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/chats/$(chatId)).data.companyId);
+        allow read, write: if isAdmin() || isCompanyMember(get(/databases/$(database)/documents/chats/$(chatId)).data.companyId);
       }
     }
     
@@ -334,7 +324,7 @@ service cloud.firestore {
      * @principle Public read with admin-only writes for directory functionality.
      */
     match /companies/{companyId} {
-      allow read: if true;
+      allow read, list: if true;
       allow create: if isSignedIn() && request.auth.token.email == request.resource.data.contactEmail;
       allow write: if isAdmin();
     }
@@ -348,10 +338,21 @@ service cloud.firestore {
      */
     match /notifications/{notificationId} {
       allow read, write: if isAdmin();
-      allow read: if isOwner(resource.data.userId);
+
+      // Allow users to query for their own notifications.
+      allow list: if request.query.where.userId == request.auth.uid;
+      
+      // Allow users to get their own specific notification document.
+      allow get: if isOwner(resource.data.userId);
+      
+      // Allow any signed-in user to create a notification for themselves.
       allow create: if isSignedIn() && isResourceCreator('userId');
-      allow update: if isOwner(resource.data.userId) && isExistingDoc() && isImmutable('userId');
-      allow delete: if isOwner(resource.data.userId) && isExistingDoc();
+
+      // Allow a user to update their own notification (e.g., mark as read), but not change the recipient.
+      allow update: if isOwner(resource.data.userId) && isImmutable('userId');
+      
+      // Allow a user to delete their own notification.
+      allow delete: if isOwner(resource.data.userId);
     }
 
     /**
@@ -398,8 +399,8 @@ service cloud.firestore {
      * @principle Admin moderation of user-generated content.
      */
     match /reviews/{reviewId} {
-      allow read, list, write: if isAdmin();
-      allow read: if true;
+      allow write: if isAdmin();
+      allow read, list: if true;
       allow create: if isSignedIn() && isResourceCreator('clientId');
     }
     
@@ -421,5 +422,3 @@ service cloud.firestore {
 
   }
 }
-
-    

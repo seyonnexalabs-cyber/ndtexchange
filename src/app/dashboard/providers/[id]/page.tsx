@@ -1,26 +1,24 @@
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
-import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
+import { notFound, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { serviceProviders, allUsers, inspectorAssets, subscriptions, clientData, Review } from "@/lib/placeholder-data";
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-
+import { useFirebase, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
+import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -44,32 +42,56 @@ export default function ProviderDetailPage() {
     const role = searchParams.get('role');
     const { firestore } = useFirebase();
     
-    const provider = useMemo(() => serviceProviders.find(p => p.id === id), [id]);
-    const providerTechnicians = useMemo(() => allUsers.filter(u => u.providerId === id && u.status !== 'Disabled'), [id]);
-    const publicEquipment = useMemo(() => inspectorAssets.filter(e => e.providerId === id && e.isPublic), [id]);
-    const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
+    const providerRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'companies', id as string) : null), [firestore, id]);
+    const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(providerRef);
 
-    const reviewsQuery = useMemoFirebase(() => {
-        if (!firestore || !id) return null;
-        return query(
-            collection(firestore, 'reviews'),
-            where('providerId', '==', id),
-            where('status', '==', 'Approved')
-        );
-    }, [firestore, id]);
+    const teamQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null), [firestore, id]);
+    const { data: providerTechnicians, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
-    const { data: reviewsData } = useCollection<Review>(reviewsQuery);
+    const equipmentQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, id]);
+    const { data: publicEquipment, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
+
+    const subscriptionQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null), [firestore, id]);
+    const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
+    const subscription = subscriptions?.[0];
+    
+    const reviewsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'reviews'), where('providerId', '==', id), where('status', '==', 'Approved')) : null), [firestore, id]);
+    const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
+    
+    const allClientsQuery = useMemoFirebase(() => (firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null), [firestore]);
+    const { data: allClients, isLoading: isLoadingClients } = useCollection<any>(allClientsQuery);
+
+    const allNdtTechniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
+    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(allNdtTechniquesQuery);
 
     const providerReviews = useMemo(() => {
-        if (!reviewsData) return [];
+        if (!reviewsData || !allClients) return [];
         return reviewsData.map(review => {
-            const client = clientData.find(c => c.id === review.clientId);
+            const client = allClients.find(c => c.id === review.clientId);
             return {
                 ...review,
                 clientName: client ? client.name : 'Anonymous Client',
             };
         });
-    }, [reviewsData]);
+    }, [reviewsData, allClients]);
+    
+    const isLoading = isLoadingProvider || isLoadingTeam || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques;
+
+    if (isLoading) {
+       return (
+             <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4 mb-6" />
+                <div className="flex items-center gap-4 mb-6">
+                    <Skeleton className="h-20 w-20 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+                <Skeleton className="h-96 w-full" />
+            </div>
+       )
+    }
 
     if (!provider) {
         notFound();
@@ -112,7 +134,7 @@ export default function ProviderDetailPage() {
                 <Tabs defaultValue="details">
                     <TabsList className="mb-4">
                         <TabsTrigger value="details">Details</TabsTrigger>
-                        <TabsTrigger value="reviews">Reviews ({providerReviews.length})</TabsTrigger>
+                        <TabsTrigger value="reviews">Reviews ({(providerReviews || []).length})</TabsTrigger>
                         <TabsTrigger value="technicians">Technicians</TabsTrigger>
                         <TabsTrigger value="equipment">Equipment</TabsTrigger>
                     </TabsList>
@@ -143,7 +165,7 @@ export default function ProviderDetailPage() {
                                     <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
                                     <div className="flex flex-wrap gap-1.5">
                                         {provider.techniques.map(techAcronym => {
-                                            const technique = allNdtTechniques.find(t => t.id.toUpperCase() === techAcronym);
+                                            const technique = allNdtTechniques?.find(t => t.acronym.toUpperCase() === techAcronym);
                                             return (
                                                 <Tooltip key={techAcronym}>
                                                     <TooltipTrigger>
@@ -182,7 +204,7 @@ export default function ProviderDetailPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {providerReviews.length > 0 ? (
+                                {(providerReviews || []).length > 0 ? (
                                     <div className="space-y-6">
                                         {providerReviews.map(review => (
                                             <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
@@ -225,7 +247,7 @@ export default function ProviderDetailPage() {
                             <CardContent>
                             {isMobile ? (
                                     <div className="space-y-4">
-                                        {providerTechnicians.map(tech => {
+                                        {(providerTechnicians || []).map(tech => {
                                             return (
                                                 <Card key={tech.id} className="p-4">
                                                     <div className="flex items-start justify-between">
@@ -260,7 +282,7 @@ export default function ProviderDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {providerTechnicians.map(tech => {
+                                        {(providerTechnicians || []).map(tech => {
                                             return (
                                                 <TableRow key={tech.id}>
                                                     <TableCell className="font-medium flex items-center gap-3">
@@ -286,7 +308,7 @@ export default function ProviderDetailPage() {
                                     </TableBody>
                                 </Table>
                             )}
-                            {providerTechnicians.length === 0 && (
+                            {(providerTechnicians || []).length === 0 && (
                                     <div className="text-center text-muted-foreground py-10">
                                         No technicians found for this provider.
                                     </div>
@@ -307,7 +329,7 @@ export default function ProviderDetailPage() {
                             <CardContent>
                             {isMobile ? (
                                     <div className="space-y-4">
-                                        {publicEquipment.map(equip => (
+                                        {(publicEquipment || []).map(equip => (
                                             <Card key={equip.id} className="p-4">
                                                 <div className="space-y-1">
                                                     <p className="font-semibold">{equip.name}</p>
@@ -334,7 +356,7 @@ export default function ProviderDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {publicEquipment.map(equip => (
+                                        {(publicEquipment || []).map(equip => (
                                             <TableRow key={equip.id}>
                                                 <TableCell className="font-medium">{equip.name}</TableCell>
                                                 <TableCell>
@@ -349,7 +371,7 @@ export default function ProviderDetailPage() {
                                     </TableBody>
                                 </Table>
                             )}
-                            {publicEquipment.length === 0 && (
+                            {(publicEquipment || []).length === 0 && (
                                     <div className="text-center text-muted-foreground py-10">
                                         This provider has not listed any public equipment.
                                     </div>

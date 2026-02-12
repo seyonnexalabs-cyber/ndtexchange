@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { clientData, jobs, subscriptions, allUsers, PlatformUser } from "@/lib/seed-data";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
+import type { Client, Job, Subscription, PlatformUser } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -29,6 +32,7 @@ export default function ClientDetailPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const isMobile = useMobile();
+    const { firestore } = useFirebase();
     
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -36,13 +40,45 @@ export default function ClientDetailPage() {
         }
     }, [role, router, searchParams]);
 
-    const client = useMemo(() => clientData.find(c => c.id === id), [id]);
-    const clientJobs = useMemo(() => jobs.filter(j => j.client === client?.name), [client]);
-    const subscription = useMemo(() => subscriptions.find(s => s.companyId === id), [id]);
-    const clientTeam = useMemo(() => {
-        if (!client) return [];
-        return allUsers.filter(user => user.company === client.name);
-    }, [client]);
+    const clientRef = useMemoFirebase(() => firestore && id ? doc(firestore, 'companies', id as string) : null, [firestore, id]);
+    const { data: client, isLoading: isLoadingClient } = useDoc<Client>(clientRef);
+    
+    const jobsQuery = useMemoFirebase(() => firestore && id ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', id)) : null, [firestore, id]);
+    const { data: clientJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+
+    const subscriptionQuery = useMemoFirebase(() => firestore && id ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null, [firestore, id]);
+    const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
+    const subscription = subscriptions?.[0];
+
+    const teamQuery = useMemoFirebase(() => firestore && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null, [firestore, id]);
+    const { data: clientTeam, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
+
+    const clientStats = useMemo(() => {
+        if (!clientJobs) return { activeJobs: 0, totalSpend: 0 };
+        const activeJobs = clientJobs.filter(j => !['Completed', 'Paid', 'Canceled'].includes(j.status)).length;
+        const totalSpend = clientJobs.reduce((acc, job) => {
+            const awardedBid = job.bids?.find(b => b.status === 'Awarded');
+            return acc + (awardedBid?.amount || 0);
+        }, 0);
+        return { activeJobs, totalSpend };
+    }, [clientJobs]);
+
+
+    if (isLoadingClient || isLoadingJobs || isLoadingSubs || isLoadingTeam) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4 mb-6" />
+                <div className="flex items-center gap-4 mb-6">
+                    <Skeleton className="h-20 w-20 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+                <Skeleton className="h-64 w-full" />
+            </div>
+        )
+    }
 
     if (!client) {
         notFound();
@@ -105,11 +141,11 @@ export default function ClientDetailPage() {
                                 </div>
                                  <div className="flex items-center gap-3">
                                     <Briefcase className="w-4 h-4 text-primary" />
-                                    <span>{client.activeJobs} Active Jobs</span>
+                                    <span>{clientStats.activeJobs} Active Jobs</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <DollarSign className="w-4 h-4 text-primary" />
-                                    <span>${client.totalSpend.toLocaleString()} Total Spend</span>
+                                    <span>${clientStats.totalSpend.toLocaleString()} Total Spend</span>
                                 </div>
                                 {subscription && (
                                     <div className="flex items-center gap-3">
@@ -134,7 +170,7 @@ export default function ClientDetailPage() {
                         <CardContent>
                         {isMobile ? (
                                 <div className="space-y-4">
-                                    {clientJobs.map(job => {
+                                    {(clientJobs || []).map(job => {
                                       const jobDate = new Date(job.scheduledStartDate || job.postedDate);
                                       return (
                                         <Card key={job.id} className="p-4">
@@ -143,7 +179,7 @@ export default function ClientDetailPage() {
                                                     <p className="font-semibold">{job.title}</p>
                                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                                        {job.techniques.join(', ')} &bull; 
+                                                        {(job.techniques || []).join(', ')} &bull; 
                                                         <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
                                                         {isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
@@ -170,13 +206,13 @@ export default function ClientDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {clientJobs.map(job => {
+                                    {(clientJobs || []).map(job => {
                                       const jobDate = new Date(job.scheduledStartDate || job.postedDate);
                                       return (
                                         <TableRow key={job.id}>
                                             <TableCell className="font-extrabold text-sm">{job.id}</TableCell>
                                             <TableCell className="font-medium">{job.title}</TableCell>
-                                            <TableCell>{job.techniques.join(', ')}</TableCell>
+                                            <TableCell>{(job.techniques || []).join(', ')}</TableCell>
                                             <TableCell>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
                                             </TableCell>
@@ -191,7 +227,7 @@ export default function ClientDetailPage() {
                                 </TableBody>
                             </Table>
                         )}
-                        {clientJobs.length === 0 && (
+                        {(clientJobs || []).length === 0 && (
                                 <div className="text-center text-muted-foreground py-10">
                                     No jobs found for this client.
                                 </div>
@@ -208,7 +244,7 @@ export default function ClientDetailPage() {
                         <CardContent>
                             {isMobile ? (
                                 <div className="space-y-4">
-                                    {clientTeam.map(user => (
+                                    {(clientTeam || []).map(user => (
                                         <Card key={user.id} className="p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
@@ -232,7 +268,7 @@ export default function ClientDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {clientTeam.map(user => (
+                                        {(clientTeam || []).map(user => (
                                             <TableRow key={user.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
                                                     <Avatar>
@@ -248,7 +284,7 @@ export default function ClientDetailPage() {
                                     </TableBody>
                                 </Table>
                             )}
-                             {clientTeam.length === 0 && (
+                             {(clientTeam || []).length === 0 && (
                                 <div className="text-center text-muted-foreground py-10">
                                     No team members found for this client.
                                 </div>

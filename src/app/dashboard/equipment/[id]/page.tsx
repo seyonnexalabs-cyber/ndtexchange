@@ -1,3 +1,4 @@
+${"```tsx"}
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -6,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { InspectorAsset, EquipmentHistory, NDTTechniques, Job, EquipmentType } from "@/lib/types";
+import { InspectorAsset, EquipmentHistory, NDTTechnique, Job, EquipmentType } from "@/lib/types";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical, AlertTriangle } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
@@ -28,8 +29,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RadioTower, Cpu, Waves, Cable, Eye } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { doc, updateDoc, collection, setDoc, arrayUnion } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -58,7 +60,13 @@ const equipmentSchema = z.object({
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
-const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipment: InspectorAsset, allEquipment: InspectorAsset[], onSubmit: (values: EquipmentFormValues) => void, onCancel: () => void }) => {
+const EquipmentForm = ({ equipment, allEquipment, allTechniques, onSubmit, onCancel }: { 
+    equipment: InspectorAsset, 
+    allEquipment: InspectorAsset[], 
+    allTechniques: NDTTechnique[],
+    onSubmit: (values: EquipmentFormValues) => void, 
+    onCancel: () => void 
+}) => {
     const form = useForm<EquipmentFormValues>({
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
@@ -238,12 +246,12 @@ const EquipmentForm = ({ equipment, allEquipment, onSubmit, onCancel }: { equipm
                                 </PopoverTrigger>
                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                     <ScrollArea className="h-48"><div className="p-2">
-                                        {NDTTechniques.map((tech) => (
+                                        {allTechniques.map((tech) => (
                                         <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
-                                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.id)} onCheckedChange={(checked) => {
-                                                return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));
+                                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.acronym)} onCheckedChange={(checked) => {
+                                                return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym));
                                             }}/>
-                                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.name} ({tech.id})</label>
+                                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.title} ({tech.acronym})</label>
                                         </div>
                                         ))}
                                     </div></ScrollArea>
@@ -355,7 +363,11 @@ const addComponentSchema = z.object({
 });
 type AddComponentFormValues = z.infer<typeof addComponentSchema>;
 
-const AddComponentForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (values: AddComponentFormValues) => void }) => {
+const AddComponentForm = ({ onCancel, onSubmit, allTechniques }: { 
+    onCancel: () => void, 
+    onSubmit: (values: AddComponentFormValues) => void,
+    allTechniques: NDTTechnique[]
+}) => {
     const form = useForm<AddComponentFormValues>({
         resolver: zodResolver(addComponentSchema),
         defaultValues: { name: "", type: 'Probe', techniques: [], status: "Available", nextCalibration: new Date() },
@@ -433,9 +445,9 @@ const AddComponentForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubm
                  <FormField control={form.control} name="techniques" render={({ field }) => (
                      <FormItem><FormLabel>Technique(s)</FormLabel>
                          <Popover><PopoverTrigger asChild><FormControl><Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>{field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /></Button></FormControl></PopoverTrigger>
-                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0"><ScrollArea className="h-48"><div className="p-2">{NDTTechniques.map((tech) => (<div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
-                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.id)} onCheckedChange={(checked) => { return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));}}/>
-                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium w-full">{tech.name} ({tech.id})</label>
+                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0"><ScrollArea className="h-48"><div className="p-2">{allTechniques.map((tech) => (<div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
+                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.acronym)} onCheckedChange={(checked) => { return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym));}}/>
+                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium w-full">{tech.title} ({tech.acronym})</label>
                          </div>))}</div></ScrollArea></PopoverContent></Popover><FormMessage /></FormItem>
                  )}/>
                  <FormField control={form.control} name="nextCalibration" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Next Calibration Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -490,6 +502,9 @@ export default function EquipmentDetailPage() {
     const allEquipmentQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'equipment') : null), [firestore]);
     const { data: allEquipmentFromDb, isLoading: isLoadingAllEquipment } = useCollection<InspectorAsset>(allEquipmentQuery);
     const allEquipment = allEquipmentFromDb || [];
+
+    const allTechniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
+    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(allTechniquesQuery);
 
     const childEquipment = useMemo(() => allEquipment.filter(e => e.parentId === id), [id, allEquipment]);
     const parentEquipment = useMemo(() => allEquipment.find(e => e.id === equipment?.parentId), [equipment, allEquipment]);
@@ -560,14 +575,22 @@ export default function EquipmentDetailPage() {
         setIsEditComponentOpen(true);
     };
 
-    const handleComponentFormSubmit = (values: EquipmentFormValues) => {
-        if (!editingComponent) return;
-        // This is a local update for now. In a real app, this would be a Firestore update.
-        // setAllEquipment(prev => prev.map(eq => 
-        //     eq.id === editingComponent.id 
-        //         ? { ...eq, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') } 
-        //         : eq
-        // ));
+    const handleComponentFormSubmit = async (values: EquipmentFormValues) => {
+        if (!editingComponent || !firestore) return;
+
+        const { thumbnail, ...equipmentData } = values;
+        
+        const updatedEquipmentData = {
+            ...equipmentData,
+            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+        };
+        
+        const equipmentDocRef = doc(firestore, 'equipment', editingComponent.id);
+        await updateDoc(equipmentDocRef, {
+            ...updatedEquipmentData,
+            history: arrayUnion({ event: 'Updated', user: 'Maria Garcia', timestamp: new Date().toISOString() })
+        });
+        
         toast({
             title: "Component Updated",
             description: `${values.name} has been updated.`,
@@ -579,8 +602,21 @@ export default function EquipmentDetailPage() {
         return null;
     }
 
-    if (isLoadingEquipment || isLoadingAllEquipment) {
-        return <div>Loading...</div>
+    if (isLoadingEquipment || isLoadingAllEquipment || isLoadingTechniques) {
+        return (
+             <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-1 space-y-6">
+                        <Skeleton className="h-64 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                    <div className="lg:col-span-2">
+                        <Skeleton className="h-96 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
     }
     
     if (!equipment) {
@@ -599,6 +635,7 @@ export default function EquipmentDetailPage() {
                     onCancel={() => setIsEditing(false)}
                     equipment={equipment}
                     allEquipment={allEquipment}
+                    allTechniques={allTechniques || []}
                 />
             </div>
         )
@@ -873,6 +910,7 @@ export default function EquipmentDetailPage() {
                         <AddComponentForm
                             onSubmit={handleAddComponentSubmit}
                             onCancel={() => setIsAddComponentOpen(false)}
+                            allTechniques={allTechniques || []}
                         />
                     </div>
                 </DialogContent>
@@ -893,6 +931,7 @@ export default function EquipmentDetailPage() {
                                 onCancel={() => setIsEditComponentOpen(false)}
                                 equipment={editingComponent}
                                 allEquipment={allEquipment}
+                                allTechniques={allTechniques || []}
                             />
                         )}
                     </div>
@@ -901,5 +940,4 @@ export default function EquipmentDetailPage() {
         </div>
     );
 }
-
-    
+${"```"}

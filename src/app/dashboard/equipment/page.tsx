@@ -1,9 +1,7 @@
-
 'use client';
 import { useState, useMemo, cloneElement, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { inspectorAssets as initialEquipment, jobs, InspectorAsset, EquipmentHistory, Job, EquipmentType } from "@/lib/placeholder-data";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, SlidersHorizontal, RadioTower, QrCode, Wrench, Printer, LogIn, LogOut, Edit, History, Send, Package, Cpu, Waves, Cable, Eye, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -14,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
@@ -27,6 +25,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import type { InspectorAsset, EquipmentHistory, Job, EquipmentType, PlatformUser } from '@/lib/types';
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
@@ -367,18 +369,18 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
 
 
 export default function EquipmentPage() {
-    const usersProviderId = 'provider-03';
-    
-    const [equipment, setEquipment] = useState<InspectorAsset[]>(() => initialEquipment.filter(e => e.providerId === usersProviderId && !e.parentId));
-    const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
-    const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const { toast } = useToast();
+    const { firestore, user } = useFirebase();
     const { setScanOpen } = useQRScanner();
     const { searchQuery } = useSearch();
-    const [statusFilter, setStatusFilter] = useState('all');
 
+    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
+    const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
+    const [statusFilter, setStatusFilter] = useState('all');
+    
     // In a real app, this would come from a user context or subscription check.
     const isSubscriptionActive = false;
 
@@ -386,7 +388,34 @@ export default function EquipmentPage() {
         if (role && role !== 'inspector') {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
-    }, [role, router, searchParams]);
+        if (user && firestore) {
+            getDoc(doc(firestore, 'users', user.uid)).then(docSnap => {
+                if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
+            });
+        }
+    }, [role, router, searchParams, user, firestore]);
+    
+    const equipmentQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId), where('parentId', '==', null));
+    }, [firestore, userProfile]);
+    
+    const { data: equipmentFromDb, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
+
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId));
+    }, [firestore, userProfile]);
+    
+    const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+
+    const equipment = equipmentFromDb || [];
+
+    const jobsForCheckout = useMemo(() => {
+        if (!jobsFromDb) return [];
+        return jobsFromDb.filter(j => ['Assigned', 'Scheduled', 'In Progress'].includes(j.status));
+    }, [jobsFromDb]);
+
     
     const [transactionState, setTransactionState] = useState<{ action: 'check-in' | 'check-out' | 'service-out' | null; equipment: InspectorAsset | null }>({ action: null, equipment: null });
 
@@ -406,10 +435,8 @@ export default function EquipmentPage() {
             return searchMatch && statusMatch;
         });
     }, [equipment, searchQuery, statusFilter]);
-
-    const jobsForCheckout = useMemo(() => jobs.filter(j => j.providerId === usersProviderId && ['Assigned', 'Scheduled', 'In Progress'].includes(j.status)), [usersProviderId]);
-
-     const handleCheckOutClick = (equipment: InspectorAsset) => {
+    
+    const handleCheckOutClick = (equipment: InspectorAsset) => {
         setTransactionState({ action: 'check-out', equipment });
     };
 
@@ -425,40 +452,48 @@ export default function EquipmentPage() {
         setQrCodeData(data);
     }
 
-    const handleTransactionSubmit = (values: CheckInFormValues | CheckOutFormValues | ServiceOutFormValues) => {
+    const handleTransactionSubmit = async (values: CheckInFormValues | CheckOutFormValues | ServiceOutFormValues) => {
         const { action, equipment } = transactionState;
         
         closeTransactionDialog();
 
-        setTimeout(() => {
-            if (!equipment || !action) return;
+        if (!equipment || !action || !firestore) return;
 
-            let notes = '';
-            let newStatus: InspectorAsset['status'] = equipment.status;
-            let historyEvent: EquipmentHistory['event'];
+        let notes = '';
+        let newStatus: InspectorAsset['status'] = equipment.status;
+        let historyEvent: EquipmentHistory['event'];
 
-            if (action === 'check-in') {
-                const formValues = values as CheckInFormValues;
-                notes = [`Condition: ${formValues.condition}`, formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`, formValues.notes].filter(Boolean).join('. ');
-                newStatus = formValues.condition === 'Damaged' ? 'Out of Service' : formValues.condition === 'Requires Calibration' ? 'Calibration Due' : 'Available';
-                historyEvent = 'Checked In';
-            } else if (action === 'check-out') {
-                const formValues = values as CheckOutFormValues;
-                const jobTitle = jobs.find(j => j.id === formValues.jobId)?.title || formValues.jobId;
-                notes = [`Job: ${jobTitle}`, formValues.notes].filter(Boolean).join('. ');
-                newStatus = 'In Use';
-                historyEvent = 'Checked Out';
-            } else { // service-out
-                 const formValues = values as ServiceOutFormValues;
-                notes = [`Service: ${formValues.serviceType} with ${formValues.vendor}`, formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`, formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`, formValues.vendorContactPerson, formValues.notes].filter(Boolean).join('. ');
-                newStatus = 'Under Service';
-                historyEvent = 'Checked Out for Service';
-            }
+        if (action === 'check-in') {
+            const formValues = values as CheckInFormValues;
+            notes = [`Condition: ${formValues.condition}`, formValues.hoursUsed !== undefined && `Hours Used: ${formValues.hoursUsed}`, formValues.notes].filter(Boolean).join('. ');
+            newStatus = formValues.condition === 'Damaged' ? 'Out of Service' : formValues.condition === 'Requires Calibration' ? 'Calibration Due' : 'Available';
+            historyEvent = 'Checked In';
+        } else if (action === 'check-out') {
+            const formValues = values as CheckOutFormValues;
+            const jobTitle = jobsFromDb?.find(j => j.id === formValues.jobId)?.title || formValues.jobId;
+            notes = [`Job: ${jobTitle}`, formValues.notes].filter(Boolean).join('. ');
+            newStatus = 'In Use';
+            historyEvent = 'Checked Out';
+        } else { // service-out
+             const formValues = values as ServiceOutFormValues;
+            notes = [`Service: ${formValues.serviceType} with ${formValues.vendor}`, formValues.serviceOrderNumber && `SO#: ${formValues.serviceOrderNumber}`, formValues.expectedReturnDate && `Expected Return: ${format(formValues.expectedReturnDate, GLOBAL_DATE_FORMAT)}`, formValues.vendorContactPerson, formValues.notes].filter(Boolean).join('. ');
+            newStatus = 'Under Service';
+            historyEvent = 'Checked Out for Service';
+        }
 
-            const newHistoryEntry: EquipmentHistory = { event: historyEvent!, user: 'Jane Smith', timestamp: new Date().toISOString(), notes: notes };
-            setEquipment(prev => prev.map(eq => eq.id === equipment.id ? { ...eq, status: newStatus, history: [newHistoryEntry, ...(eq.history || [])] } : eq));
+        const newHistoryEntry: EquipmentHistory = { event: historyEvent!, user: userProfile?.name || 'System', timestamp: new Date().toISOString(), notes: notes };
+        const equipmentRef = doc(firestore, 'equipment', equipment.id);
+        
+        try {
+            await updateDoc(equipmentRef, {
+                status: newStatus,
+                history: arrayUnion(newHistoryEntry)
+            });
             toast({ title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`, description: `${equipment.name} status has been updated to '${newStatus}'.`});
-        }, 50);
+        } catch(e) {
+            console.error(e);
+            toast({ title: 'Update failed', description: 'Could not update equipment status.', variant: 'destructive'});
+        }
     };
 
     const isTransactionDialogOpen = transactionState.action !== null;
@@ -470,8 +505,25 @@ export default function EquipmentPage() {
         'service-out': 'Check Out for Service',
     }[transactionState.action || ''] || '';
 
-    if (role && role !== 'inspector') {
+    if (role !== 'inspector') {
         return null;
+    }
+    
+    if(isLoadingEquipment || isLoadingJobs || !userProfile) {
+        return (
+             <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-48" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-24" />
+                        <Skeleton className="h-10 w-36" />
+                    </div>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)}
+                </div>
+            </div>
+        )
     }
     
     return (

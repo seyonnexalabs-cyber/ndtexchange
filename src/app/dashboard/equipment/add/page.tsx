@@ -20,9 +20,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from 'next/image';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from "firebase/firestore";
-import type { InspectorAsset } from "@/lib/types";
-import { NDTTechniques } from '@/lib/seed-data';
+import { collection, query, where } from "firebase/firestore";
+import type { InspectorAsset, NDTTechnique } from "@/lib/types";
 
 
 const equipmentSchema = z.object({
@@ -51,9 +50,15 @@ export default function AddEquipmentPage() {
     const equipmentQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         // This should probably be filtered by the user's providerId
-        return collection(firestore, 'equipment');
+        return query(collection(firestore, 'equipment'), where('parentId', '==', null));
     }, [firestore]);
     const { data: inspectorAssets } = useCollection<InspectorAsset>(equipmentQuery);
+
+    const techniquesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'techniques');
+    }, [firestore]);
+    const { data: allTechniques } = useCollection<NDTTechnique>(techniquesQuery);
 
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -231,7 +236,7 @@ export default function AddEquipmentPage() {
                                             </FormControl>
                                             <SelectContent>
                                                 <SelectItem value="none">None (Standalone Equipment)</SelectItem>
-                                                {(inspectorAssets || []).filter(eq => !eq.parentId).map(parent => (
+                                                {(inspectorAssets || []).map(parent => (
                                                      <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -270,20 +275,20 @@ export default function AddEquipmentPage() {
                                             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                                 <ScrollArea className="h-48">
                                                 <div className="p-2">
-                                                    {NDTTechniques.map((tech) => (
+                                                    {(allTechniques || []).map((tech) => (
                                                     <div
                                                         key={tech.id}
                                                         className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"
                                                     >
                                                         <Checkbox
                                                         id={`tech-${tech.id}`}
-                                                        checked={field.value?.includes(tech.id)}
+                                                        checked={field.value?.includes(tech.acronym)}
                                                         onCheckedChange={(checked) => {
                                                             return checked
-                                                            ? field.onChange([...(field.value || []), tech.id])
+                                                            ? field.onChange([...(field.value || []), tech.acronym])
                                                             : field.onChange(
                                                                 field.value?.filter(
-                                                                    (value) => value !== tech.id
+                                                                    (value) => value !== tech.acronym
                                                                 )
                                                                 );
                                                         }}
@@ -292,7 +297,7 @@ export default function AddEquipmentPage() {
                                                         htmlFor={`tech-${tech.id}`}
                                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full"
                                                         >
-                                                        {tech.name} ({tech.id})
+                                                        {tech.title} ({tech.acronym})
                                                         </label>
                                                     </div>
                                                     ))}
@@ -446,5 +451,3 @@ export default function AddEquipmentPage() {
         </div>
     );
 }
-
-  

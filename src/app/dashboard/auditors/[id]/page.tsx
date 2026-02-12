@@ -11,8 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, MapPin, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { allUsers, auditFirms } from "@/lib/seed-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
+import type { PlatformUser, AuditFirm } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function AuditorDetailPage() {
@@ -20,14 +23,30 @@ export default function AuditorDetailPage() {
     const { id } = params;
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
+
+    const auditorRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'companies', id as string) : null), [firestore, id]);
+    const { data: auditor, isLoading: isLoadingAuditor } = useDoc<AuditFirm>(auditorRef);
     
-    const auditor = useMemo(() => auditFirms.find(p => p.id === id), [id]);
+    const teamQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null), [firestore, id]);
+    const { data: auditorTeam, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
-    const auditorTeam = useMemo(() => {
-        if (!auditor) return [];
-        return allUsers.filter(user => user.company === auditor.name);
-    }, [auditor]);
-
+    if (isLoadingAuditor || isLoadingTeam) {
+        return (
+             <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4 mb-6" />
+                <div className="flex items-center gap-4 mb-6">
+                    <Skeleton className="h-20 w-20 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+                <Skeleton className="h-64 w-full" />
+            </div>
+        );
+    }
+    
     if (!auditor) {
         notFound();
     }
@@ -82,7 +101,7 @@ export default function AuditorDetailPage() {
                             <div>
                                 <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {auditor.services.map(service => (
+                                    {(auditor.services || []).map(service => (
                                         <Badge key={service} variant="secondary" shape="rounded">{service}</Badge>
                                     ))}
                                 </div>
@@ -90,7 +109,7 @@ export default function AuditorDetailPage() {
                              <div className="mt-4">
                                 <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {auditor.industries.map(industry => (
+                                    {(auditor.industries || []).map(industry => (
                                         <Badge key={industry} variant="outline" shape="rounded">{industry}</Badge>
                                     ))}
                                 </div>
@@ -114,7 +133,7 @@ export default function AuditorDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {auditorTeam.map(user => (
+                                    {(auditorTeam || []).map(user => (
                                         <TableRow key={user.id}>
                                             <TableCell className="font-medium flex items-center gap-3">
                                                  <Avatar>
@@ -128,7 +147,7 @@ export default function AuditorDetailPage() {
                                     ))}
                                 </TableBody>
                             </Table>
-                            {auditorTeam.length === 0 && (
+                            {(auditorTeam || []).length === 0 && (
                                 <div className="text-center text-muted-foreground py-10">
                                     No team members are publicly listed for this firm.
                                 </div>

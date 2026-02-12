@@ -29,8 +29,13 @@ export default function AuditorsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
 
-    const auditorsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Auditor')) : null, [firestore]);
-    const { data: initialAuditFirms, isLoading: isLoadingAuditors } = useCollection<AuditFirm>(auditorsQuery);
+    const auditorsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
+    const { data: allCompanies, isLoading: isLoadingAuditors } = useCollection<any>(auditorsQuery);
+
+    const initialAuditFirms = useMemo<AuditFirm[]>(() => {
+        if (!allCompanies) return [];
+        return allCompanies.filter(c => c.type === 'Auditor');
+    }, [allCompanies]);
 
     const { auditFirmServices, auditFirmIndustries } = useMemo(() => {
         if (!initialAuditFirms) return { auditFirmServices: [], auditFirmIndustries: [] };

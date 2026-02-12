@@ -2,10 +2,9 @@
  * # Core Philosophy
  * This ruleset enforces a security model based on user roles (Admin, Client, Inspector)
  * and direct ownership or participation in data. Administrative users, identified by
- * their presence in the `/roles_admin` collection, have elevated privileges. For all
- * other users, access is granted based on specific fields within documents, such as
- * `clientId` on a Job, `inspectorId` on an Inspection, or `senderId`/`receiverId` on
- * a Message.
+ * their email address, have elevated privileges. For all other users, access is
+ * granted based on specific fields within documents, such as `clientId` on a Job,
+ * `inspectorId` on an Inspection, or `senderId`/`receiverId` on a Message.
  *
  * # Data Structure
  * The data is organized into several top-level collections representing the core
@@ -15,8 +14,8 @@
  * such as Bids within a Job.
  *
  * # Key Security Decisions
- * - Admin Access: A user is considered an admin if their UID exists as a document
- *   within the `/roles_admin` collection. This is a simple and performant check.
+ * - Admin Access: A user is considered an admin if their authenticated email is
+ *   'admin@ndtexchange.com'. This is a fast and secure check.
  * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
  *   They are the only ones who can read or write their own document. Listing all
  *   users is disabled to protect user privacy (except for admins).
@@ -80,11 +79,11 @@ service cloud.firestore {
 
     /**
      * Checks if the requesting user has admin privileges.
-     * It does this by checking for the existence of a document in the `/roles_admin` collection.
+     * It does this by checking for the authenticated user's email address.
      * This is a fast and non-recursive way to check for admin status.
      */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && request.auth.token.email == 'admin@ndtexchange.com';
     }
     
     /**
@@ -300,19 +299,6 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Manages which users have administrative privileges.
-     * This collection is used as a fast, non-recursive lookup for the isAdmin() function.
-     * @path /roles_admin/{userId}
-     * @allow (get) Any signed-in user can check for the existence of an admin role.
-     * @deny (create, update, delete) Only admins can manage roles.
-     * @principle A restricted collection used as a lookup table for role-based access control.
-     */
-    match /roles_admin/{userId} {
-      allow get: if isSignedIn();
-      allow list, create, update, delete: if isAdmin();
     }
     
     /**

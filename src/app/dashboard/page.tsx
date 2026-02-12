@@ -696,6 +696,12 @@ const AdminDashboard = () => {
                 const { password, ...userToSave } = user;
                 batch.set(docRef, userToSave);
             });
+
+            const adminUser = allUsers.find(u => u.role === 'Admin');
+            if (adminUser) {
+                const roleRef = doc(firestore, 'roles_admin', adminUser.id);
+                batch.set(roleRef, { isAdmin: true });
+            }
             
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
             allCompanies.forEach(company => {

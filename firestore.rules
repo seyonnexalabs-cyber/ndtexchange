@@ -137,7 +137,7 @@ service cloud.firestore {
      */
     match /assets/{assetId} {
       // Admins have full access
-      allow read, write: if isAdmin();
+      allow read, list, write: if isAdmin();
 
       // Allow any signed-in user to list assets. Client-side queries must enforce security.
       allow list: if isSignedIn();
@@ -145,11 +145,11 @@ service cloud.firestore {
       // Allow users to read an asset if they belong to the same company
       allow get: if isCompanyMember(resource.data.companyId);
 
-      // Allow users to create an asset for their own company
-      allow create: if isCompanyMember(request.resource.data.companyId);
+      // Allow users to create an asset for their own company, or if they are an admin
+      allow create: if isAdmin() || isCompanyMember(request.resource.data.companyId);
       
       // Allow users to update/delete an asset if they belong to the same company
-      allow update, delete: if isCompanyMember(resource.data.companyId);
+      allow update, delete: if isAdmin() || isCompanyMember(resource.data.companyId);
     }
 
     /**
@@ -283,7 +283,6 @@ service cloud.firestore {
         allow read, write: if isAdmin(); 
         
         // Granular rules for non-admins
-        // Check if the user's companyId matches the equipment's providerId
         function isEquipmentProviderMember(providerId) {
             let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
             return user != null && user.data.companyId == providerId;
@@ -291,8 +290,8 @@ service cloud.firestore {
         
         allow list: if isSignedIn();
         allow get: if isEquipmentProviderMember(resource.data.providerId);
-        allow create: if isEquipmentProviderMember(request.resource.data.providerId);
-        allow update, delete: if isEquipmentProviderMember(resource.data.providerId);
+        allow create: if isAdmin() || isEquipmentProviderMember(request.resource.data.providerId);
+        allow update, delete: if isAdmin() || isEquipmentProviderMember(resource.data.providerId);
     }
 
     /**

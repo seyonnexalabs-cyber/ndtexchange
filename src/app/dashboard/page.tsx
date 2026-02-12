@@ -668,14 +668,15 @@ const AdminDashboard = () => {
             toast({ variant: "destructive", title: "Error", description: "Firestore is not available." });
             return;
         }
-
+    
         setIsSeeding(true);
         toast({ title: "Database Seeding Started", description: "Check the browser console for detailed progress." });
         console.clear();
         console.log("%c--- Starting Database Seed ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
-
+    
         const seedCollection = async (collectionName: string, data: any[], customizer?: (item: any) => any) => {
             try {
+                console.log(`[SEED] Starting: ${collectionName}...`);
                 const batch = writeBatch(firestore);
                 data.forEach(item => {
                     const itemData = customizer ? customizer(item) : item;
@@ -694,14 +695,14 @@ const AdminDashboard = () => {
                 throw new Error(`Failed to seed ${collectionName}`);
             }
         };
-
+    
         try {
-            console.group("Step 1: Foundational Data (No Dependencies)");
+            console.groupCollapsed("Step 1: Foundational Data (No Dependencies)");
             await seedCollection('techniques', NDTTechniques);
             await seedCollection('manufacturers', manufacturersData);
             console.groupEnd();
-            
-            console.group("Step 2: Core Entities (Users, Companies)");
+
+            console.groupCollapsed("Step 2: Core Entities (Users, Companies)");
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
             await seedCollection('companies', allCompanies);
             await seedCollection('users', allUsers, (user) => {
@@ -710,10 +711,10 @@ const AdminDashboard = () => {
             });
             console.groupEnd();
             
-            console.group("Step 3: Role & Subscription Management");
+            console.groupCollapsed("Step 3: Role & Subscription Management");
             try {
                 console.log(`[SEED] Starting: roles_admin...`);
-                const adminUser = allUsers.find(u => u.role === 'Admin');
+                const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
                 if (adminUser) {
                     const roleRef = doc(firestore, 'roles_admin', adminUser.id);
                     await setDoc(roleRef, { isAdmin: true });
@@ -727,10 +728,12 @@ const AdminDashboard = () => {
             await seedCollection('subscriptions', subscriptionsData);
             console.groupEnd();
 
-            console.group("Step 4: Operational Data");
+            console.groupCollapsed("Step 4: Operational Data (Assets & Equipment)");
             await seedCollection('assets', clientAssets);
             await seedCollection('equipment', inspectorAssets);
-            
+            console.groupEnd();
+
+            console.groupCollapsed("Step 5: Operational Data (Jobs, Bids, Inspections, Reports)");
             try {
                 console.log(`[SEED] Starting: jobs, bids, inspections, reports...`);
                 const jobsBatch = writeBatch(firestore);
@@ -740,13 +743,13 @@ const AdminDashboard = () => {
                     jobsBatch.set(jobRef, jobData);
                     
                     bids.forEach(bid => {
-                        const bidRef = doc(firestore, 'bids', bid.id);
+                        const bidRef = doc(firestore, 'jobs', job.id, 'bids', bid.id);
                         jobsBatch.set(bidRef, bid);
                     });
                     
                     inspections.forEach(inspection => {
                         const { report, ...inspectionData } = inspection;
-                        const inspectionRef = doc(firestore, 'inspections', inspection.id);
+                        const inspectionRef = doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id);
                         jobsBatch.set(inspectionRef, inspectionData);
 
                         if(report) {
@@ -758,13 +761,17 @@ const AdminDashboard = () => {
                 await jobsBatch.commit();
                 console.log(`[SEED] ✅ Success: jobs, bids, inspections, and reports seeded.`);
             } catch (error: any) {
-                 console.error(`[SEED] ❌ Failed to seed jobs/bids/inspections:`, error);
-                 toast({ variant: "destructive", title: 'Seeding Failed on: jobs/bids/inspections', description: `Error: ${error.message}` });
-                 throw new Error('Failed to seed jobs/bids/inspections');
+                console.error(`[SEED] ❌ Failed to seed jobs/bids/inspections:`, error);
+                toast({
+                    variant: "destructive",
+                    title: `Seeding Failed on: Jobs & Related Data`,
+                    description: `Error: ${error.message}. Check console for details.`,
+                });
+                throw new Error('Failed to seed jobs/bids/inspections');
             }
             console.groupEnd();
 
-            console.group("Step 5: Relational & Log Data");
+            console.groupCollapsed("Step 6: Relational & Log Data");
             await seedCollection('reviews', reviewsData, (review) => ({ ...review, date: new Date(review.date) }));
             await seedCollection('userAuditLogs', userAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
             await seedCollection('jobAuditLogs', jobAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
@@ -792,16 +799,16 @@ const AdminDashboard = () => {
             }
             console.groupEnd();
             
-            console.group("Step 6: Financial Data");
+            console.groupCollapsed("Step 7: Financial Data");
             await seedCollection('payments', paymentsData);
             await seedCollection('jobPayments', jobPaymentsData);
             console.groupEnd();
-
+    
             toast({
                 title: "Database Seeded Successfully!",
                 description: "All collections have been populated.",
             });
-
+    
         } catch (error) {
             console.error("Seeding process stopped due to an error.", error);
         } finally {

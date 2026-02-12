@@ -359,7 +359,7 @@ const AppSidebar = () => {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
-        {state === 'expanded' && planDetails && (
+        {state === 'expanded' && planDetails && role !== 'admin' && role !== 'auditor' && (
           <div>
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>

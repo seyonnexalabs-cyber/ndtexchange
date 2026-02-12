@@ -701,7 +701,13 @@ const AdminDashboard = () => {
         };
 
         try {
-            await seedCollection('assets', clientAssets);
+            // Order is important due to security rule dependencies (get() calls)
+            await seedCollection('techniques', NDTTechniques);
+            await seedCollection('manufacturers', manufacturersData);
+            
+            const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
+            await seedCollection('companies', allCompanies);
+            
             await seedCollection('users', allUsers, (user) => {
                 const { password, ...userToSave } = user;
                 return userToSave;
@@ -720,10 +726,11 @@ const AdminDashboard = () => {
                 toast({ variant: "destructive", title: 'Seeding Failed on: roles_admin', description: `Error: ${error.message}` });
                 throw new Error('Failed to seed roles_admin');
             }
-
-            const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-            await seedCollection('companies', allCompanies);
             
+            await seedCollection('subscriptions', subscriptionsData);
+            await seedCollection('assets', clientAssets);
+            await seedCollection('equipment', inspectorAssets);
+
             try {
                 console.log(`[SEED] Starting: jobs, bids, inspections...`);
                 const jobsBatch = writeBatch(firestore);
@@ -756,11 +763,7 @@ const AdminDashboard = () => {
                  throw new Error('Failed to seed jobs/bids/inspections');
             }
 
-            await seedCollection('equipment', inspectorAssets);
-            await seedCollection('techniques', NDTTechniques);
-            await seedCollection('manufacturers', manufacturersData);
             await seedCollection('reviews', reviewsData, (review) => ({ ...review, date: new Date(review.date) }));
-            await seedCollection('subscriptions', subscriptionsData);
             await seedCollection('userAuditLogs', userAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
             await seedCollection('jobAuditLogs', jobAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
             await seedCollection('billingAuditLogs', billingAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));

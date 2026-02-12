@@ -15,7 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { allUsers, clientData, serviceProviders, auditFirms, subscriptions, NDTTechniques, auditFirmIndustries } from '@/lib/placeholder-data';
+import { allUsers, clientData, serviceProviders, auditFirms, subscriptions } from '@/lib/placeholder-data';
+import { NDTTechniques, auditFirmIndustries } from '@/lib/seed-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -206,53 +207,6 @@ const TeamManagementSettings = ({ user }: { user: { name: string, email: string,
                     </Button>
                 </div>
             </CardFooter>
-        </Card>
-    );
-};
-
-
-const AdminTeamManagement = () => {
-    const adminUsers = allUsers.filter(user => user.role.toLowerCase().includes('admin'));
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Admin Team Management</CardTitle>
-                <CardDescription>
-                    Manage users with administrative privileges. New admins can be invited from the main <Link href="/dashboard/users" className="text-primary underline">User Management</Link> page.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {adminUsers.map(user => (
-                            <TableRow key={user.id}>
-                                <TableCell className="font-medium flex items-center gap-3">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarFallback className="text-lg font-bold font-headline">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                    </Avatar>
-                                    {user.name}
-                                </TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                   <Button variant="ghost" size="sm">Manage</Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
         </Card>
     );
 };
@@ -803,7 +757,27 @@ export default function SettingsPage() {
         <TabsContent value="team">
               {isSubscriptionActive ? (
                 role === 'admin' ? 
-                    <AdminTeamManagement /> : 
+                    (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>User Management</CardTitle>
+                                <CardDescription>
+                                    As a platform administrator, you manage all users across the platform from the main User Management page.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    This central dashboard allows you to view, invite, edit, and manage permissions for all clients, providers, and auditors.
+                                </p>
+                            </CardContent>
+                            <CardFooter>
+                                <Button asChild>
+                                    <Link href={constructUrl("/dashboard/users")}>Go to User Management</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    )
+                     : 
                     <TeamManagementSettings user={currentUser} />
               ) : (
                 <Card>
@@ -912,4 +886,3 @@ export default function SettingsPage() {
   );
 }
 
-    

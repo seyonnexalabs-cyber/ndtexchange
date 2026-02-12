@@ -1,7 +1,11 @@
-
 import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer } from '@/lib/types';
 import { subscriptionPlans } from './subscription-plans';
 import { NDTTechniques } from './ndt-techniques-data';
+
+// This file serves as the master data source for seeding the Firestore database.
+// The application itself should NOT import data from this file for rendering.
+// Instead, components should use the Firebase hooks (useCollection, useDoc) to fetch live data.
+// The only exception is the database seeding function on the admin dashboard.
 
 export const manufacturersData: Manufacturer[] = [
   { id: 'manu-01', name: 'Olympus', url: 'https://www.olympus-ims.com/', logoUrl: 'https://placehold.co/200x80/0055A8/FFFFFF/png?text=OLYMPUS', description: 'A leading manufacturer of optical and digital precision technology.', techniqueIds: ['UT', 'PAUT', 'ET', 'VT'] },
@@ -516,7 +520,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         postedDate: '2024-07-25', 
         scheduledStartDate: nextWeek.toISOString().split('T')[0], 
         scheduledEndDate: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
-        assetIds: ['ASSET-001', 'ASSET-004'], 
+        assetIds: ['ASSET-003', 'ASSET-006'], 
         workflow: 'standard',
         techniques: ['PT'],
         jobType: 'shutdown',
@@ -876,3 +880,6 @@ export const reviews: Review[] = [
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
+
+// Re-export NDTTechniques for seeding purposes
+export { NDTTechniques };

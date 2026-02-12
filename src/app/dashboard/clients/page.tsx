@@ -1,8 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { clientData } from "@/lib/seed-data";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Briefcase, DollarSign, MoreVertical } from "lucide-react";
 import { useMobile } from "@/hooks/use-mobile";
@@ -10,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,6 +17,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
+import { Client, Job } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const clientSchema = z.object({
@@ -118,7 +121,7 @@ const ClientForm = ({ onCancel, onSubmit }: { onCancel: () => void, onSubmit: (v
 };
 
 
-const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
+const DesktopView = ({ constructUrl, clients }: { constructUrl: (base: string) => string; clients: (Client & { activeJobs: number; totalSpend: number; })[] }) => (
     <Card>
         <CardHeader>
             <CardTitle>Client Accounts</CardTitle>
@@ -136,7 +139,7 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {clientData.map(client => (
+                    {clients.map(client => (
                         <TableRow key={client.id}>
                             <TableCell className="font-medium flex items-center gap-3">
                                 <Avatar>
@@ -163,9 +166,9 @@ const DesktopView = ({ constructUrl }: { constructUrl: (base: string) => string 
     </Card>
 );
 
-const MobileView = ({ constructUrl }: { constructUrl: (base: string) => string }) => (
+const MobileView = ({ constructUrl, clients }: { constructUrl: (base: string) => string; clients: (Client & { activeJobs: number; totalSpend: number; })[] }) => (
     <div className="space-y-4">
-        {clientData.map(client => (
+        {clients.map(client => (
             <Card key={client.id}>
                 <CardHeader>
                     <div className="flex items-center gap-3">
@@ -206,6 +209,26 @@ export default function ClientsPage() {
     const role = searchParams.get('role');
     const [isAddClientOpen, setAddClientOpen] = useState(false);
     const { toast } = useToast();
+    const { firestore } = useFirebase();
+
+    const clientsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null, [firestore]);
+    const { data: clientData, isLoading: isLoadingClients } = useCollection<Client>(clientsQuery);
+    
+    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
+    const { data: allJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+
+    const clientsWithStats = useMemo(() => {
+        if (!clientData || !allJobs) return [];
+        return clientData.map(client => {
+            const clientJobs = allJobs.filter(j => j.clientCompanyId === client.id);
+            const activeJobs = clientJobs.filter(j => !['Completed', 'Paid', 'Canceled'].includes(j.status)).length;
+            const totalSpend = clientJobs.reduce((acc, job) => {
+                const awardedBid = job.bids?.find(b => b.status === 'Awarded');
+                return acc + (awardedBid?.amount || 0);
+            }, 0);
+            return { ...client, activeJobs, totalSpend };
+        });
+    }, [clientData, allJobs]);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -231,6 +254,15 @@ export default function ClientsPage() {
         return null;
     }
 
+    if (isLoadingClients || isLoadingJobs) {
+        return (
+             <div className="space-y-6">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        )
+    }
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -243,7 +275,7 @@ export default function ClientsPage() {
                 <Button onClick={() => setAddClientOpen(true)} className="w-full sm:w-auto">Create Client Company</Button>
             </div>
             
-            {isMobile ? <MobileView constructUrl={constructUrl} /> : <DesktopView constructUrl={constructUrl} />}
+            {isMobile ? <MobileView constructUrl={constructUrl} clients={clientsWithStats} /> : <DesktopView constructUrl={constructUrl} clients={clientsWithStats} />}
 
             <Dialog open={isAddClientOpen} onOpenChange={setAddClientOpen}>
                 <DialogContent className="sm:max-w-lg">

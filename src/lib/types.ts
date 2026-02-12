@@ -223,6 +223,7 @@ export type JobChat = {
 
 export type Notification = {
   id: string;
+  userId: string;
   title: string;
   description: string;
   timestamp: string;
@@ -272,6 +273,7 @@ export type NDTServiceProvider = {
     description: string;
     contactPerson: string;
     contactEmail: string;
+    type: 'Provider';
 };
 
 export type AuditFirm = {
@@ -284,6 +286,7 @@ export type AuditFirm = {
     description: string;
     contactPerson: string;
     contactEmail: string;
+    type: 'Auditor';
 };
 
 export type Manufacturer = {
@@ -303,5 +306,3 @@ export type NDTTechnique = {
     isHighlighted: boolean;
     imageId: string;
 };
-
-  

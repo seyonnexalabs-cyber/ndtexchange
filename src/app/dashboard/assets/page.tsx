@@ -75,7 +75,7 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                           <Skeleton className="h-4 w-1/2" />
                       </CardContent>
                       <CardFooter className="p-4 pt-0">
-                          <Skeleton className="h-8 w-full" />
+                          <Skeleton className="h-10 w-full" />
                       </CardFooter>
                   </Card>
               ))}

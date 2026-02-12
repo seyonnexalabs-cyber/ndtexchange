@@ -6,7 +6,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { NDTTechniques, InspectorAsset, inspectorAssets } from "@/lib/placeholder-data";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +19,10 @@ import { PlusCircle, ChevronLeft, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from 'next/image';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from "firebase/firestore";
+import type { InspectorAsset } from "@/lib/types";
+import { NDTTechniques } from '@/lib/seed-data';
 
 
 const equipmentSchema = z.object({
@@ -43,6 +46,14 @@ export default function AddEquipmentPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
+
+    const equipmentQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        // This should probably be filtered by the user's providerId
+        return collection(firestore, 'equipment');
+    }, [firestore]);
+    const { data: inspectorAssets } = useCollection<InspectorAsset>(equipmentQuery);
 
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -220,7 +231,7 @@ export default function AddEquipmentPage() {
                                             </FormControl>
                                             <SelectContent>
                                                 <SelectItem value="none">None (Standalone Equipment)</SelectItem>
-                                                {inspectorAssets.filter(eq => !eq.parentId).map(parent => (
+                                                {(inspectorAssets || []).filter(eq => !eq.parentId).map(parent => (
                                                      <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
                                                 ))}
                                             </SelectContent>

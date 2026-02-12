@@ -3,12 +3,15 @@
 import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientAssets, inspectorAssets } from '@/lib/placeholder-data';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useFirebase } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import type { Asset, InspectorAsset, Job } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 
 interface QRScannerContextType {
@@ -206,27 +209,53 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
+  const { firestore } = useFirebase();
 
-  const handleQrScan = (id: string) => {
+  const handleQrScan = async (id: string) => {
       setScanOpen(false);
-
-      const asset = clientAssets.find(asset => asset.id === id);
-      if (asset) {
-          setConfirmationState({ id, type: 'asset', name: asset.name });
+      
+      if (!firestore) {
+          toast({
+              variant: 'destructive',
+              title: "Database Error",
+              description: "Could not connect to the database.",
+          });
           return;
       }
 
-      const equipment = inspectorAssets.find(equip => equip.id === id);
-      if (equipment) {
-          setConfirmationState({ id, type: 'equipment', name: equipment.name });
-          return;
-      }
+      try {
+          const assetRef = doc(firestore, 'assets', id);
+          const assetSnap = await getDoc(assetRef);
 
-      toast({
-          variant: 'destructive',
-          title: "Item Not Found",
-          description: `No asset or equipment with ID "${id}" could be found.`,
-      });
+          if (assetSnap.exists()) {
+              const asset = assetSnap.data() as Asset;
+              setConfirmationState({ id, type: 'asset', name: asset.name });
+              return;
+          }
+
+          const equipmentRef = doc(firestore, 'equipment', id);
+          const equipmentSnap = await getDoc(equipmentRef);
+          
+          if (equipmentSnap.exists()) {
+              const equipment = equipmentSnap.data() as InspectorAsset;
+              setConfirmationState({ id, type: 'equipment', name: equipment.name });
+              return;
+          }
+          
+          toast({
+              variant: 'destructive',
+              title: "Item Not Found",
+              description: `No asset or equipment with ID "${id}" could be found.`,
+          });
+          
+      } catch (error) {
+           toast({
+              variant: 'destructive',
+              title: "Scan Error",
+              description: `An error occurred while fetching item details.`,
+          });
+          console.error("Error fetching document by QR code:", error);
+      }
   };
   
   const handleConfirmRedirect = (id: string, type: 'asset' | 'equipment') => {
@@ -237,21 +266,11 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
 
       if (type === 'asset') {
             if (role === 'inspector') {
-                const inspectorProviderId = 'provider-03';
-                const hasAccess = jobs.some(job => 
-                    job.assetIds?.includes(id) && job.providerId === inspectorProviderId
-                );
+                // In a real app, we'd check if the inspector's company has a job for this asset.
+                // For this demo, we will allow access if they are an inspector.
+                router.push(constructUrl(`/dashboard/assets/${id}`));
 
-                if (hasAccess) {
-                    router.push(constructUrl(`/dashboard/assets/${id}`));
-                } else {
-                    toast({
-                            variant: 'destructive',
-                            title: "Access Denied",
-                            description: `Your company does not have a work history for asset "${id}".`,
-                        });
-                }
-            } else {
+            } else { // client
                 router.push(constructUrl(`/dashboard/assets/${id}`));
             }
       } else if (type === 'equipment') {

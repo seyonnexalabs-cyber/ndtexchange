@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -7,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/seed-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,21 +16,40 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AuditFirm } from '@/lib/types';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { AuditFirm, NDTServiceProvider } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export default function AuditorsPage() {
+    const { firestore } = useFirebase();
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
 
+    const auditorsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Auditor')) : null, [firestore]);
+    const { data: initialAuditFirms, isLoading: isLoadingAuditors } = useCollection<AuditFirm>(auditorsQuery);
+
+    const { auditFirmServices, auditFirmIndustries } = useMemo(() => {
+        if (!initialAuditFirms) return { auditFirmServices: [], auditFirmIndustries: [] };
+        const services = new Set(initialAuditFirms.flatMap(f => f.services || []));
+        const industries = new Set(initialAuditFirms.flatMap(f => f.industries || []));
+        return {
+            auditFirmServices: Array.from(services).sort(),
+            auditFirmIndustries: Array.from(industries).sort()
+        };
+    }, [initialAuditFirms]);
+
     const filteredAuditors = useMemo(() => {
+        if (!initialAuditFirms) return [];
         return initialAuditFirms.filter(firm => {
             const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => firm.services.includes(s));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => firm.industries.includes(i));
             return serviceMatch && industryMatch;
         });
-    }, [selectedServices, selectedIndustries]);
+    }, [initialAuditFirms, selectedServices, selectedIndustries]);
     
     const pageCount = Math.ceil(filteredAuditors.length / itemsPerPage);
     const paginatedAuditors = useMemo(() => {
@@ -95,7 +112,7 @@ export default function AuditorsPage() {
                             <div className="flex flex-wrap items-center gap-2">
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline">Filter by Service ({selectedServices.length})</Button>
+                                        <Button variant="outline" disabled={isLoadingAuditors}>Filter by Service ({selectedServices.length})</Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-80">
                                         <div className="grid gap-4">
@@ -117,7 +134,7 @@ export default function AuditorsPage() {
                                 </Popover>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline">Filter by Industry ({selectedIndustries.length})</Button>
+                                        <Button variant="outline" disabled={isLoadingAuditors}>Filter by Industry ({selectedIndustries.length})</Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-80">
                                         <div className="grid gap-4">
@@ -176,49 +193,64 @@ export default function AuditorsPage() {
                             </div>
                         )}
 
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {paginatedAuditors.map(firm => (
-                                <Card key={firm.id} className="flex flex-col">
-                                    <CardHeader>
-                                        <div className="flex items-center gap-4">
-                                            <Avatar className="h-16 w-16">
-                                                <AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
-                                            </Avatar>
+                        {isLoadingAuditors ? (
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {[...Array(6)].map((_, i) => (
+                                    <Card key={i}>
+                                        <CardHeader><Skeleton className="h-16 w-16 rounded-full" /></CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <Skeleton className="h-5 w-3/4" />
+                                            <Skeleton className="h-4 w-1/2" />
+                                            <Skeleton className="h-16 w-full" />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {paginatedAuditors.map(firm => (
+                                    <Card key={firm.id} className="flex flex-col">
+                                        <CardHeader>
+                                            <div className="flex items-center gap-4">
+                                                <Avatar className="h-16 w-16">
+                                                    <AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <CardTitle className="font-headline">{firm.name}</CardTitle>
+                                                    <CardDescription className="flex items-center gap-1.5 mt-1">
+                                                        <MapPin className="w-3 h-3 text-primary"/> {firm.location}
+                                                    </CardDescription>
+                                                </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="flex-grow space-y-4">
+                                            <p className="text-sm text-muted-foreground h-20 overflow-hidden">{firm.description}</p>
                                             <div>
-                                                <CardTitle className="font-headline">{firm.name}</CardTitle>
-                                                <CardDescription className="flex items-center gap-1.5 mt-1">
-                                                    <MapPin className="w-3 h-3 text-primary"/> {firm.location}
-                                                </CardDescription>
+                                                <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {firm.services.map(service => (
+                                                        <Badge key={service} variant="secondary" shape="rounded">{service}</Badge>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="flex-grow space-y-4">
-                                        <p className="text-sm text-muted-foreground h-20 overflow-hidden">{firm.description}</p>
-                                        <div>
-                                            <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {firm.services.map(service => (
-                                                    <Badge key={service} variant="secondary" shape="rounded">{service}</Badge>
-                                                ))}
+                                            <div>
+                                                <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {firm.industries.map(industry => (
+                                                        <Badge key={industry} variant="outline" shape="rounded">{industry}</Badge>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {firm.industries.map(industry => (
-                                                    <Badge key={industry} variant="outline" shape="rounded">{industry}</Badge>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                            {filteredAuditors.length === 0 && (
-                                <div className="col-span-full text-center py-10">
-                                    <p className="text-muted-foreground">No auditor firms match the selected filters.</p>
-                                </div>
-                            )}
-                        </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                                {filteredAuditors.length === 0 && (
+                                    <div className="col-span-full text-center py-10">
+                                        <p className="text-muted-foreground">No auditor firms match the selected filters.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                          {pageCount > 1 && (
                             <div className="mt-12 flex justify-center">

@@ -7,4 +7,6 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
+// This is now the single source of truth for placeholder images.
+// All other placeholder data has been migrated to seed-data.ts for database seeding.
 export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;

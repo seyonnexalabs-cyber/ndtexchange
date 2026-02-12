@@ -8,11 +8,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { NDTTechniques as NDTTechniqueData } from '@/lib/ndt-techniques-data';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { clientData, serviceProviders, auditFirms } from '@/lib/seed-data';
+import { NDTTechniques } from '@/lib/seed-data';
 
 export const metadata: Metadata = {
   title: 'NDT EXCHANGE | The Digital Marketplace for Asset Integrity',
@@ -186,7 +186,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {NDTTechniqueData.filter(tech => tech.isHighlighted).map((technique) => {
+                {NDTTechniques.filter(tech => tech.isHighlighted).map((technique) => {
                     const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
                     return (
                         <FeatureCard

@@ -36,6 +36,8 @@ import {
   CreditCard,
   History,
   DollarSign,
+  ShieldCheck,
+  Factory,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -45,6 +47,7 @@ import { useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { LogoIcon } from '@/app/components/icons';
+import { useUser } from '@/firebase';
 
 
 const userDetails = {
@@ -60,8 +63,21 @@ const clientMenu = [
     title: 'Workspace',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'assets', href: '/dashboard/assets', label: 'My Assets', icon: Building },
+    ]
+  },
+  {
+    title: 'Asset Management',
+    items: [
+      { id: 'assets', href: '/dashboard/assets', label: 'Asset Register', icon: Building },
+      { id: 'compliance', href: '/dashboard/compliance', label: 'Compliance Tracker', icon: ShieldCheck },
+      { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
+    ]
+  },
+  {
+    title: 'Jobs',
+    items: [
       { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
     ]
   },
   {
@@ -69,14 +85,12 @@ const clientMenu = [
     items: [
       { id: 'find-providers', href: '/dashboard/find-providers', label: 'Find Providers', icon: Users },
       { id: 'find-auditors', href: '/dashboard/find-auditors', label: 'Find Auditors', icon: Eye },
-      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
     ]
   },
   {
     title: 'Tools',
     items: [
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
-      { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
@@ -149,6 +163,7 @@ const adminMenu = [
       { id: 'clients', href: '/dashboard/clients', label: 'Clients', icon: Building },
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
+      { id: 'manufacturers', href: '/dashboard/manufacturers', label: 'Manufacturers', icon: Factory },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
@@ -193,17 +208,29 @@ const AppSidebar = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMobile, setOpenMobile, state } = useSidebar();
+  const { user, isUserLoading } = useUser();
 
   const validRoles = ['client', 'inspector', 'admin', 'auditor'];
   const roleParam = searchParams.get('role');
   const planParam = searchParams.get('plan');
 
   useEffect(() => {
-    // If there is no role or the role is not a valid one, redirect to login
+    if (isUserLoading) {
+        return; // Wait until the auth state is determined
+    }
+
+    // If there is no authenticated user, redirect to login page.
+    if (!user) {
+        router.replace('/login');
+        return;
+    }
+    
+    // If there is a user, but no valid role in the URL,
+    // it's an inconsistent state. Redirect to login to re-establish the session.
     if (!roleParam || !validRoles.includes(roleParam as string)) {
       router.replace('/login');
     }
-  }, [roleParam, router]);
+  }, [roleParam, router, user, isUserLoading]);
   
   const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : null;
 
@@ -302,8 +329,19 @@ const AppSidebar = () => {
 
   const planDetails = getPlanDetails();
 
-  if (!role) {
-    return null; // Render nothing while redirecting
+  if (!role || isUserLoading) {
+    return (
+        <Sidebar collapsible="icon">
+          <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
+            <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
+                <LogoIcon className="h-8 w-8 text-primary shrink-0" />
+                <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
+                    NDT EXCHANGE
+                </h1>
+            </Link>
+          </SidebarHeader>
+        </Sidebar>
+    );
   }
 
   return (
@@ -347,7 +385,7 @@ const AppSidebar = () => {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
-        {state === 'expanded' && planDetails && (
+        {state === 'expanded' && planDetails && role !== 'admin' && role !== 'auditor' && (
           <div>
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>
@@ -367,3 +405,5 @@ const AppSidebar = () => {
 };
 
 export default AppSidebar;
+
+    

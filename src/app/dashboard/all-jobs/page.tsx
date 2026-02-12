@@ -1,5 +1,3 @@
-
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +21,8 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -60,27 +58,17 @@ export default function AllJobsPage() {
     const [today, setToday] = useState<Date | undefined>(undefined);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const { firestore } = useFirebase();
-    const jobsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return collection(firestore, 'jobs');
-    }, [firestore]);
+    const { firestore, user } = useFirebase();
+    const isReady = !!firestore && !!user && role === 'admin';
+
+    const jobsQuery = useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
-    const companiesQuery = useMemoFirebase(() => {
-        if(!firestore) return null;
-        return collection(firestore, 'companies');
-    }, [firestore]);
+    const companiesQuery = useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady]);
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
 
     const clientData = useMemo(() => companies?.filter(c => c.type === 'Client') || [], [companies]);
     const serviceProviders = useMemo(() => companies?.filter(c => c.type === 'Provider') || [], [companies]);
-
-    useEffect(() => {
-        if (role && role !== 'admin') {
-            router.replace(`/dashboard?${searchParams.toString()}`);
-        }
-    }, [role, router, searchParams]);
 
     useEffect(() => {
         setToday(new Date());
@@ -106,8 +94,9 @@ export default function AllJobsPage() {
     }
 
     const filteredJobs = useMemo(() => {
-        const jobsToFilter = jobs || [];
-        return jobsToFilter.filter(job => {
+        if (!isReady || !jobs) return [];
+        
+        return jobs.filter(job => {
             const searchMatch = !searchQuery ||
                 job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -119,7 +108,7 @@ export default function AllJobsPage() {
 
             return searchMatch && providerMatch && statusMatch && clientMatch;
         });
-    }, [jobs, searchQuery, selectedProviders, selectedStatuses, selectedClients]);
+    }, [isReady, jobs, searchQuery, selectedProviders, selectedStatuses, selectedClients]);
     
     const pageCount = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
 
@@ -142,10 +131,6 @@ export default function AllJobsPage() {
     };
 
     const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0 || selectedClients.length > 0;
-
-    if (role !== 'admin') {
-        return null;
-    }
 
     const PaginationControls = () => (
          pageCount > 1 && (
@@ -225,6 +210,8 @@ export default function AllJobsPage() {
             </div>
         )
     }
+
+    if (!isReady) return null;
 
     return (
         <div>

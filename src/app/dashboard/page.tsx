@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database } from "lucide-react";
@@ -21,8 +20,8 @@ import { format, differenceInDays, isAfter, isToday, isWithinInterval } from "da
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase";
-import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog } from "@/lib/types";
 import { clientAssets, jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData } from "@/lib/seed-data";
@@ -676,131 +675,127 @@ const AdminDashboard = () => {
         setIsSeeding(true);
         toast({
             title: "Database Seeding Started",
-            description: "This may take a moment...",
+            description: "This process may take a moment. Check the console for progress.",
         });
 
-        try {
-            const batch = writeBatch(firestore);
-
-            clientAssets.forEach(asset => {
-                const docRef = doc(firestore, 'assets', asset.id);
-                batch.set(docRef, asset);
-            });
-            
-            const usersToSeed = allUsers;
-            usersToSeed.forEach(user => {
-                const docRef = doc(firestore, 'users', user.id);
-                const { password, ...userToSave } = user;
-                batch.set(docRef, userToSave);
-            });
-
-            const adminUser = allUsers.find(u => u.role === 'Admin');
-            if (adminUser) {
-                const roleRef = doc(firestore, 'roles_admin', adminUser.id);
-                batch.set(roleRef, { isAdmin: true });
+        const seedCollection = async (collectionName: string, data: any[], customizer?: (item: any) => any) => {
+            console.log(`[SEED] Starting: ${collectionName}...`);
+            try {
+                const batch = writeBatch(firestore);
+                data.forEach(item => {
+                    const itemData = customizer ? customizer(item) : item;
+                    const docRef = doc(firestore, collectionName, item.id);
+                    batch.set(docRef, itemData);
+                });
+                await batch.commit();
+                console.log(`[SEED] ✅ Success: ${collectionName} seeded with ${data.length} documents.`);
+            } catch (error: any) {
+                console.error(`[SEED] ❌ Failed to seed ${collectionName}:`, error);
+                toast({
+                    variant: "destructive",
+                    title: `Seeding Failed on: ${collectionName}`,
+                    description: `Error: ${error.message}. Check console for details.`,
+                });
+                throw new Error(`Failed to seed ${collectionName}`);
             }
-            
+        };
+
+        try {
+            await seedCollection('assets', clientAssets);
+            await seedCollection('users', allUsers, (user) => {
+                const { password, ...userToSave } = user;
+                return userToSave;
+            });
+
+            try {
+                console.log(`[SEED] Starting: roles_admin...`);
+                const adminUser = allUsers.find(u => u.role === 'Admin');
+                if (adminUser) {
+                    const roleRef = doc(firestore, 'roles_admin', adminUser.id);
+                    await setDoc(roleRef, { isAdmin: true });
+                    console.log(`[SEED] ✅ Success: roles_admin seeded.`);
+                }
+            } catch (error: any) {
+                console.error(`[SEED] ❌ Failed to seed roles_admin:`, error);
+                toast({ variant: "destructive", title: 'Seeding Failed on: roles_admin', description: `Error: ${error.message}` });
+                throw new Error('Failed to seed roles_admin');
+            }
+
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-            allCompanies.forEach(company => {
-                const docRef = doc(firestore, 'companies', company.id);
-                batch.set(docRef, company);
-            });
+            await seedCollection('companies', allCompanies);
+            
+            try {
+                console.log(`[SEED] Starting: jobs, bids, inspections...`);
+                const jobsBatch = writeBatch(firestore);
+                seedJobs.forEach(job => {
+                    const { bids, inspections, ...jobData } = job;
+                    const jobRef = doc(firestore, 'jobs', job.id);
+                    jobsBatch.set(jobRef, jobData);
+                    
+                    bids.forEach(bid => {
+                        const bidRef = doc(firestore, 'bids', bid.id);
+                        jobsBatch.set(bidRef, bid);
+                    });
+                    
+                    inspections.forEach(inspection => {
+                        const { report, ...inspectionData } = inspection;
+                        const inspectionRef = doc(firestore, 'inspections', inspection.id);
+                        jobsBatch.set(inspectionRef, inspectionData);
 
-            seedJobs.forEach(job => {
-                const { bids, inspections, ...jobData } = job;
-                const jobRef = doc(firestore, 'jobs', job.id);
-                batch.set(jobRef, jobData);
+                        if(report) {
+                            const reportRef = doc(firestore, 'reports', report.id);
+                            jobsBatch.set(reportRef, report);
+                        }
+                    });
+                });
+                await jobsBatch.commit();
+                console.log(`[SEED] ✅ Success: jobs, bids, and inspections seeded.`);
+            } catch (error: any) {
+                 console.error(`[SEED] ❌ Failed to seed jobs/bids/inspections:`, error);
+                 toast({ variant: "destructive", title: 'Seeding Failed on: jobs/bids/inspections', description: `Error: ${error.message}` });
+                 throw new Error('Failed to seed jobs/bids/inspections');
+            }
+
+            await seedCollection('equipment', inspectorAssets);
+            await seedCollection('techniques', NDTTechniques);
+            await seedCollection('manufacturers', manufacturersData);
+            await seedCollection('reviews', reviewsData, (review) => ({ ...review, date: new Date(review.date) }));
+            await seedCollection('subscriptions', subscriptionsData);
+            await seedCollection('userAuditLogs', userAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            await seedCollection('jobAuditLogs', jobAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            await seedCollection('billingAuditLogs', billingAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            
+            try {
+                console.log(`[SEED] Starting: chats...`);
+                const chatBatch = writeBatch(firestore);
+                jobChats.forEach(chat => {
+                    const { messages, ...chatData } = chat;
+                    const chatRef = doc(firestore, 'chats', chat.id);
+                    chatBatch.set(chatRef, chatData);
                 
-                bids.forEach(bid => {
-                    const bidRef = doc(firestore, 'bids', bid.id);
-                    batch.set(bidRef, bid);
+                    messages.forEach(message => {
+                        const messageRef = doc(firestore, 'chats', chat.id, 'messages', message.id);
+                        chatBatch.set(messageRef, message);
+                    });
                 });
-                
-                inspections.forEach(inspection => {
-                    const { report, ...inspectionData } = inspection;
-                    const inspectionRef = doc(firestore, 'inspections', inspection.id);
-                    batch.set(inspectionRef, inspectionData);
+                await chatBatch.commit();
+                console.log(`[SEED] ✅ Success: chats and messages seeded.`);
+            } catch (error: any) {
+                console.error(`[SEED] ❌ Failed to seed chats:`, error);
+                toast({ variant: "destructive", title: 'Seeding Failed on: chats', description: `Error: ${error.message}` });
+                throw new Error('Failed to seed chats');
+            }
 
-                    if(report) {
-                        const reportRef = doc(firestore, 'reports', report.id);
-                        batch.set(reportRef, report);
-                    }
-                });
-            });
-
-            inspectorAssets.forEach(equipment => {
-                const docRef = doc(firestore, 'equipment', equipment.id);
-                batch.set(docRef, equipment);
-            });
-            
-            NDTTechniques.forEach(technique => {
-                const docRef = doc(firestore, 'techniques', technique.id);
-                batch.set(docRef, technique);
-            });
-
-            manufacturersData.forEach(manufacturer => {
-                const docRef = doc(firestore, 'manufacturers', manufacturer.id);
-                batch.set(docRef, manufacturer);
-            });
-
-            reviewsData.forEach(review => {
-                const docRef = doc(firestore, 'reviews', review.id);
-                batch.set(docRef, { ...review, date: new Date(review.date) });
-            });
-
-            subscriptionsData.forEach(sub => {
-                const docRef = doc(firestore, 'subscriptions', sub.id);
-                batch.set(docRef, sub);
-            });
-
-            userAuditLogData.forEach(log => {
-                const docRef = doc(firestore, 'userAuditLogs', log.id);
-                batch.set(docRef, { ...log, timestamp: new Date(log.timestamp) });
-            });
-            jobAuditLogData.forEach(log => {
-                const docRef = doc(firestore, 'jobAuditLogs', log.id);
-                batch.set(docRef, { ...log, timestamp: new Date(log.timestamp) });
-            });
-            billingAuditLogData.forEach(log => {
-                const docRef = doc(firestore, 'billingAuditLogs', log.id);
-                batch.set(docRef, { ...log, timestamp: new Date(log.timestamp) });
-            });
-
-            jobChats.forEach(chat => {
-                const { messages, ...chatData } = chat;
-                const chatRef = doc(firestore, 'chats', chat.id);
-                batch.set(chatRef, chatData);
-            
-                messages.forEach(message => {
-                    const messageRef = doc(firestore, 'chats', chat.id, 'messages', message.id);
-                    batch.set(messageRef, message);
-                });
-            });
-            
-            paymentsData.forEach(payment => {
-                const paymentRef = doc(firestore, 'payments', payment.id);
-                batch.set(paymentRef, payment);
-            });
-            
-            jobPaymentsData.forEach(payment => {
-                const paymentRef = doc(firestore, 'jobPayments', payment.id);
-                batch.set(paymentRef, payment);
-            });
-
-            await batch.commit();
+            await seedCollection('payments', paymentsData);
+            await seedCollection('jobPayments', jobPaymentsData);
 
             toast({
-                title: "Database Seeded Successfully",
-                description: "Placeholder data has been written to Firestore.",
+                title: "Database Seeded Successfully!",
+                description: "All collections have been populated.",
             });
 
-        } catch (error: any) {
-            console.error("Error seeding database:", error);
-            toast({
-                variant: "destructive",
-                title: "Seeding Failed",
-                description: error.message || "An unexpected error occurred.",
-            });
+        } catch (error) {
+            console.error("Seeding process stopped due to an error.", error);
         } finally {
             setIsSeeding(false);
         }

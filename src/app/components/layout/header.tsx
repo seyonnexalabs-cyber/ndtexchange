@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -9,17 +7,18 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Search, Bell, Globe, QrCode, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { useSearch } from '@/app/components/layout/search-provider';
 import { useQRScanner } from '@/app/components/layout/qr-scanner-provider';
-import { notifications as initialNotifications, Notification } from '@/lib/placeholder-data';
+import type { Notification } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useFirebase } from '@/firebase';
+import { useFirebase, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 
 
 const userDetails = {
@@ -32,19 +31,36 @@ const userDetails = {
 const AppHeader = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { auth } = useFirebase();
+    const { auth, firestore } = useFirebase();
+    const { user } = useUser();
     const { toast } = useToast();
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
-    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
     
-    const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
-
-    const handleNotificationClick = (notificationId: string) => {
-        setNotifications(prev =>
-            prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+    const notificationsQuery = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return query(
+            collection(firestore, 'notifications'),
+            where('userId', '==', user.uid),
+            orderBy('timestamp', 'desc')
         );
+    }, [firestore, user]);
+
+    const { data: notifications, isLoading: isLoadingNotifications } = useCollection<Notification>(notificationsQuery);
+
+    const unreadCount = useMemo(() => notifications?.filter(n => !n.read).length ?? 0, [notifications]);
+
+    const handleNotificationClick = async (notificationId: string) => {
+        if (!firestore) return;
+        const notifRef = doc(firestore, 'notifications', notificationId);
+        try {
+            // Non-blocking update. UI will update via useCollection listener.
+            await updateDoc(notifRef, { read: true });
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+            // Optionally show a toast error
+        }
     };
     
     const currentUser = useMemo(() => {
@@ -129,14 +145,17 @@ const AppHeader = () => {
                         <DropdownMenuLabel className="p-2">Notifications</DropdownMenuLabel>
                         <DropdownMenuSeparator className="m-0" />
                         <div className="max-h-96 overflow-y-auto">
-                            {notifications.map((notification, index) => (
+                            {isLoadingNotifications ? (
+                                <p className="p-4 text-center text-sm text-muted-foreground">Loading...</p>
+                            ) : notifications && notifications.length > 0 ? (
+                                notifications.map((notification, index) => (
                                 <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0">
                                     <Link 
                                         href={constructUrl(notification.href)} 
                                         onClick={() => handleNotificationClick(notification.id)}
                                         className={cn(
                                             "block p-3 group",
-                                            index < notifications.length - 1 && "border-b"
+                                            index < (notifications?.length ?? 0) - 1 && "border-b"
                                         )}
                                     >
                                         <div className="flex items-start gap-3">
@@ -149,9 +168,11 @@ const AppHeader = () => {
                                         </div>
                                     </Link>
                                 </DropdownMenuItem>
-                            ))}
+                            ))
+                           ) : (
+                                <p className="p-4 text-center text-sm text-muted-foreground">No new notifications</p>
+                            )}
                         </div>
-                        {notifications.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">No new notifications</p>}
                     </DropdownMenuContent>
                 </DropdownMenu>
                 

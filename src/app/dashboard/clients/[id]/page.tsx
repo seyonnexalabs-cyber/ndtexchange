@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { clientData, jobs, subscriptions, allUsers, PlatformUser } from "@/lib/placeholder-data";
+import { clientData, jobs, subscriptions, allUsers, PlatformUser } from "@/lib/seed-data";
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -143,7 +143,7 @@ export default function ClientDetailPage() {
                                                     <p className="font-semibold">{job.title}</p>
                                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                                        {job.technique} &bull; 
+                                                        {job.techniques.join(', ')} &bull; 
                                                         <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
                                                         {isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
@@ -176,7 +176,7 @@ export default function ClientDetailPage() {
                                         <TableRow key={job.id}>
                                             <TableCell className="font-extrabold text-sm">{job.id}</TableCell>
                                             <TableCell className="font-medium">{job.title}</TableCell>
-                                            <TableCell>{job.technique}</TableCell>
+                                            <TableCell>{job.techniques.join(', ')}</TableCell>
                                             <TableCell>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
                                             </TableCell>

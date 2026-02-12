@@ -1,9 +1,7 @@
-
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { clientData } from "@/lib/placeholder-data";
+import { clientData } from "@/lib/seed-data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Briefcase, DollarSign, MoreVertical } from "lucide-react";

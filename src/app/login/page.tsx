@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -7,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -19,7 +20,7 @@ import { useFirebase, useUser } from '@/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
-import { allUsers } from '@/lib/placeholder-data';
+import { allUsers } from '@/lib/seed-data';
 import { Eye, EyeOff } from 'lucide-react';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
@@ -162,6 +163,7 @@ export default function LoginPage() {
     allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'), // inspector
     allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'), // auditor
     allUsers.find(u => u.id === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2'), // admin
+    allUsers.find(u => u.id === 'admin-seyon'), // admin 2
   ].filter(Boolean);
 
   return (
@@ -282,7 +284,7 @@ export default function LoginPage() {
                       }}
                       disabled={isAuthenticating || isUserLoading}
                     >
-                      {devUser!.role}
+                      {devUser!.name}
                     </Button>
                   ))}
                 </CardContent>

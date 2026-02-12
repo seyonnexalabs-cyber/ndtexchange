@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Job, allUsers, PlatformUser, jobChats as initialJobChats, jobs } from '@/lib/placeholder-data';
+import { allUsers, jobChats as initialJobChats, jobs } from '@/lib/seed-data';
+import type { Job, PlatformUser } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';

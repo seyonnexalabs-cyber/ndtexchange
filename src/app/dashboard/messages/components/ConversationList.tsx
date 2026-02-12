@@ -3,8 +3,8 @@ import * as React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Job, PlatformUser } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/placeholder-data';
+import type { Job, PlatformUser } from '@/lib/types';
+import { serviceProviders } from '@/lib/seed-data';
 
 // Component to safely render formatted time on the client to avoid hydration errors
 const ClientFormattedTime = ({ dateString }: { dateString: string }) => {

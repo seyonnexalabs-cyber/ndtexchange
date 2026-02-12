@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +8,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { ndtTechniques as NDTTechniqueData } from '@/lib/ndt-techniques-data';
+import { NDTTechniques as NDTTechniqueData } from '@/lib/ndt-techniques-data';
 import UserActivityDiagram from '@/app/components/inspection-lifecycle';
 import { FeatureCard } from '@/app/components/feature-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { clientData, serviceProviders, auditFirms } from '@/lib/placeholder-data';
+import { clientData, serviceProviders, auditFirms } from '@/lib/seed-data';
 
 export const metadata: Metadata = {
   title: 'NDT EXCHANGE | The Digital Marketplace for Asset Integrity',
@@ -55,7 +56,7 @@ export default function HomePage() {
     },
   ];
   
-  const manufacturerCount = new Set(NDTTechniqueData.flatMap(t => t.companies.map(c => c.name))).size;
+  const manufacturerCount = 10; // This should be dynamic in a real app
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -229,5 +230,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

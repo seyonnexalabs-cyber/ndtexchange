@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { allUsers, inspectorAssets, Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, clientData, serviceProviders, NDTServiceProvider } from '@/lib/placeholder-data';
+import type { Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, NDTServiceProvider, JobDocument } from '@/lib/types';
+import { allUsers, inspectorAssets, clientData, serviceProviders } from '@/lib/seed-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -1134,6 +1135,7 @@ export default function JobDetailPage() {
 }
 
     
+
 
 
 

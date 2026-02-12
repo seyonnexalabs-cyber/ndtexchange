@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { NDTTechniques } from "@/lib/placeholder-data";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X } from "lucide-react";
 import Link from 'next/link';
@@ -22,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
-import type { PlatformUser } from '@/lib/types';
+import type { PlatformUser, JobDocument } from '@/lib/types';
 
 
 const assetSchema = z.object({
@@ -274,7 +273,7 @@ export default function AddAssetPage() {
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Asset Name</FormLabel>
+                                        <FormLabel>Asset Name <span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="e.g., Storage Tank T-102" {...field} />
                                         </FormControl>
@@ -287,7 +286,7 @@ export default function AddAssetPage() {
                                 name="type"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Asset Type</FormLabel>
+                                        <FormLabel>Asset Type <span className="text-destructive">*</span></FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger><SelectValue placeholder="Select a type" /></SelectTrigger>
@@ -309,7 +308,7 @@ export default function AddAssetPage() {
                                 name="location"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Location</FormLabel>
+                                        <FormLabel>Location <span className="text-destructive">*</span></FormLabel>
                                         <Select onValueChange={(value) => {
                                             field.onChange(value);
                                             setShowNewLocation(value === '__add_new__');
@@ -346,7 +345,7 @@ export default function AddAssetPage() {
                                 name="nextInspection"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel>Next Inspection Date</FormLabel>
+                                        <FormLabel>Next Inspection Date <span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
                                             <CustomDateInput {...field} />
                                         </FormControl>
@@ -479,5 +478,3 @@ export default function AddAssetPage() {
         </div>
     );
 }
-
-    

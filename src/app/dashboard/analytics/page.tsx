@@ -1,9 +1,8 @@
-
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { jobs, NDTTechniques, allUsers, serviceProviders } from '@/lib/placeholder-data';
+import { jobs, NDTTechniques, allUsers, serviceProviders } from '@/lib/seed-data';
 import { useMemo, useEffect } from 'react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck } from 'lucide-react';
@@ -55,7 +54,10 @@ export default function AnalyticsPage() {
         jobs.forEach(job => {
             const month = new Date(job.postedDate).toLocaleString('default', { month: 'short', year: '2-digit' });
             jobsByMonth[month] = (jobsByMonth[month] || 0) + 1;
-            jobsByTechnique[job.technique] = (jobsByTechnique[job.technique] || 0) + 1;
+            
+            job.techniques.forEach(technique => {
+              jobsByTechnique[technique] = (jobsByTechnique[technique] || 0) + 1;
+            });
 
             if (job.status === 'Paid' || job.status === 'Completed') {
                  const awardedBid = job.bids?.find(b => b.status === 'Awarded');

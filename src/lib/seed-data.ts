@@ -1,7 +1,20 @@
 
-
-import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid } from '@/lib/types';
+import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer } from '@/lib/types';
 import { subscriptionPlans } from './subscription-plans';
+import { NDTTechniques } from './ndt-techniques-data';
+
+export const manufacturersData: Manufacturer[] = [
+  { id: 'manu-01', name: 'Olympus', url: 'https://www.olympus-ims.com/', logoUrl: 'https://placehold.co/200x80/0055A8/FFFFFF/png?text=OLYMPUS', description: 'A leading manufacturer of optical and digital precision technology.', techniqueIds: ['UT', 'PAUT', 'ET', 'VT'] },
+  { id: 'manu-02', name: 'GE Inspection Technologies', url: 'https://www.bakerhughes.com/waygate-technologies', logoUrl: 'https://placehold.co/200x80/00A9E0/FFFFFF/png?text=GE', description: 'Provides a wide range of non-destructive testing solutions.', techniqueIds: ['UT', 'RT', 'ET', 'VT'] },
+  { id: 'manu-03', name: 'Zetec', url: 'https://www.zetec.com/', logoUrl: 'https://placehold.co/200x80/D9232D/FFFFFF/png?text=Zetec', description: 'A global leader in nondestructive testing (NDT) solutions for the critical inspection needs of industries.', techniqueIds: ['ET', 'PAUT', 'UT'] },
+  { id: 'manu-04', name: 'Sonatest', url: 'https://www.sonatest.com/', logoUrl: 'https://placehold.co/200x80/00AEEF/FFFFFF/png?text=Sonatest', description: 'A leading manufacturer of ultrasonic NDT equipment.', techniqueIds: ['UT', 'PAUT', 'TOFD'] },
+  { id: 'manu-05', name: 'Fujifilm', url: 'https://www.fujifilm.com/us/en/business/ndt', description: 'Provider of high-quality imaging products for radiographic testing.', techniqueIds: ['RT', 'CR', 'DR'] },
+  { id: 'manu-06', name: 'Carestream', url: 'https://www.carestream.com/en/us/nondestructive-testing', description: 'Offers a range of digital radiography solutions.', techniqueIds: ['RT', 'CR', 'DR'] },
+  { id: 'manu-07', name: 'Magnaflux', url: 'https://www.magnaflux.com/', description: 'A global leader in magnetic particle and liquid penetrant inspection materials and equipment.', techniqueIds: ['MT', 'PT'] },
+  { id: 'manu-08', name: 'Physical Acoustics Corp (PAC)', url: 'https://www.physicalacoustics.com/', description: 'A member of the MISTRAS Group, specializing in acoustic emission technology.', techniqueIds: ['AE'] },
+  { id: 'manu-09', name: 'Talcyon', url: 'https://www.talcyon.com/', description: 'Developer of Acoustic Pulse Reflectometry (APR) for tube inspections.', techniqueIds: ['APR'] },
+  { id: 'manu-10', name: 'Guided Ultrasonics Ltd (GUL)', url: 'https://www.guided-ultrasonics.com/', description: 'Pioneers and leaders in the field of guided wave testing technology.', techniqueIds: ['GWT'] }
+];
 
 export const clientData: Client[] = [
     { id: 'client-01', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
@@ -701,6 +714,7 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-client-04', name: 'Carlos Ruiz', email: 'c.ruiz@chemc.com', role: 'Client', companyId: 'client-05', company: 'Chemical Plant C', status: 'Active', password: 'password123' },
     { id: 'user-client-05', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', companyId: 'client-09', company: 'Aviation Maintenance Pros', status: 'Active', password: 'password123' },
     { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
+    { id: 'admin-seyon', name: 'Seyon', email: 'seyonnexalabs@gmail.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
     { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
     { id: 'user-auditor-02', name: 'Brenda Vance', email: 'b.vance@aerocompliance.com', role: 'Auditor', companyId: 'auditor-firm-02', company: 'Aero-Compliance Partners', status: 'Active', password: 'password123', certifications: [{method: 'ET', level: 'Level III'}, {method: 'UT', level: 'Level III'}], level: 'Level III' },
     { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
@@ -862,5 +876,3 @@ export const reviews: Review[] = [
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
-
-    

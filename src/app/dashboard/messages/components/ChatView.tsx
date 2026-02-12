@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Send, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay } from 'date-fns';
-import { Job, PlatformUser } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/placeholder-data';
+import type { Job, PlatformUser } from '@/lib/types';
+import { serviceProviders } from '@/lib/seed-data';
 
 // Component to safely render formatted time on the client to avoid hydration errors
 const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
@@ -73,7 +73,9 @@ const ChatView = ({ isMobile, selectedConversation, onBack, currentUser, getUser
                     <div className="text-sm text-muted-foreground">
                         {selectedConversation.job.client}
                         {selectedConversation.job.providerId && ` - ${serviceProviders.find(p => p.id === selectedConversation.job.providerId)?.name}`}
-                        <Badge variant="outline" className="ml-2">{selectedConversation.job.technique}</Badge>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedConversation.job.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
+                        </div>
                     </div>
                 </div>
             </div>

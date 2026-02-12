@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -10,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { allPayments, subscriptions } from '@/lib/placeholder-data';
+import { allPayments, subscriptions } from '@/lib/seed-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';

@@ -8,11 +8,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { auditFirms } from "@/lib/auditors-data";
 import { ChevronLeft, MapPin, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { allUsers } from "@/lib/placeholder-data";
+import { allUsers, auditFirms } from "@/lib/seed-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 

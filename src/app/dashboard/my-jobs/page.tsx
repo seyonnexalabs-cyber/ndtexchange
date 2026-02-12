@@ -1,7 +1,6 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/placeholder-data";
+import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/seed-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign } from "lucide-react";
@@ -331,7 +330,7 @@ export default function MyJobsPage() {
                                             <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                         </div>
                                     </div>
-                                    <CardDescription>{job.client} - {job.techniques.join(', ')}</CardDescription>
+                                    <CardDescription>{job.client} - {(job.techniques || []).join(', ')}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center text-sm text-muted-foreground">

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, ChevronUp, ChevronDown } from 'lucide-react';
-import { Job } from '@/lib/placeholder-data';
+import type { Job } from '@/lib/types';
 
 interface JobChatWindowProps {
     job: Job;

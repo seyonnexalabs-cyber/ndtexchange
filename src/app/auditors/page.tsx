@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/placeholder-data';
+import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/seed-data';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AuditFirm } from '@/lib/types';
 
 export default function AuditorsPage() {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);

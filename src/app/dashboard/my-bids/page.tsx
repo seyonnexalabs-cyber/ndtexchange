@@ -27,7 +27,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
 import type { Job, Bid } from '@/lib/types';
-import { NDTTechniques } from '@/lib/placeholder-data';
+import { NDTTechniques } from '@/lib/seed-data';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const bidSchema = z.object({
@@ -252,7 +252,7 @@ export default function MyBidsPage() {
         form.reset({
             amount: bid.amount,
             comments: bid.comments || '',
-            proposedTechnique: bid.proposedTechnique || bid.job?.techniques[0],
+            proposedTechnique: bid.proposedTechnique || (bid.job?.techniques || [])[0],
             proposalJustification: bid.proposalJustification || '',
         });
     };
@@ -292,7 +292,7 @@ export default function MyBidsPage() {
             <div>
                 <Skeleton className="h-8 w-1/4 mb-6" />
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                    {[...Array(4)].map(i => <Skeleton key={i} className="h-24" />)}
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
                 </div>
                 <Skeleton className="h-64 w-full" />
             </div>

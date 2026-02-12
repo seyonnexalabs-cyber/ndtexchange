@@ -1,12 +1,9 @@
-
-
 'use client';
 
 import * as React from 'react';
-import { UserAuditLog, JobAuditLog, BillingAuditLog } from '@/lib/placeholder-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { History, User, Briefcase, DollarSign, PlusCircle, Award, Gavel, FileText } from 'lucide-react';
 import { format } from 'date-fns';
@@ -17,6 +14,7 @@ import { useEffect } from 'react';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { UserAuditLog, JobAuditLog, BillingAuditLog } from '@/lib/types';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string | Timestamp }) => {

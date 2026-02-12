@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -7,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries, AuditFirm } from '@/lib/placeholder-data';
+import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/seed-data';
+import type { AuditFirm } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,7 +23,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
@@ -231,7 +231,7 @@ export default function AuditorsPage() {
     const { toast } = useToast();
     const [firms, setFirms] = useState<AuditFirm[]>(initialAuditFirms);
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
 
     useEffect(() => {
         if (role && !['client', 'admin'].includes(role)) {
@@ -408,5 +408,3 @@ export default function AuditorsPage() {
         </div>
     );
 }
-
-    

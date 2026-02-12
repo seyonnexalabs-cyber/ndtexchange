@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { jobs as initialJobs, NDTTechniques, Job, JobDocument } from '@/lib/placeholder-data';
+import { jobs as initialJobs, Job } from '@/lib/seed-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { NDTTechniques as NDTTechniquesData } from '@/lib/ndt-techniques-data';
 
 export default function FindJobsPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
@@ -42,7 +44,7 @@ export default function FindJobsPage() {
                 job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.client.toLowerCase().includes(searchQuery.toLowerCase());
 
-            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.some(tech => job.techniques.includes(tech));
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.some(tech => (job.techniques || []).includes(tech));
             const locationMatch = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase());
 
             return searchMatch && techniqueMatch && locationMatch;
@@ -84,7 +86,7 @@ export default function FindJobsPage() {
                                     </p>
                                 </div>
                                 <div className="grid gap-2 max-h-60 overflow-y-auto p-1">
-                                    {NDTTechniques.map(tech => (
+                                    {NDTTechniquesData.map(tech => (
                                         <div key={tech.id} className="flex items-center space-x-2">
                                                 <Checkbox 
                                                 id={`tech-${tech.id}`} 
@@ -93,7 +95,7 @@ export default function FindJobsPage() {
                                                     setSelectedTechniques(prev => checked ? [...prev, tech.id] : prev.filter(t => t !== tech.id))
                                                 }}
                                                 />
-                                            <Label htmlFor={`tech-${tech.id}`}>{tech.name} ({tech.id})</Label>
+                                            <Label htmlFor={`tech-${tech.id}`}>{tech.title} ({tech.id})</Label>
                                         </div>
                                     ))}
                                 </div>
@@ -109,7 +111,7 @@ export default function FindJobsPage() {
                     <span className="text-sm font-medium">Active Technique Filters:</span>
                     {selectedTechniques.map(techId => (
                         <Badge key={techId} variant="secondary">
-                            {NDTTechniques.find(t => t.id === techId)?.name}
+                            {NDTTechniquesData.find(t => t.id === techId)?.name}
                             <button onClick={() => setSelectedTechniques(p => p.filter(t => t !== techId))} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3 text-primary" />
                             </button>
@@ -133,7 +135,7 @@ export default function FindJobsPage() {
                                     <Badge variant="destructive">Bidding Expired</Badge>
                                 ) : (
                                     <div className="flex flex-wrap gap-1 justify-end">
-                                      {job.techniques.map(t => <Badge key={t}>{t}</Badge>)}
+                                      {(job.techniques || []).map(t => <Badge key={t}>{t}</Badge>)}
                                     </div>
                                 )}
                             </div>

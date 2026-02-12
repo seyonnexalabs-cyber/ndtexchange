@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -14,7 +15,7 @@ import { LifeBuoy, MessageSquare, Send, BookOpen } from 'lucide-react';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { allUsers, PlatformUser } from '@/lib/placeholder-data';
+import { allUsers, PlatformUser } from '@/lib/seed-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientMaintenanceWorkflow from './components/client-maintenance-workflow';
 import InspectorWorkflow from './components/inspector-workflow';

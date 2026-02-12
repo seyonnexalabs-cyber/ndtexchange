@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -7,8 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, bids, NDTTechniques } from '@/lib/placeholder-data';
-import { serviceProviders } from '@/lib/service-providers-data';
+import { jobs, bids, NDTTechniques as NDTTechniquesData, serviceProviders } from '@/lib/seed-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -79,7 +77,7 @@ export default function CustomReportBuilderPage() {
             const filteredJobs = jobs.filter(job => {
                 const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
                 const providerMatch = !values.providerIds || values.providerIds.length === 0 || values.providerIds.includes(job.providerId!);
-                const techniqueMatch = !values.techniqueIds || values.techniqueIds.length === 0 || values.techniqueIds.includes(job.technique);
+                const techniqueMatch = !values.techniqueIds || values.techniqueIds.length === 0 || job.techniques.some(t => values.techniqueIds?.includes(t));
                 const dateMatch = !values.dateRange?.from || !values.dateRange?.to || (jobDate >= values.dateRange.from && jobDate <= values.dateRange.to);
                 return providerMatch && techniqueMatch && dateMatch;
             });
@@ -98,7 +96,7 @@ export default function CustomReportBuilderPage() {
                         case 'cost': row[col] = awardedBid ? `$${awardedBid.amount.toLocaleString()}` : 'N/A'; break;
                         case 'postedDate': row[col] = format(new Date(job.postedDate), GLOBAL_DATE_FORMAT); break;
                         case 'scheduledStartDate': row[col] = job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'; break;
-                        case 'technique': row[col] = job.technique; break;
+                        case 'technique': row[col] = job.techniques.join(', '); break;
                     }
                 }
                 return row;

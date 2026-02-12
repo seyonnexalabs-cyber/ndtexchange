@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -8,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, clientAssets } from '@/lib/placeholder-data';
+import { jobs, clientAssets } from '@/lib/seed-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -264,5 +262,3 @@ export default function AssetHistoryReportPage() {
         </div>
     );
 }
-
-    

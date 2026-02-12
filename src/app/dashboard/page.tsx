@@ -695,11 +695,6 @@ const AdminDashboard = () => {
                 const docRef = doc(firestore, 'users', user.id);
                 const { password, ...userToSave } = user;
                 batch.set(docRef, userToSave);
-                // Add admin user to roles_admin collection for security rules
-                if (user.role === 'Admin') {
-                    const adminRoleRef = doc(firestore, 'roles_admin', user.id);
-                    batch.set(adminRoleRef, { role: 'admin' });
-                }
             });
             
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];

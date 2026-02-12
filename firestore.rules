@@ -79,11 +79,10 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if the requesting user has admin privileges by looking for
-     * an admin document associated with their UID.
+     * Checks if the requesting user has admin privileges by reading their user document.
      */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
     }
 
     /**
@@ -107,12 +106,12 @@ service cloud.firestore {
     /**
      * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow (create) An authenticated user creating their own profile document.
-     * @deny (get) A user trying to read another user's profile.
-     * @principle Restricts access to a user's own data tree.
+     * @allow (get) An authenticated user can read their own profile. This rule is critical for the `isAdmin` function to work without recursion.
+     * @deny (get) A user trying to read another user's profile directly.
+     * @principle Restricts access to a user's own data tree, but allows an admin check.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId);
       allow list: if isAdmin();
       allow create: if isOwner(userId) && isResourceCreator('id');
       allow update: if isExistingOwner(userId) || isAdmin();
@@ -255,8 +254,7 @@ service cloud.firestore {
       allow get: if isSignedIn(); // Add specific participant check if needed
       
       match /messages/{messageId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn(); // Let's keep it open for now for demo
+        allow read, write: if isSignedIn();
       }
     }
     
@@ -287,7 +285,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Manages which users have administrative privileges.
+     * @description Manages which users have administrative privileges. This collection is no longer used for checks.
      * @path /roles_admin/{userId}
      * @allow (get) An admin checking if another user is an admin.
      * @deny (create) A non-admin user trying to grant themselves admin rights.
@@ -295,8 +293,7 @@ service cloud.firestore {
      */
     match /roles_admin/{userId} {
       allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow list, create, update, delete: if isAdmin();
     }
     
     /**

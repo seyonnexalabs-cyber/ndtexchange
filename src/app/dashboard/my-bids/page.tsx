@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -251,7 +252,7 @@ export default function MyBidsPage() {
         form.reset({
             amount: bid.amount,
             comments: bid.comments || '',
-            proposedTechnique: bid.proposedTechnique || bid.job?.technique,
+            proposedTechnique: bid.proposedTechnique || bid.job?.techniques[0],
             proposalJustification: bid.proposalJustification || '',
         });
     };
@@ -411,7 +412,7 @@ export default function MyBidsPage() {
                                         </FormItem>
                                     )}
                                 />
-                                 {proposedTechnique !== editingBid?.job?.technique && (
+                                 {editingBid?.job?.techniques && !editingBid.job.techniques.includes(proposedTechnique) && proposedTechnique && (
                                     <FormField
                                         control={form.control}
                                         name="proposalJustification"

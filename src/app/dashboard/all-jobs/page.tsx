@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -364,7 +365,7 @@ export default function AllJobsPage() {
                                         </div>
                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                     </div>
-                                    <CardDescription>{job.client} - {job.technique}</CardDescription>
+                                    <CardDescription>{job.client} - {job.techniques.join(', ')}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
                                     <div className="flex items-center text-sm text-muted-foreground">
@@ -422,7 +423,7 @@ export default function AllJobsPage() {
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{job.assetIds?.length || 0}</TableCell>
-                                        <TableCell><Badge variant="secondary">{job.technique}</Badge></TableCell>
+                                        <TableCell><div className="flex flex-wrap gap-1">{job.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}</div></TableCell>
                                         <TableCell>{job.location}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">

@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/placeholder-data";
@@ -330,7 +331,7 @@ export default function MyJobsPage() {
                                             <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                         </div>
                                     </div>
-                                    <CardDescription>{job.client} - {job.technique}</CardDescription>
+                                    <CardDescription>{job.client} - {job.techniques.join(', ')}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center text-sm text-muted-foreground">

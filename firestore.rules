@@ -154,7 +154,7 @@ service cloud.firestore {
      * @principle Public read with admin-only writes.
      */
     match /asset_types/{assetTypeId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create, update, delete: if isAdmin();
     }
     
@@ -164,7 +164,7 @@ service cloud.firestore {
      * @principle Public read with admin-only writes.
      */
     match /techniques/{techniqueId} {
-        allow get, list: if true;
+        allow read: if true;
         allow create, update, delete: if isAdmin();
     }
     
@@ -174,7 +174,7 @@ service cloud.firestore {
      * @principle Public read with admin-only writes.
      */
     match /manufacturers/{manufacturerId} {
-        allow get, list: if true;
+        allow read: if true;
         allow create, update, delete: if isAdmin();
     }
 
@@ -239,8 +239,7 @@ service cloud.firestore {
       function isJobParticipant() {
         return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
       }
-      allow get: if isSignedIn();
-      allow list: if true;
+      allow read: if true;
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
       allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
@@ -301,7 +300,7 @@ service cloud.firestore {
      * @principle Public read with admin-only writes for directory functionality.
      */
     match /companies/{companyId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create, update, delete: if isAdmin();
     }
 
@@ -328,7 +327,7 @@ service cloud.firestore {
      * @principle Admin moderation of user-generated content.
      */
     match /reviews/{reviewId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update, delete: if isAdmin();
     }
@@ -351,5 +350,3 @@ service cloud.firestore {
 
   }
 }
-    
-  

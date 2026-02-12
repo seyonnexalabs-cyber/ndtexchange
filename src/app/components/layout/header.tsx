@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -39,13 +40,13 @@ const AppHeader = () => {
     const { setScanOpen } = useQRScanner();
     
     const notificationsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
+        if (!firestore || !user || role === 'admin') return null;
         return query(
             collection(firestore, 'notifications'),
             where('userId', '==', user.uid),
             orderBy('timestamp', 'desc')
         );
-    }, [firestore, user]);
+    }, [firestore, user, role]);
 
     const { data: notifications, isLoading: isLoadingNotifications } = useCollection<Notification>(notificationsQuery);
 

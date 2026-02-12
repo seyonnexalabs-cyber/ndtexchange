@@ -1,3 +1,4 @@
+
 /**
  * # Core Philosophy
  * This ruleset enforces a security model based on user roles (Admin, Client, Inspector)
@@ -15,12 +16,12 @@
  *
  * # Key Security Decisions
  * - Admin Access: A user is considered an admin if their authenticated email is
- *   'admin@ndtexchange.com'. This is a fast and secure check.
+ *   one of the predefined admin emails. This is a fast and secure check.
  * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
  *   They are the only ones who can read or write their own document. Listing all
  *   users is disabled to protect user privacy (except for admins).
- * - Public Data: The `/asset_types`, `/techniques`, `/manufacturers`, and `/companies` collections are considered public,
- *   readable by anyone (including unauthenticated users), but writable only by admins.
+ * - Public Data: Collections like `/asset_types`, `/techniques`, `/manufacturers`, and `/companies` are considered public,
+ *   readable by anyone, but writable only by admins.
  * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
  *   UIDs stored directly on the document (e.g., `clientId`, `senderId`). This avoids
  *   complex lookups and ensures performant, secure access.
@@ -135,16 +136,18 @@ service cloud.firestore {
      * @principle Client queries are secured by companyId, writes are validated against user's company.
      */
     match /assets/{assetId} {
+      allow write: if isAdmin(); // Admin can do anything
+      
       function isAssetCompanyMember() {
         return isCompanyMember(resource.data.companyId);
       }
       
+      // Granular rules for non-admins
       allow get: if isAssetCompanyMember() || isAdmin();
       allow list: if isSignedIn();
-      allow create: if isAdmin();
       allow create: if isCompanyMember(request.resource.data.companyId);
       allow update: if (isAssetCompanyMember() || isAdmin()) && isImmutable('companyId');
-      allow delete: if isAdmin() || isAssetCompanyMember();
+      allow delete: if isAssetCompanyMember();
     }
 
     /**
@@ -274,12 +277,17 @@ service cloud.firestore {
      * @principle A user can manage equipment if they belong to the provider company that owns it.
      */
     match /equipment/{equipmentId} {
+        allow write: if isAdmin(); // Admin can do anything
+        
         function isEquipmentCompanyMember() {
             let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
             return user != null && user.data.companyId == resource.data.providerId;
         }
-        allow read, write: if isAdmin();
-        allow read, write: if isEquipmentCompanyMember();
+        
+        // Granular rules for non-admins
+        allow read: if isEquipmentCompanyMember() || isAdmin();
+        allow create: if isCompanyMember(request.resource.data.companyId);
+        allow update, delete: if isEquipmentCompanyMember();
     }
 
     /**
@@ -323,6 +331,7 @@ service cloud.firestore {
      */
     match /companies/{companyId} {
       allow read: if true;
+      allow create: if isSignedIn() && isResourceCreator('contactEmail'); // Let new users create their own company profile on signup
       allow write: if isAdmin();
     }
 

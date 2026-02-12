@@ -19,7 +19,7 @@
  * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
  *   They are the only ones who can read or write their own document. Listing all
  *   users is disabled to protect user privacy (except for admins).
- * - Public Data: The `/asset_types`, `/techniques`, and `/manufacturers` collections are considered public template data,
+ * - Public Data: The `/asset_types`, `/techniques`, `/manufacturers`, and `/companies` collections are considered public,
  *   readable by anyone (including unauthenticated users), but writable only by admins.
  * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
  *   UIDs stored directly on the document (e.g., `clientId`, `senderId`). This avoids
@@ -293,13 +293,14 @@ service cloud.firestore {
     }
     
     /**
-     * @description Manages company profiles (Clients, Providers, Auditors).
+     * @description Manages company profiles (Clients, Providers, Auditors), which are publicly readable.
      * @path /companies/{companyId}
-     * @allow (get, list) Admins can read all company data for management.
-     * @principle Admin-only management access.
+     * @allow (get, list) Any user, including unauthenticated ones, can read company profiles.
+     * @deny (create, update, delete) A non-admin user trying to modify company data.
+     * @principle Public read with admin-only writes for directory functionality.
      */
     match /companies/{companyId} {
-      allow get, list: if isAdmin();
+      allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
 

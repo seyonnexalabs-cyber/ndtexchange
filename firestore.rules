@@ -136,18 +136,20 @@ service cloud.firestore {
      * @principle Client queries are secured by companyId, writes are validated against user's company.
      */
     match /assets/{assetId} {
-      allow write: if isAdmin(); // Admin can do anything
-      
-      function isAssetCompanyMember() {
-        return isCompanyMember(resource.data.companyId);
-      }
-      
-      // Granular rules for non-admins
-      allow get: if isAssetCompanyMember() || isAdmin();
+      // Admins have full access
+      allow read, write: if isAdmin();
+
+      // Allow any signed-in user to list assets. Client-side queries must enforce security.
       allow list: if isSignedIn();
+
+      // Allow users to read an asset if they belong to the same company
+      allow get: if isCompanyMember(resource.data.companyId);
+
+      // Allow users to create an asset for their own company
       allow create: if isCompanyMember(request.resource.data.companyId);
-      allow update: if (isAssetCompanyMember() || isAdmin()) && isImmutable('companyId');
-      allow delete: if isAssetCompanyMember();
+      
+      // Allow users to update/delete an asset if they belong to the same company
+      allow update, delete: if isCompanyMember(resource.data.companyId);
     }
 
     /**
@@ -277,17 +279,20 @@ service cloud.firestore {
      * @principle A user can manage equipment if they belong to the provider company that owns it.
      */
     match /equipment/{equipmentId} {
-        allow write: if isAdmin(); // Admin can do anything
-        
-        function isEquipmentCompanyMember() {
-            let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
-            return user != null && user.data.companyId == resource.data.providerId;
-        }
+        // Admins have full access
+        allow read, write: if isAdmin(); 
         
         // Granular rules for non-admins
-        allow read: if isEquipmentCompanyMember() || isAdmin();
-        allow create: if isCompanyMember(request.resource.data.companyId);
-        allow update, delete: if isEquipmentCompanyMember();
+        // Check if the user's companyId matches the equipment's providerId
+        function isEquipmentProviderMember(providerId) {
+            let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
+            return user != null && user.data.companyId == providerId;
+        }
+        
+        allow list: if isSignedIn();
+        allow get: if isEquipmentProviderMember(resource.data.providerId);
+        allow create: if isEquipmentProviderMember(request.resource.data.providerId);
+        allow update, delete: if isEquipmentProviderMember(resource.data.providerId);
     }
 
     /**
@@ -315,10 +320,10 @@ service cloud.firestore {
      */
     match /chats/{chatId} {
       allow read, write: if isAdmin();
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId;
       
       match /messages/{messageId} {
-        allow read, write: if isAdmin() || (isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants);
+        allow read, write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/chats/$(chatId)).data.companyId);
       }
     }
     
@@ -331,7 +336,7 @@ service cloud.firestore {
      */
     match /companies/{companyId} {
       allow read: if true;
-      allow create: if isSignedIn() && isResourceCreator('contactEmail'); // Let new users create their own company profile on signup
+      allow create: if isSignedIn() && request.auth.token.email == request.resource.data.contactEmail;
       allow write: if isAdmin();
     }
 
@@ -417,3 +422,5 @@ service cloud.firestore {
 
   }
 }
+
+    

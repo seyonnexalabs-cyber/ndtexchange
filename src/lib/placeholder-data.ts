@@ -503,7 +503,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         certificationsRequired: 'ASNT UT L-II'
     },
     { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', clientCompanyId: 'client-08', providerId: 'provider-07', location: 'Detroit, MI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-tech-01'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['RVI'], jobType: 'project', industry: 'Manufacturing', certificationsRequired: 'ASNT VT L-II' },
-    { id: 'JOB-016', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto', techniques: ['MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT MFL L-II' },
+    { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto', techniques: ['MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT MFL L-II' },
     { 
         id: 'JOB-017', 
         title: 'Shutdown Support - PT', 
@@ -713,6 +713,7 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-client-04', name: 'Carlos Ruiz', email: 'c.ruiz@chemc.com', role: 'Client', companyId: 'client-05', company: 'Chemical Plant C', status: 'Active', password: 'password123' },
     { id: 'user-client-05', name: 'Chuck Yeager', email: 'chuck@avpros.com', role: 'Client', companyId: 'client-09', company: 'Aviation Maintenance Pros', status: 'Active', password: 'password123' },
     { id: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', name: 'Admin User', email: 'admin@ndtexchange.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
+    { id: 'admin-seyon', name: 'Seyon', email: 'seyonnexalabs@gmail.com', role: 'Admin', companyId: 'provider-ndtx', company: 'NDT EXCHANGE', status: 'Active', password: 'password123' },
     { id: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', role: 'Auditor', companyId: 'auditor-firm-01', company: 'NDT Auditors LLC', status: 'Active', password: 'password123', certifications: [{method: 'UT', level: 'Level III'}, {method: 'RT', level: 'Level III'}, {method: 'MT', level: 'Level III'}, {method: 'PT', level: 'Level III'}], level: 'Level III' },
     { id: 'user-auditor-02', name: 'Brenda Vance', email: 'b.vance@aerocompliance.com', role: 'Auditor', companyId: 'auditor-firm-02', company: 'Aero-Compliance Partners', status: 'Active', password: 'password123', certifications: [{method: 'ET', level: 'Level III'}, {method: 'UT', level: 'Level III'}], level: 'Level III' },
     { id: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', name: 'Maria Garcia', email: 'maria.garcia@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'RT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-03', level: 'Level II', password: 'password123' },
@@ -874,5 +875,3 @@ export const reviews: Review[] = [
 export { NDTTechniques } from './ndt-techniques-data';
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
-
-  

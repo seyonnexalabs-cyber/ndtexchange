@@ -83,7 +83,7 @@ service cloud.firestore {
      * This is a fast and non-recursive way to check for admin status.
      */
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email == 'admin@ndtexchange.com';
+      return isSignedIn() && request.auth.token.email in ['admin@ndtexchange.com', 'seyonnexalabs@gmail.com'];
     }
     
     /**

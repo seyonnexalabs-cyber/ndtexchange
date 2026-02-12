@@ -120,11 +120,11 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree, but allows an admin check.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
-      allow create: if isOwner(userId) && isResourceCreator('id') || isAdmin();
-      allow update: if isExistingOwner(userId) || isAdmin();
-      allow delete: if isExistingOwner(userId) || isAdmin();
+      allow read, list, write: if isAdmin();
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isResourceCreator('id');
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
@@ -141,7 +141,7 @@ service cloud.firestore {
       
       allow get: if isAssetCompanyMember() || isAdmin();
       allow list: if isSignedIn();
-      allow create: if isCompanyMember(request.resource.data.companyId) || isAdmin();
+      allow create: if isAdmin() || isCompanyMember(request.resource.data.companyId);
       allow update: if (isAssetCompanyMember() || isAdmin()) && isImmutable('companyId');
       allow delete: if isAdmin() || isAssetCompanyMember();
     }
@@ -155,7 +155,7 @@ service cloud.firestore {
      */
     match /asset_types/{assetTypeId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
     
     /**
@@ -165,7 +165,7 @@ service cloud.firestore {
      */
     match /techniques/{techniqueId} {
         allow read: if true;
-        allow create, update, delete: if isAdmin();
+        allow write: if isAdmin();
     }
     
     /**
@@ -175,7 +175,7 @@ service cloud.firestore {
      */
     match /manufacturers/{manufacturerId} {
         allow read: if true;
-        allow create, update, delete: if isAdmin();
+        allow write: if isAdmin();
     }
 
     /**
@@ -187,10 +187,11 @@ service cloud.firestore {
      */
     match /assets/{assetId}/inspections/{inspectionId} {
       // Access depends on being an admin or the designated inspector. Asset ownership check is pending schema update.
-      allow get, list: if isAdmin() || isOwner(resource.data.inspectorId);
-      allow create: if (isSignedIn() && isResourceCreator('inspectorId')) || isAdmin();
-      allow update: if isAdmin() || (isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId'));
-      allow delete: if isAdmin() || isExistingOwner(resource.data.inspectorId);
+      allow read, write: if isAdmin();
+      allow get, list: if isOwner(resource.data.inspectorId);
+      allow create: if isSignedIn() && isResourceCreator('inspectorId');
+      allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId');
+      allow delete: if isExistingOwner(resource.data.inspectorId);
     }
 
     /**
@@ -204,10 +205,11 @@ service cloud.firestore {
       function isReportParticipant() {
         return isOwner(resource.data.inspectorId) || isOwner(resource.data.level3ApproverId);
       }
-      allow get, list: if isReportParticipant() || isAdmin();
-      allow create: if (isSignedIn() && isResourceCreator('inspectorId')) || isAdmin();
-      allow update: if (isReportParticipant() || isAdmin()) && isExistingDoc() && isImmutable('inspectionId') && isImmutable('inspectorId');
-      allow delete: if (isReportParticipant() || isAdmin()) && isExistingDoc();
+      allow read, write: if isAdmin();
+      allow get, list: if isReportParticipant();
+      allow create: if isSignedIn() && isResourceCreator('inspectorId');
+      allow update: if isReportParticipant() && isExistingDoc() && isImmutable('inspectionId') && isImmutable('inspectorId');
+      allow delete: if isReportParticipant() && isExistingDoc();
     }
 
     /**
@@ -222,10 +224,11 @@ service cloud.firestore {
         let report = get(/databases/$(database)/documents/reports/$(reportId)).data;
         return request.auth.uid == report.inspectorId || request.auth.uid == report.level3ApproverId;
       }
-      allow get: if isAdmin() || canAccessRelatedReport(resource.data.reportId);
+      allow read, write: if isAdmin();
+      allow get: if canAccessRelatedReport(resource.data.reportId);
       allow list: if isAdmin(); // Listing all defects is admin-only. Query by reportId instead.
-      allow create: if (isSignedIn() && canAccessRelatedReport(request.resource.data.reportId)) || isAdmin();
-      allow update, delete: if (isAdmin() || canAccessRelatedReport(resource.data.reportId)) && isExistingDoc();
+      allow create: if isSignedIn() && canAccessRelatedReport(request.resource.data.reportId);
+      allow update, delete: if canAccessRelatedReport(resource.data.reportId) && isExistingDoc();
     }
 
     /**
@@ -239,8 +242,9 @@ service cloud.firestore {
       function isJobParticipant() {
         return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
       }
-      allow read: if true;
-      allow create: if (isSignedIn() && isResourceCreator('clientId')) || isAdmin();
+      allow read, list, write: if isAdmin();
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
       allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
     }
@@ -256,8 +260,9 @@ service cloud.firestore {
       function isJobClient() {
         return isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId);
       }
-      allow get, list: if isJobClient() || isOwner(resource.data.inspectorId) || isAdmin();
-      allow create: if (isSignedIn() && isResourceCreator('inspectorId')) || isAdmin();
+      allow read, list, write: if isAdmin();
+      allow get, list: if isJobClient() || isOwner(resource.data.inspectorId);
+      allow create: if isSignedIn() && isResourceCreator('inspectorId');
       allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId') && isImmutable('jobId');
       allow delete: if isExistingOwner(resource.data.inspectorId) || isAdmin();
     }
@@ -272,9 +277,7 @@ service cloud.firestore {
             let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
             return user != null && user.data.companyId == resource.data.providerId;
         }
-
-        allow read: if isAdmin() || isEquipmentCompanyMember();
-        allow write: if isAdmin() || isEquipmentCompanyMember();
+        allow read, write: if isAdmin() || isEquipmentCompanyMember();
     }
 
     /**
@@ -288,9 +291,10 @@ service cloud.firestore {
       function isMessageParticipant() {
         return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       }
-      allow read: if isMessageParticipant() || isAdmin();
-      allow create: if (isSignedIn() && isResourceCreator('senderId')) || isAdmin();
-      allow update: if (isOwner(resource.data.receiverId) || isAdmin()) && isExistingDoc(); // Only receiver can mark as read.
+      allow read, write: if isAdmin();
+      allow read: if isMessageParticipant();
+      allow create: if isSignedIn() && isResourceCreator('senderId');
+      allow update: if isOwner(resource.data.receiverId) && isExistingDoc(); // Only receiver can mark as read.
       allow delete: if false; // Messages are generally immutable.
     }
     
@@ -300,13 +304,10 @@ service cloud.firestore {
      * @principle Allows participants of a chat to read and write messages. Admin has full access for moderation.
      */
     match /chats/{chatId} {
-      // In a real app, read/write would be restricted to participants.
-      // For now, this allows any signed-in user to read, but only admin to create/update top-level chat docs.
+      allow read, write: if isAdmin();
       allow read: if isSignedIn();
-      allow write: if isAdmin();
       
       match /messages/{messageId} {
-        // Allows participants of a chat to send messages, and admin to moderate.
         allow read, write: if isAdmin() || (isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants);
       }
     }
@@ -320,7 +321,7 @@ service cloud.firestore {
      */
     match /companies/{companyId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     /**
@@ -331,10 +332,11 @@ service cloud.firestore {
      * @principle Grants read access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-      allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if (isSignedIn() && isResourceCreator('userId')) || isAdmin();
-      allow update: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc() && isImmutable('userId');
-      allow delete: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc();
+      allow read, write: if isAdmin();
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isSignedIn() && isResourceCreator('userId');
+      allow update: if isOwner(resource.data.userId) && isExistingDoc() && isImmutable('userId');
+      allow delete: if isOwner(resource.data.userId) && isExistingDoc();
     }
 
     /**
@@ -381,9 +383,9 @@ service cloud.firestore {
      * @principle Admin moderation of user-generated content.
      */
     match /reviews/{reviewId} {
+      allow read, list, write: if isAdmin();
       allow read: if true;
-      allow create: if (isSignedIn() && isResourceCreator('clientId')) || isAdmin();
-      allow update, delete: if isAdmin();
+      allow create: if isSignedIn() && isResourceCreator('clientId');
     }
     
     /**

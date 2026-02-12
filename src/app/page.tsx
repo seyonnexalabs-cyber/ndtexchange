@@ -14,7 +14,7 @@ import { FeatureCard } from '@/app/components/feature-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import type { NDTServiceProvider, AuditFirm, Client, NDTTechnique } from '@/lib/types';
+import type { NDTServiceProvider, AuditFirm, Client, NDTTechnique, Manufacturer } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -63,18 +63,21 @@ export default function HomePage() {
 
   const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
   const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
+  
+  const manufacturersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'manufacturers') : null, [firestore]);
+  const { data: manufacturers, isLoading: isLoadingManufacturers } = useCollection<Manufacturer>(manufacturersQuery);
 
   const { clientCount, providerCount, auditorCount, manufacturerCount } = useMemo(() => {
-    if (!companies) return { clientCount: 0, providerCount: 0, auditorCount: 0, manufacturerCount: 0 };
+    if (!companies || !manufacturers) return { clientCount: 0, providerCount: 0, auditorCount: 0, manufacturerCount: 0 };
     return {
       clientCount: companies.filter(c => c.type === 'Client').length,
       providerCount: companies.filter(c => c.type === 'Provider').length,
       auditorCount: companies.filter(c => c.type === 'Auditor').length,
-      manufacturerCount: 10, // Placeholder, as manufacturers are not in the 'companies' collection
+      manufacturerCount: manufacturers.length,
     };
-  }, [companies]);
+  }, [companies, manufacturers]);
 
-  const isLoading = isLoadingCompanies || isLoadingTechniques;
+  const isLoading = isLoadingCompanies || isLoadingTechniques || isLoadingManufacturers;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

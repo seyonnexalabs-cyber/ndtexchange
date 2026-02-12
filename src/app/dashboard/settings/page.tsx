@@ -15,8 +15,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { allUsers, clientData, serviceProviders, auditFirms, subscriptions, PlatformUser } from '@/lib/placeholder-data';
-import { NDTTechniques, auditFirmIndustries } from '@/lib/seed-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -30,15 +28,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { MultiSelect } from '@/components/ui/multi-select';
-
-
-const userDetails = {
-    client: { name: 'John Doe', role: 'Project Manager', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.', address: '123 Energy Corridor, Houston, TX 77079' },
-    inspector: { name: 'Maria Garcia', role: 'Level II Inspector', email: 'maria.garcia@teaminc.com', company: 'TEAM, Inc.', address: '1 Fluor Daniel Dr, Sugar Land, TX 77478' },
-    admin: { name: 'Admin User', role: 'Platform Admin', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE', address: '123 Main St, Palo Alto, CA' },
-    auditor: { name: 'Alex Chen', role: 'Compliance Auditor', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', address: '456 Gov Ave, Washington, D.C.' },
-};
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
+import { useFirebase, useUser, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, doc, query, where, updateDoc } from 'firebase/firestore';
+import type { PlatformUser, Subscription, NDTTechnique } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -46,35 +40,45 @@ const profileSchema = z.object({
 });
 
 const companyProfileSchema = z.object({
-  companyName: z.string().min(3, 'Company name must be at least 3 characters.'),
-  companyAddress: z.string().optional(),
+  name: z.string().min(3, 'Company name must be at least 3 characters.'),
+  address: z.string().optional(),
   description: z.string().optional(),
   techniques: z.array(z.string()).optional(),
   industries: z.array(z.string()).optional(),
 });
 
-const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role }: { companyDetails: any, isReadOnly?: boolean, role: string }) => {
+const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, techniqueOptions, industryOptions, isLoading, onSave }: { 
+    companyDetails: any, 
+    isReadOnly?: boolean, 
+    role: string,
+    techniqueOptions: MultiSelectOption[],
+    industryOptions: MultiSelectOption[],
+    isLoading: boolean,
+    onSave: (data: z.infer<typeof companyProfileSchema>) => Promise<void>
+}) => {
   const form = useForm<z.infer<typeof companyProfileSchema>>({
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
-      companyName: companyDetails?.name || '',
-      companyAddress: (companyDetails as any)?.address || '',
+      name: companyDetails?.name || '',
+      address: companyDetails?.address || '',
       description: companyDetails?.description || '',
       techniques: companyDetails?.techniques || [],
       industries: companyDetails?.industries || [],
     },
   });
-
-  const onProfileSubmit = (data: z.infer<typeof companyProfileSchema>) => {
-    toast({
-      title: 'Company Profile Updated',
-      description: 'Your company information has been saved.',
-    });
-    console.log(data);
-  };
   
-  const techniqueOptions = useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.name} (${t.id})` })), []);
-  const industryOptions = useMemo(() => auditFirmIndustries.map(i => ({ value: i, label: i })), []);
+  useEffect(() => {
+    if (companyDetails) {
+        form.reset({
+            name: companyDetails.name,
+            address: companyDetails.address || '',
+            description: companyDetails.description || '',
+            techniques: companyDetails.techniques || [],
+            industries: companyDetails.industries || [],
+        });
+    }
+  }, [companyDetails, form]);
+
 
   return (
     <Card>
@@ -83,99 +87,109 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role }: { 
         <CardDescription>Manage your organization's details.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="companyName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly}/>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="companyAddress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly}/>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {role === 'inspector' && (
-                <>
+         {isLoading ? (
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                {role === 'inspector' && <Skeleton className="h-24 w-full" />}
+            </div>
+         ) : (
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
                 <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
+                control={form.control}
+                name="name"
+                render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Company Description</FormLabel>
-                        <FormControl>
-                        <Textarea
-                            placeholder="Provide a brief summary of your company's services, history, and expertise. This will be visible on your public profile."
-                            className="min-h-[120px]"
-                            {...field}
-                            disabled={isReadOnly}
-                        />
-                        </FormControl>
-                        <FormMessage />
+                    <FormLabel>Company Name</FormLabel>
+                    <FormControl>
+                        <Input {...field} disabled={isReadOnly}/>
+                    </FormControl>
+                    <FormMessage />
                     </FormItem>
-                    )}
+                )}
                 />
                 <FormField
-                    control={form.control}
-                    name="techniques"
-                    render={({ field }) => (
+                control={form.control}
+                name="address"
+                render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Techniques Offered</FormLabel>
-                        <MultiSelect
-                        options={techniqueOptions}
-                        selected={field.value || []}
-                        onChange={field.onChange}
-                        placeholder="Select techniques..."
-                        />
-                        <FormDescription>The NDT methods your company is certified to perform.</FormDescription>
-                        <FormMessage />
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                        <Input {...field} disabled={isReadOnly} />
+                    </FormControl>
+                    <FormMessage />
                     </FormItem>
-                    )}
+                )}
                 />
-                 <FormField
-                    control={form.control}
-                    name="industries"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Industries Served</FormLabel>
-                        <MultiSelect
-                        options={industryOptions}
-                        selected={field.value || []}
-                        onChange={field.onChange}
-                        placeholder="Select industries..."
-                        />
-                        <FormDescription>The primary industries you provide services for.</FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                </>
-            )}
-            {!isReadOnly && <Button type="submit">Save Changes</Button>}
-          </form>
-        </Form>
+                {role === 'inspector' && (
+                    <>
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Company Description</FormLabel>
+                            <FormControl>
+                            <Textarea
+                                placeholder="Provide a brief summary of your company's services, history, and expertise. This will be visible on your public profile."
+                                className="min-h-[120px]"
+                                {...field}
+                                disabled={isReadOnly}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="techniques"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Techniques Offered</FormLabel>
+                            <MultiSelect
+                                options={techniqueOptions}
+                                selected={field.value || []}
+                                onChange={field.onChange}
+                                placeholder="Select techniques..."
+                                disabled={isReadOnly}
+                            />
+                            <FormDescription>The NDT methods your company is certified to perform.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="industries"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Industries Served</FormLabel>
+                            <MultiSelect
+                                options={industryOptions}
+                                selected={field.value || []}
+                                onChange={field.onChange}
+                                placeholder="Select industries..."
+                                disabled={isReadOnly}
+                            />
+                            <FormDescription>The primary industries you provide services for.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    </>
+                )}
+                {!isReadOnly && <Button type="submit">Save Changes</Button>}
+            </form>
+            </Form>
+         )}
       </CardContent>
     </Card>
   );
 };
 
-const TeamManagementSettings = ({ user }: { user: { name: string, email: string, role: string } }) => {
+const TeamManagementSettings = ({ user }: { user: any }) => {
     const searchParams = useSearchParams();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -211,7 +225,7 @@ const TeamManagementSettings = ({ user }: { user: { name: string, email: string,
     );
 };
 
-const PlatformAdminTeamSettings = () => {
+const PlatformAdminTeamSettings = ({ allUsers, isLoading }: { allUsers: PlatformUser[], isLoading: boolean }) => {
     const platformAdmins = allUsers.filter(u => u.role === 'Admin');
 
     const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -227,29 +241,31 @@ const PlatformAdminTeamSettings = () => {
                 <CardDescription>A list of users with platform-wide administrative privileges.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {platformAdmins.map(admin => (
-                            <TableRow key={admin.id}>
-                                <TableCell className="font-medium flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarFallback>{admin.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                    </Avatar>
-                                    {admin.name}
-                                </TableCell>
-                                <TableCell>{admin.email}</TableCell>
-                                <TableCell><Badge variant={statusStyles[admin.status]}>{admin.status}</Badge></TableCell>
+                 {isLoading ? <Skeleton className="h-40" /> : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Status</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {platformAdmins.map(admin => (
+                                <TableRow key={admin.id}>
+                                    <TableCell className="font-medium flex items-center gap-3">
+                                        <Avatar>
+                                            <AvatarFallback>{admin.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                        </Avatar>
+                                        {admin.name}
+                                    </TableCell>
+                                    <TableCell>{admin.email}</TableCell>
+                                    <TableCell><Badge variant={statusStyles[admin.status]}>{admin.status}</Badge></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </CardContent>
             <CardFooter>
                 <p className="text-xs text-muted-foreground">To add or remove platform administrators, please use the main User Management page.</p>
@@ -388,47 +404,25 @@ const NotificationSettings = ({ role }: { role: string }) => {
   );
 };
 
-
-const SubscriptionSettings = () => {
-    const [trialDetails, setTrialDetails] = useState({
-        endDate: new Date(),
-        progress: 0,
-        daysRemaining: 0,
-    });
-    const [usageDetails] = useState({
-        storage: 1.2,
-        storageLimit: 5,
-        users: 3,
-        userLimit: 5,
-    });
+const SubscriptionSettings = ({ subscription }: { subscription?: Subscription }) => {
     const searchParams = useSearchParams();
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
-    useEffect(() => {
-        // Use a fixed start date for consistent demonstration
-        const trialStartDate = new Date();
-        trialStartDate.setDate(trialStartDate.getDate() - 25); // Set to 25 days ago to show the alert
-        
-        const endDate = new Date(trialStartDate);
-        endDate.setDate(endDate.getDate() + 30);
-        
-        const today = new Date();
-        const daysElapsed = Math.max(0, Math.floor((today.getTime() - trialStartDate.getTime()) / (1000 * 3600 * 24)));
-        const progress = Math.min((daysElapsed / 30) * 100, 100);
-        const daysRemaining = Math.max(0, 30 - daysElapsed);
-
-        setTrialDetails({
-            endDate,
-            progress,
-            daysRemaining,
-        });
-    }, []);
-
-    const storageProgress = (usageDetails.storage / usageDetails.storageLimit) * 100;
-    const userProgress = (usageDetails.users / usageDetails.userLimit) * 100;
+    if (!subscription) {
+        return (
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Subscription &amp; Billing</CardTitle>
+                 </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-40" />
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <Card>
@@ -439,12 +433,12 @@ const SubscriptionSettings = () => {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                 {trialDetails.daysRemaining < 10 && (
+                 {subscription.status === 'Trialing' && subscription.endDate && (
                     <Alert className="border-amber-500/50 text-amber-900 bg-amber-500/10 [&>svg]:text-amber-600">
                         <AlertTriangle className="h-4 w-4" />
                         <AlertTitle>Your free trial is ending soon!</AlertTitle>
                         <AlertDescription>
-                            You have {trialDetails.daysRemaining} days left. Please contact us to upgrade to a paid plan and avoid any interruption in service.
+                            You have {Math.max(0, new Date(subscription.endDate).getDate() - new Date().getDate())} days left. Please contact us to upgrade to a paid plan and avoid any interruption in service.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -453,17 +447,18 @@ const SubscriptionSettings = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <p className="font-semibold">Current Plan</p>
-                            <p className="text-2xl font-bold">Free Trial</p>
+                            <p className="text-2xl font-bold">{subscription.plan}</p>
                         </div>
-                        <Badge variant="success">Active</Badge>
+                        <Badge variant={subscription.status === 'Active' ? 'success' : 'default'}>{subscription.status}</Badge>
                     </div>
-                    <div>
-                        <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>Trial ends on {format(trialDetails.endDate, GLOBAL_DATE_FORMAT)}</span>
-                            <span>{trialDetails.daysRemaining} days remaining</span>
+                    {subscription.endDate && (
+                        <div>
+                            <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                                <span>{subscription.status === 'Trialing' ? 'Trial ends' : 'Plan renews'} on {format(new Date(subscription.endDate), GLOBAL_DATE_FORMAT)}</span>
+                            </div>
+                            <Progress value={50} />
                         </div>
-                        <Progress value={trialDetails.progress} />
-                    </div>
+                    )}
                 </div>
                 
                 <Separator />
@@ -473,37 +468,22 @@ const SubscriptionSettings = () => {
                     <div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-1">
                             <span>Data Storage</span>
-                            <span>{usageDetails.storage} GB / {usageDetails.storageLimit} GB used</span>
+                            <span>{subscription.dataUsageGB} GB / {subscription.dataLimitGB} GB used</span>
                         </div>
-                        <Progress value={storageProgress} />
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Your data storage includes all asset documents, job files, and final inspection reports.
-                        </p>
+                        <Progress value={(subscription.dataUsageGB / subscription.dataLimitGB) * 100} />
                     </div>
                     <div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-1">
                             <span>Team Members</span>
-                            <span>{usageDetails.users} / {usageDetails.userLimit} users</span>
+                            <span>{subscription.userCount} / {subscription.userLimit} users</span>
                         </div>
-                        <Progress value={userProgress} />
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Your plan includes up to {usageDetails.userLimit} users. Contact us to add more.
-                        </p>
+                        <Progress value={(subscription.userCount / subscription.userLimit) * 100} />
                     </div>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                    <p>
-                        Your 30-day free trial gives you full access to all platform features. Your subscription covers platform hosting costs, while data storage and user count are key components of our usage-based pricing. The Client (asset owner) is responsible for the data storage costs for all documents related to their jobs.
-                    </p>
-                     <p className="mt-2 font-semibold">
-                       Note: NDT EXCHANGE does not process payments directly through the platform. Our team will work with you to handle invoicing and payment.
-                    </p>
                 </div>
             </CardContent>
             <CardFooter className="gap-2">
                  <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Link href={constructUrl("/dashboard/billing")}>Upgrade to a Paid Plan</Link>
+                    <Link href={constructUrl("/dashboard/billing")}>Manage Subscription</Link>
                 </Button>
                 <Button variant="outline">View Billing History</Button>
             </CardFooter>
@@ -682,43 +662,121 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
 export default function SettingsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
-    }
+    const { firestore, auth } = useFirebase();
+    const { user: authUser, isUserLoading } = useUser();
     
-    const currentUser = useMemo(() => {
-        return userDetails[role as keyof typeof userDetails] || userDetails.client;
-    }, [role]);
+    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
+    
+    const { data: companyDetails, isLoading: isLoadingCompany } = useDoc<any>(
+        useMemoFirebase(() => (firestore && currentUserProfile?.companyId ? doc(firestore, 'companies', currentUserProfile.companyId) : null), [firestore, currentUserProfile])
+    );
 
-    const companyDetails = useMemo(() => {
-        if (role === 'client') return clientData.find(c => c.name === currentUser.company);
-        if (role === 'inspector') return serviceProviders.find(p => p.name === currentUser.company);
-        if (role === 'auditor') return auditFirms.find(a => a.name === currentUser.company);
-        return null;
-    }, [role, currentUser.company]);
+    const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(
+        useMemoFirebase(() => (firestore && currentUserProfile?.companyId ? query(collection(firestore, 'subscriptions'), where('companyId', '==', currentUserProfile.companyId)) : null), [firestore, currentUserProfile])
+    );
+    const subscription = subscriptions?.[0];
 
-    const subscription = useMemo(() => {
-        return subscriptions.find(s => s.companyName === currentUser.company);
-    }, [currentUser.company]);
+    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(
+        useMemoFirebase(() => (role === 'admin' && firestore ? collection(firestore, 'users') : null), [firestore, role])
+    );
 
-    const isSubscriptionActive = subscription?.status === 'Active';
+    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
+        useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore])
+    );
+
+    const { data: allCompanies, isLoading: isLoadingAllCompanies } = useCollection<any>(
+        useMemoFirebase(() => (firestore ? collection(firestore, 'companies') : null), [firestore])
+    );
+    
+    const industryOptions = useMemo(() => {
+        if (!allCompanies) return [];
+        const industries = new Set(allCompanies.flatMap(c => c.industries || []));
+        return Array.from(industries).sort().map(i => ({ value: i, label: i }));
+    }, [allCompanies]);
 
     const form = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            name: currentUser.name,
-            email: currentUser.email,
+            name: currentUserProfile?.name || '',
+            email: currentUserProfile?.email || '',
         },
     });
+    
+    useEffect(() => {
+        if (currentUserProfile) {
+            form.reset({
+                name: currentUserProfile.name,
+                email: currentUserProfile.email,
+            })
+        }
+    }, [currentUserProfile, form]);
 
-    const onSubmit = (data: z.infer<typeof profileSchema>) => {
-        toast({
-            title: 'Profile Updated',
-            description: 'Your profile information has been saved.',
-        });
-        console.log(data);
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+
+    const onSubmit = async (data: z.infer<typeof profileSchema>) => {
+        if (!firestore || !authUser) return;
+        
+        try {
+            await updateDoc(doc(firestore, 'users', authUser.uid), {
+                name: data.name,
+                email: data.email
+            });
+            toast({
+                title: 'Profile Updated',
+                description: 'Your profile information has been saved.',
+            });
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: 'Could not save your profile changes.'
+            });
+        }
     };
+    
+    const onCompanyProfileSave = async (data: z.infer<typeof companyProfileSchema>) => {
+        if (!firestore || !currentUserProfile?.companyId) return;
+
+        try {
+            await updateDoc(doc(firestore, 'companies', currentUserProfile.companyId), {
+                name: data.name,
+                address: data.address,
+                description: data.description,
+                techniques: data.techniques,
+                industries: data.industries,
+            });
+            toast({
+              title: 'Company Profile Updated',
+              description: 'Your company information has been saved.',
+            });
+        } catch (error) {
+            console.error("Error updating company profile:", error);
+             toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: 'Could not save company profile changes.'
+            });
+        }
+    };
+
+    const isLoading = isUserLoading || isLoadingProfile || isLoadingCompany || isLoadingSubs;
+    const isSubscriptionActive = subscription?.status === 'Active';
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        )
+    }
 
   return (
     <div className="space-y-6">
@@ -752,7 +810,7 @@ export default function SettingsPage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24">
-                        <AvatarFallback className="text-4xl font-bold font-headline">{currentUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        <AvatarFallback className="text-4xl font-bold font-headline">{currentUserProfile?.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                      <div className="flex flex-col gap-2">
                         <Button type="button">Change Photo</Button>
@@ -795,18 +853,22 @@ export default function SettingsPage() {
         <TabsContent value="company">
              <CompanyProfileSettings 
                 companyDetails={companyDetails}
-                isReadOnly={role === 'admin'}
+                isReadOnly={role === 'admin' || !isSubscriptionActive}
                 role={role}
+                techniqueOptions={allNdtTechniques?.map(t => ({ value: t.acronym, label: `${t.title} (${t.acronym})` })) || []}
+                industryOptions={industryOptions}
+                isLoading={isLoadingCompany || isLoadingTechniques || isLoadingAllCompanies}
+                onSave={onCompanyProfileSave}
             />
         </TabsContent>
         <TabsContent value="branding">
-            <BrandingSettings companyName={currentUser.company} role={role} />
+            <BrandingSettings companyName={currentUserProfile?.company || ''} role={role} />
         </TabsContent>
         <TabsContent value="team">
               {role === 'admin' ? (
-                <PlatformAdminTeamSettings />
+                <PlatformAdminTeamSettings allUsers={allUsers || []} isLoading={isLoadingUsers} />
               ) : isSubscriptionActive ? (
-                <TeamManagementSettings user={currentUser} />
+                <TeamManagementSettings user={currentUserProfile} />
               ) : (
                 <Card>
                     <CardHeader>
@@ -826,7 +888,7 @@ export default function SettingsPage() {
               )}
           </TabsContent>
         <TabsContent value="subscription">
-            <SubscriptionSettings />
+            <SubscriptionSettings subscription={subscription} />
         </TabsContent>
         <TabsContent value="notifications">
             <NotificationSettings role={role} />
@@ -913,3 +975,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

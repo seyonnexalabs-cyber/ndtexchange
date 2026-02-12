@@ -1,4 +1,5 @@
 
+
 import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique } from '@/lib/types';
 import { subscriptionPlans } from './subscription-plans';
 
@@ -42,21 +43,22 @@ export const manufacturersData: Manufacturer[] = [
 ];
 
 export const clientData: Client[] = [
-    { id: 'client-01', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
-    { id: 'client-02', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
-    { id: 'client-03', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
-    { id: 'client-04', name: 'State Department of Transportation', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
-    { id: 'client-05', name: 'Chemical Plant C', contactPerson: 'Carlos Ruiz', contactEmail: 'c.ruiz@chemc.com', activeJobs: 2, totalSpend: 24500 },
-    { id: 'client-06', name: 'Power Generation LLC', contactPerson: 'Power Admin', contactEmail: 'admin@powergen.com', activeJobs: 2, totalSpend: 56500 },
-    { id: 'client-07', name: 'Port Authority', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
-    { id: 'client-08', name: 'Manufacturing Solutions Inc.', contactPerson: 'Factory Manager', contactEmail: 'fm@mansol.com', activeJobs: 1, totalSpend: 3500 },
-    { id: 'client-09', name: 'Aviation Maintenance Pros', contactPerson: 'Chuck Yeager', contactEmail: 'chuck@avpros.com', activeJobs: 2, totalSpend: 45000 },
+    { id: 'client-01', name: 'Global Energy Corp.', type: 'Client', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
+    { id: 'client-02', name: 'Marine Tankers Ltd.', type: 'Client', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
+    { id: 'client-03', name: 'Energy Transfer', type: 'Client', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
+    { id: 'client-04', name: 'State Department of Transportation', type: 'Client', contactPerson: 'Emily White', contactEmail: 'ewhite@dot.state.gov', activeJobs: 1, totalSpend: 8200 },
+    { id: 'client-05', name: 'Chemical Plant C', type: 'Client', contactPerson: 'Carlos Ruiz', contactEmail: 'c.ruiz@chemc.com', activeJobs: 2, totalSpend: 24500 },
+    { id: 'client-06', name: 'Power Generation LLC', type: 'Client', contactPerson: 'Power Admin', contactEmail: 'admin@powergen.com', activeJobs: 2, totalSpend: 56500 },
+    { id: 'client-07', name: 'Port Authority', type: 'Client', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
+    { id: 'client-08', name: 'Manufacturing Solutions Inc.', type: 'Client', contactPerson: 'Factory Manager', contactEmail: 'fm@mansol.com', activeJobs: 1, totalSpend: 3500 },
+    { id: 'client-09', name: 'Aviation Maintenance Pros', type: 'Client', contactPerson: 'Chuck Yeager', contactEmail: 'chuck@avpros.com', activeJobs: 2, totalSpend: 45000 },
 ];
 
 export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-01',
         name: 'MISTRAS Group',
+        type: 'Provider',
         contactPerson: 'Ben Carter',
         contactEmail: 'ben.carter@mistras.com',
         location: 'Princeton Jct, NJ, USA (Global)',
@@ -68,6 +70,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-02',
         name: 'Applus+',
+        type: 'Provider',
         contactPerson: 'David Lee',
         contactEmail: 'david.lee@applus.com',
         location: 'Barcelona, Spain (Global)',
@@ -79,6 +82,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-03',
         name: 'TEAM, Inc.',
+        type: 'Provider',
         logoUrl: 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM',
         brandColor: '#FF6600',
         contactPerson: 'Maria Garcia',
@@ -92,6 +96,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-04',
         name: 'TÜV Rheinland',
+        type: 'Provider',
         contactPerson: 'Samantha Wu',
         contactEmail: 'samantha.wu@tuv.com',
         location: 'Cologne, Germany (Global)',
@@ -103,6 +108,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-05',
         name: 'Intertek',
+        type: 'Provider',
         contactPerson: 'Peter Jones',
         contactEmail: 'peter.jones@intertek.com',
         location: 'London, UK (Global)',
@@ -114,6 +120,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-06',
         name: 'Acuren',
+        type: 'Provider',
         contactPerson: 'Sarah Brown',
         contactEmail: 'sarah.brown@acuren.com',
         location: 'St. John, Canada (North America)',
@@ -125,6 +132,7 @@ export const serviceProviders: NDTServiceProvider[] = [
      {
         id: 'provider-07',
         name: 'Dekra',
+        type: 'Provider',
         contactPerson: 'Hans Schmidt',
         contactEmail: 'hans.schmidt@dekra.com',
         location: 'Stuttgart, Germany (Global)',
@@ -136,6 +144,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-08',
         name: 'Bureau Veritas',
+        type: 'Provider',
         contactPerson: 'Juliette Dubois',
         contactEmail: 'j.dubois@bureauveritas.com',
         location: 'Paris, France (Global)',
@@ -147,6 +156,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-09',
         name: 'Blue Horizon Services',
+        type: 'Provider',
         contactPerson: 'Tawfik Mohamed',
         contactEmail: 'ask@bluehoriz.com',
         location: 'Abu Dhabi, UAE',
@@ -158,6 +168,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-10',
         name: 'Arise Global',
+        type: 'Provider',
         contactPerson: 'Chen Wei',
         contactEmail: 'chen.wei@ariseglobal.com',
         location: 'Singapore',
@@ -169,6 +180,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-11',
         name: 'SGS',
+        type: 'Provider',
         contactPerson: 'Isabelle Laurent',
         contactEmail: 'isabelle.laurent@sgs.com',
         location: 'Geneva, Switzerland (Global)',
@@ -180,6 +192,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-12',
         name: 'DNV (Det Norske Veritas)',
+        type: 'Provider',
         contactPerson: 'Lars Andersen',
         contactEmail: 'lars.andersen@dnv.com',
         location: 'Høvik, Norway (Global)',
@@ -191,6 +204,7 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-ndtx',
         name: 'NDT EXCHANGE',
+        type: 'Provider',
         contactPerson: 'Admin User',
         contactEmail: 'admin@ndtexchange.com',
         location: 'Palo Alto, CA',
@@ -205,6 +219,7 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-01',
         name: 'NDT Auditors LLC',
+        type: 'Auditor',
         contactPerson: 'Alex Chen',
         contactEmail: 'alex.c@ndtauditors.gov',
         location: 'Washington, D.C., USA',
@@ -215,6 +230,7 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-02',
         name: 'Aero-Compliance Partners',
+        type: 'Auditor',
         contactPerson: 'Brenda Vance',
         contactEmail: 'b.vance@aerocompliance.com',
         location: 'Seattle, WA, USA',
@@ -225,6 +241,7 @@ export const auditFirms: AuditFirm[] = [
     {
         id: 'auditor-firm-03',
         name: 'Global Compliance Experts',
+        type: 'Auditor',
         contactPerson: 'Kenji Tanaka',
         contactEmail: 'k.tanaka@globalcompliance.com',
         location: 'Tokyo, Japan',

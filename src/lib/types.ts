@@ -1,5 +1,6 @@
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -135,6 +136,7 @@ export type Bid = {
 export type Client = {
     id: string;
     name: string;
+    type: 'Client';
     contactPerson: string;
     contactEmail: string;
     activeJobs: number;

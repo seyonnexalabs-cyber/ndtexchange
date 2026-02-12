@@ -227,7 +227,7 @@ export default function PostJobPage() {
 
         const isInternalJob = isInspector || (isClient && !values.isMarketplaceJob);
         const newJobStatus = isDraft ? 'Draft' : (isInternalJob ? 'Assigned' : 'Posted');
-        const jobRef = doc(collection(firestore, 'jobs'));
+        const jobRef = doc(collection(firestore, 'jobs'), `JOB-${Date.now()}`);
         
         let endDate = values.scheduledEndDate;
         if(values.scheduledStartDate && values.durationDays) {

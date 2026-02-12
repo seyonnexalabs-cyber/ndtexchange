@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -7,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inspectorAssets as initialEquipment, InspectorAsset, EquipmentHistory, NDTTechniques, jobs, EquipmentType } from "@/lib/placeholder-data";
+import { InspectorAsset, EquipmentHistory, NDTTechniques, Job, EquipmentType } from "@/lib/types";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical, AlertTriangle } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
@@ -29,6 +28,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RadioTower, Cpu, Waves, Cable, Eye } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, collection, setDoc, arrayUnion } from 'firebase/firestore';
 
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
@@ -476,25 +477,30 @@ export default function EquipmentDetailPage() {
     // In a real app, this would come from a user context or subscription check.
     const isSubscriptionActive = false;
 
-    useEffect(() => {
-        if (role && role !== 'inspector') {
-            router.replace(`/dashboard?${searchParams.toString()}`);
-        }
-    }, [role, router, searchParams]);
-
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
     const [editingComponent, setEditingComponent] = useState<InspectorAsset | null>(null);
     const [isEditComponentOpen, setIsEditComponentOpen] = useState(false);
 
-    const [allEquipment, setAllEquipment] = useState(initialEquipment);
-    const equipment = useMemo(() => allEquipment.find(p => p.id === id), [allEquipment, id]);
-    
+    const { firestore, user } = useFirebase();
+    const equipmentRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'equipment', id as string) : null), [firestore, id]);
+    const { data: equipment, isLoading: isLoadingEquipment } = useDoc<InspectorAsset>(equipmentRef);
+
+    const allEquipmentQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'equipment') : null), [firestore]);
+    const { data: allEquipmentFromDb, isLoading: isLoadingAllEquipment } = useCollection<InspectorAsset>(allEquipmentQuery);
+    const allEquipment = allEquipmentFromDb || [];
+
     const childEquipment = useMemo(() => allEquipment.filter(e => e.parentId === id), [id, allEquipment]);
     const parentEquipment = useMemo(() => allEquipment.find(e => e.id === equipment?.parentId), [equipment, allEquipment]);
 
-    if (!equipment) {
+    useEffect(() => {
+        if (role && role !== 'inspector') {
+            router.replace(`/dashboard?${searchParams.toString()}`);
+        }
+    }, [role, router, searchParams]);
+
+    if (!isLoadingEquipment && !equipment) {
         notFound();
     }
 
@@ -503,22 +509,30 @@ export default function EquipmentDetailPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const handleFormSubmit = (values: EquipmentFormValues) => {
-        setAllEquipment(prev => prev.map(eq => 
-            eq.id === equipment.id 
-                ? { ...eq, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') } 
-                : eq
-        ));
-        toast({
-            title: "Equipment Updated",
-            description: `${equipment.name} has been updated.`,
+    const handleFormSubmit = async (values: EquipmentFormValues) => {
+        if (!equipment || !firestore) return;
+        const { thumbnail, ...equipmentData } = values;
+        
+        const updatedEquipmentData = {
+            ...equipmentData,
+            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+        };
+        
+        const equipmentDocRef = doc(firestore, 'equipment', equipment.id);
+        await updateDoc(equipmentDocRef, {
+            ...updatedEquipmentData,
+            history: arrayUnion({ event: 'Updated', user: 'Maria Garcia', timestamp: new Date().toISOString() })
         });
+        
+        toast({ title: "Equipment Updated", description: `${equipment.name} has been updated.` });
         setIsEditing(false);
     };
 
-    const handleAddComponentSubmit = (values: AddComponentFormValues) => {
-        const newComponent: InspectorAsset = {
-            id: `COMP-${Date.now()}`,
+    const handleAddComponentSubmit = async (values: AddComponentFormValues) => {
+        if (!equipment || !firestore) return;
+        const newComponentRef = doc(collection(firestore, 'equipment'), `EQUIP-${Date.now()}`);
+        const newComponentData: Omit<InspectorAsset, 'history' | 'thumbnailUrl'> = {
+            id: newComponentRef.id,
             providerId: equipment.providerId,
             name: values.name,
             type: values.type,
@@ -532,10 +546,14 @@ export default function EquipmentDetailPage() {
             parentId: equipment.id,
             isPublic: false,
         };
-        setAllEquipment(prev => [...prev, newComponent]);
+        await setDoc(newComponentRef, {
+            ...newComponentData,
+            history: [{ event: 'Created', user: 'Maria Garcia', timestamp: new Date().toISOString() }]
+        });
         toast({ title: "Component Added", description: `"${values.name}" is pending approval and has been added to this kit.` });
         setIsAddComponentOpen(false);
     };
+    
 
     const handleEditComponentClick = (component: InspectorAsset) => {
         setEditingComponent(component);
@@ -544,12 +562,12 @@ export default function EquipmentDetailPage() {
 
     const handleComponentFormSubmit = (values: EquipmentFormValues) => {
         if (!editingComponent) return;
-
-        setAllEquipment(prev => prev.map(eq => 
-            eq.id === editingComponent.id 
-                ? { ...eq, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') } 
-                : eq
-        ));
+        // This is a local update for now. In a real app, this would be a Firestore update.
+        // setAllEquipment(prev => prev.map(eq => 
+        //     eq.id === editingComponent.id 
+        //         ? { ...eq, ...values, nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd') } 
+        //         : eq
+        // ));
         toast({
             title: "Component Updated",
             description: `${values.name} has been updated.`,
@@ -559,6 +577,14 @@ export default function EquipmentDetailPage() {
 
     if (role && role !== 'inspector') {
         return null;
+    }
+
+    if (isLoadingEquipment || isLoadingAllEquipment) {
+        return <div>Loading...</div>
+    }
+    
+    if (!equipment) {
+        return <div>Equipment not found.</div>;
     }
 
     if (isEditing) {

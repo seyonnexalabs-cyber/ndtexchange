@@ -21,7 +21,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 
 const assetSchema = z.object({
@@ -104,7 +104,6 @@ export default function AddAssetPage() {
         }
 
         // In a real app, files would be uploaded to Firebase Storage and URLs would be stored.
-        // For this demo, we'll just log that they were "uploaded".
         if (values.thumbnail) {
             console.log("Uploaded thumbnail: ", values.thumbnail);
         }
@@ -112,7 +111,10 @@ export default function AddAssetPage() {
             console.log("Uploaded documents: ", values.documents);
         }
 
+        const assetRef = doc(collection(firestore, 'assets'), `ASSET-${Date.now()}`);
+
         const newAssetData = {
+            id: assetRef.id,
             companyId: 'client-01', // Replace with dynamic company ID from user profile
             status: 'Requires Inspection',
             approvalStatus: 'Pending Approval',
@@ -122,12 +124,12 @@ export default function AddAssetPage() {
             location: values.location === '__add_new__' ? values.newLocation : values.location,
         };
         // Remove fields not in the schema
-        delete newAssetData.newLocation;
-        delete newAssetData.documents;
-        delete newAssetData.thumbnail;
+        delete (newAssetData as any).newLocation;
+        delete (newAssetData as any).documents;
+        delete (newAssetData as any).thumbnail;
 
         try {
-            await addDoc(collection(firestore, 'assets'), newAssetData);
+            await setDoc(assetRef, newAssetData);
             
             toast({
                 title: "Asset Submitted for Approval",

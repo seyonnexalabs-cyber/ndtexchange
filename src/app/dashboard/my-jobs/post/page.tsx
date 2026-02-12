@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -277,6 +278,9 @@ export default function PostJobPage() {
             status: newJobStatus,
             postedDate: format(new Date(), 'yyyy-MM-dd'),
             createdAt: serverTimestamp(),
+            createdBy: user.uid,
+            modifiedAt: serverTimestamp(),
+            modifiedBy: user.uid,
             bidExpiryDate: values.bidExpiryDate ? format(values.bidExpiryDate, 'yyyy-MM-dd') : null,
             scheduledStartDate: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : null,
             scheduledEndDate: endDate ? format(endDate, 'yyyy-MM-dd') : null,
@@ -685,3 +689,4 @@ export default function PostJobPage() {
         </div>
     );
 }
+

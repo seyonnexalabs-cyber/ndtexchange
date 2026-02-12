@@ -6,47 +6,20 @@
       "type": "object",
       "description": "Represents an asset, such as equipment, structure, or component.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Asset entity."
-        },
-        "companyId": {
-          "type": "string",
-          "description": "The ID of the company that owns this asset."
-        },
-        "assetTypeId": {
-          "type": "string",
-          "description": "Reference to the AssetType entity. (Relationship: AssetType 1:N Asset)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the asset."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the asset."
-        },
-        "location": {
-          "type": "string",
-          "description": "The physical location of the asset."
-        },
-        "qrCode": {
-          "type": "string",
-          "description": "The QR code associated with the asset for scanning."
-        },
-        "documentIds": {
-          "type": "array",
-          "description": "References to Documents associated with this Asset. (Relationship: Asset 1:N Document)",
-          "items": {
-            "type": "string"
-          }
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Asset entity." },
+        "companyId": { "type": "string", "description": "The ID of the company that owns this asset." },
+        "assetTypeId": { "type": "string", "description": "Reference to the AssetType entity. (Relationship: AssetType 1:N Asset)" },
+        "name": { "type": "string", "description": "The name of the asset." },
+        "description": { "type": "string", "description": "A detailed description of the asset." },
+        "location": { "type": "string", "description": "The physical location of the asset." },
+        "qrCode": { "type": "string", "description": "The QR code associated with the asset for scanning." },
+        "documentIds": { "type": "array", "description": "References to Documents associated with this Asset. (Relationship: Asset 1:N Document)", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "companyId",
-        "name"
-      ]
+      "required": ["id", "companyId", "name"]
     },
     "AssetType": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -54,27 +27,16 @@
       "type": "object",
       "description": "Represents a template for asset types (e.g., tanks, vessels).",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the AssetType entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the asset type (e.g., Tank)."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the asset type."
-        },
-        "templateData": {
-          "type": "string",
-          "description": "Template data associated with the asset type, such as default inspection checklists or data fields."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the AssetType entity." },
+        "name": { "type": "string", "description": "The name of the asset type (e.g., Tank)." },
+        "description": { "type": "string", "description": "A description of the asset type." },
+        "templateData": { "type": "string", "description": "Template data associated with the asset type, such as default inspection checklists or data fields." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "name"
-      ]
+      "required": ["id", "name"]
     },
     "Inspection": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -82,44 +44,19 @@
       "type": "object",
       "description": "Represents an inspection event performed on an asset.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Inspection entity."
-        },
-        "assetId": {
-          "type": "string",
-          "description": "Reference to the Asset being inspected. (Relationship: Asset 1:N Inspection)"
-        },
-        "inspectorId": {
-          "type": "string",
-          "description": "Reference to the User performing the inspection. (Relationship: User 1:N Inspection)"
-        },
-        "scheduledDate": {
-          "type": "string",
-          "description": "The date the inspection is scheduled for.",
-          "format": "date-time"
-        },
-        "completionDate": {
-          "type": "string",
-          "description": "The date the inspection was completed.",
-          "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the inspection (e.g., Scheduled, In Progress, Complete)."
-        },
-        "reportId": {
-          "type": "string",
-          "description": "Reference to the Report generated for this inspection. (Relationship: Inspection 1:1 Report)"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Inspection entity." },
+        "assetId": { "type": "string", "description": "Reference to the Asset being inspected. (Relationship: Asset 1:N Inspection)" },
+        "inspectorId": { "type": "string", "description": "Reference to the User performing the inspection. (Relationship: User 1:N Inspection)" },
+        "scheduledDate": { "type": "string", "description": "The date the inspection is scheduled for.", "format": "date-time" },
+        "completionDate": { "type": "string", "description": "The date the inspection was completed.", "format": "date-time" },
+        "status": { "type": "string", "description": "The status of the inspection (e.g., Scheduled, In Progress, Complete)." },
+        "reportId": { "type": "string", "description": "Reference to the Report generated for this inspection. (Relationship: Inspection 1:1 Report)" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "assetId",
-        "inspectorId",
-        "scheduledDate",
-        "status"
-      ]
+      "required": ["id", "assetId", "inspectorId", "scheduledDate", "status"]
     },
     "Report": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -127,41 +64,18 @@
       "type": "object",
       "description": "Represents a report generated for an inspection.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Report entity."
-        },
-        "inspectionId": {
-          "type": "string",
-          "description": "Reference to the Inspection the report belongs to. (Relationship: Inspection 1:1 Report)"
-        },
-        "reportData": {
-          "type": "string",
-          "description": "The data contained within the report, likely in JSON format, following a pre-defined template."
-        },
-        "dateGenerated": {
-          "type": "string",
-          "description": "The date the report was generated.",
-          "format": "date-time"
-        },
-        "level3ApproverId": {
-          "type": "string",
-          "description": "Reference to the User who approved the report (Level III). (Relationship: User 1:N Report)"
-        },
-        "documentIds": {
-          "type": "array",
-          "description": "References to Documents attached to this Report. (Relationship: Report 1:N Document)",
-          "items": {
-            "type": "string"
-          }
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Report entity." },
+        "inspectionId": { "type": "string", "description": "Reference to the Inspection the report belongs to. (Relationship: Inspection 1:1 Report)" },
+        "reportData": { "type": "string", "description": "The data contained within the report, likely in JSON format, following a pre-defined template." },
+        "dateGenerated": { "type": "string", "description": "The date the report was generated.", "format": "date-time" },
+        "level3ApproverId": { "type": "string", "description": "Reference to the User who approved the report (Level III). (Relationship: User 1:N Report)" },
+        "documentIds": { "type": "array", "description": "References to Documents attached to this Report. (Relationship: Report 1:N Document)", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "inspectionId",
-        "reportData",
-        "dateGenerated"
-      ]
+      "required": ["id", "inspectionId", "reportData", "dateGenerated"]
     },
     "Defect": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -169,51 +83,20 @@
       "type": "object",
       "description": "Represents a defect identified during an inspection.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Defect entity."
-        },
-        "reportId": {
-          "type": "string",
-          "description": "Reference to the Report the defect was logged in. (Relationship: Report 1:N Defect)"
-        },
-        "size": {
-          "type": "string",
-          "description": "The size of the defect."
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of defect (e.g., crack, corrosion)."
-        },
-        "location": {
-          "type": "string",
-          "description": "The location of the defect on the asset."
-        },
-        "photoUrls": {
-          "type": "array",
-          "description": "URLs of photos documenting the defect.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "videoUrls": {
-          "type": "array",
-          "description": "URLs of videos documenting the defect.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "waveformUrl": {
-          "type": "string",
-          "description": "URL of the waveform data associated with the defect (if applicable)."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Defect entity." },
+        "reportId": { "type": "string", "description": "Reference to the Report the defect was logged in. (Relationship: Report 1:N Defect)" },
+        "size": { "type": "string", "description": "The size of the defect." },
+        "type": { "type": "string", "description": "The type of defect (e.g., crack, corrosion)." },
+        "location": { "type": "string", "description": "The location of the defect on the asset." },
+        "photoUrls": { "type": "array", "description": "URLs of photos documenting the defect.", "items": { "type": "string" } },
+        "videoUrls": { "type": "array", "description": "URLs of videos documenting the defect.", "items": { "type": "string" } },
+        "waveformUrl": { "type": "string", "description": "URL of the waveform data associated with the defect (if applicable)." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "reportId",
-        "type",
-        "location"
-      ]
+      "required": ["id", "reportId", "type", "location"]
     },
     "Job": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -221,51 +104,21 @@
       "type": "object",
       "description": "Represents a job request created by a client.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Job entity."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Reference to the Client who created the job request. (Relationship: User 1:N Job)"
-        },
-        "location": {
-          "type": "string",
-          "description": "The location where the job needs to be performed."
-        },
-        "technique": {
-          "type": "string",
-          "description": "The NDT technique required for the job (e.g., UT, RT)."
-        },
-        "standards": {
-          "type": "string",
-          "description": "The applicable standards for the job (e.g., ISO 9712, ASME)."
-        },
-        "urgency": {
-          "type": "string",
-          "description": "The urgency of the job (e.g., High, Medium, Low)."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the job requirements."
-        },
-        "awardedInspectorId": {
-          "type": "string",
-          "description": "Reference to the User who was awarded the job. (Relationship: User 1:N Job)"
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the job (e.g., Open, Awarded, In Progress, Completed)."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Job entity." },
+        "clientId": { "type": "string", "description": "Reference to the Client who created the job request. (Relationship: User 1:N Job)" },
+        "location": { "type": "string", "description": "The location where the job needs to be performed." },
+        "technique": { "type": "string", "description": "The NDT technique required for the job (e.g., UT, RT)." },
+        "standards": { "type": "string", "description": "The applicable standards for the job (e.g., ISO 9712, ASME)." },
+        "urgency": { "type": "string", "description": "The urgency of the job (e.g., High, Medium, Low)." },
+        "description": { "type": "string", "description": "A detailed description of the job requirements." },
+        "awardedInspectorId": { "type": "string", "description": "Reference to the User who was awarded the job. (Relationship: User 1:N Job)" },
+        "status": { "type": "string", "description": "The status of the job (e.g., Open, Awarded, In Progress, Completed)." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "clientId",
-        "location",
-        "technique",
-        "standards",
-        "urgency"
-      ]
+      "required": ["id", "clientId", "location", "technique", "standards", "urgency"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -273,38 +126,18 @@
       "type": "object",
       "description": "Represents a bid submitted by an inspector for a job.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Bid entity."
-        },
-        "jobId": {
-          "type": "string",
-          "description": "Reference to the Job the bid is for. (Relationship: Job 1:N Bid)"
-        },
-        "inspectorId": {
-          "type": "string",
-          "description": "Reference to the User who submitted the bid. (Relationship: User 1:N Bid)"
-        },
-        "pricing": {
-          "type": "number",
-          "description": "The price quoted in the bid."
-        },
-        "availability": {
-          "type": "string",
-          "description": "The inspector's availability for the job."
-        },
-        "message": {
-          "type": "string",
-          "description": "An optional message from the inspector."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Bid entity." },
+        "jobId": { "type": "string", "description": "Reference to the Job the bid is for. (Relationship: Job 1:N Bid)" },
+        "inspectorId": { "type": "string", "description": "Reference to the User who submitted the bid. (Relationship: User 1:N Bid)" },
+        "pricing": { "type": "number", "description": "The price quoted in the bid." },
+        "availability": { "type": "string", "description": "The inspector's availability for the job." },
+        "message": { "type": "string", "description": "An optional message from the inspector." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "jobId",
-        "inspectorId",
-        "pricing",
-        "availability"
-      ]
+      "required": ["id", "jobId", "inspectorId", "pricing", "availability"]
     },
     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -312,59 +145,21 @@
       "type": "object",
       "description": "Represents a user of the application (client, inspector, admin).",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "companyId": {
-          "type": "string",
-          "description": "The ID of the company the user belongs to."
-        },
-        "company": {
-          "type": "string",
-          "description": "The name of the company the user belongs to."
-        },
-        "firstName": {
-          "type": "string",
-          "description": "The user's first name."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "The user's last name."
-        },
-        "email": {
-          "type": "string",
-          "description": "The user's email address.",
-          "format": "email"
-        },
-        "role": {
-          "type": "string",
-          "description": "The user's role (e.g., Client, Inspector, Admin)."
-        },
-        "certifications": {
-          "type": "array",
-          "description": "List of certifications held by the user (especially for inspectors).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "skills": {
-          "type": "array",
-          "description": "List of skills possessed by the user (especially for inspectors).",
-          "items": {
-            "type": "string"
-          }
-        }
+        "id": { "type": "string", "description": "Unique identifier for the User entity." },
+        "companyId": { "type": "string", "description": "The ID of the company the user belongs to." },
+        "company": { "type": "string", "description": "The name of the company the user belongs to." },
+        "firstName": { "type": "string", "description": "The user's first name." },
+        "lastName": { "type": "string", "description": "The user's last name." },
+        "email": { "type": "string", "description": "The user's email address.", "format": "email" },
+        "role": { "type": "string", "description": "The user's role (e.g., Client, Inspector, Admin)." },
+        "certifications": { "type": "array", "description": "List of certifications held by the user (especially for inspectors).", "items": { "type": "string" } },
+        "skills": { "type": "array", "description": "List of skills possessed by the user (especially for inspectors).", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "companyId",
-        "company",
-        "firstName",
-        "lastName",
-        "email",
-        "role"
-      ]
+      "required": ["id", "companyId", "company", "firstName", "lastName", "email", "role"]
     },
     "Document": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -372,41 +167,18 @@
       "type": "object",
       "description": "Represents a document stored in the system (drawings, photos, certificates).",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Document entity."
-        },
-        "fileName": {
-          "type": "string",
-          "description": "The name of the file."
-        },
-        "fileType": {
-          "type": "string",
-          "description": "The type of the file (e.g., PDF, JPG, PNG)."
-        },
-        "fileSize": {
-          "type": "number",
-          "description": "The size of the file in bytes."
-        },
-        "uploadDate": {
-          "type": "string",
-          "description": "The date the file was uploaded.",
-          "format": "date-time"
-        },
-        "url": {
-          "type": "string",
-          "description": "The URL where the file can be accessed.",
-          "format": "uri"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Document entity." },
+        "fileName": { "type": "string", "description": "The name of the file." },
+        "fileType": { "type": "string", "description": "The type of the file (e.g., PDF, JPG, PNG)." },
+        "fileSize": { "type": "number", "description": "The size of the file in bytes." },
+        "uploadDate": { "type": "string", "description": "The date the file was uploaded.", "format": "date-time" },
+        "url": { "type": "string", "description": "The URL where the file can be accessed.", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "fileName",
-        "fileType",
-        "fileSize",
-        "uploadDate",
-        "url"
-      ]
+      "required": ["id", "fileName", "fileType", "fileSize", "uploadDate", "url"]
     },
     "Message": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -414,40 +186,18 @@
       "type": "object",
       "description": "Represents a message sent between users.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Message entity."
-        },
-        "senderId": {
-          "type": "string",
-          "description": "Reference to the User who sent the message. (Relationship: User 1:N Message)"
-        },
-        "receiverId": {
-          "type": "string",
-          "description": "Reference to the User who received the message. (Relationship: User 1:N Message)"
-        },
-        "content": {
-          "type": "string",
-          "description": "The content of the message."
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "The date and time the message was sent.",
-          "format": "date-time"
-        },
-        "isRead": {
-          "type": "boolean",
-          "description": "Indicates whether the message has been read by the receiver."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Message entity." },
+        "senderId": { "type": "string", "description": "Reference to the User who sent the message. (Relationship: User 1:N Message)" },
+        "receiverId": { "type": "string", "description": "Reference to the User who received the message. (Relationship: User 1:N Message)" },
+        "content": { "type": "string", "description": "The content of the message." },
+        "timestamp": { "type": "string", "description": "The date and time the message was sent.", "format": "date-time" },
+        "isRead": { "type": "boolean", "description": "Indicates whether the message has been read by the receiver." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "senderId",
-        "receiverId",
-        "content",
-        "timestamp",
-        "isRead"
-      ]
+      "required": ["id", "senderId", "receiverId", "content", "timestamp", "isRead"]
     },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -455,48 +205,20 @@
       "type": "object",
       "description": "Represents a notification sent to a user.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Notification entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User who should receive the notification. (Relationship: User 1:N Notification)"
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of notification (e.g., Inspection Due, Job Awarded)."
-        },
-        "content": {
-          "type": "string",
-          "description": "The content of the notification."
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "The date and time the notification was sent.",
-          "format": "date-time"
-        },
-        "isRead": {
-          "type": "boolean",
-          "description": "Indicates whether the notification has been read by the user."
-        },
-        "relatedEntityId": {
-          "type": "string",
-          "description": "Reference to another entity related to this notification. For example, the Job ID if it is a job-related notification."
-        },
-        "relatedEntityType": {
-          "type": "string",
-          "description": "The type of entity the notification refers to. Example: 'Job', 'Inspection', 'Report' etc."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Notification entity." },
+        "userId": { "type": "string", "description": "Reference to the User who should receive the notification. (Relationship: User 1:N Notification)" },
+        "type": { "type": "string", "description": "The type of notification (e.g., Inspection Due, Job Awarded)." },
+        "content": { "type": "string", "description": "The content of the notification." },
+        "timestamp": { "type": "string", "description": "The date and time the notification was sent.", "format": "date-time" },
+        "isRead": { "type": "boolean", "description": "Indicates whether the notification has been read by the user." },
+        "relatedEntityId": { "type": "string", "description": "Reference to another entity related to this notification. For example, the Job ID if it is a job-related notification." },
+        "relatedEntityType": { "type": "string", "description": "The type of entity the notification refers to. Example: 'Job', 'Inspection', 'Report' etc." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "userId",
-        "type",
-        "content",
-        "timestamp",
-        "isRead"
-      ]
+      "required": ["id", "userId", "type", "content", "timestamp", "isRead"]
     },
     "NDTTechnique": {
       "title": "NDT Technique",
@@ -508,7 +230,11 @@
         "title": { "type": "string" },
         "description": { "type": "string" },
         "isHighlighted": { "type": "boolean" },
-        "imageId": { "type": "string" }
+        "imageId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
       "required": ["id", "acronym", "title", "description", "isHighlighted", "imageId"]
     },
@@ -517,39 +243,18 @@
       "type": "object",
       "description": "Represents a manufacturer of NDT equipment.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Manufacturer entity."
-        },
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        },
-        "logoUrl": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL of the manufacturer's logo."
-        },
-        "techniqueIds": {
-          "type": "array",
-          "description": "An array of NDT Technique IDs that this manufacturer specializes in.",
-          "items": {
-            "type": "string"
-          }
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Manufacturer entity." },
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "description": { "type": "string" },
+        "logoUrl": { "type": "string", "format": "uri", "description": "URL of the manufacturer's logo." },
+        "techniqueIds": { "type": "array", "description": "An array of NDT Technique IDs that this manufacturer specializes in.", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
       },
-      "required": [
-        "id",
-        "name",
-        "url",
-        "techniqueIds"
-      ]
+      "required": ["id", "name", "url", "techniqueIds"]
     }
   },
   "auth": {
@@ -750,4 +455,3 @@
     "reasoning": "This Firestore structure is designed to support the NDT Exchange application's asset management, job marketplace, and inspection workflows while adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). The structure prioritizes path-based ownership for user-related data and uses membership maps where collaboration is required. Authorization Independence is achieved through denormalization of authorization data within subcollections, eliminating the need for `get()` calls in security rules.\n\n**Key Structural Decisions and Justifications:**\n\n*   **/users/{userId}**: Stores user profiles. Path-based ownership ensures that only the user can read/write their own profile data. \n*   **/assets/{assetId}**: Stores asset data. Each asset includes an `ownerId` field. This enables QAPs by allowing listing of all assets, with rules filtering based on `ownerId` for access control. \n*   **/asset_types/{assetTypeId}**: Stores asset type templates. Open read access is assumed for all users, but write access is restricted to admins (enforced via a `/roles_admin/{uid}` check).\n*   **/assets/{assetId}/inspections/{inspectionId}**: Stores inspection data for each asset. Includes a denormalized `inspectorId` field. Path-based ownership (within the asset) and the explicit `inspectorId` field on each inspection allows granular access control without `get()` calls.\n*   **/reports/{reportId}**: Reports are top-level collections to avoid complex subcollection listing. Each report has `assetId` and `inspectorId` fields, denormalizing necessary authorization data. A `level3ApproverId` field determines who can approve the report.\n*   **/defects/{defectId}**: Defects are top-level collections to avoid complex subcollection listing. Each defect has a `reportId` field. The `reportId` links the defect to a report, which then contains the `assetId`, allowing rules to easily check ownership of defects based on asset ownership.\n*   **/jobs/{jobId}**: Stores job requests. Includes a `clientId` field to indicate who created the job and an `awardedInspectorId` when a bid is accepted. This supports QAPs by allowing listing of all jobs, with rules filtering based on `clientId` for clients and admin role for all.\n*   **/jobs/{jobId}/bids/{bidId}**: Stores bids for each job. Each bid has a `inspectorId` field. This structure, combined with the `awardedInspectorId` on the `job` document, simplifies rules for bid access.\n*   **/messages/{messageId}**: Stores messages between users. Messages are placed in a top-level collection to facilitate simpler querying. Each message has `senderId` and `receiverId`, ensuring that only the sender and receiver can access the message.\n*   **/notifications/{notificationId}**: Stores notifications for users. Path-based ownership (`/notifications/{notificationId}`) and the explicit `userId` field on each notification allows granular access control.\n*   **/roles_admin/{userId}**: Used for role-based access control. The existence of a document with the user's ID implies admin privileges. This is used in rules to grant admin access.  This existence-based check is simple and efficient.\n\n**Authorization Independence (Denormalization):**\n\n*   The structure avoids using `get()` calls in security rules by denormalizing authorization data. For example, the `Inspection` entity, located as a subcollection of `Asset`, duplicates the `inspectorId`. The `Report` and `Defect` entities, are stored as top-level collections but contain fields like `assetId` and `inspectorId` to determine authorization context.\n\n**QAPs (Rules Are Not Filters):**\n\n*   The design separates data with different access requirements into different collections or subcollections. For example, user profiles are stored in `/users/{userId}`, ensuring that only the user can access their own profile. Publicly readable data, if any, would be stored in separate collections (not defined here, but good practice).\n*   The top-level `assets`, `reports`, `defects` and `jobs` collections, combined with the denormalized owner/user ID fields enable listing the collections, then filtering the data on the client-side based on the security rules. This satisfies QAPs."
   }
 }
-  

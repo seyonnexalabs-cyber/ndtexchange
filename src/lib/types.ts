@@ -23,19 +23,29 @@ export type Asset = {
     notes?: string;
     thumbnailUrl?: string;
     history?: AssetUpdate[];
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type JobDocument = {
     name: string;
     url: string;
+    createdAt?: any;
+    createdBy?: string;
 };
 
 export type InspectionReport = {
     id: string;
     submittedOn: string;
     submittedBy: string;
-    reportData: any; // This will hold the structured form data.
-    documents: JobDocument[]; // Re-using JobDocument for supplementary files.
+    reportData: any; 
+    documents: JobDocument[];
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type JobUpdate = {
@@ -51,7 +61,7 @@ export type Job = {
     id: string;
     title: string;
     client: string;
-    providerId?: string; // The service provider company awarded the job
+    providerId?: string;
     location: string;
     techniques: string[];
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid' | 'Revisions Requested';
@@ -74,6 +84,10 @@ export type Job = {
     estimatedBudget?: string;
     certificationsRequired?: string;
     clientCompanyId?: string;
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Inspection = {
@@ -86,6 +100,10 @@ export type Inspection = {
     date: string;
     status: 'Scheduled' | 'Completed' | 'Requires Review';
     report?: InspectionReport;
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type EquipmentHistory = {
@@ -113,6 +131,10 @@ export type InspectorAsset = {
     isPublic?: boolean;
     thumbnailUrl?: string;
     parentId?: string;
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Certification = {
@@ -123,13 +145,17 @@ export type Certification = {
 export type Bid = {
     id: string;
     jobId: string;
-    providerId: string; // The company placing the bid
+    providerId: string; 
     amount: number;
     status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Shortlisted' | 'Not Selected';
     submittedDate: string;
     comments?: string;
     proposedTechnique?: string;
     proposalJustification?: string;
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Client = {
@@ -142,6 +168,10 @@ export type Client = {
     totalSpend: number;
     logoUrl?: string;
     brandColor?: string;
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Review = {
@@ -153,6 +183,10 @@ export type Review = {
   comment: string;
   date: any;
   status: 'Pending' | 'Approved' | 'Rejected';
+  createdAt?: any;
+  createdBy?: string;
+  modifiedAt?: any;
+  modifiedBy?: string;
 };
 
 export type PlatformUser = {
@@ -163,13 +197,15 @@ export type PlatformUser = {
     companyId: string;
     company: string;
     status: 'Active' | 'Invited' | 'Disabled';
-    password?: string; // For dev login purposes
-    // Technician-specific properties
+    password?: string;
     certifications?: Certification[];
     workStatus?: 'Available' | 'On Assignment';
     providerId?: string;
     level?: 'Level I' | 'Level II' | 'Level III';
     createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Subscription = {
@@ -184,6 +220,10 @@ export type Subscription = {
   dataUsageGB: number;
   userLimit: number;
   dataLimitGB: number;
+  createdAt?: any;
+  createdBy?: string;
+  modifiedAt?: any;
+  modifiedBy?: string;
 };
 
 export type Payment = {
@@ -193,6 +233,10 @@ export type Payment = {
   amount: number;
   date: string;
   status: 'Succeeded' | 'Failed';
+  createdAt?: any;
+  createdBy?: string;
+  modifiedAt?: any;
+  modifiedBy?: string;
 };
 
 export type JobPayment = {
@@ -205,6 +249,10 @@ export type JobPayment = {
     payeeType: 'Provider' | 'Auditor';
     paidOn: string;
     status: 'Paid' | 'Pending';
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type ChatMessage = {
@@ -221,6 +269,10 @@ export type JobChat = {
     lastMessage: string;
     lastMessageTimestamp: string;
     messages: ChatMessage[];
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Notification = {
@@ -231,6 +283,8 @@ export type Notification = {
   timestamp: string;
   read: boolean;
   href: string;
+  createdAt?: any;
+  createdBy?: string;
 };
 
 export type UserAuditLog = {
@@ -276,6 +330,10 @@ export type NDTServiceProvider = {
     contactPerson: string;
     contactEmail: string;
     type: 'Provider';
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type AuditFirm = {
@@ -289,6 +347,10 @@ export type AuditFirm = {
     contactPerson: string;
     contactEmail: string;
     type: 'Auditor';
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type Manufacturer = {
@@ -298,6 +360,10 @@ export type Manufacturer = {
   description?: string;
   logoUrl?: string;
   techniqueIds: string[];
+  createdAt?: any;
+  createdBy?: string;
+  modifiedAt?: any;
+  modifiedBy?: string;
 };
 
 export type NDTTechnique = {
@@ -307,4 +373,9 @@ export type NDTTechnique = {
     description: string;
     isHighlighted: boolean;
     imageId: string;
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
+

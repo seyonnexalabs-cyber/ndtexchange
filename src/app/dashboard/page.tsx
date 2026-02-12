@@ -650,14 +650,17 @@ const AdminDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const [isSeeding, setIsSeeding] = useState(false);
-    const { firestore } = useFirebase();
+    const { user, firestore } = useFirebase();
     const { toast } = useToast();
+    const role = searchParams.get('role');
+    
+    const isReady = firestore && user && role === 'admin';
 
-    const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => collection(firestore, 'users'), [firestore]));
-    const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => collection(firestore, 'companies'), [firestore]));
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => collection(firestore, 'jobs'), [firestore]));
-    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => collection(firestore, 'reviews'), [firestore]));
-    const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)), [firestore]));
+    const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
+    const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
+    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? collection(firestore, 'reviews') : null, [isReady, firestore]));
+    const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
     const handleSeedDatabase = async () => {
         if (!firestore) {

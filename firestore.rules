@@ -15,9 +15,8 @@
  * such as Bids within a Job.
  *
  * # Key Security Decisions
- * - Admin Access: A user is considered an admin if their user document in `/users`
- *   has the `role` field set to 'Admin'. This is a reliable check as the user
- *   document must exist for an authenticated user.
+ * - Admin Access: A user is considered an admin if their UID exists as a document
+ *   within the `/roles_admin` collection. This is a simple and performant check.
  * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
  *   They are the only ones who can read or write their own document. Listing all
  *   users is disabled to protect user privacy (except for admins).
@@ -81,10 +80,10 @@ service cloud.firestore {
 
     /**
      * Checks if the requesting user has admin privileges by looking for
-     * their role in their own user document.
+     * an admin document associated with their UID.
      */
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
     /**

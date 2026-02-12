@@ -250,7 +250,7 @@ export default function AllJobsPage() {
                                     <h4 className="font-medium leading-none">Filter by Client</h4>
                                 </div>
                                 <div className="grid gap-2">
-                                    {clientData.map(client => (
+                                    {(clientData || []).map(client => (
                                         <div key={client.id} className="flex items-center space-x-2">
                                             <Checkbox
                                                 id={`client-${client.id}`}
@@ -277,7 +277,7 @@ export default function AllJobsPage() {
                                     <h4 className="font-medium leading-none">Filter by Provider</h4>
                                 </div>
                                 <div className="grid gap-2">
-                                    {serviceProviders.map(provider => (
+                                    {(serviceProviders || []).map(provider => (
                                         <div key={provider.id} className="flex items-center space-x-2">
                                             <Checkbox
                                                 id={`provider-${provider.id}`}
@@ -365,7 +365,7 @@ export default function AllJobsPage() {
                                         </div>
                                         <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                     </div>
-                                    <CardDescription>{job.client} - {job.techniques.join(', ')}</CardDescription>
+                                    <CardDescription>{job.client} - {(job.techniques || []).join(', ')}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
                                     <div className="flex items-center text-sm text-muted-foreground">
@@ -423,7 +423,7 @@ export default function AllJobsPage() {
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.client}</TableCell>
                                         <TableCell>{job.assetIds?.length || 0}</TableCell>
-                                        <TableCell><div className="flex flex-wrap gap-1">{job.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}</div></TableCell>
+                                        <TableCell><div className="flex flex-wrap gap-1">{(job.techniques || []).map(t => <Badge key={t} variant="secondary">{t}</Badge>)}</div></TableCell>
                                         <TableCell>{job.location}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">

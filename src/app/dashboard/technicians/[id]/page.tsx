@@ -9,8 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { allUsers, jobs, PlatformUser, Job, NDTTechniques, Certification } from "@/lib/placeholder-data";
-import { serviceProviders } from "@/lib/service-providers-data";
+import { PlatformUser, Job, Certification } from "@/lib/types";
+import { serviceProviders } from "@/lib/placeholder-data";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { format, isToday } from 'date-fns';
@@ -27,20 +27,16 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, collection, query, where, updateDoc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+import { NDTTechniques } from '@/lib/placeholder-data';
+
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    'Draft': 'outline',
-    'Posted': 'secondary',
-    'Assigned': 'default',
-    'Scheduled': 'default',
-    'In Progress': 'default',
-    'Report Submitted': 'secondary',
-    'Under Audit': 'secondary',
-    'Audit Approved': 'success',
-    'Client Review': 'secondary',
-    'Client Approved': 'success',
-    'Completed': 'success',
-    'Paid': 'success'
+    'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
+    'Report Submitted': 'secondary', 'Under Audit': 'secondary', 'Audit Approved': 'success', 'Client Review': 'secondary',
+    'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success', 'Revisions Requested': 'destructive'
 };
 
 const technicianStatusVariants: { [key in PlatformUser['workStatus'] & string]: 'success' | 'default' | 'outline' } = {
@@ -193,17 +189,18 @@ export default function TechnicianDetailPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
-    
-    const technician = useMemo(() => allUsers.find(t => t.id === id && t.role === 'Inspector'), [id]);
-    const assignedJobs = useMemo(() => jobs.filter(j => j.technicianIds?.includes(id as string)), [id]);
-    const provider = useMemo(() => serviceProviders.find(p => p.id === technician?.providerId), [technician]);
-    const completedJobsCount = useMemo(() => assignedJobs.filter(j => ['Completed', 'Paid'].includes(j.status)).length, [assignedJobs]);
+    const { firestore } = useFirebase();
 
-    if (!technician) {
-        notFound();
-    }
+    const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
+    const { data: technician, isLoading: isLoadingTechnician } = useDoc<PlatformUser>(technicianRef);
+
+    const jobsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'jobs'), where('technicianIds', 'array-contains', id as string)) : null), [firestore, id]);
+    const { data: assignedJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
-    const highestLevel = technician.level;
+    const provider = useMemo(() => serviceProviders.find(p => p.id === technician?.providerId), [technician]);
+    const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
+    
+    const highestLevel = technician?.level;
 
     const constructUrl = (base: string) => {
         const [pathname, baseQuery] = base.split('?');
@@ -220,15 +217,46 @@ export default function TechnicianDetailPage() {
         return queryString ? `${pathname}?${queryString}` : pathname;
     }
 
-    const handleFormSubmit = (values: TechnicianFormValues) => {
-        console.log("Updated Technician:", { ...technician, ...values });
+    const handleFormSubmit = async (values: TechnicianFormValues) => {
+        if (!technician || !firestore) return;
+
+        const updatedCerts: Certification[] = values.certifications.map(method => ({ method, level: values.level }));
+        
+        const technicianRef = doc(firestore, 'users', technician.id);
+        await updateDoc(technicianRef, {
+            name: values.name,
+            level: values.level,
+            workStatus: values.workStatus,
+            certifications: updatedCerts,
+        });
+
         toast({
             title: "Technician Updated",
             description: `${technician.name}'s profile has been updated.`,
         });
         setIsFormOpen(false);
-        router.refresh();
     };
+
+    if (isLoadingTechnician || isLoadingJobs) {
+        return (
+             <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-1 space-y-6">
+                        <Skeleton className="h-64 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                    <div className="lg:col-span-2">
+                        <Skeleton className="h-96 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    if (!technician) {
+        notFound();
+    }
     
     return (
         <div>
@@ -321,7 +349,7 @@ export default function TechnicianDetailPage() {
                         <CardContent>
                             {isMobile ? (
                                 <div className="space-y-4">
-                                    {assignedJobs.map(job => {
+                                    {assignedJobs?.map(job => {
                                         const jobDate = new Date(job.scheduledStartDate || job.postedDate);
                                         return (
                                         <Card key={job.id} className="p-4">
@@ -357,7 +385,7 @@ export default function TechnicianDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {assignedJobs.map(job => {
+                                        {assignedJobs?.map(job => {
                                           const jobDate = new Date(job.scheduledStartDate || job.postedDate);
                                           return (
                                             <TableRow key={job.id}>
@@ -380,7 +408,7 @@ export default function TechnicianDetailPage() {
                                     </TableBody>
                                 </Table>
                             )}
-                             {assignedJobs.length === 0 && (
+                             {assignedJobs?.length === 0 && (
                                 <div className="text-center py-10 text-muted-foreground">
                                     No jobs have been assigned to this technician yet.
                                 </div>
@@ -399,6 +427,7 @@ export default function TechnicianDetailPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <TechnicianForm
+                        formId="technician-form"
                         onSubmit={handleFormSubmit}
                         onCancel={() => setIsFormOpen(false)}
                         defaultValues={{
@@ -409,9 +438,12 @@ export default function TechnicianDetailPage() {
                         }}
                         isEditing={true}
                     />
+                     <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsFormOpen(false)}>Cancel</Button>
+                        <Button form="technician-form" type="submit">Save Changes</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
     );
 }
-    

@@ -1,17 +1,16 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { jobs as initialJobs, NDTTechniques, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Gavel, Calendar, DollarSign, Building, MoreVertical, Edit, Trash2, Info, FileText, Star, Check } from 'lucide-react';
 import { useMobile } from '@/hooks/use-mobile';
-import { Bid } from '@/lib/placeholder-data';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
@@ -24,9 +23,14 @@ import Link from 'next/link';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
+import type { Job, Bid } from '@/lib/types';
+import { NDTTechniques } from '@/lib/placeholder-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const bidSchema = z.object({
-  amount: z.coerce.number().positive("Bid amount must be positive."),
+  amount: z.coerce.number().positive("Bid amount must be a positive number."),
   comments: z.string().optional(),
   quote: z.any().optional(), // For file upload
   proposedTechnique: z.string(),
@@ -54,7 +58,10 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
             <div className="text-center p-10 border rounded-lg">
                 <Gavel className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h2 className="mt-4 text-xl font-headline">No Bids Found</h2>
-                <p className="mt-2 text-muted-foreground">There are no bids to display.</p>
+                <p className="mt-2 text-muted-foreground">You have not placed any bids yet. Find jobs in the marketplace to get started.</p>
+                 <Button asChild className="mt-4">
+                   <Link href={constructUrl("/dashboard/find-jobs")}>Find Jobs</Link>
+                </Button>
             </div>
         );
     }
@@ -181,16 +188,27 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
 export default function MyBidsPage() {
     const [editingBid, setEditingBid] = useState<MappedBid | null>(null);
     const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
-    const [jobs, setJobs] = useState(initialJobs);
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
     
     useEffect(() => {
         if (role && role !== 'inspector') {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
     }, [role, router, searchParams]);
+
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        // In a real-world scenario with many jobs, you would query a top-level 'bids' collection
+        // where providerId matches the current user's company, then fetch the associated jobs.
+        // For this demo, we fetch all jobs and filter client-side, which is feasible for a small dataset.
+        return collection(firestore, 'jobs');
+    }, [firestore]);
+
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => firestore ? collection(firestore, 'bids') : null, [firestore]));
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -217,19 +235,22 @@ export default function MyBidsPage() {
     }
 
     const myBids = useMemo(() => {
-        // This is a client-side simulation. In a real app, you'd fetch this data.
-        return jobs
-            .flatMap(job => (job.bids || []).map(bid => ({ ...bid, job })))
-            .filter((bid): bid is MappedBid => !!bid.job)
-            .filter(bid => bid.providerId === 'provider-03')
-            .sort((a, b) => new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime());
-    }, [jobs]);
+        if (!jobs || !allBids) return [];
+        // Assuming providerId for logged-in inspector is 'provider-03' for demo purposes
+        const myCompanyBids = allBids.filter(bid => bid.providerId === 'provider-03');
+        
+        return myCompanyBids.map(bid => {
+            const job = jobs.find(j => j.id === bid.jobId);
+            return { ...bid, job };
+        }).filter((bid): bid is MappedBid => !!bid.job)
+          .sort((a, b) => new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime());
+    }, [jobs, allBids]);
 
     const handleEditClick = (bid: MappedBid) => {
         setEditingBid(bid);
         form.reset({
             amount: bid.amount,
-            comments: bid.job?.documents?.find(d => d.name.startsWith('bid-comment'))?.url || '', // This is a mock
+            comments: bid.comments || '',
             proposedTechnique: bid.proposedTechnique || bid.job?.technique,
             proposalJustification: bid.proposalJustification || '',
         });
@@ -239,24 +260,17 @@ export default function MyBidsPage() {
         setWithdrawingBid(bid);
     };
 
-    const handleConfirmWithdraw = () => {
-        if (!withdrawingBid) return;
-        setJobs(prevJobs => prevJobs.map(job => {
-            if (job.id === withdrawingBid.jobId) {
-                return {
-                    ...job,
-                    bids: job.bids?.map(b => b.id === withdrawingBid.id ? { ...b, status: 'Withdrawn' } : b)
-                };
-            }
-            return job;
-        }));
+    const handleConfirmWithdraw = async () => {
+        if (!withdrawingBid || !firestore) return;
+        const bidRef = doc(firestore, 'bids', withdrawingBid.id);
+        await updateDoc(bidRef, { status: 'Withdrawn' });
         setWithdrawingBid(null);
     };
 
-    function onBidSubmit(values: z.infer<typeof bidSchema>) {
-        if (!editingBid) return;
-        console.log('Updated Bid Submitted:', { bidId: editingBid.id, ...values });
-        // API call to update the bid
+    async function onBidSubmit(values: z.infer<typeof bidSchema>) {
+        if (!editingBid || !firestore) return;
+        const bidRef = doc(firestore, 'bids', editingBid.id);
+        await updateDoc(bidRef, values);
         setEditingBid(null);
     }
     
@@ -270,6 +284,18 @@ export default function MyBidsPage() {
 
     if (role && role !== 'inspector') {
         return null;
+    }
+    
+    if (isLoadingJobs || isLoadingBids) {
+        return (
+            <div>
+                <Skeleton className="h-8 w-1/4 mb-6" />
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                    {[...Array(4)].map(i => <Skeleton key={i} className="h-24" />)}
+                </div>
+                <Skeleton className="h-64 w-full" />
+            </div>
+        )
     }
 
     return (
@@ -448,4 +474,3 @@ export default function MyBidsPage() {
         </div>
     );
 }
-    

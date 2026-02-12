@@ -1,6 +1,4 @@
-import type { AuditFirm } from './types';
 
-// This file is deprecated and will be removed. Data is now in seed-data.ts
-export const auditFirms: AuditFirm[] = [];
-export const auditFirmServices: string[] = [];
-export const auditFirmIndustries: string[] = [];
+// This file is deprecated. All dynamic data should be fetched from Firestore.
+// The data is initially seeded from 'seed-data.ts'.
+export * from './types';

@@ -1,32 +1,8 @@
-import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm } from '@/lib/types';
-import { clientAssets, clientData, jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, subscriptions, payments, jobPayments, jobChats, notifications, serviceProviders, auditFirms, auditFirmServices, auditFirmIndustries, reviews } from './seed-data';
-import { subscriptionPlans } from './subscription-plans';
 
-// This file is now deprecated and exists for reference during transition.
-// All data is now sourced from 'seed-data.ts' and seeded into Firestore.
-// Components should be updated to fetch data from Firestore directly.
-
-export {
-    clientAssets,
-    jobs,
-    inspectorAssets,
-    allUsers,
-    userAuditLog,
-    jobAuditLog,
-    billingAuditLog,
-    reviews,
-    subscriptions,
-    clientData,
-    payments,
-    jobPayments,
-    jobChats,
-    notifications,
-    serviceProviders,
-    auditFirms,
-    auditFirmServices,
-    auditFirmIndustries,
-    subscriptionPlans,
-};
+// This file is deprecated. All dynamic data should be fetched from Firestore.
+// The data is initially seeded from 'seed-data.ts'.
+// Types are now centralized in 'types.ts'.
+export * from './types';
 
 export const NDTTechniques: { id: string; name: string }[] = [
   { id: "UT", name: "Ultrasonic Testing" },
@@ -48,5 +24,3 @@ export const NDTTechniques: { id: string; name: string }[] = [
   { id: "APR", name: "Acoustic Pulse Reflectometry" },
   { id: "ACFM", name: "Alternating Current Field Measurement" }
 ];
-
-export * from './types';

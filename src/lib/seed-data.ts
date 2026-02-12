@@ -1,11 +1,32 @@
-import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer } from '@/lib/types';
+
+import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique } from '@/lib/types';
 import { subscriptionPlans } from './subscription-plans';
-import { NDTTechniques } from './ndt-techniques-data';
 
 // This file serves as the master data source for seeding the Firestore database.
 // The application itself should NOT import data from this file for rendering.
 // Instead, components should use the Firebase hooks (useCollection, useDoc) to fetch live data.
 // The only exception is the database seeding function on the admin dashboard.
+
+export const NDTTechniques: NDTTechnique[] = [
+    { id: 'UT', acronym: 'UT', title: 'Ultrasonic Testing', description: 'Uses high-frequency sound waves to detect flaws or measure thickness.', isHighlighted: true, imageId: 'tech-ut' },
+    { id: 'PAUT', acronym: 'PAUT', title: 'Phased Array Ultrasonic Testing', description: 'An advanced UT method that uses multiple ultrasonic elements to steer beams and create detailed images.', isHighlighted: false, imageId: 'tech-ut' },
+    { id: 'TOFD', acronym: 'TOFD', title: 'Time-of-Flight Diffraction', description: 'An advanced UT method for finding and sizing flaws with high accuracy, especially in welds.', isHighlighted: false, imageId: 'tech-ut' },
+    { id: 'RT', acronym: 'RT', title: 'Radiographic Testing', description: 'Uses X-rays or gamma rays to see inside a material and find flaws.', isHighlighted: true, imageId: 'tech-rt' },
+    { id: 'CR', acronym: 'CR', title: 'Computed Radiography', description: 'Uses flexible imaging plates to capture digital images, replacing traditional X-ray film.', isHighlighted: false, imageId: 'tech-rt' },
+    { id: 'DR', acronym: 'DR', title: 'Digital Radiography', description: 'Uses flat-panel detectors for real-time digital imaging, offering immediate results.', isHighlighted: false, imageId: 'tech-rt' },
+    { id: 'MT', acronym: 'MT', title: 'Magnetic Particle Testing', description: 'Finds surface and near-surface flaws in ferromagnetic materials by applying magnetic fields.', isHighlighted: true, imageId: 'tech-mt' },
+    { id: 'PT', acronym: 'PT', title: 'Liquid Penetrant Testing', description: 'Uses a liquid dye to find surface-breaking defects in non-porous materials.', isHighlighted: true, imageId: 'tech-pt' },
+    { id: 'VT', acronym: 'VT', title: 'Visual Testing', description: 'The most basic NDT method, involving the visual inspection of a component to find surface flaws.', isHighlighted: true, imageId: 'tech-vt' },
+    { id: 'RVI', acronym: 'RVI', title: 'Remote Visual Inspection', description: 'Uses borescopes, videoscopes, or drones to visually inspect hard-to-reach areas.', isHighlighted: false, imageId: 'tech-vt' },
+    { id: 'ET', acronym: 'ET', title: 'Eddy Current Testing', description: 'Uses electromagnetic induction to detect surface and near-surface flaws in conductive materials.', isHighlighted: false, imageId: 'tech-et' },
+    { id: 'AE', acronym: 'AE', title: 'Acoustic Emission Testing', description: 'Listens for the high-frequency sounds (acoustic emissions) released by materials under stress.', isHighlighted: true, imageId: 'tech-ae' },
+    { id: 'GWT', acronym: 'GWT', title: 'Guided Wave Testing', description: 'Screens long lengths of pipes or structures from a single test point using low-frequency sound waves.', isHighlighted: false, imageId: 'tech-other' },
+    { id: 'APR', acronym: 'APR', title: 'Acoustic Pulse Reflectometry', description: 'An advanced acoustic technique used to inspect tubes from the inside, detecting blockages and wall loss.', isHighlighted: false, imageId: 'tech-apr' },
+    { id: 'MFL', acronym: 'MFL', title: 'Magnetic Flux Leakage', description: 'Detects corrosion and pitting in steel structures, commonly used for tank floors and pipelines.', isHighlighted: false, imageId: 'tech-mt' },
+    { id: 'ACFM', acronym: 'ACFM', title: 'Alternating Current Field Measurement', description: 'An electromagnetic technique for detecting and sizing surface-breaking cracks in metallic components.', isHighlighted: false, imageId: 'tech-et' },
+    { id: 'IR', acronym: 'IR', title: 'Infrared Thermography', description: 'Detects temperature differences to find issues like electrical faults, insulation gaps, or material thinning.', isHighlighted: false, imageId: 'tech-ir' },
+    { id: 'LT', acronym: 'LT', title: 'Leak Testing', description: 'Detects and locates leaks in pressurized or vacuum systems using various methods like bubble testing or pressure change.', isHighlighted: false, imageId: 'tech-lt' },
+];
 
 export const manufacturersData: Manufacturer[] = [
   { id: 'manu-01', name: 'Olympus', url: 'https://www.olympus-ims.com/', logoUrl: 'https://placehold.co/200x80/0055A8/FFFFFF/png?text=OLYMPUS', description: 'A leading manufacturer of optical and digital precision technology.', techniqueIds: ['UT', 'PAUT', 'ET', 'VT'] },
@@ -880,6 +901,3 @@ export const reviews: Review[] = [
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
-
-// Re-export NDTTechniques for seeding purposes
-export { NDTTechniques };

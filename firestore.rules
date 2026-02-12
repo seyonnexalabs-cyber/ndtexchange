@@ -231,16 +231,15 @@ service cloud.firestore {
     /**
      * @description Manages direct messages between two users.
      * @path /messages/{messageId}
-     * @allow (get) The sender or receiver reading their message.
-     * @deny (get) A third-party user trying to read a private conversation.
-     * @principle Grants access only to the participants listed in the document.
+     * @allow (read) The sender or receiver reading their messages.
+     * @deny (list) Listing all messages is disallowed to prevent data leakage. Users must query.
+     * @principle Grants read access only to participants, enabling targeted client-side queries.
      */
     match /messages/{messageId} {
       function isMessageParticipant() {
         return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       }
-      allow get: if isMessageParticipant() || isAdmin();
-      allow list: if false; // Users must query for messages where they are a participant.
+      allow read: if isMessageParticipant() || isAdmin();
       allow create: if isSignedIn() && isResourceCreator('senderId');
       allow update: if (isOwner(resource.data.receiverId) || isAdmin()) && isExistingDoc(); // Only receiver can mark as read.
       allow delete: if false; // Messages are generally immutable.
@@ -273,16 +272,15 @@ service cloud.firestore {
     /**
      * @description Manages user-specific notifications.
      * @path /notifications/{notificationId}
-     * @allow (get) A user reading their own notification.
-     * @deny (get) A user reading someone else's notification.
-     * @principle Enforces strict document ownership based on a 'userId' field.
+     * @allow (read) A user can query for notifications where their userId matches.
+     * @deny (list) Listing all notifications is disallowed.
+     * @principle Grants read access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-      allow get: if isOwner(resource.data.userId) || isAdmin();
-      allow list: if false; // Users must query for notifications where their userId matches.
+      allow read: if isOwner(resource.data.userId) || isAdmin();
       allow create: if isSignedIn() && isResourceCreator('userId');
-      allow update: if isExistingOwner(resource.data.userId) && isImmutable('userId');
-      allow delete: if isExistingOwner(resource.data.userId) || isAdmin();
+      allow update: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc() && isImmutable('userId');
+      allow delete: if (isOwner(resource.data.userId) || isAdmin()) && isExistingDoc();
     }
 
     /**

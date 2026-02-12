@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { jobs, allUsers, inspectorAssets, Job, PlatformUser, InspectorAsset } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Briefcase, MapPin, CheckCircle, Users, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,10 @@ import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Calendar } from "@/components/ui/calendar";
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Job, PlatformUser, InspectorAsset } from '@/lib/types';
+
 
 type CalendarEvent = {
   id: string;
@@ -47,16 +50,21 @@ export default function CalendarPage() {
     const [activeTab, setActiveTab] = useState('jobs');
     const [today, setToday] = useState<Date | undefined>(undefined);
 
+    const { firestore } = useFirebase();
+    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]));
+    const { data: allUsers } = useCollection<PlatformUser>(useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]));
+    const { data: inspectorAssets } = useCollection<InspectorAsset>(useMemoFirebase(() => firestore ? collection(firestore, 'equipment') : null, [firestore]));
+
     useEffect(() => {
         setToday(new Date());
     }, []);
 
     const events: CalendarEvent[] = useMemo(() => {
-        let relevantJobs = jobs;
+        let relevantJobs = jobs || [];
         if (role === 'client') {
-            relevantJobs = jobs.filter(job => job.client === 'Global Energy Corp.');
+            relevantJobs = jobs?.filter(job => job.client === 'Global Energy Corp.') || [];
         } else if (role === 'inspector') {
-            relevantJobs = jobs.filter(job => job.providerId === 'provider-03');
+            relevantJobs = jobs?.filter(job => job.providerId === 'provider-03') || [];
         }
         
         const scheduledJobs = relevantJobs.filter(job => job.scheduledStartDate);
@@ -84,13 +92,13 @@ export default function CalendarPage() {
             const resourceSchedule: Record<string, { resource: PlatformUser | InspectorAsset; jobs: Job[]; date: Date }> = {};
             
             // For inspectors, only show their own company's resources.
-            const technicians = (role === 'inspector') 
+            const technicians = (role === 'inspector' && allUsers) 
                 ? allUsers.filter(u => u.role === 'Inspector' && u.providerId === 'provider-03') 
-                : allUsers.filter(u => u.role === 'Inspector');
+                : allUsers?.filter(u => u.role === 'Inspector') || [];
 
-            const equipmentList = (role === 'inspector') 
+            const equipmentList = (role === 'inspector' && inspectorAssets) 
                 ? inspectorAssets.filter(e => e.providerId === 'provider-03') 
-                : inspectorAssets;
+                : inspectorAssets || [];
 
             scheduledJobs.forEach(job => {
                 if (!job.scheduledStartDate) return;
@@ -128,7 +136,7 @@ export default function CalendarPage() {
         }
 
         return [];
-    }, [role, activeTab]);
+    }, [role, activeTab, jobs, allUsers, inspectorAssets]);
 
     const firstDayOfMonth = startOfMonth(currentDate);
     const lastDayOfMonth = endOfMonth(currentDate);
@@ -160,7 +168,7 @@ export default function CalendarPage() {
         if (event.type === 'job') {
             const job = event.data as Job;
             title = job.title;
-            details = <p className="text-xs text-muted-foreground">{job.technique}</p>;
+            details = <p className="text-xs text-muted-foreground">{job.techniques.join(', ')}</p>;
             badgeText = job.status;
         } else if (event.type === 'technician' || event.type === 'equipment') {
             const resourceData = event.data as { resource: PlatformUser | InspectorAsset, jobs: Job[] };
@@ -214,8 +222,8 @@ export default function CalendarPage() {
                         <div className="flex items-center">
                             <Briefcase className="w-4 h-4 mr-3 text-primary" />
                             <div>
-                                <p className="font-semibold">Technique</p>
-                                <p className="text-muted-foreground">{job.technique}</p>
+                                <p className="font-semibold">Technique(s)</p>
+                                <p className="text-muted-foreground">{job.techniques.join(', ')}</p>
                             </div>
                         </div>
                         {job.scheduledStartDate && (

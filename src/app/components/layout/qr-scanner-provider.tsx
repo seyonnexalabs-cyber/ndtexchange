@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useFirebase } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import type { Asset, InspectorAsset, Job } from '@/lib/types';
+import type { Asset, InspectorAsset } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 

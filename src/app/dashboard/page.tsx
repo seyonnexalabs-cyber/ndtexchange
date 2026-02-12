@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database } from "lucide-react";
@@ -373,7 +374,7 @@ const InspectorDashboard = () => {
     }, [authUser, firestore]);
     
     const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const techniciansQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'users'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const techniciansQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'users'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
 
     const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
@@ -664,22 +665,16 @@ const AdminDashboard = () => {
     
     const handleSeedDatabase = async () => {
         if (!firestore) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Firestore is not available.",
-            });
+            toast({ variant: "destructive", title: "Error", description: "Firestore is not available." });
             return;
         }
 
         setIsSeeding(true);
-        toast({
-            title: "Database Seeding Started",
-            description: "This process may take a moment. Check the console for progress.",
-        });
+        toast({ title: "Database Seeding Started", description: "Check the browser console for detailed progress." });
+        console.clear();
+        console.log("%c--- Starting Database Seed ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
 
         const seedCollection = async (collectionName: string, data: any[], customizer?: (item: any) => any) => {
-            console.log(`[SEED] Starting: ${collectionName}...`);
             try {
                 const batch = writeBatch(firestore);
                 data.forEach(item => {
@@ -701,18 +696,21 @@ const AdminDashboard = () => {
         };
 
         try {
-            // Order is important due to security rule dependencies (get() calls)
+            console.group("Step 1: Foundational Data (No Dependencies)");
             await seedCollection('techniques', NDTTechniques);
             await seedCollection('manufacturers', manufacturersData);
+            console.groupEnd();
             
+            console.group("Step 2: Core Entities (Users, Companies)");
             const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
             await seedCollection('companies', allCompanies);
-            
             await seedCollection('users', allUsers, (user) => {
                 const { password, ...userToSave } = user;
                 return userToSave;
             });
-
+            console.groupEnd();
+            
+            console.group("Step 3: Role & Subscription Management");
             try {
                 console.log(`[SEED] Starting: roles_admin...`);
                 const adminUser = allUsers.find(u => u.role === 'Admin');
@@ -726,13 +724,15 @@ const AdminDashboard = () => {
                 toast({ variant: "destructive", title: 'Seeding Failed on: roles_admin', description: `Error: ${error.message}` });
                 throw new Error('Failed to seed roles_admin');
             }
-            
             await seedCollection('subscriptions', subscriptionsData);
+            console.groupEnd();
+
+            console.group("Step 4: Operational Data");
             await seedCollection('assets', clientAssets);
             await seedCollection('equipment', inspectorAssets);
-
+            
             try {
-                console.log(`[SEED] Starting: jobs, bids, inspections...`);
+                console.log(`[SEED] Starting: jobs, bids, inspections, reports...`);
                 const jobsBatch = writeBatch(firestore);
                 seedJobs.forEach(job => {
                     const { bids, inspections, ...jobData } = job;
@@ -756,13 +756,15 @@ const AdminDashboard = () => {
                     });
                 });
                 await jobsBatch.commit();
-                console.log(`[SEED] ✅ Success: jobs, bids, and inspections seeded.`);
+                console.log(`[SEED] ✅ Success: jobs, bids, inspections, and reports seeded.`);
             } catch (error: any) {
                  console.error(`[SEED] ❌ Failed to seed jobs/bids/inspections:`, error);
                  toast({ variant: "destructive", title: 'Seeding Failed on: jobs/bids/inspections', description: `Error: ${error.message}` });
                  throw new Error('Failed to seed jobs/bids/inspections');
             }
+            console.groupEnd();
 
+            console.group("Step 5: Relational & Log Data");
             await seedCollection('reviews', reviewsData, (review) => ({ ...review, date: new Date(review.date) }));
             await seedCollection('userAuditLogs', userAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
             await seedCollection('jobAuditLogs', jobAuditLogData, (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
@@ -788,9 +790,12 @@ const AdminDashboard = () => {
                 toast({ variant: "destructive", title: 'Seeding Failed on: chats', description: `Error: ${error.message}` });
                 throw new Error('Failed to seed chats');
             }
-
+            console.groupEnd();
+            
+            console.group("Step 6: Financial Data");
             await seedCollection('payments', paymentsData);
             await seedCollection('jobPayments', jobPaymentsData);
+            console.groupEnd();
 
             toast({
                 title: "Database Seeded Successfully!",
@@ -801,6 +806,7 @@ const AdminDashboard = () => {
             console.error("Seeding process stopped due to an error.", error);
         } finally {
             setIsSeeding(false);
+            console.log("%c--- Database Seed Finished ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
         }
     };
     

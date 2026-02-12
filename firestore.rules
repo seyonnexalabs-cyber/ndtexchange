@@ -345,6 +345,14 @@ service cloud.firestore {
     match /subscriptions/{subscriptionId} {
       allow read, write: if isAdmin();
     }
+    
+    /**
+     * @description Manages admin role assignments. Admin-only.
+     * @principle Grants full access to administrators for role management.
+     */
+    match /roles_admin/{userId} {
+      allow read, write: if isAdmin();
+    }
 
     /**
      * @description Manages payment records for subscriptions. Admin-only.

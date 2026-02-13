@@ -122,7 +122,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow list: if isAdmin();
       allow get: if isOwner(userId) || isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
-      allow create: if (isOwner(userId) && isResourceCreator('id')) || isAdmin();
+      allow create: if isOwner(userId) || isAdmin();
       allow update: if isExistingOwner(userId) || isAdmin();
       allow delete: if isExistingOwner(userId) || isAdmin();
 
@@ -332,7 +332,7 @@ service cloud.firestore {
      * @principle Admins can list chats from any company to provide support.
      */
     match /{path=**}/supportChats/{chatId} {
-      allow read: if isAdmin();
+      allow list: if isAdmin();
     }
     
     /**

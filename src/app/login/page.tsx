@@ -16,11 +16,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFirebase, useUser } from '@/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
-import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { Eye, EyeOff } from 'lucide-react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
 
@@ -111,31 +110,29 @@ export default function LoginPage() {
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     if (!auth) {
-        toast({ variant: 'destructive', title: 'Login Failed', description: 'Authentication service not available.' });
-        return;
+      toast({ variant: 'destructive', title: 'Login Failed', description: 'Authentication service not available.' });
+      return;
     }
     setIsAuthenticating(true);
-    
+
     try {
-        await initiateEmailSignIn(auth, data.email, data.password);
-        // On success, the useEffect will handle the redirect.
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      // On success, the onAuthStateChanged listener in the FirebaseProvider
+      // will update the user state, and the useEffect hook in this component
+      // will handle the redirection.
     } catch (error: any) {
-        // Dev-only logic to auto-create users.
-        if (error.code === 'auth/invalid-credential' && process.env.NODE_ENV === 'development') {
-            console.log(`Dev login: User ${data.email} not found or password incorrect. Attempting to create user...`);
-            try {
-                // This automatically signs the user in, triggering the onAuthStateChanged listener.
-                await createUserWithEmailAndPassword(auth, data.email, data.password);
-                console.log(`Dev login: User ${data.email} created and signed in.`);
-            } catch (creationError: any) {
-                 toast({ variant: "destructive", title: "Dev Signup Failed", description: creationError.message });
-                 setIsAuthenticating(false);
-            }
-        } else {
-            // Production-like error handling for real failed logins.
-            toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password. Please try again.' });
-            setIsAuthenticating(false);
-        }
+      // Provide a clear error message for failed login attempts.
+      let description = "Invalid email or password. Please try again.";
+      if (error.code === 'auth/too-many-requests') {
+        description = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: description,
+      });
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 

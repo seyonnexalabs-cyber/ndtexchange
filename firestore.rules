@@ -135,9 +135,9 @@ service cloud.firestore {
      * @principle Client queries are secured by companyId, writes are validated against user's company.
      */
     match /assets/{assetId} {
-      allow write: if isAdmin();
+      allow create: if isAdmin();
       allow create: if isCompanyMember(request.resource.data.companyId);
-      allow read: if isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
+      allow read, write: if isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
       allow list: if isSignedIn();
     }
 
@@ -237,9 +237,8 @@ service cloud.firestore {
       function isJobParticipant() {
         return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
       }
-      allow read, write: if isAdmin();
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow read: if true;
+      allow write: if isAdmin();
       allow create: if isSignedIn() && isResourceCreator('clientId');
       allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
       allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
@@ -257,7 +256,7 @@ service cloud.firestore {
         return isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId);
       }
       allow read, write: if isAdmin();
-      allow get, list: if isJobClient() || isOwner(resource.data.inspectorId);
+      allow read: if isJobClient() || isOwner(resource.data.inspectorId);
       allow create: if isSignedIn() && isResourceCreator('inspectorId');
       allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId') && isImmutable('jobId');
       allow delete: if isExistingOwner(resource.data.inspectorId) || isAdmin();
@@ -285,7 +284,7 @@ service cloud.firestore {
         return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       }
       allow read, write: if isAdmin();
-      allow get, list: if isMessageParticipant();
+      allow read: if isMessageParticipant();
       allow create: if isSignedIn() && isResourceCreator('senderId');
       allow update: if isOwner(resource.data.receiverId) && isExistingDoc(); // Only receiver can mark as read.
       allow delete: if false; // Messages are generally immutable.
@@ -327,20 +326,16 @@ service cloud.firestore {
      * @principle Grants read access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-      allow read, write: if isAdmin();
-      
-      // Allow users to get and query for their own notifications.
-      allow get: if isOwner(resource.data.userId);
-      allow list: if request.query.where.userId == request.auth.uid;
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       
       // Allow any signed-in user to create a notification for themselves.
       allow create: if isSignedIn() && isResourceCreator('userId');
 
       // Allow a user to update their own notification (e.g., mark as read), but not change the recipient.
-      allow update: if isOwner(resource.data.userId) && isImmutable('userId');
+      allow update: if (isAdmin() || isOwner(resource.data.userId)) && isImmutable('userId');
       
       // Allow a user to delete their own notification.
-      allow delete: if isOwner(resource.data.userId);
+      allow delete: if isAdmin() || isOwner(resource.data.userId);
     }
 
     /**
@@ -387,8 +382,8 @@ service cloud.firestore {
      * @principle Admin moderation of user-generated content.
      */
     match /reviews/{reviewId} {
-      allow write: if isAdmin();
       allow read: if true;
+      allow write: if isAdmin();
       allow create: if isSignedIn() && isResourceCreator('clientId');
     }
     

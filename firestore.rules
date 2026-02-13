@@ -332,7 +332,7 @@ service cloud.firestore {
      * @principle Admins can list chats from any company to provide support.
      */
     match /{path=**}/supportChats/{chatId} {
-      allow read: if isAdmin();
+      allow list: if isAdmin();
     }
     
     /**

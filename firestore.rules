@@ -115,16 +115,20 @@ service cloud.firestore {
     /**
      * @description Manages user profile data.
      * @path /users/{userId}
+     * @allow (read, write) Admin has full access.
      * @allow (get) An authenticated user can read their own profile or profiles of users in the same company.
-     * @allow (list) An authenticated user can list users, but the get rule will be enforced on each result.
-     * @principle Secures list queries by enforcing a strict get rule on each document returned by the query.
+     * @principle Separates admin override from user-specific permissions for clarity and robustness.
      */
     match /users/{userId} {
-      allow list: if isAdmin();
-      allow get: if isOwner(userId) || isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if isExistingOwner(userId) || isAdmin();
-      allow delete: if isExistingOwner(userId) || isAdmin();
+      // Admin override: Admins have full read/write access to all user profiles.
+      // This is crucial for seeding and user management tasks.
+      allow read, write: if isAdmin();
+      
+      // User-specific rules
+      allow get: if isOwner(userId) || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
 
       /**
        * @description Manages user-specific notifications.

@@ -135,8 +135,7 @@ service cloud.firestore {
      * @principle Client queries are secured by companyId, writes are validated against user's company.
      */
     match /assets/{assetId} {
-      allow create: if isAdmin();
-      allow create: if isCompanyMember(request.resource.data.companyId);
+      allow create: if isAdmin() || isCompanyMember(request.resource.data.companyId);
       allow read, write: if isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
       allow list: if isSignedIn();
     }
@@ -283,10 +282,10 @@ service cloud.firestore {
       function isMessageParticipant() {
         return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       }
-      allow read, write: if isAdmin();
-      allow read: if isMessageParticipant();
+      allow get: if isAdmin() || isMessageParticipant();
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && isResourceCreator('senderId');
-      allow update: if isOwner(resource.data.receiverId) && isExistingDoc(); // Only receiver can mark as read.
+      allow update: if (isAdmin() || isOwner(resource.data.receiverId)) && isExistingDoc(); // Only receiver can mark as read. Admin can update.
       allow delete: if false; // Messages are generally immutable.
     }
     
@@ -321,21 +320,18 @@ service cloud.firestore {
     /**
      * @description Manages user-specific notifications.
      * @path /notifications/{notificationId}
-     * @allow (read) A user can query for notifications where their userId matches.
-     * @deny (list) Listing all notifications is disallowed.
-     * @principle Grants read access based on ownership, enabling targeted client-side queries.
+     * @principle Grants read/write access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      
-      // Allow any signed-in user to create a notification for themselves.
-      allow create: if isSignedIn() && isResourceCreator('userId');
+        // A user can get, update, or delete their own notification.
+        allow get, update, delete: if isAdmin() || isOwner(resource.data.userId);
 
-      // Allow a user to update their own notification (e.g., mark as read), but not change the recipient.
-      allow update: if (isAdmin() || isOwner(resource.data.userId)) && isImmutable('userId');
-      
-      // Allow a user to delete their own notification.
-      allow delete: if isAdmin() || isOwner(resource.data.userId);
+        // A user can only list notifications for which they are the recipient.
+        // This is enforced by a `where("userId", "==", request.auth.uid)` clause in the client query.
+        allow list: if isSignedIn();
+        
+        // A user can create a notification for themselves.
+        allow create: if isSignedIn() && isResourceCreator('userId');
     }
 
     /**

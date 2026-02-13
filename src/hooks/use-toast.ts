@@ -143,6 +143,20 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
+  if (props.variant === 'destructive') {
+    console.error('--- Destructive Toast Triggered ---');
+    console.error(`Title: ${props.title}`);
+    console.error(`Description: ${props.description}`);
+    console.error('Full toast details:', props);
+    console.error('---------------------------------');
+    // Return a dummy object to satisfy call sites that might expect a return value.
+    return {
+      id: genId(),
+      dismiss: () => {},
+      update: () => {},
+    };
+  }
+  
   const id = genId()
 
   const update = (props: ToasterToast) =>

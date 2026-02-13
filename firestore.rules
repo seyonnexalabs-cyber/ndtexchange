@@ -317,7 +317,7 @@ service cloud.firestore {
         allow get, list, create, update: if isCompanyMember(companyId) || isAdmin();
         allow delete: if isAdmin();
 
-        match /messages/{messageId} {
+        match /supportMessages/{messageId} {
           allow read, write: if isCompanyMember(companyId) || isAdmin();
         }
       }

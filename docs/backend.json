@@ -470,7 +470,7 @@
         }
       },
       {
-        "path": "/companies/{companyId}/supportChats/{chatId}/messages/{messageId}",
+        "path": "/companies/{companyId}/supportChats/{chatId}/supportMessages/{messageId}",
         "definition": {
           "entityName": "SupportMessage",
           "schema": { "$ref": "#/backend/entities/SupportMessage" },

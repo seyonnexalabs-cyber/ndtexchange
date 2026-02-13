@@ -106,7 +106,7 @@ export default function SupportPage() {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !currentThread) return null;
-    return query(collection(firestore, 'companies', currentThread.companyId, 'supportChats', currentThread.id, 'messages'), orderBy('timestamp', 'asc'));
+    return query(collection(firestore, 'companies', currentThread.companyId, 'supportChats', currentThread.id, 'supportMessages'), orderBy('timestamp', 'asc'));
   }, [firestore, currentThread]);
 
   const { data: messages } = useCollection<SupportMessage>(messagesQuery);
@@ -135,7 +135,7 @@ export default function SupportPage() {
         }
 
         if (threadId && companyId) {
-            const messagesColRef = collection(firestore, 'companies', companyId, 'supportChats', threadId, 'messages');
+            const messagesColRef = collection(firestore, 'companies', companyId, 'supportChats', threadId, 'supportMessages');
             const messageData = {
                 senderId: authUser.uid,
                 senderName: currentUser.name,

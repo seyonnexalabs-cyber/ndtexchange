@@ -250,13 +250,15 @@ service cloud.firestore {
      */
     match /jobs/{jobId} {
       function isJobParticipant() {
-        return isOwner(resource.data.clientId) || isOwner(resource.data.awardedInspectorId);
+        let isClientMember = isCompanyMember(resource.data.clientCompanyId);
+        let isProviderMember = resource.data.awardedProviderId != null && isCompanyMember(resource.data.awardedProviderId);
+        return isClientMember || isProviderMember;
       }
       allow read: if true;
       allow write: if isAdmin();
-      allow create: if isSignedIn() && isResourceCreator('clientId');
-      allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId');
-      allow delete: if (isOwner(resource.data.clientId) || isAdmin()) && isExistingDoc();
+      allow create: if isSignedIn() && isResourceCreator('clientId') && isCompanyMember(request.resource.data.clientCompanyId);
+      allow update: if (isJobParticipant() || isAdmin()) && isExistingDoc() && isImmutable('clientId') && isImmutable('clientCompanyId');
+      allow delete: if (isCompanyMember(resource.data.clientCompanyId) || isAdmin()) && isExistingDoc();
 
       /**
        * @description Manages bids submitted by inspectors for jobs.
@@ -267,7 +269,8 @@ service cloud.firestore {
        */
       match /bids/{bidId} {
         function isJobClient() {
-          return isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId);
+          let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
+          return isCompanyMember(job.clientCompanyId);
         }
         allow read, write: if isAdmin();
         allow read: if isJobClient() || isOwner(resource.data.inspectorId);
@@ -282,7 +285,10 @@ service cloud.firestore {
        * @principle Access is granted to participants of the parent job.
        */
       match /messages/{messageId} {
-        allow read, write: if isJobParticipant() || isAdmin();
+        allow read, write: if (
+          let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
+          (isCompanyMember(job.clientCompanyId) || (job.awardedProviderId != null && isCompanyMember(job.awardedProviderId)))
+        ) || isAdmin();
       }
     }
     
@@ -391,3 +397,5 @@ service cloud.firestore {
 
   }
 }
+
+  

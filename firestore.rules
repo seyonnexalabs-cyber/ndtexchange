@@ -3,7 +3,7 @@
  * # Core Philosophy
  * This ruleset enforces a security model based on user roles (Admin, Client, Inspector)
  * and direct ownership or participation in data. Administrative users, identified by
- * their email address, have elevated privileges. For all other users, access is
+ * their UID, have elevated privileges. For all other users, access is
  * granted based on specific fields within documents, such as `clientId` on a Job,
  * `inspectorId` on an Inspection, or `senderId`/`receiverId` on a Message.
  *
@@ -15,16 +15,10 @@
  * such as Bids within a Job.
  *
  * # Key Security Decisions
- * - Admin Access: A user is considered an admin if their authenticated email is
- *   one of the predefined admin emails. This is a fast and secure check.
- * - User Privacy: A user's own profile in `/users/{userId}` is strictly private
- *   for writes. Reading profiles is allowed for any authenticated user to facilitate
- *   collaboration features. Listing all users is disabled to protect user privacy (except for admins).
- * - Public Data: Collections like `/asset_types`, `/techniques`, `/manufacturers`, and `/companies` are considered public,
- *   readable by anyone, but writable only by admins.
- * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
- *   UIDs stored directly on the document (e.g., `clientId`, `senderId`). This avoids
- *   complex lookups and ensures performant, secure access.
+ * - Admin Access: A user is considered an admin if their authenticated UID is one of the predefined admin UIDs. This is a fast and secure check.
+ * - User Privacy: A user's own profile in `/users/{userId}` is strictly private for writes. Reading profiles is allowed for any authenticated user to facilitate collaboration features. Listing all users is disabled to protect user privacy (except for admins).
+ * - Public Data: Collections like `/asset_types`, `/techniques`, `/manufacturers`, and `/companies` are considered public, readable by anyone, but writable only by admins.
+ * - Shared Data: Access to shared documents like Jobs and Messages is controlled by UIDs stored directly on the document (e.g., `clientId`, `senderId`). This avoids complex lookups and ensures performant, secure access.
  *
  * # Denormalization for Authorization
  * To create simpler and more performant rules, authorization-critical data is
@@ -80,11 +74,11 @@ service cloud.firestore {
 
     /**
      * Checks if the requesting user has admin privileges.
-     * It does this by checking for the authenticated user's email address.
+     * It does this by checking for the authenticated user's UID.
      * This is a fast and non-recursive way to check for admin status.
      */
     function isAdmin() {
-      return isSignedIn() && (request.auth.token.email == 'admin@ndtexchange.com' || request.auth.token.email == 'seyonnexalabs@gmail.com');
+      return isSignedIn() && (request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     }
     
     /**

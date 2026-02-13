@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { LifeBuoy, MessageSquare, Send, BookOpen } from 'lucide-react';
+import { LifeBuoy, MessageSquare, Send, BookOpen, PlusCircle } from 'lucide-react';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -21,11 +21,12 @@ import InspectorWorkflow from './components/inspector-workflow';
 import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, collectionGroup, query, where, limit, doc, serverTimestamp, addDoc, updateDoc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, limit, doc, serverTimestamp, addDoc, updateDoc, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { useMobile } from '@/hooks/use-mobile';
 import AdminChatInterface from './components/admin-chat-interface';
 import ClientChatInterface from './components/client-chat-interface';
 import type { PlatformUser } from '@/lib/types';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/dialog';
 
 
 // Define types for Firestore data
@@ -57,6 +58,11 @@ const supportSchema = z.object({
     .optional(),
 });
 
+const newThreadSchema = z.object({
+  subject: z.string().min(5, "Subject must be at least 5 characters long."),
+  initialMessage: z.string().min(10, "Please provide an initial message (min. 10 characters)."),
+});
+
 
 export default function SupportPage() {
   const { toast } = useToast();
@@ -70,6 +76,7 @@ export default function SupportPage() {
   const isMobile = useMobile();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const [isNewThreadOpen, setIsNewThreadOpen] = useState(false);
 
   useEffect(() => {
     if (authUser && firestore) {
@@ -89,7 +96,7 @@ export default function SupportPage() {
         return query(collectionGroup(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
     }
     if (currentUser?.companyId) {
-        return query(collection(firestore, 'companies', currentUser.companyId, 'supportChats'), limit(1));
+        return query(collection(firestore, 'companies', currentUser.companyId, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
     }
     return null;
   }, [firestore, authUser, role, currentUser?.companyId]);
@@ -98,29 +105,25 @@ export default function SupportPage() {
   const { data: supportThreadsData } = useCollection<SupportThread>(supportChatQuery);
   
   const currentThread = useMemo(() => {
-      if (role === 'admin') {
-        return supportThreadsData?.find(t => t.id === selectedThreadId) || null;
-      }
-      return supportThreadsData?.[0] || null;
-  }, [supportThreadsData, selectedThreadId, role]);
+      return supportThreadsData?.find(t => t.id === selectedThreadId) || null;
+  }, [supportThreadsData, selectedThreadId]);
 
   const messagesQuery = useMemoFirebase(() => {
-    if (!firestore || !currentThread || !currentUser) return null;
-    const companyIdForPath = role === 'admin' ? currentThread.companyId : currentUser.companyId;
+    if (!firestore || !selectedThreadId || !currentUser) return null;
+    const companyIdForPath = role === 'admin' ? currentThread?.companyId : currentUser.companyId;
     if (!companyIdForPath) return null;
-    return query(collection(firestore, 'companies', companyIdForPath, 'supportChats', currentThread.id, 'supportMessages'), orderBy('timestamp', 'asc'));
-  }, [firestore, currentThread, currentUser, role]);
+    return query(collection(firestore, 'companies', companyIdForPath, 'supportChats', selectedThreadId, 'supportMessages'), orderBy('timestamp', 'asc'));
+  }, [firestore, selectedThreadId, currentUser, role, currentThread]);
 
   const { data: messages } = useCollection<SupportMessage>(messagesQuery);
   
   const [newMessage, setNewMessage] = useState('');
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentUser || !firestore || !authUser) return;
+    if (!newMessage.trim() || !currentUser || !firestore || !authUser || !selectedThreadId) return;
     setIsSubmitting(true);
     
     try {
-        let threadId = currentThread?.id;
         const companyIdForPath = role === 'admin' ? currentThread?.companyId : currentUser.companyId;
 
         if (!companyIdForPath) {
@@ -129,40 +132,23 @@ export default function SupportPage() {
             return;
         }
 
-        // If no thread exists for a non-admin, create one.
-        if (!threadId && role !== 'admin') {
-            const newThreadRef = doc(collection(firestore, 'companies', companyIdForPath, 'supportChats'));
-            const newThreadData = {
-                id: newThreadRef.id,
-                companyId: currentUser.companyId,
-                companyName: currentUser.company,
-                subject: 'Live Support Chat',
-                status: 'Open' as 'Open' | 'Closed',
-                lastMessage: newMessage.trim(),
-                lastMessageTimestamp: serverTimestamp(),
-            };
-            await setDoc(newThreadRef, newThreadData);
-            threadId = newThreadRef.id;
-        }
-
-        if (threadId) {
-            const messagesColRef = collection(firestore, 'companies', companyIdForPath, 'supportChats', threadId, 'supportMessages');
-            const messageData = {
-                senderId: authUser.uid,
-                senderName: currentUser.name,
-                isAdmin: role === 'admin',
-                timestamp: serverTimestamp(),
-                text: newMessage.trim(),
-            };
-            await addDoc(messagesColRef, messageData);
-            
-            const threadDocRef = doc(firestore, 'companies', companyIdForPath, 'supportChats', threadId);
-            await updateDoc(threadDocRef, {
-                lastMessage: newMessage.trim(),
-                lastMessageTimestamp: serverTimestamp(),
-                status: 'Open',
-            });
-        }
+        const messagesColRef = collection(firestore, 'companies', companyIdForPath, 'supportChats', selectedThreadId, 'supportMessages');
+        const messageData = {
+            senderId: authUser.uid,
+            senderName: currentUser.name,
+            isAdmin: role === 'admin',
+            timestamp: serverTimestamp(),
+            text: newMessage.trim(),
+        };
+        await addDoc(messagesColRef, messageData);
+        
+        const threadDocRef = doc(firestore, 'companies', companyIdForPath, 'supportChats', selectedThreadId);
+        await updateDoc(threadDocRef, {
+            lastMessage: newMessage.trim(),
+            lastMessageTimestamp: serverTimestamp(),
+            status: 'Open',
+        });
+        
         setNewMessage('');
     } catch (e) {
         console.error("Error sending message: ", e);
@@ -171,6 +157,51 @@ export default function SupportPage() {
             title: "Error",
             description: "Could not send message. Please try again.",
         });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+  
+  const newThreadForm = useForm<z.infer<typeof newThreadSchema>>({
+    resolver: zodResolver(newThreadSchema),
+    defaultValues: { subject: '', initialMessage: '' },
+  });
+
+  const handleCreateThread = async (values: z.infer<typeof newThreadSchema>) => {
+    if (!currentUser || !firestore || !authUser) return;
+    setIsSubmitting(true);
+    try {
+        const newThreadRef = doc(collection(firestore, 'companies', currentUser.companyId, 'supportChats'));
+        const newThreadData = {
+            id: newThreadRef.id,
+            companyId: currentUser.companyId,
+            companyName: currentUser.company,
+            subject: values.subject,
+            status: 'Open' as 'Open' | 'Closed',
+            lastMessage: values.initialMessage,
+            lastMessageTimestamp: serverTimestamp(),
+            createdAt: serverTimestamp(),
+            createdBy: currentUser.id,
+        };
+        await setDoc(newThreadRef, newThreadData);
+
+        const messagesColRef = collection(firestore, 'companies', currentUser.companyId, 'supportChats', newThreadRef.id, 'supportMessages');
+        const messageData = {
+            senderId: authUser.uid,
+            senderName: currentUser.name,
+            isAdmin: false,
+            timestamp: serverTimestamp(),
+            text: values.initialMessage,
+        };
+        await addDoc(messagesColRef, messageData);
+
+        toast({ title: "Support Thread Created", description: "Our team will get back to you shortly." });
+        setSelectedThreadId(newThreadRef.id);
+        setIsNewThreadOpen(false);
+        newThreadForm.reset();
+    } catch(e) {
+        console.error("Error creating thread:", e);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not create new support thread.' });
     } finally {
         setIsSubmitting(false);
     }
@@ -352,17 +383,83 @@ export default function SupportPage() {
                     handleSendMessage={handleSendMessage}
                     isSubmitting={isSubmitting}
                   /> 
-                 : <ClientChatInterface 
-                    currentUser={currentUser || undefined}
-                    messages={messages}
-                    authUser={authUser}
-                    newMessage={newMessage}
-                    setNewMessage={setNewMessage}
-                    handleSendMessage={handleSendMessage}
-                    isSubmitting={isSubmitting}
-                 />}
+                 : (
+                    <Card className="h-[70vh] flex overflow-hidden">
+                        <div className={cn(
+                            "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
+                            isMobile && selectedThreadId && "hidden"
+                        )}>
+                            <div className="p-4 border-b flex justify-between items-center">
+                                <h2 className="text-xl font-semibold">Support History</h2>
+                                <Button size="sm" onClick={() => setIsNewThreadOpen(true)}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    New Chat
+                                </Button>
+                            </div>
+                            <ClientChatInterface
+                                supportThreadsData={supportThreadsData}
+                                selectedThreadId={selectedThreadId}
+                                setSelectedThreadId={setSelectedThreadId}
+                            />
+                        </div>
+                        <AdminChatInterface
+                            isMobile={isMobile}
+                            supportThreadsData={null}
+                            selectedThreadId={selectedThreadId}
+                            setSelectedThreadId={setSelectedThreadId}
+                            currentThread={currentThread}
+                            messages={messages}
+                            newMessage={newMessage}
+                            setNewMessage={setNewMessage}
+                            handleSendMessage={handleSendMessage}
+                            isSubmitting={isSubmitting}
+                        />
+                    </Card>
+                 )}
             </TabsContent>
         </Tabs>
+        
+        <Dialog open={isNewThreadOpen} onOpenChange={setIsNewThreadOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Start a New Support Chat</DialogTitle>
+                    <DialogDescription>
+                        Create a new support thread for your issue. This helps our team track and resolve your request more efficiently.
+                    </DialogDescription>
+                </DialogHeader>
+                 <Form {...newThreadForm}>
+                    <form onSubmit={newThreadForm.handleSubmit(handleCreateThread)} className="space-y-4 pt-4">
+                        <FormField
+                            control={newThreadForm.control}
+                            name="subject"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Subject</FormLabel>
+                                <FormControl><Input placeholder="e.g., Problem with report generation" {...field} /></FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={newThreadForm.control}
+                            name="initialMessage"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>How can we help?</FormLabel>
+                                <FormControl><Textarea placeholder="Please describe your issue in detail..." {...field} className="min-h-[120px]" /></FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <Button type="button" variant="ghost" onClick={() => setIsNewThreadOpen(false)}>Cancel</Button>
+                            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating...' : 'Start Chat'}</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageSquare, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import type { PlatformUser } from '@/lib/placeholder-data';
+import type { PlatformUser } from '@/lib/types';
 
 
 type SupportMessage = {
@@ -84,3 +84,5 @@ const ClientChatInterface = ({
     );
 };
 export default ClientChatInterface;
+
+  

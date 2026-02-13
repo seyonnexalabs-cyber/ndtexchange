@@ -313,20 +313,22 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn() && request.auth.token.email == request.resource.data.contactEmail;
       allow write: if isAdmin();
-      
-      /**
-       * @description Manages real-time support chats for a company.
-       * @path /companies/{companyId}/supportChats/{chatId}
-       * @principle Allows members of a company and admins to access support chats.
-       */
-      match /supportChats/{chatId} {
-        allow get, list, create, update: if isCompanyMember(companyId) || isAdmin();
+    }
+    
+     /**
+     * @description Manages real-time support chats.
+     * @path /supportChats/{chatId}
+     * @principle Admins can see all. Company members can see their own company's chat.
+     */
+    match /supportChats/{chatId} {
+        allow get, update: if isAdmin() || isCompanyMember(resource.data.companyId);
+        allow list: if isAdmin(); // Only admins can list all chats. Users must query by their companyId.
+        allow create: if isCompanyMember(request.resource.data.companyId);
         allow delete: if isAdmin();
 
         match /supportMessages/{messageId} {
-          allow read, write: if isCompanyMember(companyId) || isAdmin();
+            allow read, write: if isAdmin() || isCompanyMember(get(/databases/$(database)/documents/supportChats/$(chatId)).data.companyId);
         }
-      }
     }
 
     /**

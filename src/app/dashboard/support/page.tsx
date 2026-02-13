@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -21,7 +20,7 @@ import InspectorWorkflow from './components/inspector-workflow';
 import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy, getDoc, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy, getDoc } from 'firebase/firestore';
 import { useMobile } from '@/hooks/use-mobile';
 import AdminChatInterface from './components/admin-chat-interface';
 import ClientChatInterface from './components/client-chat-interface';
@@ -86,10 +85,10 @@ export default function SupportPage() {
   const supportChatQuery = useMemoFirebase(() => {
     if (!firestore || !authUser) return null;
     if (role === 'admin') {
-        return query(collectionGroup(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
+        return query(collection(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
     }
     if (currentUser?.companyId) {
-        return query(collection(firestore, 'companies', currentUser.companyId, 'supportChats'), limit(1));
+        return query(collection(firestore, 'supportChats'), where('companyId', '==', currentUser.companyId), limit(1));
     }
     return null;
   }, [firestore, authUser, role, currentUser?.companyId]);
@@ -106,7 +105,7 @@ export default function SupportPage() {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !currentThread) return null;
-    return query(collection(firestore, 'companies', currentThread.companyId, 'supportChats', currentThread.id, 'supportMessages'), orderBy('timestamp', 'asc'));
+    return query(collection(firestore, 'supportChats', currentThread.id, 'supportMessages'), orderBy('timestamp', 'asc'));
   }, [firestore, currentThread]);
 
   const { data: messages } = useCollection<SupportMessage>(messagesQuery);
@@ -119,10 +118,12 @@ export default function SupportPage() {
     
     try {
         let threadId = currentThread?.id;
-        let companyId = currentThread?.companyId || currentUser.companyId;
 
+        // If no thread exists for a non-admin, create one.
         if (!threadId && role !== 'admin') {
+            const newThreadRef = doc(collection(firestore, 'supportChats'));
             const newThreadData = {
+                id: newThreadRef.id,
                 companyId: currentUser.companyId,
                 companyName: currentUser.company,
                 subject: 'Live Support Chat',
@@ -130,12 +131,12 @@ export default function SupportPage() {
                 lastMessage: newMessage.trim(),
                 lastMessageTimestamp: serverTimestamp(),
             };
-            const newThreadRef = await addDoc(collection(firestore, 'companies', companyId, 'supportChats'), newThreadData);
+            await setDoc(newThreadRef, newThreadData);
             threadId = newThreadRef.id;
         }
 
-        if (threadId && companyId) {
-            const messagesColRef = collection(firestore, 'companies', companyId, 'supportChats', threadId, 'supportMessages');
+        if (threadId) {
+            const messagesColRef = collection(firestore, 'supportChats', threadId, 'supportMessages');
             const messageData = {
                 senderId: authUser.uid,
                 senderName: currentUser.name,
@@ -145,7 +146,7 @@ export default function SupportPage() {
             };
             await addDoc(messagesColRef, messageData);
             
-            const threadDocRef = doc(firestore, 'companies', companyId, 'supportChats', threadId);
+            const threadDocRef = doc(firestore, 'supportChats', threadId);
             await setDoc(threadDocRef, {
                 lastMessage: newMessage.trim(),
                 lastMessageTimestamp: serverTimestamp(),
@@ -342,7 +343,7 @@ export default function SupportPage() {
                     isSubmitting={isSubmitting}
                   /> 
                  : <ClientChatInterface 
-                    currentUser={currentUser}
+                    currentUser={currentUser || undefined}
                     messages={messages}
                     authUser={authUser}
                     newMessage={newMessage}

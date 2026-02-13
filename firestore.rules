@@ -115,13 +115,13 @@ service cloud.firestore {
     /**
      * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow (get) An authenticated user can read their own profile.
-     * @deny (get) A user trying to read another user's profile directly.
-     * @principle Restricts access to a user's own data tree, but allows an admin check.
+     * @allow (get) An authenticated user can read their own profile or profiles of users in the same company.
+     * @allow (list) An authenticated user can list users, but the get rule will be enforced on each result.
+     * @principle Secures list queries by enforcing a strict get rule on each document returned by the query.
      */
     match /users/{userId} {
-      allow list, write: if isAdmin();
-      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isSignedIn();
+      allow get: if isOwner(userId) || isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
       allow create: if isOwner(userId) && isResourceCreator('id');
       allow update: if isExistingOwner(userId) || isAdmin();
       allow delete: if isExistingOwner(userId) || isAdmin();

@@ -39,8 +39,11 @@ const AppHeader = () => {
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
     
+    // Guarded query: Do not create the query until the user is fully loaded and authenticated.
     const notificationsQuery = useMemoFirebase(() => {
-        if (!firestore || !user || isUserLoading || role === 'admin') return null;
+        if (isUserLoading || !user || !firestore || role === 'admin') {
+            return null;
+        }
         return query(
             collection(firestore, 'notifications'),
             where('userId', '==', user.uid),

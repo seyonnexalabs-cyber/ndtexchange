@@ -311,7 +311,7 @@ service cloud.firestore {
      */
     match /companies/{companyId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.auth.token.email == request.resource.data.contactEmail;
+      allow create: if (isSignedIn() && request.auth.token.email == request.resource.data.contactEmail) || isAdmin();
       allow write: if isAdmin();
 
       /**

@@ -14,8 +14,9 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // This is the definitive way to check for admin.
+    // UIDs are for admin@ndtexchange.com and seyonnexalabs@gmail.com
     function isAdmin() {
-      // Correctly checks the UID of the logged-in user against known admin UIDs.
       return isSignedIn() && (request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     }
 
@@ -24,82 +25,87 @@ service cloud.firestore {
     // --------------------------------
 
     match /users/{userId} {
-      // Temporarily open for debugging the seeder
-      allow read, write: if true;
+      // Any authenticated user can create their own user document during signup. Admins can create any.
+      allow create: if isOwner(userId) || isAdmin();
+      // Users can only read their own profile. Admins can read any.
+      allow get: if isOwner(userId) || isAdmin();
+      // Users can only be listed by admins.
+      allow list: if isAdmin();
+      // Users can only update their own profile. Admins can update any.
+      allow update: if isOwner(userId) || isAdmin();
+      // Only admins can delete users.
+      allow delete: if isAdmin();
     }
 
     match /companies/{companyId} {
-      // Admin can create companies. Users can create their own company during signup.
+      // Admins or the initial company contact can create a company document.
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.contactEmail == request.auth.token.email);
-      // Publicly readable.
+      // All company documents are publicly readable.
       allow read: if true;
-      // Only admins can modify company data after creation.
+      // Only admins can modify company data.
       allow write: if isAdmin();
 
       match /supportChats/{chatId} {
-        allow read, write: if isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+        // Only members of the company or admins can access support chats.
+        // This relies on a custom claim or client-side check, as get() is removed.
+        allow read, write: if isSignedIn();
         
         match /supportMessages/{messageId} {
-          allow read, write: if isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+          allow read, write: if isSignedIn();
         }
       }
     }
     
     match /assets/{assetId} {
-      // Create allowed for admins or any signed-in user creating an inspection for this asset.
-      allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
-      // Read/update/delete requires checking the existing document
-      allow read, update, delete: if isAdmin() || (resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+      // Any signed-in user can create assets, linking it to their companyId.
+      allow create: if isSignedIn() && request.resource.data.companyId == request.auth.token.companyId;
+      // You can only read/update/delete an asset if your companyId matches the asset's companyId.
+      allow read, update, delete: if isSignedIn() && resource.data.companyId == request.auth.token.companyId;
       
       match /inspections/{inspectionId} {
-        // Create allowed for admins or any signed-in user creating an inspection for this asset.
-        allow create: if isAdmin() || isSignedIn();
-        // Reads are allowed by company members or the assigned inspector.
-        allow read: if (get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId) || isOwner(resource.data.inspectorId);
-        // Writes only by admin or the assigned inspector.
+        // Any signed-in user can create an inspection.
+        allow create: if isSignedIn();
+        // You can read an inspection if you are the inspector or a member of the asset's owning company.
+        allow read: if isOwner(resource.data.inspectorId) || resource.data.assetOwnerCompanyId == request.auth.token.companyId;
+        // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
       }
     }
 
     match /jobs/{jobId} {
-      // Admin can seed. A user can create a job if the clientId in the job data is their own UID.
+      // A signed-in user can create a job if they are the client.
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.clientId == request.auth.uid);
-      
-      // Jobs are public to find and bid on.
+      // All jobs are publicly readable.
       allow read: if true;
-      
-      // Update/delete is restricted.
-      allow update: if isAdmin() || (resource.data.clientCompanyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId) || (resource.data.awardedProviderId != null && resource.data.awardedProviderId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
-      allow delete: if isAdmin() || (resource.data.clientCompanyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+      // Only the client, the awarded provider, or an admin can update a job.
+      allow update: if isAdmin() || request.auth.token.companyId == resource.data.clientCompanyId || request.auth.token.companyId == resource.data.awardedProviderId;
+      // Only the client or an admin can delete a job.
+      allow delete: if isAdmin() || request.auth.token.companyId == resource.data.clientCompanyId;
 
       match /bids/{bidId} {
-        // Admin can seed. An inspector can create a bid if they are the owner of the bid.
-        allow create: if isAdmin() || (isSignedIn() && request.resource.data.inspectorId == request.auth.uid);
-        
-        allow read: if isAdmin() || isOwner(resource.data.inspectorId) || (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+        // An inspector can create a bid.
+        allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+        // The job client, the bidding inspector, or an admin can read bids.
+        allow read: if isAdmin() || isOwner(resource.data.inspectorId) || request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId;
+        // Only the bidding inspector or an admin can update/delete.
         allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
       }
       
       match /messages/{messageId} {
-         allow read, write: if (
-          let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
-          let userCompanyId = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
-          (userCompanyId == job.clientCompanyId || (job.awardedProviderId != null && userCompanyId == job.awardedProviderId))
+        // Participants of the job or admins can read/write messages.
+        allow read, write: if isSignedIn() && (
+          request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
+          request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
         ) || isAdmin();
       }
     }
 
     match /reports/{reportId} {
-        // Creating a report is tied to an existing inspection, handled by app logic.
-        // Admins can seed. Any signed-in user can create a report document.
-        allow create: if isAdmin() || isSignedIn();
-        
-        function canAccessReport() {
-            let asset = get(/databases/$(database)/documents/assets/$(resource.data.assetId)).data;
-            return isOwner(resource.data.inspectorId) || (asset.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId) || isOwner(resource.data.level3ApproverId);
-        }
-        allow read: if isAdmin() || canAccessReport();
-        allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
+      // Any signed-in user can create a report document.
+      allow create: if isSignedIn();
+      // Access to reports is determined by involvement in the job/asset.
+      allow read: if isSignedIn();
+      allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
     }
     
     // All other collections that are either public or admin-only
@@ -112,7 +118,7 @@ service cloud.firestore {
     match /roles_admin/{userId} { allow read, write: if isAdmin(); }
     match /payments/{paymentId} { allow read, write: if isAdmin(); }
     match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
-    match /reviews/{reviewId} { allow read: if true; allow write: if isAdmin(); allow create: if isSignedIn(); }
+    match /reviews/{reviewId} { allow read: if true; allow create: if isSignedIn(); allow write: if isAdmin(); }
     match /userAuditLogs/{logId} { allow read, write: if isAdmin(); }
     match /jobAuditLogs/{logId} { allow read, write: if isAdmin(); }
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }

@@ -184,48 +184,58 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Message",
       "type": "object",
-      "description": "Represents a message sent between users within a job.",
+      "description": "Represents a message sent between users within a job context.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Message entity." },
-        "senderId": { "type": "string", "description": "Reference to the User who sent the message. (Relationship: User 1:N Message)" },
-        "receiverId": { "type": "string", "description": "Reference to the User who received the message. (Relationship: User 1:N Message)" },
-        "content": { "type": "string", "description": "The content of the message." },
-        "timestamp": { "type": "string", "description": "The date and time the message was sent.", "format": "date-time" },
-        "isRead": { "type": "boolean", "description": "Indicates whether the message has been read by the receiver." },
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" },
         "createdBy": { "type": "string" },
         "modifiedAt": { "type": "string", "format": "date-time" },
         "modifiedBy": { "type": "string" }
       },
-      "required": ["id", "senderId", "receiverId", "content", "timestamp", "isRead"]
+      "required": ["id", "senderId", "receiverId", "text", "timestamp"]
     },
     "SupportChat": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SupportChat",
+      "title": "Support Chat Thread",
       "type": "object",
-      "description": "Represents a support chat thread for a company.",
+      "description": "Represents a single support chat thread for a company.",
       "properties": {
-          "id": { "type": "string" },
-          "companyId": { "type": "string" },
-          "companyName": { "type": "string" },
-          "subject": { "type": "string" },
-          "status": { "type": "string", "enum": ["Open", "Closed"] },
-          "lastMessageTimestamp": { "type": "string", "format": "date-time" }
-      }
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "subject": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Closed"] },
+        "lastMessageTimestamp": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
+      },
+      "required": ["id", "companyId", "companyName", "subject", "status"]
     },
     "SupportMessage": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "SupportMessage",
-        "type": "object",
-        "description": "A message within a support chat.",
-        "properties": {
-            "id": { "type": "string" },
-            "senderId": { "type": "string" },
-            "senderName": { "type": "string" },
-            "isAdmin": { "type": "boolean" },
-            "timestamp": { "type": "string", "format": "date-time" },
-            "text": { "type": "string" }
-        }
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Support Message",
+      "type": "object",
+      "description": "Represents a single message within a support chat thread.",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
+      },
+      "required": ["id", "senderId", "senderName", "timestamp", "text"]
     },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",

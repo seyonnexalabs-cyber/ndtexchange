@@ -27,7 +27,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow create: if isOwner(userId) || isAdmin();
       allow get: if isSignedIn();
-      allow list, update, delete: if isAdmin() || isOwner(userId);
+      allow update, delete: if isAdmin() || isOwner(userId);
+      allow list: if isAdmin();
     }
 
     match /companies/{companyId} {
@@ -84,11 +85,13 @@ service cloud.firestore {
       }
       
       match /messages/{messageId} {
-        // Participants of the job or admins can read/write messages.
-        allow read, write: if (isSignedIn() && (
-          request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
-          request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
-        )) || isAdmin();
+        // Admin can write anything (for seeding).
+        allow write: if isAdmin();
+        // Participants of the job can read messages and create new ones.
+        allow read, create: if (isSignedIn() && (
+            request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
+            request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
+          ));
       }
     }
 

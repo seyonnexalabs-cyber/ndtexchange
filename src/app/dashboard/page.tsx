@@ -678,17 +678,17 @@ const AdminDashboard = () => {
             console.log(`[SEED] Starting: ${collectionName} (${data.length} docs)...`);
             let count = 0;
             for (const item of data) {
-                const itemData = customizer ? customizer(item) : item;
-                const docId = item[idField];
-                const docRef = doc(firestore, collectionName, docId);
                 try {
+                    const itemData = customizer ? customizer(item) : item;
+                    const docId = item[idField];
+                    const docRef = doc(firestore, collectionName, docId);
                     await setDoc(docRef, itemData);
                     count++;
                 } catch (error: any) {
-                    console.error(`[SEED] ❌ Failed to write document: ${collectionName}/${docId}`, error);
+                    console.error(`[SEED] ❌ Failed to write document: ${collectionName}/${item[idField]}`, error);
                     toast({
                         variant: "destructive",
-                        title: `Seeding Failed on: ${collectionName}/${docId}`,
+                        title: `Seeding Failed on: ${collectionName}/${item[idField]}`,
                         description: `Error: ${error.message}. Check console for details.`,
                     });
                     throw new Error(`Failed to seed ${collectionName}`);
@@ -763,14 +763,18 @@ const AdminDashboard = () => {
             console.group("Step 7: Chat Data");
             const chatBatch = writeBatch(firestore);
             jobChats.forEach(chat => {
-                const { messages, ...chatData } = chat;
-                chatBatch.set(doc(firestore, 'chats', chat.id), chatData);
-                messages.forEach(msg => {
-                    chatBatch.set(doc(firestore, 'chats', chat.id, 'messages', msg.id), { ...msg, timestamp: new Date(msg.timestamp) });
+                // The chat object itself is not stored; only its messages are, under the correct job.
+                chat.messages.forEach(msg => {
+                    const msgRef = doc(firestore, 'jobs', chat.jobId, 'messages', msg.id);
+                    chatBatch.set(msgRef, {
+                        senderId: msg.senderId,
+                        text: msg.text,
+                        timestamp: new Date(msg.timestamp),
+                    });
                 });
             });
             await chatBatch.commit();
-            console.log(`[SEED] ✅ Success: Chats seeded.`);
+            console.log(`[SEED] ✅ Success: Job messages seeded into subcollections.`);
             console.groupEnd();
     
             toast({

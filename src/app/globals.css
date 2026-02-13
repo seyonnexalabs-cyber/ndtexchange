@@ -287,14 +287,41 @@
 }
 
 @layer utilities {
-  .cross-hatch-pattern {
-    background-image:
-      linear-gradient(45deg, hsl(var(--border) / 0.4) 25%, transparent 25%),
-      linear-gradient(-45deg, hsl(var(--border) / 0.4) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, hsl(var(--border) / 0.4) 75%),
-      linear-gradient(-45deg, transparent 75%, hsl(var(--border) / 0.4) 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    background-color: hsl(var(--card));
+  .hexagon-grid-container {
+    position: relative;
+    overflow: hidden;
+    background-color: hsl(var(--primary) / 0.9); /* Dark blue fallback */
+    width: 100%;
+    height: 100%;
+  }
+
+  .hexagon-grid-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="86.6"><polygon points="50,0 100,25 100,75 50,100 0,75 0,25" fill="none" stroke="hsl(217 91% 60% / 0.1)" stroke-width="2"/></svg>');
+    background-size: 100px 86.6px;
+    animation: pan 60s linear infinite;
+  }
+  
+  .hexagon-grid-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle 300px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsl(var(--primary) / 0.05),
+      hsl(var(--primary) / 0.9) 70%
+    );
+    transition: background-position 0.2s ease-out;
+  }
+
+  @keyframes pan {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 200px 173.2px;
+    }
   }
 }

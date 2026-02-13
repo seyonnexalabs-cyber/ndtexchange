@@ -6,7 +6,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { FeatureCard } from '@/app/components/feature-card';
 import { Target, Zap, LineChart, Handshake } from 'lucide-react';
-import Image from 'next/image';
+import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 
 export const metadata: Metadata = {
   title: 'OEM Solutions | NDT EXCHANGE',
@@ -20,24 +20,24 @@ export default function OEMSolutionsPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="py-20 md:py-32 bg-primary/10">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <section className="relative py-20 md:py-32 bg-primary/10 overflow-hidden">
+                    <div className="absolute inset-0">
+                       <InteractiveHexagonGrid />
+                    </div>
+                    <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div>
-                                <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                                <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                                     Connect with the Heart of the NDT Industry
                                 </h1>
-                                <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                                <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                                     Showcase your equipment to a dedicated audience of asset owners and service providers at the exact moment they're planning and executing inspections.
                                 </p>
                                 <div className="mt-8">
-                                    <Button size="lg" asChild>
+                                    <Button size="lg" asChild variant="secondary">
                                         <Link href="/contact">Partner With Us</Link>
                                     </Button>
                                 </div>
-                            </div>
-                            <div className="hidden md:block">
-                                 <div className="w-[600px] h-[400px] rounded-lg shadow-xl cross-hatch-pattern" />
                             </div>
                         </div>
                     </div>

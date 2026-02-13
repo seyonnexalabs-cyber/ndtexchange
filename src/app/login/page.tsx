@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { LogoIcon } from '@/components/ui/icons';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -138,8 +138,6 @@ export default function LoginPage() {
     initiateEmailSignIn(auth, data.email, data.password);
   };
 
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-login');
-
   const devLogins = [
     { name: 'Client', email: 'john.d@globalenergy.corp', password: 'password123' },
     { name: 'Inspector', email: 'maria.garcia@teaminc.com', password: 'password123' },
@@ -150,12 +148,12 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="hidden lg:block relative cross-hatch-pattern">
-        <div className="absolute bottom-10 left-10 text-foreground">
-          <h2 className="text-4xl font-bold font-headline text-primary">The Digital Marketplace for Asset Integrity</h2>
-          <p className="mt-4 text-lg max-w-xl text-foreground/80">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
+      <InteractiveHexagonGrid className="hidden lg:block">
+        <div className="absolute bottom-10 left-10 text-primary-foreground">
+          <h2 className="text-4xl font-bold font-headline text-white/90">The Digital Marketplace for Asset Integrity</h2>
+          <p className="mt-4 text-lg max-w-xl text-white/70">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
         </div>
-      </div>
+      </InteractiveHexagonGrid>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-md gap-6">
           <div className="grid gap-2 text-center">

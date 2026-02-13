@@ -125,7 +125,7 @@ service cloud.firestore {
       allow read, write: if isAdmin();
       
       // User-specific rules
-      allow get: if isOwner(userId) || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
+      allow get: if isOwner(userId) || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && exists(/databases/$(database)/documents/users/$(userId)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/users/$(userId)).data.companyId);
       allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
@@ -336,7 +336,7 @@ service cloud.firestore {
      * @principle Admins can list chats from any company to provide support.
      */
     match /{path=**}/supportChats/{chatId} {
-      allow list: if isAdmin();
+      allow read: if isAdmin();
     }
     
     /**
@@ -407,3 +407,5 @@ service cloud.firestore {
 
   }
 }
+
+  

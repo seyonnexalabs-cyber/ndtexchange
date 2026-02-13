@@ -20,6 +20,10 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     }
 
+    function getUserCompanyId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+    }
+
     // --------------------------------
     // Collection Rules
     // --------------------------------
@@ -53,25 +57,27 @@ service cloud.firestore {
 
       match /supportChats/{chatId} {
         // Only members of the company or admins can access support chats.
-        allow read, write: if isSignedIn();
+        allow read, write: if isAdmin() || getUserCompanyId() == companyId;
         
         match /supportMessages/{messageId} {
-          allow read, write: if isSignedIn();
+          allow read, write: if isAdmin() || getUserCompanyId() == companyId;
         }
       }
     }
     
     match /assets/{assetId} {
       // A user can create an asset for their own company, or an admin can create any asset.
-      allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == request.auth.token.companyId);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == getUserCompanyId());
+      // For list queries, any signed-in user can perform them. The read rule provides document-level security.
+      allow list: if isSignedIn();
       // You can only read/update/delete an asset if you're an admin or part of the asset's company.
-      allow read, update, delete: if isAdmin() || (isSignedIn() && resource.data.companyId == request.auth.token.companyId);
+      allow read, update, delete: if isAdmin() || (isSignedIn() && resource.data.companyId == getUserCompanyId());
       
       match /inspections/{inspectionId} {
-        // Any signed-in user can create an inspection, or an admin can.
-        allow create: if isSignedIn() || isAdmin();
+        // Creating an inspection is allowed if you are an admin or a member of the asset's company.
+        allow create: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
         // You can read an inspection if you are the inspector or a member of the asset's owning company.
-        allow read: if isOwner(resource.data.inspectorId) || resource.data.assetOwnerCompanyId == request.auth.token.companyId;
+        allow read: if isAdmin() || isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
       }
@@ -83,15 +89,15 @@ service cloud.firestore {
       // All jobs are publicly readable.
       allow read: if true;
       // Only the client, the awarded provider, or an admin can update a job.
-      allow update: if isAdmin() || (isSignedIn() && (request.auth.token.companyId == resource.data.clientCompanyId || request.auth.token.companyId == resource.data.awardedProviderId));
+      allow update: if isAdmin() || (isSignedIn() && (getUserCompanyId() == resource.data.clientCompanyId || getUserCompanyId() == resource.data.awardedProviderId));
       // Only the client or an admin can delete a job.
-      allow delete: if isAdmin() || (isSignedIn() && request.auth.token.companyId == resource.data.clientCompanyId);
+      allow delete: if isAdmin() || (isSignedIn() && getUserCompanyId() == resource.data.clientCompanyId);
 
       match /bids/{bidId} {
         // An inspector can create a bid for their own user ID, or an admin can.
         allow create: if isAdmin() || (isSignedIn() && request.resource.data.inspectorId == request.auth.uid);
         // The job client, the bidding inspector, or an admin can read bids.
-        allow read: if isAdmin() || isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId == request.auth.token.companyId;
+        allow read: if isAdmin() || isOwner(resource.data.inspectorId) || getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId;
         // Only the bidding inspector or an admin can update/delete.
         allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
       }
@@ -101,8 +107,8 @@ service cloud.firestore {
         allow write: if isAdmin();
         // Participants of the job can read messages and create new ones.
         allow read, create: if (isSignedIn() && (
-            request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
-            request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
+            getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
+            getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
           ));
       }
     }

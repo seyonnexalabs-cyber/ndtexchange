@@ -307,18 +307,19 @@ service cloud.firestore {
       allow delete: if false;
     }
     
-     /**
-     * @description Manages real-time chats for support and job communication.
-     * @path /chats/{chatId}/messages/{messageId}
+    /**
+     * @description Manages real-time support chats.
+     * @path /supportChats/{chatId}/messages/{messageId}
      * @principle Allows participants of a chat to read and write messages. Admin has full access for moderation.
      */
-    match /chats/{chatId} {
-      allow write: if isAdmin();
-      allow read, list: if isAdmin() || isCompanyMember(resource.data.companyId);
-      
+    match /supportChats/{chatId} {
+      allow list: if isSignedIn(); // Allows queries, get rule enforces access.
+      allow get, update: if isAdmin() || isCompanyMember(resource.data.companyId);
+      allow create: if isCompanyMember(request.resource.data.companyId);
+      allow delete: if isAdmin();
+
       match /messages/{messageId} {
-        allow write: if isAdmin() || isCompanyMember(get(/databases/$(database)/documents/chats/$(chatId)).data.companyId);
-        allow read: if isAdmin() || isCompanyMember(get(/databases/$(database)/documents/chats/$(chatId)).data.companyId);
+        allow read, write: if isAdmin() || isCompanyMember(get(/databases/$(database)/documents/supportChats/$(chatId)).data.companyId);
       }
     }
     

@@ -136,7 +136,7 @@ service cloud.firestore {
      */
     match /assets/{assetId} {
       allow create: if isAdmin() || isCompanyMember(request.resource.data.companyId);
-      allow read, write: if isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
+      allow read, write: if isAdmin() || isCompanyMember(resource.data.companyId);
       allow list: if isSignedIn();
     }
 
@@ -274,19 +274,15 @@ service cloud.firestore {
     /**
      * @description Manages direct messages between two users.
      * @path /messages/{messageId}
-     * @allow (read) The sender or receiver reading their messages.
-     * @deny (list) Listing all messages is disallowed to prevent data leakage. Users must query.
-     * @principle Grants read access only to participants, enabling targeted client-side queries.
+     * @principle Grants read access only to participants, and allows any signed in user to query,
+     *            relying on client-side queries being correctly constrained.
      */
     match /messages/{messageId} {
-      function isMessageParticipant() {
-        return isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
-      }
-      allow get: if isAdmin() || isMessageParticipant();
+      allow get: if isAdmin() || isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
       allow list: if isSignedIn();
       allow create: if isSignedIn() && isResourceCreator('senderId');
-      allow update: if (isAdmin() || isOwner(resource.data.receiverId)) && isExistingDoc(); // Only receiver can mark as read. Admin can update.
-      allow delete: if false; // Messages are generally immutable.
+      allow update: if (isAdmin() || isOwner(resource.data.receiverId)) && isExistingDoc();
+      allow delete: if false;
     }
     
      /**
@@ -323,14 +319,8 @@ service cloud.firestore {
      * @principle Grants read/write access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-        // A user can get, update, or delete their own notification.
         allow get, update, delete: if isAdmin() || isOwner(resource.data.userId);
-
-        // A user can only list notifications for which they are the recipient.
-        // This is enforced by a `where("userId", "==", request.auth.uid)` clause in the client query.
         allow list: if isSignedIn();
-        
-        // A user can create a notification for themselves.
         allow create: if isSignedIn() && isResourceCreator('userId');
     }
 

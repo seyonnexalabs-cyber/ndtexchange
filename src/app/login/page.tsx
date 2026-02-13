@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -21,6 +20,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { Eye, EyeOff } from 'lucide-react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
 
@@ -46,96 +46,97 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    if (isUserLoading || !firestore) return;
+    if (isUserLoading || !firestore || !user) return;
 
-    if (user) {
-      const fetchUserRoleAndRedirect = async () => {
-        let userData;
-        try {
-          const userDocRef = doc(firestore, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
+    const fetchUserRoleAndRedirect = async () => {
+      let userData;
+      try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-          if (userDoc.exists()) {
-            userData = userDoc.data();
-          } else {
-             // Non-blocking login will create the user on the fly if they exist in auth but not firestore.
-             // This might happen in dev if you clear firestore but not auth.
-            console.warn("User document not found. This might be a new user or a dev environment sync issue.");
+        if (userDoc.exists()) {
+          userData = userDoc.data();
+        } else {
+           console.warn("User document not found for logged in user:", user.uid);
             toast({
               variant: 'destructive',
               title: 'Login Error',
-              description: 'User profile not found. If this is your first time, please sign up.',
-            });
-            setIsAuthenticating(false);
-            if (auth) {
-                auth.signOut();
-            }
-            return;
-          }
-
-          if (userData) {
-            const role = (userData.role as string).toLowerCase() as UserType;
-            const params = new URLSearchParams();
-            params.set('role', role);
-
-            if (role === 'inspector' && (userData as any).plan === 'operations') {
-                params.set('plan', 'operations');
-            }
-
-            router.push(`/dashboard?${params.toString()}`);
-          } else {
-            toast({
-              variant: 'destructive',
-              title: 'Login Failed',
               description: 'User profile not found. Please contact support.',
             });
+            if (auth) auth.signOut();
             setIsAuthenticating(false);
+            return;
+        }
+
+        if (userData) {
+          const role = (userData.role as string).toLowerCase() as UserType;
+          const params = new URLSearchParams();
+          params.set('role', role);
+
+          if (role === 'inspector' && (userData as any).plan === 'operations') {
+              params.set('plan', 'operations');
           }
-        } catch (error) {
-          console.error("Error fetching user role:", error);
-           if (error instanceof Error && 'code' in error && (error as any).code.includes('permission-denied')) {
-             toast({
-                variant: 'destructive',
-                title: 'Permission Denied',
-                description: 'You do not have permission to access user profiles. Check your Firestore rules.',
-            });
-          } else {
-            toast({
-                variant: 'destructive',
-                title: 'Login Error',
-                description: 'Could not retrieve user profile.',
-            });
-          }
+
+          router.push(`/dashboard?${params.toString()}`);
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: 'User profile not found. Please contact support.',
+          });
           setIsAuthenticating(false);
         }
-      };
-
-      fetchUserRoleAndRedirect();
-    } else {
-      if (isAuthenticating) {
-        toast({
-            variant: 'destructive',
-            title: 'Login Failed',
-            description: 'Invalid email or password. Please try again.',
-        });
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+         if (error instanceof Error && 'code' in error && (error as any).code.includes('permission-denied')) {
+           toast({
+              variant: 'destructive',
+              title: 'Permission Denied',
+              description: 'You do not have permission to access user profiles. Check your Firestore rules.',
+          });
+        } else {
+          toast({
+              variant: 'destructive',
+              title: 'Login Error',
+              description: 'Could not retrieve user profile.',
+          });
+        }
         setIsAuthenticating(false);
       }
-    }
-  }, [user, isUserLoading, router, firestore, isAuthenticating, auth]);
+    };
+
+    fetchUserRoleAndRedirect();
+  }, [user, isUserLoading, router, firestore, auth]);
 
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    setIsAuthenticating(true);
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     if (!auth) {
-        toast({
-            variant: 'destructive',
-            title: 'Login Failed',
-            description: 'Authentication service not available.',
-        });
-        setIsAuthenticating(false);
+        toast({ variant: 'destructive', title: 'Login Failed', description: 'Authentication service not available.' });
         return;
     }
-    initiateEmailSignIn(auth, data.email, data.password);
+    setIsAuthenticating(true);
+    
+    try {
+        await initiateEmailSignIn(auth, data.email, data.password);
+        // On success, the useEffect will handle the redirect.
+    } catch (error: any) {
+        // Dev-only logic to auto-create users.
+        if (error.code === 'auth/invalid-credential' && process.env.NODE_ENV === 'development') {
+            console.log(`Dev login: User ${data.email} not found or password incorrect. Attempting to create user...`);
+            try {
+                // This automatically signs the user in, triggering the onAuthStateChanged listener.
+                await createUserWithEmailAndPassword(auth, data.email, data.password);
+                console.log(`Dev login: User ${data.email} created and signed in.`);
+            } catch (creationError: any) {
+                 toast({ variant: "destructive", title: "Dev Signup Failed", description: creationError.message });
+                 setIsAuthenticating(false);
+            }
+        } else {
+            // Production-like error handling for real failed logins.
+            toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password. Please try again.' });
+            setIsAuthenticating(false);
+        }
+    }
   };
 
   const devLogins = [
@@ -240,7 +241,7 @@ export default function LoginPage() {
                       key={devUser!.name}
                       variant="outline"
                       onClick={() => {
-                        if (auth && devUser?.email && devUser?.password) {
+                        if (devUser?.email && devUser?.password) {
                           onSubmit({ email: devUser.email, password: devUser.password });
                         } else {
                           toast({

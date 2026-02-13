@@ -21,7 +21,7 @@ import InspectorWorkflow from './components/inspector-workflow';
 import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, query, where, limit, doc, serverTimestamp, addDoc, setDoc, orderBy, getDoc, collectionGroup } from 'firebase/firestore';
 import { useMobile } from '@/hooks/use-mobile';
 import AdminChatInterface from './components/admin-chat-interface';
 import ClientChatInterface from './components/client-chat-interface';
@@ -84,11 +84,14 @@ export default function SupportPage() {
   }, [authUser, firestore]);
 
   const supportChatQuery = useMemoFirebase(() => {
-    if (!firestore || !authUser || !currentUser?.companyId) return null;
+    if (!firestore || !authUser) return null;
     if (role === 'admin') {
-        return query(collection(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
+        return query(collectionGroup(firestore, 'supportChats'), orderBy('lastMessageTimestamp', 'desc'));
     }
-    return query(collection(firestore, 'supportChats'), where('companyId', '==', currentUser.companyId), limit(1));
+    if (currentUser?.companyId) {
+        return query(collection(firestore, 'companies', currentUser.companyId, 'supportChats'), limit(1));
+    }
+    return null;
   }, [firestore, authUser, role, currentUser?.companyId]);
 
 
@@ -103,7 +106,7 @@ export default function SupportPage() {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !currentThread) return null;
-    return query(collection(firestore, 'supportChats', currentThread.id, 'messages'), orderBy('timestamp', 'asc'));
+    return query(collection(firestore, 'companies', currentThread.companyId, 'supportChats', currentThread.id, 'messages'), orderBy('timestamp', 'asc'));
   }, [firestore, currentThread]);
 
   const { data: messages } = useCollection<SupportMessage>(messagesQuery);
@@ -116,6 +119,7 @@ export default function SupportPage() {
     
     try {
         let threadId = currentThread?.id;
+        let companyId = currentThread?.companyId || currentUser.companyId;
 
         if (!threadId && role !== 'admin') {
             const newThreadData = {
@@ -126,12 +130,12 @@ export default function SupportPage() {
                 lastMessage: newMessage.trim(),
                 lastMessageTimestamp: serverTimestamp(),
             };
-            const newThreadRef = await addDoc(collection(firestore, 'supportChats'), newThreadData);
+            const newThreadRef = await addDoc(collection(firestore, 'companies', companyId, 'supportChats'), newThreadData);
             threadId = newThreadRef.id;
         }
 
-        if (threadId) {
-            const messagesColRef = collection(firestore, 'supportChats', threadId, 'messages');
+        if (threadId && companyId) {
+            const messagesColRef = collection(firestore, 'companies', companyId, 'supportChats', threadId, 'messages');
             const messageData = {
                 senderId: authUser.uid,
                 senderName: currentUser.name,
@@ -141,7 +145,7 @@ export default function SupportPage() {
             };
             await addDoc(messagesColRef, messageData);
             
-            const threadDocRef = doc(firestore, 'supportChats', threadId);
+            const threadDocRef = doc(firestore, 'companies', companyId, 'supportChats', threadId);
             await setDoc(threadDocRef, {
                 lastMessage: newMessage.trim(),
                 lastMessageTimestamp: serverTimestamp(),

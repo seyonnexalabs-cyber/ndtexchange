@@ -1,7 +1,7 @@
+
 'use client';
 
 import * as React from 'react';
-import { allUsers, jobChats as initialJobChats, jobs } from '@/lib/seed-data';
 import type { Job, PlatformUser } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -9,97 +9,105 @@ import { Card } from '@/components/ui/card';
 import { useMobile } from '@/hooks/use-mobile';
 import ConversationList from './components/ConversationList';
 import ChatView from './components/ChatView';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, where, orderBy, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { serviceProviders } from '@/lib/seed-data';
 
-// Define Conversation type in the main page component
-type Conversation = {
+type Message = {
     id: string;
-    jobId: string;
-    participants: string[];
-    lastMessage: string;
-    lastMessageTimestamp: string;
-    messages: { id: string; text: string; senderId: string; timestamp: string; }[];
-    job: Job;
+    text: string;
+    senderId: string;
+    timestamp: any;
 };
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const role = searchParams.get('role') || 'client';
+    const { toast } = useToast();
     
-    const [jobChatsData, setJobChatsData] = useState(initialJobChats);
-    const [jobsData] = useState(jobs);
-
-    const currentUser = useMemo((): PlatformUser | undefined => {
-        const userMap: { [key: string]: PlatformUser | undefined } = {
-            client: allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'),
-            inspector: allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'),
-            auditor: allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'),
-            admin: allUsers.find(u => u.id === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2'),
-        };
-        return userMap[role] || allUsers.find(u => u.id === 'user-client-01')!;
-    }, [role]);
-
-    const conversations = useMemo((): Conversation[] => {
-        if (!currentUser) return [];
-        return jobChatsData
-            .filter(chat => chat.participants.includes(currentUser.id))
-            .map(chat => {
-                const job = jobsData.find(j => j.id === chat.jobId);
-                return { ...chat, job };
-            })
-            .filter((c): c is typeof c & { job: Job } => !!c.job) // Type guard
-            .sort((a,b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
-    }, [jobChatsData, currentUser, jobsData]);
-    
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-    const [newMessage, setNewMessage] = useState('');
+    const { firestore, auth } = useFirebase();
+    const { user: authUser } = useUser();
+    const [currentUser, setCurrentUser] = useState<PlatformUser | null>(null);
 
     useEffect(() => {
-        if (!isMobile && !selectedConversation && conversations.length > 0) {
-            setSelectedConversation(conversations[0]);
+        if (authUser && firestore) {
+            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
+                if (docSnap.exists()) {
+                    setCurrentUser(docSnap.data() as PlatformUser);
+                }
+            });
         }
-    }, [isMobile, selectedConversation, conversations]);
+    }, [authUser, firestore]);
 
-    const handleSendMessage = () => {
-        if (!newMessage.trim() || !currentUser || !selectedConversation) return;
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore || !currentUser) return null;
+        if (role === 'client') {
+            return query(collection(firestore, 'jobs'), where('clientId', '==', currentUser.id));
+        }
+        if (role === 'inspector') {
+            return query(collection(firestore, 'jobs'), where('providerId', '==', currentUser.providerId));
+        }
+        return null;
+    }, [firestore, currentUser, role]);
 
-        const message = {
-            id: `MSG-${Date.now()}`,
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+    const [newMessage, setNewMessage] = useState('');
+
+    const messagesQuery = useMemoFirebase(() => {
+        if (!firestore || !selectedJob) return null;
+        return query(collection(firestore, 'jobs', selectedJob.id, 'messages'), orderBy('timestamp', 'asc'));
+    }, [firestore, selectedJob]);
+    
+    const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
+    
+    useEffect(() => {
+        if (!isMobile && !selectedJob && jobs && jobs.length > 0) {
+            setSelectedJob(jobs[0]);
+        }
+    }, [isMobile, selectedJob, jobs]);
+    
+    const handleSendMessage = async () => {
+        if (!newMessage.trim() || !currentUser || !selectedJob || !firestore) return;
+
+        const messageData = {
             senderId: currentUser.id,
-            timestamp: new Date().toISOString(),
             text: newMessage.trim(),
+            timestamp: serverTimestamp(),
         };
         
-        const updatedConversation = {
-            ...selectedConversation,
-            messages: [...(selectedConversation.messages || []), message],
-            lastMessage: message.text,
-            lastMessageTimestamp: message.timestamp,
-        };
-
-        setSelectedConversation(updatedConversation);
-        setJobChatsData(prevChats => prevChats.map(chat => chat.id === selectedConversation.id ? updatedConversation : chat));
+        await addDoc(collection(firestore, 'jobs', selectedJob.id, 'messages'), messageData);
         setNewMessage('');
     };
 
     const getUserDetails = (senderId: string) => {
-        return allUsers.find(u => u.id === senderId);
-    }
-    
+        // In a real app, you might fetch this from a user context or another query
+        const providerUser = serviceProviders.find(p => p.id === senderId);
+        if (providerUser) {
+            return { id: providerUser.id, name: providerUser.name, role: 'Provider' };
+        }
+        return { id: senderId, name: 'Unknown User', role: 'User' };
+    };
+
     return (
         <Card className="h-[calc(100vh_-_theme(spacing.16)_-_theme(spacing.12))] flex overflow-hidden">
             <ConversationList
-                conversations={conversations}
-                selectedConversation={selectedConversation}
-                onSelectConversation={setSelectedConversation}
+                jobs={jobs || []}
+                selectedJob={selectedJob}
+                onSelectJob={setSelectedJob}
                 currentUser={currentUser}
-                getUserDetails={getUserDetails}
                 role={role}
+                isLoading={isLoadingJobs}
             />
             <ChatView
                 isMobile={isMobile}
-                selectedConversation={selectedConversation}
-                onBack={() => setSelectedConversation(null)}
+                selectedJob={selectedJob}
+                messages={messages || []}
+                isLoadingMessages={isLoadingMessages}
+                onBack={() => setSelectedJob(null)}
                 currentUser={currentUser}
                 getUserDetails={getUserDetails}
                 newMessage={newMessage}

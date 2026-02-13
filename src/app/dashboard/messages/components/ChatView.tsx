@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,51 +8,51 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Send, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import type { Job, PlatformUser } from '@/lib/types';
-import { serviceProviders } from '@/lib/seed-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Component to safely render formatted time on the client to avoid hydration errors
-const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
+const ClientFormattedTime = ({ timestamp }: { timestamp: any }) => {
   const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    // This effect runs only on the client, ensuring the time is formatted in the user's timezone
-    setFormattedTime(format(new Date(dateString), 'p'));
-  }, [dateString]);
+    if (!timestamp) return;
+    // Handle both Firebase Timestamp and JS Date objects
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    setFormattedTime(format(date, 'p'));
+  }, [timestamp]);
 
-  // Return a placeholder or null during server-side rendering and initial client-side render
-  return <>{formattedTime || ''}</>;
+  return <>{formattedTime || '...'}</>;
 };
 
-type Conversation = {
+type Message = {
     id: string;
-    jobId: string;
-    participants: string[];
-    lastMessage: string;
-    lastMessageTimestamp: string;
-    messages: { id: string; text: string; senderId: string; timestamp: string; }[];
-    job: Job;
+    text: string;
+    senderId: string;
+    timestamp: any; // Can be Firebase Timestamp or string
 };
 
 interface ChatViewProps {
     isMobile: boolean;
-    selectedConversation: Conversation | null;
+    selectedJob: Job | null;
+    messages: Message[];
+    isLoadingMessages: boolean;
     onBack: () => void;
-    currentUser: PlatformUser | undefined;
-    getUserDetails: (id: string) => PlatformUser | undefined;
+    currentUser: PlatformUser | null;
+    getUserDetails: (id: string) => { id: string; name: string; role: string; } | undefined;
     newMessage: string;
     setNewMessage: (value: string) => void;
     handleSendMessage: () => void;
 }
 
-const ChatView = ({ isMobile, selectedConversation, onBack, currentUser, getUserDetails, newMessage, setNewMessage, handleSendMessage }: ChatViewProps) => {
+const ChatView = ({ isMobile, selectedJob, messages, isLoadingMessages, onBack, currentUser, getUserDetails, newMessage, setNewMessage, handleSendMessage }: ChatViewProps) => {
 
     const getAvatarFallback = (userName: string) => {
         return userName.split(' ').map(n => n[0]).join('');
     }
 
-    if (!selectedConversation) {
+    if (!selectedJob) {
         return (
             <div className="flex-1 hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/30">
                 <MessageSquare className="w-16 h-16 text-muted-foreground/50" />
@@ -62,43 +63,34 @@ const ChatView = ({ isMobile, selectedConversation, onBack, currentUser, getUser
     }
     
     return (
-        <div className={cn(
-            "flex-1 flex-col flex",
-        )}>
-            {/* Chat Header */}
+        <div className={cn("flex-1 flex-col flex")}>
             <div className="flex items-center gap-3 p-4 border-b">
                 {isMobile && <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft /></Button>}
                 <div className="w-full">
-                    <p className="font-semibold">{selectedConversation.job.title}</p>
+                    <p className="font-semibold">{selectedJob.title}</p>
                     <div className="text-sm text-muted-foreground">
-                        {selectedConversation.job.client}
-                        {selectedConversation.job.providerId && ` - ${serviceProviders.find(p => p.id === selectedConversation.job.providerId)?.name}`}
+                        {selectedJob.client}
                         <div className="flex flex-wrap gap-1 mt-1">
-                            {selectedConversation.job.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
+                            {selectedJob.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Messages */}
             <ScrollArea className="flex-1 p-6 bg-accent/5">
                 <div className="space-y-2">
-                    {selectedConversation.messages?.map((message, index) => {
+                    {isLoadingMessages ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-16 w-3/4" />
+                            <Skeleton className="h-12 w-1/2 ml-auto" />
+                            <Skeleton className="h-20 w-2/3" />
+                        </div>
+                    ) : messages.map((message, index) => {
                         const sender = getUserDetails(message.senderId);
                         const myMessage = sender?.id === currentUser?.id;
                         
-                        const messageDate = new Date(message.timestamp);
-                        const prevMessage = selectedConversation.messages[index - 1];
-                        const prevMessageDate = prevMessage ? new Date(prevMessage.timestamp) : null;
-                        const showDateSeparator = !prevMessageDate || !isSameDay(messageDate, prevMessageDate);
-
                         return (
                             <React.Fragment key={message.id}>
-                                {showDateSeparator && (
-                                    <div className="text-center text-xs text-muted-foreground my-4 font-semibold tracking-wider uppercase">
-                                        {format(messageDate, 'MMMM d, yyyy')}
-                                    </div>
-                                )}
                                 <div className={cn("flex items-end gap-3", myMessage && "justify-end")}>
                                     {!myMessage && sender && (
                                         <Avatar className="h-8 w-8 self-end">
@@ -112,17 +104,19 @@ const ChatView = ({ isMobile, selectedConversation, onBack, currentUser, getUser
                                         {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{sender?.name}</p>}
                                         <p className="text-sm">{message.text}</p>
                                         <p className="text-xs mt-2 opacity-80 text-right">
-                                            <ClientFormattedTime dateString={message.timestamp} />
+                                            <ClientFormattedTime timestamp={message.timestamp} />
                                         </p>
                                     </div>
                                 </div>
                             </React.Fragment>
                         )
                     })}
+                    {!isLoadingMessages && messages.length === 0 && (
+                        <div className="text-center text-muted-foreground pt-10">No messages in this chat yet.</div>
+                    )}
                 </div>
             </ScrollArea>
 
-            {/* Input */}
             <div className="p-4 border-t bg-background">
                <div className="flex w-full items-center gap-2">
                     <Input 

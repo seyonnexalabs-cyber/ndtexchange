@@ -1,49 +1,45 @@
+
 'use client';
 import * as React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import type { Job, PlatformUser } from '@/lib/types';
-import { serviceProviders } from '@/lib/seed-data';
-
-// Component to safely render formatted time on the client to avoid hydration errors
-const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
-  const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    // This effect runs only on the client, ensuring the time is formatted in the user's timezone
-    setFormattedTime(format(new Date(dateString), 'p'));
-  }, [dateString]);
-
-  // Return a placeholder or null during server-side rendering and initial client-side render
-  return <>{formattedTime || ''}</>;
-};
-
-
-type Conversation = {
-    id: string;
-    jobId: string;
-    participants: string[];
-    lastMessage: string;
-    lastMessageTimestamp: string;
-    messages: { id: string; text: string; senderId: string; timestamp: string; }[];
-    job: Job;
-};
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ConversationListProps {
-    conversations: Conversation[];
-    selectedConversation: Conversation | null;
-    onSelectConversation: (conversation: Conversation) => void;
-    currentUser: PlatformUser | undefined;
-    getUserDetails: (id: string) => PlatformUser | undefined;
+    jobs: Job[];
+    selectedJob: Job | null;
+    onSelectJob: (job: Job) => void;
+    currentUser: PlatformUser | null;
     role: string;
+    isLoading: boolean;
 }
 
-const ConversationList = ({ conversations, selectedConversation, onSelectConversation, currentUser, getUserDetails, role }: ConversationListProps) => {
+const ConversationList = ({ jobs, selectedJob, onSelectJob, currentUser, role, isLoading }: ConversationListProps) => {
+    
+    // Sort jobs to show most recent activity first (based on a real last message timestamp if available)
+    // For now, we sort by posted date as a proxy.
+    const sortedJobs = React.useMemo(() => {
+        return [...jobs].sort((a,b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime());
+    }, [jobs]);
+
+    if (isLoading) {
+        return (
+             <div className={cn("w-full md:w-[320px] lg:w-[380px] border-r flex flex-col")}>
+                 <div className="p-4 border-b">
+                    <Skeleton className="h-8 w-3/4" />
+                 </div>
+                <div className="p-2 space-y-2">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className={cn(
             "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
-            selectedConversation && "hidden md:flex" // Hide on mobile when a chat is selected
+            selectedJob && "hidden md:flex"
         )}>
              <div className="p-4 border-b">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
@@ -52,40 +48,25 @@ const ConversationList = ({ conversations, selectedConversation, onSelectConvers
              </div>
             <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
-                    {conversations.map(convo => {
-                        const isSelected = selectedConversation?.id === convo.id;
-                        const provider = serviceProviders.find(p => p.id === convo.job?.providerId);
-                        const lastMessageSender = getUserDetails(convo.messages[convo.messages.length - 1].senderId);
-                        const isMyLastMessage = lastMessageSender?.id === currentUser?.id;
+                    {sortedJobs.map(job => {
+                        const isSelected = selectedJob?.id === job.id;
                         return (
                             <button
-                                key={convo.id}
-                                onClick={() => onSelectConversation(convo)}
+                                key={job.id}
+                                onClick={() => onSelectJob(job)}
                                 className={cn(
                                     "block w-full text-left p-3 rounded-lg border transition-colors",
                                     isSelected ? "bg-primary/10" : "hover:bg-primary/5"
                                 )}
                             >
-                                <div className="flex justify-between items-start gap-2">
-                                    <p className="font-semibold text-sm truncate">{convo.job?.title}</p>
-                                    <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime dateString={convo.lastMessageTimestamp} /></span>
-                                </div>
+                                <p className="font-semibold text-sm truncate">{job?.title}</p>
                                 <div className="flex justify-between items-start gap-2 text-xs text-muted-foreground">
-                                    <p className="font-extrabold truncate">ID: {convo.job?.id}</p>
-                                    <p className="truncate text-right">
-                                        {role === 'client' ? provider?.name : convo.job?.client}
-                                    </p>
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1 flex">
-                                    <p className="truncate">
-                                        <span className="font-medium mr-1">{isMyLastMessage ? 'You' : lastMessageSender?.name.split(' ')[0]}:</span>
-                                        {convo.lastMessage}
-                                    </p>
+                                    <p className="font-extrabold truncate">ID: {job?.id}</p>
                                 </div>
                             </button>
                         )
                     })}
-                     {conversations.length === 0 && (
+                     {sortedJobs.length === 0 && (
                         <div className="text-center text-muted-foreground py-10">
                             No active job conversations.
                         </div>

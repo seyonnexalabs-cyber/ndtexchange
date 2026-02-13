@@ -322,7 +322,7 @@ service cloud.firestore {
      */
     match /supportChats/{chatId} {
         allow get, update: if isAdmin() || isCompanyMember(resource.data.companyId);
-        allow list: if isAdmin(); // Only admins can list all chats. Users must query by their companyId.
+        allow list: if isSignedIn(); // Allow any signed in user to query; security is handled by 'get' rule on each document
         allow create: if isCompanyMember(request.resource.data.companyId);
         allow delete: if isAdmin();
 

@@ -35,7 +35,6 @@ export const FCMInitializer = () => {
           if (permission === 'granted') {
             const currentToken = await getToken(messaging, { vapidKey: VAPID_KEY });
             if (currentToken) {
-              console.log('FCM Token:', currentToken);
               // Save the token to a subcollection for the user
               await setDoc(doc(firestore, `users/${user.uid}/fcmTokens/${currentToken}`), { 
                 token: currentToken, 

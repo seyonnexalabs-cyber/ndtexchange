@@ -133,6 +133,14 @@ service cloud.firestore {
       match /notifications/{notificationId} {
         allow read, write: if isOwner(userId);
       }
+      
+      /**
+       * @description Manages FCM tokens for push notifications.
+       * @principle Only the user can manage their own notification tokens.
+       */
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     /**

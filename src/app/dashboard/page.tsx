@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client } from "@/lib/types";
+import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
 import { jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -675,25 +675,26 @@ const AdminDashboard = () => {
         console.log("%c--- Starting Database Seed ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
     
         const seedCollection = async (collectionName: string, data: any[], idField = 'id', customizer?: (item: any) => any) => {
-            try {
-                console.log(`[SEED] Starting: ${collectionName} (${data.length} docs)...`);
-                const batch = writeBatch(firestore);
-                data.forEach(item => {
-                    const itemData = customizer ? customizer(item) : item;
-                    const docRef = doc(firestore, collectionName, item[idField]);
-                    batch.set(docRef, itemData);
-                });
-                await batch.commit();
-                console.log(`[SEED] ✅ Success: ${collectionName} seeded.`);
-            } catch (error: any) {
-                console.error(`[SEED] ❌ Failed to seed ${collectionName}:`, error);
-                toast({
-                    variant: "destructive",
-                    title: `Seeding Failed on: ${collectionName}`,
-                    description: `Error: ${error.message}. Check console for details.`,
-                });
-                throw new Error(`Failed to seed ${collectionName}`);
+            console.log(`[SEED] Starting: ${collectionName} (${data.length} docs)...`);
+            let count = 0;
+            for (const item of data) {
+                const itemData = customizer ? customizer(item) : item;
+                const docId = item[idField];
+                const docRef = doc(firestore, collectionName, docId);
+                try {
+                    await setDoc(docRef, itemData);
+                    count++;
+                } catch (error: any) {
+                    console.error(`[SEED] ❌ Failed to write document: ${collectionName}/${docId}`, error);
+                    toast({
+                        variant: "destructive",
+                        title: `Seeding Failed on: ${collectionName}/${docId}`,
+                        description: `Error: ${error.message}. Check console for details.`,
+                    });
+                    throw new Error(`Failed to seed ${collectionName}`);
+                }
             }
+            console.log(`[SEED] ✅ Success: Seeded ${count}/${data.length} documents into ${collectionName}.`);
         };
 
         const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];

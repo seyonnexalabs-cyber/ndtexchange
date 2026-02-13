@@ -32,12 +32,14 @@ service cloud.firestore {
     // --------------------------------
 
     match /users/{userId} {
-      // Allow admin to create any user (for seeding). Allow users to create their own account.
-      allow create: if isAdmin() || isOwner(userId);
-      // Allow admin or the user themselves to update/delete.
+      // Admin can create any user (for seeding). Allow users to create their own account.
+      allow create: if isOwner(userId) || isAdmin();
+      // Allow any signed-in user to read a profile.
+      allow get: if isSignedIn();
+      // Only admin or the user themselves can update/delete their own profile.
       allow update, delete: if isAdmin() || isOwner(userId);
-      // Allow any signed-in user to read a profile to see who they are working with.
-      allow read: if isSignedIn();
+      // Listing users is restricted to admins for security.
+      allow list: if isAdmin();
     }
 
     match /companies/{companyId} {
@@ -60,7 +62,7 @@ service cloud.firestore {
     match /assets/{assetId} {
       // Admin can seed. Users can create an asset if the companyId in the new asset matches their own companyId.
       // This is a safe way to check without using get().
-      allow create: if isAdmin() || (isSignedIn() && isCompanyMember(request.resource.data.companyId));
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
       // Read/update/delete requires checking the existing document, so isCompanyMember is safe here.
       allow read, update, delete: if isAdmin() || isCompanyMember(resource.data.companyId);
       

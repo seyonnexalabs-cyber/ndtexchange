@@ -1,12 +1,14 @@
 'use client';
 import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+
+// Define types locally for this component
 type SupportThread = {
     id: string;
     companyId: string;
@@ -20,29 +22,24 @@ type SupportThread = {
 const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
   const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
   React.useEffect(() => {
-    if (dateString) {
-        const date = new Date(dateString);
-        setFormattedTime(format(date, 'p'));
-    }
+    setFormattedTime(format(new Date(dateString), 'p'));
   }, [dateString]);
   return <>{formattedTime || ''}</>;
 };
 
-interface ClientChatListProps {
+interface AdminChatListProps {
     supportThreadsData: SupportThread[] | null,
     selectedThreadId: string | null,
     setSelectedThreadId: (id: string | null) => void,
-    onNewChat: () => void,
     isLoading: boolean,
 }
 
-const ClientChatList = ({
+const AdminChatList = ({
     supportThreadsData,
     selectedThreadId,
     setSelectedThreadId,
-    onNewChat,
-    isLoading,
-}: ClientChatListProps) => {
+    isLoading
+}: AdminChatListProps) => {
 
     if(isLoading) {
         return (
@@ -59,12 +56,8 @@ const ClientChatList = ({
 
     return (
         <div className="w-full md:w-[320px] lg:w-[380px] border-r flex flex-col">
-             <div className="p-4 border-b flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Support History</h2>
-                <Button size="sm" onClick={onNewChat}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Chat
-                </Button>
+            <div className="p-4 border-b">
+                <h2 className="text-xl font-semibold">Support Inquiries</h2>
             </div>
             <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
@@ -78,16 +71,18 @@ const ClientChatList = ({
                             )}
                         >
                             <div className="flex justify-between items-start gap-2">
-                                <p className="font-semibold text-sm truncate">{thread.subject}</p>
+                                <p className="font-semibold text-sm truncate">{thread.companyName}</p>
                                 <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
                             </div>
+                            <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
                             <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>
                         </button>
                     ))}
-                    {supportThreadsData?.length === 0 && <p className="p-4 text-center text-muted-foreground">No support chats started yet.</p>}
+                    {supportThreadsData?.length === 0 && <p className="p-4 text-center text-muted-foreground">No open support chats.</p>}
                 </div>
             </ScrollArea>
         </div>
     );
 };
-export default ClientChatList;
+
+export default AdminChatList;

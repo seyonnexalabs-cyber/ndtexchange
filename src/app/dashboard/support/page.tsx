@@ -22,8 +22,9 @@ import AdminWorkflow from './components/admin-workflow';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, collectionGroup, query, where, limit, doc, serverTimestamp, addDoc, updateDoc, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { useMobile } from '@/hooks/use-mobile';
-import AdminChatInterface from './components/admin-chat-interface';
-import ClientChatInterface from './components/client-chat-interface';
+import AdminChatList from './components/admin-chat-list';
+import ClientChatList from './components/client-chat-list';
+import ChatWindow from './components/chat-window';
 import type { PlatformUser } from '@/lib/types';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/dialog';
 
@@ -101,7 +102,7 @@ export default function SupportPage() {
   }, [firestore, authUser, role, currentUser?.companyId]);
 
 
-  const { data: supportThreadsData } = useCollection<SupportThread>(supportChatQuery);
+  const { data: supportThreadsData, isLoading: isLoadingThreads } = useCollection<SupportThread>(supportChatQuery);
   
   const currentThread = useMemo(() => {
       return supportThreadsData?.find(t => t.id === selectedThreadId) || null;
@@ -114,7 +115,7 @@ export default function SupportPage() {
     return query(collection(firestore, 'companies', companyIdForPath, 'supportChats', selectedThreadId, 'supportMessages'), orderBy('timestamp', 'asc'));
   }, [firestore, selectedThreadId, currentUser, role, currentThread]);
 
-  const { data: messages } = useCollection<SupportMessage>(messagesQuery);
+  const { data: messages, isLoading: isLoadingMessages } = useCollection<SupportMessage>(messagesQuery);
   
   const [newMessage, setNewMessage] = useState('');
 
@@ -369,52 +370,38 @@ export default function SupportPage() {
                 </Card>
             </TabsContent>
             <TabsContent value="chat" className="mt-4">
-                 {role === 'admin' 
-                 ? <AdminChatInterface 
-                    isMobile={isMobile} 
-                    supportThreadsData={supportThreadsData}
-                    selectedThreadId={selectedThreadId}
-                    setSelectedThreadId={setSelectedThreadId}
-                    currentThread={currentThread}
-                    messages={messages}
-                    newMessage={newMessage}
-                    setNewMessage={setNewMessage}
-                    handleSendMessage={handleSendMessage}
-                    isSubmitting={isSubmitting}
-                  /> 
-                 : (
-                    <Card className="h-[70vh] flex overflow-hidden">
-                        <div className={cn(
-                            "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
-                            isMobile && selectedThreadId && "hidden"
-                        )}>
-                            <div className="p-4 border-b flex justify-between items-center">
-                                <h2 className="text-xl font-semibold">Support History</h2>
-                                <Button size="sm" onClick={() => setIsNewThreadOpen(true)}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    New Chat
-                                </Button>
-                            </div>
-                            <ClientChatInterface
+                 <Card className="h-[70vh] flex overflow-hidden">
+                    <div className={cn("flex flex-col", (isMobile && selectedThreadId) && "hidden")}>
+                        {role === 'admin' ? (
+                            <AdminChatList
+                                isLoading={isLoadingThreads}
                                 supportThreadsData={supportThreadsData}
                                 selectedThreadId={selectedThreadId}
                                 setSelectedThreadId={setSelectedThreadId}
                             />
-                        </div>
-                        <AdminChatInterface
-                            isMobile={isMobile}
-                            supportThreadsData={null}
-                            selectedThreadId={selectedThreadId}
-                            setSelectedThreadId={setSelectedThreadId}
-                            currentThread={currentThread}
-                            messages={messages}
-                            newMessage={newMessage}
-                            setNewMessage={setNewMessage}
-                            handleSendMessage={handleSendMessage}
-                            isSubmitting={isSubmitting}
-                        />
-                    </Card>
-                 )}
+                        ) : (
+                            <ClientChatList
+                                isLoading={isLoadingThreads}
+                                supportThreadsData={supportThreadsData}
+                                selectedThreadId={selectedThreadId}
+                                setSelectedThreadId={setSelectedThreadId}
+                                onNewChat={() => setIsNewThreadOpen(true)}
+                            />
+                        )}
+                    </div>
+                    <ChatWindow
+                        isMobile={isMobile}
+                        currentThread={currentThread}
+                        messages={messages}
+                        isLoadingMessages={isLoadingMessages}
+                        onBack={() => setSelectedThreadId(null)}
+                        currentUserId={authUser?.uid || null}
+                        newMessage={newMessage}
+                        setNewMessage={setNewMessage}
+                        handleSendMessage={handleSendMessage}
+                        isSubmitting={isSubmitting}
+                    />
+                </Card>
             </TabsContent>
         </Tabs>
         

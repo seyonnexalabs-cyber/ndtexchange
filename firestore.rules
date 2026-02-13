@@ -84,7 +84,7 @@ service cloud.firestore {
      * This is a fast and non-recursive way to check for admin status.
      */
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email in ['admin@ndtexchange.com', 'seyonnexalabs@gmail.com'];
+      return isSignedIn() && (request.auth.token.email == 'admin@ndtexchange.com' || request.auth.token.email == 'seyonnexalabs@gmail.com');
     }
     
     /**
@@ -117,25 +117,15 @@ service cloud.firestore {
      * @path /users/{userId}
      * @allow (write) Admins can create/update/delete any user. Users can manage their own document.
      * @allow (list) Admins can list all users.
-     * @allow (get) Admins and owners can get documents. Users can get profiles of colleagues in the same company.
+     * @allow (get) Admins and owners can get documents. Authenticated users can read any profile.
      * @principle Separates admin override from user-specific permissions for clarity and robustness.
      */
     match /users/{userId} {
-      // Admins have full access. This is the primary rule for seeding and management.
-      allow read, write: if isAdmin();
-      
-      // A user can create their own profile during signup
-      allow create: if isOwner(userId);
-      
-      // An authenticated user can update or delete their own profile
-      allow update, delete: if isOwner(userId);
-
-      // An authenticated user can read their own profile
-      allow get: if isOwner(userId);
-
-      // Note: The rule to allow colleagues to view profiles has been temporarily removed
-      // to resolve a complex seeding error. This can be re-added carefully later.
-      // allow get: if isCompanyMemberOfUser(userId);
+      // Explicitly define permissions for create, get, list, update, and delete
+      allow create: if isOwner(userId) || isAdmin();
+      allow get: if isSignedIn() || isAdmin();
+      allow list: if isAdmin();
+      allow update, delete: if isOwner(userId) || isAdmin();
 
       /**
        * @description Manages user-specific notifications.
@@ -175,7 +165,7 @@ service cloud.firestore {
        */
       match /inspections/{inspectionId} {
         allow read, write: if isAdmin();
-        allow get, list: if isOwner(resource.data.inspectorId);
+        allow get, list: if isOwner(resource.data.inspectorId) || isCompanyMember(get(/databases/$(database)/documents/assets/$(assetId)).data.companyId);
         allow create: if (isSignedIn() && isResourceCreator('inspectorId')) || isAdmin();
         allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId');
         allow delete: if isExistingOwner(resource.data.inspectorId);
@@ -222,14 +212,18 @@ service cloud.firestore {
      * @principle Shared access based on multiple participant roles stored on the document.
      */
     match /reports/{reportId} {
-      function isReportParticipant() {
-        return isOwner(resource.data.inspectorId) || isOwner(resource.data.level3ApproverId);
+      function canAccessReport() {
+        let assetId = resource.data.assetId;
+        let asset = get(/databases/$(database)/documents/assets/$(assetId)).data;
+        return isOwner(resource.data.inspectorId) || 
+               isOwner(resource.data.level3ApproverId) ||
+               isCompanyMember(asset.companyId);
       }
       allow read, write: if isAdmin();
-      allow get, list: if isReportParticipant();
+      allow get, list: if canAccessReport();
       allow create: if isSignedIn() && isResourceCreator('inspectorId');
-      allow update: if isReportParticipant() && isExistingDoc() && isImmutable('inspectionId') && isImmutable('inspectorId');
-      allow delete: if isReportParticipant() && isExistingDoc();
+      allow update: if (isOwner(resource.data.inspectorId) || isOwner(resource.data.level3ApproverId)) && isExistingDoc() && isImmutable('inspectionId') && isImmutable('inspectorId');
+      allow delete: if isOwner(resource.data.inspectorId) && isExistingDoc();
     }
 
     /**
@@ -413,5 +407,4 @@ service cloud.firestore {
 
   }
 }
-
     

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { MapPin, X, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { auditFirms as initialAuditFirms, auditFirmServices, auditFirmIndustries } from '@/lib/seed-data';
 import type { AuditFirm } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -25,6 +24,8 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
 
 // New schema and form for adding an auditor firm
@@ -38,7 +39,7 @@ const auditorFirmSchema = z.object({
   industries: z.array(z.string()).min(1, "Select at least one industry."),
 });
 
-const AuditorFirmForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof auditorFirmSchema>) => void; }) => {
+const AuditorFirmForm = ({ onCancel, onSubmit, allServices, allIndustries }: { onCancel: () => void; onSubmit: (values: z.infer<typeof auditorFirmSchema>) => void; allServices: string[]; allIndustries: string[] }) => {
     const form = useForm<z.infer<typeof auditorFirmSchema>>({
         resolver: zodResolver(auditorFirmSchema),
         defaultValues: {
@@ -78,7 +79,7 @@ const AuditorFirmForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
                     <FormField control={form.control} name="services" render={() => (
                         <FormItem><FormLabel>Services Offered</FormLabel>
                         <ScrollArea className="h-40 rounded-md border p-4">
-                            {auditFirmServices.map(service => (
+                            {allServices.map(service => (
                                 <FormField key={service} control={form.control} name="services" render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-3">
                                         <FormControl><Checkbox checked={field.value?.includes(service)} onCheckedChange={checked => checked ? field.onChange([...field.value, service]) : field.onChange(field.value?.filter(v => v !== service))} /></FormControl>
@@ -91,7 +92,7 @@ const AuditorFirmForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
                     <FormField control={form.control} name="industries" render={() => (
                         <FormItem><FormLabel>Industry Focus</FormLabel>
                         <ScrollArea className="h-40 rounded-md border p-4">
-                            {auditFirmIndustries.map(industry => (
+                            {allIndustries.map(industry => (
                                 <FormField key={industry} control={form.control} name="industries" render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-3">
                                         <FormControl><Checkbox checked={field.value?.includes(industry)} onCheckedChange={checked => checked ? field.onChange([...field.value, industry]) : field.onChange(field.value?.filter(v => v !== industry))} /></FormControl>
@@ -223,15 +224,28 @@ const MobileView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl:
 
 
 export default function AuditorsPage() {
+    const { firestore } = useFirebase();
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
     const { toast } = useToast();
-    const [firms, setFirms] = useState<AuditFirm[]>(initialAuditFirms);
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
     const isMobile = useMobile();
+
+    const auditorsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Auditor')) : null, [firestore]);
+    const { data: firms, isLoading: isLoadingFirms } = useCollection<AuditFirm>(auditorsQuery);
+
+    const { auditFirmServices, auditFirmIndustries } = useMemo(() => {
+        if (!firms) return { auditFirmServices: [], auditFirmIndustries: [] };
+        const services = new Set(firms.flatMap(f => f.services || []));
+        const industries = new Set(firms.flatMap(f => f.industries || []));
+        return {
+            auditFirmServices: Array.from(services).sort(),
+            auditFirmIndustries: Array.from(industries).sort()
+        };
+    }, [firms]);
 
     useEffect(() => {
         if (role && !['client', 'admin'].includes(role)) {
@@ -240,6 +254,7 @@ export default function AuditorsPage() {
     }, [role, router, searchParams]);
 
     const filteredAuditors = useMemo(() => {
+        if (!firms) return [];
         return firms.filter(firm => {
             const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => firm.services.includes(s));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => firm.industries.includes(i));
@@ -274,11 +289,8 @@ export default function AuditorsPage() {
     }
 
     const handleFormSubmit = (values: z.infer<typeof auditorFirmSchema>) => {
-        const newFirm: AuditFirm = {
-            id: `auditor-firm-${Date.now()}`,
-            ...values
-        };
-        setFirms(prev => [newFirm, ...prev]);
+        // This would be a firestore call in a real app
+        console.log("New Auditor Firm:", values);
         toast({
             title: "Auditor Firm Created",
             description: `${values.name} has been added to the directory.`,
@@ -304,7 +316,7 @@ export default function AuditorsPage() {
                 <div className="flex gap-2 w-full sm:w-auto">
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" className="flex-grow sm:flex-grow-0">
+                            <Button variant="outline" className="flex-grow sm:flex-grow-0" disabled={isLoadingFirms}>
                                 Filter by Service ({selectedServices.length})
                             </Button>
                         </PopoverTrigger>
@@ -333,7 +345,7 @@ export default function AuditorsPage() {
                     </Popover>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" className="flex-grow sm:flex-grow-0">
+                            <Button variant="outline" className="flex-grow sm:flex-grow-0" disabled={isLoadingFirms}>
                                 Filter by Industry ({selectedIndustries.length})
                             </Button>
                         </PopoverTrigger>
@@ -388,11 +400,14 @@ export default function AuditorsPage() {
                     <Button variant="ghost" size="sm" onClick={clearFilters}>Clear All</Button>
                 </div>
             )}
-
-            {isMobile ? 
-                <MobileView firms={filteredAuditors} constructUrl={constructUrl} /> : 
-                <DesktopView firms={filteredAuditors} constructUrl={constructUrl} />
-            }
+            
+            {isLoadingFirms ? (
+                isMobile ? <Skeleton className="h-64 w-full" /> : <Skeleton className="h-96 w-full" />
+            ) : (
+                isMobile ? 
+                    <MobileView firms={filteredAuditors} constructUrl={constructUrl} /> : 
+                    <DesktopView firms={filteredAuditors} constructUrl={constructUrl} />
+            )}
 
              <Dialog open={isAddFirmOpen} onOpenChange={setIsAddFirmOpen}>
                 <DialogContent>
@@ -402,9 +417,15 @@ export default function AuditorsPage() {
                             Create a new auditor firm profile. Users can be invited to this firm from the User Management page.
                         </DialogDescription>
                     </DialogHeader>
-                    <AuditorFirmForm onSubmit={handleFormSubmit} onCancel={() => setIsAddFirmOpen(false)} />
+                    <AuditorFirmForm 
+                        onSubmit={handleFormSubmit} 
+                        onCancel={() => setIsAddFirmOpen(false)} 
+                        allServices={auditFirmServices}
+                        allIndustries={auditFirmIndustries}
+                    />
                 </DialogContent>
             </Dialog>
         </div>
     );
 }
+    

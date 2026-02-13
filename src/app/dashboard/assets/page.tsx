@@ -148,6 +148,10 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                                 <Button variant="outline" size="sm" onClick={() => onReject(asset.id)}>Reject</Button>
                                                 <Button size="sm" onClick={() => onApprove(asset.id)}>Approve</Button>
                                             </div>
+                                        ) : asset.approvalStatus === 'Pending Approval' ? (
+                                            <div className="w-full text-center">
+                                                <Badge variant="secondary">Pending Approval</Badge>
+                                            </div>
                                         ) : (
                                             <>
                                                 <span>Next: {format(new Date(asset.nextInspection), 'dd-MMM-yyyy')}</span>
@@ -310,5 +314,3 @@ export default function AssetsPage() {
         </div>
     );
 }
-
-    

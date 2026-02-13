@@ -17,9 +17,9 @@
  * # Key Security Decisions
  * - Admin Access: A user is considered an admin if their authenticated email is
  *   one of the predefined admin emails. This is a fast and secure check.
- * - User Privacy: A user's own profile in `/users/{userId}` is strictly private.
- *   They are the only ones who can read or write their own document. Listing all
- *   users is disabled to protect user privacy (except for admins).
+ * - User Privacy: A user's own profile in `/users/{userId}` is strictly private
+ *   for writes. Reading profiles is allowed for any authenticated user to facilitate
+ *   collaboration features. Listing all users is disabled to protect user privacy (except for admins).
  * - Public Data: Collections like `/asset_types`, `/techniques`, `/manufacturers`, and `/companies` are considered public,
  *   readable by anyone, but writable only by admins.
  * - Shared Data: Access to shared documents like Jobs and Messages is controlled by
@@ -117,15 +117,16 @@ service cloud.firestore {
      * @path /users/{userId}
      * @allow (write) Admins can create/update/delete any user. Users can manage their own document.
      * @allow (list) Admins can list all users.
-     * @allow (get) Admins and owners can get documents. Authenticated users can read any profile.
+     * @allow (get) Authenticated users can read any profile to facilitate collaboration.
      * @principle Separates admin override from user-specific permissions for clarity and robustness.
      */
     match /users/{userId} {
-      // Explicitly define permissions for create, get, list, update, and delete
-      allow create: if isOwner(userId) || isAdmin();
-      allow get: if isSignedIn() || isAdmin();
+      // Admins have full write access. Users can create/update/delete their own document.
+      allow write: if isAdmin() || isOwner(userId);
+      // Admins can list all users.
       allow list: if isAdmin();
-      allow update, delete: if isOwner(userId) || isAdmin();
+      // Any signed-in user can read a profile, which is necessary for collaboration features.
+      allow get: if isSignedIn();
 
       /**
        * @description Manages user-specific notifications.

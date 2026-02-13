@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -23,7 +24,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase
 import { collection, collectionGroup, query, where, limit, doc, serverTimestamp, addDoc, updateDoc, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { useMobile } from '@/hooks/use-mobile';
 import AdminChatList from './components/admin-chat-list';
-import ClientChatList from './components/client-chat-list';
+import ClientChatList from './components/client-chat-interface';
 import ChatWindow from './components/chat-window';
 import type { PlatformUser } from '@/lib/types';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/dialog';
@@ -371,7 +372,10 @@ export default function SupportPage() {
             </TabsContent>
             <TabsContent value="chat" className="mt-4">
                  <Card className="h-[70vh] flex overflow-hidden">
-                    <div className={cn("flex flex-col", (isMobile && selectedThreadId) && "hidden")}>
+                    <div className={cn(
+                        "w-full md:w-[320px] lg:w-[380px] border-r flex flex-col",
+                        isMobile && selectedThreadId && "hidden"
+                    )}>
                         {role === 'admin' ? (
                             <AdminChatList
                                 isLoading={isLoadingThreads}

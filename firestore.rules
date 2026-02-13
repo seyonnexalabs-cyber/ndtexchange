@@ -29,10 +29,9 @@ service cloud.firestore {
     // --------------------------------
 
     match /users/{userId} {
-      allow create: if isOwner(userId) || isAdmin();
-      allow get: if isSignedIn();
+      allow create: if isSignedIn();
+      allow get, list: if isSignedIn();
       allow update, delete: if isAdmin() || isOwner(userId);
-      allow list: if isAdmin();
 
       // FCM tokens can only be managed by the owner
       match /fcmTokens/{token} {
@@ -66,12 +65,12 @@ service cloud.firestore {
     }
     
     match /assets/{assetId} {
-      // A user can create an asset for their own company, or an admin can create any asset.
+      // An admin can create an asset. A user can create an asset for their own company.
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == getUserCompanyId());
-      // For list queries, any signed-in user can perform them. The read rule provides document-level security.
-      allow list: if isSignedIn();
-      // You can only read/update/delete an asset if you're an admin or part of the asset's company.
-      allow read, update, delete: if isAdmin() || (isSignedIn() && resource.data.companyId == getUserCompanyId());
+      // Any signed in user can read or list assets. Client-side queries handle filtering.
+      allow read, list: if isSignedIn();
+      // You can only update/delete an asset if you're an admin or part of the asset's company.
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.companyId == getUserCompanyId());
       
       match /inspections/{inspectionId} {
         // Creating an inspection is allowed if you are an admin or a member of the asset's company.
@@ -87,7 +86,7 @@ service cloud.firestore {
       // A signed-in user can create a job if they are the client, or an admin can.
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.clientId == request.auth.uid);
       // All jobs are publicly readable.
-      allow read: if true;
+      allow read, list: if isSignedIn();
       // Only the client, the awarded provider, or an admin can update a job.
       allow update: if isAdmin() || (isSignedIn() && (getUserCompanyId() == resource.data.clientCompanyId || getUserCompanyId() == resource.data.awardedProviderId));
       // Only the client or an admin can delete a job.
@@ -106,10 +105,12 @@ service cloud.firestore {
         // Admin can write anything (for seeding).
         allow write: if isAdmin();
         // Participants of the job can read messages and create new ones.
-        allow read, create: if (isSignedIn() && (
-            getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
-            getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
-          ));
+        allow read, create: if isSignedIn() && (
+            (exists(/databases/$(database)/documents/jobs/$(jobId)) && (
+                (getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId) ||
+                (getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId)
+              ))
+        );
       }
     }
 
@@ -137,3 +138,5 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
+
+    

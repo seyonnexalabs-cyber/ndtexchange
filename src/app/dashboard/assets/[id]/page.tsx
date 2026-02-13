@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useRef, useEffect } from "react";
@@ -563,7 +564,7 @@ export default function AssetDetailPage() {
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
     
-    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'inspections'), where('assetId', '==', id)) : null), [firestore, id]);
+    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, `assets/${id}/inspections`) : null), [firestore, id]);
     const { data: assetInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
 
     const combinedHistory = useMemo(() => {
@@ -944,3 +945,5 @@ export default function AssetDetailPage() {
         </div>
     );
 }
+
+    

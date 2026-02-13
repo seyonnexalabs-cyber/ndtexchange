@@ -661,8 +661,8 @@ const AdminDashboard = () => {
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
-    const pendingReviewsQuery = useMemoFirebase(() => isReady ? query(collection(firestore, 'reviews'), where('status', '==', 'Pending')) : null, [isReady, firestore]);
-    const { data: pendingReviewsList, isLoading: isLoadingReviews } = useCollection<Review>(pendingReviewsQuery);
+    const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? collection(firestore, 'reviews') : null, [isReady, firestore]));
+    const pendingReviews = useMemo(() => allReviews?.filter(r => r.status === 'Pending').length || 0, [allReviews]);
     
     const handleSeedDatabase = async () => {
         if (!firestore) {
@@ -825,7 +825,7 @@ const AdminDashboard = () => {
     const stats = {
         totalUsers: users?.length || 0,
         totalProviders: companies?.filter(c => c.type === 'Provider').length || 0,
-        pendingReviews: pendingReviewsList?.length || 0,
+        pendingReviews: pendingReviews,
         activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
 

@@ -39,14 +39,14 @@ const AppHeader = () => {
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
     
-    // Guarded query: Do not create the query until the user is fully loaded and authenticated.
     const notificationsQuery = useMemoFirebase(() => {
         if (isUserLoading || !user || !firestore || role === 'admin') {
             return null;
         }
+        // Query the subcollection directly. The 'where' clause is no longer needed
+        // as the path itself scopes the query to the current user.
         return query(
-            collection(firestore, 'notifications'),
-            where('userId', '==', user.uid),
+            collection(firestore, 'users', user.uid, 'notifications'),
             orderBy('timestamp', 'desc')
         );
     }, [firestore, user, isUserLoading, role]);
@@ -56,8 +56,8 @@ const AppHeader = () => {
     const unreadCount = useMemo(() => notifications?.filter(n => !n.read).length ?? 0, [notifications]);
 
     const handleNotificationClick = async (notificationId: string) => {
-        if (!firestore) return;
-        const notifRef = doc(firestore, 'notifications', notificationId);
+        if (!firestore || !user) return;
+        const notifRef = doc(firestore, 'users', user.uid, 'notifications', notificationId);
         try {
             // Non-blocking update. UI will update via useCollection listener.
             await updateDoc(notifRef, { read: true });

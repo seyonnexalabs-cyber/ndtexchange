@@ -115,20 +115,15 @@ service cloud.firestore {
     /**
      * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow (read, write) Admin has full access.
-     * @allow (get) An authenticated user can read their own profile or profiles of users in the same company.
+     * @allow (write) Admins can create/update/delete any user. Users can manage their own document.
+     * @allow (list) Admins can list all users.
+     * @allow (get) Admins and owners can get documents. Users can get profiles of colleagues in the same company.
      * @principle Separates admin override from user-specific permissions for clarity and robustness.
      */
     match /users/{userId} {
-      // Admins have full read/write access for management and seeding.
-      allow read, write: if isAdmin();
-      
-      // A user can create their own document, and update/delete it.
-      allow create: if isOwner(userId);
-      allow update, delete: if isExistingOwner(userId);
-
-      // A user can read their own profile, or profiles of users in the same company.
-      allow get: if isOwner(userId) || (
+      allow write: if isAdmin() || isOwner(userId);
+      allow list: if isAdmin();
+      allow get: if isAdmin() || isOwner(userId) || (
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         exists(/databases/$(database)/documents/users/$(userId)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/users/$(userId)).data.companyId
@@ -410,3 +405,5 @@ service cloud.firestore {
 
   }
 }
+
+    

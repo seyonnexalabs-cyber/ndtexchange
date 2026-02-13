@@ -702,7 +702,7 @@ export const bidsData: Bid[] = [
     { id: 'BID-025', jobId: 'JOB-025', providerId: 'provider-03', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26' },
 ];
 
-const inspectionsData: Inspection[] = [
+export const inspectionsData: Inspection[] = [
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Maria Garcia', date: '2024-06-21', status: 'Completed',
@@ -922,3 +922,5 @@ export const reviews: Review[] = [
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
+
+    

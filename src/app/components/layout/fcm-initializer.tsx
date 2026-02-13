@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 // IMPORTANT: Generate a VAPID key in your Firebase console under Project Settings > Cloud Messaging > Web configuration
 // and paste it here.
-const VAPID_KEY = 'YOUR_FCM_VAPID_KEY_FROM_FIREBASE_CONSOLE';
+const VAPID_KEY = "BN8n-NHW8Y9DVxa6VLAfFwFzzxV3iiNP4rWwWZpGevEAb_e0mQNHdRbFM0BNiySFmpnfIvIM0ozVdIXLnFf27m4";
 
 export const FCMInitializer = () => {
   const { firestore, user } = useFirebase();

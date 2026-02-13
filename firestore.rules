@@ -313,26 +313,30 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn() && request.auth.token.email == request.resource.data.contactEmail;
       allow write: if isAdmin();
+
+      /**
+       * @description Manages a company's support chat threads.
+       * @principle A user can only access support chats belonging to their own company.
+       */
+      match /supportChats/{chatId} {
+        allow read, write: if isCompanyMember(companyId) || isAdmin();
+        
+        match /supportMessages/{messageId} {
+          allow read, write: if isCompanyMember(companyId) || isAdmin();
+        }
+      }
     }
     
-     /**
-     * @description Manages real-time support chats.
-     * @path /supportChats/{chatId}
-     * @principle Admins can see all. Company members can see their own company's chat.
-     */
-    match /supportChats/{chatId} {
-        allow get, update: if isAdmin() || isCompanyMember(resource.data.companyId);
-        allow list: if isSignedIn(); // Allow any signed in user to query; security is handled by 'get' rule on each document
-        allow create: if isCompanyMember(request.resource.data.companyId);
-        allow delete: if isAdmin();
-
-        match /supportMessages/{messageId} {
-            allow read, write: if isAdmin() || isCompanyMember(get(/databases/$(database)/documents/supportChats/$(chatId)).data.companyId);
-        }
-    }
-
     /**
-     * @description Manages company subscription plans. Admin-only.
+     * @description Admin-only rule to query across all support chats for the admin dashboard.
+     * @principle Admins can list chats from any company to provide support.
+     */
+    match /{path=**}/supportChats/{chatId} {
+      allow read: if isAdmin();
+    }
+    
+    /**
+     * @description Manages subscription plans. Admin-only.
      * @path /subscriptions/{subscriptionId}
      * @principle Grants full access to administrators for billing management.
      */

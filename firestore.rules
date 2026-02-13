@@ -120,9 +120,9 @@ service cloud.firestore {
      * @principle Secures list queries by enforcing a strict get rule on each document returned by the query.
      */
     match /users/{userId} {
-      allow list: if isSignedIn();
+      allow list: if isAdmin();
       allow get: if isOwner(userId) || isAdmin() || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
-      allow create: if isOwner(userId) && isResourceCreator('id');
+      allow create: if (isOwner(userId) && isResourceCreator('id')) || isAdmin();
       allow update: if isExistingOwner(userId) || isAdmin();
       allow delete: if isExistingOwner(userId) || isAdmin();
 

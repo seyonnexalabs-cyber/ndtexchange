@@ -150,22 +150,10 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="hidden bg-muted lg:block relative">
-        {heroImage && (
-          <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            fill
-            sizes="50vw"
-            className="h-full w-full object-cover"
-            data-ai-hint={heroImage.imageHint}
-            priority
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-primary/40" />
-        <div className="absolute bottom-10 left-10 text-primary-foreground">
-          <h2 className="text-4xl font-bold font-headline">The Digital Marketplace for Asset Integrity</h2>
-          <p className="mt-4 text-lg max-w-xl">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
+      <div className="hidden lg:block relative cross-hatch-pattern">
+        <div className="absolute bottom-10 left-10 text-foreground">
+          <h2 className="text-4xl font-bold font-headline text-primary">The Digital Marketplace for Asset Integrity</h2>
+          <p className="mt-4 text-lg max-w-xl text-foreground/80">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
         </div>
       </div>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

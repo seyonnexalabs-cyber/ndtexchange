@@ -37,14 +37,7 @@ export default function OEMSolutionsPage() {
                                 </div>
                             </div>
                             <div className="hidden md:block">
-                                 <Image
-                                    src="https://images.unsplash.com/photo-1582923055419-8a3c3a93a5c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxlcXVpcG1lbnQlMjBtYW51ZmFjdHVyaW5nfGVufDB8fHx8MTc2OTAxNTMyNnww&ixlib=rb-4.1.0&q=80&w=1080"
-                                    alt="NDT Equipment Manufacturing"
-                                    width={600}
-                                    height={400}
-                                    className="rounded-lg shadow-xl"
-                                    data-ai-hint="equipment manufacturing"
-                                />
+                                 <div className="w-[600px] h-[400px] rounded-lg shadow-xl cross-hatch-pattern" />
                             </div>
                         </div>
                     </div>

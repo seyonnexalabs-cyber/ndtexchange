@@ -209,6 +209,8 @@ service cloud.firestore {
     match /reports/{reportId} {
       function canAccessReport() {
         let assetId = resource.data.assetId;
+        // This get() call is problematic but necessary for this rule structure.
+        // A better structure might denormalize companyId onto the report.
         let asset = get(/databases/$(database)/documents/assets/$(assetId)).data;
         return isOwner(resource.data.inspectorId) || 
                isOwner(resource.data.level3ApproverId) ||
@@ -272,6 +274,7 @@ service cloud.firestore {
           return isCompanyMember(job.clientCompanyId);
         }
         allow read, write: if isAdmin();
+        // Allow read if the user is the client who owns the job OR the inspector who made the bid
         allow read: if isJobClient() || isOwner(resource.data.inspectorId);
         allow create: if (isSignedIn() && isResourceCreator('inspectorId')) || isAdmin();
         allow update: if isExistingOwner(resource.data.inspectorId) && isImmutable('inspectorId') && isImmutable('jobId');
@@ -280,7 +283,6 @@ service cloud.firestore {
       
       /**
        * @description Manages messages within a job.
-       * @path /jobs/{jobId}/messages/{messageId}
        * @principle Access is granted to participants of the parent job.
        */
       match /messages/{messageId} {
@@ -293,7 +295,6 @@ service cloud.firestore {
     
      /**
      * @description Manages NDT provider equipment inventory.
-     * @path /equipment/{equipmentId}
      * @principle A user can manage equipment if they belong to the provider company that owns it.
      */
     match /equipment/{equipmentId} {
@@ -402,4 +403,5 @@ service cloud.firestore {
 
   }
 }
+
     

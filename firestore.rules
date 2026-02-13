@@ -67,16 +67,18 @@ service cloud.firestore {
     match /assets/{assetId} {
       // An admin can create an asset. A user can create an asset for their own company.
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == getUserCompanyId());
-      // Any signed in user can read or list assets. Client-side queries handle filtering.
-      allow read, list: if isSignedIn();
+      // A user can read an asset if they belong to that asset's company.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.companyId == getUserCompanyId());
+      // Listing is allowed, and secured by the `read` rule and client-side queries.
+      allow list: if isSignedIn();
       // You can only update/delete an asset if you're an admin or part of the asset's company.
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.companyId == getUserCompanyId());
       
       match /inspections/{inspectionId} {
         // Creating an inspection is allowed if you are an admin or a member of the asset's company.
         allow create: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
-        // You can read an inspection if you are the inspector or a member of the asset's owning company.
-        allow read: if isAdmin() || isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+        // You can read/list an inspection if you are the inspector or a member of the asset's owning company.
+        allow read, list: if isAdmin() || isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
       }
@@ -138,5 +140,3 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
-
-    

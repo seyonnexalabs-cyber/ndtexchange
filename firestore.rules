@@ -317,7 +317,7 @@ service cloud.firestore {
      */
     match /notifications/{notificationId} {
       // A user can read a notification if they are the recipient.
-      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow get: if isOwner(resource.data.userId);
       
       // A user can list notifications, but their query MUST be filtered by userId on the client.
       // Firestore enforces the 'get' rule on each document returned by the query.
@@ -342,6 +342,7 @@ service cloud.firestore {
     
     /**
      * @description Manages admin role assignments. Admin-only.
+     * @path /roles_admin/{userId}
      * @principle Grants full access to administrators for role management.
      */
     match /roles_admin/{userId} {

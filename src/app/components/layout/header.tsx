@@ -33,20 +33,20 @@ const AppHeader = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { auth, firestore } = useFirebase();
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const { toast } = useToast();
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
     
     const notificationsQuery = useMemoFirebase(() => {
-        if (!firestore || !user || role === 'admin') return null;
+        if (!firestore || !user || isUserLoading || role === 'admin') return null;
         return query(
             collection(firestore, 'notifications'),
             where('userId', '==', user.uid),
             orderBy('timestamp', 'desc')
         );
-    }, [firestore, user, role]);
+    }, [firestore, user, isUserLoading, role]);
 
     const { data: notifications, isLoading: isLoadingNotifications } = useCollection<Notification>(notificationsQuery);
 

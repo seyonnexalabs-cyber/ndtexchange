@@ -922,5 +922,3 @@ export const reviews: Review[] = [
 
 export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
 export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
-
-    

@@ -1,6 +1,5 @@
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { allUsers, inspectorAssets, Job, PlatformUser, serviceProviders } from "@/lib/seed-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign } from "lucide-react";
@@ -15,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc, getDoc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
@@ -62,6 +62,10 @@ export default function MyJobsPage() {
 
 
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]));
+    const { data: allEquipment, isLoading: isLoadingEquipment } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'equipment') : null, [firestore]));
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
+
 
     const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
         'Draft': 'outline',
@@ -162,12 +166,12 @@ export default function MyJobsPage() {
     }, [role, jobsFromDb]);
 
     const uniqueProviders = useMemo(() => {
-        if (role !== 'client' || !jobsFromDb) return [];
+        if (role !== 'client' || !jobsFromDb || !allCompanies) return [];
         const providerIds = new Set(jobsFromDb.filter(j => j.providerId).map(j => j.providerId!));
-        return serviceProviders.filter(p => providerIds.has(p.id));
-    }, [role, jobsFromDb]);
+        return allCompanies.filter(p => p.type === 'Provider' && providerIds.has(p.id));
+    }, [role, jobsFromDb, allCompanies]);
 
-    if (isLoadingJobs || !userProfile) {
+    if (isLoadingJobs || !userProfile || isLoadingUsers || isLoadingEquipment || isLoadingCompanies) {
         return (
             <div>
                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -287,7 +291,7 @@ export default function MyJobsPage() {
                     ))}
                     {selectedProviders.map(providerId => (
                         <Badge key={providerId} variant="secondary">
-                            Provider: {serviceProviders.find(p => p.id === providerId)?.name}
+                            Provider: {allCompanies?.find(p => p.id === providerId)?.name}
                             <button onClick={() => handleProviderChange(providerId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3 text-primary" />
                             </button>
@@ -308,8 +312,8 @@ export default function MyJobsPage() {
             {displayedJobs.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                     {displayedJobs.map(job => {
-                        const assignedTechnicians = allUsers.filter(t => t.role === 'Inspector' && job.technicianIds?.includes(t.id));
-                        const assignedEquipment = inspectorAssets.filter(e => job.equipmentIds?.includes(e.id));
+                        const assignedTechnicians = allUsers?.filter(t => t.role === 'Inspector' && job.technicianIds?.includes(t.id));
+                        const assignedEquipment = allEquipment?.filter(e => job.equipmentIds?.includes(e.id));
                         const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
 
                         const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
@@ -388,7 +392,7 @@ export default function MyJobsPage() {
                                         <>
                                             <div>
                                                 <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Assigned Technicians</h4>
-                                                {assignedTechnicians.length > 0 ? (
+                                                {assignedTechnicians && assignedTechnicians.length > 0 ? (
                                                     <div className="flex flex-wrap gap-2">
                                                         {assignedTechnicians.map(tech => (
                                                             <Badge key={tech.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
@@ -402,7 +406,7 @@ export default function MyJobsPage() {
 
                                              <div>
                                                 <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4 text-primary"/> Assigned Equipment</h4>
-                                                 {assignedEquipment.length > 0 ? (
+                                                 {assignedEquipment && assignedEquipment.length > 0 ? (
                                                     <div className="flex flex-wrap gap-2">
                                                         {assignedEquipment.map(equip => (
                                                              <Badge key={equip.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">

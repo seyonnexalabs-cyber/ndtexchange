@@ -149,8 +149,7 @@
         "id": { "type": "string", "description": "Unique identifier for the User entity." },
         "companyId": { "type": "string", "description": "The ID of the company the user belongs to." },
         "company": { "type": "string", "description": "The name of the company the user belongs to." },
-        "firstName": { "type": "string", "description": "The user's first name." },
-        "lastName": { "type": "string", "description": "The user's last name." },
+        "name": { "type": "string", "description": "The user's full name." },
         "email": { "type": "string", "description": "The user's email address.", "format": "email" },
         "role": { "type": "string", "description": "The user's role (e.g., Client, Inspector, Admin)." },
         "certifications": { "type": "array", "description": "List of certifications held by the user (especially for inspectors).", "items": { "type": "string" } },
@@ -160,7 +159,7 @@
         "modifiedAt": { "type": "string", "format": "date-time" },
         "modifiedBy": { "type": "string" }
       },
-      "required": ["id", "companyId", "company", "firstName", "lastName", "email", "role"]
+      "required": ["id", "companyId", "company", "name", "email", "role"]
     },
     "Document": {
       "$schema": "http://json-schema.org/draft-07/schema#",

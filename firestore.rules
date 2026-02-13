@@ -120,15 +120,19 @@ service cloud.firestore {
      * @principle Separates admin override from user-specific permissions for clarity and robustness.
      */
     match /users/{userId} {
-      // Admin override: Admins have full read/write access to all user profiles.
-      // This is crucial for seeding and user management tasks.
+      // Admins have full read/write access for management and seeding.
       allow read, write: if isAdmin();
       
-      // User-specific rules
-      allow get: if isOwner(userId) || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && exists(/databases/$(database)/documents/users/$(userId)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/users/$(userId)).data.companyId);
+      // A user can create their own document, and update/delete it.
       allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow update, delete: if isExistingOwner(userId);
+
+      // A user can read their own profile, or profiles of users in the same company.
+      allow get: if isOwner(userId) || (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        exists(/databases/$(database)/documents/users/$(userId)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/users/$(userId)).data.companyId
+      );
 
       /**
        * @description Manages user-specific notifications.
@@ -335,7 +339,7 @@ service cloud.firestore {
      * @principle Admins can list chats from any company to provide support.
      */
     match /{path=**}/supportChats/{chatId} {
-      allow read: if isAdmin();
+      allow list: if isAdmin();
     }
     
     /**
@@ -406,5 +410,3 @@ service cloud.firestore {
 
   }
 }
-
-  

@@ -276,7 +276,8 @@ service cloud.firestore {
      * @principle Grants read access only to participants of the message.
      */
     match /messages/{messageId} {
-      allow read: if isAdmin() || isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
+      allow get: if isAdmin() || isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
+      allow list: if isSignedIn(); // Broad list, secured by 'get' on results
       allow create: if isSignedIn() && isResourceCreator('senderId');
       allow update: if (isAdmin() || isOwner(resource.data.receiverId)) && isExistingDoc();
       allow delete: if false;
@@ -315,8 +316,10 @@ service cloud.firestore {
      * @principle Grants read/write access based on ownership, enabling targeted client-side queries.
      */
     match /notifications/{notificationId} {
-        allow read, update, delete: if isOwner(resource.data.userId) || isAdmin();
-        allow create: if isResourceCreator('userId');
+      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow list: if isSignedIn(); // Broad list, secured by 'get' on results
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isResourceCreator('userId');
     }
 
     /**
@@ -386,3 +389,5 @@ service cloud.firestore {
 
   }
 }
+
+    

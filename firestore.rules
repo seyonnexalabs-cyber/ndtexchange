@@ -25,16 +25,9 @@ service cloud.firestore {
     // --------------------------------
 
     match /users/{userId} {
-      // Any authenticated user can create their own user document during signup. Admins can create any.
       allow create: if isOwner(userId) || isAdmin();
-      // Users can only read their own profile. Admins can read any.
-      allow get: if isOwner(userId) || isAdmin();
-      // Users can only be listed by admins.
-      allow list: if isAdmin();
-      // Users can only update their own profile. Admins can update any.
-      allow update: if isOwner(userId) || isAdmin();
-      // Only admins can delete users.
-      allow delete: if isAdmin();
+      allow get: if isSignedIn();
+      allow list, update, delete: if isAdmin() || isOwner(userId);
     }
 
     match /companies/{companyId} {
@@ -47,7 +40,6 @@ service cloud.firestore {
 
       match /supportChats/{chatId} {
         // Only members of the company or admins can access support chats.
-        // This relies on a custom claim or client-side check, as get() is removed.
         allow read, write: if isSignedIn();
         
         match /supportMessages/{messageId} {
@@ -57,14 +49,14 @@ service cloud.firestore {
     }
     
     match /assets/{assetId} {
-      // Any signed-in user can create assets, linking it to their companyId.
-      allow create: if isSignedIn() && request.resource.data.companyId == request.auth.token.companyId;
-      // You can only read/update/delete an asset if your companyId matches the asset's companyId.
-      allow read, update, delete: if isSignedIn() && resource.data.companyId == request.auth.token.companyId;
+      // A user can create an asset for their own company, or an admin can create any asset.
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.companyId == request.auth.token.companyId);
+      // You can only read/update/delete an asset if you're an admin or part of the asset's company.
+      allow read, update, delete: if isAdmin() || (isSignedIn() && resource.data.companyId == request.auth.token.companyId);
       
       match /inspections/{inspectionId} {
-        // Any signed-in user can create an inspection.
-        allow create: if isSignedIn();
+        // Any signed-in user can create an inspection, or an admin can.
+        allow create: if isSignedIn() || isAdmin();
         // You can read an inspection if you are the inspector or a member of the asset's owning company.
         allow read: if isOwner(resource.data.inspectorId) || resource.data.assetOwnerCompanyId == request.auth.token.companyId;
         // Only the assigned inspector or an admin can update/delete.
@@ -73,18 +65,18 @@ service cloud.firestore {
     }
 
     match /jobs/{jobId} {
-      // A signed-in user can create a job if they are the client.
+      // A signed-in user can create a job if they are the client, or an admin can.
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.clientId == request.auth.uid);
       // All jobs are publicly readable.
       allow read: if true;
       // Only the client, the awarded provider, or an admin can update a job.
-      allow update: if isAdmin() || request.auth.token.companyId == resource.data.clientCompanyId || request.auth.token.companyId == resource.data.awardedProviderId;
+      allow update: if isAdmin() || (isSignedIn() && (request.auth.token.companyId == resource.data.clientCompanyId || request.auth.token.companyId == resource.data.awardedProviderId));
       // Only the client or an admin can delete a job.
-      allow delete: if isAdmin() || request.auth.token.companyId == resource.data.clientCompanyId;
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.token.companyId == resource.data.clientCompanyId);
 
       match /bids/{bidId} {
-        // An inspector can create a bid.
-        allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+        // An inspector can create a bid for their own user ID, or an admin can.
+        allow create: if isAdmin() || (isSignedIn() && request.resource.data.inspectorId == request.auth.uid);
         // The job client, the bidding inspector, or an admin can read bids.
         allow read: if isAdmin() || isOwner(resource.data.inspectorId) || request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId;
         // Only the bidding inspector or an admin can update/delete.
@@ -93,16 +85,16 @@ service cloud.firestore {
       
       match /messages/{messageId} {
         // Participants of the job or admins can read/write messages.
-        allow read, write: if isSignedIn() && (
+        allow read, write: if (isSignedIn() && (
           request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
           request.auth.token.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId
-        ) || isAdmin();
+        )) || isAdmin();
       }
     }
 
     match /reports/{reportId} {
-      // Any signed-in user can create a report document.
-      allow create: if isSignedIn();
+      // Any signed-in user can create a report document, or an admin can.
+      allow create: if isSignedIn() || isAdmin();
       // Access to reports is determined by involvement in the job/asset.
       allow read: if isSignedIn();
       allow update, delete: if isAdmin() || isOwner(resource.data.inspectorId);
@@ -118,7 +110,7 @@ service cloud.firestore {
     match /roles_admin/{userId} { allow read, write: if isAdmin(); }
     match /payments/{paymentId} { allow read, write: if isAdmin(); }
     match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
-    match /reviews/{reviewId} { allow read: if true; allow create: if isSignedIn(); allow write: if isAdmin(); }
+    match /reviews/{reviewId} { allow read: if true; allow create: if isSignedIn() || isAdmin(); allow write: if isAdmin(); }
     match /userAuditLogs/{logId} { allow read, write: if isAdmin(); }
     match /jobAuditLogs/{logId} { allow read, write: if isAdmin(); }
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }

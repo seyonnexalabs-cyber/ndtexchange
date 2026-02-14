@@ -275,100 +275,106 @@ const PlatformAdminTeamSettings = ({ allUsers, isLoading }: { allUsers: Platform
 };
 
 
-const NotificationSettings = ({ role }: { role: string }) => {
-  const clientEmailSettings = [
-    { id: 'email-job-updates', label: 'Job Status Updates', description: 'Get notified when a job you posted is awarded, scheduled, or completed.' , defaultChecked: true},
-    { id: 'email-new-bids', label: 'New Bids Received', description: 'Receive an email every time a provider places a bid on your job.' , defaultChecked: true},
-    { id: 'email-report-submissions', label: 'Report Submissions', description: 'Get an email when an inspector submits a report for your review.' , defaultChecked: true},
-    { id: 'email-messages-client', label: 'Direct Messages', description: 'Receive notifications for new messages from providers.' , defaultChecked: false},
-  ];
+const allNotificationSettings = {
+    client: {
+        email: [
+            { id: 'email-job-updates', label: 'Job Status Updates', description: 'Get notified when a job you posted is awarded, scheduled, or completed.' , defaultChecked: true},
+            { id: 'email-new-bids', label: 'New Bids Received', description: 'Receive an email every time a provider places a bid on your job.' , defaultChecked: true},
+            { id: 'email-report-submissions', label: 'Report Submissions', description: 'Get an email when an inspector submits a report for your review.' , defaultChecked: true},
+            { id: 'email-messages-client', label: 'Direct Messages', description: 'Receive notifications for new messages from providers.' , defaultChecked: false},
+        ],
+        push: [
+            { id: 'push-job-updates', label: 'Job Status Updates', description: 'Get a push notification when a job you posted is updated.', defaultChecked: true },
+            { id: 'push-new-bids', label: 'New Bids Received', description: 'Get a push notification when a provider places a bid on your job.', defaultChecked: true },
+            { id: 'push-messages-client', label: 'Direct Messages', description: 'Receive push notifications for new messages.', defaultChecked: true },
+        ],
+    },
+    inspector: {
+        email: [
+            { id: 'email-new-jobs', label: 'New Job Opportunities', description: 'Get notified about new jobs that match your certified techniques.' , defaultChecked: true},
+            { id: 'email-bid-status', label: 'Bid Status Updates', description: 'Receive an email when your bid is awarded or rejected.' , defaultChecked: true},
+            { id: 'email-job-assignments', label: 'Job Assignments', description: 'Get notified when you are assigned to a scheduled job.' , defaultChecked: true},
+            { id: 'email-messages-inspector', label: 'Direct Messages', description: 'Receive notifications for new messages from clients.' , defaultChecked: false},
+        ],
+        push: [
+            { id: 'push-new-jobs', label: 'New Job Opportunities', description: 'Get a push notification for new jobs that match your techniques.', defaultChecked: true },
+            { id: 'push-bid-status', label: 'Bid Status Updates', description: 'Get a push notification when your bid is awarded or rejected.', defaultChecked: true },
+            { id: 'push-messages-inspector', label: 'Direct Messages', description: 'Receive push notifications for new messages.', defaultChecked: true },
+        ],
+    },
+    admin: {
+        email: [
+            { id: 'email-new-users', label: 'New User Signups', description: 'Get notified when a new client or provider joins the platform.' , defaultChecked: true},
+            { id: 'email-new-reviews', label: 'New Reviews for Moderation', description: 'Receive an email when a new review is submitted and needs approval.' , defaultChecked: true},
+            { id: 'email-platform-alerts', label: 'Platform Health Alerts', description: 'Important system-level notifications.' , defaultChecked: true},
+        ],
+        push: [
+            { id: 'push-new-users', label: 'New User Signups', description: 'Get a push notification when a new user joins.', defaultChecked: false },
+            { id: 'push-new-reviews', label: 'New Reviews for Moderation', description: 'Get a push notification when a review needs approval.', defaultChecked: true },
+        ]
+    },
+    auditor: {
+        email: [
+            { id: 'email-audit-queue', label: 'New Reports for Audit', description: 'Get notified when a report is submitted and requires your audit.' , defaultChecked: true},
+            { id: 'email-audit-approved', label: 'Audit Status Changes', description: 'Receive a notification when a client approves or rejects a report you audited.' , defaultChecked: false},
+        ],
+        push: [
+            { id: 'push-audit-queue', label: 'New Reports for Audit', description: 'Get a push notification when a report requires your audit.', defaultChecked: true },
+        ]
+    }
+};
 
-  const inspectorEmailSettings = [
-    { id: 'email-new-jobs', label: 'New Job Opportunities', description: 'Get notified about new jobs that match your certified techniques.' , defaultChecked: true},
-    { id: 'email-bid-status', label: 'Bid Status Updates', description: 'Receive an email when your bid is awarded or rejected.' , defaultChecked: true},
-    { id: 'email-job-assignments', label: 'Job Assignments', description: 'Get notified when you are assigned to a scheduled job.' , defaultChecked: true},
-    { id: 'email-messages-inspector', label: 'Direct Messages', description: 'Receive notifications for new messages from clients.' , defaultChecked: false},
-  ];
+const notificationSchema = z.record(z.string(), z.boolean());
+type NotificationFormValues = z.infer<typeof notificationSchema>;
 
-  const adminEmailSettings = [
-    { id: 'email-new-users', label: 'New User Signups', description: 'Get notified when a new client or provider joins the platform.' , defaultChecked: true},
-    { id: 'email-new-reviews', label: 'New Reviews for Moderation', description: 'Receive an email when a new review is submitted and needs approval.' , defaultChecked: true},
-    { id: 'email-platform-alerts', label: 'Platform Health Alerts', description: 'Important system-level notifications.' , defaultChecked: true},
-  ];
-  
-  const auditorEmailSettings = [
-    { id: 'email-audit-queue', label: 'New Reports for Audit', description: 'Get notified when a report is submitted and requires your audit.' , defaultChecked: true},
-    { id: 'email-audit-approved', label: 'Audit Status Changes', description: 'Receive a notification when a client approves or rejects a report you audited.' , defaultChecked: false},
-  ];
+const NotificationSettings = ({ role, onSave, defaultValues }: { role: string; onSave: (data: NotificationFormValues) => void; defaultValues: any; }) => {
+    const { email: emailSettings, push: pushSettings } = allNotificationSettings[role as keyof typeof allNotificationSettings] || { email: [], push: [] };
+    
+    const form = useForm<NotificationFormValues>({
+        resolver: zodResolver(notificationSchema),
+        defaultValues: useMemo(() => {
+            const defaults: NotificationFormValues = {};
+            [...emailSettings, ...pushSettings].forEach(setting => {
+                defaults[setting.id] = defaultValues?.[setting.id] ?? setting.defaultChecked;
+            });
+            return defaults;
+        }, [defaultValues, emailSettings, pushSettings])
+    });
 
-  const clientPushSettings = [
-    { id: 'push-job-updates', label: 'Job Status Updates', description: 'Get a push notification when a job you posted is updated.', defaultChecked: true },
-    { id: 'push-new-bids', label: 'New Bids Received', description: 'Get a push notification when a provider places a bid on your job.', defaultChecked: true },
-    { id: 'push-messages-client', label: 'Direct Messages', description: 'Receive push notifications for new messages.', defaultChecked: true },
-  ];
-
-  const inspectorPushSettings = [
-      { id: 'push-new-jobs', label: 'New Job Opportunities', description: 'Get a push notification for new jobs that match your techniques.', defaultChecked: true },
-      { id: 'push-bid-status', label: 'Bid Status Updates', description: 'Get a push notification when your bid is awarded or rejected.', defaultChecked: true },
-      { id: 'push-messages-inspector', label: 'Direct Messages', description: 'Receive push notifications for new messages.', defaultChecked: true },
-  ];
-
-  const adminPushSettings = [
-      { id: 'push-new-users', label: 'New User Signups', description: 'Get a push notification when a new user joins.', defaultChecked: false },
-      { id: 'push-new-reviews', label: 'New Reviews for Moderation', description: 'Get a push notification when a review needs approval.', defaultChecked: true },
-  ];
-
-  const auditorPushSettings = [
-      { id: 'push-audit-queue', label: 'New Reports for Audit', description: 'Get a push notification when a report requires your audit.', defaultChecked: true },
-  ];
-
-  let emailSettings, pushSettings;
-  switch (role) {
-    case 'client':
-      emailSettings = clientEmailSettings;
-      pushSettings = clientPushSettings;
-      break;
-    case 'inspector':
-      emailSettings = inspectorEmailSettings;
-      pushSettings = inspectorPushSettings;
-      break;
-    case 'admin':
-      emailSettings = adminEmailSettings;
-      pushSettings = adminPushSettings;
-      break;
-    case 'auditor':
-      emailSettings = auditorEmailSettings;
-      pushSettings = auditorPushSettings;
-      break;
-    default:
-      emailSettings = [];
-      pushSettings = [];
-  }
+    useEffect(() => {
+        const defaults: NotificationFormValues = {};
+        [...emailSettings, ...pushSettings].forEach(setting => {
+            defaults[setting.id] = defaultValues?.[setting.id] ?? setting.defaultChecked;
+        });
+        form.reset(defaults);
+    }, [defaultValues, emailSettings, pushSettings, form]);
 
   return (
-    <div className="space-y-6">
+    <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSave)} className="space-y-6">
         <Card>
             <CardHeader>
                 <CardTitle>Email Notifications</CardTitle>
                 <CardDescription>Manage how you receive email notifications for important platform events.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-start justify-between rounded-lg border bg-card p-4 shadow-sm">
-                    <div className="space-y-0.5">
-                        <Label htmlFor="master-email-notifications" className="text-base font-semibold">Enable All Email Notifications</Label>
-                        <p className="text-sm text-muted-foreground">A master switch to control all email alerts from the platform.</p>
-                    </div>
-                    <Switch id="master-email-notifications" defaultChecked={true} className="mt-1" />
-                </div>
-                <Separator />
                 {emailSettings.map(setting => (
-                    <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <Label htmlFor={setting.id} className="text-base">{setting.label}</Label>
-                            <p className="text-sm text-muted-foreground">{setting.description}</p>
-                        </div>
-                        <Switch id={setting.id} defaultChecked={setting.defaultChecked} className="mt-1" />
-                    </div>
+                    <FormField
+                        key={setting.id}
+                        control={form.control}
+                        name={setting.id}
+                        render={({ field }) => (
+                             <FormItem className="flex items-start justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                    <FormLabel className="text-base">{setting.label}</FormLabel>
+                                    <FormDescription>{setting.description}</FormDescription>
+                                </div>
+                                <FormControl>
+                                    <Switch checked={field.value} onCheckedChange={field.onChange} className="mt-1" />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
                 ))}
                 {emailSettings.length === 0 && <p className="text-muted-foreground">No specific email notifications for this role.</p>}
             </CardContent>
@@ -380,29 +386,35 @@ const NotificationSettings = ({ role }: { role: string }) => {
                 <CardDescription>Manage browser and mobile app notifications for real-time alerts.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-start justify-between rounded-lg border bg-card p-4 shadow-sm">
-                    <div className="space-y-0.5">
-                        <Label htmlFor="master-push-notifications" className="text-base font-semibold">Enable All Push Notifications</Label>
-                        <p className="text-sm text-muted-foreground">A master switch to control all push alerts.</p>
-                    </div>
-                    <Switch id="master-push-notifications" defaultChecked={true} className="mt-1" />
-                </div>
-                <Separator />
                 {pushSettings.map(setting => (
-                    <div key={setting.id} className="flex items-start justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <Label htmlFor={setting.id} className="text-base">{setting.label}</Label>
-                            <p className="text-sm text-muted-foreground">{setting.description}</p>
-                        </div>
-                        <Switch id={setting.id} defaultChecked={setting.defaultChecked} className="mt-1" />
-                    </div>
+                     <FormField
+                        key={setting.id}
+                        control={form.control}
+                        name={setting.id}
+                        render={({ field }) => (
+                             <FormItem className="flex items-start justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                    <FormLabel className="text-base">{setting.label}</FormLabel>
+                                    <FormDescription>{setting.description}</FormDescription>
+                                </div>
+                                <FormControl>
+                                    <Switch checked={field.value} onCheckedChange={field.onChange} className="mt-1" />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
                 ))}
                 {pushSettings.length === 0 && <p className="text-muted-foreground">No specific push notifications for this role.</p>}
             </CardContent>
         </Card>
-    </div>
+        <div className="flex justify-end">
+            <Button type="submit">Save Notification Settings</Button>
+        </div>
+    </form>
+    </Form>
   );
 };
+
 
 const SubscriptionSettings = ({ subscription }: { subscription?: Subscription }) => {
     const searchParams = useSearchParams();
@@ -546,9 +558,9 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
         toast({ title: 'Branding Saved', description: 'Your company branding has been updated.' });
     };
 
-    const isClient = role === 'client';
-    const clientLogo = isClient ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
-    const providerLogo = !isClient ? logoPreview : 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
+    const isCustomer = role === 'customer';
+    const clientLogo = isCustomer ? logoPreview : 'https://placehold.co/120x40/f0f0f0/999999/png?text=Customer+Logo';
+    const providerLogo = !isCustomer ? logoPreview : 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
 
     return (
         <Card>
@@ -614,7 +626,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
                         <FormDescription className="mt-2">Used for smaller icons and avatars. A square image (1:1 ratio) works best.</FormDescription>
                     </div>
 
-                    {role === 'client' && (
+                    {role === 'customer' && (
                         <div>
                             <Label htmlFor="brand-color">Brand Color</Label>
                             <div className="mt-2 flex items-center gap-2">
@@ -629,7 +641,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
                     <div className="mt-2 rounded-lg border p-4 shadow-md">
                         <div className="flex justify-between items-center pb-4 border-b-2" style={{ borderColor: brandColor }}>
                             <div className="w-1/4 flex justify-start">
-                                {clientLogo ? <Image src={clientLogo} alt="Client Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
+                                {clientLogo ? <Image src={clientLogo} alt="Customer Logo" width={120} height={40} className="object-contain h-10" /> : <div className="h-10 w-full" />}
                             </div>
                             <div className="w-1/2 text-center">
                                 <h3 className="font-bold text-lg" style={{ color: brandColor }}>INSPECTION REPORT</h3>
@@ -661,7 +673,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
 
 export default function SettingsPage() {
     const searchParams = useSearchParams();
-    const role = searchParams.get('role') || 'client';
+    const role = searchParams.get('role') || 'customer';
     const { firestore, auth } = useFirebase();
     const { user: authUser, isUserLoading } = useUser();
     
@@ -765,6 +777,23 @@ export default function SettingsPage() {
         }
     };
 
+    const onNotificationSave = async (data: NotificationFormValues) => {
+        if (!firestore || !authUser) return;
+        try {
+            await updateDoc(doc(firestore, 'users', authUser.uid), {
+                notificationSettings: data
+            });
+            toast({ title: 'Notification Settings Saved' });
+        } catch (error) {
+            console.error("Error saving notification settings:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Save Failed',
+                description: 'Could not save your notification preferences.'
+            });
+        }
+    };
+
     const isLoading = isUserLoading || isLoadingProfile || isLoadingCompany || isLoadingSubs;
     const isSubscriptionActive = subscription?.status === 'Active';
 
@@ -792,7 +821,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
-          {(role === 'client' || role === 'inspector') && <TabsTrigger value="branding">Branding</TabsTrigger>}
+          {(role === 'customer' || role === 'inspector') && <TabsTrigger value="branding">Branding</TabsTrigger>}
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -844,7 +873,7 @@ export default function SettingsPage() {
                     </FormItem>
                   )}
                 />
-                 <Button type="submit">Save Changes</Button>
+                 <Button type="submit" disabled={isUserLoading}>Save Changes</Button>
               </form>
               </Form>
             </CardContent>
@@ -891,7 +920,11 @@ export default function SettingsPage() {
             <SubscriptionSettings subscription={subscription} />
         </TabsContent>
         <TabsContent value="notifications">
-            <NotificationSettings role={role} />
+            <NotificationSettings 
+                role={role}
+                onSave={onNotificationSave}
+                defaultValues={currentUserProfile?.notificationSettings || {}}
+            />
         </TabsContent>
         <TabsContent value="appearance">
              <Card>
@@ -913,20 +946,20 @@ export default function SettingsPage() {
                     <ScrollArea className="h-[60vh] pr-6">
                         <div className="space-y-6 text-muted-foreground">
                             <p>
-                            Welcome to NDT EXCHANGE. These terms and conditions outline the rules and regulations for the use of NDT EXCHANGE's Website, located at ndt-exchange.com.
+                              Welcome to NDT EXCHANGE. These terms and conditions outline the rules and regulations for the use of NDT EXCHANGE's Website, located at ndt-exchange.com.
                             </p>
                             <p>
-                            By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT EXCHANGE if you do not agree to take all of the terms and conditions stated on this page.
+                              By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT EXCHANGE if you do not agree to take all of the terms and conditions stated on this page.
                             </p>
                             
                             <h2 className="text-2xl font-headline text-foreground pt-4">1. Definitions</h2>
                             <p>
-                            The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: "Client", "You" and "Your" refers to you, the person log on this website and compliant to the Company’s terms and conditions. "The Company", "Ourselves", "We", "Our" and "Us", refers to our Company. "Party", "Parties", or "Us", refers to both the Client and ourselves.
+                              The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: "Customer", "You" and "Your" refers to you, the person log on this website and compliant to the Company’s terms and conditions. "The Company", "Ourselves", "We", "Our" and "Us", refers to our Company. "Party", "Parties", or "Us", refers to both the Customer and ourselves.
                             </p>
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">2. License to Use Website</h2>
                             <p>
-                            Unless otherwise stated, NDT EXCHANGE and/or its licensors own the intellectual property rights for all material on NDT EXCHANGE. All intellectual property rights are reserved. You may access this from NDT EXCHANGE for your own personal use subjected to restrictions set in these terms and conditions.
+                              Unless otherwise stated, NDT EXCHANGE and/or its licensors own the intellectual property rights for all material on NDT EXCHANGE. All intellectual property rights are reserved. You may access this from NDT EXCHANGE for your own personal use subjected to restrictions set in these terms and conditions.
                             </p>
                             <p>You must not:</p>
                             <ul className="list-disc list-inside space-y-2 pl-4">
@@ -938,33 +971,33 @@ export default function SettingsPage() {
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">3. User Content</h2>
                             <p>
-                            In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT EXCHANGE a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
+                              In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT EXCHANGE a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
                             </p>
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform & Disclaimer of Services</h2>
                             <p>
-                                NDT EXCHANGE acts as a neutral digital platform to connect asset owners (Clients) with NDT service providers. We are not a party to the actual service agreement between the Client and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
+                                NDT EXCHANGE acts as a neutral digital platform to connect asset owners (Customers) with NDT service providers. We are not a party to the actual service agreement between the Customer and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
                             </p>
                             <p>
-                                Therefore, we make no representations or warranties regarding the quality, accuracy, safety, or legality of the services provided or the reports generated by users on the platform. The responsibility for the inspection work, its results, and its conclusions lies solely with the service provider and the Client who engages them. Users are solely responsible for vetting and selecting appropriate counterparts.
+                                Therefore, we make no representations or warranties regarding the quality, accuracy, safety, or legality of the services provided or the reports generated by users on the platform. The responsibility for the inspection work, its results, and its conclusions lies solely with the service provider and the Customer who engages them. Users are solely responsible for vetting and selecting appropriate counterparts.
                             </p>
                             
                             <h2 className="text-2xl font-headline text-foreground pt-4">5. Limitation of Liability</h2>
                             <p>
-                            In no event shall NDT EXCHANGE, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT EXCHANGE, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
+                              In no event shall NDT EXCHANGE, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT EXCHANGE, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
                             </p>
 
                             <h2 className="text-2xl font-headline text-foreground pt-4">6. Financial Transactions</h2>
                             <p>
-                              NDT EXCHANGE provides a platform to connect asset owners (Clients) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Clients and providers.
+                              NDT EXCHANGE provides a platform to connect asset owners (Customers) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Customers and providers.
                             </p>
                             <p>
-                              All payments for services rendered are to be handled directly between the Client and the service provider. NDT EXCHANGE does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
+                              All payments for services rendered are to be handled directly between the Customer and the service provider. NDT EXCHANGE does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
                             </p>
                             
                             <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law & Jurisdiction</h2>
                             <p>
-                            These Terms will be governed by and interpreted in accordance with the laws of the State/Country, and you submit to the non-exclusive jurisdiction of the state and federal courts located in State/Country for the resolution of any disputes.
+                              These Terms will be governed by and interpreted in accordance with the laws of the State/Country, and you submit to the non-exclusive jurisdiction of the state and federal courts located in State/Country for the resolution of any disputes.
                             </p>
                         </div>
                     </ScrollArea>
@@ -975,5 +1008,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

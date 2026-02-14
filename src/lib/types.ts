@@ -202,6 +202,9 @@ export type PlatformUser = {
     workStatus?: 'Available' | 'On Assignment';
     providerId?: string;
     level?: 'Level I' | 'Level II' | 'Level III';
+    notificationSettings?: {
+        [key: string]: boolean;
+    };
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;

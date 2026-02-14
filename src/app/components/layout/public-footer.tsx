@@ -6,7 +6,8 @@ export default function PublicFooter() {
     const platformLinks = [
         { href: '/login', label: 'Login / Dashboard' },
         { href: '/platform-workflow', label: 'How It Works' },
-        { href: '/contact', label: 'Contact Us' },
+        { href: '/request-demo', label: 'Request a Demo' },
+        { href: '/contact', label: 'Help' },
     ];
 
     const managementLinks = [
@@ -23,6 +24,7 @@ export default function PublicFooter() {
 
     const companyLinks = [
         { href: '/about', label: 'About Us' },
+        { href: '/contact', label: 'Contact Us' },
         { href: '/terms', label: 'Terms & Conditions' },
         { href: '/privacy', label: 'Privacy Policy' },
     ];
@@ -101,5 +103,3 @@ export default function PublicFooter() {
         </footer>
     );
 }
-
-    

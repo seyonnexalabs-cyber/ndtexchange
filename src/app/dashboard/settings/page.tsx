@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
 import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -858,7 +858,7 @@ export default function SettingsPage() {
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="terms">Terms &amp; Conditions</TabsTrigger>
+          <TabsTrigger value="help">Help & Support</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <Card>
@@ -961,71 +961,22 @@ export default function SettingsPage() {
         <TabsContent value="appearance">
             <AppearanceSettings />
         </TabsContent>
-        <TabsContent value="terms">
+        <TabsContent value="help">
             <Card>
                 <CardHeader>
-                    <CardTitle>Terms and Conditions</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><LifeBuoy className="h-6 w-6 text-primary" /> Support Center</CardTitle>
+                    <CardDescription>Find answers to common questions or contact our support team.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ScrollArea className="h-[60vh] pr-6">
-                        <div className="space-y-6 text-muted-foreground">
-                            <p>
-                              Welcome to NDT EXCHANGE. These terms and conditions outline the rules and regulations for the use of NDT EXCHANGE's Website, located at ndt-exchange.com.
-                            </p>
-                            <p>
-                              By accessing this website we assume you accept these terms and conditions. Do not continue to use NDT EXCHANGE if you do not agree to take all of the terms and conditions stated on this page.
-                            </p>
-                            
-                            <h2 className="text-2xl font-headline text-foreground pt-4">1. Definitions</h2>
-                            <p>
-                              The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: "Customer", "You" and "Your" refers to you, the person log on this website and compliant to the Company’s terms and conditions. "The Company", "Ourselves", "We", "Our" and "Us", refers to our Company. "Party", "Parties", or "Us", refers to both the Customer and ourselves.
-                            </p>
-
-                            <h2 className="text-2xl font-headline text-foreground pt-4">2. License to Use Website</h2>
-                            <p>
-                              Unless otherwise stated, NDT EXCHANGE and/or its licensors own the intellectual property rights for all material on NDT EXCHANGE. All intellectual property rights are reserved. You may access this from NDT EXCHANGE for your own personal use subjected to restrictions set in these terms and conditions.
-                            </p>
-                            <p>You must not:</p>
-                            <ul className="list-disc list-inside space-y-2 pl-4">
-                            <li>Republish material from NDT EXCHANGE</li>
-                            <li>Sell, rent or sub-license material from NDT EXCHANGE</li>
-                            <li>Reproduce, duplicate or copy material from NDT EXCHANGE</li>
-                            <li>Redistribute content from NDT EXCHANGE</li>
-                            </ul>
-
-                            <h2 className="text-2xl font-headline text-foreground pt-4">3. User Content</h2>
-                            <p>
-                              In these Terms and Conditions, “Your User Content” shall mean any audio, video, text, images or other material you choose to display on this Website. By displaying Your User Content, you grant NDT EXCHANGE a non-exclusive, worldwide, irrevocable, royalty-free, sublicensable license to use, reproduce, adapt, publish, translate and distribute it in any and all media.
-                            </p>
-
-                            <h2 className="text-2xl font-headline text-foreground pt-4">4. Role of the Platform & Disclaimer of Services</h2>
-                            <p>
-                                NDT EXCHANGE acts as a neutral digital platform to connect asset owners (Customers) with NDT service providers. We are not a party to the actual service agreement between the Customer and the Provider. Our role is strictly limited to providing the technology to facilitate this connection.
-                            </p>
-                            <p>
-                                Therefore, we make no representations or warranties regarding the quality, accuracy, safety, or legality of the services provided or the reports generated by users on the platform. The responsibility for the inspection work, its results, and its conclusions lies solely with the service provider and the Customer who engages them. Users are solely responsible for vetting and selecting appropriate counterparts.
-                            </p>
-                            
-                            <h2 className="text-2xl font-headline text-foreground pt-4">5. Limitation of Liability</h2>
-                            <p>
-                              In no event shall NDT EXCHANGE, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract. NDT EXCHANGE, including its officers, directors and employees shall not be held liable for any indirect, consequential or special liability arising out of or in any way related to your use of this Website.
-                            </p>
-
-                            <h2 className="text-2xl font-headline text-foreground pt-4">6. Financial Transactions</h2>
-                            <p>
-                              NDT EXCHANGE provides a platform to connect asset owners (Customers) with NDT service providers. While our platform facilitates this connection and the management of job workflows, we are not a party to any financial agreements or transactions between Customers and providers.
-                            </p>
-                            <p>
-                              All payments for services rendered are to be handled directly between the Customer and the service provider. NDT EXCHANGE does not process payments, handle invoices, or take a commission on jobs unless explicitly stated in a separate agreement. We are not responsible for any disputes related to payments, invoicing, or financial terms agreed upon between users of the platform.
-                            </p>
-                            
-                            <h2 className="text-2xl font-headline text-foreground pt-4">7. Governing Law & Jurisdiction</h2>
-                            <p>
-                              These Terms will be governed by and interpreted in accordance with the laws of the State/Country, and you submit to the non-exclusive jurisdiction of the state and federal courts located in State/Country for the resolution of any disputes.
-                            </p>
-                        </div>
-                    </ScrollArea>
+                    <p className="text-muted-foreground">
+                        If you're experiencing an issue, have a question about a feature, or need assistance with your account, our support center is the best place to start. You can view workflow guides or start a live chat with our team.
+                    </p>
                 </CardContent>
+                <CardFooter>
+                    <Button asChild>
+                        <Link href={constructUrl("/dashboard/support")}>Go to Support Center</Link>
+                    </Button>
+                </CardFooter>
             </Card>
         </TabsContent>
       </Tabs>

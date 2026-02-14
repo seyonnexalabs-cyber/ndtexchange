@@ -94,11 +94,14 @@ export default function HomePage() {
               <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
-              <div className="mt-10 flex justify-center gap-4">
+              <div className="mt-10 flex flex-wrap justify-center gap-4">
                 <Button size="lg" asChild>
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="outline">
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/contact">Request a Demo</Link>
+                </Button>
+                <Button size="lg" variant="ghost">
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>

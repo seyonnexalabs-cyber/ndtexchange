@@ -1,3 +1,4 @@
+
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -76,7 +77,7 @@ const contactFormSchema = z.object({
   email: z.string().email(),
   phone: z.string().optional(),
   role: z.enum(["asset-owner", "ndt-company", "auditor", "oem-other"], {required_error: 'Please select your role.'}),
-  inquiryType: z.enum(["pricing", "partnership", "support", "general", "oem-listing"], {required_error: 'Please select an inquiry type.'}),
+  inquiryType: z.enum(["demo", "pricing", "partnership", "support", "general", "oem-listing"], {required_error: 'Please select an inquiry type.'}),
   message: z.string().min(10, "Please provide a brief message (min. 10 characters)."),
 });
 
@@ -171,6 +172,7 @@ const ContactForm = () => {
                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a topic" /></SelectTrigger></FormControl>
                                        <SelectContent>
+                                            <SelectItem value="demo">Request a Demo</SelectItem>
                                            <SelectItem value="pricing">A Pricing Quote</SelectItem>
                                            <SelectItem value="partnership">Partnership Inquiry</SelectItem>
                                            <SelectItem value="oem-listing">OEM Listing Inquiry</SelectItem>
@@ -477,7 +479,7 @@ export default function ContactPage() {
                 Have a Question?
                 </h2>
                 <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
-                    If you have questions about pricing or partnerships, please use the form below. Ready to sign up? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>. OEMs interested in a free listing in our directory can also use this form.
+                    To request a demo, inquire about pricing, or discuss partnerships, please use the form below. Ready to sign up? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>.
                 </p>
             </div>
             <div className="max-w-2xl mx-auto grid grid-cols-1 gap-12 items-start">

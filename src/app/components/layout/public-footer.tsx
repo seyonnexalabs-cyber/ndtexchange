@@ -4,10 +4,10 @@ import { LogoIcon } from '@/app/components/icons';
 
 export default function PublicFooter() {
     const platformLinks = [
-        { href: '/login', label: 'Login / Dashboard' },
+        { href: '/login', label: 'Dashboard' },
         { href: '/platform-workflow', label: 'How It Works' },
         { href: '/contact', label: 'Request a Demo' },
-        { href: '/contact', label: 'Help' },
+        { href: '/help', label: 'Help' },
     ];
 
     const managementLinks = [

@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
+import { ModeProvider } from '@/app/components/layout/mode-provider';
 
 
 export const metadata: Metadata = {
@@ -38,9 +39,11 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <Suspense fallback={<div>Loading...</div>}>
           <FirebaseClientProvider>
-            <ThemeProvider>
-              {children}
-            </ThemeProvider>
+            <ModeProvider>
+              <ThemeProvider>
+                {children}
+              </ThemeProvider>
+            </ModeProvider>
           </FirebaseClientProvider>
         </Suspense>
         <Toaster />

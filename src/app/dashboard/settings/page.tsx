@@ -33,6 +33,7 @@ import { useFirebase, useUser, useCollection, useDoc, useMemoFirebase } from '@/
 import { collection, doc, query, where, updateDoc } from 'firebase/firestore';
 import type { PlatformUser, Subscription, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTheme } from '@/app/components/layout/mode-provider';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -670,6 +671,37 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
     );
 };
 
+const AppearanceSettings = () => {
+    const { theme, setTheme } = useTheme();
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>Customize the look and feel of the application.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <Label className="text-base">Dark Mode</Label>
+                        <p className="text-sm text-muted-foreground">
+                            Enable dark mode for the entire application.
+                        </p>
+                    </div>
+                    <Switch
+                        checked={theme === 'dark'}
+                        onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    />
+                </div>
+            </CardContent>
+             <CardFooter>
+                <p className="text-xs text-muted-foreground">
+                    Role-based themes are applied automatically and cannot be changed here.
+                </p>
+            </CardFooter>
+        </Card>
+    )
+}
 
 export default function SettingsPage() {
     const searchParams = useSearchParams();
@@ -927,15 +959,7 @@ export default function SettingsPage() {
             />
         </TabsContent>
         <TabsContent value="appearance">
-             <Card>
-                <CardHeader>
-                  <CardTitle>Appearance</CardTitle>
-                  <CardDescription>Customize the look and feel of the application.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">The theme is automatically selected based on your user role. More appearance settings are coming soon.</p>
-                </CardContent>
-            </Card>
+            <AppearanceSettings />
         </TabsContent>
         <TabsContent value="terms">
             <Card>

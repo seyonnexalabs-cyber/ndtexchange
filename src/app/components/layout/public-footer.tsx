@@ -6,7 +6,7 @@ export default function PublicFooter() {
     const platformLinks = [
         { href: '/login', label: 'Login / Dashboard' },
         { href: '/platform-workflow', label: 'How It Works' },
-        { href: '/request-demo', label: 'Request a Demo' },
+        { href: '/contact', label: 'Request a Demo' },
         { href: '/contact', label: 'Help' },
     ];
 

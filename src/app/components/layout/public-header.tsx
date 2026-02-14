@@ -21,8 +21,7 @@ export default function PublicHeader() {
     { href: '/manufacturers', label: 'Manufacturers' },
     { href: '/auditors', label: 'Auditors' },
     { href: '/platform-workflow', label: 'Workflow' },
-    { href: '/request-demo', label: 'Demo' },
-    { href: '/contact', label: 'Help & Pricing' },
+    { href: '/contact', label: 'Request a Demo' },
   ];
 
   const MobileNavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (

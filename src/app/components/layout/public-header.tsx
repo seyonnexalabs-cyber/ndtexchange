@@ -78,7 +78,7 @@ export default function PublicHeader() {
                     </div>
                      <div className="mt-8 pt-6 border-t space-y-2">
                         <Button asChild className="w-full" variant="outline" onClick={() => setMobileMenuOpen(false)}>
-                            <Link href="/login">Login</Link>
+                            <Link href="/login">Dashboard</Link>
                         </Button>
                         <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
                             <Link href="/signup">Get Started</Link>
@@ -92,7 +92,7 @@ export default function PublicHeader() {
                 asChild
                 variant="outline"
               >
-                <Link href="/login">Login</Link>
+                <Link href="/login">Dashboard</Link>
               </Button>
               <Button asChild>
                 <Link href="/signup">Get Started</Link>

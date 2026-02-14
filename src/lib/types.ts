@@ -158,10 +158,10 @@ export type Bid = {
     modifiedBy?: string;
 };
 
-export type Client = {
+export type Customer = {
     id: string;
     name: string;
-    type: 'Client';
+    type: 'Customer';
     contactPerson: string;
     contactEmail: string;
     activeJobs: number;
@@ -304,7 +304,7 @@ export type JobAuditLog = {
   jobId: string;
   jobTitle: string;
   actorName: string;
-  actorRole: 'Client' | 'Provider' | 'Admin';
+  actorRole: 'Customer' | 'Provider' | 'Admin';
   action: 'Job Created' | 'Bid Placed' | 'Job Awarded' | 'Status Changed' | 'Resource Assigned' | 'Report Submitted';
   details: string; 
 };
@@ -378,5 +378,3 @@ export type NDTTechnique = {
     modifiedAt?: any;
     modifiedBy?: string;
 };
-
-  

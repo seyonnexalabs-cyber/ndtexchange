@@ -5,15 +5,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
-import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck } from 'lucide-react';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -22,7 +20,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,7 +33,9 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc } from 'firebase/firestore';
+import type { Job, Bid, Inspection, JobDocument, NDTServiceProvider, Client, PlatformUser, Review, NDTTechnique } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const bidSchema = z.object({
@@ -414,16 +413,20 @@ export default function JobDetailPage() {
 
     const jobRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id) : null), [firestore, id]);
     const { data: jobDetails, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(jobRef);
+
+    const bidsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, 'jobs', id, 'bids') : null), [firestore, id]);
+    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
-    // Re-initialize state if id changes
+    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collectionGroup(firestore, 'inspections'), where('jobId', '==', id)) : null), [firestore, id]);
+    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
+    
     useEffect(() => {
         if (!jobDetails) return;
 
         const checkForReview = async () => {
-            if (!firestore || !jobDetails.providerId) return;
+            if (!firestore || !jobDetails.providerId || !user) return;
             const reviewsRef = collection(firestore, 'reviews');
-            // Assuming client-01 for demo consistency
-            const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'), limit(1));
+            const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', user.uid), limit(1));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const existingReview = querySnapshot.docs[0].data() as Review;
@@ -440,7 +443,7 @@ export default function JobDetailPage() {
         };
 
         checkForReview();
-    }, [id, firestore, jobDetails]);
+    }, [id, firestore, jobDetails, user]);
     
     const { data: assignedEquipment } = useCollection<any>(
         useMemoFirebase(() => {
@@ -504,32 +507,50 @@ export default function JobDetailPage() {
         setIsEquipDialogOpen(true);
     };
 
-    const handleAssignTechs = () => {
-        // In a real app, this would be a database update.
-        // For now, we simulate by just closing.
-        // setJobDetails(prev => prev ? { ...prev, technicianIds: tempSelectedTechs } : undefined);
-        toast({ title: 'Technicians updated (simulation).' });
+    const handleAssignTechs = async () => {
+        if (!firestore || !jobDetails) return;
+        await updateDoc(doc(firestore, 'jobs', jobDetails.id), { technicianIds: tempSelectedTechs });
+        toast({ title: 'Technicians updated.' });
         setIsTechDialogOpen(false);
     };
     
-    const handleAssignEquip = () => {
-        // setJobDetails(prev => prev ? { ...prev, equipmentIds: tempSelectedEquip } : undefined);
-        toast({ title: 'Equipment updated (simulation).' });
+    const handleAssignEquip = async () => {
+        if (!firestore || !jobDetails) return;
+        await updateDoc(doc(firestore, 'jobs', jobDetails.id), { equipmentIds: tempSelectedEquip });
+        toast({ title: 'Equipment updated.' });
         setIsEquipDialogOpen(false);
     };
 
-    const handleStatusChange = (newStatus: Job['status']) => {
-        // setJobDetails({ ...jobDetails, status: newStatus });
-        toast({ title: `Status changed to ${newStatus} (simulation).` });
+    const handleStatusChange = async (newStatus: Job['status']) => {
+        if (!firestore || !jobDetails) return;
+        await updateDoc(doc(firestore, 'jobs', jobDetails.id), { status: newStatus });
+        toast({ title: `Status changed to ${newStatus}.` });
     };
 
-    const handleAwardBid = (awardedBidId: string, providerId: string) => {
-        if (!jobDetails) return;
-        // This would be a backend transaction
+    const handleAwardBid = async (awardedBidId: string, providerId: string) => {
+        if (!jobDetails || !firestore || !bids) return;
+
+        const batch = writeBatch(firestore);
+        
+        bids.forEach(bid => {
+            const bidRef = doc(firestore, 'jobs', jobDetails.id, 'bids', bid.id);
+            if (bid.id === awardedBidId) {
+                batch.update(bidRef, { status: 'Awarded' });
+            } else {
+                batch.update(bidRef, { status: 'Not Selected' });
+            }
+        });
+        
+        const jobRef = doc(firestore, 'jobs', jobDetails.id);
+        batch.update(jobRef, { status: 'Assigned', providerId: providerId });
+
+        await batch.commit();
+
         toast({
-            title: "Job Awarded! (simulation)",
+            title: "Job Awarded!",
             description: `Provider has been awarded the job: ${jobDetails.title}.`,
         });
+        setReviewingBid(null);
     };
 
     const handleReviewBid = (bid: Bid) => {
@@ -539,16 +560,15 @@ export default function JobDetailPage() {
         }
     };
     
-    const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
-        if (jobDetails) {
-            // setJobDetails({ 
-            //     ...jobDetails, 
-            //     status: 'Scheduled',
-            //     scheduledStartDate: format(values.scheduledStartDate, 'yyyy-MM-dd'),
-            //     scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : format(values.scheduledStartDate, 'yyyy-MM-dd'),
-            // });
+    const handleScheduleSubmit = async (values: z.infer<typeof scheduleSchema>) => {
+        if (jobDetails && firestore) {
+            await updateDoc(doc(firestore, 'jobs', jobDetails.id), { 
+                status: 'Scheduled',
+                scheduledStartDate: format(values.scheduledStartDate, 'yyyy-MM-dd'),
+                scheduledEndDate: values.scheduledEndDate ? format(values.scheduledEndDate, 'yyyy-MM-dd') : format(values.scheduledStartDate, 'yyyy-MM-dd'),
+            });
             toast({
-                title: 'Job Scheduled (simulation)',
+                title: 'Job Scheduled',
                 description: 'The job has been scheduled and the client has been notified.',
             });
             setIsSchedulingOpen(false);
@@ -563,11 +583,11 @@ export default function JobDetailPage() {
     };
 
     const handleAuditorApprove = () => {
+        handleStatusChange('Audit Approved');
         toast({
-            title: "Report Approved by Auditor (simulation)",
+            title: "Report Approved by Auditor",
             description: `The inspection report has been approved. The client will now perform the final review.`,
         });
-        handleStatusChange('Audit Approved');
     }
 
     const handleAuditorReject = (comments: string) => {
@@ -575,16 +595,17 @@ export default function JobDetailPage() {
             toast({ variant: 'destructive', title: 'Comments Required', description: 'Please provide comments to the provider when requesting revisions.' });
             return;
         }
-        // ... create history entry ...
-        toast({ variant: "destructive", title: "Revisions Requested by Auditor (simulation)", description: "The report has been sent back to the provider for revisions." });
+        handleStatusChange('Revisions Requested');
+        // In a real app, also save the comments to the job history
+        toast({ variant: "destructive", title: "Revisions Requested by Auditor", description: "The report has been sent back to the provider for revisions." });
     }
 
     const handleClientApprove = () => {
+        handleStatusChange('Client Approved');
         toast({
-            title: "Job Approved! (simulation)",
+            title: "Job Approved!",
             description: `You have approved the report. The job is now ready for completion.`,
         });
-        handleStatusChange('Client Approved');
     }
 
     const handleClientReject = (comments: string) => {
@@ -592,10 +613,10 @@ export default function JobDetailPage() {
             toast({ variant: 'destructive', title: 'Comments Required', description: 'Please provide comments to the provider when requesting revisions.' });
             return;
         }
-        // ... create history entry ...
+        handleStatusChange('Revisions Requested');
         toast({
             variant: "destructive",
-            title: "Revisions Requested by Client (simulation)",
+            title: "Revisions Requested by Client",
             description: `The report has been sent back to the provider for revisions.`,
         });
     }
@@ -618,7 +639,7 @@ export default function JobDetailPage() {
         const reviewData = {
             jobId: jobDetails.id,
             providerId: jobDetails.providerId,
-            clientId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', // Using placeholder for demo consistency
+            clientId: user.uid,
             rating: rating,
             comment: reviewComment,
             date: serverTimestamp(),
@@ -639,29 +660,14 @@ export default function JobDetailPage() {
     };
 
     const handleSendMessage = (message: string) => {
-        if (!jobDetails) return;
-
-        // Simplified for demonstration. In a real app, this would use the logged-in user's data.
-        const currentUserDetails = allCompanies?.find(u => u.id === 'client-01');
-
-        if (!currentUserDetails) return;
-
-        const newMessage: JobMessage = {
-            user: currentUserDetails.name,
-            role: 'Client',
-            timestamp: new Date().toISOString(),
-            message: message,
-        };
-
+        // This is a simulation for now
         toast({title: 'Message sent (simulation)'});
     };
 
     const BidsSection = () => {
-        if (!jobDetails || (role !== 'client' && role !== 'admin')) return null;
+        if (!jobDetails || (role !== 'client' && role !== 'admin') || !bids) return null;
     
-        const jobBids = jobDetails.bids || [];
-    
-        if (jobBids.length === 0) {
+        if (bids.length === 0) {
             return (
                 <Card>
                     <CardHeader>
@@ -677,12 +683,12 @@ export default function JobDetailPage() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Gavel className="h-5 w-5 text-primary" />Bids Received ({jobBids.length})</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Gavel className="h-5 w-5 text-primary" />Bids Received ({bids.length})</CardTitle>
                     {jobDetails.status === 'Posted' && <CardDescription>Review the bids below and award the job to a provider.</CardDescription>}
                     {jobDetails.status !== 'Posted' && <CardDescription>A historical record of all bids submitted for this job.</CardDescription>}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {jobBids.map(bid => {
+                    {bids.map(bid => {
                         const provider = allCompanies?.find(p => p.id === bid.providerId);
                         if (!provider) return null;
                         const isAwarded = bid.status === 'Awarded';
@@ -693,7 +699,7 @@ export default function JobDetailPage() {
                             )}>
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-12 w-12">
-                                        {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} data-ai-hint={`${provider.name} logo`} />}
+                                        {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
                                         <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
@@ -734,8 +740,8 @@ export default function JobDetailPage() {
     const reportSubmitted = ['Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid', 'Revisions Requested'].includes(jobDetails.status);
     const resourceAssignmentLocked = isInspector && ['In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(jobDetails.status);
     
-    const backLink = isAdmin ? "/dashboard/all-jobs" : isAuditor ? "/dashboard/inspections" : "/dashboard/my-jobs";
-    const backText = isAdmin ? "All Jobs" : isAuditor ? "Inspections" : "My Jobs";
+    const backLink = isAdmin ? "/dashboard/all-jobs" : isAuditor ? "/dashboard/reports" : "/dashboard/my-jobs";
+    const backText = isAdmin ? "All Jobs" : isAuditor ? "Reports" : "My Jobs";
 
     const lastRejection = jobDetails.history?.find(h => h.statusChange === 'Revisions Requested');
 
@@ -789,7 +795,7 @@ export default function JobDetailPage() {
                                 </div>
                                 <div className="border-l pl-4">
                                     <p className="text-sm text-muted-foreground">Bidding</p>
-                                    <p className="font-semibold">{jobDetails.bids.length} bids · Closes {jobDetails.bidExpiryDate ? format(parseISO(jobDetails.bidExpiryDate), 'dd MMM') : 'N/A'}</p>
+                                    <p className="font-semibold">{bids?.length || 0} bids · Closes {jobDetails.bidExpiryDate ? format(parseISO(jobDetails.bidExpiryDate), 'dd MMM') : 'N/A'}</p>
                                 </div>
                             </div>
 
@@ -1011,7 +1017,7 @@ export default function JobDetailPage() {
                                             <Separator />
                                             <div>
                                             <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
-                                            {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map((inspection, i) => {
+                                            {inspections && inspections.length > 0 ? inspections.map((inspection, i) => {
                                                 const report = inspection.report;
                                                 return (
                                                     <Card key={`${inspection.id}-${i}`} className="mb-4 bg-background">

@@ -56,6 +56,13 @@
         { "fieldPath": "inspectorId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "inspections",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "jobId", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -374,18 +374,20 @@ const InspectorDashboard = () => {
     
     const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const myBidsQuery = useMemoFirebase(() => authUser ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', authUser.uid), where('status', 'in', ['Submitted', 'Shortlisted'])) : null, [firestore, authUser]);
+    const myBidsQuery = useMemoFirebase(() => authUser ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', authUser.uid)) : null, [firestore, authUser]);
 
     const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: providerEquipment, isLoading: isLoadingEquip } = useCollection<any>(equipmentQuery);
-    const { data: openBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
+    const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
 
-    const stats = useMemo(() => ({
-        activeAssignments: providerJobs?.filter(j => j.status === 'In Progress').length || 0,
-        openBidsCount: openBids?.length || 0,
-        equipmentAlerts: providerEquipment?.filter(e => e.status === 'Calibration Due' || e.status === 'Out of Service').length || 0,
-        reportsToSubmit: providerJobs?.filter(j => (j.status === 'In Progress' && j.scheduledEndDate && isAfter(new Date(), new Date(j.scheduledEndDate))) || j.status === 'Completed').length || 0,
-    }), [providerJobs, providerEquipment, openBids]);
+    const stats = useMemo(() => {
+        const openBids = myBids?.filter(b => ['Submitted', 'Shortlisted'].includes(b.status)) || [];
+        return {
+            activeAssignments: providerJobs?.filter(j => j.status === 'In Progress').length || 0,
+            openBidsCount: openBids.length,
+            equipmentAlerts: providerEquipment?.filter(e => e.status === 'Calibration Due' || e.status === 'Out of Service').length || 0,
+            reportsToSubmit: providerJobs?.filter(j => (j.status === 'In Progress' && j.scheduledEndDate && isAfter(new Date(), new Date(j.scheduledEndDate))) || j.status === 'Completed').length || 0,
+    }}, [providerJobs, providerEquipment, myBids]);
 
     const schedule = useMemo(() => {
         if (!today || !providerJobs) return [];

@@ -35,10 +35,9 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
-      allow create: if isSignedIn();
-      // Allow any signed-in user to read any profile for rule lookups.
-      // Updates are still restricted to the owner.
-      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow get: if isSignedIn(); // Allow any signed-in user to read any profile for rule lookups.
+      allow list: if isAdmin(); // Only admins can list users
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner
@@ -82,7 +81,7 @@ service cloud.firestore {
       // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
       // You can only get/update/delete an asset if you're part of the asset's company.
-      allow get, update, delete: if (isSignedIn() && resource.data.companyId == getUserCompanyId());
+      allow get, update, delete: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
       
       match /inspections/{inspectionId} {
         allow write: if isAdmin(); // Admin can seed

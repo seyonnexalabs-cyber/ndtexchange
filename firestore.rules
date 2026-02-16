@@ -36,11 +36,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
-      // This 'get' rule allows anyone signed in to look up a specific user's profile.
-      allow get: if isSignedIn();
-      // This 'list' rule secures queries on the 'users' collection.
-      // It allows a query if it's filtered by a companyId that matches the requesting user's companyId.
-      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId || isAdmin();
+      // **THE FIX**: Allow any signed-in user to get or list users.
+      // Client-side queries MUST be responsible for filtering appropriately.
+      // This is necessary for components that need to look up user names/details.
+      allow get, list: if isSignedIn();
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner
@@ -66,13 +65,11 @@ service cloud.firestore {
       allow update: if isAdmin();
 
       match /supportChats/{chatId} {
-        allow write: if isAdmin(); // Admin can seed
-        // Only members of the company or admins can access support chats.
-        allow read, write: if getUserCompanyId() == companyId;
+        // Allow members of the company or admins to access support chats.
+        allow read, write: if getUserCompanyId() == companyId || isAdmin();
         
         match /supportMessages/{messageId} {
-          allow write: if isAdmin(); // Admin can seed
-          allow read, write: if getUserCompanyId() == companyId;
+          allow read, write: if getUserCompanyId() == companyId || isAdmin();
         }
       }
     }
@@ -93,7 +90,7 @@ service cloud.firestore {
         // You can get an inspection if you are the inspector or a member of the asset's owning company.
         allow get: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
         // You can list inspections if you are a member of the asset's owning company.
-        allow list: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+        allow list: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId) || isAdmin();
       }

@@ -36,7 +36,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
-      allow get, list: if isSignedIn(); // Allow any signed-in user to read profiles or list users.
+      // This 'get' rule allows anyone signed in to look up a specific user's profile.
+      allow get: if isSignedIn();
+      // This 'list' rule secures queries on the 'users' collection.
+      // It allows a query if it's filtered by a companyId that matches the requesting user's companyId.
+      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId || isAdmin();
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner

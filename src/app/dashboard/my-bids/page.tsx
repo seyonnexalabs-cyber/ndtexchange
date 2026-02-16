@@ -126,7 +126,6 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                         <TableHead>Job</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Your Bid</TableHead>
-                        <TableHead>Competitors</TableHead>
                         <TableHead>Decision By</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -145,7 +144,6 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                 </Badge>
                             </TableCell>
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
-                            <TableCell>{bid.job.bids.length} bids</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                   <span>{bid.job.bidExpiryDate ? format(new Date(bid.job.bidExpiryDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>

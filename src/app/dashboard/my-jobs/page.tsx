@@ -62,9 +62,9 @@ export default function MyJobsPage() {
 
 
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]));
-    const { data: allEquipment, isLoading: isLoadingEquipment } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'equipment') : null, [firestore]));
-    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
+    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'users') : null, [firestore, user]));
+    const { data: allEquipment, isLoading: isLoadingEquipment } = useCollection<any>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'equipment') : null, [firestore, user]));
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'companies') : null, [firestore, user]));
 
 
     const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {

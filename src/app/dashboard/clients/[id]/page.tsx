@@ -13,7 +13,7 @@ import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Client, Job, Subscription, PlatformUser } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,7 +32,7 @@ export default function ClientDetailPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const isMobile = useMobile();
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
     
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -43,14 +43,14 @@ export default function ClientDetailPage() {
     const clientRef = useMemoFirebase(() => firestore && id ? doc(firestore, 'companies', id as string) : null, [firestore, id]);
     const { data: client, isLoading: isLoadingClient } = useDoc<Client>(clientRef);
     
-    const jobsQuery = useMemoFirebase(() => firestore && id ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', id)) : null, [firestore, id]);
+    const jobsQuery = useMemoFirebase(() => (firestore && user && id) ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', id)) : null, [firestore, user, id]);
     const { data: clientJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
-    const subscriptionQuery = useMemoFirebase(() => firestore && id ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null, [firestore, id]);
+    const subscriptionQuery = useMemoFirebase(() => (firestore && user && id) ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null, [firestore, user, id]);
     const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
     const subscription = subscriptions?.[0];
 
-    const teamQuery = useMemoFirebase(() => firestore && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null, [firestore, id]);
+    const teamQuery = useMemoFirebase(() => (firestore && user && id) ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null, [firestore, user, id]);
     const { data: clientTeam, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
     const clientStats = useMemo(() => {

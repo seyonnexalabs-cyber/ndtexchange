@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useFirebase, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,28 +40,28 @@ export default function ProviderDetailPage() {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
     
     const providerRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'companies', id as string) : null), [firestore, id]);
     const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(providerRef);
 
-    const teamQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null), [firestore, id]);
+    const teamQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null), [firestore, user, id]);
     const { data: providerTechnicians, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
-    const equipmentQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, id]);
+    const equipmentQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, user, id]);
     const { data: publicEquipment, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
 
-    const subscriptionQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null), [firestore, id]);
+    const subscriptionQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null), [firestore, user, id]);
     const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
     const subscription = subscriptions?.[0];
     
-    const reviewsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'reviews'), where('providerId', '==', id), where('status', '==', 'Approved')) : null), [firestore, id]);
+    const reviewsQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'reviews'), where('providerId', '==', id), where('status', '==', 'Approved')) : null), [firestore, user, id]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
     
-    const allClientsQuery = useMemoFirebase(() => (firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null), [firestore]);
+    const allClientsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null), [firestore, user]);
     const { data: allClients, isLoading: isLoadingClients } = useCollection<any>(allClientsQuery);
 
-    const allNdtTechniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
+    const allNdtTechniquesQuery = useMemoFirebase(() => (firestore && user ? collection(firestore, 'techniques') : null), [firestore, user]);
     const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(allNdtTechniquesQuery);
 
     const providerReviews = useMemo(() => {

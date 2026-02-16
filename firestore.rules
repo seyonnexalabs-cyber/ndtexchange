@@ -36,9 +36,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isSignedIn();
-      // A user can only get their own document. Admins can read any.
-      allow get: if isOwner(userId) || isAdmin();
-      // Only Admins can list all users.
+      // Allow any signed-in user to read profiles (needed for rules), but only owner can update.
+      allow get: if isSignedIn();
       allow list: if isAdmin();
       allow update, delete: if isOwner(userId);
 
@@ -90,9 +89,9 @@ service cloud.firestore {
         // Creating an inspection is allowed if you are a member of the asset's company.
         allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
         // You can get an inspection if you are the inspector or a member of the asset's owning company.
-        allow get: if isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+        allow get: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
         // You can list inspections if you are a member of the asset's owning company.
-        allow list: if get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+        allow list: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId);
       }
@@ -114,7 +113,7 @@ service cloud.firestore {
         // An inspector can create a bid for their own user ID.
         allow create: if (isSignedIn() && request.resource.data.inspectorId == request.auth.uid);
         // The job client, the bidding inspector, or an admin can read bids.
-        allow read: if isOwner(resource.data.inspectorId) || getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId;
+        allow read: if isSignedIn() && (isOwner(resource.data.inspectorId) || getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId);
         // Only the bidding inspector can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId);
       }

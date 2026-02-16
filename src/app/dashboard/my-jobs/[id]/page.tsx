@@ -1,12 +1,10 @@
-
 'use client';
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, NDTServiceProvider, JobDocument } from '@/lib/types';
-import { allUsers, inspectorAssets, clientData, serviceProviders } from '@/lib/seed-data';
+import type { Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, NDTServiceProvider, JobDocument, Client, NDTTechnique } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +27,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ndtTechniques as allNdtTechniques } from '@/lib/ndt-techniques-data';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -444,6 +441,23 @@ export default function JobDetailPage() {
         checkForReview();
     }, [id, firestore, jobDetails]);
     
+    const techniciansQuery = useMemoFirebase(() => {
+        if (!firestore || !jobDetails?.technicianIds || jobDetails.technicianIds.length === 0) return null;
+        return query(collection(firestore, 'users'), where('id', 'in', jobDetails.technicianIds.slice(0, 10)));
+    }, [firestore, jobDetails]);
+    const { data: assignedTechnicians } = useCollection<PlatformUser>(techniciansQuery);
+
+    const equipmentQuery = useMemoFirebase(() => {
+        if (!firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) return null;
+        return query(collection(firestore, 'equipment'), where('id', 'in', jobDetails.equipmentIds.slice(0, 10)));
+    }, [firestore, jobDetails]);
+    const { data: assignedEquipment } = useCollection<any>(equipmentQuery);
+
+    const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
+    const { data: allNdtTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+
+    const provider = useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
+
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
     if (isLoadingJob) {
@@ -483,9 +497,6 @@ export default function JobDetailPage() {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
-
-    const assignedTechnicians = allUsers.filter(u => u.role === 'Inspector' && jobDetails.technicianIds?.includes(u.id));
-    const assignedEquipment = inspectorAssets.filter(e => jobDetails.equipmentIds?.includes(e.id));
     
     const openTechDialog = () => {
         setTempSelectedTechs([...(jobDetails.technicianIds || [])]);
@@ -526,7 +537,7 @@ export default function JobDetailPage() {
     };
 
     const handleReviewBid = (bid: Bid) => {
-        const provider = serviceProviders.find(p => p.id === bid.providerId);
+        const provider = allCompanies?.find(p => p.id === bid.providerId);
         if (provider) {
             setReviewingBid({ ...bid, provider });
         }
@@ -634,31 +645,18 @@ export default function JobDetailPage() {
     const handleSendMessage = (message: string) => {
         if (!jobDetails) return;
 
-        const currentUserDetails = {
-            client: allUsers.find(u => u.id === 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2'),
-            inspector: allUsers.find(u => u.id === 'NAXP822MG6cWlaCNkaqkYpxDRmQ2'), // A representative inspector
-            auditor: allUsers.find(u => u.id === 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2'),
-            admin: allUsers.find(u => u.id === 'JB5zgSrcKJX3dbNgPJmhlOcrUI62'),
-        };
+        // Simplified for demonstration. In a real app, this would use the logged-in user's data.
+        const currentUserDetails = allCompanies?.find(u => u.id === 'client-01');
 
-        const currentUser = currentUserDetails[role as keyof typeof currentUserDetails];
-
-        if (!currentUser) return;
+        if (!currentUserDetails) return;
 
         const newMessage: JobMessage = {
-            user: currentUser.name,
-            role: currentUser.role.split(' ')[0] as 'Client' | 'Inspector' | 'Auditor',
+            user: currentUserDetails.name,
+            role: 'Client',
             timestamp: new Date().toISOString(),
             message: message,
         };
 
-        // setJobDetails(prev => {
-        //     if (!prev) return undefined;
-        //     return {
-        //         ...prev,
-        //         messages: [...(prev.messages || []), newMessage],
-        //     };
-        // });
         toast({title: 'Message sent (simulation)'});
     };
 
@@ -689,7 +687,7 @@ export default function JobDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {jobBids.map(bid => {
-                        const provider = serviceProviders.find(p => p.id === bid.providerId);
+                        const provider = allCompanies?.find(p => p.id === bid.providerId);
                         if (!provider) return null;
                         const isAwarded = bid.status === 'Awarded';
                         return (
@@ -699,7 +697,7 @@ export default function JobDetailPage() {
                             )}>
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-12 w-12">
-                                        <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} data-ai-hint={`${provider.name} logo`} />
+                                        {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} data-ai-hint={`${provider.name} logo`} />}
                                         <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
@@ -940,7 +938,7 @@ export default function JobDetailPage() {
                                     </div>
                                     <div className="flex flex-wrap gap-1">
                                         {(jobDetails.techniques || []).filter(Boolean).map((tech: string, i: number) => {
-                                            const techData = allNdtTechniques.find(t => t.id.toUpperCase() === tech);
+                                            const techData = allNdtTechniques?.find(t => t.id.toUpperCase() === tech);
                                             return (
                                                 <Tooltip key={i}>
                                                     <TooltipTrigger>
@@ -1087,7 +1085,7 @@ export default function JobDetailPage() {
                                             </Button>
                                         )}
                                     </div>
-                                    {assignedTechnicians.length > 0 ? (
+                                    {assignedTechnicians && assignedTechnicians.length > 0 ? (
                                         <ul className="space-y-2 pl-2">
                                             {assignedTechnicians.map(tech => (
                                                 <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} <span className="font-bold text-xs">({tech.id})</span> - {tech.level}</li>
@@ -1105,7 +1103,7 @@ export default function JobDetailPage() {
                                             </Button>
                                         )}
                                     </div>
-                                    {assignedEquipment.length > 0 ? (
+                                    {assignedEquipment && assignedEquipment.length > 0 ? (
                                         <ul className="space-y-2 pl-2">
                                             {assignedEquipment.map(equip => (
                                                 <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
@@ -1144,3 +1142,4 @@ export default function JobDetailPage() {
 
 
     
+

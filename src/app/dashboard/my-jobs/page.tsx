@@ -62,8 +62,6 @@ export default function MyJobsPage() {
 
 
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'users') : null, [firestore, user]));
-    const { data: allEquipment, isLoading: isLoadingEquipment } = useCollection<any>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'equipment') : null, [firestore, user]));
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'companies') : null, [firestore, user]));
 
 
@@ -171,7 +169,7 @@ export default function MyJobsPage() {
         return allCompanies.filter(p => p.type === 'Provider' && providerIds.has(p.id));
     }, [role, jobsFromDb, allCompanies]);
 
-    if (isLoadingJobs || !userProfile || isLoadingUsers || isLoadingEquipment || isLoadingCompanies) {
+    if (isLoadingJobs || !userProfile || isLoadingCompanies) {
         return (
             <div>
                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -312,8 +310,6 @@ export default function MyJobsPage() {
             {displayedJobs.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                     {displayedJobs.map(job => {
-                        const assignedTechnicians = allUsers?.filter(t => t.role === 'Inspector' && job.technicianIds?.includes(t.id));
-                        const assignedEquipment = allEquipment?.filter(e => job.equipmentIds?.includes(e.id));
                         const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
 
                         const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
@@ -392,30 +388,12 @@ export default function MyJobsPage() {
                                         <>
                                             <div>
                                                 <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Assigned Technicians</h4>
-                                                {assignedTechnicians && assignedTechnicians.length > 0 ? (
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {assignedTechnicians.map(tech => (
-                                                            <Badge key={tech.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
-                                                                <User className="w-3 h-3 text-primary"/>
-                                                                {tech.name}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                ) : <p className="text-xs text-muted-foreground">No technicians assigned yet.</p>}
+                                                <p className="text-xs text-muted-foreground">{job.technicianIds?.length || 0} technician(s) assigned.</p>
                                             </div>
 
                                              <div>
                                                 <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4 text-primary"/> Assigned Equipment</h4>
-                                                 {assignedEquipment && assignedEquipment.length > 0 ? (
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {assignedEquipment.map(equip => (
-                                                             <Badge key={equip.id} variant="secondary" className="flex items-center gap-1.5 pl-1.5">
-                                                                {equipmentIcons[equip.techniques[0] as keyof typeof equipmentIcons] || <Wrench className="w-3 h-3"/>}
-                                                                {equip.name}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                ) : <p className="text-xs text-muted-foreground">No equipment assigned yet.</p>}
+                                                <p className="text-xs text-muted-foreground">{job.equipmentIds?.length || 0} item(s) assigned.</p>
                                             </div>
                                         </>
                                     )}

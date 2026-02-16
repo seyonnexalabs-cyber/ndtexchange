@@ -799,7 +799,7 @@ export default function JobDetailPage() {
                             </div>
 
                             <div className="flex flex-wrap gap-2">
-                                {allJobTags.map((tag, i) => <Badge key={i} variant="secondary">{tag}</Badge>)}
+                                {allJobTags.map((tag, i) => <Badge key={`${tag}-${i}`} variant="secondary">{tag}</Badge>)}
                             </div>
 
                             <p className="text-muted-foreground whitespace-pre-wrap">{jobDetails.description}</p>
@@ -807,7 +807,7 @@ export default function JobDetailPage() {
                             <div>
                                 <h3 className="font-semibold text-lg mb-2">Requirements</h3>
                                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                   {jobDetails.certificationsRequired?.split(',').map(req => <li key={req}>{req.trim()}</li>)}
+                                   {jobDetails.certificationsRequired?.split(',').map((req, index) => <li key={`${req.trim()}-${index}`}>{req.trim()}</li>)}
                                    {/* Add more static requirements if needed from description */}
                                    <li>Minimum 5 years refinery inspection experience</li>
                                    <li>Valid OISD / PESO certifications</li>
@@ -1009,9 +1009,9 @@ export default function JobDetailPage() {
                                         </div>
                                         {(jobDetails.documents && jobDetails.documents.length > 0) ? (
                                             <div className="space-y-2 rounded-md border p-2">
-                                                {jobDetails.documents.map((doc, i) => (
+                                                {jobDetails.documents.map((doc) => (
                                                     <button 
-                                                        key={i} 
+                                                        key={doc.name} 
                                                         className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
                                                         onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
                                                     >
@@ -1134,16 +1134,3 @@ export default function JobDetailPage() {
     );
 }
 
-    
-
-
-
-
-
-
-
-    
-
-
-
-    

@@ -21,7 +21,12 @@ service cloud.firestore {
     }
 
     function getUserCompanyId() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+      // Safely get the user's company ID, returning null if not found.
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      if (userDoc != null && 'companyId' in userDoc.data) {
+        return userDoc.data.companyId;
+      }
+      return null;
     }
 
     // --------------------------------

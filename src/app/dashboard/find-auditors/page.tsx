@@ -142,14 +142,14 @@ const DesktopView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl
                             <TableCell>{firm.location}</TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1 w-48">
-                                    {firm.services.slice(0, 3).map(service => <Badge key={service} variant="secondary">{service}</Badge>)}
-                                    {firm.services.length > 3 && <Badge variant="outline">+{firm.services.length - 3}</Badge>}
+                                    {(firm.services || []).slice(0, 3).map(service => <Badge key={service} variant="secondary">{service}</Badge>)}
+                                    {(firm.services || []).length > 3 && <Badge variant="outline">+{firm.services.length - 3}</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1 w-48">
-                                    {firm.industries.slice(0, 3).map(industry => <Badge key={industry} variant="outline">{industry}</Badge>)}
-                                    {firm.industries.length > 3 && <Badge variant="outline">+{firm.industries.length - 3}</Badge>}
+                                    {(firm.industries || []).slice(0, 3).map(industry => <Badge key={industry} variant="outline">{industry}</Badge>)}
+                                    {(firm.industries || []).length > 3 && <Badge variant="outline">+{firm.industries.length - 3}</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -192,7 +192,7 @@ const MobileView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl:
                     <div>
                         <h4 className="text-sm font-semibold mb-2">Services Offered</h4>
                         <div className="flex flex-wrap gap-1.5 min-h-[50px]">
-                            {firm.services.map(tech => (
+                            {(firm.services || []).map(tech => (
                                 <Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>
                             ))}
                         </div>
@@ -200,7 +200,7 @@ const MobileView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl:
                      <div>
                         <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
                         <div className="flex flex-wrap gap-1.5 min-h-[50px]">
-                            {firm.industries.map(tech => (
+                            {(firm.industries || []).map(tech => (
                                 <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
                             ))}
                         </div>
@@ -257,8 +257,8 @@ export default function AuditorsPage() {
     const filteredAuditors = useMemo(() => {
         if (!firms) return [];
         return firms.filter(firm => {
-            const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => firm.services.includes(s));
-            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => firm.industries.includes(i));
+            const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => (firm.services || []).includes(s));
+            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => (firm.industries || []).includes(i));
             return serviceMatch && industryMatch;
         });
     }, [selectedServices, selectedIndustries, firms]);

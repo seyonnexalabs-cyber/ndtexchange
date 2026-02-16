@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -81,8 +81,8 @@ export default function FindProvidersPage() {
         });
 
         let providers = providersWithStats.filter(provider => {
-            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques?.includes(tech));
-            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => provider.industries?.includes(ind));
+            const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => (provider.techniques || []).includes(tech));
+            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => (provider.industries || []).includes(ind));
             return techniqueMatch && industryMatch;
         });
         
@@ -308,7 +308,7 @@ export default function FindProvidersPage() {
                                     <div>
                                         <h4 className="text-sm font-semibold mb-2">Industry Focus</h4>
                                         <div className="flex flex-wrap gap-1.5">
-                                            {provider.industries?.map(tech => (
+                                            {(provider.industries || []).map(tech => (
                                                 <Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>
                                             ))}
                                         </div>

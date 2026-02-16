@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ export default function PublicHeader() {
     { href: '/auditors', label: 'Auditors' },
     { href: '/platform-workflow', label: 'Workflow' },
     { href: '/contact', label: 'Request a Demo' },
+    { href: '/help', label: 'Help' },
   ];
 
   const MobileNavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (

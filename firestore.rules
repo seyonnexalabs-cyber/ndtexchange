@@ -72,9 +72,9 @@ service cloud.firestore {
       allow write: if isAdmin(); // Admin can seed
       // A user can create an asset for their own company.
       allow create: if (isSignedIn() && request.resource.data.companyId == getUserCompanyId());
-      // A user can read an asset if they belong to that asset's company.
-      allow read: if (isSignedIn() && resource.data.companyId == getUserCompanyId());
-      // Listing is allowed, and secured by client-side queries and the `read` rule.
+      // A user can get an asset if they belong to that asset's company.
+      allow get: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+      // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
       // You can only update/delete an asset if you're part of the asset's company.
       allow update, delete: if (isSignedIn() && resource.data.companyId == getUserCompanyId());
@@ -83,8 +83,10 @@ service cloud.firestore {
         allow write: if isAdmin(); // Admin can seed
         // Creating an inspection is allowed if you are a member of the asset's company.
         allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
-        // You can read/list an inspection if you are the inspector or a member of the asset's owning company.
-        allow read, list: if isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+        // You can get an inspection if you are the inspector or a member of the asset's owning company.
+        allow get: if isOwner(get(/databases/$(database)/documents/assets/$(assetId)/inspections/$(inspectionId)).data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+        // You can list inspections if you are a member of the asset's owning company.
+        allow list: if get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId);
       }

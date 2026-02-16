@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { jobs as initialJobs, Job } from '@/lib/seed-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,9 @@ import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { NDTTechniques as NDTTechniquesData } from '@/lib/ndt-techniques-data';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Job, NDTTechnique } from '@/lib/types';
 
 export default function FindJobsPage() {
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
@@ -24,6 +25,13 @@ export default function FindJobsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
+    const { firestore } = useFirebase();
+
+    const jobsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'jobs'), where('status', 'in', ['Posted'])) : null, [firestore]);
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
+    const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
 
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -37,7 +45,8 @@ export default function FindJobsPage() {
     }
 
     const filteredJobs = useMemo(() => {
-        const openJobs = initialJobs.filter(j => j.status === 'Posted' || (j.status === 'Posted' && j.bidExpiryDate && new Date(j.bidExpiryDate) < new Date()));
+        if (!jobs) return [];
+        const openJobs = jobs.filter(j => j.status === 'Posted' || (j.status === 'Posted' && j.bidExpiryDate && new Date(j.bidExpiryDate) < new Date()));
         
         return openJobs.filter(job => {
             const searchMatch = !searchQuery || 
@@ -49,7 +58,7 @@ export default function FindJobsPage() {
 
             return searchMatch && techniqueMatch && locationMatch;
         });
-    }, [searchQuery, selectedTechniques, locationFilter]);
+    }, [searchQuery, selectedTechniques, locationFilter, jobs]);
 
 
     if (role && role !== 'inspector') {
@@ -86,16 +95,16 @@ export default function FindJobsPage() {
                                     </p>
                                 </div>
                                 <div className="grid gap-2 max-h-60 overflow-y-auto p-1">
-                                    {NDTTechniquesData.map(tech => (
+                                    {ndtTechniques?.map(tech => (
                                         <div key={tech.id} className="flex items-center space-x-2">
                                                 <Checkbox 
                                                 id={`tech-${tech.id}`} 
-                                                checked={selectedTechniques.includes(tech.id)}
+                                                checked={selectedTechniques.includes(tech.acronym)}
                                                 onCheckedChange={(checked) => {
-                                                    setSelectedTechniques(prev => checked ? [...prev, tech.id] : prev.filter(t => t !== tech.id))
+                                                    setSelectedTechniques(prev => checked ? [...prev, tech.acronym] : prev.filter(t => t !== tech.acronym))
                                                 }}
                                                 />
-                                            <Label htmlFor={`tech-${tech.id}`}>{tech.title} ({tech.id})</Label>
+                                            <Label htmlFor={`tech-${tech.id}`}>{tech.title} ({tech.acronym})</Label>
                                         </div>
                                     ))}
                                 </div>
@@ -111,7 +120,7 @@ export default function FindJobsPage() {
                     <span className="text-sm font-medium">Active Technique Filters:</span>
                     {selectedTechniques.map(techId => (
                         <Badge key={techId} variant="secondary">
-                            {NDTTechniquesData.find(t => t.id === techId)?.name}
+                            {ndtTechniques?.find(t => t.acronym === techId)?.title}
                             <button onClick={() => setSelectedTechniques(p => p.filter(t => t !== techId))} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3 text-primary" />
                             </button>

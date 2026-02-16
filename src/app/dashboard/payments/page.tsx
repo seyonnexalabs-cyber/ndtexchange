@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -9,11 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { jobPayments, JobPayment, jobs, Job } from "@/lib/placeholder-data";
-import { serviceProviders } from '@/lib/service-providers-data';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Briefcase, Calendar, Building, HardHat, ShieldCheck, Calendar as CalendarIcon } from "lucide-react";
+import { DollarSign, HardHat, ShieldCheck, Calendar as CalendarIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
@@ -23,11 +19,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
-import { CustomDateInput } from '@/components/ui/custom-date-input';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Job, JobPayment, PlatformUser } from '@/lib/types';
 
 
 const createPaymentSchema = (isClient: boolean, getJobById: (id: string) => Job | undefined) => {
@@ -169,7 +167,7 @@ const RecordPaymentForm = ({
                             </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                            <CalendarComponent
+                            <Calendar
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
@@ -211,22 +209,22 @@ const paymentStatusVariants: Record<JobPayment['status'], 'success' | 'outline'>
     'Pending': 'outline',
 };
 
-const userDetails = {
-    client: { company: 'Global Energy Corp.' },
-    inspector: { company: 'TEAM, Inc.' },
-    auditor: { company: 'NDT Auditors LLC' },
-    admin: { company: 'NDT Exchange' },
-};
-
 const PaymentsPage = () => {
     const isMobile = useMobile();
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
     const { toast } = useToast();
+    const { firestore, user } = useFirebase();
+
+    const { data: jobPayments } = useCollection<JobPayment>(useMemoFirebase(() => firestore ? collection(firestore, 'jobPayments') : null, [firestore]));
+    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]));
+    const { data: currentUser } = useDoc<PlatformUser>(useMemoFirebase(() => firestore && user ? doc(firestore, 'users', user.uid) : null, [firestore, user]));
     
     const { filteredPayments, title, canRecordPayment } = useMemo(() => {
-        const currentUserCompany = userDetails[role as keyof typeof userDetails]?.company;
+        if (!jobPayments || !currentUser) return { filteredPayments: [], title: 'Payment Tracking', canRecordPayment: false };
+
+        const currentUserCompany = currentUser.company;
         let payments: JobPayment[] = [];
         let pageTitle = 'Payment Tracking';
         let showRecordButton = false;
@@ -252,23 +250,21 @@ const PaymentsPage = () => {
         }
         
         return { filteredPayments: payments.sort((a, b) => new Date(b.paidOn).getTime() - new Date(a.paidOn).getTime()), title: pageTitle, canRecordPayment: showRecordButton };
-    }, [role]);
+    }, [role, jobPayments, currentUser]);
 
     const jobsForPayment = useMemo(() => {
-        const currentUserCompany = userDetails[role as keyof typeof userDetails]?.company;
+        if (!jobs || !currentUser) return [];
+
+        const currentUserCompany = currentUser.company;
         const paymentEligibleStatuses = ['Client Approved', 'Completed', 'Audit Approved'];
         if (role === 'client') {
             return jobs.filter(j => j.client === currentUserCompany && paymentEligibleStatuses.includes(j.status));
         }
-        if (role === 'inspector') {
-            const provider = serviceProviders.find(p => p.name === currentUserCompany);
-            if (!provider) return [];
-            return jobs.filter(j => j.providerId === provider.id && paymentEligibleStatuses.includes(j.status));
-        }
         return [];
-    }, [role]);
+    }, [role, jobs, currentUser]);
 
      const handleFormSubmit = (values: PaymentFormValues) => {
+        if (!jobs) return;
         const job = jobs.find(j => j.id === values.jobId);
         if (!job) return;
 
@@ -396,7 +392,7 @@ const PaymentsPage = () => {
                         role={role}
                         onSubmit={handleFormSubmit}
                         onCancel={() => setIsRecordPaymentOpen(false)}
-                        allJobs={jobs}
+                        allJobs={jobs || []}
                     />
                 </DialogContent>
             </Dialog>

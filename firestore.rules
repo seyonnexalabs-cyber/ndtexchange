@@ -31,7 +31,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isSignedIn();
-      allow get, list: if isSignedIn();
+      // A user can only get their own document. Admins can read any.
+      allow get: if isOwner(userId) || isAdmin();
+      // Only Admins can list all users.
+      allow list: if isAdmin();
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner
@@ -72,12 +75,10 @@ service cloud.firestore {
       allow write: if isAdmin(); // Admin can seed
       // A user can create an asset for their own company.
       allow create: if (isSignedIn() && request.resource.data.companyId == getUserCompanyId());
-      // A user can get an asset if they belong to that asset's company.
-      allow get: if isSignedIn() && resource.data.companyId == getUserCompanyId();
       // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
-      // You can only update/delete an asset if you're part of the asset's company.
-      allow update, delete: if (isSignedIn() && resource.data.companyId == getUserCompanyId());
+      // You can only get/update/delete an asset if you're part of the asset's company.
+      allow get, update, delete: if (isSignedIn() && resource.data.companyId == getUserCompanyId());
       
       match /inspections/{inspectionId} {
         allow write: if isAdmin(); // Admin can seed

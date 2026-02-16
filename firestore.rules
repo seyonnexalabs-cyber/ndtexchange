@@ -87,6 +87,7 @@ service cloud.firestore {
 
     // Rule to allow inspectors to query their own bids across all jobs.
     match /{path=**}/bids/{bidId} {
+      allow list: if isSignedIn() && request.auth.uid == resource.data.inspectorId;
       allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
 

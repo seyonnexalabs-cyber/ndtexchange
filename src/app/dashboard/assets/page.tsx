@@ -32,6 +32,7 @@ const assetIcons = {
 };
 
 const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscriptionActive }: { assets: Asset[], isLoading: boolean, onApprove: (id: string) => void, onReject: (id: string) => void, isSubscriptionActive: boolean }) => {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const { searchQuery } = useSearch();
@@ -106,10 +107,12 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                         {locationAssets.map((asset) => {
                             return (
                                 <Card key={asset.id} className={cn(
-                                    "flex flex-col",
+                                    "flex flex-col cursor-pointer transition-all hover:border-primary/50 hover:shadow-md",
                                     asset.approvalStatus === 'Pending Approval' && "border-amber-500/50 bg-amber-500/5",
                                     asset.status === 'Requires Inspection' && "border-destructive/50 bg-destructive/5"
-                                )}>
+                                )}
+                                onClick={() => router.push(constructUrl(`/dashboard/assets/${asset.id}`))}
+                                >
                                     <CardHeader className="p-0">
                                         <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
                                             {asset.thumbnailUrl ? (
@@ -145,8 +148,8 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                     <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
                                        {isCompanyAdmin && asset.approvalStatus === 'Pending Approval' ? (
                                             <div className="flex w-full justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => onReject(asset.id)}>Reject</Button>
-                                                <Button size="sm" onClick={() => onApprove(asset.id)}>Approve</Button>
+                                                <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); onReject(asset.id)}}>Reject</Button>
+                                                <Button size="sm" onClick={(e) => {e.stopPropagation(); onApprove(asset.id)}}>Approve</Button>
                                             </div>
                                         ) : asset.approvalStatus === 'Pending Approval' ? (
                                             <div className="w-full text-center">
@@ -157,12 +160,11 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                                 <span>Next: {format(new Date(asset.nextInspection), 'dd-MMM-yyyy')}</span>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
                                                             <MoreVertical className="h-4 w-4 text-primary" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/assets/${asset.id}`)}>View Details</Link></DropdownMenuItem>
+                                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                                                         <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
                                                         <DropdownMenuItem>Archive</DropdownMenuItem>
                                                     </DropdownMenuContent>

@@ -48,6 +48,14 @@
         { "fieldPath": "inspectorId", "order": "ASCENDING" },
         { "fieldPath": "submittedDate", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "bids",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "inspectorId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

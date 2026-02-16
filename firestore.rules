@@ -81,16 +81,16 @@ service cloud.firestore {
       // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
       // A user can read, update, or delete an asset IFF they belong to that asset's company.
-      allow get, update, delete: if (isSignedIn() && resource.data.companyId == getUserCompanyId());
+      allow get, update, delete: if (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
       
       match /inspections/{inspectionId} {
         allow write: if isAdmin(); // Admin can seed
         // Creating an inspection is allowed if you are a member of the asset's company.
-        allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
+        allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
         // You can get an inspection if you are the inspector or a member of the asset's owning company.
-        allow get: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId());
+        allow get: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
         // You can list inspections if you are a member of the asset's owning company.
-        allow list: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == getUserCompanyId();
+        allow list: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId) || isAdmin();
       }

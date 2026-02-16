@@ -16,8 +16,8 @@ import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, getDoc, query, where } from 'firebase/firestore';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { collection, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { Asset, PlatformUser } from '@/lib/types';
@@ -228,28 +228,23 @@ export default function AssetsPage() {
     const isSubscriptionActive = false;
 
     const { firestore, user: authUser } = useFirebase();
-    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
-
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
+    
     useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
     }, [role, router, searchParams]);
-
-    useEffect(() => {
-        if (authUser && firestore) {
-            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
-                if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
-            });
-        }
-    }, [authUser, firestore]);
     
     const assetsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
         return query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId));
     }, [firestore, userProfile]);
     
-    const { data: assetsFromDb, isLoading } = useCollection<Asset>(assetsQuery);
+    const { data: assetsFromDb, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
+    const isLoading = isLoadingAssets || isLoadingProfile;
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());

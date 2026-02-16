@@ -1,8 +1,9 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import type { Job, PlatformUser, Inspection } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
@@ -193,6 +194,7 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
 
 export default function ReportsPage() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const role = searchParams.get('role') || 'client';
     const tabParam = searchParams.get('tab');
     const { searchQuery } = useSearch();

@@ -1,39 +1,40 @@
 'use client';
 import * as React from 'react';
-import { useState, useMemo, useEffect } from 'react';
-import { notFound, useSearchParams, useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import type { Bid, Job, PlatformUser, JobMessage, JobUpdate, Inspection, InspectionReport, Review, NDTServiceProvider, JobDocument, Client, NDTTechnique } from '@/lib/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Briefcase, MapPin, Calendar, Users, Wrench, ChevronLeft, PlusCircle, Upload, FileText, CheckCircle, History, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, AlertTriangle, Clock, Factory, DollarSign, Workflow, UserCheck } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Textarea } from '@/components/ui/textarea';
+import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
+import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Form } from '@/components/ui/form';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck } from 'lucide-react';
+import { format, parseISO, differenceInDays } from 'date-fns';
+import Image from 'next/image';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
+import Link from 'next/link';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ReportGenerator from '../../my-jobs/components/report-generator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
+import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
-import { format, parseISO, differenceInDays } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, query, where, limit, getDocs, doc } from 'firebase/firestore';
 
@@ -900,222 +901,219 @@ export default function JobDetailPage() {
                     </Alert>
                 )}
                 
-                <Accordion type="single" collapsible className="w-full mb-6">
-                    <AccordionItem value="item-1" className="border-b-0">
-                        <AccordionTrigger className="text-lg font-semibold hover:no-underline p-4 bg-muted/50 rounded-md">
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-4">
-                                    <History className="h-6 w-6 text-primary" />
-                                    <span>Job Lifecycle</span>
-                                    <Badge variant={jobStatusVariants[jobDetails.status]}>{jobDetails.status}</Badge>
-                                </div>
-                                <span className="text-sm font-normal text-muted-foreground mr-4 hidden md:inline">{statusDescriptions[jobDetails.status]}</span>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-4">
-                            <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} onStatusChange={handleStatusChange} />
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-                
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2 space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-2xl font-headline flex items-center gap-3">
-                                            <Briefcase className="h-6 w-6 text-primary" />
-                                            {jobDetails.title}
-                                            {jobDetails.isInternal && <Badge variant="outline" className="ml-2">Internal Job</Badge>}
-                                        </CardTitle>
-                                        <CardDescription>ID: <span className="font-bold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {(jobDetails.techniques || []).filter(Boolean).map((tech: string, i: number) => {
-                                            const techData = allNdtTechniques?.find(t => t.id.toUpperCase() === tech);
-                                            return (
-                                                <Tooltip key={i}>
-                                                    <TooltipTrigger>
-                                                        <Badge>{tech}</Badge>
-                                                    </TooltipTrigger>
-                                                    {techData && (
-                                                        <TooltipContent className="max-w-xs">
-                                                            <p className="font-bold">{techData.title}</p>
-                                                            <p>{techData.description}</p>
-                                                        </TooltipContent>
-                                                    )}
-                                                </Tooltip>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 text-sm text-muted-foreground border-t pt-4">
-                                    <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> <span>{jobDetails.location}</span></div>
-                                    <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span></div>
-                                    <div className="flex items-center gap-2"><Workflow className="w-4 h-4 text-primary" /> <span>Workflow: {jobDetails.workflow}</span></div>
-                                    <div className="flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> <span>Job Type: {jobDetails.jobType}</span></div>
-                                    <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-primary" /> <span>Industry: {jobDetails.industry}</span></div>
-                                    <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> <span>Duration: {duration} days</span></div>
-                                    <div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-primary" /> <span>Budget: {jobDetails.estimatedBudget}</span></div>
-                                    <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {jobDetails.certificationsRequired}</span></div>
-                                </div>
-
-                                <div className="border-t pt-4">
-                                    <h3 className="font-semibold text-lg">Job Description</h3>
-                                    <p className="mt-2 text-muted-foreground">
-                                        {jobDetails.description || "No description provided."}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {(isClient || isAdmin) && <BidsSection />}
-                        
-                        {isInspector && (
-                            <InspectorActions 
-                                status={jobDetails.status} 
-                                onScheduleClick={() => setIsSchedulingOpen(true)}
-                            />
-                        )}
-
-                        <Card>
-                            <Tabs defaultValue="documents" className="w-full">
-                                <CardHeader className="p-4">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
-                                    <TabsTrigger value="activity">Activity Log</TabsTrigger>
-                                </TabsList>
-                                </CardHeader>
-                                <TabsContent value="documents">
-                                <CardContent className="space-y-6">
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h3 className="text-base font-semibold">Job-Level Documents</h3>
-                                            {(jobDetails.documents && jobDetails.documents.length > 0) && (
-                                                    <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
-                                                    <Maximize className="mr-2 h-4 w-4" />
-                                                    View All
-                                                </Button>
-                                            )}
-                                        </div>
-                                        {(jobDetails.documents && jobDetails.documents.length > 0) ? (
-                                            <div className="space-y-2 rounded-md border p-2">
-                                                {jobDetails.documents.map((doc, i) => (
-                                                    <button 
-                                                        key={`${doc.name}-${i}`} 
-                                                        className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
-                                                        onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <FileText className="h-4 w-4 text-primary" />
-                                                            <span className="font-medium text-sm">{doc.name}</span>
-                                                        </div>
-                                                    </button>
-                                                ))}
+                <Tabs defaultValue="overview" className="w-full">
+                    <TabsList className="mb-4">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                        <TabsTrigger value="chat">Chat</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="overview">
+                        <div className="grid gap-6 lg:grid-cols-3">
+                            <div className="lg:col-span-2 space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <CardTitle className="text-2xl font-headline flex items-center gap-3">
+                                                    <Briefcase className="h-6 w-6 text-primary" />
+                                                    {jobDetails.title}
+                                                    {jobDetails.isInternal && <Badge variant="outline" className="ml-2">Internal Job</Badge>}
+                                                </CardTitle>
+                                                <CardDescription>ID: <span className="font-bold text-foreground">{jobDetails.id}</span> &bull; for {jobDetails.client}</CardDescription>
                                             </div>
-                                        ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
-                                    </div>
-                                    <Separator />
-                                    <div>
-                                    <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
-                                    {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map((inspection, i) => {
-                                        const report = inspection.report;
-                                        return (
-                                            <Card key={`${inspection.id}-${i}`} className="mb-4 bg-background">
-                                                <CardHeader className="p-4 flex flex-row items-center justify-between">
-                                                    <div>
-                                                        <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
-                                                        {report ? (
-                                                            <CardDescription className="text-xs">Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
-                                                        ) : (
-                                                            <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
-                                                        )}
-                                                    </div>
-                                                    {report ? (
-                                                        <Button asChild variant="outline" size="sm">
-                                                            <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Inspection</Link>
-                                                        </Button>
-                                                    ) : (
-                                                        (isInspector || (isClient && jobDetails.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
-                                                            <Button asChild size="sm">
-                                                                <Link href={constructUrl(`/dashboard/reports/new?jobId=${jobDetails.id}&inspectionId=${inspection.id}`)}>
-                                                                    <FileUp className="mr-2 h-4 w-4" />
-                                                                    Generate Report
-                                                                </Link>
-                                                            </Button>
-                                                        )
-                                                    )}
-                                                </CardHeader>
-                                            </Card>
-                                        );
-                                    }) : <p className="text-sm text-muted-foreground">No inspection reports have been submitted for this job yet.</p>}
-                                    </div>
-                                </CardContent>
-                                </TabsContent>
-                                <TabsContent value="activity">
-                                <CardContent>
-                                    <JobActivityLog history={jobDetails.history} />
-                                </CardContent>
-                                </TabsContent>
-                            </Tabs>
-                        </Card>
-                    </div>
+                                            <div className="flex flex-wrap gap-1">
+                                                {(jobDetails.techniques || []).filter(Boolean).map((tech: string, i: number) => {
+                                                    const techData = allNdtTechniques?.find(t => t.id.toUpperCase() === tech);
+                                                    return (
+                                                        <Tooltip key={i}>
+                                                            <TooltipTrigger>
+                                                                <Badge>{tech}</Badge>
+                                                            </TooltipTrigger>
+                                                            {techData && (
+                                                                <TooltipContent className="max-w-xs">
+                                                                    <p className="font-bold">{techData.title}</p>
+                                                                    <p>{techData.description}</p>
+                                                                </TooltipContent>
+                                                            )}
+                                                        </Tooltip>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 text-sm text-muted-foreground border-t pt-4">
+                                            <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> <span>{jobDetails.location}</span></div>
+                                            <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span></div>
+                                            <div className="flex items-center gap-2"><Workflow className="w-4 h-4 text-primary" /> <span>Workflow: {jobDetails.workflow}</span></div>
+                                            <div className="flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> <span>Job Type: {jobDetails.jobType}</span></div>
+                                            <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-primary" /> <span>Industry: {jobDetails.industry}</span></div>
+                                            <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> <span>Duration: {duration} days</span></div>
+                                            <div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-primary" /> <span>Budget: {jobDetails.estimatedBudget}</span></div>
+                                            <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {jobDetails.certificationsRequired}</span></div>
+                                        </div>
 
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Assigned Resources</CardTitle>
-                                <CardDescription>Manage technicians and equipment for this job. Assignments are locked once the inspection is in progress.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Technicians</h4>
-                                        {isInspector && (
-                                            <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
-                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-muted-foreground pl-2">{jobDetails.technicianIds?.length || 0} technician(s) assigned.</p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> Equipment</h4>
-                                        {isInspector && (
-                                            <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
-                                                <PlusCircle className="mr-2 h-4 w-4" /> Manage
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {assignedEquipment && assignedEquipment.length > 0 ? (
-                                        <ul className="space-y-2 pl-2">
-                                            {assignedEquipment.map((equip, i) => (
-                                                <li key={`${equip.id}-${i}`} className="text-sm text-muted-foreground flex items-center gap-2">
-                                                    <span>{equip.name} <span className="font-bold text-xs">({equip.id})</span></span>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {equip.techniques.map((t: string) => <Badge key={t} variant="outline">{t}</Badge>)}
+                                        <div className="border-t pt-4">
+                                            <h3 className="font-semibold text-lg">Job Description</h3>
+                                            <p className="mt-2 text-muted-foreground">
+                                                {jobDetails.description || "No description provided."}
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {(isClient || isAdmin) && <BidsSection />}
+                                
+                                {isInspector && (
+                                    <InspectorActions 
+                                        status={jobDetails.status} 
+                                        onScheduleClick={() => setIsSchedulingOpen(true)}
+                                    />
+                                )}
+
+                                <Card>
+                                    <Tabs defaultValue="documents" className="w-full">
+                                        <CardHeader className="p-4">
+                                        <TabsList className="grid w-full grid-cols-2">
+                                            <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
+                                            <TabsTrigger value="activity">Activity Log</TabsTrigger>
+                                        </TabsList>
+                                        </CardHeader>
+                                        <TabsContent value="documents">
+                                        <CardContent className="space-y-6">
+                                            <div>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h3 className="text-base font-semibold">Job-Level Documents</h3>
+                                                    {(jobDetails.documents && jobDetails.documents.length > 0) && (
+                                                            <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
+                                                            <Maximize className="mr-2 h-4 w-4" />
+                                                            View All
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                                {(jobDetails.documents && jobDetails.documents.length > 0) ? (
+                                                    <div className="space-y-2 rounded-md border p-2">
+                                                        {jobDetails.documents.map((doc, i) => (
+                                                            <button 
+                                                                key={`${doc.name}-${i}`} 
+                                                                className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
+                                                                onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <FileText className="h-4 w-4 text-primary" />
+                                                                    <span className="font-medium text-sm">{doc.name}</span>
+                                                                </div>
+                                                            </button>
+                                                        ))}
                                                     </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
-                                </div>
-                                <Separator />
-                                <div>
-                                    <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor</h4>
-                                    {(jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto') ? (
-                                        <p className="text-sm text-muted-foreground pl-2">Alex Chen (NDT Auditors LLC)</p>
-                                    ) : <p className="text-sm text-muted-foreground pl-2">No auditor required for standard workflow.</p>}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
+                                                ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
+                                            </div>
+                                            <Separator />
+                                            <div>
+                                            <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
+                                            {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map((inspection, i) => {
+                                                const report = inspection.report;
+                                                return (
+                                                    <Card key={`${inspection.id}-${i}`} className="mb-4 bg-background">
+                                                        <CardHeader className="p-4 flex flex-row items-center justify-between">
+                                                            <div>
+                                                                <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
+                                                                {report ? (
+                                                                    <CardDescription className="text-xs">Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
+                                                                ) : (
+                                                                    <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
+                                                                )}
+                                                            </div>
+                                                            {report ? (
+                                                                <Button asChild variant="outline" size="sm">
+                                                                    <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Inspection</Link>
+                                                                </Button>
+                                                            ) : (
+                                                                (isInspector || (isClient && jobDetails.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
+                                                                    <Button asChild size="sm">
+                                                                        <Link href={constructUrl(`/dashboard/reports/new?jobId=${jobDetails.id}&inspectionId=${inspection.id}`)}>
+                                                                            <FileUp className="mr-2 h-4 w-4" />
+                                                                            Generate Report
+                                                                        </Link>
+                                                                    </Button>
+                                                                )
+                                                            )}
+                                                        </CardHeader>
+                                                    </Card>
+                                                );
+                                            }) : <p className="text-sm text-muted-foreground">No inspection reports have been submitted for this job yet.</p>}
+                                            </div>
+                                        </CardContent>
+                                        </TabsContent>
+                                        <TabsContent value="activity">
+                                        <CardContent>
+                                            <JobActivityLog history={jobDetails.history} />
+                                        </CardContent>
+                                        </TabsContent>
+                                    </Tabs>
+                                </Card>
+                            </div>
+
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Assigned Resources</CardTitle>
+                                        <CardDescription>Manage technicians and equipment for this job. Assignments are locked once the inspection is in progress.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Technicians</h4>
+                                                {isInspector && (
+                                                    <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
+                                                        <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground pl-2">{jobDetails.technicianIds?.length || 0} technician(s) assigned.</p>
+                                        </div>
+                                        <Separator />
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> Equipment</h4>
+                                                {isInspector && (
+                                                    <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
+                                                        <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            {assignedEquipment && assignedEquipment.length > 0 ? (
+                                                <ul className="space-y-2 pl-2">
+                                                    {assignedEquipment.map((equip, i) => (
+                                                        <li key={`${equip.id}-${i}`} className="text-sm text-muted-foreground flex items-center gap-2">
+                                                            <span>{equip.name} <span className="font-bold text-xs">({equip.id})</span></span>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {equip.techniques.map((t: string) => <Badge key={t} variant="outline">{t}</Badge>)}
+                                                            </div>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : <p className="text-sm text-muted-foreground pl-2">No equipment assigned.</p>}
+                                        </div>
+                                        <Separator />
+                                        <div>
+                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor</h4>
+                                            {(jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto') ? (
+                                                <p className="text-sm text-muted-foreground pl-2">Alex Chen (NDT Auditors LLC)</p>
+                                            ) : <p className="text-sm text-muted-foreground pl-2">No auditor required for standard workflow.</p>}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="lifecycle">
+                         <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} onStatusChange={handleStatusChange} />
+                    </TabsContent>
+                    <TabsContent value="chat">
+                        <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />
+                    </TabsContent>
+                </Tabs>
             </div>
         )}
         </TooltipProvider>

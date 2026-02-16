@@ -28,7 +28,7 @@ service cloud.firestore {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
       allow get: if isSignedIn();
-      allow list: if isSignedIn(); // FIX: Allow signed-in users to list/query users. Client-side queries provide security.
+      allow list: if isAdmin(); // Only admins can list all users
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner

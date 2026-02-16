@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database } from "lucide-react";
+import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -22,7 +22,7 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc } from 'firebase/firestore';
+import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
 import { jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData } from "@/lib/seed-data";
@@ -359,9 +359,8 @@ const ClientDashboard = () => {
 // --- INSPECTOR DASHBOARD ---
 const InspectorDashboard = () => {
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
-     const { user: authUser, firestore } = useFirebase();
+    const { user: authUser, firestore } = useFirebase();
     const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
 
     useEffect(() => {
@@ -374,19 +373,19 @@ const InspectorDashboard = () => {
     }, [authUser, firestore]);
     
     const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const techniciansQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'users'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const myBidsQuery = useMemoFirebase(() => authUser ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', authUser.uid), where('status', 'in', ['Submitted', 'Shortlisted'])) : null, [firestore, authUser]);
 
     const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-    const { data: providerTechnicians, isLoading: isLoadingTechs } = useCollection<PlatformUser>(techniciansQuery);
     const { data: providerEquipment, isLoading: isLoadingEquip } = useCollection<any>(equipmentQuery);
+    const { data: openBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
 
     const stats = useMemo(() => ({
         activeAssignments: providerJobs?.filter(j => j.status === 'In Progress').length || 0,
-        availableTechnicians: providerTechnicians?.filter(t => t.workStatus === 'Available').length || 0,
+        openBidsCount: openBids?.length || 0,
         equipmentAlerts: providerEquipment?.filter(e => e.status === 'Calibration Due' || e.status === 'Out of Service').length || 0,
         reportsToSubmit: providerJobs?.filter(j => (j.status === 'In Progress' && j.scheduledEndDate && isAfter(new Date(), new Date(j.scheduledEndDate))) || j.status === 'Completed').length || 0,
-    }), [providerJobs, providerTechnicians, providerEquipment]);
+    }), [providerJobs, providerEquipment, openBids]);
 
     const schedule = useMemo(() => {
         if (!today || !providerJobs) return [];
@@ -398,7 +397,7 @@ const InspectorDashboard = () => {
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
     }, [providerJobs, today]);
 
-    if (isLoadingJobs || isLoadingTechs || isLoadingEquip || !userProfile) {
+    if (isLoadingJobs || isLoadingEquip || isLoadingBids || !userProfile) {
         return <DashboardSkeleton />;
     }
 
@@ -417,12 +416,12 @@ const InspectorDashboard = () => {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Available Technicians</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Open Bids</CardTitle>
+                        <Gavel className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.availableTechnicians}</div>
-                        <p className="text-xs text-muted-foreground">Ready for assignment</p>
+                        <div className="text-2xl font-bold">{stats.openBidsCount}</div>
+                        <p className="text-xs text-muted-foreground">Bids awaiting a client decision</p>
                     </CardContent>
                 </Card>
                  <Card>
@@ -453,76 +452,40 @@ const InspectorDashboard = () => {
                     <CardDescription>Upcoming job assignments for your team.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isMobile ? (
-                        <div className="space-y-4">
-                            {schedule.map(job => {
-                                const assignedTechs = providerTechnicians?.filter(u => job.technicianIds?.includes(u.id));
-                                return (
-                                <Card key={job.id}>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">{job.title}</CardTitle>
-                                        <CardDescription>
-                                            <div className="flex items-center gap-2">
-                                                <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate), today)}
-                                            </div>
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="text-sm space-y-1">
-                                        <p><strong>Client:</strong> {job.client}</p>
-                                        <p><strong>Job ID:</strong> <span className="font-extrabold">{job.id}</span></p>
-                                        <p><strong>Technicians:</strong> {assignedTechs?.map(t => t.name).join(', ')}</p>
-                                    </CardContent>
-                                    <CardFooter>
-                                        <Button asChild variant="outline" size="sm" className="w-full">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
+                                <TableHead>Client</TableHead>
+                                <TableHead>Technicians</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {schedule.map(job => (
+                                <TableRow key={job.id}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-2">
+                                            <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                            {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
+                                    <TableCell>{job.title}</TableCell>
+                                    <TableCell>{job.client}</TableCell>
+                                    <TableCell>{job.technicianIds?.length || 0} assigned</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
                                             <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
                                         </Button>
-                                    </CardFooter>
-                                </Card>
-                            )})}
-                            {schedule.length === 0 && (
-                                <div className="h-24 text-center text-muted-foreground flex items-center justify-center">No jobs scheduled in the next 7 days.</div>
-                            )}
-                        </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Job ID</TableHead>
-                                    <TableHead>Job Title</TableHead>
-                                    <TableHead>Client</TableHead>
-                                    <TableHead>Technicians</TableHead>
-                                    <TableHead className="text-right">Action</TableHead>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {schedule.map(job => {
-                                    const assignedTechs = providerTechnicians?.filter(u => job.technicianIds?.includes(u.id));
-                                    return (
-                                        <TableRow key={job.id}>
-                                            <TableCell className="font-medium">
-                                            <div className="flex items-center gap-2">
-                                                <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
-                                            </div>
-                                            </TableCell>
-                                            <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
-                                            <TableCell>{job.title}</TableCell>
-                                            <TableCell>{job.client}</TableCell>
-                                            <TableCell>{assignedTechs?.map(t => t.name).join(', ')}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                                {schedule.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
-                            </TableBody>
-                        </Table>
-                    )}
+                            ))}
+                            {schedule.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>
@@ -533,7 +496,6 @@ const InspectorDashboard = () => {
 // --- AUDITOR DASHBOARD ---
 const AuditorDashboard = () => {
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
     const { firestore, user } = useFirebase();
 
@@ -549,16 +511,6 @@ const AuditorDashboard = () => {
     const auditQueue = useMemo(() => jobs?.filter(j => j.status === 'Report Submitted') || [], [jobs]);
     const auditsCompleted = useMemo(() => jobs?.filter(j => j.status === 'Audit Approved').length || 0, [jobs]);
     const averageReviewTime = "22h"; // Placeholder
-
-    const schedule = useMemo(() => {
-        if (!today || !jobs) return [];
-        const nextSevenDays = new Date(today);
-        nextSevenDays.setDate(today.getDate() + 7);
-        
-        return jobs
-            .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
-            .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
-    }, [jobs, today]);
     
      if (isLoading) {
         return <DashboardSkeleton />;
@@ -652,7 +604,6 @@ const getLogIcon = (action: string) => {
 
 const AdminDashboard = () => {
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
     const [isSeeding, setIsSeeding] = useState(false);
     const { user, firestore } = useFirebase();
     const { toast } = useToast();

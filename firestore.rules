@@ -75,10 +75,8 @@ service cloud.firestore {
         allow write: if isAdmin(); // Admin can seed
         // Creating an inspection is allowed if you are a member of the asset's company.
         allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
-        // You can get an inspection if you are the inspector or a member of the asset's owning company.
-        allow get: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
-        // You can list inspections if you are a member of the asset's owning company.
-        allow list: if isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+        // You can get/list an inspection if you are the inspector or a member of the asset's owning company.
+        allow get, list: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId) || isAdmin();
       }
@@ -87,6 +85,11 @@ service cloud.firestore {
     // Rule to allow inspectors to query their own bids across all jobs.
     match /{path=**}/bids/{bidId} {
       allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+    }
+    
+    // Rule to allow admins to perform collection group queries on all inspections.
+    match /{path=**}/inspections/{inspectionId} {
+      allow read: if isAdmin();
     }
 
     match /jobs/{jobId} {

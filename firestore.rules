@@ -84,6 +84,11 @@ service cloud.firestore {
       }
     }
 
+    // Rule to allow inspectors to query their own bids across all jobs.
+    match /{path=**}/bids/{bidId} {
+      allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+    }
+
     match /jobs/{jobId} {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.
@@ -96,13 +101,13 @@ service cloud.firestore {
       allow get: if (isSignedIn() && (
                       resource.data.status == 'Posted' || // Anyone can see open jobs
                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId ||
-                      (resource.data.awardedProviderId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.awardedProviderId)
+                      (resource.data.providerId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.providerId)
                     )) || isAdmin();
 
       // Only the client, the awarded provider, or an admin can update a job.
       allow update: if (isSignedIn() && (
                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId ||
-                        (resource.data.awardedProviderId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.awardedProviderId)
+                        (resource.data.providerId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.providerId)
                       )) || isAdmin();
 
       // Only the client or an admin can delete a job.
@@ -129,7 +134,7 @@ service cloud.firestore {
         allow read, create: if (isSignedIn() && (
             exists(/databases/$(database)/documents/jobs/$(jobId)) && (
                 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
-                (get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId)
+                (get(/databases/$(database)/documents/jobs/$(jobId)).data.providerId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerId)
               )
             )) || isAdmin();
       }
@@ -160,4 +165,3 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
-    

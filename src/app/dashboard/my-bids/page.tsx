@@ -23,8 +23,8 @@ import Link from 'next/link';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, collectionGroup, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 import type { Job, Bid, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -190,7 +190,7 @@ export default function MyBidsPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
     
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -198,12 +198,19 @@ export default function MyBidsPage() {
         }
     }, [role, router, searchParams]);
 
-    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
+    const myBidsQuery = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc'));
+    }, [firestore, user]);
+    const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
+
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore || !myBids || myBids.length === 0) return null;
+        const jobIds = [...new Set(myBids.map(bid => bid.jobId))];
+        return query(collection(firestore, 'jobs'), where('id', 'in', jobIds.slice(0, 30)));
+    }, [firestore, myBids]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
-    const allBidsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'bids') : null, [firestore]);
-    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(allBidsQuery);
-
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
 
@@ -231,17 +238,13 @@ export default function MyBidsPage() {
         return queryString ? `${pathname}?${queryString}` : pathname;
     }
 
-    const myBids = useMemo(() => {
-        if (!jobs || !allBids) return [];
-        // Assuming providerId for logged-in inspector is 'provider-03' for demo purposes
-        const myCompanyBids = allBids.filter(bid => bid.providerId === 'provider-03');
-        
-        return myCompanyBids.map(bid => {
+    const mappedBids = useMemo(() => {
+        if (!jobs || !myBids) return [];
+        return myBids.map(bid => {
             const job = jobs.find(j => j.id === bid.jobId);
             return { ...bid, job };
-        }).filter((bid): bid is MappedBid => !!bid.job)
-          .sort((a, b) => new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime());
-    }, [jobs, allBids]);
+        }).filter((bid): bid is MappedBid => !!bid.job);
+    }, [jobs, myBids]);
 
     const handleEditClick = (bid: MappedBid) => {
         setEditingBid(bid);
@@ -259,25 +262,25 @@ export default function MyBidsPage() {
 
     const handleConfirmWithdraw = async () => {
         if (!withdrawingBid || !firestore) return;
-        const bidRef = doc(firestore, 'bids', withdrawingBid.id);
+        const bidRef = doc(firestore, 'jobs', withdrawingBid.jobId, 'bids', withdrawingBid.id);
         await updateDoc(bidRef, { status: 'Withdrawn' });
         setWithdrawingBid(null);
     };
 
     async function onBidSubmit(values: z.infer<typeof bidSchema>) {
         if (!editingBid || !firestore) return;
-        const bidRef = doc(firestore, 'bids', editingBid.id);
+        const bidRef = doc(firestore, 'jobs', editingBid.jobId, 'bids', editingBid.id);
         await updateDoc(bidRef, values);
         setEditingBid(null);
     }
     
     const stats = useMemo(() => {
-        const activeBids = myBids.filter(b => b.status === 'Submitted').length;
-        const shortlistedBids = myBids.filter(b => b.status === 'Shortlisted').length;
-        const awardedBids = myBids.filter(b => b.status === 'Awarded').length;
-        const revenueYTD = myBids.filter(b => b.status === 'Awarded').reduce((acc, b) => acc + b.amount, 0);
+        const activeBids = mappedBids.filter(b => b.status === 'Submitted').length;
+        const shortlistedBids = mappedBids.filter(b => b.status === 'Shortlisted').length;
+        const awardedBids = mappedBids.filter(b => b.status === 'Awarded').length;
+        const revenueYTD = mappedBids.filter(b => b.status === 'Awarded').reduce((acc, b) => acc + b.amount, 0);
         return { activeBids, shortlistedBids, awardedBids, revenueYTD };
-    }, [myBids]);
+    }, [mappedBids]);
 
     const isLoading = isLoadingJobs || isLoadingBids || isLoadingTechniques;
 
@@ -339,7 +342,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={mappedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-3xl">

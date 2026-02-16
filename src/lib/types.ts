@@ -145,7 +145,7 @@ export type Certification = {
 export type Bid = {
     id: string;
     jobId: string;
-    providerId: string; 
+    inspectorId: string;
     amount: number;
     status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Shortlisted' | 'Not Selected';
     submittedDate: string;

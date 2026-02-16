@@ -1,3 +1,4 @@
+
 {
   "indexes": [
     {
@@ -38,6 +39,14 @@
           "fieldPath": "status",
           "order": "ASCENDING"
         }
+      ]
+    },
+    {
+      "collectionGroup": "bids",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "inspectorId", "order": "ASCENDING" },
+        { "fieldPath": "submittedDate", "order": "DESCENDING" }
       ]
     }
   ],

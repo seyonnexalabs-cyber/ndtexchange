@@ -546,7 +546,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
         certificationsRequired: 'ASNT UT L-II'
     },
     { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', clientCompanyId: 'client-08', providerId: 'provider-07', location: 'Detroit, MI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-tech-01'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['RVI'], jobType: 'project', industry: 'Manufacturing', certificationsRequired: 'ASNT VT L-II' },
-    { id: 'JOB-016', title: 'MFL Scan of Tank Floor', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto', techniques: ['MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT MFL L-II' },
+    { id: 'JOB-016', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto', techniques: ['MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT MFL L-II' },
     { 
         id: 'JOB-017', 
         title: 'Shutdown Support - PT', 
@@ -676,30 +676,30 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     },
 ];
 
-export const bidsData: Bid[] = [
-    { id: 'BID-001', jobId: 'JOB-001', providerId: 'provider-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.' },
-    { id: 'BID-001A', jobId: 'JOB-001', providerId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.' },
-    { id: 'BID-002', jobId: 'JOB-002', providerId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
-    { id: 'BID-003', jobId: 'JOB-005', providerId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
-    { id: 'BID-004', jobId: 'JOB-006', providerId: 'provider-02', amount: 22000, status: 'Not Selected', submittedDate: '2024-07-04' },
-    { id: 'BID-004A', jobId: 'JOB-006', providerId: 'provider-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04' },
-    { id: 'BID-005', jobId: 'JOB-007', providerId: 'provider-01', amount: 15000, status: 'Awarded', submittedDate: '2024-07-06' },
-    { id: 'BID-009', jobId: 'JOB-009', providerId: 'provider-05', amount: 9500, status: 'Submitted', submittedDate: '2024-07-13' },
-    { id: 'BID-011', jobId: 'JOB-011', providerId: 'provider-02', amount: 18000, status: 'Awarded', submittedDate: '2024-06-05' },
-    { id: 'BID-012', jobId: 'JOB-012', providerId: 'provider-01', amount: 35000, status: 'Awarded', submittedDate: '2024-05-05' },
-    { id: 'BID-013', jobId: 'JOB-013', providerId: 'provider-09', amount: 18000, status: 'Awarded', submittedDate: '2024-07-22' },
-    { id: 'BID-015', jobId: 'JOB-015', providerId: 'provider-07', amount: 3500, status: 'Awarded', submittedDate: '2024-07-03' },
-    { id: 'BID-016', jobId: 'JOB-016', providerId: 'provider-02', amount: 14000, status: 'Submitted', submittedDate: '2024-07-24' },
-    { id: 'BID-017', jobId: 'JOB-017', providerId: 'provider-03', amount: 9500, status: 'Awarded', submittedDate: '2024-07-26' },
-    { id: 'BID-018', jobId: 'JOB-018', providerId: 'provider-11', amount: 25000, status: 'Submitted', submittedDate: '2024-07-29' },
-    { id: 'BID-019', jobId: 'JOB-019', providerId: 'provider-11', amount: 18000, status: 'Submitted', submittedDate: '2024-07-30' },
-    { id: 'BID-020', jobId: 'JOB-020', providerId: 'provider-12', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20' },
-    { id: 'BID-021', jobId: 'JOB-021', providerId: 'provider-01', amount: 7500, status: 'Awarded', submittedDate: '2024-07-16' },
-    { id: 'BID-022', jobId: 'JOB-022', providerId: 'provider-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12' },
-    { id: 'BID-023', jobId: 'JOB-023', providerId: 'provider-03', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29' },
-    { id: 'BID-024', jobId: 'JOB-024', providerId: 'provider-04', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21' },
-    { id: 'BID-014', jobId: 'JOB-014', providerId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18' },
-    { id: 'BID-025', jobId: 'JOB-025', providerId: 'provider-03', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26' },
+export const bidsData: Omit<Bid, 'providerId'>[] = [
+    { id: 'BID-001', jobId: 'JOB-001', inspectorId: 'user-tech-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.' },
+    { id: 'BID-001A', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.' },
+    { id: 'BID-002', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
+    { id: 'BID-003', jobId: 'JOB-005', inspectorId: 'user-tech-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
+    { id: 'BID-004', jobId: 'JOB-006', inspectorId: 'user-tech-02', amount: 22000, status: 'Not Selected', submittedDate: '2024-07-04' },
+    { id: 'BID-004A', jobId: 'JOB-006', inspectorId: 'user-tech-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04' },
+    { id: 'BID-005', jobId: 'JOB-007', inspectorId: 'user-tech-01', amount: 15000, status: 'Awarded', submittedDate: '2024-07-06' },
+    { id: 'BID-009', jobId: 'JOB-009', inspectorId: 'user-tech-01', amount: 9500, status: 'Submitted', submittedDate: '2024-07-13' },
+    { id: 'BID-011', jobId: 'JOB-011', inspectorId: 'user-tech-02', amount: 18000, status: 'Awarded', submittedDate: '2024-06-05' },
+    { id: 'BID-012', jobId: 'JOB-012', inspectorId: 'user-tech-01', amount: 35000, status: 'Awarded', submittedDate: '2024-05-05' },
+    { id: 'BID-013', jobId: 'JOB-013', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 18000, status: 'Awarded', submittedDate: '2024-07-22' },
+    { id: 'BID-015', jobId: 'JOB-015', inspectorId: 'user-tech-01', amount: 3500, status: 'Awarded', submittedDate: '2024-07-03' },
+    { id: 'BID-016', jobId: 'JOB-016', inspectorId: 'user-tech-02', amount: 14000, status: 'Submitted', submittedDate: '2024-07-24' },
+    { id: 'BID-017', jobId: 'JOB-017', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 9500, status: 'Awarded', submittedDate: '2024-07-26' },
+    { id: 'BID-018', jobId: 'JOB-018', inspectorId: 'user-tech-01', amount: 25000, status: 'Submitted', submittedDate: '2024-07-29' },
+    { id: 'BID-019', jobId: 'JOB-019', inspectorId: 'user-tech-01', amount: 18000, status: 'Submitted', submittedDate: '2024-07-30' },
+    { id: 'BID-020', jobId: 'JOB-020', inspectorId: 'user-tech-01', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20' },
+    { id: 'BID-021', jobId: 'JOB-021', inspectorId: 'user-tech-01', amount: 7500, status: 'Awarded', submittedDate: '2024-07-16' },
+    { id: 'BID-022', jobId: 'JOB-022', inspectorId: 'user-tech-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12' },
+    { id: 'BID-023', jobId: 'JOB-023', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29' },
+    { id: 'BID-024', jobId: 'JOB-024', inspectorId: 'user-tech-03', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21' },
+    { id: 'BID-014', jobId: 'JOB-014', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18' },
+    { id: 'BID-025', jobId: 'JOB-025', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26' },
 ];
 
 export const inspectionsData: Inspection[] = [
@@ -745,7 +745,7 @@ export const inspectionsData: Inspection[] = [
 
 export const jobs: Job[] = jobsData.map(job => ({
     ...job,
-    bids: bidsData.filter(bid => bid.jobId === job.id),
+    bids: bidsData.filter(bid => bid.jobId === job.id) as Bid[],
     inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
 }));
 

@@ -36,8 +36,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
-      allow get: if isSignedIn(); // Allow any signed-in user to read any profile for rule lookups.
-      allow list: if isAdmin(); // Only admins can list users
+      allow get, list: if isSignedIn(); // Allow any signed-in user to read profiles or list users.
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner

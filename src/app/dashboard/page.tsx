@@ -535,11 +535,15 @@ const AuditorDashboard = () => {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
 
     useEffect(() => { setToday(new Date()) }, []);
     
-    const jobsQuery = useMemoFirebase(() => query(collection(firestore, 'jobs'), where('workflow', 'in', ['level3', 'auto'])), [firestore]);
+    const jobsQuery = useMemoFirebase(() => {
+      if (!firestore || !user) return null;
+      return query(collection(firestore, 'jobs'), where('workflow', 'in', ['level3', 'auto']));
+    }, [firestore, user]);
+
     const { data: jobs, isLoading } = useCollection<Job>(jobsQuery);
 
     const auditQueue = useMemo(() => jobs?.filter(j => j.status === 'Report Submitted') || [], [jobs]);

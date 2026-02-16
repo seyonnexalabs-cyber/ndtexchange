@@ -26,6 +26,7 @@ import { useMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 // New schema and form for adding an auditor firm
@@ -428,4 +429,6 @@ export default function AuditorsPage() {
         </div>
     );
 }
+    
+
     

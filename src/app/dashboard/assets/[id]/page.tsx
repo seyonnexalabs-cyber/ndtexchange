@@ -30,7 +30,7 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -542,8 +542,9 @@ export default function AssetDetailPage() {
     const { toast } = useToast();
     const router = useRouter();
     const { firestore } = useFirebase();
+    const { user, isUserLoading } = useUser();
 
-    const assetRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'assets', id) : null), [firestore, id]);
+    const assetRef = useMemoFirebase(() => (firestore && id && user ? doc(firestore, 'assets', id) : null), [firestore, id, user]);
     const { data: asset, isLoading: isLoadingAsset, error: assetError } = useDoc<Asset>(assetRef);
     
     const [isCheckLogOpen, setIsCheckLogOpen] = useState(false);
@@ -564,7 +565,7 @@ export default function AssetDetailPage() {
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [initialDoc, setInitialDoc] = React.useState<string | null>(null);
     
-    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, `assets/${id}/inspections`) : null), [firestore, id]);
+    const inspectionsQuery = useMemoFirebase(() => (firestore && id && user ? collection(firestore, `assets/${id}/inspections`) : null), [firestore, id, user]);
     const { data: assetInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
 
     const combinedHistory = useMemo(() => {
@@ -597,7 +598,7 @@ export default function AssetDetailPage() {
         return docs;
     }, [asset]);
 
-    if (isLoadingAsset) {
+    if (isLoadingAsset || isUserLoading) {
         return <div>Loading...</div>;
     }
     
@@ -605,7 +606,12 @@ export default function AssetDetailPage() {
         return <div>Error loading asset: {assetError.message}</div>;
     }
 
-    if (!asset) {
+    if (!isUserLoading && !user) {
+        router.push('/login');
+        return null;
+    }
+
+    if (!isLoadingAsset && !asset) {
         notFound();
     }
 
@@ -945,5 +951,3 @@ export default function AssetDetailPage() {
         </div>
     );
 }
-
-    

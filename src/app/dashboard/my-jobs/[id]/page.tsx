@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
@@ -442,18 +441,13 @@ export default function JobDetailPage() {
         checkForReview();
     }, [id, firestore, jobDetails]);
     
-    const techniciansQuery = useMemoFirebase(() => {
-        if (!firestore || !jobDetails?.technicianIds || jobDetails.technicianIds.length === 0) return null;
-        return query(collection(firestore, 'users'), where('id', 'in', jobDetails.technicianIds.slice(0, 10)));
-    }, [firestore, jobDetails]);
-    const { data: assignedTechnicians } = useCollection<PlatformUser>(techniciansQuery);
-
-    const equipmentQuery = useMemoFirebase(() => {
-        if (!firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) return null;
-        return query(collection(firestore, 'equipment'), where('id', 'in', jobDetails.equipmentIds.slice(0, 10)));
-    }, [firestore, jobDetails]);
-    const { data: assignedEquipment } = useCollection<any>(equipmentQuery);
-
+    const { data: assignedEquipment } = useCollection<any>(
+        useMemoFirebase(() => {
+            if (!firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) return null;
+            return query(collection(firestore, 'equipment'), where('id', 'in', jobDetails.equipmentIds.slice(0, 10)));
+        }, [firestore, jobDetails])
+    );
+    
     const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
     const { data: allNdtTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
 
@@ -1009,9 +1003,9 @@ export default function JobDetailPage() {
                                         </div>
                                         {(jobDetails.documents && jobDetails.documents.length > 0) ? (
                                             <div className="space-y-2 rounded-md border p-2">
-                                                {jobDetails.documents.map((doc) => (
+                                                {jobDetails.documents.map((doc, i) => (
                                                     <button 
-                                                        key={doc.name} 
+                                                        key={`${doc.name}-${i}`} 
                                                         className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
                                                         onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
                                                     >
@@ -1027,10 +1021,10 @@ export default function JobDetailPage() {
                                     <Separator />
                                     <div>
                                     <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
-                                    {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map(inspection => {
+                                    {jobDetails.inspections && jobDetails.inspections.length > 0 ? jobDetails.inspections.map((inspection, i) => {
                                         const report = inspection.report;
                                         return (
-                                            <Card key={inspection.id} className="mb-4 bg-background">
+                                            <Card key={`${inspection.id}-${i}`} className="mb-4 bg-background">
                                                 <CardHeader className="p-4 flex flex-row items-center justify-between">
                                                     <div>
                                                         <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
@@ -1086,13 +1080,7 @@ export default function JobDetailPage() {
                                             </Button>
                                         )}
                                     </div>
-                                    {assignedTechnicians && assignedTechnicians.length > 0 ? (
-                                        <ul className="space-y-2 pl-2">
-                                            {assignedTechnicians.map(tech => (
-                                                <li key={tech.id} className="text-sm text-muted-foreground">{tech.name} <span className="font-bold text-xs">({tech.id})</span> - {tech.level}</li>
-                                            ))}
-                                        </ul>
-                                    ) : <p className="text-sm text-muted-foreground pl-2">No technicians assigned.</p>}
+                                    <p className="text-sm text-muted-foreground pl-2">{jobDetails.technicianIds?.length || 0} technician(s) assigned.</p>
                                 </div>
                                 <Separator />
                                 <div>
@@ -1106,11 +1094,11 @@ export default function JobDetailPage() {
                                     </div>
                                     {assignedEquipment && assignedEquipment.length > 0 ? (
                                         <ul className="space-y-2 pl-2">
-                                            {assignedEquipment.map(equip => (
-                                                <li key={equip.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                                            {assignedEquipment.map((equip, i) => (
+                                                <li key={`${equip.id}-${i}`} className="text-sm text-muted-foreground flex items-center gap-2">
                                                     <span>{equip.name} <span className="font-bold text-xs">({equip.id})</span></span>
                                                     <div className="flex flex-wrap gap-1">
-                                                        {equip.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
+                                                        {equip.techniques.map((t: string) => <Badge key={t} variant="outline">{t}</Badge>)}
                                                     </div>
                                                 </li>
                                             ))}
@@ -1133,4 +1121,3 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-

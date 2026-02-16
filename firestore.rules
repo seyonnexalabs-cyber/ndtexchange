@@ -36,10 +36,9 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
-      // **THE FIX**: Allow any signed-in user to get or list users.
-      // Client-side queries MUST be responsible for filtering appropriately.
-      // This is necessary for components that need to look up user names/details.
-      allow get, list: if isSignedIn();
+      // **THE FIX**: Allow any signed-in user to GET users. LIST is removed to prevent permission errors.
+      // Client-side queries that need to list users will be refactored to be more performant and secure.
+      allow get: if isSignedIn();
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner

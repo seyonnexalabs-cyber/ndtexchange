@@ -44,10 +44,7 @@ export default function ProviderDetailPage() {
     
     const providerRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'companies', id as string) : null), [firestore, id]);
     const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(providerRef);
-
-    const teamQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null), [firestore, user, id]);
-    const { data: providerTechnicians, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
-
+    
     const equipmentQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, user, id]);
     const { data: publicEquipment, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
 
@@ -75,7 +72,7 @@ export default function ProviderDetailPage() {
         });
     }, [reviewsData, allClients]);
     
-    const isLoading = isLoadingProvider || isLoadingTeam || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques;
+    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques;
 
     if (isLoading) {
        return (
@@ -245,74 +242,9 @@ export default function ProviderDetailPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                            {isMobile ? (
-                                    <div className="space-y-4">
-                                        {(providerTechnicians || []).map(tech => {
-                                            return (
-                                                <Card key={tech.id} className="p-4">
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar>
-                                                                <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold">{tech.name}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-1 mt-3">
-                                                        {tech.certifications?.map((cert, i) => (
-                                                            <Badge key={i} variant="secondary" shape="rounded">
-                                                                {cert.method}
-                                                                <Separator orientation="vertical" className="h-3 mx-1.5 bg-muted-foreground/30" />
-                                                                {cert.level}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                </Card>
-                                            );
-                                        })}
-                                    </div>
-                            ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Certifications</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {(providerTechnicians || []).map(tech => {
-                                            return (
-                                                <TableRow key={tech.id}>
-                                                    <TableCell className="font-medium flex items-center gap-3">
-                                                        <Avatar>
-                                                        <AvatarFallback>{tech.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                        </Avatar>
-                                                        {tech.name}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {tech.certifications?.map((cert, i) => (
-                                                                <Badge key={i} variant="secondary" shape="rounded">
-                                                                    {cert.method}
-                                                                    <Separator orientation="vertical" className="h-3 mx-1.5 bg-muted-foreground/30" />
-                                                                    {cert.level}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            )}
-                            {(providerTechnicians || []).length === 0 && (
-                                    <div className="text-center text-muted-foreground py-10">
-                                        No technicians found for this provider.
-                                    </div>
-                            )}
+                                <div className="text-center text-muted-foreground py-10">
+                                    Technician roster information is currently unavailable. This feature is being updated for performance.
+                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -334,7 +266,7 @@ export default function ProviderDetailPage() {
                                                 <div className="space-y-1">
                                                     <p className="font-semibold">{equip.name}</p>
                                                     <div className="flex flex-wrap gap-1">
-                                                        {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                                                        {equip.techniques.map((tech: string) => <Badge key={tech} variant="secondary">{tech}</Badge>)}
                                                     </div>
                                                     {(equip.manufacturer || equip.model) && (
                                                         <p className="text-xs text-muted-foreground">
@@ -361,7 +293,7 @@ export default function ProviderDetailPage() {
                                                 <TableCell className="font-medium">{equip.name}</TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-wrap gap-1">
-                                                        {equip.techniques.map(tech => <Badge key={tech} variant="secondary">{tech}</Badge>)}
+                                                        {equip.techniques.map((tech: string) => <Badge key={tech} variant="secondary">{tech}</Badge>)}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>{equip.manufacturer || 'N/A'}</TableCell>

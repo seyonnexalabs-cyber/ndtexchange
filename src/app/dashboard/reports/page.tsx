@@ -1,10 +1,12 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { NDTTechniques, jobs, allUsers, PlatformUser, Inspection } from '@/lib/placeholder-data';
+import { jobs, allUsers } from '@/lib/seed-data';
+import type { Job, PlatformUser, Inspection } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

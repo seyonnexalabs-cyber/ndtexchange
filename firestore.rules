@@ -27,9 +27,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
-      allow get: if isSignedIn();
+      allow get, update, delete: if isOwner(userId);
       allow list: if isAdmin(); // Only admins can list all users
-      allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner
       match /fcmTokens/{token} {
@@ -120,11 +119,18 @@ service cloud.firestore {
         allow write: if isAdmin(); // Admin can seed
         // An inspector can create a bid for their own user ID.
         allow create: if (isSignedIn() && request.resource.data.inspectorId == request.auth.uid);
-        // The job client, the bidding inspector, or an admin can read bids.
-        allow read: if (isSignedIn() && (
+
+        // GET allows the job client or the bidding inspector to read a single bid.
+        allow get: if (isSignedIn() && (
                         isOwner(resource.data.inspectorId) || 
                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
                       )) || isAdmin();
+
+        // LIST allows the job client to read all bids for their job.
+        allow list: if (isSignedIn() && 
+                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
+                      ) || isAdmin();
+                      
         // Only the bidding inspector can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId);
       }

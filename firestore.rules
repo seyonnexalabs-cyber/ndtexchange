@@ -20,15 +20,6 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     }
 
-    function getUserCompanyId() {
-      // Safely get the user's company ID, returning null if not found.
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      if (userDoc != null && 'companyId' in userDoc.data) {
-        return userDoc.data.companyId;
-      }
-      return null;
-    }
-
     // --------------------------------
     // Collection Rules
     // --------------------------------
@@ -36,9 +27,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
-      // **THE FIX**: Allow any signed-in user to GET users. LIST is removed to prevent permission errors.
-      // Client-side queries that need to list users will be refactored to be more performant and secure.
-      allow get: if isSignedIn();
+      allow get, list: if isSignedIn();
       allow update, delete: if isOwner(userId);
 
       // FCM tokens can only be managed by the owner
@@ -65,10 +54,10 @@ service cloud.firestore {
 
       match /supportChats/{chatId} {
         // Allow members of the company or admins to access support chats.
-        allow read, write: if getUserCompanyId() == companyId || isAdmin();
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isAdmin();
         
         match /supportMessages/{messageId} {
-          allow read, write: if getUserCompanyId() == companyId || isAdmin();
+          allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isAdmin();
         }
       }
     }
@@ -76,7 +65,7 @@ service cloud.firestore {
     match /assets/{assetId} {
       allow write: if isAdmin(); // Admin can seed
       // A user can create an asset for their own company.
-      allow create: if (isSignedIn() && request.resource.data.companyId == getUserCompanyId());
+      allow create: if (isSignedIn() && request.resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
       // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
       // A user can read, update, or delete an asset IFF they belong to that asset's company.
@@ -99,19 +88,37 @@ service cloud.firestore {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.
       allow create: if (isSignedIn() && request.resource.data.clientId == request.auth.uid);
-      // All jobs are publicly readable for marketplace browsing.
-      allow read, list: if isSignedIn();
+      
+      // Allow LISTING jobs for marketplace browsing
+      allow list: if isSignedIn();
+      
+      // Allow GETTING a job's details only by participants or if it's public
+      allow get: if (isSignedIn() && (
+                      resource.data.status == 'Posted' || // Anyone can see open jobs
+                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId ||
+                      (resource.data.awardedProviderId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.awardedProviderId)
+                    )) || isAdmin();
+
       // Only the client, the awarded provider, or an admin can update a job.
-      allow update: if (isSignedIn() && (getUserCompanyId() == resource.data.clientCompanyId || getUserCompanyId() == resource.data.awardedProviderId));
+      allow update: if (isSignedIn() && (
+                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId ||
+                        (resource.data.awardedProviderId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.awardedProviderId)
+                      )) || isAdmin();
+
       // Only the client or an admin can delete a job.
-      allow delete: if (isSignedIn() && getUserCompanyId() == resource.data.clientCompanyId);
+      allow delete: if (isSignedIn() && 
+                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId
+                      ) || isAdmin();
 
       match /bids/{bidId} {
         allow write: if isAdmin(); // Admin can seed
         // An inspector can create a bid for their own user ID.
         allow create: if (isSignedIn() && request.resource.data.inspectorId == request.auth.uid);
         // The job client, the bidding inspector, or an admin can read bids.
-        allow read: if isSignedIn() && (isOwner(resource.data.inspectorId) || getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId);
+        allow read: if (isSignedIn() && (
+                        isOwner(resource.data.inspectorId) || 
+                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
+                      )) || isAdmin();
         // Only the bidding inspector can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId);
       }
@@ -119,12 +126,12 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow write: if isAdmin(); // Admin can seed
         // Participants of the job can read messages and create new ones.
-        allow read, create: if isSignedIn() && (
-            (exists(/databases/$(database)/documents/jobs/$(jobId)) && (
-                (getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId) ||
-                (getUserCompanyId() == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId)
-              ))
-        );
+        allow read, create: if (isSignedIn() && (
+            exists(/databases/$(database)/documents/jobs/$(jobId)) && (
+                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
+                (get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.awardedProviderId)
+              )
+            )) || isAdmin();
       }
     }
 

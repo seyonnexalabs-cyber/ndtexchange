@@ -27,8 +27,9 @@ const ActorBadge = ({ actor }: { actor: string }) => {
             break;
         case 'Service Provider':
             variant = 'secondary';
+            text = 'Provider';
             break;
-        case 'Auditor': // Kept for potential future use in descriptions
+        case 'Auditor': 
             variant = 'outline';
             break;
         case 'Platform':
@@ -53,16 +54,16 @@ const StepCard = ({ step, icon: Icon, title, description, actor }: {
     description: string,
     actor: string 
 }) => (
-    <div className="bg-card border rounded-lg p-4 w-full h-full text-center relative shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl">
+    <div className="bg-card border rounded-lg p-4 w-full h-full text-center relative shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl flex flex-col">
         <div className="absolute -top-4 -left-4 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-lg border-4 border-background">
             {step}
         </div>
-        <div className="pt-8">
+        <div className="pt-8 flex flex-col items-center flex-grow">
              <div className="icon-container mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit mb-3">
                 <Icon className="w-7 h-7" />
             </div>
             <h4 className="font-semibold text-primary text-lg leading-tight">{title}</h4>
-            <p className="text-sm text-muted-foreground mt-2">{description}</p>
+            <p className="text-sm text-muted-foreground mt-2 flex-grow">{description}</p>
              <div className="mt-4">
                 <ActorBadge actor={actor} />
             </div>

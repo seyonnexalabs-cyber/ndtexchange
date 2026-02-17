@@ -23,46 +23,61 @@ const workflowData = [
     phase: 'PHASE 01',
     title: 'Job Creation & Scoping',
     actor: 'Client',
-    steps: [
-      { number: 1, title: 'Create Job Posting', description: 'Client details the job: assets, NDT methods, urgency, and location. They select a workflow (Standard, Level III Required) and upload scope documents.', actor: 'Client' },
-      { number: 2, title: 'Platform Verification & Publishing', description: 'NDT EXCHANGE validates the job requirements and publishes it to a pool of qualified and matching service providers.', actor: 'Platform' }
-    ]
+    description: 'Client details the job: assets, NDT methods, urgency, and location. They select a workflow (Standard, Level III Required) and upload scope documents. The platform verifies and publishes the job.',
   },
   {
     phase: 'PHASE 02',
-    title: 'Bidding & Award',
-    actor: 'Both Parties',
-    steps: [
-        { number: 3, title: 'Discover & Prepare Bids', description: "Providers are notified of matching jobs. They review the scope and can ask questions through a structured Q&A channel before submitting a detailed bid.", actor: 'Service Provider' },
-        { number: 4, title: 'Evaluate Bids & Award Job', description: "Client compares bids side-by-side, chats with providers, and awards the job. The platform auto-generates a service contract for e-signature.", actor: 'Client' },
-    ]
-  },
-    {
-    phase: 'PHASE 03',
-    title: 'Preparation & Execution',
+    title: 'Marketplace Bidding',
     actor: 'Service Provider',
-    steps: [
-        { number: 5, title: 'Pre-Inspection & Mobilisation', description: "The awarded provider confirms site readiness, prepares an inspection plan (which an Auditor may review), and mobilizes team and equipment.", actor: 'Service Provider' },
-        { number: 6, title: 'Execute On-Site Inspection', description: "The inspector performs the NDT work, capturing all necessary data, readings, and defect information as per the job scope.", actor: 'Service Provider' },
-    ]
+    description: 'Inspectors discover jobs, review requirements, ask questions via a structured Q&A channel, and submit detailed bids including price, schedule, and qualifications.',
+  },
+  {
+    phase: 'PHASE 03',
+    title: 'Job Award & Assignment',
+    actor: 'Client',
+    description: 'Client compares bids, chats with inspectors, and awards the job. The platform auto-generates a service contract for e-signature. The job status updates to "Assigned".',
   },
   {
     phase: 'PHASE 04',
-    title: 'Reporting & Collaborative Review',
-    actor: 'Both Parties',
-    steps: [
-        { number: 7, title: 'Draft Report Submission', description: "Inspector uses platform tools to create a structured digital report, including findings, images, and recommendations, and submits it for review.", actor: 'Service Provider' },
-        { number: 8, title: 'Auditor & Client Review', description: "Depending on the workflow, the report is routed to a Level III Auditor and/or the Client for review. Comments and revision requests are handled directly on the platform.", actor: 'Both Parties' }
-    ]
+    title: 'Pre-Inspection & Scheduling',
+    actor: 'Service Provider',
+    description: 'The awarded provider confirms site readiness, prepares an inspection plan (which an Auditor may review if required), and mobilizes team and equipment. The job is formally scheduled on the platform.',
   },
   {
     phase: 'PHASE 05',
-    title: 'Final Approval & Job Closeout',
+    title: 'Inspection Execution',
+    actor: 'Service Provider',
+    description: 'The inspector performs the on-site NDT work, capturing all necessary data, readings, and defect information as per the job scope. Progress can be tracked on the platform.',
+  },
+  {
+    phase: 'PHASE 06',
+    title: 'Report Drafting & Submission',
+    actor: 'Service Provider',
+    description: 'Inspector uses platform tools to create a structured digital report, including findings, images, and recommendations, and submits it for review.',
+  },
+  {
+    phase: 'PHASE 07',
+    title: 'Collaborative Report Review',
     actor: 'Both Parties',
-    steps: [
-        { number: 9, title: 'Final Report Approval', description: "After all revisions, the Client gives final approval on the report, confirming that the work meets all requirements.", actor: 'Client' },
-        { number: 10, title: 'Closure & Payment', description: "The system finalizes the job, updates the asset's history with the new inspection data, and enables client reviews. Payment is then handled between the parties.", actor: 'Platform' }
-    ]
+    description: 'Depending on the selected workflow, the report is routed to a Level III Auditor and/or the Client for review. Comments and revision requests are handled directly on the platform.',
+  },
+  {
+    phase: 'PHASE 08',
+    title: 'Final Report Approval',
+    actor: 'Client',
+    description: 'After all revisions, the Client gives final approval on the report, confirming that the work meets all requirements. The job is marked as completed.',
+  },
+  {
+    phase: 'PHASE 09',
+    title: 'Job Closure & Data Archiving',
+    actor: 'Platform',
+    description: 'The system generates a final PDF of the report, updates the asset\'s history with the new inspection data, logs all activity, and enables client reviews and ratings.',
+  },
+  {
+    phase: 'PHASE 10',
+    title: 'Payment & Billing',
+    actor: 'Both Parties',
+    description: 'The platform facilitates the final step where the client reviews the invoice and handles payment directly with the provider. Financial reports are generated.',
   },
 ];
 
@@ -115,41 +130,27 @@ export default function PlatformWorkflowPage() {
                         ))}
                     </div>
 
-                    <div className="space-y-8">
-                        {workflowData.map((phase) => (
-                            <Card key={phase.phase}>
-                                <CardHeader>
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <Badge className="bg-primary text-primary-foreground text-sm">{phase.phase}</Badge>
-                                            <CardTitle className="text-xl md:text-2xl">{phase.title}</CardTitle>
-                                        </div>
-                                        <div className="hidden sm:block">
-                                            <ActorBadge actor={phase.actor} full={true} />
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-8 pt-4">
-                                    {phase.steps.map(step => (
-                                        <div key={step.number} className="grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-x-6">
-                                            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                                                {step.number}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-semibold">{step.title}</h4>
-                                                <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
-                                                <div className="md:hidden mt-2">
-                                                    <ActorBadge actor={step.actor} />
-                                                </div>
-                                            </div>
-                                            <div className="hidden md:block justify-self-end">
-                                                <ActorBadge actor={step.actor} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
+                    <div className="relative pl-8">
+                      {/* Timeline line */}
+                      <div className="absolute left-8 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                      
+                      <div className="space-y-12">
+                        {workflowData.map((phase, index) => (
+                           <div key={phase.phase} className="relative">
+                              <div className="absolute -left-11 top-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm z-10">
+                                {index + 1}
+                              </div>
+                              <div className="ml-4">
+                                <p className="text-sm font-semibold text-primary">{phase.phase}</p>
+                                <div className="flex justify-between items-center">
+                                  <h3 className="text-xl font-headline font-semibold mt-1">{phase.title}</h3>
+                                  <ActorBadge actor={phase.actor} full={true} />
+                                </div>
+                                <p className="mt-2 text-muted-foreground">{phase.description}</p>
+                              </div>
+                           </div>
                         ))}
+                      </div>
                     </div>
                 </div>
             </main>

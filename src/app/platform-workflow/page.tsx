@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import * as React from 'react';
 
 export const metadata: Metadata = {
-  title: 'Job Bidding Workflow',
-  description: 'End-to-end process from job creation to payment — a step-by-step breakdown of each phase.',
+  title: 'Platform Workflow',
+  description: 'End-to-end process from job creation to payment — a step-by-step breakdown of each phase of the NDT Exchange platform.',
 };
 
 const actors = [
@@ -24,56 +24,48 @@ const workflowData = [
     title: 'Job Creation & Scoping',
     actor: 'Client',
     steps: [
-      { number: 1, title: 'Create Job Posting', description: 'Client fills in the job wizard: facility type, location, inspection techniques, asset count, access window, and deadline. NDT type tags auto-suggested.', actor: 'Client' },
-      { number: 2, title: 'Upload Scope Documents', description: 'Attach Piping and Instrumentation Diagrams (P&IDs), previous inspection reports, isometric drawings, and HSE requirements. Documents are shared only with shortlisted bidders.', actor: 'Client' },
-      { number: 3, title: 'Set Budget & Visibility', description: 'Choose budget type (fixed, indicative range, or open). Select visibility: public open bid, invited tender, or private to preferred providers.', actor: 'Client' },
-      { number: 4, title: 'Platform Verification & Publishing', description: 'NDT EXCHANGE auto-validates required certification types, flags incomplete scopes, and publishes to the matching provider pool.', actor: 'Platform' }
+      { number: 1, title: 'Create Job Posting', description: 'Client details the job: assets, NDT methods, urgency, and location. They select a workflow (Standard, Level III Required) and upload scope documents.', actor: 'Client' },
+      { number: 2, title: 'Platform Verification & Publishing', description: 'NDT EXCHANGE validates the job requirements and publishes it to a pool of qualified and matching service providers.', actor: 'Platform' }
     ]
   },
   {
     phase: 'PHASE 02',
-    title: 'Discovery & Bid Preparation',
-    actor: 'Service Provider',
+    title: 'Bidding & Award',
+    actor: 'Both Parties',
     steps: [
-        { number: 5, title: 'Smart Matching & Notifications', description: "Platform matches job requirements against provider profiles: location, technique certifications (ASNT Level II/III), industry experience, and capacity calendar.", actor: 'Platform' },
-        { number: 6, title: 'Review Scope & Express Interest', description: "Provider reads the scope, downloads documents (NDA-gated if required), and signals intent to bid — activating the Q&A channel with the client.", actor: 'Service Provider' },
-        { number: 7, title: 'Pre-Bid Q&A', description: "Provider asks clarification questions via the platform's structured Q&A. Client answers are visible to all registered bidders to ensure fair information.", actor: 'Both Parties' },
-        { number: 8, title: 'Build & Submit Bid', description: "Provider completes structured bid: lump-sum price, team CVs, certifications, method statement summary, mobilisation date, and payment schedule.", actor: 'Service Provider' }
+        { number: 3, title: 'Discover & Prepare Bids', description: "Providers are notified of matching jobs. They review the scope and can ask questions through a structured Q&A channel before submitting a detailed bid.", actor: 'Service Provider' },
+        { number: 4, title: 'Evaluate Bids & Award Job', description: "Client compares bids side-by-side, chats with providers, and awards the job. The platform auto-generates a service contract for e-signature.", actor: 'Client' },
     ]
   },
     {
     phase: 'PHASE 03',
-    title: 'Evaluation & Award',
-    actor: 'Both Parties',
+    title: 'Preparation & Execution',
+    actor: 'Service Provider',
     steps: [
-        { number: 9, title: 'Bid Comparison Review', description: "Client views all bids in a scored comparison table — auto-ranked by platform scoring algorithm weighing price, certifications, experience, ratings, and response time.", actor: 'Client' },
-        { number: 10, title: 'Shortlist & Interview (Optional)', description: "Client shortlists 2–3 providers, can request a live video call or additional documentation before making the final decision.", actor: 'Client' },
-        { number: 11, title: 'Contract Generation', description: "Platform auto-generates an NDT-specific service contract from the awarded bid scope. Both parties e-sign digitally within the platform.", actor: 'Platform' },
-        { number: 12, title: 'Escrow Activation', description: "Client deposits contract value into platform escrow. Platform notifies all unsuccessful bidders. Job status moves to 'Awarded.'", actor: 'Platform' }
+        { number: 5, title: 'Pre-Inspection & Mobilisation', description: "The awarded provider confirms site readiness, prepares an inspection plan (which an Auditor may review), and mobilizes team and equipment.", actor: 'Service Provider' },
+        { number: 6, title: 'Execute On-Site Inspection', description: "The inspector performs the NDT work, capturing all necessary data, readings, and defect information as per the job scope.", actor: 'Service Provider' },
     ]
   },
   {
     phase: 'PHASE 04',
-    title: 'Mobilisation & Execution',
-    actor: 'Service Provider',
+    title: 'Reporting & Collaborative Review',
+    actor: 'Both Parties',
     steps: [
-        { number: 13, title: 'Team & Equipment Mobilisation', description: "Provider confirms team roster, equipment manifest, and site arrival schedule. Client approves access via the platform's site permit module.", actor: 'Service Provider' },
-        { number: 14, title: 'Daily Progress Updates', description: "Provider submits structured daily field reports: work completed, defects found, delays flagged. Client reviews in real-time via the job dashboard.", actor: 'Service Provider' },
-        { number: 15, title: 'Milestone Payment Releases', description: "Platform releases partial escrow payments as client approves completion milestones (e.g. 30% on mobilisation, 40% on inspection complete, 30% on report accepted).", actor: 'Platform' }
+        { number: 7, title: 'Draft Report Submission', description: "Inspector uses platform tools to create a structured digital report, including findings, images, and recommendations, and submits it for review.", actor: 'Service Provider' },
+        { number: 8, title: 'Auditor & Client Review', description: "Depending on the workflow, the report is routed to a Level III Auditor and/or the Client for review. Comments and revision requests are handled directly on the platform.", actor: 'Both Parties' }
     ]
   },
   {
     phase: 'PHASE 05',
-    title: 'Reporting, Closeout & Review',
+    title: 'Final Approval & Job Closeout',
     actor: 'Both Parties',
     steps: [
-        { number: 16, title: 'Final Report Submission', description: "Provider uploads structured final report: all findings, defect classifications, recommended actions, and NDT data files — stored permanently in the client's asset register.", actor: 'Service Provider' },
-        { number: 17, title: 'Client Sign-off', description: "Client reviews and approves the final deliverables. Any disputes are handled via the platform's structured dispute resolution process before final release.", actor: 'Client' },
-        { number: 18, title: 'Final Payment & Closeout', description: "Remaining escrow is released to the provider without commission. An invoice is issued to the client, and the transaction is recorded for historical reporting.", actor: 'Platform' },
-        { number: 19, title: 'Rate The Provider', description: "The client rates the service provider's performance. This rating contributes to the provider's public reputation on the platform, helping future clients make informed decisions.", actor: 'Client' }
+        { number: 9, title: 'Final Report Approval', description: "After all revisions, the Client gives final approval on the report, confirming that the work meets all requirements.", actor: 'Client' },
+        { number: 10, title: 'Closure & Payment', description: "The system finalizes the job, updates the asset's history with the new inspection data, and enables client reviews. Payment is then handled between the parties.", actor: 'Platform' }
     ]
   },
 ];
+
 
 const ActorBadge = ({ actor, full = false }: { actor: string, full?: boolean }) => {
     let color = '';
@@ -110,7 +102,7 @@ export default function PlatformWorkflowPage() {
             <main className="pt-28 pb-16">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl font-headline font-bold">Job Bidding Workflow</h1>
+                        <h1 className="text-4xl font-headline font-bold">Platform Workflow</h1>
                         <p className="mt-4 text-lg text-muted-foreground">End-to-end process from job creation to payment — a step-by-step breakdown of each phase.</p>
                     </div>
 

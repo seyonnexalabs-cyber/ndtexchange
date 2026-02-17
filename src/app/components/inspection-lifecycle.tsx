@@ -1,35 +1,48 @@
 'use client';
 import React from 'react';
-import { FilePlus2, Gavel, Award, Search, FileText, ShieldCheck, UserCheck, CheckCircle } from 'lucide-react';
+import { FilePlus2, Gavel, Award, Search, FileText, Users, UserCheck, Archive, DollarSign, CalendarCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 // A single, more descriptive data source for the steps
 const lifecycleSteps = [
-    { step: 1, icon: FilePlus2, title: 'Post Job', description: 'Client defines the scope, assets, and requirements for the inspection.', actor: 'Client' },
-    { step: 2, icon: Gavel, title: 'Bidding', description: 'Qualified service providers submit competitive bids for the job.', actor: 'Provider' },
-    { step: 3, icon: Award, title: 'Award Job', description: 'Client reviews bids, communicates with providers, and awards the contract.', actor: 'Client' },
-    { step: 4, icon: Search, title: 'Perform Inspection', description: 'The awarded provider conducts the on-site NDT work as per the scope.', actor: 'Provider' },
-    { step: 5, icon: FileText, title: 'Submit Report', description: 'Provider uses platform tools to generate and submit a digital inspection report.', actor: 'Provider' },
-    { step: 6, icon: ShieldCheck, title: 'Audit Report', description: '(As Required) A Level III auditor reviews the report for compliance and accuracy.', actor: 'Auditor' },
-    { step: 7, icon: UserCheck, title: 'Client Review', description: 'Client performs the final review of the report, with the ability to request revisions.', actor: 'Client' },
-    { step: 8, icon: CheckCircle, title: 'Complete & Pay', description: 'Client approves the final report, completing the job and initiating payment.', actor: 'Client' },
+    { step: 1, icon: FilePlus2, title: 'Job Creation', description: 'Client defines the scope, assets, and requirements for the inspection.', actor: 'Client' },
+    { step: 2, icon: Gavel, title: 'Marketplace Bidding', description: 'Qualified service providers submit competitive bids for the job.', actor: 'Service Provider' },
+    { step: 3, icon: Award, title: 'Job Award & Assignment', description: 'Client reviews bids, awards the contract, and assigns the job.', actor: 'Client' },
+    { step: 4, icon: CalendarCheck, title: 'Pre-Inspection Prep', description: 'Provider confirms site readiness, prepares an inspection plan, and mobilizes team.', actor: 'Service Provider' },
+    { step: 5, icon: Search, title: 'Inspection Execution', description: 'Provider performs the on-site NDT work, capturing all necessary data.', actor: 'Service Provider' },
+    { step: 6, icon: FileText, title: 'Report Drafting & Submission', description: 'Provider uses platform tools to create and submit a digital report.', actor: 'Service Provider' },
+    { step: 7, icon: Users, title: 'Collaborative Report Review', description: 'Auditor (if required) and Client review the report and provide feedback.', actor: 'All Parties' },
+    { step: 8, icon: UserCheck, title: 'Final Report Approval', description: 'Client gives final approval, confirming the work meets all requirements.', actor: 'Client' },
+    { step: 9, icon: Archive, title: 'Job Closure & Archiving', description: 'The platform archives all documents and updates the asset’s history.', actor: 'Platform' },
+    { step: 10, icon: DollarSign, title: 'Payment & Billing', description: 'Client settles the invoice directly with the provider. Financial reports are generated.', actor: 'Client & Provider' },
 ];
 
 const ActorBadge = ({ actor }: { actor: string }) => {
-    let variant: 'default' | 'secondary' | 'outline' = 'default';
+    let variant: 'default' | 'secondary' | 'outline' | 'success' = 'default';
+    let text = actor;
     switch (actor) {
         case 'Client':
             variant = 'default';
             break;
-        case 'Provider':
+        case 'Service Provider':
             variant = 'secondary';
             break;
-        case 'Auditor':
+        case 'Auditor': // Kept for potential future use in descriptions
             variant = 'outline';
             break;
+        case 'Platform':
+            variant = 'outline';
+            break;
+        case 'All Parties':
+            variant = 'success';
+            break;
+        case 'Client & Provider':
+             variant = 'success';
+             text = 'Both Parties';
+            break;
     }
-    return <Badge variant={variant}>{actor}</Badge>
+    return <Badge variant={variant} shape="rounded">{text}</Badge>
 };
 
 
@@ -49,7 +62,7 @@ const StepCard = ({ step, icon: Icon, title, description, actor }: {
                 <Icon className="w-7 h-7" />
             </div>
             <h4 className="font-semibold text-primary text-lg leading-tight">{title}</h4>
-            <p className="text-sm text-muted-foreground mt-2 h-16">{description}</p>
+            <p className="text-sm text-muted-foreground mt-2">{description}</p>
              <div className="mt-4">
                 <ActorBadge actor={actor} />
             </div>
@@ -62,7 +75,7 @@ const UserActivityDiagram = () => {
     return (
         <div className="w-full max-w-7xl mx-auto mt-16">
             {/* Desktop View - A clear, ordered grid */}
-            <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+            <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-12">
                 {lifecycleSteps.map((step) => (
                     <StepCard key={step.step} {...step} />
                 ))}

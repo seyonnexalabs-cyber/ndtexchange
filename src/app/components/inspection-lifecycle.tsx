@@ -85,14 +85,14 @@ const UserActivityDiagram = () => {
             {/* Mobile View - Vertical timeline */}
             <div className="lg:hidden space-y-8">
                  <h3 className="text-xl font-bold text-center text-primary font-headline">The Inspection Lifecycle</h3>
-                 <div className="relative pl-8 border-l-2 border-dashed border-border">
+                 <div className="relative ml-8 border-l-2 border-dashed border-border">
                     <div className="space-y-12">
                         {lifecycleSteps.map(step => (
-                            <div key={step.step} className="relative">
-                                <div className="absolute -left-[2.1rem] top-0 flex h-16 w-16 items-center justify-center rounded-full bg-background border-2 border-primary">
+                            <div key={step.step} className="relative pl-12 py-2">
+                                <div className="absolute -left-8 top-1 flex h-16 w-16 items-center justify-center rounded-full bg-background border-2 border-primary">
                                     <div className="text-primary"><step.icon className="w-8 h-8" /></div>
                                 </div>
-                                <div className="ml-4 pt-2">
+                                <div className="pt-2">
                                     <p className="text-lg font-semibold text-primary">{step.step}. {step.title}</p>
                                     <p className="text-sm text-muted-foreground">{step.description}</p>
                                     <div className="mt-2"><ActorBadge actor={step.actor} /></div>

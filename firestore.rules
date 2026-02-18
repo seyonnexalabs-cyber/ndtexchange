@@ -20,6 +20,16 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     }
 
+    // Helper function to check if a user is part of a job's client or provider company
+    function isJobParticipant(jobId) {
+      let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
+      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return exists(/databases/$(database)/documents/jobs/$(jobId)) &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             (job.clientCompanyId == userProfile.companyId ||
+             (job.providerId != null && job.providerId == userProfile.companyId));
+    }
+
     // --------------------------------
     // Collection Rules
     // --------------------------------
@@ -87,9 +97,9 @@ service cloud.firestore {
       allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
     
-    // Rule to allow admins to perform collection group queries on all inspections.
+    // Rule to allow participants to perform collection group queries on inspections for their jobs.
     match /{path=**}/inspections/{inspectionId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || (isSignedIn() && isJobParticipant(resource.data.jobId));
     }
 
     match /jobs/{jobId} {

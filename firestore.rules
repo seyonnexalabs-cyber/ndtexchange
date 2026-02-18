@@ -42,7 +42,7 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow get: if isSignedIn();
       allow update, delete: if isOwner(userId);
-      allow list: if isAdmin(); // Only admins can list all users
+      allow list: if isSignedIn(); // Allow listing users for team management features.
 
       // FCM tokens can only be managed by the owner
       match /fcmTokens/{token} {

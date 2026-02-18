@@ -593,16 +593,14 @@ export default function JobDetailPage() {
     
     const { data: assignedEquipment, isLoading: isLoadingEquipment } = useCollection<any>(assignedEquipmentQuery);
 
-    const assignedTechniciansQuery = useMemoFirebase(() => {
-      if (!firestore || !jobDetails?.technicianIds || jobDetails.technicianIds.length === 0) {
-          return null;
-      }
-      return query(collection(firestore, 'users'), where(documentId(), 'in', jobDetails.technicianIds.slice(0, 10)));
-    }, [firestore, jobDetails]);
-    const { data: assignedTechnicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(assignedTechniciansQuery);
+    const providerTeamQuery = useMemoFirebase(() => {
+        if (role !== 'inspector' || !firestore || !jobDetails?.providerId) return null;
+        return query(collection(firestore, 'users'), where('companyId', '==', jobDetails.providerId));
+    }, [firestore, role, jobDetails]);
+    const { data: providerTeamMembers, isLoading: isLoadingProviderTeam } = useCollection<PlatformUser>(providerTeamQuery);
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
-    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => isReady ? collection(firestore, 'techniques') : null, [isReady, firestore]));
+    const { data: allNdtTechniques, isLoading: isLoadingAllTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => isReady ? collection(firestore, 'techniques') : null, [isReady, firestore]));
     
     const { data: clientCompany, isLoading: isLoadingClientCompany } = useDoc<Client>(
         useMemoFirebase(() => (firestore && jobDetails?.clientCompanyId ? doc(firestore, 'companies', jobDetails.clientCompanyId) : null), [firestore, jobDetails])
@@ -612,7 +610,7 @@ export default function JobDetailPage() {
 
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
-    const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingTechniques || isLoadingInspections || isLoadingClientCompany || isLoadingTechnicians;
+    const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingInspections || isLoadingClientCompany || isLoadingAllTechniques || isLoadingProviderTeam;
     
     if (isLoading) {
         return (
@@ -676,8 +674,20 @@ export default function JobDetailPage() {
     };
 
     const handleAssignTechs = async () => {
-        if (!firestore || !jobDetails) return;
-        await updateDoc(doc(firestore, 'jobs', jobDetails.id), { technicianIds: tempSelectedTechs });
+        if (!firestore || !jobDetails || !providerTeamMembers) return;
+        
+        const techniciansToAssign = providerTeamMembers.filter(u => tempSelectedTechs.includes(u.id));
+        const assignedTechniciansData = techniciansToAssign.map(t => ({
+            id: t.id,
+            name: t.name,
+            level: t.level || 'N/A'
+        }));
+
+        await updateDoc(doc(firestore, 'jobs', jobDetails.id), { 
+            technicianIds: tempSelectedTechs,
+            assignedTechnicians: assignedTechniciansData
+        });
+
         toast({ title: 'Technicians updated.' });
         setIsTechDialogOpen(false);
     };
@@ -1221,7 +1231,13 @@ export default function JobDetailPage() {
                                                     </Button>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-muted-foreground pl-2">{jobDetails.technicianIds?.length || 0} technician(s) assigned.</p>
+                                            {jobDetails.assignedTechnicians && jobDetails.assignedTechnicians.length > 0 ? (
+                                                <ul className="space-y-2 pl-2">
+                                                    {jobDetails.assignedTechnicians.map((tech, i) => (
+                                                        <li key={`${tech.id}-${i}`} className="text-sm text-muted-foreground">{tech.name}</li>
+                                                    ))}
+                                                </ul>
+                                            ) : <p className="text-sm text-muted-foreground pl-2">{jobDetails.technicianIds?.length || 0} technician(s) assigned.</p>}
                                         </div>
                                         <Separator />
                                         <div>

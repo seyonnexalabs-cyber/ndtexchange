@@ -412,7 +412,7 @@ const nextMonth = new Date(today);
 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
 
-const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
+const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
     {
         id: 'JOB-PERFECT',
         title: 'Perfect Lifecycle Demo Job',
@@ -807,18 +807,31 @@ export const inspectionsData: Inspection[] = [
     { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
 ];
 
-export const jobs: Job[] = jobsData.map(job => ({
-    ...job,
-    bids: bidsData.filter(bid => bid.jobId === job.id).map(b => {
-        const inspector = allUsers.find(u => u.id === b.inspectorId);
-        return {
-            ...b,
-            providerId: inspector?.companyId || 'N/A',
-            providerName: inspector?.company || 'Unknown Provider',
-        }
-    }) as Bid[],
-    inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
-}));
+export const jobs: Job[] = jobsData.map(job => {
+    const technicians = job.technicianIds
+        ? allUsers.filter(u => job.technicianIds!.includes(u.id))
+        : [];
+    
+    const assignedTechniciansData = technicians.map(t => ({
+        id: t.id,
+        name: t.name,
+        level: t.level || 'N/A'
+    }));
+    
+    return {
+        ...job,
+        assignedTechnicians: assignedTechniciansData,
+        bids: bidsData.filter(bid => bid.jobId === job.id).map(b => {
+            const inspector = allUsers.find(u => u.id === b.inspectorId);
+            return {
+                ...b,
+                providerId: inspector?.companyId || 'N/A',
+                providerName: inspector?.company || 'Unknown Provider',
+            }
+        }) as Bid[],
+        inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
+    }
+});
 
 export const subscriptions: Subscription[] = [
     { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Client Plus', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 500 },

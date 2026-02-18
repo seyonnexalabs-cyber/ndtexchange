@@ -70,6 +70,11 @@ export type Job = {
     scheduledStartDate?: string;
     scheduledEndDate?: string;
     technicianIds?: string[];
+    assignedTechnicians?: {
+      id: string;
+      name: string;
+      level?: string;
+    }[];
     equipmentIds?: string[];
     assetIds?: string[];
     workflow: 'standard' | 'level3' | 'auto';

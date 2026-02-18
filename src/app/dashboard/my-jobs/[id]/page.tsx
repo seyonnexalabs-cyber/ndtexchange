@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin } from 'lucide-react';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
@@ -539,17 +538,17 @@ export default function JobDetailPage() {
         checkForReview();
     }, [id, firestore, jobDetails, user]);
     
-    const { data: assignedEquipment } = useCollection<any>(
-        useMemoFirebase(() => {
-            if (role !== 'inspector' || !firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) {
-                return null;
-            }
-            return query(collection(firestore, 'equipment'), where(documentId(), 'in', jobDetails.equipmentIds.slice(0, 10)));
-        }, [firestore, jobDetails, role])
-    );
+    const assignedEquipmentQuery = useMemoFirebase(() => {
+        if (role !== 'inspector' || !firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) {
+            return null;
+        }
+        return query(collection(firestore, 'equipment'), where(documentId(), 'in', jobDetails.equipmentIds.slice(0, 10)));
+    }, [firestore, jobDetails, role]);
     
-    const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
-    const { data: allNdtTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+    const { data: assignedEquipment, isLoading: isLoadingEquipment } = useCollection<any>(assignedEquipmentQuery);
+    
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
+    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
 
     const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
@@ -1191,3 +1190,4 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+    

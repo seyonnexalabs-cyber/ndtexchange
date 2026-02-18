@@ -1085,7 +1085,7 @@ export default function JobDetailPage() {
                                                     <div className="flex justify-between items-center mb-2">
                                                         <h3 className="text-base font-semibold">Job-Level Documents</h3>
                                                         {(jobDetails.documents && jobDetails.documents.length > 0) && (
-                                                                <Button variant="outline" size="sm" onClick={()={() => handleViewDocuments(jobDetails.documents)}>
+                                                                <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
                                                                 <Maximize className="mr-2 h-4 w-4" />
                                                                 View All
                                                             </Button>
@@ -1189,5 +1189,3 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-
-    

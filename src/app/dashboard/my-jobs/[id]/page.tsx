@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File } from 'lucide-react';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ import { collection, serverTimestamp, query, where, limit, getDocs, doc, collect
 import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 const bidSchema = z.object({
@@ -392,7 +393,7 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
-const WorkBreakdownTree = ({ inspections, job, constructUrl, role, handleViewDocuments, allNdtTechniques }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string, handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void, allNdtTechniques: NDTTechnique[] | null }) => {
+const WorkBreakdownAccordion = ({ inspections, job, constructUrl, role, handleViewDocuments, allNdtTechniques }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string, handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void, allNdtTechniques: NDTTechnique[] | null }) => {
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
 
@@ -420,49 +421,47 @@ const WorkBreakdownTree = ({ inspections, job, constructUrl, role, handleViewDoc
             return { technique, assets: Object.entries(groupedByAsset) };
         });
     }, [inspections]);
-    
-     const inspectionStatusConfig: Record<Inspection['status'], { color: string, textColor: string, icon: React.ReactNode }> = {
-        'Completed': { color: 'bg-green-500', textColor: 'text-white', icon: <CheckCircle className="h-4 w-4" /> },
-        'Scheduled': { color: 'bg-gray-400', textColor: 'text-white', icon: <Calendar className="h-4 w-4" /> },
-        'Requires Review': { color: 'bg-red-500', textColor: 'text-white', icon: <AlertTriangle className="h-4 w-4" /> },
+
+    const inspectionStatusConfig: Record<Inspection['status'], { variant: 'success' | 'destructive' | 'secondary' }> = {
+        'Completed': { variant: 'success' },
+        'Scheduled': { variant: 'secondary' },
+        'Requires Review': { variant: 'destructive' },
     };
 
     if (groupedData.length === 0) {
         return <p className="text-sm text-muted-foreground text-center py-4">No specific inspections are associated with this job's assets.</p>;
     }
+    
+    const techniqueDefaultValues = groupedData.map(g => g.technique);
 
     return (
-        <div className="space-y-6">
+        <Accordion type="multiple" defaultValue={techniqueDefaultValues} className="w-full">
             {groupedData.map(({ technique, assets }) => (
-                <div key={technique} className="pl-2">
-                    <div className="flex items-center gap-3">
-                        <div className="z-10 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                            {technique}
-                        </div>
-                        <h3 className="font-semibold text-lg">{(allNdtTechniques || []).find(t=>t.acronym === technique)?.title || technique}</h3>
-                    </div>
-                    <div className="pl-6 border-l-2 border-dashed ml-5 pt-4 space-y-4">
-                        {assets.map(([assetId, assetData]) => (
-                            <div key={assetId} className="relative">
-                                <div className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-background border-2 border-primary"/>
-                                <div className="flex items-center gap-3 mb-2">
-                                     <div className="z-10 w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                                        <HardHat className="w-5 h-5"/>
-                                    </div>
-                                    <h4 className="font-medium">Asset: {assetData.assetName}</h4>
-                                </div>
-                                <div className="pl-12 space-y-2">
-                                    {assetData.inspections.map(inspection => {
-                                        const statusInfo = inspectionStatusConfig[inspection.status];
-                                        return (
+                <AccordionItem key={technique} value={technique}>
+                    <AccordionTrigger className="font-semibold text-base">
+                         <div className="flex items-center gap-2">
+                             <Folder className="h-5 w-5 text-primary" />
+                             {(allNdtTechniques || []).find(t=>t.acronym === technique)?.title || technique}
+                         </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pl-6">
+                        <Accordion type="multiple" defaultValue={assets.map(([assetId]) => assetId)} className="w-full space-y-2">
+                            {assets.map(([assetId, assetData]) => (
+                                <AccordionItem key={assetId} value={assetId} className="border-none">
+                                    <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline rounded-md hover:bg-muted px-2">
+                                        <div className="flex items-center gap-2">
+                                             <Folder className="h-4 w-4 text-muted-foreground" />
+                                            {assetData.assetName}
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pl-8 space-y-2 pt-2">
+                                        {assetData.inspections.map(inspection => (
                                             <div key={inspection.id} className="flex justify-between items-center bg-background p-2 rounded-md border">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={cn("z-10 w-8 h-8 rounded-full flex items-center justify-center", statusInfo.color, statusInfo.textColor)}>
-                                                        {statusInfo.icon}
-                                                    </div>
+                                                    <File className="h-4 w-4 text-muted-foreground"/>
                                                     <div>
                                                         <p className="text-sm font-medium">Inspection: {format(parseISO(inspection.date), 'dd-MMM-yy')}</p>
-                                                        <p className="text-xs text-muted-foreground">Status: {inspection.status}</p>
+                                                        <Badge variant={inspectionStatusConfig[inspection.status]} className="mt-1">{inspection.status}</Badge>
                                                     </div>
                                                 </div>
                                                 <div>
@@ -482,17 +481,18 @@ const WorkBreakdownTree = ({ inspections, job, constructUrl, role, handleViewDoc
                                                 )}
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                                        ))}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    </AccordionContent>
+                </AccordionItem>
             ))}
-        </div>
+        </Accordion>
     );
 };
+
 
 export default function JobDetailPage() {
     const params = useParams();
@@ -1189,11 +1189,11 @@ export default function JobDetailPage() {
                                                 <Separator />
                                                 <div>
                                                     <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
-                                                    <WorkBreakdownTree 
-                                                        inspections={inspections || []} 
-                                                        job={jobDetails} 
-                                                        constructUrl={constructUrl} 
-                                                        role={role} 
+                                                    <WorkBreakdownAccordion
+                                                        inspections={inspections || []}
+                                                        job={jobDetails}
+                                                        constructUrl={constructUrl}
+                                                        role={role}
                                                         handleViewDocuments={handleViewDocuments}
                                                         allNdtTechniques={allNdtTechniques}
                                                     />

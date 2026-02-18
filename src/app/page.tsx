@@ -86,7 +86,7 @@ export default function HomePage() {
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="relative py-20 md:py-24 overflow-hidden bg-primary">
-          <div className="absolute inset-0 hexagon-grid-container opacity-20"></div>
+          <div className="absolute inset-0 hexagon-grid-container"></div>
           <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
               <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">

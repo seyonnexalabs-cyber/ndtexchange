@@ -21,42 +21,23 @@ import { Pagination, PaginationContent, PaginationItem, PaginationNext, Paginati
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import type { Job, NDTServiceProvider, NDTTechnique, Review } from '@/lib/types';
+import type { NDTServiceProvider, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const StarRating = ({ rating }: { rating: number }) => {
-    return (
-        <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-                <Star
-                    key={i}
-                    className={`w-5 h-5 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
-                />
-            ))}
-            <span className="ml-2 text-sm text-muted-foreground">{rating.toFixed(1)}</span>
-        </div>
-    );
-};
 
 export default function ProvidersPage() {
     const { firestore } = useFirebase();
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-    const [sortBy, setSortBy] = useState('rating-desc');
+    const [sortBy, setSortBy] = useState('name-asc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
     
     const providersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]);
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(providersQuery);
 
-    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
-    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? collection(firestore, 'reviews') : null, [firestore]));
-
     const auditFirmIndustries = useMemo(() => {
         if (!serviceProviders) return [];
         const industries = new Set(serviceProviders.flatMap(p => p.industries || []));
@@ -64,34 +45,22 @@ export default function ProvidersPage() {
     }, [serviceProviders]);
 
     const filteredProviders = useMemo(() => {
-        if (!serviceProviders || !jobs || !reviews) return [];
+        if (!serviceProviders) return [];
 
-        const providersWithStats = serviceProviders.map(provider => {
-            const completedJobs = jobs.filter(job => job.providerId === provider.id && (job.status === 'Completed' || job.status === 'Paid')).length;
-            const providerReviews = reviews.filter(r => r.providerId === provider.id && r.status === 'Approved');
-            const avgRating = providerReviews.length > 0
-                ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length
-                : 0;
-
-            return { ...provider, completedJobs, rating: avgRating };
-        });
-
-        let providers = providersWithStats.filter(provider => {
+        let providers = serviceProviders.filter(provider => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques?.includes(tech));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => provider.industries?.includes(ind));
             return techniqueMatch && industryMatch;
         });
 
         switch (sortBy) {
-            case 'rating-desc': providers.sort((a, b) => b.rating - a.rating); break;
-            case 'rating-asc': providers.sort((a, b) => a.rating - b.rating); break;
             case 'name-asc': providers.sort((a, b) => a.name.localeCompare(b.name)); break;
             case 'name-desc': providers.sort((a, b) => b.name.localeCompare(a.name)); break;
             default: break;
         }
 
         return providers;
-    }, [serviceProviders, jobs, reviews, selectedTechniques, selectedIndustries, sortBy]);
+    }, [serviceProviders, selectedTechniques, selectedIndustries, sortBy]);
 
     const pageCount = Math.ceil(filteredProviders.length / itemsPerPage);
     const paginatedProviders = useMemo(() => {
@@ -121,7 +90,7 @@ export default function ProvidersPage() {
     };
     
     const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0;
-    const isLoading = isLoadingProviders || isLoadingJobs || isLoadingTechniques || isLoadingReviews;
+    const isLoading = isLoadingProviders || isLoadingTechniques;
 
     return (
         <TooltipProvider>
@@ -183,8 +152,6 @@ export default function ProvidersPage() {
                                             <SelectValue placeholder="Sort by" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
-                                            <SelectItem value="rating-asc">Rating: Low to High</SelectItem>
                                             <SelectItem value="name-asc">Name: A-Z</SelectItem>
                                             <SelectItem value="name-desc">Name: Z-A</SelectItem>
                                         </SelectContent>
@@ -238,7 +205,6 @@ export default function ProvidersPage() {
                                             </div>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <Skeleton className="h-6 w-1/2" />
                                             <Skeleton className="h-10 w-full" />
                                             <Skeleton className="h-10 w-full" />
                                         </CardContent>
@@ -264,13 +230,6 @@ export default function ProvidersPage() {
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="flex-grow space-y-4">
-                                                <div className="flex justify-between items-center">
-                                                    <StarRating rating={provider.rating} />
-                                                    <div className="text-right">
-                                                        <p className="font-bold text-lg">{provider.completedJobs}</p>
-                                                        <p className="text-xs text-muted-foreground -mt-1">Jobs Completed</p>
-                                                    </div>
-                                                </div>
                                                 <p className="text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
                                                 <div>
                                                     <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>

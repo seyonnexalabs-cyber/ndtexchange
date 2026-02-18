@@ -33,7 +33,7 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc, useUser } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId, setDoc, arrayUnion } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
 import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -851,7 +851,7 @@ export default function JobDetailPage() {
             status: 'Pending',
         };
     
-        await addDocumentNonBlocking(collection(firestore, 'reviews'), reviewData);
+        await addDoc(collection(firestore, 'reviews'), reviewData);
         
         toast({
             title: "Review Submitted!",
@@ -1126,7 +1126,7 @@ export default function JobDetailPage() {
             <div>
                 <Button asChild variant="outline" size="sm" className="mb-4">
                      <Link href={constructUrl(backLink)}>
-                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                        <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to {backText}
                     </Link>
                 </Button>
@@ -1368,6 +1368,24 @@ export default function JobDetailPage() {
                                 <Award className="mr-2 h-4 w-4" /> Award Job to {reviewingBid?.provider.name}
                             </Button>
                         </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+                 <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Schedule Job</DialogTitle>
+                            <DialogDescription>
+                                Set the start and end dates for the inspection work.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <ScheduleJobForm
+                            onSubmit={handleScheduleSubmit}
+                            onCancel={() => setIsSchedulingOpen(false)}
+                            defaultValues={{
+                                scheduledStartDate: jobDetails.scheduledStartDate ? new Date(jobDetails.scheduledStartDate) : new Date(),
+                                scheduledEndDate: jobDetails.scheduledEndDate ? new Date(jobDetails.scheduledEndDate) : undefined,
+                            }}
+                        />
                     </DialogContent>
                 </Dialog>
             </div>

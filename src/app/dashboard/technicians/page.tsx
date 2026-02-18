@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { PlatformUser, Certification } from "@/lib/types";
-import { serviceProviders, NDTTechniques, allUsers as seedUsers } from "@/lib/seed-data";
+import { NDTTechniques } from "@/lib/seed-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, MoreVertical, Edit, Trash } from "lucide-react";
@@ -112,7 +112,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                         )}
                     />
                 )}
-                 
+                
                  <div>
                   <FormLabel>Certifications</FormLabel>
                   <ScrollArea className="h-60 mt-2">

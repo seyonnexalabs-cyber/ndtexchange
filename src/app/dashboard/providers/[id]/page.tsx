@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -48,7 +49,12 @@ export default function ProviderDetailPage() {
     const equipmentQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, user, id]);
     const { data: publicEquipment, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
 
-    const subscriptionQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null), [firestore, user, id]);
+    const subscriptionQuery = useMemoFirebase(() => {
+        if (firestore && user && id && role === 'admin') {
+            return query(collection(firestore, 'subscriptions'), where('companyId', '==', id));
+        }
+        return null;
+    }, [firestore, user, id, role]);
     const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
     const subscription = subscriptions?.[0];
     
@@ -146,7 +152,7 @@ export default function ProviderDetailPage() {
                                     <h3 className="font-semibold text-sm mb-1">Rating</h3>
                                     <StarRating rating={provider.rating} />
                                 </div>
-                                 {subscription && (
+                                 {role === 'admin' && subscription && (
                                     <div>
                                         <h3 className="font-semibold text-sm mb-1">Member Since</h3>
                                         <p className="text-sm text-muted-foreground flex items-center gap-1.5">

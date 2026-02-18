@@ -416,6 +416,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
     {
         id: 'JOB-PERFECT',
         title: 'Perfect Lifecycle Demo Job',
+        description: "A comprehensive ultrasonic thickness survey is required for all accessible welds on the shell and nozzles of the Heat Exchanger E-401. The inspection is part of the annual integrity program. The provider must supply a certified ASNT UT Level II technician. Final report to include a detailed thickness reading map, equipment calibration records, and technician certifications.",
         client: 'Global Energy Corp.',
         clientCompanyId: 'client-01',
         providerId: 'provider-03',
@@ -429,13 +430,14 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
         equipmentIds: ['EQUIP-1000'],
         workflow: 'level3',
-        techniques: ['UT'],
-        jobType: 'project',
-        industry: 'Oil & Gas — Downstream/Refinery',
-        certificationsRequired: 'ASNT UT L-II',
-        estimatedBudget: '$20,000',
+        documents: [
+            { name: 'P&ID-E401.pdf', url: '#' },
+            { name: 'Scope_of_Work_JOB-PERFECT.pdf', url: '#' },
+        ],
         history: [
             { user: 'John Doe', timestamp: new Date('2024-07-01T09:00:00Z'), action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
+            { user: 'Ben Carter', timestamp: new Date('2024-07-03T10:00:00Z'), action: 'Bid for $21,000 submitted by MISTRAS Group.' },
+            { user: 'David Lee', timestamp: new Date('2024-07-03T11:30:00Z'), action: 'Bid for $19,500 submitted by Applus+.' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-02T14:00:00Z'), action: 'Bid for $18,500 submitted by TEAM, Inc.' },
             { user: 'John Doe', timestamp: new Date('2024-07-06T10:00:00Z'), action: 'Awarded job to provider "TEAM, Inc." for $18,500.', statusChange: 'Assigned' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-07T11:00:00Z'), action: 'Scheduled job.', details: 'Inspection scheduled for 2024-07-10 to 2024-07-11', statusChange: 'Scheduled' },
@@ -449,6 +451,11 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
             { user: 'John Doe', timestamp: new Date('2024-07-20T10:00:00Z'), action: 'Payment recorded for Provider.', statusChange: 'Paid' },
             { user: 'John Doe', timestamp: new Date('2024-07-20T10:05:00Z'), action: 'Payment recorded for Auditor.', statusChange: 'Paid' },
         ],
+        techniques: ['UT'],
+        jobType: 'project',
+        industry: 'Oil & Gas — Downstream/Refinery',
+        certificationsRequired: 'ASNT UT L-II',
+        estimatedBudget: '$20,000',
     },
     { 
         id: 'JOB-001', 
@@ -732,6 +739,8 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
 
 export const bidsData: Omit<Bid, 'providerId' | 'providerName'>[] = [
     { id: 'BID-PERFECT', jobId: 'JOB-PERFECT', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 18500, status: 'Awarded', submittedDate: '2024-07-02T14:00:00Z', comments: 'Experienced team ready to deploy for this scope.' },
+    { id: 'BID-PERFECT-2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-01', amount: 21000, status: 'Not Selected', submittedDate: '2024-07-03T10:00:00Z', comments: 'Full team availability guaranteed.' },
+    { id: 'BID-PERFECT-3', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-02', amount: 19500, status: 'Not Selected', submittedDate: '2024-07-03T11:30:00Z', comments: 'We have local technicians available.' },
     { id: 'BID-001', jobId: 'JOB-001', inspectorId: 'user-tech-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.' },
     { id: 'BID-001A', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.' },
     { id: 'BID-002', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
@@ -806,32 +815,6 @@ export const inspectionsData: Inspection[] = [
     { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
     { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
 ];
-
-export const jobs: Job[] = jobsData.map(job => {
-    const technicians = job.technicianIds
-        ? allUsers.filter(u => job.technicianIds!.includes(u.id))
-        : [];
-    
-    const assignedTechniciansData = technicians.map(t => ({
-        id: t.id,
-        name: t.name,
-        level: t.level || 'N/A'
-    }));
-    
-    return {
-        ...job,
-        assignedTechnicians: assignedTechniciansData,
-        bids: bidsData.filter(bid => bid.jobId === job.id).map(b => {
-            const inspector = allUsers.find(u => u.id === b.inspectorId);
-            return {
-                ...b,
-                providerId: inspector?.companyId || 'N/A',
-                providerName: inspector?.company || 'Unknown Provider',
-            }
-        }) as Bid[],
-        inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
-    }
-});
 
 export const subscriptions: Subscription[] = [
     { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Client Plus', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 500 },
@@ -988,6 +971,28 @@ export const reviews: Review[] = [
   { id: 'REV-003', jobId: 'JOB-015', providerId: 'provider-07', clientId: 'client-08', rating: 5, comment: 'Dekra provided a quick and efficient service for our emergency gearbox inspection. Highly recommend.', date: '2024-07-16T10:00:00Z', status: 'Pending' },
 ];
 
-
-export const auditFirmServices = ['Compliance Audits', 'Level III Services', 'Procedure Development', 'Vendor Audits'];
-export const auditFirmIndustries = ['Oil & Gas', 'Power Generation', 'Manufacturing', 'Aerospace & Defense', 'Infrastructure', 'Marine'];
+export const jobs: Job[] = jobsData.map(job => {
+    const technicians = job.technicianIds
+        ? allUsers.filter(u => job.technicianIds!.includes(u.id))
+        : [];
+    
+    const assignedTechniciansData = technicians.map(t => ({
+        id: t.id,
+        name: t.name,
+        level: t.level || 'N/A'
+    }));
+    
+    return {
+        ...job,
+        assignedTechnicians: assignedTechniciansData,
+        bids: bidsData.filter(bid => bid.jobId === job.id).map(b => {
+            const inspector = allUsers.find(u => u.id === b.inspectorId);
+            return {
+                ...b,
+                providerId: inspector?.companyId || 'N/A',
+                providerName: inspector?.company || 'Unknown Provider',
+            }
+        }) as Bid[],
+        inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
+    }
+});

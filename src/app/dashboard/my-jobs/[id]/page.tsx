@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench } from 'lucide-react';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
@@ -1235,6 +1235,5 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-    
 
     

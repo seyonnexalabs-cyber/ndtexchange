@@ -396,6 +396,43 @@ nextMonth.setMonth(nextMonth.getMonth() + 1);
 
 
 const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
+    {
+        id: 'JOB-PERFECT',
+        title: 'Perfect Lifecycle Demo Job',
+        client: 'Global Energy Corp.',
+        clientCompanyId: 'client-01',
+        providerId: 'provider-03',
+        location: 'Houston, TX',
+        status: 'Paid',
+        postedDate: '2024-07-01',
+        bidExpiryDate: '2024-07-05',
+        scheduledStartDate: '2024-07-10',
+        scheduledEndDate: '2024-07-11',
+        assetIds: ['ASSET-010'],
+        technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
+        equipmentIds: ['EQUIP-1000'],
+        workflow: 'level3',
+        techniques: ['UT'],
+        jobType: 'project',
+        industry: 'Oil & Gas — Downstream/Refinery',
+        certificationsRequired: 'ASNT UT L-II',
+        estimatedBudget: '$20,000',
+        history: [
+            { user: 'John Doe', timestamp: new Date('2024-07-01T09:00:00Z'), action: 'Created job and posted to marketplace.', statusChange: 'Posted' },
+            { user: 'Maria Garcia', timestamp: new Date('2024-07-02T14:00:00Z'), action: 'Bid for $18,500 submitted by TEAM, Inc.' },
+            { user: 'John Doe', timestamp: new Date('2024-07-06T10:00:00Z'), action: 'Awarded job to provider "TEAM, Inc." for $18,500.', statusChange: 'Assigned' },
+            { user: 'Maria Garcia', timestamp: new Date('2024-07-07T11:00:00Z'), action: 'Scheduled job.', details: 'Inspection scheduled for 2024-07-10 to 2024-07-11', statusChange: 'Scheduled' },
+            { user: 'Maria Garcia', timestamp: new Date('2024-07-10T08:30:00Z'), action: 'Job status changed to In Progress.', statusChange: 'In Progress' },
+            { user: 'Maria Garcia', timestamp: new Date('2024-07-11T17:00:00Z'), action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-PERFECT.pdf', statusChange: 'Report Submitted' },
+            { user: 'System', timestamp: new Date('2024-07-11T17:01:00Z'), action: 'Status changed to Under Audit.', statusChange: 'Under Audit' },
+            { user: 'Alex Chen', timestamp: new Date('2024-07-12T13:00:00Z'), action: 'Approved inspection report.', statusChange: 'Audit Approved' },
+            { user: 'System', timestamp: new Date('2024-07-12T13:01:00Z'), action: 'Status changed to Client Review.', statusChange: 'Client Review' },
+            { user: 'John Doe', timestamp: new Date('2024-07-13T16:00:00Z'), action: 'Approved final report.', statusChange: 'Client Approved' },
+            { user: 'System', timestamp: new Date('2024-07-13T16:01:00Z'), action: 'Job status changed to Completed.', statusChange: 'Completed' },
+            { user: 'John Doe', timestamp: new Date('2024-07-20T10:00:00Z'), action: 'Payment recorded for Provider.', statusChange: 'Paid' },
+            { user: 'John Doe', timestamp: new Date('2024-07-20T10:05:00Z'), action: 'Payment recorded for Auditor.', statusChange: 'Paid' },
+        ],
+    },
     { 
         id: 'JOB-001', 
         title: 'PAUT on Pressure Vessel Welds', 
@@ -677,6 +714,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
 ];
 
 export const bidsData: Omit<Bid, 'providerId' | 'providerName'>[] = [
+    { id: 'BID-PERFECT', jobId: 'JOB-PERFECT', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 18500, status: 'Awarded', submittedDate: '2024-07-02T14:00:00Z', comments: 'Experienced team ready to deploy for this scope.' },
     { id: 'BID-001', jobId: 'JOB-001', inspectorId: 'user-tech-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.' },
     { id: 'BID-001A', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.' },
     { id: 'BID-002', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
@@ -703,6 +741,15 @@ export const bidsData: Omit<Bid, 'providerId' | 'providerName'>[] = [
 ];
 
 export const inspectionsData: Inspection[] = [
+    { id: 'INSP-PERFECT', jobId: 'JOB-PERFECT', assetName: 'Heat Exchanger E-401', assetId: 'ASSET-010', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-10', status: 'Completed',
+      report: {
+        id: 'REP-PERFECT',
+        submittedOn: '2024-07-11T17:00:00Z',
+        submittedBy: 'Maria Garcia',
+        reportData: { summary: 'UT inspection completed on all accessible welds of heat exchanger E-401. All readings are within acceptable tolerance. No reportable indications found.' },
+        documents: []
+      }
+    },
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
     { id: 'INSP-003', jobId: 'JOB-002', assetName: 'Overhead Crane C-01', assetId: 'ASSET-004', technique: 'MT', inspector: 'Maria Garcia', date: '2024-06-21', status: 'Completed',
@@ -808,6 +855,8 @@ export const payments: Payment[] = [
 ];
 
 export const jobPayments: JobPayment[] = [
+    { id: 'JP-PERFECT-P', jobId: 'JOB-PERFECT', jobTitle: 'Perfect Lifecycle Demo Job', amount: 18500, payer: 'Global Energy Corp.', payee: 'TEAM, Inc.', payeeType: 'Provider', paidOn: '2024-07-20T10:00:00Z', status: 'Paid' },
+    { id: 'JP-PERFECT-A', jobId: 'JOB-PERFECT', jobTitle: 'Perfect Lifecycle Demo Job', amount: 1500, payer: 'Global Energy Corp.', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-07-20T10:05:00Z', status: 'Paid' },
     { id: 'JP-001', jobId: 'JOB-003', jobTitle: 'Annual UT Thickness Survey', amount: 15000, payer: 'Marine Tankers Ltd.', payee: 'MISTRAS Group', payeeType: 'Provider', paidOn: '2024-06-30', status: 'Paid' },
     { id: 'JP-002', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', amount: 4800, payer: 'Global Energy Corp.', payee: 'TEAM, Inc.', payeeType: 'Provider', paidOn: '2024-07-05', status: 'Paid' },
     { id: 'JP-002A', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', amount: 500, payer: 'Global Energy Corp.', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-07-06', status: 'Paid' },

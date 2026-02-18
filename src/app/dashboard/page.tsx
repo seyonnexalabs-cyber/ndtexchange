@@ -513,6 +513,19 @@ const AuditorDashboard = () => {
     const auditQueue = useMemo(() => jobs?.filter(j => j.status === 'Report Submitted') || [], [jobs]);
     const auditsCompleted = useMemo(() => jobs?.filter(j => j.status === 'Audit Approved').length || 0, [jobs]);
     const averageReviewTime = "22h"; // Placeholder
+
+    const getSafeDate = (ts: any): Date | null => {
+        if (!ts) return null;
+        if (ts.toDate) return ts.toDate(); // Firestore Timestamp
+        const d = new Date(ts);
+        return isValid(d) ? d : null;
+    };
+    
+    const getSortableTimestamp = (job: Job): number => {
+        const historyItem = job.history?.find(h => h.statusChange === 'Report Submitted');
+        const date = getSafeDate(historyItem?.timestamp);
+        return date ? date.getTime() : 0;
+    };
     
      if (isLoading) {
         return <DashboardSkeleton />;
@@ -570,15 +583,17 @@ const AuditorDashboard = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {auditQueue.sort((a,b) => new Date(a.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime() - new Date(b.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime()).map(job => {
+                            {auditQueue.sort((a,b) => getSortableTimestamp(a) - getSortableTimestamp(b)).map(job => {
                                 const reportId = job.inspections?.find(insp => insp.report)?.report?.id;
+                                const submittedDate = getSafeDate(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp);
+
                                 return (
                                 <TableRow key={job.id}>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
-                                    <TableCell>{format(new Date(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || Date.now()), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    <TableCell>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                         {reportId ? (
                                             <Button asChild>
@@ -934,3 +949,5 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    

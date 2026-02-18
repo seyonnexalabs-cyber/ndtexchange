@@ -82,10 +82,10 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Revisions Requested': 'destructive'
 };
 
-const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    'Scheduled': 'secondary',
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destructive' | 'secondary' > = {
     'Completed': 'success',
-    'Requires Review': 'destructive'
+    'Scheduled': 'secondary',
+    'Requires Review': 'destructive',
 };
 
 const scheduleSchema = z.object({
@@ -422,12 +422,6 @@ const WorkBreakdownAccordion = ({ inspections, job, constructUrl, role, handleVi
         });
     }, [inspections]);
 
-    const inspectionStatusConfig: Record<Inspection['status'], { variant: 'success' | 'destructive' | 'secondary' }> = {
-        'Completed': { variant: 'success' },
-        'Scheduled': { variant: 'secondary' },
-        'Requires Review': { variant: 'destructive' },
-    };
-
     if (groupedData.length === 0) {
         return <p className="text-sm text-muted-foreground text-center py-4">No specific inspections are associated with this job's assets.</p>;
     }
@@ -461,7 +455,7 @@ const WorkBreakdownAccordion = ({ inspections, job, constructUrl, role, handleVi
                                                     <File className="h-4 w-4 text-muted-foreground"/>
                                                     <div>
                                                         <p className="text-sm font-medium">Inspection: {format(parseISO(inspection.date), 'dd-MMM-yy')}</p>
-                                                        <Badge variant={inspectionStatusConfig[inspection.status]} className="mt-1">{inspection.status}</Badge>
+                                                        <Badge variant={inspectionStatusVariants[inspection.status]} className="mt-1">{inspection.status}</Badge>
                                                     </div>
                                                 </div>
                                                 <div>
@@ -521,10 +515,12 @@ export default function JobDetailPage() {
     const [rating, setRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
 
-    const jobRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id) : null), [firestore, id]);
+    const isReady = firestore && user && role;
+
+    const jobRef = useMemoFirebase(() => (isReady && id ? doc(firestore, 'jobs', id) : null), [isReady, id]);
     const { data: jobDetails, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(jobRef);
 
-    const bidsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, 'jobs', id, 'bids') : null), [firestore, id]);
+    const bidsQuery = useMemoFirebase(() => (isReady && id ? collection(firestore, 'jobs', id, 'bids') : null), [isReady, id]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
     const [inspections, setInspections] = React.useState<Inspection[]>([]);
@@ -605,8 +601,8 @@ export default function JobDetailPage() {
     }, [firestore, jobDetails]);
     const { data: assignedTechnicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(assignedTechniciansQuery);
     
-    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
-    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
+    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => isReady ? collection(firestore, 'techniques') : null, [isReady, firestore]));
     
     const { data: clientCompany, isLoading: isLoadingClientCompany } = useDoc<Client>(
         useMemoFirebase(() => (firestore && jobDetails?.clientCompanyId ? doc(firestore, 'companies', jobDetails.clientCompanyId) : null), [firestore, jobDetails])

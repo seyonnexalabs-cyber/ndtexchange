@@ -6,8 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
-import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -23,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
+import { NDTTechniques, subscriptionPlans as initialPlans } from '@/lib/subscription-plans';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +38,7 @@ import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, us
 import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId } from 'firebase/firestore';
 import type { Job, Bid, Inspection, JobDocument, NDTServiceProvider, Client, PlatformUser, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const bidSchema = z.object({
@@ -510,53 +509,6 @@ export default function JobDetailPage() {
 
     const bidsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, 'jobs', id, 'bids') : null), [firestore, id]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
-    
-    const [inspections, setInspections] = React.useState<Inspection[]>([]);
-    const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
-
-    React.useEffect(() => {
-        if (!jobDetails || !firestore) {
-            setIsLoadingInspections(false);
-            return;
-        }
-
-        const fetchInspections = async () => {
-            if (!jobDetails.assetIds || jobDetails.assetIds.length === 0) {
-                setInspections([]);
-                setIsLoadingInspections(false);
-                return;
-            }
-
-            setIsLoadingInspections(true);
-            try {
-                const inspectionPromises = jobDetails.assetIds.map(assetId => {
-                    const inspectionsRef = collection(firestore, 'assets', assetId, 'inspections');
-                    const q = query(inspectionsRef, where('jobId', '==', jobDetails.id));
-                    return getDocs(q);
-                });
-
-                const querySnapshots = await Promise.all(inspectionPromises);
-                const allInspections: Inspection[] = [];
-                querySnapshots.forEach(snapshot => {
-                    snapshot.forEach(doc => {
-                        allInspections.push({ id: doc.id, ...doc.data() } as Inspection);
-                    });
-                });
-                setInspections(allInspections);
-            } catch (error) {
-                console.error("Failed to fetch inspections:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Could not load inspections",
-                    description: "There was a permission error while fetching inspection details.",
-                });
-            } finally {
-                setIsLoadingInspections(false);
-            }
-        };
-
-        fetchInspections();
-    }, [jobDetails, firestore, toast]);
     
     React.useEffect(() => {
         if (!jobDetails) return;
@@ -1069,7 +1021,7 @@ export default function JobDetailPage() {
                                             </div>
                                             <div className="flex flex-wrap gap-1">
                                                 {(jobDetails.techniques || []).filter(Boolean).map((tech: string, i: number) => {
-                                                    const techData = allNdtTechniques?.find(t => t.id.toUpperCase() === tech);
+                                                    const techData = allNdtTechniques?.find(t => t.acronym.toUpperCase() === tech.toUpperCase());
                                                     return (
                                                         <Tooltip key={i}>
                                                             <TooltipTrigger>
@@ -1157,7 +1109,7 @@ export default function JobDetailPage() {
                                                 <Separator />
                                                 <div>
                                                     <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
-                                                    <WorkBreakdownTree inspections={inspections || []} job={jobDetails} constructUrl={constructUrl} role={role} />
+                                                    <WorkBreakdownTree inspections={jobDetails.inspections || []} job={jobDetails} constructUrl={constructUrl} role={role} />
                                                 </div>
                                             </CardContent>
                                         </TabsContent>
@@ -1230,10 +1182,39 @@ export default function JobDetailPage() {
                         <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />
                     </TabsContent>
                 </Tabs>
+                 <Dialog open={!!reviewingBid} onOpenChange={(open) => !open && setReviewingBid(null)}>
+                    <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Review Bid from {reviewingBid?.provider.name}</DialogTitle>
+                            <DialogDescription>
+                                Review the details of this bid before awarding the job. This action is final.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="text-center">
+                                <p className="text-sm text-muted-foreground">Bid Amount</p>
+                                <p className="text-4xl font-bold">${reviewingBid?.amount.toLocaleString()}</p>
+                            </div>
+                            {reviewingBid?.comments && (
+                                <div>
+                                    <p className="font-semibold text-sm">Provider's Comments:</p>
+                                    <blockquote className="mt-2 border-l-2 pl-4 italic text-muted-foreground">
+                                        "{reviewingBid.comments}"
+                                    </blockquote>
+                                </div>
+                            )}
+                        </div>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setReviewingBid(null)}>Cancel</Button>
+                            <Button onClick={() => handleAwardBid(reviewingBid!.id, reviewingBid!.providerId)}>
+                                <Award className="mr-2 h-4 w-4" /> Award Job to {reviewingBid?.provider.name}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         )}
         </TooltipProvider>
     );
 }
 
-    

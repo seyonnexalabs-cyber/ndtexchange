@@ -168,6 +168,8 @@ export type Customer = {
     totalSpend: number;
     logoUrl?: string;
     brandColor?: string;
+    country?: string;
+    currency?: string;
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;
@@ -320,6 +322,21 @@ export type BillingAuditLog = {
   details: string;
 };
 
+export type Client = {
+    id: string;
+    type: 'Client';
+    name: string;
+    contactPerson: string;
+    contactEmail: string;
+    activeJobs: number;
+    totalSpend: number;
+    logoUrl?: string;
+    brandColor?: string;
+    country?: string;
+    currency?: string;
+};
+
+
 export type NDTServiceProvider = {
     id: string;
     name: string;
@@ -333,6 +350,8 @@ export type NDTServiceProvider = {
     contactPerson: string;
     contactEmail: string;
     type: 'Provider';
+    country?: string;
+    currency?: string;
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;
@@ -350,6 +369,8 @@ export type AuditFirm = {
     contactPerson: string;
     contactEmail: string;
     type: 'Auditor';
+    country?: string;
+    currency?: string;
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;

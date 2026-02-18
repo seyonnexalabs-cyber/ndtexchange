@@ -34,6 +34,7 @@ import { collection, doc, query, where, updateDoc } from 'firebase/firestore';
 import type { PlatformUser, Subscription, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTheme } from '@/app/components/layout/mode-provider';
+import { countries } from '@/lib/countries';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -46,6 +47,8 @@ const companyProfileSchema = z.object({
   description: z.string().optional(),
   techniques: z.array(z.string()).optional(),
   industries: z.array(z.string()).optional(),
+  country: z.string().optional(),
+  currency: z.string().optional(),
 });
 
 const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, techniqueOptions, industryOptions, isLoading, onSave }: { 
@@ -65,6 +68,8 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
       description: companyDetails?.description || '',
       techniques: companyDetails?.techniques || [],
       industries: companyDetails?.industries || [],
+      country: companyDetails?.country || '',
+      currency: companyDetails?.currency || 'USD',
     },
   });
   
@@ -76,6 +81,8 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
             description: companyDetails.description || '',
             techniques: companyDetails.techniques || [],
             industries: companyDetails.industries || [],
+            country: companyDetails.country || '',
+            currency: companyDetails.currency || 'USD',
         });
     }
   }, [companyDetails, form]);
@@ -123,6 +130,43 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
                     </FormItem>
                 )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Country</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Currency</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
+                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="USD">USD ($)</SelectItem>
+                                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                                    <SelectItem value="INR">INR (₹)</SelectItem>
+                                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
                 {role === 'inspector' && (
                     <>
                     <FormField
@@ -794,6 +838,8 @@ export default function SettingsPage() {
                 description: data.description,
                 techniques: data.techniques,
                 industries: data.industries,
+                country: data.country,
+                currency: data.currency,
             });
             toast({
               title: 'Company Profile Updated',

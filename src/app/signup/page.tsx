@@ -21,6 +21,7 @@ import { doc, setDoc, collection } from 'firebase/firestore';
 import type { PlatformUser, Client, NDTServiceProvider, AuditFirm } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { countries } from '@/lib/countries';
 
 
 const companySignupSchema = z.object({
@@ -32,6 +33,8 @@ const companySignupSchema = z.object({
   agreedToTerms: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
+  country: z.string({ required_error: "Please select your country." }),
+  currency: z.enum(["USD", "EUR", "INR", "GBP"], { required_error: "Please select a currency." }),
 });
 
 export default function SignupPage() {
@@ -84,6 +87,7 @@ export default function SignupPage() {
       email: '',
       password: '',
       agreedToTerms: false,
+      currency: 'USD',
     },
   });
 
@@ -119,6 +123,8 @@ export default function SignupPage() {
             type: data.companyType.charAt(0).toUpperCase() + data.companyType.slice(1),
             contactPerson: data.fullName,
             contactEmail: data.email,
+            country: data.country,
+            currency: data.currency,
         });
 
         const userRole = data.companyType.charAt(0).toUpperCase() + data.companyType.slice(1);
@@ -268,6 +274,43 @@ export default function SignupPage() {
                                     </FormItem>
                                 )}
                             />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                  control={form.control}
+                                  name="country"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>Country</FormLabel>
+                                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!selectedCompany}>
+                                              <FormControl><SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger></FormControl>
+                                              <SelectContent>
+                                                  {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
+                                              </SelectContent>
+                                          </Select>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+                              <FormField
+                                  control={form.control}
+                                  name="currency"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>Currency</FormLabel>
+                                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!selectedCompany}>
+                                              <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                              <SelectContent>
+                                                  <SelectItem value="USD">USD ($)</SelectItem>
+                                                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                                                  <SelectItem value="INR">INR (₹)</SelectItem>
+                                                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                                              </SelectContent>
+                                          </Select>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+                            </div>
                             <FormField
                                 control={form.control}
                                 name="fullName"

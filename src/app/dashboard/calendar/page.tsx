@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -27,8 +26,8 @@ import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Calendar } from "@/components/ui/calendar";
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
 import type { Job, PlatformUser, InspectorAsset } from '@/lib/types';
 
 
@@ -50,24 +49,41 @@ export default function CalendarPage() {
     const [activeTab, setActiveTab] = useState('jobs');
     const [today, setToday] = useState<Date | undefined>(undefined);
 
-    const { firestore, user } = useFirebase();
-    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]));
-    const { data: allUsers } = useCollection<PlatformUser>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'users') : null, [firestore, user]));
-    const { data: inspectorAssets } = useCollection<InspectorAsset>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'equipment') : null, [firestore, user]));
+    const { firestore, user: authUser } = useFirebase();
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
+    );
+
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile) return null;
+        if (role === 'client') {
+            return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
+        }
+        if (role === 'inspector') {
+            return query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId));
+        }
+        return null;
+    }, [firestore, userProfile, role]);
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const usersQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile || role !== 'inspector') return null;
+        return query(collection(firestore, 'users'), where('companyId', '==', userProfile.companyId));
+    }, [firestore, userProfile, role]);
+    const { data: companyUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(usersQuery);
+
+    const equipmentQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile || role !== 'inspector') return null;
+        return query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId));
+    }, [firestore, userProfile, role]);
+    const { data: inspectorAssets, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
 
     useEffect(() => {
         setToday(new Date());
     }, []);
 
     const events: CalendarEvent[] = useMemo(() => {
-        let relevantJobs = jobs || [];
-        if (role === 'client') {
-            relevantJobs = jobs?.filter(job => job.client === 'Global Energy Corp.') || [];
-        } else if (role === 'inspector') {
-            relevantJobs = jobs?.filter(job => job.providerId === 'provider-03') || [];
-        }
-        
-        const scheduledJobs = relevantJobs.filter(job => job.scheduledStartDate);
+        const scheduledJobs = (jobs || []).filter(job => job.scheduledStartDate);
 
         const createEventsForJob = (job: Job): CalendarEvent[] => {
             const startDate = parseISO(job.scheduledStartDate as string);
@@ -88,17 +104,11 @@ export default function CalendarPage() {
             return scheduledJobs.flatMap(createEventsForJob);
         }
 
-        if (activeTab === 'technicians' || activeTab === 'equipment') {
+        if (role === 'inspector' && (activeTab === 'technicians' || activeTab === 'equipment')) {
             const resourceSchedule: Record<string, { resource: PlatformUser | InspectorAsset; jobs: Job[]; date: Date }> = {};
             
-            // For inspectors, only show their own company's resources.
-            const technicians = (role === 'inspector' && allUsers) 
-                ? allUsers.filter(u => u.role === 'Inspector' && u.providerId === 'provider-03') 
-                : allUsers?.filter(u => u.role === 'Inspector') || [];
-
-            const equipmentList = (role === 'inspector' && inspectorAssets) 
-                ? inspectorAssets.filter(e => e.providerId === 'provider-03') 
-                : inspectorAssets || [];
+            const technicians = companyUsers?.filter(u => u.role === 'Inspector') || [];
+            const equipmentList = inspectorAssets || [];
 
             scheduledJobs.forEach(job => {
                 if (!job.scheduledStartDate) return;
@@ -136,7 +146,7 @@ export default function CalendarPage() {
         }
 
         return [];
-    }, [role, activeTab, jobs, allUsers, inspectorAssets]);
+    }, [role, activeTab, jobs, companyUsers, inspectorAssets]);
 
     const firstDayOfMonth = startOfMonth(currentDate);
     const lastDayOfMonth = endOfMonth(currentDate);
@@ -344,7 +354,7 @@ export default function CalendarPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                {role === 'inspector' && (
+                {role === 'inspector' ? (
                     <TabsList className="grid w-full grid-cols-3 mb-4">
                         <TabsTrigger value="jobs" className="gap-2">
                             <Briefcase className="text-primary" /> Jobs
@@ -354,6 +364,12 @@ export default function CalendarPage() {
                         </TabsTrigger>
                         <TabsTrigger value="equipment" className="gap-2">
                             <Wrench className="text-primary" /> Equipment
+                        </TabsTrigger>
+                    </TabsList>
+                ) : (
+                    <TabsList className="grid w-full grid-cols-1 mb-4">
+                        <TabsTrigger value="jobs" className="gap-2">
+                            <Briefcase className="text-primary" /> Job Schedule
                         </TabsTrigger>
                     </TabsList>
                 )}

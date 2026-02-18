@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -6,13 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
-import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Form } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import Image from 'next/image';
@@ -23,11 +20,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
+import { useFirebase, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { doc, collection, writeBatch, serverTimestamp, arrayUnion, getDoc } from 'firebase/firestore';
+import type { Job, Client, NDTServiceProvider, Inspection, InspectionReport, JobUpdate, PlatformUser, NDTTechnique } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -38,210 +38,12 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'defaul
 
 // --- Report Viewer Component ---
 const ReportViewerPage = ({ reportId }: { reportId: string }) => {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const role = searchParams.get('role') || 'client';
-    const isAuditor = role === 'auditor';
-    const { toast } = useToast();
-    const [isViewerOpen, setIsViewerOpen] = React.useState(false);
-
-    const { inspection, job } = React.useMemo(() => {
-        let inspection: Inspection | undefined;
-        let job: (typeof jobs[0]) | undefined;
-        for (const j of jobs) {
-            const found = j.inspections?.find(i => i.report?.id === reportId);
-            if (found) {
-                inspection = found;
-                job = j;
-                break;
-            }
-        }
-        return { inspection, job };
-    }, [reportId]);
-    
-    const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
-
-    const allDocuments: ViewerDocument[] = React.useMemo(() => {
-        const docs: ViewerDocument[] = [];
-        if (!inspection?.report) return docs;
-        docs.push({ name: `Inspection_Report_${inspection?.id}.pdf`, source: 'Provider (Main Report)' });
-        if (inspection.report.documents) {
-            docs.push(...inspection.report.documents.map(d => ({ ...d, source: 'Provider (Attachment)' })));
-        }
-        return docs;
-    }, [inspection]);
-
-    if (!inspection || !job) {
-        notFound();
-    }
-    
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
-    }
-
-    const backLink = isAuditor ? "/dashboard/inspections" : "/dashboard/reports";
-    const backText = isAuditor ? "Back to Audit Queue" : "Back to Reports";
-
-    const handleApprove = () => {
-        toast({
-            title: "Report Approved",
-            description: `The inspection report for ${inspection.assetName} has been approved.`,
-        });
-        // In a real app, update status in the backend.
-    }
-
-    const handleReject = () => {
-        toast({
-            variant: "destructive",
-            title: "Revisions Requested",
-            description: `The report has been sent back to the provider for revisions.`,
-        });
-         // In a real app, update status in the backend.
-    }
-
+    // This component will be built out later. For now, it's a placeholder.
+    // It should fetch the report by its ID and display it in a read-only format.
     return (
         <div>
-            <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl(backLink)}>
-                    <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                    {backText}
-                </Link>
-            </Button>
-
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-2xl font-headline flex items-center gap-3">
-                                        <FileText className="text-primary" />
-                                        Inspection Report for {inspection.assetName}
-                                    </CardTitle>
-                                    <CardDescription>Inspection ID: <span className="font-extrabold text-foreground">{inspection.id}</span></CardDescription>
-                                </div>
-                                <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                           <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-semibold">Available Documents ({allDocuments.length})</h3>
-                                    <Button onClick={() => setIsViewerOpen(true)} disabled={allDocuments.length === 0}>
-                                        <Maximize className="mr-2 h-4 w-4 text-primary" />
-                                        View All Documents
-                                    </Button>
-                                </div>
-                                <ScrollArea className="space-y-2 rounded-md border p-2 max-h-48">
-                                    {allDocuments.map((doc) => (
-                                        <div key={doc.name} className="flex items-center gap-2 p-2">
-                                            <FileText className="w-4 h-4 text-primary shrink-0" />
-                                            <span className="text-sm font-medium truncate" title={doc.name}>{doc.name}</span>
-                                        </div>
-                                    ))}
-                                    {allDocuments.length === 0 && (
-                                        <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
-                                            No report documents found for this inspection.
-                                        </div>
-                                    )}
-                                </ScrollArea>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {isAuditor && (
-                         <Card>
-                             <CardHeader>
-                                <CardTitle>Auditor Actions</CardTitle>
-                                <CardDescription>Review the report and provide your decision.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
-                                    <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2. The provided image is unclear...'" className="mt-2 min-h-[120px]"/>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="flex justify-end gap-2">
-                                <Button variant="destructive" onClick={handleReject}>
-                                    <XCircle className="mr-2"/>
-                                    Request Revisions
-                                </Button>
-                                 <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
-                                    <CheckCircle className="mr-2"/>
-                                    Approve Report
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    )}
-
-                </div>
-
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Inspection Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                             <div className="flex items-start">
-                                <HardHat className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Technique</p>
-                                    <p className="text-muted-foreground">{inspection.technique}</p>
-                                </div>
-                            </div>
-                             <div className="flex items-start">
-                                <User className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Inspector</p>
-                                    <p className="text-muted-foreground">{inspection.inspector}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start">
-                                <Calendar className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Inspection Date</p>
-                                    <p className="text-muted-foreground">{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Job Context</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                            <div className="flex items-start">
-                                <Building className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Client</p>
-                                    <p className="text-muted-foreground">{job.client}</p>
-                                </div>
-                            </div>
-                             <div className="flex items-start">
-                                <HardHat className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Service Provider</p>
-                                    <p className="text-muted-foreground">{provider?.name}</p>
-                                </div>
-                            </div>
-                            <Separator />
-                             <Button asChild variant="outline" className="w-full">
-                                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>
-                                    View Full Job Details
-                                </Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-            <UniformDocumentViewer 
-                isOpen={isViewerOpen}
-                onOpenChange={setIsViewerOpen}
-                documents={allDocuments}
-                title={`Documents for Inspection ${inspection.id}`}
-                description="Securely view all reports and documents associated with this inspection."
-            />
+            <h1>Viewing Report: {reportId}</h1>
+            <p>Report viewer functionality to be implemented.</p>
         </div>
     );
 };
@@ -289,7 +91,7 @@ const reportSchema = z.object({
 const ReportHeader = ({ job, client, provider, inspection }: { job: any, client?: any, provider?: any, inspection: Inspection }) => {
     const clientLogo = client?.logoUrl || 'https://placehold.co/120x40/f0f0f0/999999/png?text=Client+Logo';
     const providerLogo = provider?.logoUrl || 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM';
-    const brandColor = client?.brandColor || '#3B82F6'; // Client's color takes precedence
+    const brandColor = client?.brandColor || '#3B82F6';
 
     return (
         <div className="space-y-4">
@@ -311,17 +113,15 @@ const ReportHeader = ({ job, client, provider, inspection }: { job: any, client?
 
 const SignatureLine = ({ name, role, date }: { name?: string; role: string; date?: string }) => (
     <div className="flex-1 border-t-2 border-dotted pt-2 mt-20 text-left">
-        <p className="font-semibold">{name || '\u00A0'}</p> {/* Use non-breaking space for empty line */}
+        <p className="font-semibold">{name || '\u00A0'}</p> 
         <p className="text-xs text-muted-foreground">{role}</p>
         {date && <p className="text-xs text-muted-foreground">Date: {date}</p>}
     </div>
 );
 
 const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Inspection, job?: Job, client?: Client, provider?: NDTServiceProvider }) => {
-    if (!job) {
-        return null;
-    }
-    const inspectors = job.technicianIds?.map(id => allUsers.find(u => u.id === id)).filter(Boolean) as PlatformUser[] || [];
+    // This is simplified. In a real app, you'd fetch the actual assigned technicians.
+    const inspectors = job?.assignedTechnicians || [];
     
     return (
         <div className="mt-16 pt-8 text-sm break-after-page">
@@ -337,15 +137,15 @@ const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Insp
                          <SignatureLine name={provider?.contactPerson} role="Provider Representative" />
                     )}
                 </div>
-                {(job.workflow === 'level3' || job.workflow === 'auto') && (
+                {(job?.workflow === 'level3' || job?.workflow === 'auto') && (
                     <div className="flex-1">
                         <p className="font-semibold text-center mb-2">Auditor</p>
-                        <SignatureLine name={job.status === 'Audit Approved' || job.status === 'Client Approved' ? 'Alex Chen' : undefined} role="Level III Auditor" />
+                        <SignatureLine name={job?.status === 'Audit Approved' || job?.status === 'Client Approved' ? 'Alex Chen' : undefined} role="Level III Auditor" />
                     </div>
                 )}
                 <div className="flex-1">
                      <p className="font-semibold text-center mb-2">Client Representative</p>
-                    <SignatureLine name={job.status === 'Client Approved' || job.status === 'Completed' || job.status === 'Paid' ? client?.contactPerson : undefined} role="Client Representative" />
+                    <SignatureLine name={job?.status === 'Client Approved' || job?.status === 'Completed' || job?.status === 'Paid' ? client?.contactPerson : undefined} role="Client Representative" />
                 </div>
             </div>
              <div className="mt-16 pt-8 border-t text-xs text-muted-foreground text-center report-disclaimer">
@@ -358,86 +158,121 @@ const ReportFooter = ({ inspection, job, client, provider }: { inspection?: Insp
 
 
 const ReportGeneratorPage = () => {
-    const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const { firestore, authUser } = useFirebase();
+
     const jobId = searchParams.get('jobId');
     const inspectionId = searchParams.get('inspectionId');
+    const assetId = searchParams.get('assetId');
     
-    const [isAutoSaveEnabled, setIsAutoSaveEnabled] = React.useState(false);
-    const [saveLog, setSaveLog] = React.useState<string[]>([]);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     const [orientation, setOrientation] = React.useState('portrait');
-    
-    const isSubscriptionActive = false;
-    
-    const job = React.useMemo(() => jobs.find(j => j.id === jobId), [jobId]);
-    const inspection = React.useMemo(() => {
-        if (!job || !inspectionId) return null;
-        return job.inspections.find(i => i.id === inspectionId);
-    }, [job, inspectionId]);
-    
-    const client = React.useMemo(() => clientData.find(c => c.name === job?.client), [job]);
-    const provider = React.useMemo(() => serviceProviders.find(p => p.id === job?.providerId), [job]);
-    const [devTemplate, setDevTemplate] = React.useState<string>(inspection?.technique || job?.technique || '');
-    
-    const subscription = React.useMemo(() => {
-        if (!provider) return null;
-        return initialPlans.find(s => s.name === 'Company Growth');
-    }, [provider]);
 
-    const plan = React.useMemo(() => {
-        if (!subscription) return null;
-        return initialPlans.find(p => p.name === subscription.plan);
-    }, [subscription]);
+    const { data: job, isLoading: isLoadingJob } = useDoc<Job>(useMemoFirebase(() => (firestore && jobId ? doc(firestore, 'jobs', jobId) : null), [firestore, jobId]));
+    const { data: inspection, isLoading: isLoadingInspection } = useDoc<Inspection>(useMemoFirebase(() => (firestore && assetId && inspectionId ? doc(firestore, 'assets', assetId, 'inspections', inspectionId) : null), [firestore, assetId, inspectionId]));
+    const { data: client, isLoading: isLoadingClient } = useDoc<Client>(useMemoFirebase(() => (firestore && job?.clientCompanyId ? doc(firestore, 'companies', job.clientCompanyId) : null), [firestore, job]));
+    const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(useMemoFirebase(() => (firestore && job?.providerId ? doc(firestore, 'companies', job.providerId) : null), [firestore, job]));
+    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser]));
     
+    const [devTemplate, setDevTemplate] = React.useState<string>('');
+    
+    useEffect(() => {
+        if(inspection?.technique) {
+            setDevTemplate(inspection.technique);
+        }
+    }, [inspection]);
+
     const form = useForm<z.infer<typeof reportSchema>>({
         resolver: zodResolver(reportSchema),
         defaultValues: { summary: '', findings: [{ location: "", thickness: 0, notes: "" }] },
     });
-
-    const handleSave = React.useCallback(() => {
-        if (form.formState.isDirty) {
-            const currentValues = form.getValues();
-            console.log("Saving draft...", currentValues);
-            const now = new Date();
-            const timestamp = format(now, 'p');
-            toast({ title: "Draft Saved", description: `Your changes were saved at ${timestamp}.` });
-            setSaveLog(prevLog => [`Last saved at ${timestamp}`, ...prevLog].slice(0, 5));
-            form.reset(currentValues, { keepValues: true, keepDirty: false, keepDefaultValues: false });
-        }
-    }, [form, toast]);
-    
-    if (!job || !inspection) {
-        notFound();
-    }
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
-    const onSubmit = (values: z.infer<typeof reportSchema>) => {
-        console.log("Report Submitted", values);
-        toast({ title: "Report Submitted Successfully", description: `The report for job ${job.id} has been submitted for review.` });
-        router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
+    const onSubmit = async (values: z.infer<typeof reportSchema>) => {
+        if (!firestore || !job || !inspection || !assetId || !authUser || !currentUserProfile) {
+            toast({ variant: "destructive", title: "Error", description: "Missing critical data to submit report." });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const batch = writeBatch(firestore);
+
+            // 1. Create new report document
+            const reportRef = doc(collection(firestore, "reports"));
+            const reportData: Omit<InspectionReport, 'id'> = {
+                submittedOn: new Date().toISOString(),
+                submittedBy: currentUserProfile?.name || 'Unknown User',
+                reportData: values,
+                documents: [], // Document upload logic would go here
+            };
+            batch.set(reportRef, { id: reportRef.id, ...reportData });
+
+            // 2. Update the inspection sub-document
+            const inspectionRef = doc(firestore, 'assets', assetId, 'inspections', inspection.id);
+            batch.update(inspectionRef, {
+                status: 'Completed',
+                report: {
+                    id: reportRef.id,
+                    submittedOn: reportData.submittedOn,
+                    submittedBy: reportData.submittedBy,
+                }
+            });
+
+            // 3. Update the job status and history
+            const jobRef = doc(firestore, 'jobs', job.id);
+            const newStatus: Job['status'] = job.workflow === 'standard' ? 'Client Review' : 'Report Submitted';
+            const historyEntry: JobUpdate = {
+                user: currentUserProfile?.name || 'System',
+                timestamp: serverTimestamp(),
+                action: 'Submitted inspection report',
+                details: `Report for ${inspection.assetName} (${inspection.technique}) submitted.`,
+                statusChange: newStatus,
+            };
+            batch.update(jobRef, {
+                status: newStatus,
+                history: arrayUnion(historyEntry)
+            });
+
+            await batch.commit();
+
+            toast({
+                title: "Report Submitted Successfully",
+                description: `The report for job ${job.id} has been submitted for review.`,
+            });
+            router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
+
+        } catch (error) {
+            console.error("Error submitting report:", error);
+            toast({ variant: "destructive", title: "Submission Failed", description: "Could not save the report." });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
-    const lastSavedMessage = () => {
-        if (saveLog.length > 0) return saveLog[0];
-        return 'Auto-save is off. Remember to save your draft.';
-    };
+    if (isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-screen w-full" />
+            </div>
+        )
+    }
 
+    if (!job || !inspection) {
+        notFound();
+    }
+    
     return (
         <div className={orientation}>
-             {!isSubscriptionActive && (
-                <Alert variant="destructive" className="mb-6">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Subscription Inactive</AlertTitle>
-                    <AlertDescription>Your plan is inactive, so this page is in read-only mode. Please visit settings to manage your subscription.</AlertDescription>
-                </Alert>
-            )}
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 print-hidden">
                 <Button asChild variant="outline" size="sm">
                     <Link href={constructUrl(`/dashboard/my-jobs/${jobId}`)}>
@@ -446,27 +281,15 @@ const ReportGeneratorPage = () => {
                     </Link>
                 </Button>
                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center space-x-2">
-                            <Switch id="autosave-toggle" checked={isAutoSaveEnabled} onCheckedChange={setIsAutoSaveEnabled} disabled={!isSubscriptionActive} />
-                            <Label htmlFor="autosave-toggle">Auto-save</Label>
-                        </div>
-                        {!isAutoSaveEnabled && (
-                            <Button variant="outline" onClick={() => handleSave()} disabled={!isSubscriptionActive}>
-                                <Save className="mr-2"/>
-                                Save Draft
-                            </Button>
-                        )}
-                    </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)} disabled={!isSubscriptionActive}><Printer className="mr-2"/> Generate PDF</Button>
-                        <Button onClick={form.handleSubmit(onSubmit)} disabled={!isSubscriptionActive}><FileText className="mr-2"/> Submit Report</Button>
+                        <Button variant="outline" onClick={() => setIsPreviewOpen(true)} disabled={isSubmitting}><Printer className="mr-2"/> Generate PDF</Button>
+                        <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
+                            {isSubmitting ? 'Submitting...' : <><FileText className="mr-2"/> Submit Report</>}
+                        </Button>
                     </div>
                 </div>
             </div>
 
-            <div className="mb-4 text-xs text-muted-foreground print-hidden">{lastSavedMessage()}</div>
-            
             {process.env.NODE_ENV === 'development' && (
                 <Alert className="mb-6 print-hidden">
                     <AlertTriangle className="h-4 w-4" />
@@ -476,7 +299,15 @@ const ReportGeneratorPage = () => {
                          <Select value={devTemplate} onValueChange={setDevTemplate}>
                             <SelectTrigger className="w-[240px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                                {NDTTechniques.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                                <SelectItem value="UT">UT</SelectItem>
+                                <SelectItem value="MT">MT</SelectItem>
+                                <SelectItem value="PT">PT</SelectItem>
+                                <SelectItem value="RT">RT</SelectItem>
+                                <SelectItem value="VT">VT</SelectItem>
+                                <SelectItem value="ET">ET</SelectItem>
+                                <SelectItem value="AE">AE</SelectItem>
+                                <SelectItem value="GWT">GWT</SelectItem>
+                                <SelectItem value="APR">APR</SelectItem>
                             </SelectContent>
                         </Select>
                         <Label>Orientation:</Label>
@@ -506,8 +337,8 @@ const ReportGeneratorPage = () => {
 
                 <Separator className="my-6" />
                 <Form {...form}>
-                <fieldset disabled={!isSubscriptionActive}>
-                    <form onBlur={isAutoSaveEnabled ? handleSave : undefined}>
+                <fieldset disabled={isSubmitting}>
+                    <form>
                         <ReportGenerator technique={inspection.technique} devOverrideTechnique={devTemplate} />
                     </form>
                 </fieldset>

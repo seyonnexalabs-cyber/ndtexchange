@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -466,7 +465,7 @@ const WorkBreakdownAccordion = ({ inspections, job, constructUrl, role, handleVi
                                                 ) : (
                                                     (isInspector || (isClient && job.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(job.status) && (
                                                         <Button asChild size="sm">
-                                                            <Link href={constructUrl(`/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}`)}>
+                                                            <Link href={constructUrl(`/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}&assetId=${assetId}`)}>
                                                                 <FileUp className="mr-2 h-4 w-4" />
                                                                 Generate Report
                                                             </Link>

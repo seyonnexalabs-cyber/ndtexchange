@@ -152,7 +152,7 @@ const ClientDashboard = () => {
                         <Building className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.totalAssets}</div>
+                        <div className="text-4xl font-bold text-primary">{stats.totalAssets}</div>
                         <p className="text-xs text-muted-foreground">Assets in your portfolio</p>
                     </CardContent>
                 </Card>
@@ -162,7 +162,7 @@ const ClientDashboard = () => {
                         <AlarmClock className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-destructive">{stats.assetsRequiringInspection}</div>
+                        <div className="text-4xl font-bold text-destructive">{stats.assetsRequiringInspection}</div>
                         <p className="text-xs text-muted-foreground">Assets with status 'Requires Inspection'</p>
                     </CardContent>
                 </Card>
@@ -172,7 +172,7 @@ const ClientDashboard = () => {
                         <FileCheck className="h-4 w-4 text-accent" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-accent">{stats.reportsForReview}</div>
+                        <div className="text-4xl font-bold text-accent">{stats.reportsForReview}</div>
                         <p className="text-xs text-muted-foreground">Inspection reports ready for approval</p>
                     </CardContent>
                 </Card>
@@ -182,7 +182,7 @@ const ClientDashboard = () => {
                         <Briefcase className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.activeJobs}</div>
+                        <div className="text-4xl font-bold text-primary">{stats.activeJobs}</div>
                         <p className="text-xs text-muted-foreground">Jobs currently in progress or scheduled</p>
                     </CardContent>
                 </Card>
@@ -412,7 +412,7 @@ const InspectorDashboard = () => {
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.activeAssignments}</div>
+                        <div className="text-4xl font-bold text-primary">{stats.activeAssignments}</div>
                         <p className="text-xs text-muted-foreground">Jobs currently in progress</p>
                     </CardContent>
                 </Card>
@@ -422,7 +422,7 @@ const InspectorDashboard = () => {
                         <Gavel className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.openBidsCount}</div>
+                        <div className="text-4xl font-bold text-accent">{stats.openBidsCount}</div>
                         <p className="text-xs text-muted-foreground">Bids awaiting a client decision</p>
                     </CardContent>
                 </Card>
@@ -432,7 +432,7 @@ const InspectorDashboard = () => {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.reportsToSubmit}</div>
+                        <div className="text-4xl font-bold text-primary">{stats.reportsToSubmit}</div>
                         <p className="text-xs text-muted-foreground">Jobs awaiting report submission</p>
                     </CardContent>
                 </Card>
@@ -442,7 +442,7 @@ const InspectorDashboard = () => {
                         <Wrench className={cn("h-4 w-4", stats.equipmentAlerts > 0 ? "text-destructive" : "text-muted-foreground")} />
                     </CardHeader>
                     <CardContent>
-                        <div className={cn("text-2xl font-bold", stats.equipmentAlerts > 0 && "text-destructive")}>{stats.equipmentAlerts}</div>
+                        <div className={cn("text-4xl font-bold", stats.equipmentAlerts > 0 && "text-destructive")}>{stats.equipmentAlerts}</div>
                         <p className={cn("text-xs", stats.equipmentAlerts > 0 ? "text-destructive/80" : "text-muted-foreground")}>Items needing calibration or service</p>
                     </CardContent>
                 </Card>
@@ -540,7 +540,7 @@ const AuditorDashboard = () => {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{auditQueue.length}</div>
+                        <div className="text-4xl font-bold text-primary">{auditQueue.length}</div>
                         <p className="text-xs text-muted-foreground">Reports awaiting your review</p>
                     </CardContent>
                 </Card>
@@ -550,7 +550,7 @@ const AuditorDashboard = () => {
                         <Eye className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{averageReviewTime}</div>
+                        <div className="text-4xl font-bold text-accent">{averageReviewTime}</div>
                         <p className="text-xs text-muted-foreground">Average for the last 30 days</p>
                     </CardContent>
                 </Card>
@@ -560,7 +560,7 @@ const AuditorDashboard = () => {
                         <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{auditsCompleted}</div>
+                        <div className="text-4xl font-bold text-primary">{auditsCompleted}</div>
                         <p className="text-xs text-muted-foreground">Reports approved in the last week</p>
                     </CardContent>
                 </Card>
@@ -816,19 +816,19 @@ const AdminDashboard = () => {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Users</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{stats.totalUsers}</div><p className="text-xs text-muted-foreground">+5 this month</p></CardContent>
+                    <CardContent><div className="text-4xl font-bold text-primary">{stats.totalUsers}</div><p className="text-xs text-muted-foreground">+5 this month</p></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Providers</CardTitle><ShieldCheck className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{stats.totalProviders}</div><p className="text-xs text-muted-foreground">+2 new this month</p></CardContent>
+                    <CardContent><div className="text-4xl font-bold text-accent">{stats.totalProviders}</div><p className="text-xs text-muted-foreground">+2 new this month</p></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Active Jobs Marketplace</CardTitle><Briefcase className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{stats.activeJobs}</div><p className="text-xs text-muted-foreground">Jobs currently posted or in progress</p></CardContent>
+                    <CardContent><div className="text-4xl font-bold text-primary">{stats.activeJobs}</div><p className="text-xs text-muted-foreground">Jobs currently posted or in progress</p></CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pending Reviews</CardTitle><Eye className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{stats.pendingReviews}</div><p className="text-xs text-muted-foreground">Awaiting moderation</p></CardContent>
+                    <CardContent><div className="text-4xl font-bold text-accent">{stats.pendingReviews}</div><p className="text-xs text-muted-foreground">Awaiting moderation</p></CardContent>
                 </Card>
             </div>
              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
@@ -949,5 +949,7 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    
 
     

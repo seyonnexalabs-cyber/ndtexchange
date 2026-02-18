@@ -28,10 +28,14 @@ export default function AuditorDetailPage() {
     const auditorRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'companies', id as string) : null), [firestore, id]);
     const { data: auditor, isLoading: isLoadingAuditor } = useDoc<AuditFirm>(auditorRef);
     
-    const teamQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'users'), where('companyId', '==', id)) : null), [firestore, id]);
+    const teamQuery = useMemoFirebase(() => {
+        if (!firestore || !id || role !== 'admin') return null; // Query only for admins
+        return query(collection(firestore, 'users'), where('companyId', '==', id))
+    }, [firestore, id, role]);
+
     const { data: auditorTeam, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
-    if (isLoadingAuditor || isLoadingTeam) {
+    if (isLoadingAuditor || (role === 'admin' && isLoadingTeam)) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-1/4 mb-6" />
@@ -124,34 +128,42 @@ export default function AuditorDetailPage() {
                             <CardDescription>Auditors and staff from {auditor.name}.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead>Email</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {(auditorTeam || []).map(user => (
-                                        <TableRow key={user.id}>
-                                            <TableCell className="font-medium flex items-center gap-3">
-                                                 <Avatar>
-                                                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                 </Avatar>
-                                                {user.name}
-                                            </TableCell>
-                                            <TableCell>{user.role}</TableCell>
-                                            <TableCell>{user.email}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            {(auditorTeam || []).length === 0 && (
+                            {role === 'admin' ? (
+                                <>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Role</TableHead>
+                                                <TableHead>Email</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {(auditorTeam || []).map(user => (
+                                                <TableRow key={user.id}>
+                                                    <TableCell className="font-medium flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        {user.name}
+                                                    </TableCell>
+                                                    <TableCell>{user.role}</TableCell>
+                                                    <TableCell>{user.email}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {(auditorTeam || []).length === 0 && !isLoadingTeam && (
+                                        <div className="text-center text-muted-foreground py-10">
+                                            No team members are assigned to this firm.
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
                                 <div className="text-center text-muted-foreground py-10">
-                                    No team members are publicly listed for this firm.
+                                    Team member information is only visible to administrators.
                                 </div>
-                           )}
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>

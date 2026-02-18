@@ -416,7 +416,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
     {
         id: 'JOB-PERFECT',
         title: 'Perfect Lifecycle Demo Job',
-        description: "A comprehensive ultrasonic thickness survey is required for all accessible welds on the shell and nozzles of the Heat Exchanger E-401. The inspection is part of the annual integrity program. The provider must supply a certified ASNT UT Level II technician. Final report to include a detailed thickness reading map, equipment calibration records, and technician certifications.",
+        description: "A comprehensive inspection of critical assets. Scope includes: 1) Ultrasonic Thickness survey on Heat Exchanger E-401 shell and nozzles. 2) Magnetic Particle inspection on all accessible welds of Overhead Crane C-01 hooks. The provider must supply certified ASNT Level II technicians for both methods. Final reports to include detailed findings, equipment calibration records, and technician certifications.",
         client: 'Global Energy Corp.',
         clientCompanyId: 'client-01',
         providerId: 'provider-03',
@@ -426,12 +426,13 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         bidExpiryDate: '2024-07-05',
         scheduledStartDate: '2024-07-10',
         scheduledEndDate: '2024-07-11',
-        assetIds: ['ASSET-010'],
+        assetIds: ['ASSET-010', 'ASSET-004'],
         technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
-        equipmentIds: ['EQUIP-1000'],
+        equipmentIds: ['EQUIP-1000', 'EQUIP-1003'],
         workflow: 'level3',
         documents: [
             { name: 'P&ID-E401.pdf', url: '#' },
+            { name: 'Crane_Spec_C-01.pdf', url: '#' },
             { name: 'Scope_of_Work_JOB-PERFECT.pdf', url: '#' },
         ],
         history: [
@@ -442,7 +443,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
             { user: 'John Doe', timestamp: new Date('2024-07-06T10:00:00Z'), action: 'Awarded job to provider "TEAM, Inc." for $18,500.', statusChange: 'Assigned' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-07T11:00:00Z'), action: 'Scheduled job.', details: 'Inspection scheduled for 2024-07-10 to 2024-07-11', statusChange: 'Scheduled' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-10T08:30:00Z'), action: 'Job status changed to In Progress.', statusChange: 'In Progress' },
-            { user: 'Maria Garcia', timestamp: new Date('2024-07-11T17:00:00Z'), action: 'Submitted inspection report.', documentName: 'Inspection_Report_JOB-PERFECT.pdf', statusChange: 'Report Submitted' },
+            { user: 'Maria Garcia', timestamp: new Date('2024-07-11T17:00:00Z'), action: 'Submitted inspection reports for UT and MT.', documentName: '2 reports submitted', statusChange: 'Report Submitted' },
             { user: 'System', timestamp: new Date('2024-07-11T17:01:00Z'), action: 'Status changed to Under Audit.', statusChange: 'Under Audit' },
             { user: 'Alex Chen', timestamp: new Date('2024-07-12T13:00:00Z'), action: 'Approved inspection report.', statusChange: 'Audit Approved' },
             { user: 'System', timestamp: new Date('2024-07-12T13:01:00Z'), action: 'Status changed to Client Review.', statusChange: 'Client Review' },
@@ -451,11 +452,11 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
             { user: 'John Doe', timestamp: new Date('2024-07-20T10:00:00Z'), action: 'Payment recorded for Provider.', statusChange: 'Paid' },
             { user: 'John Doe', timestamp: new Date('2024-07-20T10:05:00Z'), action: 'Payment recorded for Auditor.', statusChange: 'Paid' },
         ],
-        techniques: ['UT'],
+        techniques: ['UT', 'MT'],
         jobType: 'project',
         industry: 'Oil & Gas — Downstream/Refinery',
-        certificationsRequired: 'ASNT UT L-II',
-        estimatedBudget: '$20,000',
+        certificationsRequired: 'ASNT UT L-II, ASNT MT L-II',
+        estimatedBudget: '$25,000',
     },
     { 
         id: 'JOB-001', 
@@ -767,14 +768,39 @@ export const bidsData: Omit<Bid, 'providerId' | 'providerName'>[] = [
 ];
 
 export const inspectionsData: Inspection[] = [
-    { id: 'INSP-PERFECT', jobId: 'JOB-PERFECT', assetName: 'Heat Exchanger E-401', assetId: 'ASSET-010', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-10', status: 'Completed',
-      report: {
-        id: 'REP-PERFECT',
-        submittedOn: '2024-07-11T17:00:00Z',
-        submittedBy: 'Maria Garcia',
-        reportData: { summary: 'UT inspection completed on all accessible welds of heat exchanger E-401. All readings are within acceptable tolerance. No reportable indications found.' },
-        documents: []
-      }
+    { 
+        id: 'INSP-PERFECT', 
+        jobId: 'JOB-PERFECT', 
+        assetName: 'Heat Exchanger E-401', 
+        assetId: 'ASSET-010', 
+        technique: 'UT', 
+        inspector: 'Maria Garcia', 
+        date: '2024-07-10', 
+        status: 'Completed',
+        report: {
+            id: 'REP-PERFECT',
+            submittedOn: '2024-07-11T17:00:00Z',
+            submittedBy: 'Maria Garcia',
+            reportData: { summary: 'UT inspection completed on all accessible welds of heat exchanger E-401. All readings are within acceptable tolerance. No reportable indications found.' },
+            documents: []
+        }
+    },
+    { 
+        id: 'INSP-PERFECT-2', 
+        jobId: 'JOB-PERFECT', 
+        assetName: 'Overhead Crane C-01', 
+        assetId: 'ASSET-004', 
+        technique: 'MT', 
+        inspector: 'Maria Garcia', 
+        date: '2024-07-10', 
+        status: 'Completed',
+        report: {
+            id: 'REP-PERFECT-2',
+            submittedOn: '2024-07-11T17:00:00Z',
+            submittedBy: 'Maria Garcia',
+            reportData: { summary: 'MT inspection of crane hooks completed. No indications found.' },
+            documents: []
+        }
     },
     { id: 'INSP-001', jobId: 'JOB-003', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-06-15', status: 'Completed' },
     { id: 'INSP-002', jobId: 'JOB-004', assetName: 'Main Steam Piping', assetId: 'ASSET-002', technique: 'PAUT', inspector: 'Pending', date: dayAfterTomorrow.toISOString().split('T')[0], status: 'Scheduled' },
@@ -867,6 +893,45 @@ export const jobPayments: JobPayment[] = [
     { id: 'JP-009', jobId: 'JOB-020', jobTitle: 'Marine Riser Inspection', amount: 32000, payer: 'Global Energy Corp.', payee: 'DNV (Det Norske Veritas)', payeeType: 'Provider', paidOn: '2024-07-15', status: 'Paid' },
 ];
 
+export const userAuditLog: UserAuditLog[] = [
+  { id: 'ACT-001', timestamp: new Date('2024-07-28T10:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'Admin Promotion', targetUserName: 'Maria Garcia', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
+  { id: 'ACT-002', timestamp: new Date('2024-07-27T15:30:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Disabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: '' },
+  { id: 'ACT-003', timestamp: new Date('2024-07-26T11:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+  { id: 'ACT-004', timestamp: new Date('2024-07-25T09:20:00Z'), actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
+  { id: 'ACT-005', timestamp: new Date('2024-07-29T14:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Enabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
+  { id: 'ACT-006', timestamp: new Date('2024-07-30T10:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'Maria Garcia', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
+  { id: 'ACT-007', timestamp: new Date('2024-07-25T10:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
+  { id: 'ACT-008', timestamp: new Date('2024-07-30T14:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Energy Transfer', details: 'Invited as Client.' },
+];
+
+export const jobAuditLog: JobAuditLog[] = [
+    { id: 'JLOG-001', timestamp: new Date('2024-06-28T10:00:00Z'), jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'John Doe', actorRole: 'Customer', action: 'Job Created', details: 'Job posted to marketplace.' },
+    { id: 'JLOG-002', timestamp: new Date('2024-06-29T11:30:00Z'), jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Bid Placed', details: 'Bid for $12,500 submitted by MISTRAS Group.' },
+    { id: 'JLOG-003', timestamp: new Date('2024-06-19T15:00:00Z'), jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'John Doe', actorRole: 'Customer', action: 'Job Awarded', details: 'Awarded to TEAM, Inc. for $4,800.' },
+    { id: 'JLOG-004', timestamp: new Date('2024-06-22T09:00:00Z'), jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Report Submitted', details: 'Inspection report uploaded.' },
+    { id: 'JLOG-005', timestamp: new Date('2024-06-22T09:00:00Z'), jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'System', actorRole: 'Admin', action: 'Status Changed', details: 'Status changed to Report Submitted.' },
+    { id: 'JLOG-006', timestamp: new Date('2024-07-26T10:00:00Z'), jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT', actorName: 'John Doe', actorRole: 'Customer', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $9,500.' },
+    { id: 'JLOG-007', timestamp: new Date('2024-07-28T09:00:00Z'), jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Resource Assigned', details: 'Assigned Technicians: Maria Garcia, James Wilson' },
+    { id: 'JLOG-008', timestamp: new Date('2024-06-20T11:00:00Z'), jobId: 'JOB-020', jobTitle: 'Marine Riser Inspection', actorName: 'John Doe', actorRole: 'Customer', action: 'Job Awarded', details: 'Awarded to DNV (Det Norske Veritas) for $32,000.' },
+    { id: 'JLOG-009', timestamp: new Date('2024-07-26T10:01:00Z'), jobId: 'JOB-025', jobTitle: 'Shutdown Support - MT', actorName: 'John Doe', actorRole: 'Customer', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $10,000.' },
+];
+
+export const billingAuditLog: BillingAuditLog[] = [
+  { id: 'BLOG-001', timestamp: new Date('2024-07-10T00:00:00Z'), companyName: 'Chemical Plant C', action: 'Subscription Started', details: 'Started on Client plan.' },
+  { id: 'BLOG-002', timestamp: new Date('2024-07-01T00:00:00Z'), companyName: 'Applus+', action: 'Payment Failed', details: 'Monthly payment of $299 failed.' },
+  { id: 'BLOG-003', timestamp: new Date('2024-07-01T00:00:00Z'), companyName: 'MISTRAS Group', action: 'Payment Succeeded', details: 'Monthly payment of $299 succeeded.' },
+  { id: 'BLOG-004', timestamp: new Date('2024-05-01T00:00:00Z'), companyName: 'Energy Transfer', action: 'Subscription Canceled', details: 'Client plan was canceled.' },
+  { id: 'BLOG-005', timestamp: new Date('2024-07-20T00:00:00Z'), companyName: 'Blue Horizon Services', action: 'Subscription Started', details: 'Started on Provider plan.' },
+  { id: 'BLOG-006', timestamp: new Date('2024-07-21T10:00:00Z'), companyName: 'Applus+', action: 'Payment Succeeded', details: 'Manual payment of $299 for past due invoice.' },
+  { id: 'BLOG-007', timestamp: new Date('2024-07-25T00:00:00Z'), companyName: 'Aviation Maintenance Pros', action: 'Subscription Started', details: 'Started on Enterprise plan.' },
+];
+
+export const reviews: Review[] = [
+  { id: 'REV-001', jobId: 'JOB-003', providerId: 'provider-01', clientId: 'client-02', rating: 5, comment: 'MISTRAS Group was excellent. Very professional and the report was detailed. Will hire again.', date: '2024-07-01T10:00:00Z', status: 'Approved' },
+  { id: 'REV-002', jobId: 'JOB-012', providerId: 'provider-01', clientId: 'client-06', rating: 4, comment: 'Good work, but the final report was a day late. Otherwise, very satisfied with the quality of the inspection.', date: '2024-06-20T10:00:00Z', status: 'Approved' },
+  { id: 'REV-003', jobId: 'JOB-015', providerId: 'provider-07', clientId: 'client-08', rating: 5, comment: 'Dekra provided a quick and efficient service for our emergency gearbox inspection. Highly recommend.', date: '2024-07-16T10:00:00Z', status: 'Pending' },
+];
+
 export const jobChats: JobChat[] = [
     {
         id: 'CHAT-001',
@@ -930,45 +995,6 @@ export const notifications: Notification[] = [
         read: true,
         href: '/dashboard/my-jobs/JOB-011'
     },
-];
-
-export const userAuditLog: UserAuditLog[] = [
-  { id: 'ACT-001', timestamp: new Date('2024-07-28T10:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'Admin Promotion', targetUserName: 'Maria Garcia', targetCompany: 'MISTRAS Group', details: 'Promoted to Company Admin, replacing old admin.' },
-  { id: 'ACT-002', timestamp: new Date('2024-07-27T15:30:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Disabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: '' },
-  { id: 'ACT-003', timestamp: new Date('2024-07-26T11:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
-  { id: 'ACT-004', timestamp: new Date('2024-07-25T09:20:00Z'), actorName: 'John Doe', actorCompany: 'Global Energy Corp.', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Global Energy Corp.', details: 'Invited as Client.' },
-  { id: 'ACT-005', timestamp: new Date('2024-07-29T14:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Enabled', targetUserName: 'Maria Garcia', targetCompany: 'TEAM, Inc.', details: 'Re-enabled user upon request.' },
-  { id: 'ACT-006', timestamp: new Date('2024-07-30T10:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'Maria Garcia', targetCompany: 'Applus+', details: 'Invited as Inspector (Level II).' },
-  { id: 'ACT-007', timestamp: new Date('2024-07-25T10:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Aviation Maintenance Pros', details: 'Invited as Client.' },
-  { id: 'ACT-008', timestamp: new Date('2024-07-30T14:00:00Z'), actorName: 'Admin User', actorCompany: 'NDT EXCHANGE', action: 'User Invited', targetUserName: 'John Doe', targetCompany: 'Energy Transfer', details: 'Invited as Client.' },
-];
-
-export const jobAuditLog: JobAuditLog[] = [
-    { id: 'JLOG-001', timestamp: new Date('2024-06-28T10:00:00Z'), jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'John Doe', actorRole: 'Client', action: 'Job Created', details: 'Job posted to marketplace.' },
-    { id: 'JLOG-002', timestamp: new Date('2024-06-29T11:30:00Z'), jobId: 'JOB-001', jobTitle: 'PAUT on Pressure Vessel Welds', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Bid Placed', details: 'Bid for $12,500 submitted by MISTRAS Group.' },
-    { id: 'JLOG-003', timestamp: new Date('2024-06-19T15:00:00Z'), jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to TEAM, Inc. for $4,800.' },
-    { id: 'JLOG-004', timestamp: new Date('2024-06-22T09:00:00Z'), jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Report Submitted', details: 'Inspection report uploaded.' },
-    { id: 'JLOG-005', timestamp: new Date('2024-06-22T09:00:00Z'), jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', actorName: 'System', actorRole: 'Admin', action: 'Status Changed', details: 'Status changed to Report Submitted.' },
-    { id: 'JLOG-006', timestamp: new Date('2024-07-26T10:00:00Z'), jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $9,500.' },
-    { id: 'JLOG-007', timestamp: new Date('2024-07-28T09:00:00Z'), jobId: 'JOB-017', jobTitle: 'Shutdown Support - PT', actorName: 'Maria Garcia', actorRole: 'Provider', action: 'Resource Assigned', details: 'Assigned Technicians: Maria Garcia, James Wilson' },
-    { id: 'JLOG-008', timestamp: new Date('2024-06-20T11:00:00Z'), jobId: 'JOB-020', jobTitle: 'Marine Riser Inspection', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Awarded to DNV (Det Norske Veritas) for $32,000.' },
-    { id: 'JLOG-009', timestamp: new Date('2024-07-26T10:01:00Z'), jobId: 'JOB-025', jobTitle: 'Shutdown Support - MT', actorName: 'John Doe', actorRole: 'Client', action: 'Job Awarded', details: 'Directly awarded to TEAM, Inc. for $10,000.' },
-];
-
-export const billingAuditLog: BillingAuditLog[] = [
-  { id: 'BLOG-001', timestamp: new Date('2024-07-10T00:00:00Z'), companyName: 'Chemical Plant C', action: 'Subscription Started', details: 'Started on Client plan.' },
-  { id: 'BLOG-002', timestamp: new Date('2024-07-01T00:00:00Z'), companyName: 'Applus+', action: 'Payment Failed', details: 'Monthly payment of $299 failed.' },
-  { id: 'BLOG-003', timestamp: new Date('2024-07-01T00:00:00Z'), companyName: 'MISTRAS Group', action: 'Payment Succeeded', details: 'Monthly payment of $299 succeeded.' },
-  { id: 'BLOG-004', timestamp: new Date('2024-05-01T00:00:00Z'), companyName: 'Energy Transfer', action: 'Subscription Canceled', details: 'Client plan was canceled.' },
-  { id: 'BLOG-005', timestamp: new Date('2024-07-20T00:00:00Z'), companyName: 'Blue Horizon Services', action: 'Subscription Started', details: 'Started on Provider plan.' },
-  { id: 'BLOG-006', timestamp: new Date('2024-07-21T10:00:00Z'), companyName: 'Applus+', action: 'Payment Succeeded', details: 'Manual payment of $299 for past due invoice.' },
-  { id: 'BLOG-007', timestamp: new Date('2024-07-25T00:00:00Z'), companyName: 'Aviation Maintenance Pros', action: 'Subscription Started', details: 'Started on Enterprise plan.' },
-];
-
-export const reviews: Review[] = [
-  { id: 'REV-001', jobId: 'JOB-003', providerId: 'provider-01', clientId: 'client-02', rating: 5, comment: 'MISTRAS Group was excellent. Very professional and the report was detailed. Will hire again.', date: '2024-07-01T10:00:00Z', status: 'Approved' },
-  { id: 'REV-002', jobId: 'JOB-012', providerId: 'provider-01', clientId: 'client-06', rating: 4, comment: 'Good work, but the final report was a day late. Otherwise, very satisfied with the quality of the inspection.', date: '2024-06-20T10:00:00Z', status: 'Approved' },
-  { id: 'REV-003', jobId: 'JOB-015', providerId: 'provider-07', clientId: 'client-08', rating: 5, comment: 'Dekra provided a quick and efficient service for our emergency gearbox inspection. Highly recommend.', date: '2024-07-16T10:00:00Z', status: 'Pending' },
 ];
 
 export const jobs: Job[] = jobsData.map(job => {

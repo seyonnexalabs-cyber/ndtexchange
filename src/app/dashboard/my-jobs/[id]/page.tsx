@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
+import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -21,6 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,7 +38,7 @@ import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId } from 'firebase/firestore';
-import type { Job, Bid, Inspection, JobDocument, NDTServiceProvider, Client, PlatformUser, Review, NDTTechnique } from '@/lib/types';
+import type { Bid, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -392,7 +395,7 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
-const WorkBreakdownTree = ({ inspections, job, constructUrl, role }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string }) => {
+const WorkBreakdownTree = ({ inspections, job, constructUrl, role, handleViewDocuments }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string, handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void }) => {
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
 
@@ -421,37 +424,54 @@ const WorkBreakdownTree = ({ inspections, job, constructUrl, role }: { inspectio
         });
     }, [inspections]);
     
+     const inspectionStatusConfig: Record<Inspection['status'], { color: string, textColor: string, icon: React.ReactNode }> = {
+        'Completed': { color: 'bg-green-500', textColor: 'text-white', icon: <CheckCircle className="h-4 w-4" /> },
+        'Scheduled': { color: 'bg-gray-400', textColor: 'text-white', icon: <Calendar className="h-4 w-4" /> },
+        'Requires Review': { color: 'bg-red-500', textColor: 'text-white', icon: <AlertTriangle className="h-4 w-4" /> },
+    };
+
     if (groupedData.length === 0) {
         return <p className="text-sm text-muted-foreground text-center py-4">No specific inspections are associated with this job's assets.</p>;
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {groupedData.map(({ technique, assets }) => (
-                <div key={technique} className="ml-2 pl-4 border-l-2 border-dashed relative">
-                     <div className="absolute -left-2.5 top-1 w-4 h-4 rounded-full bg-primary border-2 border-background" />
-                     <h3 className="font-semibold text-base mb-2">Technique: {technique}</h3>
-                     <div className="space-y-3 ml-2 pl-4 border-l border-dashed">
+                <div key={technique} className="pl-2">
+                    <div className="flex items-center gap-3">
+                        <div className="z-10 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                            {technique}
+                        </div>
+                        <h3 className="font-semibold text-lg">{(allNdtTechniques || []).find(t=>t.acronym === technique)?.title || technique}</h3>
+                    </div>
+                    <div className="pl-6 border-l-2 border-dashed ml-5 pt-4 space-y-4">
                         {assets.map(([assetId, assetData]) => (
-                             <div key={assetId} className="relative">
-                                 <div className="absolute -left-[27px] top-1.5 w-4 h-4 rounded-full bg-secondary border-2 border-primary" />
-                                 <h4 className="font-medium text-sm mb-2">Asset: {assetData.assetName} <span className="text-xs text-muted-foreground font-mono">({assetId})</span></h4>
-                                 <div className="space-y-2 ml-2">
-                                     {assetData.inspections.map(inspection => {
-                                         const report = inspection.report;
-                                         return (
+                            <div key={assetId} className="relative">
+                                <div className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-background border-2 border-primary"/>
+                                <div className="flex items-center gap-3 mb-2">
+                                     <div className="z-10 w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
+                                        <HardHat className="w-5 h-5"/>
+                                    </div>
+                                    <h4 className="font-medium">Asset: {assetData.assetName}</h4>
+                                </div>
+                                <div className="pl-12 space-y-2">
+                                    {assetData.inspections.map(inspection => {
+                                        const statusInfo = inspectionStatusConfig[inspection.status];
+                                        return (
                                             <div key={inspection.id} className="flex justify-between items-center bg-background p-2 rounded-md border">
-                                                <div>
-                                                     <p className="text-sm">
-                                                        <span className="font-medium">Inspection:</span> <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
-                                                    </p>
-                                                    {report && (
-                                                        <p className="text-xs text-muted-foreground">Report Submitted on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</p>
-                                                    )}
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn("z-10 w-8 h-8 rounded-full flex items-center justify-center", statusInfo.color, statusInfo.textColor)}>
+                                                        {statusInfo.icon}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium">Inspection: {format(parseISO(inspection.date), 'dd-MMM-yy')}</p>
+                                                        <p className="text-xs text-muted-foreground">Status: {inspection.status}</p>
+                                                    </div>
                                                 </div>
-                                                 {report ? (
-                                                    <Button asChild variant="outline" size="sm">
-                                                        <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Report</Link>
+                                                <div>
+                                                {inspection.report ? (
+                                                    <Button variant="outline" size="sm" onClick={() => handleViewDocuments([{ name: `Report_${inspection.report?.id}.pdf`, url: '', source: 'Generated Report' }])}>
+                                                        View Report
                                                     </Button>
                                                 ) : (
                                                     (isInspector || (isClient && job.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(job.status) && (
@@ -463,18 +483,19 @@ const WorkBreakdownTree = ({ inspections, job, constructUrl, role }: { inspectio
                                                         </Button>
                                                     )
                                                 )}
+                                                </div>
                                             </div>
-                                         )
-                                     })}
-                                 </div>
-                             </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         ))}
-                     </div>
+                    </div>
                 </div>
             ))}
         </div>
-    )
-}
+    );
+};
 
 export default function JobDetailPage() {
     const params = useParams();
@@ -512,9 +533,11 @@ export default function JobDetailPage() {
     const [inspections, setInspections] = React.useState<Inspection[]>([]);
     const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
 
-    React.useEffect(() => {
+     React.useEffect(() => {
+        if (!jobDetails) return;
+
         const fetchInspections = async () => {
-            if (!firestore || !jobDetails?.assetIds || jobDetails.assetIds.length === 0) {
+            if (!firestore || !jobDetails.assetIds || jobDetails.assetIds.length === 0) {
                 setInspections([]);
                 setIsLoadingInspections(false);
                 return;
@@ -538,14 +561,9 @@ export default function JobDetailPage() {
             }
         };
 
-        if (jobDetails) {
-            setIsLoadingInspections(true);
-            setInspections([]);
-            fetchInspections();
-        } else {
-             setInspections([]);
-             setIsLoadingInspections(false);
-        }
+        setIsLoadingInspections(true);
+        fetchInspections();
+
     }, [firestore, jobDetails]);
     
     React.useEffect(() => {
@@ -592,7 +610,20 @@ export default function JobDetailPage() {
     const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingTechniques || isLoadingInspections;
     
     if (isLoading) {
-        return <div className="text-center p-10">Loading job details...</div>;
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <div className="grid lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-64 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                    <div className="space-y-6">
+                        <Skeleton className="h-80 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (jobError) {
@@ -688,7 +719,7 @@ export default function JobDetailPage() {
     const handleReviewBid = (bid: Bid) => {
         const provider = allCompanies?.find(p => p.id === bid.providerId);
         if (provider) {
-            setReviewingBid({ ...bid, provider });
+            setReviewingBid({ ...bid, provider: provider as NDTServiceProvider });
         }
     };
     
@@ -831,7 +862,7 @@ export default function JobDetailPage() {
                             )}>
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-12 w-12">
-                                        {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
+                                        {(provider as any).logoUrl && <AvatarImage src={(provider as any).logoUrl} alt={`${provider.name} logo`} />}
                                         <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
@@ -1149,7 +1180,13 @@ export default function JobDetailPage() {
                                                 <Separator />
                                                 <div>
                                                     <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
-                                                    <WorkBreakdownTree inspections={inspections || []} job={jobDetails} constructUrl={constructUrl} role={role} />
+                                                    <WorkBreakdownTree 
+                                                        inspections={inspections || []} 
+                                                        job={jobDetails} 
+                                                        constructUrl={constructUrl} 
+                                                        role={role} 
+                                                        handleViewDocuments={handleViewDocuments}
+                                                    />
                                                 </div>
                                             </CardContent>
                                         </TabsContent>

@@ -1,5 +1,15 @@
 {
   "entities": {
+    "Money": {
+      "title": "Money",
+      "type": "object",
+      "description": "Represents a monetary value with currency.",
+      "properties": {
+        "amount": { "type": "number", "description": "The monetary amount." },
+        "currency": { "type": "string", "description": "The ISO 4217 currency code (e.g., USD, EUR, INR)." }
+      },
+      "required": ["amount", "currency"]
+    },
     "Asset": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Asset",
@@ -108,18 +118,19 @@
         "clientId": { "type": "string", "description": "Reference to the User who created the job request. (Relationship: User 1:N Job)" },
         "clientCompanyId": { "type": "string", "description": "Reference to the Client Company who owns the job." },
         "location": { "type": "string", "description": "The location where the job needs to be performed." },
-        "technique": { "type": "string", "description": "The NDT technique required for the job (e.g., UT, RT)." },
+        "techniques": { "type": "array", "description": "The NDT techniques required for the job (e.g., UT, RT).", "items": { "type": "string" } },
         "standards": { "type": "string", "description": "The applicable standards for the job (e.g., ISO 9712, ASME)." },
         "urgency": { "type": "string", "description": "The urgency of the job (e.g., High, Medium, Low)." },
         "description": { "type": "string", "description": "A detailed description of the job requirements." },
         "awardedProviderId": { "type": "string", "description": "Reference to the Provider Company that was awarded the job. (Relationship: Company 1:N Job)" },
         "status": { "type": "string", "description": "The status of the job (e.g., Open, Awarded, In Progress, Completed)." },
+        "estimatedBudget": { "$ref": "#/entities/Money", "description": "The estimated budget for the job." },
         "createdAt": { "type": "string", "format": "date-time" },
         "createdBy": { "type": "string" },
         "modifiedAt": { "type": "string", "format": "date-time" },
         "modifiedBy": { "type": "string" }
       },
-      "required": ["id", "clientId", "clientCompanyId", "location", "technique", "standards", "urgency"]
+      "required": ["id", "clientId", "clientCompanyId", "location", "techniques", "standards", "urgency"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -130,7 +141,7 @@
         "id": { "type": "string", "description": "Unique identifier for the Bid entity." },
         "jobId": { "type": "string", "description": "Reference to the Job the bid is for. (Relationship: Job 1:N Bid)" },
         "inspectorId": { "type": "string", "description": "Reference to the User who submitted the bid. (Relationship: User 1:N Bid)" },
-        "pricing": { "type": "number", "description": "The price quoted in the bid." },
+        "pricing": { "$ref": "#/entities/Money", "description": "The price quoted in the bid." },
         "availability": { "type": "string", "description": "The inspector's availability for the job." },
         "message": { "type": "string", "description": "An optional message from the inspector." },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -293,6 +304,39 @@
         "modifiedBy": { "type": "string" }
       },
       "required": ["id", "name", "url", "techniqueIds"]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment for a subscription plan.",
+      "properties": {
+        "id": { "type": "string" },
+        "subscriptionId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "amount": { "$ref": "#/entities/Money" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Succeeded", "Failed"] }
+      },
+      "required": ["id", "subscriptionId", "companyName", "amount", "date", "status"]
+    },
+    "JobPayment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Job Payment",
+      "type": "object",
+      "description": "Represents a payment for a specific job.",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "amount": { "$ref": "#/entities/Money" },
+        "payer": { "type": "string" },
+        "payee": { "type": "string" },
+        "payeeType": { "type": "string", "enum": ["Provider", "Auditor"] },
+        "paidOn": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Paid", "Pending"] }
+      },
+      "required": ["id", "jobId", "jobTitle", "amount", "payer", "payee", "payeeType", "paidOn", "status"]
     }
   },
   "auth": {
@@ -503,6 +547,26 @@
             "$ref": "#/backend/entities/Manufacturer"
           },
           "description": "Stores information about NDT equipment manufacturers."
+        }
+      },
+      {
+        "path": "/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores subscription payment records. Admin-only access."
+        }
+      },
+      {
+        "path": "/jobPayments/{jobPaymentId}",
+        "definition": {
+          "entityName": "JobPayment",
+          "schema": {
+            "$ref": "#/backend/entities/JobPayment"
+          },
+          "description": "Stores records of payments made for specific jobs. Admin-only access."
         }
       }
     ],

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -28,7 +29,7 @@ import { Card } from '@/components/ui/card';
 import { Calendar } from "@/components/ui/calendar";
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
-import type { Job, PlatformUser, InspectorAsset } from '@/lib/types';
+import type { Job, PlatformUser, Equipment } from '@/lib/types';
 
 
 type CalendarEvent = {
@@ -37,7 +38,7 @@ type CalendarEvent = {
   date: Date;
   type: 'job' | 'technician' | 'equipment';
   isClash: boolean;
-  data: Job | { resource: PlatformUser | InspectorAsset; jobs: Job[] };
+  data: Job | { resource: PlatformUser | Equipment; jobs: Job[] };
 };
 
 export default function CalendarPage() {
@@ -76,7 +77,7 @@ export default function CalendarPage() {
         if (!firestore || !userProfile || role !== 'inspector') return null;
         return query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId));
     }, [firestore, userProfile, role]);
-    const { data: inspectorAssets, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
+    const { data: inspectorAssets, isLoading: isLoadingEquipment } = useCollection<Equipment>(equipmentQuery);
 
     useEffect(() => {
         setToday(new Date());
@@ -105,7 +106,7 @@ export default function CalendarPage() {
         }
 
         if (role === 'inspector' && (activeTab === 'technicians' || activeTab === 'equipment')) {
-            const resourceSchedule: Record<string, { resource: PlatformUser | InspectorAsset; jobs: Job[]; date: Date }> = {};
+            const resourceSchedule: Record<string, { resource: PlatformUser | Equipment; jobs: Job[]; date: Date }> = {};
             
             const technicians = companyUsers?.filter(u => u.role === 'Inspector') || [];
             const equipmentList = inspectorAssets || [];
@@ -120,7 +121,7 @@ export default function CalendarPage() {
                 const resourceList = activeTab === 'technicians' ? technicians : equipmentList;
 
                 resourceIds?.forEach(resourceId => {
-                    const resource = (resourceList as Array<PlatformUser | InspectorAsset>).find(r => r.id === resourceId);
+                    const resource = (resourceList as Array<PlatformUser | Equipment>).find(r => r.id === resourceId);
                     if (resource) {
                         interval.forEach(date => {
                             const key = `${resource.id}-${format(date, 'yyyy-MM-dd')}`;
@@ -181,7 +182,7 @@ export default function CalendarPage() {
             details = <p className="text-xs text-muted-foreground">{job.techniques.join(', ')}</p>;
             badgeText = job.status;
         } else if (event.type === 'technician' || event.type === 'equipment') {
-            const resourceData = event.data as { resource: PlatformUser | InspectorAsset, jobs: Job[] };
+            const resourceData = event.data as { resource: PlatformUser | Equipment, jobs: Job[] };
             title = resourceData.resource.name;
             details = <p className="text-xs text-muted-foreground">{resourceData.jobs.map(j => j.title).join(', ')}</p>
             badgeText = `${resourceData.jobs.length} job(s)`;
@@ -255,7 +256,7 @@ export default function CalendarPage() {
                 </>
             );
         } else {
-             const resourceData = event.data as { resource: PlatformUser | InspectorAsset, jobs: Job[] };
+             const resourceData = event.data as { resource: PlatformUser | Equipment, jobs: Job[] };
              const resourceType = selectedEvent.type === 'technician' ? 'Technician' : 'Equipment';
              return (
                 <>

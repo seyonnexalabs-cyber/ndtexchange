@@ -120,7 +120,7 @@ export type EquipmentHistory = {
 
 export type EquipmentType = 'Instrument' | 'Probe' | 'Source' | 'Sensor' | 'Calibration Standard' | 'Accessory' | 'Visual Aid';
 
-export type InspectorAsset = {
+export type Equipment = {
     id: string;
     name: string;
     type: EquipmentType;

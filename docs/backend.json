@@ -337,6 +337,45 @@
         "status": { "type": "string", "enum": ["Paid", "Pending"] }
       },
       "required": ["id", "jobId", "jobTitle", "amount", "payer", "payee", "payeeType", "paidOn", "status"]
+    },
+    "Equipment": {
+      "title": "Equipment",
+      "type": "object",
+      "description": "Represents a piece of NDT equipment owned by a service provider.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the Equipment entity." },
+        "name": { "type": "string", "description": "The name of the equipment (e.g., Olympus 45MG)." },
+        "type": { "type": "string", "description": "The type of equipment.", "enum": ["Instrument", "Probe", "Source", "Sensor", "Calibration Standard", "Accessory", "Visual Aid"] },
+        "techniques": { "type": "array", "description": "NDT techniques this equipment is used for.", "items": { "type": "string" } },
+        "providerId": { "type": "string", "description": "The ID of the provider company that owns this equipment." },
+        "status": { "type": "string", "description": "The current operational status of the equipment.", "enum": ["Available", "In Use", "Calibration Due", "Out of Service", "Under Service"] },
+        "approvalStatus": { "type": "string", "description": "The approval status of the equipment listing.", "enum": ["Approved", "Pending Approval", "Rejected"] },
+        "nextCalibration": { "type": "string", "format": "date", "description": "The date the next calibration is due." },
+        "manufacturer": { "type": "string", "description": "The manufacturer of the equipment." },
+        "model": { "type": "string", "description": "The model name or number." },
+        "serialNumber": { "type": "string", "description": "The unique serial number of the item." },
+        "history": { "type": "array", "description": "An array of historical events for this equipment.", "items": { "$ref": "#/entities/EquipmentHistory" } },
+        "isPublic": { "type": "boolean", "description": "Whether this equipment is visible on the provider's public profile." },
+        "thumbnailUrl": { "type": "string", "format": "uri", "description": "URL for the equipment's thumbnail image." },
+        "parentId": { "type": "string", "description": "If this is a component, the ID of the parent equipment/kit." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "modifiedAt": { "type": "string", "format": "date-time" },
+        "modifiedBy": { "type": "string" }
+      },
+      "required": ["id", "name", "type", "techniques", "providerId", "status", "nextCalibration"]
+    },
+    "EquipmentHistory": {
+        "title": "Equipment History",
+        "type": "object",
+        "description": "Represents a single event in an equipment's history log.",
+        "properties": {
+            "event": { "type": "string", "enum": ["Created", "Updated", "Checked Out", "Checked In", "Set to Available", "Set to Calibration Due", "Set to Out of Service", "Checked Out for Service", "Assigned to Kit", "Removed from Kit"] },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "user": { "type": "string", "description": "Name of the user who performed the action." },
+            "notes": { "type": "string", "description": "Additional notes about the event." }
+        },
+        "required": ["event", "timestamp", "user"]
     }
   },
   "auth": {
@@ -547,6 +586,22 @@
             "$ref": "#/backend/entities/Manufacturer"
           },
           "description": "Stores information about NDT equipment manufacturers."
+        }
+      },
+      {
+        "path": "/equipment/{equipmentId}",
+        "definition": {
+          "entityName": "Equipment",
+          "schema": {
+            "$ref": "#/backend/entities/Equipment"
+          },
+          "description": "Stores NDT equipment data for service providers. Includes a 'providerId' to facilitate ownership-based access.",
+          "params": [
+            {
+              "name": "equipmentId",
+              "description": "The unique ID of the equipment."
+            }
+          ]
         }
       },
       {

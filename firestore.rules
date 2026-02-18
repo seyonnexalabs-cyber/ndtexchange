@@ -180,7 +180,14 @@ service cloud.firestore {
     match /asset_types/{assetTypeId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
     match /techniques/{techniqueId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
     match /manufacturers/{manufacturerId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /equipment/{equipmentId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /equipment/{equipmentId} {
+      // An inspector can create equipment for their own company.
+      allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid));
+      // A user can read, update, or delete equipment IFF they belong to that provider's company.
+      allow get, update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/equipment/$(equipmentId)).data.providerId || isAdmin()));
+      // Listing is allowed for inspectors querying their own company's equipment.
+      allow list: if isSignedIn();
+    }
     match /defects/{defectId} { allow read, write: if isAdmin(); }
     match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }
     match /roles_admin/{userId} { allow read, write: if isAdmin(); }

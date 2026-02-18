@@ -1,4 +1,4 @@
-${"```tsx"}
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { InspectorAsset, EquipmentHistory, NDTTechnique, Job, EquipmentType } from "@/lib/types";
+import { Equipment, EquipmentHistory, NDTTechnique, Job, EquipmentType } from "@/lib/types";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical, AlertTriangle } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
@@ -61,8 +61,8 @@ const equipmentSchema = z.object({
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
 const EquipmentForm = ({ equipment, allEquipment, allTechniques, onSubmit, onCancel }: { 
-    equipment: InspectorAsset, 
-    allEquipment: InspectorAsset[], 
+    equipment: Equipment, 
+    allEquipment: Equipment[], 
     allTechniques: NDTTechnique[],
     onSubmit: (values: EquipmentFormValues) => void, 
     onCancel: () => void 
@@ -458,7 +458,7 @@ const AddComponentForm = ({ onCancel, onSubmit, allTechniques }: {
 };
 
 
-const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
+const statusVariants: { [key in Equipment['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
     'Available': 'success',
     'In Use': 'default',
     'Calibration Due': 'destructive',
@@ -492,15 +492,15 @@ export default function EquipmentDetailPage() {
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
-    const [editingComponent, setEditingComponent] = useState<InspectorAsset | null>(null);
+    const [editingComponent, setEditingComponent] = useState<Equipment | null>(null);
     const [isEditComponentOpen, setIsEditComponentOpen] = useState(false);
 
     const { firestore, user } = useFirebase();
     const equipmentRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'equipment', id as string) : null), [firestore, id]);
-    const { data: equipment, isLoading: isLoadingEquipment } = useDoc<InspectorAsset>(equipmentRef);
+    const { data: equipment, isLoading: isLoadingEquipment } = useDoc<Equipment>(equipmentRef);
 
     const allEquipmentQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'equipment') : null), [firestore]);
-    const { data: allEquipmentFromDb, isLoading: isLoadingAllEquipment } = useCollection<InspectorAsset>(allEquipmentQuery);
+    const { data: allEquipmentFromDb, isLoading: isLoadingAllEquipment } = useCollection<Equipment>(allEquipmentQuery);
     const allEquipment = allEquipmentFromDb || [];
 
     const allTechniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
@@ -546,7 +546,7 @@ export default function EquipmentDetailPage() {
     const handleAddComponentSubmit = async (values: AddComponentFormValues) => {
         if (!equipment || !firestore) return;
         const newComponentRef = doc(collection(firestore, 'equipment'), `EQUIP-${Date.now()}`);
-        const newComponentData: Omit<InspectorAsset, 'history' | 'thumbnailUrl'> = {
+        const newComponentData: Omit<Equipment, 'history' | 'thumbnailUrl'> = {
             id: newComponentRef.id,
             providerId: equipment.providerId,
             name: values.name,
@@ -570,7 +570,7 @@ export default function EquipmentDetailPage() {
     };
     
 
-    const handleEditComponentClick = (component: InspectorAsset) => {
+    const handleEditComponentClick = (component: Equipment) => {
         setEditingComponent(component);
         setIsEditComponentOpen(true);
     };
@@ -940,4 +940,3 @@ export default function EquipmentDetailPage() {
         </div>
     );
 }
-${"```"}

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Form } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File } from 'lucide-react';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import Image from 'next/image';
@@ -33,8 +33,8 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/comp
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
-import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc, useUser } from '@/firebase';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId, setDoc, arrayUnion } from 'firebase/firestore';
 import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -496,7 +496,7 @@ export default function JobDetailPage() {
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     const isMobile = useMobile();
-    const { firestore, user } = useFirebase();
+    const { firestore, user: authUser } = useFirebase();
     
     const [isTechDialogOpen, setIsTechDialogOpen] = React.useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = React.useState(false);
@@ -515,7 +515,11 @@ export default function JobDetailPage() {
     const [rating, setRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
 
-    const isReady = firestore && user && role;
+    const { data: currentUserProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
+
+    const isReady = firestore && authUser && role;
 
     const jobRef = useMemoFirebase(() => (isReady && id ? doc(firestore, 'jobs', id) : null), [isReady, id]);
     const { data: jobDetails, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(jobRef);
@@ -563,9 +567,9 @@ export default function JobDetailPage() {
         if (!jobDetails) return;
 
         const checkForReview = async () => {
-            if (!firestore || !jobDetails.providerId || !user) return;
+            if (!firestore || !jobDetails.providerId || !authUser) return;
             const reviewsRef = collection(firestore, 'reviews');
-            const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', user.uid), limit(1));
+            const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', authUser.uid), limit(1));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const existingReview = querySnapshot.docs[0].data() as Review;
@@ -582,7 +586,7 @@ export default function JobDetailPage() {
         };
 
         checkForReview();
-    }, [id, firestore, jobDetails, user]);
+    }, [id, firestore, jobDetails, authUser]);
     
     const assignedEquipmentQuery = useMemoFirebase(() => {
         if (role !== 'inspector' || !firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) {
@@ -706,29 +710,53 @@ export default function JobDetailPage() {
     };
 
     const handleAwardBid = async (awardedBidId: string, providerId: string) => {
-        if (!jobDetails || !firestore || !bids) return;
-
-        const batch = writeBatch(firestore);
-        
-        bids.forEach(bid => {
-            const bidRef = doc(firestore, 'jobs', jobDetails.id, 'bids', bid.id);
-            if (bid.id === awardedBidId) {
-                batch.update(bidRef, { status: 'Awarded' });
-            } else {
-                batch.update(bidRef, { status: 'Not Selected' });
-            }
-        });
-        
-        const jobRef = doc(firestore, 'jobs', jobDetails.id);
-        batch.update(jobRef, { status: 'Assigned', providerId: providerId });
-
-        await batch.commit();
-
-        toast({
-            title: "Job Awarded!",
-            description: `Provider has been awarded the job: ${jobDetails.title}.`,
-        });
-        setReviewingBid(null);
+        if (!jobDetails || !bids || !firestore) return;
+    
+        try {
+            const batch = writeBatch(firestore);
+    
+            // Update bid statuses
+            bids.forEach(bid => {
+                const bidRef = doc(firestore, 'jobs', jobDetails.id, 'bids', bid.id);
+                if (bid.id === awardedBidId) {
+                    batch.update(bidRef, { status: 'Awarded' });
+                } else {
+                    batch.update(bidRef, { status: 'Not Selected' });
+                }
+            });
+    
+            // Update job status and provider
+            const jobRef = doc(firestore, 'jobs', jobDetails.id);
+            batch.update(jobRef, {
+                status: 'Assigned',
+                providerId: providerId,
+            });
+    
+            // Add to history
+            const newHistoryEntry = {
+                user: currentUserProfile?.name || 'System',
+                timestamp: serverTimestamp(),
+                action: `Awarded job to provider`,
+                details: `Provider ID: ${providerId}`,
+                statusChange: 'Assigned' as Job['status']
+            };
+            batch.update(jobRef, { history: arrayUnion(newHistoryEntry) });
+    
+            await batch.commit();
+            
+            toast({
+                title: "Job Awarded!",
+                description: `The job has been successfully awarded. The provider will be notified.`,
+            });
+            setReviewingBid(null);
+        } catch (error) {
+            console.error("Error awarding job:", error);
+            toast({
+                variant: "destructive",
+                title: "Awarding Failed",
+                description: "There was an error awarding the job. Please check your permissions and try again.",
+            });
+        }
     };
 
     const handleReviewBid = (bid: Bid) => {
@@ -809,7 +837,7 @@ export default function JobDetailPage() {
             return;
         }
     
-        if (!firestore || !user || !jobDetails?.providerId) {
+        if (!firestore || !authUser || !jobDetails?.providerId) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not submit review. Please try again.' });
             return;
         }
@@ -817,7 +845,7 @@ export default function JobDetailPage() {
         const reviewData = {
             jobId: jobDetails.id,
             providerId: jobDetails.providerId,
-            clientId: user.uid,
+            clientId: authUser.uid,
             rating: rating,
             comment: reviewComment,
             date: serverTimestamp(),
@@ -926,6 +954,8 @@ export default function JobDetailPage() {
     const isBiddingView = jobDetails.status === 'Posted' && role === 'inspector';
     
     const JobBiddingView = ({ allNdtTechniques }: { allNdtTechniques: NDTTechnique[] | null }) => {
+        const { auth, firestore } = useFirebase();
+        
         const form = useForm<z.infer<typeof bidSchema>>({
             resolver: zodResolver(bidSchema),
             defaultValues: {
@@ -934,13 +964,43 @@ export default function JobDetailPage() {
             },
         });
         
-        function onBidSubmit(values: z.infer<typeof bidSchema>) {
-            toast({
-                title: "Bid Submitted (Simulation)",
-                description: `Your bid of ${values.amount} has been submitted for ${jobDetails.title}.`,
-            });
-            console.log(values);
-             router.push(constructUrl('/dashboard/my-bids'));
+        async function onBidSubmit(values: z.infer<typeof bidSchema>) {
+            if (!jobDetails || !firestore || !authUser || !currentUserProfile) {
+                toast({ variant: "destructive", title: "Error", description: "Cannot submit bid. User or job details are missing." });
+                return;
+            }
+        
+            const bidRef = doc(collection(firestore, 'jobs', jobDetails.id, 'bids'));
+            
+            const newBidData = {
+                id: bidRef.id,
+                jobId: jobDetails.id,
+                inspectorId: authUser.uid,
+                providerId: currentUserProfile.companyId,
+                providerName: currentUserProfile.company,
+                amount: values.amount,
+                status: 'Submitted' as Bid['status'],
+                submittedDate: new Date().toISOString(),
+                comments: values.coverNote,
+                mobilizationDate: format(values.mobilizationDate, 'yyyy-MM-dd'),
+                certifications: values.certifications,
+            };
+        
+            try {
+                await setDoc(bidRef, newBidData);
+                toast({
+                    title: "Bid Submitted Successfully!",
+                    description: `Your bid of $${values.amount.toLocaleString()} has been submitted for ${jobDetails.title}.`,
+                });
+                router.push(constructUrl('/dashboard/my-bids'));
+            } catch (error) {
+                console.error("Error submitting bid:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Bid Submission Failed",
+                    description: "There was an error submitting your bid. Please try again.",
+                });
+            }
         }
         
         const certificationsForChecklist = [ "ASNT UT L-II", "TOFD", "PAUT", "RT Source", "PCN", "API 510", "API 570" ];

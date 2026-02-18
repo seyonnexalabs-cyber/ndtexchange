@@ -148,8 +148,11 @@ service cloud.firestore {
                         userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
                       ) || isAdmin();
                       
-        // Allow users from the same company as the bidding inspector to update/delete.
-        allow update, delete: if isSignedIn() && userCompanyId(request.auth.uid) == userCompanyId(resource.data.inspectorId);
+        allow update: if (isSignedIn() && (
+                      userCompanyId(request.auth.uid) == userCompanyId(resource.data.inspectorId) ||
+                      get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId == userCompanyId(request.auth.uid)
+                    ));
+        allow delete: if isSignedIn() && userCompanyId(request.auth.uid) == userCompanyId(resource.data.inspectorId);
       }
       
       match /messages/{messageId} {

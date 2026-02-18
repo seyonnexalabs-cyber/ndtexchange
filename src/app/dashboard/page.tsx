@@ -149,7 +149,7 @@ const ClientDashboard = () => {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Managed Assets</CardTitle>
-                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <Building className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalAssets}</div>
@@ -159,27 +159,27 @@ const ClientDashboard = () => {
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Assets Requiring Inspection</CardTitle>
-                        <AlarmClock className="h-4 w-4 text-muted-foreground" />
+                        <AlarmClock className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.assetsRequiringInspection}</div>
+                        <div className="text-2xl font-bold text-destructive">{stats.assetsRequiringInspection}</div>
                         <p className="text-xs text-muted-foreground">Assets with status 'Requires Inspection'</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Reports Awaiting Your Review</CardTitle>
-                        <FileCheck className="h-4 w-4 text-muted-foreground" />
+                        <FileCheck className="h-4 w-4 text-accent" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.reportsForReview}</div>
+                        <div className="text-2xl font-bold text-accent">{stats.reportsForReview}</div>
                         <p className="text-xs text-muted-foreground">Inspection reports ready for approval</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <Briefcase className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.activeJobs}</div>

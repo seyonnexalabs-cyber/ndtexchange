@@ -217,8 +217,8 @@ const PaymentsPage = () => {
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
 
-    const { data: jobPayments } = useCollection<JobPayment>(useMemoFirebase(() => firestore ? collection(firestore, 'jobPayments') : null, [firestore]));
-    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]));
+    const { data: jobPayments } = useCollection<JobPayment>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobPayments') : null, [firestore, user]));
+    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]));
     const { data: currentUser } = useDoc<PlatformUser>(useMemoFirebase(() => firestore && user ? doc(firestore, 'users', user.uid) : null, [firestore, user]));
     
     const { filteredPayments, title, canRecordPayment } = useMemo(() => {

@@ -209,12 +209,12 @@ export default function ClientsPage() {
     const role = searchParams.get('role');
     const [isAddClientOpen, setAddClientOpen] = useState(false);
     const { toast } = useToast();
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
 
-    const clientsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null, [firestore]);
+    const clientsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null, [firestore, user]);
     const { data: clientData, isLoading: isLoadingClients } = useCollection<Client>(clientsQuery);
     
-    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
+    const jobsQuery = useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]);
     const { data: allJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
     const clientsWithStats = useMemo(() => {

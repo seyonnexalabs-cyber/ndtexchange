@@ -50,10 +50,10 @@ export default function CalendarPage() {
     const [activeTab, setActiveTab] = useState('jobs');
     const [today, setToday] = useState<Date | undefined>(undefined);
 
-    const { firestore } = useFirebase();
-    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]));
-    const { data: allUsers } = useCollection<PlatformUser>(useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]));
-    const { data: inspectorAssets } = useCollection<InspectorAsset>(useMemoFirebase(() => firestore ? collection(firestore, 'equipment') : null, [firestore]));
+    const { firestore, user } = useFirebase();
+    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]));
+    const { data: allUsers } = useCollection<PlatformUser>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'users') : null, [firestore, user]));
+    const { data: inspectorAssets } = useCollection<InspectorAsset>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'equipment') : null, [firestore, user]));
 
     useEffect(() => {
         setToday(new Date());

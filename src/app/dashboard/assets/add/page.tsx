@@ -68,9 +68,9 @@ export default function AddAssetPage() {
     }, [role, router, searchParams]);
     
     const assetsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || !user) return null;
         return collection(firestore, 'assets');
-    }, [firestore]);
+    }, [firestore, user]);
     const { data: existingAssets } = useCollection(assetsQuery);
 
     const form = useForm<z.infer<typeof assetSchema>>({

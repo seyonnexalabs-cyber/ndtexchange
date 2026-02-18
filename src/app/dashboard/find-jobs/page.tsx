@@ -25,9 +25,9 @@ export default function FindJobsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { firestore } = useFirebase();
+    const { firestore, user } = useFirebase();
 
-    const jobsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'jobs'), where('status', 'in', ['Posted'])) : null, [firestore]);
+    const jobsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'jobs'), where('status', 'in', ['Posted'])) : null, [firestore, user]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);

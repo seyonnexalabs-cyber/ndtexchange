@@ -37,7 +37,7 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId } from 'firebase/firestore';
 import type { Job, Bid, Inspection, JobDocument, NDTServiceProvider, Client, PlatformUser, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -80,7 +80,7 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Approved': 'success',
     'Completed': 'success',
     'Paid': 'success',
-    'Revisions Requested': 'destructive',
+    'Revisions Requested': 'destructive'
 };
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -541,9 +541,11 @@ export default function JobDetailPage() {
     
     const { data: assignedEquipment } = useCollection<any>(
         useMemoFirebase(() => {
-            if (!firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) return null;
-            return query(collection(firestore, 'equipment'), where('id', 'in', jobDetails.equipmentIds.slice(0, 10)));
-        }, [firestore, jobDetails])
+            if (role !== 'inspector' || !firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) {
+                return null;
+            }
+            return query(collection(firestore, 'equipment'), where(documentId(), 'in', jobDetails.equipmentIds.slice(0, 10)));
+        }, [firestore, jobDetails, role])
     );
     
     const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
@@ -1085,7 +1087,7 @@ export default function JobDetailPage() {
                                                     <div className="flex justify-between items-center mb-2">
                                                         <h3 className="text-base font-semibold">Job-Level Documents</h3>
                                                         {(jobDetails.documents && jobDetails.documents.length > 0) && (
-                                                                <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
+                                                            <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
                                                                 <Maximize className="mr-2 h-4 w-4" />
                                                                 View All
                                                             </Button>
@@ -1136,7 +1138,7 @@ export default function JobDetailPage() {
                                                 <h4 className="font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Technicians</h4>
                                                 {isInspector && (
                                                     <Button variant="outline" size="sm" onClick={openTechDialog} disabled={resourceAssignmentLocked}>
-                                                        <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                                        Manage
                                                     </Button>
                                                 )}
                                             </div>
@@ -1148,7 +1150,7 @@ export default function JobDetailPage() {
                                                 <h4 className="font-semibold flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> Equipment</h4>
                                                 {isInspector && (
                                                     <Button variant="outline" size="sm" onClick={openEquipDialog} disabled={resourceAssignmentLocked}>
-                                                        <PlusCircle className="mr-2 h-4 w-4" /> Manage
+                                                        Manage
                                                     </Button>
                                                 )}
                                             </div>
@@ -1189,3 +1191,5 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+
+    

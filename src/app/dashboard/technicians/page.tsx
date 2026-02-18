@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -6,12 +5,12 @@ import { PlatformUser, Certification } from "@/lib/types";
 import { serviceProviders, NDTTechniques, allUsers as seedUsers } from "@/lib/seed-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Users, MoreVertical, Edit } from "lucide-react";
+import { Users, MoreVertical, Edit, Trash } from "lucide-react";
 import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -25,15 +24,22 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, query, where, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
+import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { format } from 'date-fns';
 
+const certificationSchema = z.object({
+  method: z.string({ required_error: "Please select a method." }),
+  level: z.enum(['Level I', 'Level II', 'Level III'], { required_error: "Please select a level." }),
+  certificateNumber: z.string().optional(),
+  validUntil: z.date().optional(),
+});
 
 const technicianSchema = z.object({
   id: z.string().optional(), // For editing
   name: z.string().min(2, "Name is required."),
-  email: z.string().email("A valid email is required to send an invitation."),
-  level: z.enum(['Level I', 'Level II', 'Level III'], { required_error: "Please select a level." }),
-  certifications: z.array(z.string()).min(1, "At least one certification must be selected."),
+  email: z.string().email("A valid email is required to send an invitation.").optional(),
   workStatus: z.enum(['Available', 'On Assignment']).optional(),
+  certifications: z.array(certificationSchema).min(1, "At least one certification is required."),
 });
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
@@ -44,9 +50,13 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
         defaultValues: defaultValues || {
             name: '',
             email: '',
-            level: 'Level I',
             certifications: [],
         },
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "certifications",
     });
 
     return (
@@ -102,74 +112,87 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                         )}
                     />
                 )}
-                 <FormField
-                    control={form.control}
-                    name="level"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Certification Level</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a level" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Level I">Level I</SelectItem>
-                                    <SelectItem value="Level II">Level II</SelectItem>
-                                    <SelectItem value="Level III">Level III</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="certifications"
-                    render={() => (
-                    <FormItem>
-                        <FormLabel>NDT Certifications</FormLabel>
-                        <FormDescription>The level selected above will be applied to all checked methods.</FormDescription>
-                        <ScrollArea className="h-40 w-full rounded-md border p-4">
-                        {NDTTechniques.map((item) => (
-                            <FormField
-                            key={item.id}
+                 
+                 <div>
+                  <FormLabel>Certifications</FormLabel>
+                  <ScrollArea className="h-60 mt-2">
+                    <div className="space-y-4 pr-2">
+                      {fields.map((item, index) => (
+                        <div key={item.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start p-4 border rounded-md relative">
+                          <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => remove(index)} disabled={fields.length <= 1}>
+                              <Trash className="h-4 w-4" />
+                          </Button>
+                          <FormField
                             control={form.control}
-                            name="certifications"
-                            render={({ field }) => {
-                                return (
-                                <FormItem
-                                    key={item.id}
-                                    className="flex flex-row items-start space-x-3 space-y-0 mb-3"
-                                >
-                                    <FormControl>
-                                    <Checkbox
-                                        checked={field.value?.includes(item.id)}
-                                        onCheckedChange={(checked) => {
-                                        return checked
-                                            ? field.onChange([...(field.value || []), item.id])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                (value) => value !== item.id
-                                                )
-                                            )
-                                        }}
-                                    />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">
-                                        {item.title} ({item.id})
-                                    </FormLabel>
-                                </FormItem>
-                                )
-                            }}
-                            />
-                        ))}
-                        </ScrollArea>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+                            name={`certifications.${index}.method`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Method</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {NDTTechniques.map(t => <SelectItem key={t.id} value={t.id}>{t.title} ({t.id})</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`certifications.${index}.level`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Level</FormLabel>
+                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select level..." /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Level I">Level I</SelectItem>
+                                        <SelectItem value="Level II">Level II</SelectItem>
+                                        <SelectItem value="Level III">Level III</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                           <FormField
+                            control={form.control}
+                            name={`certifications.${index}.certificateNumber`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Certificate # (Optional)</FormLabel>
+                                <FormControl><Input placeholder="e.g., 123456" {...field} value={field.value || ''}/></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                           <FormField
+                            control={form.control}
+                            name={`certifications.${index}.validUntil`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Valid Until (Optional)</FormLabel>
+                                <FormControl><CustomDateInput {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => append({ method: '', level: 'Level II', certificateNumber: '', validUntil: undefined })}
+                        className="mt-4"
+                      >
+                        Add Certification
+                      </Button>
+                    </div>
+                  </ScrollArea>
+                  <FormMessage>{form.formState.errors.certifications?.message}</FormMessage>
+                </div>
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                     <Button type="submit">Save</Button>
@@ -222,17 +245,20 @@ export default function TechniciansPage() {
     const handleFormSubmit = async (values: TechnicianFormValues) => {
         if (!firestore || !currentUserProfile?.companyId) return;
 
-        if (editingUser) { // Editing existing user
-             const updatedCerts: Certification[] = values.certifications.map(method => ({ method, level: values.level }));
+        const certsToSave: Certification[] = values.certifications.map(cert => ({
+            ...cert,
+            validUntil: cert.validUntil ? format(cert.validUntil, 'yyyy-MM-dd') : undefined,
+        }));
+
+        if (editingUser) {
              await updateDoc(doc(firestore, 'users', editingUser.id), {
                 name: values.name,
-                level: values.level,
-                certifications: updatedCerts,
+                certifications: certsToSave,
                 workStatus: values.workStatus,
             });
             toast({ title: 'Technician Updated', description: `${values.name}'s profile has been updated.` });
             setEditingUser(null);
-        } else { // Adding new user
+        } else { 
             const newUserData: Partial<PlatformUser> = {
                 name: values.name,
                 email: values.email,
@@ -240,11 +266,9 @@ export default function TechniciansPage() {
                 companyId: currentUserProfile.companyId,
                 company: currentUserProfile.company,
                 status: 'Invited',
-                level: values.level,
-                certifications: values.certifications.map(method => ({ method, level: values.level })),
+                certifications: certsToSave,
                 createdAt: serverTimestamp(),
             };
-            // In a real app, this would trigger a Firebase Function to send an invite email.
             await addDoc(collection(firestore, 'users'), newUserData);
             toast({ title: 'Invitation Sent', description: `An invitation has been sent to ${values.email}.` });
             setIsAddUserOpen(false);
@@ -318,7 +342,6 @@ export default function TechniciansPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
-                                <TableHead>Level</TableHead>
                                 <TableHead>Certifications</TableHead>
                                 <TableHead>Account Status</TableHead>
                                 <TableHead>Work Status</TableHead>
@@ -335,11 +358,8 @@ export default function TechniciansPage() {
                                         {user.name}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={user.level === 'Level III' ? 'default' : user.level === 'Level II' ? 'success' : 'secondary'}>{user.level}</Badge>
-                                    </TableCell>
-                                    <TableCell>
                                         <div className="flex flex-wrap gap-1">
-                                            {user.certifications?.map((cert, index) => <Badge key={index} variant="outline">{cert.method}</Badge>)}
+                                            {user.certifications?.map((cert, index) => <Badge key={index} variant="outline">{cert.method} {cert.level}</Badge>)}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -376,7 +396,7 @@ export default function TechniciansPage() {
                     setEditingUser(null);
                 }
             }}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-xl">
                      <DialogHeader>
                         <DialogTitle>{editingUser ? 'Edit Technician' : 'Add New Technician'}</DialogTitle>
                         <DialogDescription>
@@ -391,9 +411,11 @@ export default function TechniciansPage() {
                             id: editingUser.id,
                             name: editingUser.name,
                             email: editingUser.email,
-                            level: editingUser.level,
-                            certifications: editingUser.certifications?.map(c => c.method),
-                            workStatus: editingUser.workStatus
+                            workStatus: editingUser.workStatus,
+                            certifications: editingUser.certifications?.map(c => ({
+                                ...c,
+                                validUntil: c.validUntil ? new Date(c.validUntil) : undefined,
+                            })) || [],
                         } : undefined}
                     />
                 </DialogContent>
@@ -401,5 +423,3 @@ export default function TechniciansPage() {
         </div>
     );
 }
-
-    

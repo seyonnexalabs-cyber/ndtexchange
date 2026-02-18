@@ -145,6 +145,8 @@ export type InspectorAsset = {
 export type Certification = {
   method: string;
   level: 'Level I' | 'Level II' | 'Level III';
+  certificateNumber?: string;
+  validUntil?: string;
 };
 
 export type Bid = {

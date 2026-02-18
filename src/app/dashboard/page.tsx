@@ -570,7 +570,9 @@ const AuditorDashboard = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {auditQueue.sort((a,b) => new Date(a.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime() - new Date(b.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime()).map(job => (
+                            {auditQueue.sort((a,b) => new Date(a.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime() - new Date(b.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || 0).getTime()).map(job => {
+                                const reportId = job.inspections?.find(insp => insp.report)?.report?.id;
+                                return (
                                 <TableRow key={job.id}>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
@@ -578,12 +580,16 @@ const AuditorDashboard = () => {
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
                                     <TableCell>{format(new Date(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp || Date.now()), GLOBAL_DATE_FORMAT)}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button asChild>
-                                            <Link href={constructUrl(`/dashboard/reports/${job.inspections[0]?.report!.id}`, searchParams)}>Audit Report</Link>
-                                        </Button>
+                                        {reportId ? (
+                                            <Button asChild>
+                                                <Link href={constructUrl(`/dashboard/reports/${reportId}`, searchParams)}>Audit Report</Link>
+                                            </Button>
+                                        ) : (
+                                            <Button variant="outline" size="sm" disabled>No Report</Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                             {auditQueue.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">Your audit queue is empty. Great job!</TableCell></TableRow>}
                         </TableBody>
                     </Table>

@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
+import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -78,6 +80,12 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Completed': 'success',
     'Paid': 'success',
     'Revisions Requested': 'destructive',
+};
+
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Scheduled': 'secondary',
+    'Completed': 'success',
+    'Requires Review': 'destructive'
 };
 
 const scheduleSchema = z.object({
@@ -236,7 +244,7 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
     onApprove: () => void, 
     onReject: (comments: string) => void 
 }) => {
-    const [rejectionComment, setRejectionComment] = useState('');
+    const [rejectionComment, setRejectionComment] = React.useState('');
     // 1. Standard workflow - always disabled and just provides info
     if (workflow === 'standard') {
         return (
@@ -331,7 +339,7 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
     onApprove: () => void, 
     onReject: (comments: string) => void 
 }) => {
-    const [rejectionComment, setRejectionComment] = useState('');
+    const [rejectionComment, setRejectionComment] = React.useState('');
     const showStandardReview = isClient && status === 'Report Submitted' && workflow === 'standard';
     const showAuditedReview = isClient && status === 'Audit Approved';
 
@@ -385,6 +393,90 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
+const WorkBreakdownTree = ({ inspections, job, constructUrl, role }: { inspections: any[], job: Job, constructUrl: (path: string) => string, role: string }) => {
+    const isClient = role === 'client';
+    const isInspector = role === 'inspector';
+
+    const groupedData = React.useMemo(() => {
+        if (!inspections || inspections.length === 0) return [];
+        const groupedByTechnique = inspections.reduce((acc, inspection) => {
+            const tech = inspection.technique || 'Uncategorized';
+            if (!acc[tech]) acc[tech] = [];
+            acc[tech].push(inspection);
+            return acc;
+        }, {} as Record<string, Inspection[]>);
+
+        return Object.entries(groupedByTechnique).map(([technique, inspList]) => {
+            const groupedByAsset = (inspList as Inspection[]).reduce((acc, inspection) => {
+                const assetId = inspection.assetId || 'Unknown Asset';
+                if (!acc[assetId]) {
+                    acc[assetId] = {
+                        assetName: inspection.assetName,
+                        inspections: []
+                    };
+                }
+                acc[assetId].inspections.push(inspection);
+                return acc;
+            }, {} as Record<string, { assetName: string, inspections: Inspection[] }>);
+            return { technique, assets: Object.entries(groupedByAsset) };
+        });
+    }, [inspections]);
+    
+    if (groupedData.length === 0) {
+        return <p className="text-sm text-muted-foreground text-center py-4">No specific inspections are associated with this job's assets.</p>;
+    }
+
+    return (
+        <div className="space-y-4">
+            {groupedData.map(({ technique, assets }) => (
+                <div key={technique} className="ml-2 pl-4 border-l-2 border-dashed relative">
+                     <div className="absolute -left-2.5 top-1 w-4 h-4 rounded-full bg-primary border-2 border-background" />
+                     <h3 className="font-semibold text-base mb-2">Technique: {technique}</h3>
+                     <div className="space-y-3 ml-2 pl-4 border-l border-dashed">
+                        {assets.map(([assetId, assetData]) => (
+                             <div key={assetId} className="relative">
+                                 <div className="absolute -left-[27px] top-1.5 w-4 h-4 rounded-full bg-secondary border-2 border-primary" />
+                                 <h4 className="font-medium text-sm mb-2">Asset: {assetData.assetName} <span className="text-xs text-muted-foreground font-mono">({assetId})</span></h4>
+                                 <div className="space-y-2 ml-2">
+                                     {assetData.inspections.map(inspection => {
+                                         const report = inspection.report;
+                                         return (
+                                            <div key={inspection.id} className="flex justify-between items-center bg-background p-2 rounded-md border">
+                                                <div>
+                                                     <p className="text-sm">
+                                                        <span className="font-medium">Inspection:</span> <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
+                                                    </p>
+                                                    {report && (
+                                                        <p className="text-xs text-muted-foreground">Report Submitted on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</p>
+                                                    )}
+                                                </div>
+                                                 {report ? (
+                                                    <Button asChild variant="outline" size="sm">
+                                                        <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Report</Link>
+                                                    </Button>
+                                                ) : (
+                                                    (isInspector || (isClient && job.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(job.status) && (
+                                                        <Button asChild size="sm">
+                                                            <Link href={constructUrl(`/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}`)}>
+                                                                <FileUp className="mr-2 h-4 w-4" />
+                                                                Generate Report
+                                                            </Link>
+                                                        </Button>
+                                                    )
+                                                )}
+                                            </div>
+                                         )
+                                     })}
+                                 </div>
+                             </div>
+                        ))}
+                     </div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
 export default function JobDetailPage() {
     const params = useParams();
     const id = params.id as string;
@@ -395,13 +487,13 @@ export default function JobDetailPage() {
     const isMobile = useMobile();
     const { firestore, user } = useFirebase();
     
-    const [isTechDialogOpen, setIsTechDialogOpen] = useState(false);
-    const [isEquipDialogOpen, setIsEquipDialogOpen] = useState(false);
-    const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
-    const [reviewingBid, setReviewingBid] = useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
+    const [isTechDialogOpen, setIsTechDialogOpen] = React.useState(false);
+    const [isEquipDialogOpen, setIsEquipDialogOpen] = React.useState(false);
+    const [isSchedulingOpen, setIsSchedulingOpen] = React.useState(false);
+    const [reviewingBid, setReviewingBid] = React.useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
 
-    const [tempSelectedTechs, setTempSelectedTechs] = useState<string[]>([]);
-    const [tempSelectedEquip, setTempSelectedEquip] = useState<string[]>([]);
+    const [tempSelectedTechs, setTempSelectedTechs] = React.useState<string[]>([]);
+    const [tempSelectedEquip, setTempSelectedEquip] = React.useState<string[]>([]);
 
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
     const [documentsToView, setDocumentsToView] = React.useState<ViewerDocument[]>([]);
@@ -421,7 +513,7 @@ export default function JobDetailPage() {
     const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collectionGroup(firestore, 'inspections'), where('jobId', '==', id)) : null), [firestore, id]);
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
-    useEffect(() => {
+    React.useEffect(() => {
         if (!jobDetails) return;
 
         const checkForReview = async () => {
@@ -456,7 +548,7 @@ export default function JobDetailPage() {
     const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
     const { data: allNdtTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
 
-    const provider = useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
+    const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
@@ -979,78 +1071,48 @@ export default function JobDetailPage() {
                                 )}
 
                                 <Card>
-                                    <Tabs defaultValue="documents" className="w-full">
+                                    <Tabs defaultValue="scope" className="w-full">
                                         <CardHeader className="p-4">
                                         <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="documents">Documents & Reports</TabsTrigger>
+                                            <TabsTrigger value="scope">Work Scope</TabsTrigger>
                                             <TabsTrigger value="activity">Activity Log</TabsTrigger>
                                         </TabsList>
                                         </CardHeader>
-                                        <TabsContent value="documents">
-                                        <CardContent className="space-y-6">
-                                            <div>
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <h3 className="text-base font-semibold">Job-Level Documents</h3>
-                                                    {(jobDetails.documents && jobDetails.documents.length > 0) && (
-                                                            <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
-                                                            <Maximize className="mr-2 h-4 w-4" />
-                                                            View All
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                                {(jobDetails.documents && jobDetails.documents.length > 0) ? (
-                                                    <div className="space-y-2 rounded-md border p-2">
-                                                        {jobDetails.documents.map((doc, i) => (
-                                                            <button 
-                                                                key={`${doc.name}-${i}`} 
-                                                                className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
-                                                                onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <FileText className="h-4 w-4 text-primary" />
-                                                                    <span className="font-medium text-sm">{doc.name}</span>
-                                                                </div>
-                                                            </button>
-                                                        ))}
+                                        <TabsContent value="scope">
+                                            <CardContent className="space-y-6">
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <h3 className="text-base font-semibold">Job-Level Documents</h3>
+                                                        {(jobDetails.documents && jobDetails.documents.length > 0) && (
+                                                                <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
+                                                                <Maximize className="mr-2 h-4 w-4" />
+                                                                View All
+                                                            </Button>
+                                                        )}
                                                     </div>
-                                                ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
-                                            </div>
-                                            <Separator />
-                                            <div>
-                                            <h3 className="text-base font-semibold mb-2">Inspection Reports</h3>
-                                            {inspections && inspections.length > 0 ? inspections.map((inspection, i) => {
-                                                const report = inspection.report;
-                                                return (
-                                                    <Card key={`${inspection.id}-${i}`} className="mb-4 bg-background">
-                                                        <CardHeader className="p-4 flex flex-row items-center justify-between">
-                                                            <div>
-                                                                <CardTitle className="text-base font-medium">Report for {inspection.assetName} ({inspection.technique})</CardTitle>
-                                                                {report ? (
-                                                                    <CardDescription className="text-xs">Submitted by {report.submittedBy} on {format(parseISO(report.submittedOn), GLOBAL_DATE_FORMAT)}</CardDescription>
-                                                                ) : (
-                                                                    <CardDescription className="text-xs">Report not yet submitted.</CardDescription>
-                                                                )}
-                                                            </div>
-                                                            {report ? (
-                                                                <Button asChild variant="outline" size="sm">
-                                                                    <Link href={constructUrl(`/dashboard/reports/${report.id}`)}>View Inspection</Link>
-                                                                </Button>
-                                                            ) : (
-                                                                (isInspector || (isClient && jobDetails.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(jobDetails.status) && (
-                                                                    <Button asChild size="sm">
-                                                                        <Link href={constructUrl(`/dashboard/reports/new?jobId=${jobDetails.id}&inspectionId=${inspection.id}`)}>
-                                                                            <FileUp className="mr-2 h-4 w-4" />
-                                                                            Generate Report
-                                                                        </Link>
-                                                                    </Button>
-                                                                )
-                                                            )}
-                                                        </CardHeader>
-                                                    </Card>
-                                                );
-                                            }) : <p className="text-sm text-muted-foreground">No inspection reports have been submitted for this job yet.</p>}
-                                            </div>
-                                        </CardContent>
+                                                    {(jobDetails.documents && jobDetails.documents.length > 0) ? (
+                                                        <div className="space-y-2 rounded-md border p-2">
+                                                            {jobDetails.documents.map((doc, i) => (
+                                                                <button 
+                                                                    key={`${doc.name}-${i}`} 
+                                                                    className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
+                                                                    onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        <FileText className="h-4 w-4 text-primary" />
+                                                                        <span className="font-medium text-sm">{doc.name}</span>
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
+                                                </div>
+                                                <Separator />
+                                                <div>
+                                                    <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
+                                                    <WorkBreakdownTree inspections={inspections || []} job={jobDetails} constructUrl={constructUrl} role={role} />
+                                                </div>
+                                            </CardContent>
                                         </TabsContent>
                                         <TabsContent value="activity">
                                         <CardContent>

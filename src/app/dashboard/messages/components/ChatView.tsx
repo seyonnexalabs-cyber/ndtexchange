@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -71,7 +70,7 @@ const ChatView = ({ isMobile, selectedJob, messages, isLoadingMessages, onBack, 
                     <div className="text-sm text-muted-foreground">
                         {selectedJob.client}
                         <div className="flex flex-wrap gap-1 mt-1">
-                            {selectedJob.techniques.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
+                            {(selectedJob.techniques || []).map(t => <Badge key={t} variant="outline">{t}</Badge>)}
                         </div>
                     </div>
                 </div>

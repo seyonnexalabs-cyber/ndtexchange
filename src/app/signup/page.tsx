@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,6 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, collection } from 'firebase/firestore';
 import type { PlatformUser, Client, NDTServiceProvider, AuditFirm } from '@/lib/types';
-import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
@@ -164,12 +163,12 @@ export default function SignupPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <InteractiveHexagonGrid className="hidden lg:block">
+      <div className="hidden lg:block relative hexagon-grid-container">
         <div className="absolute bottom-10 left-10 text-primary-foreground">
           <h2 className="text-4xl font-bold font-headline text-white/90">The Digital Marketplace for Asset Integrity</h2>
           <p className="mt-4 text-lg max-w-xl text-white/70">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
         </div>
-      </InteractiveHexagonGrid>
+      </div>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-md gap-6">
             <div className="space-y-2 text-center">

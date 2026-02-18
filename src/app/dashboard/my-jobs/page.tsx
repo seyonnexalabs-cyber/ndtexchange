@@ -16,6 +16,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase
 import { collection, query, where, doc, getDoc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
+import { useSearch } from "@/app/components/layout/search-provider";
 
 
 const equipmentIcons: { [key: string]: React.ReactNode } = {
@@ -31,6 +32,7 @@ export default function MyJobsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [view, setView] = useState<JobView>(role === 'client' ? 'upcoming' : 'active');
+    const { searchQuery } = useSearch();
 
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
@@ -118,11 +120,20 @@ export default function MyJobsPage() {
             const providerMatch = selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
             const clientMatch = selectedClients.length === 0 || selectedClients.includes(job.client);
             const auditMatch = !auditFilter || (job.workflow === 'level3' || job.workflow === 'auto');
-            return providerMatch && clientMatch && auditMatch;
+            
+            const searchLower = searchQuery.toLowerCase();
+            const provider = allCompanies?.find(c => c.id === job.providerId);
+            const searchMatch = !searchQuery ||
+                job.title.toLowerCase().includes(searchLower) ||
+                job.id.toLowerCase().includes(searchLower) ||
+                job.client.toLowerCase().includes(searchLower) ||
+                (provider && provider.name.toLowerCase().includes(searchLower));
+
+            return providerMatch && clientMatch && auditMatch && searchMatch;
         });
 
         return { displayedJobs: filtered, title: pageTitle, Icon: PageIcon };
-    }, [view, role, selectedProviders, selectedClients, auditFilter, jobsByCategory]);
+    }, [view, role, selectedProviders, selectedClients, auditFilter, jobsByCategory, searchQuery, allCompanies]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());

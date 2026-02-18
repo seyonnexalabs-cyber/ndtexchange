@@ -395,7 +395,7 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
-const WorkBreakdownTree = ({ inspections, job, constructUrl, role, handleViewDocuments }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string, handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void }) => {
+const WorkBreakdownTree = ({ inspections, job, constructUrl, role, handleViewDocuments, allNdtTechniques }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string, handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void, allNdtTechniques: NDTTechnique[] | null }) => {
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
 
@@ -1186,6 +1186,7 @@ export default function JobDetailPage() {
                                                         constructUrl={constructUrl} 
                                                         role={role} 
                                                         handleViewDocuments={handleViewDocuments}
+                                                        allNdtTechniques={allNdtTechniques}
                                                     />
                                                 </div>
                                             </CardContent>

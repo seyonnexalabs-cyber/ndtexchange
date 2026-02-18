@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -47,13 +48,10 @@ export default function FindProvidersPage() {
     const providersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]);
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(providersQuery);
 
-    const jobsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]);
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
-    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? collection(firestore, 'reviews') : null, [firestore]));
+    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null, [firestore]));
 
     const auditFirmIndustries = useMemo(() => {
         if (!serviceProviders) return [];
@@ -68,16 +66,15 @@ export default function FindProvidersPage() {
     }, [role, router, searchParams]);
 
     const filteredProviders = useMemo(() => {
-        if (!serviceProviders || !jobs || !reviews) return [];
+        if (!serviceProviders || !reviews) return [];
 
         const providersWithStats = serviceProviders.map(provider => {
-            const completedJobs = jobs.filter(job => job.providerId === provider.id && (job.status === 'Completed' || job.status === 'Paid')).length;
-            const providerReviews = reviews.filter(r => r.providerId === provider.id && r.status === 'Approved');
+            const providerReviews = reviews.filter(r => r.providerId === provider.id);
             const avgRating = providerReviews.length > 0
                 ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length
                 : 0;
 
-            return { ...provider, completedJobs, rating: avgRating };
+            return { ...provider, rating: avgRating };
         });
 
         let providers = providersWithStats.filter(provider => {
@@ -104,7 +101,7 @@ export default function FindProvidersPage() {
         }
 
         return providers;
-    }, [selectedTechniques, selectedIndustries, sortBy, serviceProviders, jobs, reviews]);
+    }, [selectedTechniques, selectedIndustries, sortBy, serviceProviders, reviews]);
 
     const handleTechniqueChange = (techniqueId: string) => {
         setSelectedTechniques(prev => 
@@ -134,7 +131,7 @@ export default function FindProvidersPage() {
 
     const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0;
     
-    const isLoading = isLoadingProviders || isLoadingJobs || isLoadingTechniques || isLoadingReviews;
+    const isLoading = isLoadingProviders || isLoadingTechniques || isLoadingReviews;
 
     if (role && !['client', 'admin'].includes(role)) {
         return null;
@@ -276,13 +273,7 @@ export default function FindProvidersPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent className="flex-grow space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <StarRating rating={provider.rating} />
-                                        <div className="text-right">
-                                            <p className="font-bold text-lg">{provider.completedJobs}</p>
-                                            <p className="text-xs text-muted-foreground -mt-1">Jobs Completed</p>
-                                        </div>
-                                    </div>
+                                    <StarRating rating={provider.rating} />
                                     <p className="text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
                                     <div>
                                         <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>

@@ -19,8 +19,7 @@ export default function OEMSolutionsPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative py-20 md:py-32 bg-background overflow-hidden">
-                    <div className="absolute inset-0 hexagon-grid-container !bg-background"></div>
+                <section className="relative py-20 md:py-32 bg-muted overflow-hidden hexagon-grid-container">
                     <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div>
@@ -31,7 +30,7 @@ export default function OEMSolutionsPage() {
                                     Showcase your equipment to a dedicated audience of asset owners and service providers at the exact moment they're planning and executing inspections.
                                 </p>
                                 <div className="mt-8">
-                                    <Button size="lg" asChild variant="default">
+                                    <Button size="lg" asChild>
                                         <Link href="/contact">Partner With Us</Link>
                                     </Button>
                                 </div>

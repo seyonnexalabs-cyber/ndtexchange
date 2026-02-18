@@ -163,10 +163,10 @@ export default function SignupPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="hidden lg:block relative hexagon-grid-container">
-        <div className="absolute bottom-10 left-10 text-primary-foreground">
-          <h2 className="text-4xl font-bold font-headline text-white/90">The Digital Marketplace for Asset Integrity</h2>
-          <p className="mt-4 text-lg max-w-xl text-white/70">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
+      <div className="hidden lg:block relative bg-muted hexagon-grid-container">
+        <div className="absolute bottom-10 left-10 text-foreground">
+          <h2 className="text-4xl font-bold font-headline">The Digital Marketplace for Asset Integrity</h2>
+          <p className="mt-4 text-lg max-w-xl text-muted-foreground">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
         </div>
       </div>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

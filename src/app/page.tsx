@@ -85,24 +85,23 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-24 overflow-hidden bg-primary">
-          <div className="absolute inset-0 hexagon-grid-container"></div>
+        <section className="relative py-20 md:py-24 overflow-hidden bg-muted hexagon-grid-container">
           <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
-              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">
+              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary">
                 The Digital Marketplace for Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">
-                <Button size="lg" asChild variant="secondary">
+                <Button size="lg" asChild>
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="bg-primary/20 text-white border-white/50 hover:bg-primary/40" asChild>
+                <Button size="lg" variant="outline" asChild>
                   <Link href="/contact">Request a Demo</Link>
                 </Button>
-                <Button size="lg" variant="link" asChild className="text-primary-foreground/80 hover:text-white">
+                <Button size="lg" variant="link" asChild>
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>

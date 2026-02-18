@@ -290,24 +290,42 @@
   .hexagon-grid-container {
     position: relative;
     overflow: hidden;
-    background-color: hsl(var(--primary));
+    background-color: hsl(var(--muted));
   }
 
   .hexagon-grid-container::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="86.6"><polygon points="50,0 100,25 100,75 50,100 0,75 0,25" fill="none" stroke="hsl(var(--foreground) / 0.1)" stroke-width="1"/></svg>');
-    background-size: 100px 86.6px;
-    animation: pan 60s linear infinite;
+    --s: 120px; /* size */
+    --c1: hsla(var(--primary), .1);
+    --c2: hsla(var(--primary), .2);
+    --c3: hsla(var(--accent), .15);
+
+    --_g:
+        var(--c3) 0 119.5deg, #0000 0;
+    --_g2:
+        var(--c2) 0 119.5deg, #0000 0;
+    --_g0:
+      radial-gradient(50% 86.6%, var(--c1) 98%,#0000) 0 calc(var(--s)/-2);
+    --_g1:
+      radial-gradient(50% 86.6%,#0000 98%,var(--c1)) 0 calc(var(--s)/2);
+    background:
+      var(--_g0),var(--_g1),var(--_g0),var(--_g1),
+      conic-gradient(from 59.5deg at 25%  calc(433%/-6), var(--_g)),
+      conic-gradient(from 59.5deg at 75%  calc(433%/-6), var(--_g)),
+      conic-gradient(from 179.5deg at 25% calc(500%/-6), var(--_g2)),
+      conic-gradient(from 179.5deg at 75% calc(500%/-6), var(--_g2));
+    background-size: var(--s) calc(var(--s)*1.1547);
+    animation: pan 120s linear infinite;
   }
 
   @keyframes pan {
     0% {
-      background-position: 0 0;
+      background-position: 0% 0%;
     }
     100% {
-      background-position: 200px 173.2px;
+      background-position: 100% 100%;
     }
   }
 }

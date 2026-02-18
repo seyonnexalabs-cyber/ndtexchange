@@ -212,9 +212,9 @@ export default function ReportsPage() {
     }, [firestore]);
 
     const usersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || role !== 'admin') return null;
         return collection(firestore, 'users');
-    }, [firestore]);
+    }, [firestore, role]);
 
     const { data: jobs } = useCollection<Job>(jobsQuery);
     const { data: allInspectionsData } = useCollection<Inspection>(inspectionsQuery);

@@ -21,7 +21,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques, subscriptionPlans as initialPlans } from '@/lib/subscription-plans';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -393,7 +392,7 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
-const WorkBreakdownTree = ({ inspections, job, constructUrl, role }: { inspections: any[], job: Job, constructUrl: (path: string) => string, role: string }) => {
+const WorkBreakdownTree = ({ inspections, job, constructUrl, role }: { inspections: Inspection[], job: Job, constructUrl: (path: string) => string, role: string }) => {
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
 
@@ -510,6 +509,45 @@ export default function JobDetailPage() {
     const bidsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, 'jobs', id, 'bids') : null), [firestore, id]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
+    const [inspections, setInspections] = React.useState<Inspection[]>([]);
+    const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchInspections = async () => {
+            if (!firestore || !jobDetails?.assetIds || jobDetails.assetIds.length === 0) {
+                setInspections([]);
+                setIsLoadingInspections(false);
+                return;
+            }
+            try {
+                const inspectionPromises = jobDetails.assetIds.map(assetId => {
+                    const inspectionsRef = collection(firestore, 'assets', assetId, 'inspections');
+                    const q = query(inspectionsRef, where('jobId', '==', jobDetails.id));
+                    return getDocs(q);
+                });
+                const inspectionSnapshots = await Promise.all(inspectionPromises);
+                const fetchedInspections = inspectionSnapshots.flatMap(snapshot =>
+                    snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Inspection))
+                );
+                setInspections(fetchedInspections);
+            } catch (error) {
+                console.error("Error fetching inspections:", error);
+                setInspections([]);
+            } finally {
+                setIsLoadingInspections(false);
+            }
+        };
+
+        if (jobDetails) {
+            setIsLoadingInspections(true);
+            setInspections([]);
+            fetchInspections();
+        } else {
+             setInspections([]);
+             setIsLoadingInspections(false);
+        }
+    }, [firestore, jobDetails]);
+    
     React.useEffect(() => {
         if (!jobDetails) return;
 
@@ -551,7 +589,9 @@ export default function JobDetailPage() {
 
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
-    if (isLoadingJob) {
+    const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingTechniques || isLoadingInspections;
+    
+    if (isLoading) {
         return <div className="text-center p-10">Loading job details...</div>;
     }
 
@@ -1109,7 +1149,7 @@ export default function JobDetailPage() {
                                                 <Separator />
                                                 <div>
                                                     <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
-                                                    <WorkBreakdownTree inspections={jobDetails.inspections || []} job={jobDetails} constructUrl={constructUrl} role={role} />
+                                                    <WorkBreakdownTree inspections={inspections || []} job={jobDetails} constructUrl={constructUrl} role={role} />
                                                 </div>
                                             </CardContent>
                                         </TabsContent>
@@ -1217,4 +1257,3 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-

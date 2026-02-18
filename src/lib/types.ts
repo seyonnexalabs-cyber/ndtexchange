@@ -146,6 +146,8 @@ export type Bid = {
     id: string;
     jobId: string;
     inspectorId: string;
+    providerId: string;
+    providerName: string;
     amount: number;
     status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Shortlisted' | 'Not Selected';
     submittedDate: string;

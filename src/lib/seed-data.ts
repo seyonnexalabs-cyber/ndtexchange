@@ -676,7 +676,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections'>[] = [
     },
 ];
 
-export const bidsData: Omit<Bid, 'providerId'>[] = [
+export const bidsData: Omit<Bid, 'providerId' | 'providerName'>[] = [
     { id: 'BID-001', jobId: 'JOB-001', inspectorId: 'user-tech-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.' },
     { id: 'BID-001A', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.' },
     { id: 'BID-002', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
@@ -745,7 +745,14 @@ export const inspectionsData: Inspection[] = [
 
 export const jobs: Job[] = jobsData.map(job => ({
     ...job,
-    bids: bidsData.filter(bid => bid.jobId === job.id) as Bid[],
+    bids: bidsData.filter(bid => bid.jobId === job.id).map(b => {
+        const inspector = allUsers.find(u => u.id === b.inspectorId);
+        return {
+            ...b,
+            providerId: inspector?.companyId || 'N/A',
+            providerName: inspector?.company || 'Unknown Provider',
+        }
+    }) as Bid[],
     inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
 }));
 

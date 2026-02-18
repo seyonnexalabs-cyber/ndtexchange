@@ -64,6 +64,35 @@ const ClientFormattedDate = ({ timestamp, formatString = 'dd-MMM p' }: { timesta
     return <>{formattedDate || '...'}</>;
 };
 
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  footer,
+  color,
+  iconBg,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  footer?: React.ReactNode;
+  color: string;
+  iconBg: string;
+}) => (
+  <Card className="relative overflow-hidden">
+    <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", color)} />
+    <CardContent className="p-4 flex items-center justify-between ml-1.5">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <p className="text-3xl font-bold">{value}</p>
+        {footer && <p className="text-xs text-muted-foreground mt-1">{footer}</p>}
+      </div>
+      <div className={cn("p-3 rounded-full text-white", iconBg)}>
+        <Icon className="h-6 w-6" />
+      </div>
+    </CardContent>
+  </Card>
+);
 
 // --- CLIENT DASHBOARD ---
 const clientChartConfig = {
@@ -146,46 +175,38 @@ const ClientDashboard = () => {
     return (
         <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Managed Assets</CardTitle>
-                        <Building className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-primary">{stats.totalAssets}</div>
-                        <p className="text-xs text-muted-foreground">Assets in your portfolio</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Assets Requiring Inspection</CardTitle>
-                        <AlarmClock className="h-4 w-4 text-destructive" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-destructive">{stats.assetsRequiringInspection}</div>
-                        <p className="text-xs text-muted-foreground">Assets with status 'Requires Inspection'</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Reports Awaiting Your Review</CardTitle>
-                        <FileCheck className="h-4 w-4 text-accent" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-accent">{stats.reportsForReview}</div>
-                        <p className="text-xs text-muted-foreground">Inspection reports ready for approval</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-                        <Briefcase className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-primary">{stats.activeJobs}</div>
-                        <p className="text-xs text-muted-foreground">Jobs currently in progress or scheduled</p>
-                    </CardContent>
-                </Card>
+                <StatCard 
+                    title="Total Managed Assets" 
+                    value={stats.totalAssets} 
+                    icon={Building} 
+                    footer="Assets in your portfolio"
+                    color="bg-card-color-1"
+                    iconBg="bg-card-color-1"
+                />
+                 <StatCard 
+                    title="Requires Inspection" 
+                    value={stats.assetsRequiringInspection} 
+                    icon={AlarmClock} 
+                    footer="Assets needing attention"
+                    color="bg-card-color-4"
+                    iconBg="bg-card-color-4"
+                />
+                <StatCard 
+                    title="Reports For Review" 
+                    value={stats.reportsForReview} 
+                    icon={FileCheck} 
+                    footer="Awaiting your approval"
+                    color="bg-card-color-3"
+                    iconBg="bg-card-color-3"
+                />
+                <StatCard 
+                    title="Active Jobs" 
+                    value={stats.activeJobs} 
+                    icon={Briefcase} 
+                    footer="Jobs in progress or scheduled"
+                    color="bg-card-color-2"
+                    iconBg="bg-card-color-2"
+                />
             </div>
 
             <Card>
@@ -406,46 +427,38 @@ const InspectorDashboard = () => {
     return (
         <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Assignments</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-primary">{stats.activeAssignments}</div>
-                        <p className="text-xs text-muted-foreground">Jobs currently in progress</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Open Bids</CardTitle>
-                        <Gavel className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-accent">{stats.openBidsCount}</div>
-                        <p className="text-xs text-muted-foreground">Bids awaiting a client decision</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Reports to Submit</CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-primary">{stats.reportsToSubmit}</div>
-                        <p className="text-xs text-muted-foreground">Jobs awaiting report submission</p>
-                    </CardContent>
-                </Card>
-                 <Card className={stats.equipmentAlerts > 0 ? "bg-destructive/10 border-destructive text-destructive-foreground" : ""}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className={cn("text-sm font-medium", stats.equipmentAlerts > 0 && "text-destructive")}>Equipment Alerts</CardTitle>
-                        <Wrench className={cn("h-4 w-4", stats.equipmentAlerts > 0 ? "text-destructive" : "text-muted-foreground")} />
-                    </CardHeader>
-                    <CardContent>
-                        <div className={cn("text-4xl font-bold", stats.equipmentAlerts > 0 && "text-destructive")}>{stats.equipmentAlerts}</div>
-                        <p className={cn("text-xs", stats.equipmentAlerts > 0 ? "text-destructive/80" : "text-muted-foreground")}>Items needing calibration or service</p>
-                    </CardContent>
-                </Card>
+                 <StatCard 
+                    title="Active Assignments" 
+                    value={stats.activeAssignments} 
+                    icon={Briefcase} 
+                    footer="Jobs currently in progress"
+                    color="bg-card-color-1"
+                    iconBg="bg-card-color-1"
+                />
+                 <StatCard 
+                    title="Open Bids" 
+                    value={stats.openBidsCount} 
+                    icon={Gavel} 
+                    footer="Awaiting client decision"
+                    color="bg-card-color-2"
+                    iconBg="bg-card-color-2"
+                />
+                 <StatCard 
+                    title="Reports to Submit" 
+                    value={stats.reportsToSubmit} 
+                    icon={FileText} 
+                    footer="Awaiting report submission"
+                    color="bg-card-color-3"
+                    iconBg="bg-card-color-3"
+                />
+                 <StatCard 
+                    title="Equipment Alerts" 
+                    value={stats.equipmentAlerts} 
+                    icon={Wrench} 
+                    footer="Needs calibration or service"
+                    color="bg-card-color-4"
+                    iconBg="bg-card-color-4"
+                />
             </div>
             
             <Card>
@@ -534,36 +547,30 @@ const AuditorDashboard = () => {
     return (
         <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Reports in Queue</CardTitle>
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-primary">{auditQueue.length}</div>
-                        <p className="text-xs text-muted-foreground">Reports awaiting your review</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Review Time</CardTitle>
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-accent">{averageReviewTime}</div>
-                        <p className="text-xs text-muted-foreground">Average for the last 30 days</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Audits Completed (7d)</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-primary">{auditsCompleted}</div>
-                        <p className="text-xs text-muted-foreground">Reports approved in the last week</p>
-                    </CardContent>
-                </Card>
+                 <StatCard 
+                    title="Reports in Queue" 
+                    value={auditQueue.length} 
+                    icon={Clock} 
+                    footer="Awaiting your review"
+                    color="bg-card-color-1"
+                    iconBg="bg-card-color-1"
+                />
+                 <StatCard 
+                    title="Average Review Time" 
+                    value={averageReviewTime} 
+                    icon={Eye} 
+                    footer="Last 30 days"
+                    color="bg-card-color-2"
+                    iconBg="bg-card-color-2"
+                />
+                <StatCard 
+                    title="Audits Completed (7d)" 
+                    value={auditsCompleted} 
+                    icon={CheckCircle} 
+                    footer="Reports approved this week"
+                    color="bg-card-color-3"
+                    iconBg="bg-card-color-3"
+                />
             </div>
             <Card>
                 <CardHeader>
@@ -814,22 +821,38 @@ const AdminDashboard = () => {
     return (
          <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Users</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-4xl font-bold text-primary">{stats.totalUsers}</div><p className="text-xs text-muted-foreground">+5 this month</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Providers</CardTitle><ShieldCheck className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-4xl font-bold text-accent">{stats.totalProviders}</div><p className="text-xs text-muted-foreground">+2 new this month</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Active Jobs Marketplace</CardTitle><Briefcase className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-4xl font-bold text-primary">{stats.activeJobs}</div><p className="text-xs text-muted-foreground">Jobs currently posted or in progress</p></CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pending Reviews</CardTitle><Eye className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                    <CardContent><div className="text-4xl font-bold text-accent">{stats.pendingReviews}</div><p className="text-xs text-muted-foreground">Awaiting moderation</p></CardContent>
-                </Card>
+                <StatCard 
+                    title="Total Users" 
+                    value={stats.totalUsers} 
+                    icon={Users} 
+                    footer="+5 this month"
+                    color="bg-card-color-1"
+                    iconBg="bg-card-color-1"
+                />
+                <StatCard 
+                    title="Total Providers" 
+                    value={stats.totalProviders} 
+                    icon={ShieldCheck} 
+                    footer="+2 new this month"
+                    color="bg-card-color-2"
+                    iconBg="bg-card-color-2"
+                />
+                <StatCard 
+                    title="Active Jobs" 
+                    value={stats.activeJobs} 
+                    icon={Briefcase} 
+                    footer="In marketplace or in progress"
+                    color="bg-card-color-3"
+                    iconBg="bg-card-color-3"
+                />
+                 <StatCard 
+                    title="Pending Reviews" 
+                    value={stats.pendingReviews} 
+                    icon={Eye} 
+                    footer="Awaiting moderation"
+                    color="bg-card-color-4"
+                    iconBg="bg-card-color-4"
+                />
             </div>
              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
                 <Card className="lg:col-span-3">
@@ -905,16 +928,7 @@ const DashboardSkeleton = () => (
     <div className="grid gap-6">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-                <Card key={i}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <Skeleton className="h-4 w-2/3" />
-                        <Skeleton className="h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-1/2 mb-2" />
-                        <Skeleton className="h-3 w-full" />
-                    </CardContent>
-                </Card>
+                <Skeleton key={i} className="h-28" />
             ))}
         </div>
         <Card>
@@ -949,7 +963,3 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
-    
-
-    

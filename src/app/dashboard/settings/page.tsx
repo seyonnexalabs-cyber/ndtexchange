@@ -715,6 +715,20 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
     );
 };
 
+const PalettePreview = ({ name, colors }: { name: string, colors: string[] }) => (
+    <div>
+        <h4 className="font-semibold">{name}</h4>
+        <div className="flex flex-wrap gap-2 mt-2">
+            {colors.map((color, index) => (
+                <div key={index} className="flex flex-col items-center gap-1">
+                    <div className="w-10 h-10 rounded-md border" style={{ backgroundColor: `hsl(var(${color}))` }} />
+                    <p className="text-xs text-muted-foreground">{color.replace('--', '')}</p>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
 const AppearanceSettings = () => {
     const { theme, setTheme } = useTheme();
 
@@ -724,7 +738,7 @@ const AppearanceSettings = () => {
                 <CardTitle>Appearance</CardTitle>
                 <CardDescription>Customize the look and feel of the application.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-8">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
                         <Label className="text-base">Dark Mode</Label>
@@ -737,10 +751,19 @@ const AppearanceSettings = () => {
                         onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                     />
                 </div>
+                <div>
+                    <h3 className="text-lg font-semibold mb-4">Role-Based Color Palettes</h3>
+                    <div className="space-y-6">
+                        <PalettePreview name="Client" colors={['--primary', '--accent', '--card-color-1', '--card-color-2', '--card-color-3', '--card-color-4']} />
+                        <PalettePreview name="Inspector" colors={['--primary', '--accent', '--card-color-1', '--card-color-2', '--card-color-3', '--card-color-4']} />
+                        <PalettePreview name="Auditor" colors={['--primary', '--accent', '--card-color-1', '--card-color-2', '--card-color-3', '--card-color-4']} />
+                        <PalettePreview name="Admin" colors={['--primary', '--accent', '--card-color-1', '--card-color-2', '--card-color-3', '--card-color-4']} />
+                    </div>
+                </div>
             </CardContent>
              <CardFooter>
                 <p className="text-xs text-muted-foreground">
-                    Role-based themes are applied automatically and cannot be changed here.
+                    Role-based themes are applied automatically based on your login and cannot be changed here.
                 </p>
             </CardFooter>
         </Card>

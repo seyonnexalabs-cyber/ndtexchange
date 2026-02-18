@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -38,6 +39,12 @@
     --chart-3: 174 63% 39%;
     --chart-4: 201 25% 57%;
     --chart-5: 210 10% 50%;
+    
+    /* Stat Card Colors */
+    --card-color-1: 204 82% 57%; /* Lighter Blue */
+    --card-color-2: 174 63% 49%; /* Lighter Green */
+    --card-color-3: 35 92% 68%; /* Lighter Orange */
+    --card-color-4: 0 84% 70%; /* Lighter Red */
   }
 
   .inspector-theme {
@@ -75,6 +82,12 @@
     --chart-3: 158 44% 53%;
     --chart-4: 24 95% 73%;
     --chart-5: 158 15% 50%;
+
+    /* Stat Card Colors */
+    --card-color-1: 158 44% 43%; /* Mid Green */
+    --card-color-2: 24 95% 63%; /* Mid Orange */
+    --card-color-3: 45 85% 65%; /* Mid Gold */
+    --card-color-4: 158 15% 45%; /* Mid Gray */
   }
 
   .auditor-theme {
@@ -112,6 +125,12 @@
     --chart-3: 244 67% 74%;
     --chart-4: 220 13% 89%;
     --chart-5: 220 10% 50%;
+    
+    /* Stat Card Colors */
+    --card-color-1: 244 67% 64%; /* Mid Indigo */
+    --card-color-2: 220 13% 79%; /* Light Gray */
+    --card-color-3: 190 70% 55%; /* Mid Teal */
+    --card-color-4: 330 70% 65%; /* Pink */
   }
 
   .admin-theme {
@@ -149,6 +168,12 @@
     --chart-3: 220 14% 48%;
     --chart-4: 142 76% 60%;
     --chart-5: 220 15% 50%;
+    
+    /* Stat Card Colors */
+    --card-color-1: 220 14% 48%; /* Mid Slate */
+    --card-color-2: 142 76% 50%; /* Mid Green */
+    --card-color-3: 260 80% 70%; /* Lavender */
+    --card-color-4: 350 80% 65%; /* Rose */
   }
 
   .dark {
@@ -290,7 +315,7 @@
   .hexagon-grid-container {
     position: relative;
     overflow: hidden;
-    background-color: hsl(var(--muted));
+    background-color: hsl(var(--muted) / 0.5); /* Make it semi-transparent */
   }
 
   .hexagon-grid-container::before {
@@ -298,9 +323,9 @@
     position: absolute;
     inset: 0;
     --s: 120px; /* size */
-    --c1: hsla(var(--primary), .1);
-    --c2: hsla(var(--primary), .2);
-    --c3: hsla(var(--accent), .15);
+    --c1: hsla(var(--foreground), .03); /* Use foreground with low opacity */
+    --c2: hsla(var(--foreground), .05);
+    --c3: hsla(var(--foreground), .02);
 
     --_g:
         var(--c3) 0 119.5deg, #0000 0;

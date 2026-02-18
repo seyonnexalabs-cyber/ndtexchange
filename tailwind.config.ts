@@ -80,6 +80,10 @@ export default {
         'role-auditor-foreground': 'hsl(0 0% 98%)',
         'role-admin': 'hsl(221.2 83.2% 53.3%)',
         'role-admin-foreground': 'hsl(0 0% 98%)',
+        'card-color-1': 'hsl(var(--card-color-1))',
+        'card-color-2': 'hsl(var(--card-color-2))',
+        'card-color-3': 'hsl(var(--card-color-3))',
+        'card-color-4': 'hsl(var(--card-color-4))',
       },
       borderRadius: {
         lg: 'var(--radius)',

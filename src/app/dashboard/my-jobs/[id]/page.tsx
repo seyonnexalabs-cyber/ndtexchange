@@ -6,8 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { jobs, clientData, Inspection, PlatformUser, Client, allUsers } from '@/lib/placeholder-data';
-import { serviceProviders, NDTServiceProvider } from '@/lib/service-providers-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -23,7 +21,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques, subscriptionPlans as initialPlans, Job } from '@/lib/placeholder-data';
 import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,7 +35,7 @@ import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId } from 'firebase/firestore';
-import type { Bid, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique } from '@/lib/types';
+import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -599,15 +596,27 @@ export default function JobDetailPage() {
     }, [firestore, jobDetails, role]);
     
     const { data: assignedEquipment, isLoading: isLoadingEquipment } = useCollection<any>(assignedEquipmentQuery);
+
+    const assignedTechniciansQuery = useMemoFirebase(() => {
+      if (!firestore || !jobDetails?.technicianIds || jobDetails.technicianIds.length === 0) {
+          return null;
+      }
+      return query(collection(firestore, 'users'), where(documentId(), 'in', jobDetails.technicianIds.slice(0, 10)));
+    }, [firestore, jobDetails]);
+    const { data: assignedTechnicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(assignedTechniciansQuery);
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]));
     const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+    
+    const { data: clientCompany, isLoading: isLoadingClientCompany } = useDoc<Client>(
+        useMemoFirebase(() => (firestore && jobDetails?.clientCompanyId ? doc(firestore, 'companies', jobDetails.clientCompanyId) : null), [firestore, jobDetails])
+    );
 
     const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
-    const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingTechniques || isLoadingInspections;
+    const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingTechniques || isLoadingInspections || isLoadingClientCompany || isLoadingTechnicians;
     
     if (isLoading) {
         return (
@@ -909,8 +918,8 @@ export default function JobDetailPage() {
     const lastRejection = jobDetails.history?.find(h => h.statusChange === 'Revisions Requested');
 
     const isBiddingView = jobDetails.status === 'Posted' && role === 'inspector';
-
-    const JobBiddingView = () => {
+    
+    const JobBiddingView = ({ allNdtTechniques }: { allNdtTechniques: NDTTechnique[] | null }) => {
         const form = useForm<z.infer<typeof bidSchema>>({
             resolver: zodResolver(bidSchema),
             defaultValues: {
@@ -1048,7 +1057,7 @@ export default function JobDetailPage() {
 
     return (
        <TooltipProvider>
-        {isBiddingView ? <JobBiddingView /> : (
+        {isBiddingView ? <JobBiddingView allNdtTechniques={allNdtTechniques} /> : (
             <div>
                 <Button asChild variant="outline" size="sm" className="mb-4">
                      <Link href={constructUrl(backLink)}>

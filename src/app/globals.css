@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root, .customer-theme {
+  :root, .client-theme {
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
 
@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
 
-    --primary: 217 91% 60%; /* Vibrant Blue */
+    --primary: 204 82% 47%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -22,8 +22,8 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 35 92% 58%; /* Amber */
-    --accent-foreground: 24 9.8% 10%;
+    --accent: 174 63% 39%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -290,7 +290,7 @@
   .hexagon-grid-container {
     position: relative;
     overflow: hidden;
-    background-color: hsl(220, 30%, 12%);
+    background-color: hsl(var(--primary));
     width: 100%;
     height: 100%;
   }

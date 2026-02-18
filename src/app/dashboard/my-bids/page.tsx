@@ -69,19 +69,20 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
         return (
             <div className="space-y-4">
                 {bids.map(bid => (
-                    <Card key={bid.id}>
+                    <Card key={bid.id} className="flex flex-col">
                         <CardHeader>
-                            <div className="flex justify-between items-start">
+                             <div className="flex justify-between items-start gap-4">
                                 <CardTitle className="text-lg font-semibold leading-tight">{bid.job?.title}</CardTitle>
-                                <Badge variant={statusConfig[bid.status].variant} className="gap-1">
+                                <Badge variant={statusConfig[bid.status].variant} className="gap-1 shrink-0">
                                     {statusConfig[bid.status].icon}
                                     {statusConfig[bid.status].label}
                                 </Badge>
                             </div>
-                            <p className="font-extrabold text-xs text-muted-foreground">{bid.job?.id}</p>
-                             <CardDescription className="flex items-center pt-1"><Building className="w-4 h-4 mr-2"/> {bid.job?.client}</CardDescription>
+                            <CardDescription>
+                                For <span className="font-semibold text-foreground">{bid.job?.client}</span> &bull; Job ID: <span className="font-semibold text-foreground">{bid.job?.id}</span>
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="space-y-3 flex-grow pt-4">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-2"/>Your Bid</span>
                                 <span className="font-medium">${bid.amount.toLocaleString()}</span>

@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -315,24 +316,22 @@ export default function MyJobsPage() {
                         const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
 
                         return (
-                            <Card key={job.id}>
+                            <Card key={job.id} className="flex flex-col">
                                 <CardHeader className={cn(job.isInternal && 'bg-accent/10')}>
-                                    <div className="flex justify-between items-start">
+                                    <div className="flex justify-between items-start gap-4">
                                         <div>
-                                            <CardTitle className="font-headline text-xl flex items-center gap-2">
-                                                <span>{job.title}</span>
-                                                {job.isInternal && <Badge variant="outline">Internal</Badge>}
-                                            </CardTitle>
+                                            <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
                                             <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
                                         </div>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {isOverdue && <Badge variant="destructive" className="gap-1.5"><AlarmClock className="w-3.5 h-3.5"/> Overdue</Badge>}
+                                        <div className="flex flex-col items-end gap-1 shrink-0">
                                             <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                            {isOverdue && <Badge variant="destructive" className="text-xs"><AlarmClock className="w-3.5 h-3.5 mr-1"/>Overdue</Badge>}
+                                            {job.isInternal && <Badge variant="outline" className="mt-1">Internal</Badge>}
                                         </div>
                                     </div>
-                                    <CardDescription>{job.client} - {(job.techniques || []).join(', ')}</CardDescription>
+                                    <CardDescription className="pt-2">{job.client} - {(job.techniques || []).join(', ')}</CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-4 flex-grow">
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <MapPin className="w-4 h-4 mr-2 text-primary" />
                                         <span>{job.location}</span>
@@ -398,7 +397,7 @@ export default function MyJobsPage() {
                                         </>
                                     )}
                                 </CardContent>
-                                <CardFooter>
+                                <CardFooter className="justify-end">
                                     <Button asChild>
                                         <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
                                     </Button>

@@ -15,7 +15,7 @@
     {
       "id": "hero-signup",
       "description": "An interesting architectural doorway, symbolizing a new beginning.",
-      "imageUrl": "https://images.unsplash.com/photo-1651627827235-f26656c62933?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmUlMjBkb29yd2F5fGVufDB8fHx8MTc3MDczMDY4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1651627827235-f26656c62933?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmUlMjBkb29yd2F5fGVufDB8fHx8fDE3NzA3MzA2ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "architecture doorway"
     },
     {
@@ -27,7 +27,7 @@
     {
       "id": "asset2",
       "description": "A complex network of industrial pipes.",
-      "imageUrl": "https://images.unsplash.com/photo-1578337159840-ec3abc0b0d17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aW5kdXN0cmlhbCUyMHBpcGVzfGVufDB8fHx8MTc2OTAwNjgyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1578337159840-ec3abc0b0d17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aW5kdXN0cmlhbCUyMHBpcGVzfGVufDB8fHx8fDE3NjkwMDY4MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "industrial pipes"
     },
     {
@@ -87,7 +87,7 @@
     {
       "id": "industry-chemical",
       "description": "A chemical processing plant with complex piping.",
-      "imageUrl": "https://images.unsplash.com/photo-1629447388369-760612337eff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8MTc2ODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1629447388369-760612337eff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8fDE3NjODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "chemical plant"
     },
     {
@@ -111,43 +111,43 @@
     {
       "id": "tech-ut",
       "description": "An inspector performing ultrasonic testing on a pipe.",
-      "imageUrl": "https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "ultrasonic testing"
+      "imageUrl": "https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "scientist lab"
     },
     {
       "id": "tech-rt",
       "description": "An X-ray film showing a weld inspection.",
-      "imageUrl": "https://images.unsplash.com/photo-1623852516990-b92586f7dd5c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyYWRpb2dyYXBoaWMlMjB0ZXN0aW5nfGVufDB8fHx8MTc2OTAxNTMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "radiographic testing"
+      "imageUrl": "https://images.unsplash.com/photo-1579169187310-815e1a13d745?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "xray circuit"
     },
     {
       "id": "tech-mt",
       "description": "Magnetic particle inspection highlighting a flaw.",
-      "imageUrl": "https://images.unsplash.com/photo-1729119578948-5c36e632fca6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFnbmV0aWMlMjBwYXJ0aWNsZXxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "magnetic particle"
+      "imageUrl": "https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "magnetic field"
     },
     {
       "id": "tech-pt",
       "description": "A component under UV light showing liquid penetrant indications.",
-      "imageUrl": "https://images.unsplash.com/photo-1571879373200-c020d2d31b31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsYXNlciUyMGJlYW18ZW58MHx8fHwxNzM3ODk0NjUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "penetrant testing"
+      "imageUrl": "https://images.unsplash.com/photo-1655182513906-1755106518af?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "uv light"
     },
     {
       "id": "tech-vt",
       "description": "A remote visual inspection borescope inside an engine.",
-      "imageUrl": "https://images.unsplash.com/photo-1751486403890-793880b12adb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx2aXN1YWwlMjBpbnNwZWN0aW9ufGVufDB8fHx8MTc2OTAxNTMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "visual inspection"
+      "imageUrl": "https://images.unsplash.com/photo-1581094482459-3f41c3947b68?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "engineer inspection"
     },
     {
       "id": "tech-ae",
       "description": "Acoustic emission sensors on a large pressure vessel.",
-      "imageUrl": "https://images.unsplash.com/photo-1590292889791-08b0d5f23fd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhY291c3RpYyUyMGVtaXNzaW9ufGVufDB8fHx8MTc2OTAxNTMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "acoustic emission"
+      "imageUrl": "https://images.unsplash.com/photo-1632516643720-e7f5d7d608e4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "sound wave"
     },
     {
       "id": "tech-apr",
       "description": "A graph showing sound wave reflections from an APR test.",
-      "imageUrl": "https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8MTc2ODkyOTQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8fDE3NjODkyOTQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "sound waves"
     },
     {

@@ -20,14 +20,17 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     }
 
+    // Helper to get a user's company ID. This is more efficient than getting the whole user profile.
+    function userCompanyId(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.companyId;
+    }
+
     // Helper function to check if a user is part of a job's client or provider company
     function isJobParticipant(jobId) {
       let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
-      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       return exists(/databases/$(database)/documents/jobs/$(jobId)) &&
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             (job.clientCompanyId == userProfile.companyId ||
-             (job.providerId != null && job.providerId == userProfile.companyId));
+             (job.clientCompanyId == userCompanyId(request.auth.uid) ||
+             (job.providerId != null && job.providerId == userCompanyId(request.auth.uid)));
     }
 
     // --------------------------------
@@ -64,10 +67,10 @@ service cloud.firestore {
 
       match /supportChats/{chatId} {
         // Allow members of the company or admins to access support chats.
-        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isAdmin();
+        allow read, write: if userCompanyId(request.auth.uid) == companyId || isAdmin();
         
         match /supportMessages/{messageId} {
-          allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isAdmin();
+          allow read, write: if userCompanyId(request.auth.uid) == companyId || isAdmin();
         }
       }
     }
@@ -75,18 +78,18 @@ service cloud.firestore {
     match /assets/{assetId} {
       allow write: if isAdmin(); // Admin can seed
       // A user can create an asset for their own company.
-      allow create: if (isSignedIn() && request.resource.data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+      allow create: if (isSignedIn() && request.resource.data.companyId == userCompanyId(request.auth.uid));
       // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
       // A user can read, update, or delete an asset IFF they belong to that asset's company.
-      allow get, update, delete: if (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId);
+      allow get, update, delete: if (isSignedIn() && userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId);
       
       match /inspections/{inspectionId} {
         allow write: if isAdmin(); // Admin can seed
         // Creating an inspection is allowed if you are a member of the asset's company.
-        allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+        allow create: if (isSignedIn() && get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == userCompanyId(request.auth.uid));
         // You can get/list an inspection if you are the inspector or a member of the asset's owning company.
-        allow get, list: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+        allow get, list: if isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(assetId)).data.companyId == userCompanyId(request.auth.uid));
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId) || isAdmin();
       }
@@ -113,19 +116,19 @@ service cloud.firestore {
       // Allow GETTING a job's details only by participants or if it's public
       allow get: if (isSignedIn() && (
                       resource.data.status == 'Posted' || // Anyone can see open jobs
-                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId ||
-                      (resource.data.providerId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.providerId)
+                      userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
+                      (resource.data.providerId != null && userCompanyId(request.auth.uid) == resource.data.providerId)
                     )) || isAdmin();
 
       // Only the client, the awarded provider, or an admin can update a job.
       allow update: if (isSignedIn() && (
-                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId ||
-                        (resource.data.providerId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.providerId)
+                        userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
+                        (resource.data.providerId != null && userCompanyId(request.auth.uid) == resource.data.providerId)
                       )) || isAdmin();
 
       // Only the client or an admin can delete a job.
       allow delete: if (isSignedIn() && 
-                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId
+                       userCompanyId(request.auth.uid) == resource.data.clientCompanyId
                       ) || isAdmin();
 
       match /bids/{bidId} {
@@ -136,16 +139,16 @@ service cloud.firestore {
         // GET allows the job client or the bidding inspector to read a single bid.
         allow get: if (isSignedIn() && (
                         isOwner(resource.data.inspectorId) || 
-                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
+                        userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
                       )) || isAdmin();
 
         // LIST allows the job client to read all bids for their job.
         allow list: if (isSignedIn() && 
-                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
+                        userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
                       ) || isAdmin();
                       
-        // Only the bidding inspector can update/delete.
-        allow update, delete: if isOwner(resource.data.inspectorId);
+        // Allow users from the same company as the bidding inspector to update/delete.
+        allow update, delete: if isSignedIn() && userCompanyId(request.auth.uid) == userCompanyId(resource.data.inspectorId);
       }
       
       match /messages/{messageId} {
@@ -153,8 +156,8 @@ service cloud.firestore {
         // Participants of the job can read messages and create new ones.
         allow read, create: if (isSignedIn() && (
             exists(/databases/$(database)/documents/jobs/$(jobId)) && (
-                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
-                (get(/databases/$(database)/documents/jobs/$(jobId)).data.providerId != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerId)
+                userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId ||
+                (get(/databases/$(database)/documents/jobs/$(jobId)).data.providerId != null && userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerId)
               )
             )) || isAdmin();
       }

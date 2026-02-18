@@ -17,6 +17,7 @@ import { collection } from 'firebase/firestore';
 import type { NDTServiceProvider, AuditFirm, Client, NDTTechnique, Manufacturer } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 
 
 export default function HomePage() {
@@ -85,23 +86,26 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-20 md:py-24 bg-primary/10">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="relative py-20 md:py-24 overflow-hidden">
+           <div className="absolute inset-0">
+             <InteractiveHexagonGrid />
+           </div>
+          <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
-              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary">
+              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">
                 The Digital Marketplace for Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">
                 <Button size="lg" asChild>
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
+                <Button size="lg" variant="outline" asChild className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
                   <Link href="/contact">Request a Demo</Link>
                 </Button>
-                <Button size="lg" variant="ghost">
+                <Button size="lg" variant="link" asChild className="text-primary-foreground/80 hover:text-primary-foreground">
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>

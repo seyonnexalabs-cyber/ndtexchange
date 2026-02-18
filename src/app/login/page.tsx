@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogoIcon } from '@/components/ui/icons';
+import { LogoIcon } from '@/app/components/icons';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';

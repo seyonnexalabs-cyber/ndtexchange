@@ -87,9 +87,12 @@ export default function HomePage() {
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="relative py-20 md:py-24 overflow-hidden">
-           <div className="absolute inset-0">
-             <InteractiveHexagonGrid />
-           </div>
+           <InteractiveHexagonGrid className="!bg-primary">
+              <div className="absolute bottom-10 left-10 text-primary-foreground">
+                <h2 className="text-4xl font-bold font-headline text-white/90">The Digital Marketplace for Asset Integrity</h2>
+                <p className="mt-4 text-lg max-w-xl text-white/70">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
+              </div>
+           </InteractiveHexagonGrid>
           <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
               <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">
@@ -99,13 +102,13 @@ export default function HomePage() {
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">
-                <Button size="lg" asChild>
+                <Button size="lg" asChild variant="secondary">
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                <Button size="lg" variant="outline" className="bg-primary/20 text-white border-white/50 hover:bg-primary/40" asChild>
                   <Link href="/contact">Request a Demo</Link>
                 </Button>
-                <Button size="lg" variant="link" asChild className="text-primary-foreground/80 hover:text-primary-foreground">
+                <Button size="lg" variant="link" asChild className="text-primary-foreground/80 hover:text-white">
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>

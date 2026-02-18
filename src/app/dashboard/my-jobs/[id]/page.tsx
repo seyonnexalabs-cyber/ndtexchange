@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -510,8 +511,52 @@ export default function JobDetailPage() {
     const bidsQuery = useMemoFirebase(() => (firestore && id ? collection(firestore, 'jobs', id, 'bids') : null), [firestore, id]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
-    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collectionGroup(firestore, 'inspections'), where('jobId', '==', id)) : null), [firestore, id]);
-    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
+    const [inspections, setInspections] = React.useState<Inspection[]>([]);
+    const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
+
+    React.useEffect(() => {
+        if (!jobDetails || !firestore) {
+            setIsLoadingInspections(false);
+            return;
+        }
+
+        const fetchInspections = async () => {
+            if (!jobDetails.assetIds || jobDetails.assetIds.length === 0) {
+                setInspections([]);
+                setIsLoadingInspections(false);
+                return;
+            }
+
+            setIsLoadingInspections(true);
+            try {
+                const inspectionPromises = jobDetails.assetIds.map(assetId => {
+                    const inspectionsRef = collection(firestore, 'assets', assetId, 'inspections');
+                    const q = query(inspectionsRef, where('jobId', '==', jobDetails.id));
+                    return getDocs(q);
+                });
+
+                const querySnapshots = await Promise.all(inspectionPromises);
+                const allInspections: Inspection[] = [];
+                querySnapshots.forEach(snapshot => {
+                    snapshot.forEach(doc => {
+                        allInspections.push({ id: doc.id, ...doc.data() } as Inspection);
+                    });
+                });
+                setInspections(allInspections);
+            } catch (error) {
+                console.error("Failed to fetch inspections:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Could not load inspections",
+                    description: "There was a permission error while fetching inspection details.",
+                });
+            } finally {
+                setIsLoadingInspections(false);
+            }
+        };
+
+        fetchInspections();
+    }, [jobDetails, firestore, toast]);
     
     React.useEffect(() => {
         if (!jobDetails) return;
@@ -1190,4 +1235,6 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+    
+
     

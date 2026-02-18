@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -33,7 +34,7 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch } from 'firebase/firestore';
 import type { Job, Bid, Inspection, JobDocument, NDTServiceProvider, Client, PlatformUser, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -829,7 +830,7 @@ export default function JobDetailPage() {
                                 <form onSubmit={form.handleSubmit(onBidSubmit)} className="space-y-4">
                                     <FormField control={form.control} name="amount" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Your Price (₹)</FormLabel>
+                                            <FormLabel>Your Price ($)</FormLabel>
                                             <FormControl><Input type="number" placeholder="e.g. 82,00,000" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>

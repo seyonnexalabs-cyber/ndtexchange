@@ -23,9 +23,33 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { subscriptionPlans } from '@/lib/subscription-plans';
 
-function PricingCard({ plan, price, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
+type Currency = 'USD' | 'EUR' | 'INR';
+
+const exchangeRates: Record<Currency, { rate: number; symbol: string; locale: string }> = {
+    USD: { rate: 1, symbol: '$', locale: 'en-US' },
+    EUR: { rate: 0.92, symbol: '€', locale: 'de-DE' },
+    INR: { rate: 83.5, symbol: '₹', locale: 'en-IN' },
+};
+
+const formatPrice = (priceInCents: number, currency: Currency) => {
+    if (priceInCents === 0) return 'Free';
+    if (priceInCents === Infinity) return 'Custom';
+
+    const convertedAmount = (priceInCents / 100) * exchangeRates[currency].rate;
+    
+    return new Intl.NumberFormat(exchangeRates[currency].locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(convertedAmount);
+};
+
+
+function PricingCard({ plan, priceUSD, currency, description, features, isFeatured = false, ctaText, ctaLink = '#', popularBadge = false }: {
   plan: string;
-  price: string;
+  priceUSD: number;
+  currency: Currency;
   description: string;
   features: string[];
   isFeatured?: boolean;
@@ -33,6 +57,9 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
   ctaLink?: string;
   popularBadge?: boolean;
 }) {
+
+  const displayPrice = formatPrice(priceUSD, currency);
+
   return (
     <Card className={cn("flex flex-col h-full", isFeatured && "border-primary ring-2 ring-primary shadow-lg")}>
        {popularBadge && (
@@ -43,8 +70,8 @@ function PricingCard({ plan, price, description, features, isFeatured = false, c
       <CardHeader>
         <CardTitle className="text-xl font-headline">{plan}</CardTitle>
         <div className="pt-2">
-            <span className="text-3xl font-bold">{price}</span>
-            {price.toLowerCase() !== 'free' && !price.toLowerCase().includes('custom') && <span className="text-muted-foreground">/ month</span>}
+            <span className="text-3xl font-bold">{displayPrice}</span>
+            {priceUSD > 0 && priceUSD !== Infinity && <span className="text-muted-foreground">/ month</span>}
         </div>
         <CardDescription className="pt-2 !mt-2">{description}</CardDescription>
       </CardHeader>
@@ -207,26 +234,25 @@ const ContactForm = () => {
 
 
 export default function ContactPage() {
-    type Currency = 'USD' | 'EUR' | 'INR';
     const [currency, setCurrency] = React.useState<Currency>('USD');
     
     const [activePlans, setActivePlans] = useState(() => subscriptionPlans.filter(p => p.isActive && p.isPublic));
 
-    const priceToNumber = (price: string) => {
-        if (price.toLowerCase() === 'free') return 0;
-        const match = price.match(/(\d+)/);
-        return match ? parseInt(match[1], 10) : Infinity;
+    const priceToNumber = (priceInCents: number) => {
+        if (priceInCents === 0) return 0;
+        if (priceInCents === Infinity) return Infinity;
+        return priceInCents;
     };
 
     const clientPlans = useMemo(() => activePlans
         .filter(p => p.audience === 'Client')
-        .sort((a, b) => priceToNumber(a.price.monthly[currency]) - priceToNumber(b.price.monthly[currency])), 
-    [activePlans, currency]);
+        .sort((a, b) => priceToNumber(a.price.monthlyUSD) - priceToNumber(b.price.monthlyUSD)), 
+    [activePlans]);
     
     const providerPlans = useMemo(() => activePlans
         .filter(p => p.audience === 'Provider')
-        .sort((a, b) => priceToNumber(a.price.monthly[currency]) - priceToNumber(b.price.monthly[currency])), 
-    [activePlans, currency]);
+        .sort((a, b) => priceToNumber(a.price.monthlyUSD) - priceToNumber(b.price.monthlyUSD)), 
+    [activePlans]);
 
     const auditorPlan = useMemo(() => activePlans.find(p => p.audience === 'Auditor'), [activePlans]);
 
@@ -304,7 +330,8 @@ export default function ContactPage() {
                                 <PricingCard
                                     key={plan.id}
                                     plan={plan.name}
-                                    price={plan.price.monthly[currency]}
+                                    priceUSD={plan.price.monthlyUSD}
+                                    currency={currency}
                                     description={plan.description}
                                     features={plan.features}
                                     isFeatured={plan.isFeatured}
@@ -328,7 +355,8 @@ export default function ContactPage() {
                                 <PricingCard
                                     key={plan.id}
                                     plan={plan.name}
-                                    price={plan.price.monthly[currency]}
+                                    priceUSD={plan.price.monthlyUSD}
+                                    currency={currency}
                                     description={plan.description}
                                     features={plan.features}
                                     isFeatured={plan.isFeatured}
@@ -377,7 +405,7 @@ export default function ContactPage() {
                 </div>
                  <Card className="max-w-2xl mx-auto bg-accent/10 border-accent">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-2xl text-accent">$300 per shutdown event</CardTitle>
+                        <CardTitle className="text-2xl text-accent">{formatPrice(30000, currency)} per shutdown event</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ul className="mx-auto max-w-md space-y-3">

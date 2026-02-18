@@ -4,8 +4,9 @@ export type Plan = {
     name: string;
     audience: 'Client' | 'Provider' | 'Auditor';
     price: {
-        monthly: { USD: string; EUR: string; INR: string; };
-        yearly: { USD: string; EUR: string; INR: string; };
+        // Price in USD cents to avoid floating point issues
+        monthlyUSD: number;
+        yearlyUSD: number;
     };
     priceDescription?: string;
     description: string;
@@ -32,8 +33,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Client Access',
         audience: 'Client',
         price: {
-            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
-            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            monthlyUSD: 0,
+            yearlyUSD: 0,
         },
         description: "For plants, EPCs, and pilot teams.",
         userLimit: 5,
@@ -60,8 +61,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Client Plus',
         audience: 'Client',
         price: {
-            monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
-            yearly: { USD: '$950', EUR: '€854', INR: '₹76,790' },
+            monthlyUSD: 9900,
+            yearlyUSD: 95000,
         },
         priceDescription: '/ month',
         description: "For multi‑vendor operations.",
@@ -89,8 +90,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Provider Starter',
         audience: 'Provider',
         price: {
-            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
-            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            monthlyUSD: 0,
+            yearlyUSD: 0,
         },
         description: "For individual inspectors getting started.",
         userLimit: 1,
@@ -116,8 +117,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Provider Pro',
         audience: 'Provider',
         price: {
-            monthly: { USD: '$29', EUR: '€25', INR: '₹2,499' },
-            yearly: { USD: '$278', EUR: '€240', INR: '₹23,990' },
+            monthlyUSD: 2900,
+            yearlyUSD: 27800,
         },
         priceDescription: '/ company / month',
         description: "For professional teams and growing companies.",
@@ -146,8 +147,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Company Growth',
         audience: 'Provider',
         price: {
-            monthly: { USD: '$99', EUR: '€89', INR: '₹7,999' },
-            yearly: { USD: '$950', EUR: '€854', INR: '₹76,790' },
+            monthlyUSD: 9900,
+            yearlyUSD: 95000,
         },
         priceDescription: '/ company / month',
         description: "Per company",
@@ -177,8 +178,8 @@ export const subscriptionPlans: Plan[] = [
         name: 'Free Access',
         audience: 'Auditor',
         price: {
-            monthly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
-            yearly: { USD: 'Free', EUR: 'Free', INR: 'Free' },
+            monthlyUSD: 0,
+            yearlyUSD: 0,
         },
         description: "For Level-III professionals and auditors.",
         userLimit: 200,

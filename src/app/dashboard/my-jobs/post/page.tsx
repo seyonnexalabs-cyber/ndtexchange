@@ -1,5 +1,6 @@
 
 'use client';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -475,7 +476,7 @@ export default function PostJobPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Estimated Budget (Optional)</FormLabel>
-                                            <FormControl><Input placeholder="e.g., ₹25L – ₹50L" {...field} /></FormControl>
+                                            <FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -689,4 +690,3 @@ export default function PostJobPage() {
         </div>
     );
 }
-

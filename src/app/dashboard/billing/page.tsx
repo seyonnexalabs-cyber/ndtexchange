@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -250,10 +251,10 @@ const PaymentHistory = ({ companyName }: { companyName: string }) => {
 
 // Simplified user details for pre-filling payment form
 const userDetails = {
-    client: { name: 'John Doe', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.' },
-    inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.' },
-    auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC' },
-    admin: { name: 'Admin User', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE' },
+    client: { name: 'John Doe', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.', currency: 'USD' },
+    inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.', currency: 'USD' },
+    auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', currency: 'USD' },
+    admin: { name: 'Admin User', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE', currency: 'USD' },
 };
 
 
@@ -289,7 +290,7 @@ export default function BillingPage() {
             const options = {
                 "key": "rzp_test_SCmu4c9MVES9Ei", // Public Test Key
                 "amount": amountInCents,
-                "currency": "USD",
+                "currency": currentUser.currency,
                 "name": "NDT EXCHANGE",
                 "description": `Subscription for ${plan}`,
                 "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",

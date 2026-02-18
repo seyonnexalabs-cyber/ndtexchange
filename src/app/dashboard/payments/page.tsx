@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -401,4 +402,3 @@ const PaymentsPage = () => {
 };
 
 export default PaymentsPage;
-    

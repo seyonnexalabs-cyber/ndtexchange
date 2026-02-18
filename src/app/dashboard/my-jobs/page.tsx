@@ -82,25 +82,33 @@ export default function MyJobsPage() {
         'Revisions Requested': 'destructive'
     };
 
+    const jobsByCategory = useMemo(() => {
+        if (!jobsFromDb) return { active: [], completed: [], upcoming: [] };
+        return {
+            active: jobsFromDb.filter(job => job.status === 'In Progress'),
+            completed: jobsFromDb.filter(job => ['Completed', 'Paid'].includes(job.status)),
+            upcoming: jobsFromDb.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status)),
+        };
+    }, [jobsFromDb, role]);
+
     const { displayedJobs, title, Icon } = useMemo(() => {
-        const jobs = jobsFromDb || [];
         let jobsToShow: Job[] = [];
         let pageTitle = '';
         let PageIcon: React.ElementType = Briefcase;
         
         switch(view) {
             case 'active':
-                jobsToShow = jobs.filter(job => job.status === 'In Progress');
+                jobsToShow = jobsByCategory.active;
                 pageTitle = 'Active Jobs';
                 PageIcon = CheckCircle;
                 break;
             case 'completed':
-                jobsToShow = jobs.filter(job => ['Completed', 'Paid'].includes(job.status));
+                jobsToShow = jobsByCategory.completed;
                 pageTitle = 'Completed Jobs';
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = jobs.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status));
+                jobsToShow = jobsByCategory.upcoming;
                 pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
                 PageIcon = Award;
                 break;
@@ -114,7 +122,7 @@ export default function MyJobsPage() {
         });
 
         return { displayedJobs: filtered, title: pageTitle, Icon: PageIcon };
-    }, [view, role, selectedProviders, selectedClients, auditFilter, jobsFromDb]);
+    }, [view, role, selectedProviders, selectedClients, auditFilter, jobsByCategory]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -142,7 +150,7 @@ export default function MyJobsPage() {
             return (
                 <Button asChild className="mt-4">
                     <Link href={constructUrl('/dashboard/my-jobs/post')}>
-                        <PlusCircle className="mr-2 text-primary" />
+                        <PlusCircle className="mr-2" />
                         Post a Job
                     </Link>
                 </Button>
@@ -408,9 +416,20 @@ export default function MyJobsPage() {
                 </div>
             ) : (
                  <div className="text-center p-10 border rounded-lg">
-                    <Briefcase className="mx-auto h-12 w-12 text-primary" />
+                    <Icon className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">No {view} jobs</h2>
                     <p className="mt-2 text-muted-foreground">You don't have any jobs currently in this category or matching your filters.</p>
+                     <div className="mt-4 space-y-1 text-sm">
+                        {view !== 'completed' && jobsByCategory.completed.length > 0 && (
+                            <p>You have {jobsByCategory.completed.length} job(s) in the <Button variant="link" className="p-0 h-auto" onClick={() => setView('completed')}>Completed</Button> tab.</p>
+                        )}
+                        {view !== 'active' && jobsByCategory.active.length > 0 && (
+                            <p>You have {jobsByCategory.active.length} job(s) in the <Button variant="link" className="p-0 h-auto" onClick={() => setView('active')}>Active</Button> tab.</p>
+                        )}
+                        {view !== 'upcoming' && jobsByCategory.upcoming.length > 0 && (
+                            <p>You have {jobsByCategory.upcoming.length} job(s) in the <Button variant="link" className="p-0 h-auto" onClick={() => setView('upcoming')}>Upcoming</Button> tab.</p>
+                        )}
+                    </div>
                      {getEmptyStateAction()}
                 </div>
             )}

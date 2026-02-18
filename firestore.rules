@@ -60,8 +60,8 @@ service cloud.firestore {
       allow write: if isAdmin(); // Admin can seed
       // Admins or the initial company contact can create a company document.
       allow create: if (isSignedIn() && request.resource.data.contactEmail == request.auth.token.email);
-      // All company documents are publicly readable.
-      allow read: if true;
+      // All company documents are readable by any signed in user.
+      allow read: if isSignedIn();
       // Only admins can modify company data.
       allow update: if isAdmin();
 
@@ -173,16 +173,16 @@ service cloud.firestore {
     }
     
     // All other collections that are either public or admin-only
-    match /asset_types/{assetTypeId} { allow read: if true; allow write: if isAdmin(); }
-    match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
-    match /manufacturers/{manufacturerId} { allow read: if true; allow write: if isAdmin(); }
-    match /equipment/{equipmentId} { allow read: if true; allow write: if isAdmin(); }
+    match /asset_types/{assetTypeId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /techniques/{techniqueId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /manufacturers/{manufacturerId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /equipment/{equipmentId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
     match /defects/{defectId} { allow read, write: if isAdmin(); }
     match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }
     match /roles_admin/{userId} { allow read, write: if isAdmin(); }
     match /payments/{paymentId} { allow read, write: if isAdmin(); }
     match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
-    match /reviews/{reviewId} { allow read: if true; allow create: if isSignedIn() || isAdmin(); allow write: if isAdmin(); }
+    match /reviews/{reviewId} { allow read: if isSignedIn(); allow create: if isSignedIn() || isAdmin(); allow write: if isAdmin(); }
     match /userAuditLogs/{logId} { allow read, write: if isAdmin(); }
     match /jobAuditLogs/{logId} { allow read, write: if isAdmin(); }
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }

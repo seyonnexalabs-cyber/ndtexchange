@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, Check, Settings, History, AlertTriangle, QrCode, Printer, Move } from "lucide-react";
+import { FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, Check, Settings, History, AlertTriangle, QrCode, Printer, Move, Wrench } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMobile } from '@/hooks/use-mobile';
@@ -607,6 +607,11 @@ export default function AssetDetailPage() {
         return [...inspectionHistory, ...assetUpdates].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     }, [asset, assetInspections]);
 
+    const uniqueTechniques = useMemo(() => {
+        if (!assetInspections) return [];
+        return [...new Set(assetInspections.map(insp => insp.technique))];
+    }, [assetInspections]);
+
     const allDocuments: ViewerDocument[] = React.useMemo(() => {
         const docs: ViewerDocument[] = [
             { name: 'P&ID-101.pdf', source: 'Asset Documentation', url: '' },
@@ -920,6 +925,25 @@ export default function AssetDetailPage() {
                                     <p className="text-muted-foreground">{format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</p>
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <Wrench className="h-5 w-5 text-primary" />
+                                Inspection Techniques Used
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {uniqueTechniques.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {uniqueTechniques.map(tech => (
+                                        <Badge key={tech} variant="secondary">{tech}</Badge>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No inspection history found.</p>
+                            )}
                         </CardContent>
                     </Card>
                     <Card>

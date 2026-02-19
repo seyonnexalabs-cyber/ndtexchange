@@ -49,6 +49,30 @@ const baseSchema = z.object({
   estimatedBudget: z.string().optional(),
   certificationsRequired: z.array(z.string()).min(1, "At least one certification is required."),
   scheduledEndDate: z.date().optional(),
+}).superRefine((data, ctx) => {
+    if (!data.isMarketplaceJob) {
+        if (!data.scheduledStartDate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scheduledStartDate'],
+            message: 'A start date is required for internal jobs.',
+          });
+        }
+        if (!data.durationDays && !data.scheduledEndDate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['durationDays'],
+            message: 'Either a duration or an end date is required for internal jobs.',
+          });
+        }
+    }
+    if (data.scheduledEndDate && data.scheduledStartDate && data.scheduledEndDate < data.scheduledStartDate) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scheduledEndDate'],
+            message: 'End date cannot be before start date.',
+        });
+    }
 });
 
 const industries = [
@@ -236,7 +260,7 @@ export default function PostJobPage() {
             const flatAssetIds = jobScope.map(s => s.assetId);
             const flatTechniques = [...new Set(jobScope.flatMap(s => s.techniques))];
 
-            const newJobData = {
+            const newJobData: any = {
                 id: jobRef.id,
                 title: values.title,
                 location: values.location,
@@ -264,6 +288,10 @@ export default function PostJobPage() {
                 certificationsRequired: values.certificationsRequired,
             };
             
+            if (newJobData.durationDays === undefined) {
+                delete newJobData.durationDays;
+            }
+
             batch.set(jobRef, newJobData);
 
             if (isClient && jobScope) {
@@ -481,5 +509,3 @@ export default function PostJobPage() {
         </div>
     );
 }
-
-    

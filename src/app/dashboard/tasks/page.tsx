@@ -29,9 +29,9 @@ export default function TasksPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between space-y-2">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Tasks</h2>
+          <h2 className="text-2xl font-bold tracking-tight">My Tasks</h2>
           <p className="text-muted-foreground">
-            Here&apos;s a list of your tasks!
+            A personal space to track your to-do items and reminders.
           </p>
         </div>
       </div>

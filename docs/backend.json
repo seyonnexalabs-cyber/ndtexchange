@@ -380,7 +380,7 @@
     "Task": {
       "title": "Task",
       "type": "object",
-      "description": "Represents a user-created task.",
+      "description": "Represents a user-created, personal to-do item for individual organization. This is distinct from a formal Job.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the task." },
         "title": { "type": "string", "description": "The title of the task." },

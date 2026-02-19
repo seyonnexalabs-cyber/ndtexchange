@@ -183,7 +183,7 @@ export default function AuditLogPage() {
                                 <div className="mt-1">
                                     <p className="text-sm">
                                         <Badge variant={jobActionStyles[log.action]}>{log.action}</Badge>
-                                        <span className="text-muted-foreground ml-2">on project</span>
+                                        <span className="text-muted-foreground ml-2">on job</span>
                                         <span className="font-medium mx-1.5">{log.jobTitle}</span>
                                         <span className="font-extrabold text-xs">({log.jobId})</span>
                                     </p>
@@ -240,7 +240,7 @@ export default function AuditLogPage() {
             <Tabs defaultValue="user-management" className="w-full">
                 <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4">
                     <TabsTrigger value="user-management" className="gap-2"><User className="text-primary" /> User Management</TabsTrigger>
-                    <TabsTrigger value="job-activity" className="gap-2"><Briefcase className="text-primary" /> Project Activity</TabsTrigger>
+                    <TabsTrigger value="job-activity" className="gap-2"><Briefcase className="text-primary" /> Job Activity</TabsTrigger>
                     <TabsTrigger value="billing" className="gap-2"><DollarSign className="text-primary" /> Billing Events</TabsTrigger>
                 </TabsList>
                 <TabsContent value="user-management">

@@ -120,7 +120,7 @@ export default function ClientDetailPage() {
             <Tabs defaultValue="details">
                 <TabsList className="mb-4">
                     <TabsTrigger value="details">Details</TabsTrigger>
-                    <TabsTrigger value="jobs">Projects</TabsTrigger>
+                    <TabsTrigger value="jobs">Jobs</TabsTrigger>
                     <TabsTrigger value="team">Team Members</TabsTrigger>
                 </TabsList>
                 <TabsContent value="details">
@@ -143,7 +143,7 @@ export default function ClientDetailPage() {
                                 </div>
                                  <div className="flex items-center gap-3">
                                     <Briefcase className="w-4 h-4 text-primary" />
-                                    <span>{clientStats.activeJobs} Active Projects</span>
+                                    <span>{clientStats.activeJobs} Active Jobs</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <DollarSign className="w-4 h-4 text-primary" />
@@ -163,10 +163,10 @@ export default function ClientDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Briefcase className="text-primary" /> Active & Recent Projects
+                                <Briefcase className="text-primary" /> Active & Recent Jobs
                             </CardTitle>
                             <CardDescription>
-                                Projects associated with {client.name}.
+                                Jobs associated with {client.name}.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -190,7 +190,7 @@ export default function ClientDetailPage() {
                                             </div>
                                             <div className="flex justify-end mt-3">
                                                 <Button variant="ghost" size="sm" asChild>
-                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Project</Link>
+                                                    <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
                                                 </Button>
                                             </div>
                                         </Card>
@@ -200,8 +200,8 @@ export default function ClientDetailPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Project ID</TableHead>
-                                        <TableHead>Project Title</TableHead>
+                                        <TableHead>Job ID</TableHead>
+                                        <TableHead>Job Title</TableHead>
                                         <TableHead>Technique</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Date</TableHead>
@@ -231,7 +231,7 @@ export default function ClientDetailPage() {
                         )}
                         {(clientJobs || []).length === 0 && (
                                 <div className="text-center text-muted-foreground py-10">
-                                    No projects found for this client.
+                                    No jobs found for this client.
                                 </div>
                         )}
                         </CardContent>

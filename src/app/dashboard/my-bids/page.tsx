@@ -58,9 +58,9 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
             <div className="text-center p-10 border rounded-lg">
                 <Gavel className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h2 className="mt-4 text-xl font-headline">No Bids Found</h2>
-                <p className="mt-2 text-muted-foreground">You have not placed any bids yet. Find projects in the marketplace to get started.</p>
+                <p className="mt-2 text-muted-foreground">You have not placed any bids yet. Find jobs in the marketplace to get started.</p>
                  <Button asChild className="mt-4">
-                   <Link href={constructUrl("/dashboard/find-jobs")}>Find Projects</Link>
+                   <Link href={constructUrl("/dashboard/find-jobs")}>Find Jobs</Link>
                 </Button>
             </div>
         );
@@ -80,7 +80,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                 </Badge>
                             </div>
                             <CardDescription>
-                                For <span className="font-semibold text-foreground">{bid.job?.client}</span> &bull; Project ID: <span className="font-semibold text-foreground">{bid.job?.id}</span>
+                                For <span className="font-semibold text-foreground">{bid.job?.client}</span> &bull; Job ID: <span className="font-semibold text-foreground">{bid.job?.id}</span>
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3 flex-grow pt-4">
@@ -97,7 +97,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
                             <Button variant="outline" size="sm" asChild>
-                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Project</Link>
+                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Job</Link>
                             </Button>
                              {bid.status === 'Submitted' && (
                                 <DropdownMenu>
@@ -125,7 +125,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Project</TableHead>
+                        <TableHead>Job</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Your Bid</TableHead>
                         <TableHead>Decision By</TableHead>
@@ -163,7 +163,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => onEdit(bid)}><Edit className="mr-2 h-4 w-4" /> Edit Bid</DropdownMenuItem>
                                             <DropdownMenuItem asChild>
-                                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Project Details</Link>
+                                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Job Details</Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onWithdraw(bid)}><Trash2 className="mr-2 h-4 w-4" /> Withdraw Bid</DropdownMenuItem>
@@ -171,7 +171,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                     </DropdownMenu>
                                 ) : (
                                     <Button variant="outline" size="sm" asChild>
-                                        <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>{bid.status === 'Awarded' ? 'View Project' : 'View Details'}</Link>
+                                        <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>{bid.status === 'Awarded' ? 'View Job' : 'View Details'}</Link>
                                     </Button>
                                 )}
                             </TableCell>
@@ -308,7 +308,7 @@ export default function MyBidsPage() {
                     My Bids
                 </h1>
                 <Button asChild>
-                   <Link href={constructUrl("/dashboard/find-jobs")}>Find New Projects</Link>
+                   <Link href={constructUrl("/dashboard/find-jobs")}>Find New Jobs</Link>
                 </Button>
             </div>
             
@@ -354,7 +354,7 @@ export default function MyBidsPage() {
                     </DialogHeader>
                      <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 pt-4">
                         <div className="space-y-4">
-                             <h3 className="font-semibold text-lg">Project Documents</h3>
+                             <h3 className="font-semibold text-lg">Job Documents</h3>
                              <div className="space-y-2">
                                 {editingBid?.job?.documents && editingBid.job.documents.length > 0 ? (
                                     editingBid.job.documents.map((doc, index) => (
@@ -369,7 +369,7 @@ export default function MyBidsPage() {
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No documents were attached to this project.</p>
+                                    <p className="text-sm text-muted-foreground text-center py-4">No documents were attached to this job.</p>
                                 )}
                              </div>
                         </div>
@@ -421,7 +421,7 @@ export default function MyBidsPage() {
                                             <FormItem>
                                                 <FormLabel>Justification for Change</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Explain why this technique is a better choice for this project..." {...field} />
+                                                    <Textarea placeholder="Explain why this technique is a better choice for this job..." {...field} />
                                                 </FormControl>
                                                  <Alert variant="destructive" className="p-2 text-sm flex items-center gap-2">
                                                     <Info className="h-4 w-4"/>

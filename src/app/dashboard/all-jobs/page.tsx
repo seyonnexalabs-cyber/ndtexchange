@@ -172,15 +172,15 @@ export default function AllJobsPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <Briefcase className="text-primary" />
-                        All Projects
+                        All Jobs
                     </h1>
                 </div>
                 <Card>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Project ID</TableHead>
-                                <TableHead>Project Title</TableHead>
+                                <TableHead>Job ID</TableHead>
+                                <TableHead>Job Title</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Assets</TableHead>
                                 <TableHead>Technique</TableHead>
@@ -218,7 +218,7 @@ export default function AllJobsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <Briefcase className="text-primary" />
-                    All Projects
+                    All Jobs
                 </h1>
             </div>
 
@@ -378,7 +378,7 @@ export default function AllJobsPage() {
                                 </CardContent>
                                 <CardFooter>
                                     <Button asChild>
-                                        <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Project Details</Link>
+                                        <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -392,8 +392,8 @@ export default function AllJobsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Project ID</TableHead>
-                                    <TableHead>Project Title</TableHead>
+                                    <TableHead>Job ID</TableHead>
+                                    <TableHead>Job Title</TableHead>
                                     <TableHead>Client</TableHead>
                                     <TableHead>Assets</TableHead>
                                     <TableHead>Technique</TableHead>
@@ -438,8 +438,8 @@ export default function AllJobsPage() {
              {filteredJobs.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
                     <Briefcase className="mx-auto h-12 w-12 text-primary" />
-                    <h2 className="mt-4 text-xl font-headline">No projects found</h2>
-                    <p className="mt-2 text-muted-foreground">There are no projects matching your current filters.</p>
+                    <h2 className="mt-4 text-xl font-headline">No jobs found</h2>
+                    <p className="mt-2 text-muted-foreground">There are no jobs matching your current filters.</p>
                 </div>
             )}
 

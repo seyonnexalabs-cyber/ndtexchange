@@ -110,9 +110,9 @@ export default function JobCostAnalysisReportPage() {
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <FileText className="text-primary" />
-                        Project Cost & Duration Analysis
+                        Job Cost & Duration Analysis
                     </h1>
-                    <p className="text-muted-foreground mt-1">Analyze costs and timelines for completed projects.</p>
+                    <p className="text-muted-foreground mt-1">Analyze costs and timelines for completed jobs.</p>
                 </div>
                 <Button onClick={() => window.print()}>
                     <Printer className="mr-2 h-4 w-4"/>
@@ -276,7 +276,7 @@ export default function JobCostAnalysisReportPage() {
              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Projects Analyzed</CardTitle>
+                        <CardTitle className="text-sm font-medium">Jobs Analyzed</CardTitle>
                         <BarChart2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -294,7 +294,7 @@ export default function JobCostAnalysisReportPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Project Cost</CardTitle>
+                        <CardTitle className="text-sm font-medium">Average Job Cost</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -303,7 +303,7 @@ export default function JobCostAnalysisReportPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Project Duration</CardTitle>
+                        <CardTitle className="text-sm font-medium">Average Job Duration</CardTitle>
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -314,7 +314,7 @@ export default function JobCostAnalysisReportPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Detailed Project Data</CardTitle>
+                    <CardTitle>Detailed Job Data</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {isMobile ? (
@@ -334,7 +334,7 @@ export default function JobCostAnalysisReportPage() {
                             ))}
                             {filteredJobs.length === 0 && (
                                 <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
-                                    No projects found matching your criteria.
+                                    No jobs found matching your criteria.
                                 </div>
                             )}
                         </div>
@@ -342,8 +342,8 @@ export default function JobCostAnalysisReportPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Project ID</TableHead>
-                                    <TableHead>Project Title</TableHead>
+                                    <TableHead>Job ID</TableHead>
+                                    <TableHead>Job Title</TableHead>
                                     <TableHead>Provider</TableHead>
                                     <TableHead>Technique</TableHead>
                                     <TableHead>Cost</TableHead>
@@ -366,7 +366,7 @@ export default function JobCostAnalysisReportPage() {
                                 {filteredJobs.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center h-24">
-                                            No projects found matching your criteria.
+                                            No jobs found matching your criteria.
                                         </TableCell>
                                     </TableRow>
                                 )}

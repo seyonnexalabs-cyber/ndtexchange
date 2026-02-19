@@ -248,7 +248,7 @@ export default function PostJobPage() {
     });
 
     const clientSteps = [
-        { id: 1, name: 'Core Details', fields: ['title', 'jobType', 'industry', 'location', 'certificationsRequired', 'estimatedBudget', 'isMarketplaceJob', 'workflow'] },
+        { id: 1, name: 'Core Details', fields: ['isMarketplaceJob', 'title', 'jobType', 'industry', 'location', 'workflow', 'certificationsRequired', 'estimatedBudget'] },
         { id: 2, name: 'Asset Selection', fields: ['assetIds'] },
         { id: 3, name: 'Technique Assignment', fields: ['scope'] },
         { id: 4, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'scheduledEndDate', 'bidExpiryDate', 'documents'] },
@@ -444,8 +444,8 @@ export default function PostJobPage() {
                                 </div>
                                 <FormField name="location" control={form.control} render={({ field }) => (<FormItem><FormLabel>Site Location*</FormLabel><FormControl><Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField name="certificationsRequired" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Certifications Required*</FormLabel><MultiSelect options={certificationOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select certifications..." /><FormMessage /></FormItem>)} />
-                                {isMarketplaceJob && <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)}/>}
-                                {isMarketplaceJob && <FormField control={form.control} name="workflow" render={({ field }) => (<FormItem><FormLabel>Approval Workflow</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl><SelectContent><SelectItem value="standard">Standard (Client Review Only)</SelectItem><SelectItem value="level3">Level III Audit (Manual)</SelectItem><SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>}
+                                {isMarketplaceJob && <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)} />}
+                                {isMarketplaceJob && <FormField control={form.control} name="workflow" render={({ field }) => (<FormItem><FormLabel>Approval Workflow</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl><SelectContent><SelectItem value="standard">Standard (Client Review Only)</SelectItem><SelectItem value="level3">Level III Audit (Manual)</SelectItem><SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />}
                             </CardContent>
                         </Card>
                     )}
@@ -476,7 +476,7 @@ export default function PostJobPage() {
                             <CardHeader><CardTitle>Scope & Requirements</CardTitle><CardDescription>Detail the work required for this internal job.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
                                 <FormField name="techniques" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Techniques Required*</FormLabel><MultiSelect options={techniqueOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select required techniques..." /><FormMessage /></FormItem>)} />
-                                <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Job Value / Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)}/>}
+                                <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Job Value / Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>
                     )}
@@ -565,5 +565,4 @@ export default function PostJobPage() {
         </div>
     );
 }
-
     

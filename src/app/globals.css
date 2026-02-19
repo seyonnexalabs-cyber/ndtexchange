@@ -320,9 +320,9 @@
     position: absolute;
     inset: 0;
     --s: 120px;
-    --c1: hsla(204, 82%, 47%, .2);
-    --c2: hsla(204, 82%, 47%, .3);
-    --c3: hsla(204, 82%, 47%, .15);
+    --c1: hsla(100, 30%, 70%, 0.4); /* dot color */
+    --c2: hsla(180, 40%, 40%, 0.4); /* line color 1 */
+    --c3: hsla(80, 40%, 50%, 0.3); /* line color 2 */
 
     --_g: var(--c3) 0 119.5deg, #0000 0;
     --_g2: var(--c2) 0 119.5deg, #0000 0;
@@ -331,9 +331,9 @@
     background:
       var(--_g0),var(--_g1),var(--_g0),var(--_g1),
       conic-gradient(from 59.5deg at 25% calc(433%/-6), var(--_g)),
-      conic-gradient(from 59.5deg at 75% calc(433%/-6), var(--_g)),
+      conic-gradient(from 59.5deg at 75% calc(433%/-6), var(--_g2)),
       conic-gradient(from 179.5deg at 25% calc(500%/-6), var(--_g2)),
-      conic-gradient(from 179.5deg at 75% calc(500%/-6), var(--_g2));
+      conic-gradient(from 179.5deg at 75% calc(500%/-6), var(--_g));
     background-size: var(--s) calc(var(--s)*1.1547);
     animation: pan 120s linear infinite;
   }
@@ -351,3 +351,5 @@
     100% { background-position: 200% 200%; }
   }
 }
+
+    

@@ -37,6 +37,7 @@ import {
   History,
   DollarSign,
   ShieldCheck,
+  Factory,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -73,10 +74,10 @@ const clientMenu = [
     ]
   },
   {
-    title: 'Jobs',
+    title: 'Projects',
     items: [
-      { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
-      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
+      { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Projects', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'New Project', icon: PlusCircle },
     ]
   },
   {
@@ -89,6 +90,7 @@ const clientMenu = [
   {
     title: 'Tools',
     items: [
+      { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
@@ -108,14 +110,14 @@ const inspectorMenu = [
     title: 'Workspace',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
-      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Create Job', icon: PlusCircle },
+      { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Projects', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Create Project', icon: PlusCircle },
     ]
   },
   {
     title: 'Marketplace',
     items: [
-        { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search },
+        { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Projects', icon: Search },
         { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel },
     ]
   },
@@ -129,6 +131,7 @@ const inspectorMenu = [
   {
     title: 'Tools',
     items: [
+      { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
@@ -149,6 +152,7 @@ const adminMenu = [
     title: 'Platform',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
       { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star },
       { id: 'audit-log', href: '/dashboard/audit-log', label: 'Audit Log', icon: History },
@@ -162,7 +166,8 @@ const adminMenu = [
       { id: 'clients', href: '/dashboard/clients', label: 'Clients', icon: Building },
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
-      { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
+      { id: 'manufacturers', href: '/dashboard/manufacturers', label: 'Manufacturers', icon: Factory },
+      { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Projects', icon: Briefcase },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
@@ -187,6 +192,7 @@ const auditorMenu = [
   {
     title: 'Tools',
     items: [
+      { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]

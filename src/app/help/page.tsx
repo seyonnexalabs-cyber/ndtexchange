@@ -6,6 +6,7 @@ import { LifeBuoy, MessageSquare, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 export const metadata: Metadata = {
   title: 'Help & Support Center',
@@ -18,8 +19,7 @@ export default function HelpPage() {
       <PublicHeader />
 
       <main className="flex-grow">
-        <section className="py-20 md:py-24 bg-primary/10">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <HoneycombHero>
             <div className="max-w-3xl mx-auto text-center">
               <div className="mx-auto bg-primary text-primary-foreground p-4 rounded-full w-fit mb-6">
                 <LifeBuoy className="w-10 h-10" />
@@ -31,8 +31,7 @@ export default function HelpPage() {
                 We're here to help. Find the resources you need to get the most out of NDT EXCHANGE, or get in touch with our support team.
               </p>
             </div>
-          </div>
-        </section>
+        </HoneycombHero>
 
         <section className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

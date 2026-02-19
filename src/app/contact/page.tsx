@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { subscriptionPlans } from '@/lib/subscription-plans';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 type Currency = 'USD' | 'EUR' | 'INR';
 
@@ -277,8 +278,7 @@ export default function ContactPage() {
       <PublicHeader />
       <main className="flex-grow">
         {/* 1. HERO SECTION */}
-        <section className="py-20 md:py-24 bg-primary/10">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <HoneycombHero>
             <div className="max-w-3xl mx-auto">
               <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Simple, Transparent Pricing for the NDT Industry
@@ -298,8 +298,7 @@ export default function ContactPage() {
                   </Button>
               </div>
             </div>
-          </div>
-        </section>
+        </HoneycombHero>
 
         <div id="pricing-tabs" className="py-20">
              <Tabs defaultValue="asset-owners" className="w-full">

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -23,6 +22,7 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { NDTServiceProvider, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 export default function ProvidersPage() {
     const { firestore } = useFirebase();
@@ -97,18 +97,16 @@ export default function ProvidersPage() {
             <div className="flex flex-col min-h-screen bg-background">
                 <PublicHeader />
                 <main className="flex-grow">
-                    <section className="py-20 md:py-32 bg-primary/10">
-                        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="max-w-3xl mx-auto text-center">
-                                <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-                                    Find NDT Service Providers
-                                </h1>
-                                <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-                                    Browse our directory of leading NDT companies from around the world. Filter by technique to find the right partner for your inspection needs.
-                                </p>
-                            </div>
+                    <HoneycombHero className="py-20 md:py-32">
+                        <div className="max-w-3xl mx-auto text-center">
+                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                                Find NDT Service Providers
+                            </h1>
+                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                                Browse our directory of leading NDT companies from around the world. Filter by technique to find the right partner for your inspection needs.
+                            </p>
                         </div>
-                    </section>
+                    </HoneycombHero>
 
                     <section className="py-16">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

@@ -6,6 +6,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { FeatureCard } from '@/app/components/feature-card';
 import { Target, Zap, LineChart, Handshake } from 'lucide-react';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 export const metadata: Metadata = {
   title: 'OEM Solutions | NDT EXCHANGE',
@@ -19,25 +20,23 @@ export default function OEMSolutionsPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative py-20 md:py-32 bg-muted overflow-hidden static-hexagon-grid">
-                    <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid md:grid-cols-2 gap-12 items-center">
-                            <div>
-                                <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-                                    Connect with the Heart of the NDT Industry
-                                </h1>
-                                <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-                                    Showcase your equipment to a dedicated audience of asset owners and service providers at the exact moment they're planning and executing inspections.
-                                </p>
-                                <div className="mt-8">
-                                    <Button size="lg" asChild>
-                                        <Link href="/contact">Partner With Us</Link>
-                                    </Button>
-                                </div>
+                <HoneycombHero className="py-20 md:py-32">
+                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                        <div className="text-left">
+                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                                Connect with the Heart of the NDT Industry
+                            </h1>
+                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                                Showcase your equipment to a dedicated audience of asset owners and service providers at the exact moment they're planning and executing inspections.
+                            </p>
+                            <div className="mt-8">
+                                <Button size="lg" asChild>
+                                    <Link href="/contact">Partner With Us</Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
-                </section>
+                </HoneycombHero>
 
                 {/* Benefits Section */}
                 <section id="oem-benefits" className="py-20">

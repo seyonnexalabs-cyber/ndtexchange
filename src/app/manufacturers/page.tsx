@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -21,6 +22,7 @@ import { Manufacturer, NDTTechnique } from '@/lib/types';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 
 export default function ManufacturersPage() {
@@ -78,18 +80,16 @@ export default function ManufacturersPage() {
             <PublicHeader />
 
             <main className="flex-grow">
-                <section className="py-20 md:py-24 bg-primary/10">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="max-w-3xl mx-auto text-center">
-                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-                                NDT Equipment Manufacturers
-                            </h1>
-                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-                                Browse a curated directory of Original Equipment Manufacturers (OEMs). Filter by technique to find the right technology partner.
-                            </p>
-                        </div>
+                <HoneycombHero>
+                    <div className="max-w-3xl mx-auto text-center">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                            NDT Equipment Manufacturers
+                        </h1>
+                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                            Browse a curated directory of Original Equipment Manufacturers (OEMs). Filter by technique to find the right technology partner.
+                        </p>
                     </div>
-                </section>
+                </HoneycombHero>
                 
                 <section className="py-16">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">

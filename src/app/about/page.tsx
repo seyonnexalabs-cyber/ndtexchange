@@ -6,6 +6,7 @@ import { ShieldCheck, Building, UserCheck, CheckCircle, Globe, Workflow, Users, 
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -18,8 +19,7 @@ export default function AboutPage() {
       <PublicHeader />
 
       <main className="flex-grow">
-        <section className="py-20 md:py-24 bg-primary/10">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <HoneycombHero>
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Connecting the World of Asset Integrity
@@ -28,8 +28,7 @@ export default function AboutPage() {
                 NDT EXCHANGE is a purpose-built digital ecosystem where asset owners ensure operational continuity and certified NDT professionals find opportunities to grow their business.
               </p>
             </div>
-          </div>
-        </section>
+        </HoneycombHero>
 
         <section className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

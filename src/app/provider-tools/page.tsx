@@ -7,6 +7,7 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import ProviderWorkflowDiagram from '@/app/components/provider-workflow';
 import { FeatureCard } from '@/app/components/feature-card';
 import { Users, Wrench, QrCode, Search, FileText, Gavel } from 'lucide-react';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 
 export const metadata: Metadata = {
@@ -21,18 +22,16 @@ export default function ProviderToolsPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="py-20 md:py-32 bg-primary/10">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="max-w-3xl mx-auto text-center">
-                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-                                Grow and Streamline Your NDT Business
-                            </h1>
-                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-                                From finding new clients in our marketplace to managing your day-to-day operations, our platform is your end-to-end solution for growth and efficiency.
-                            </p>
-                        </div>
+                <HoneycombHero className="py-20 md:py-32">
+                    <div className="max-w-3xl mx-auto text-center">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                            Grow and Streamline Your NDT Business
+                        </h1>
+                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                            From finding new clients in our marketplace to managing your day-to-day operations, our platform is your end-to-end solution for growth and efficiency.
+                        </p>
                     </div>
-                </section>
+                </HoneycombHero>
                 
                  {/* Grow Business Section */}
                 <section id="provider-marketplace" className="py-20">

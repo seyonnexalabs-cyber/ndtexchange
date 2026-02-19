@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,8 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -58,6 +59,46 @@ const certificationBodies = [
     'ACCP (ASNT Central Certification Program)', 'Other/Equivalent (Specify in description)',
 ];
 
+const ReviewDialog = ({ isOpen, onClose, onConfirm, jobData, clientAssets, allTechniques }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, jobData: any, clientAssets: Asset[] | null, allTechniques: any[] }) => {
+    if (!jobData) return null;
+    
+    const selectedAssets = clientAssets?.filter(asset => jobData.assets?.includes(asset.id)) || [];
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Review Your Job Posting</DialogTitle>
+                    <DialogDescription>Please confirm the details below before publishing.</DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="max-h-[60vh] p-4">
+                    <div className="space-y-4">
+                        <h3 className="font-semibold">{jobData.title}</h3>
+                        <p><span className="font-semibold">Type:</span> {jobData.jobType}</p>
+                        <p><span className="font-semibold">Industry:</span> {jobData.industry}</p>
+                        <p><span className="font-semibold">Location:</span> {jobData.location}</p>
+                        <p><span className="font-semibold">Techniques:</span> {jobData.techniques?.join(', ')}</p>
+                        <p><span className="font-semibold">Certifications:</span> {jobData.certificationsRequired?.join(', ')}</p>
+                        <p><span className="font-semibold">Budget:</span> {jobData.estimatedBudget || 'N/A'}</p>
+                        <p><span className="font-semibold">Workflow:</span> {jobData.workflow}</p>
+                        <p><span className="font-semibold">Start Date:</span> {jobData.scheduledStartDate ? format(jobData.scheduledStartDate, 'PPP') : 'N/A'}</p>
+                        <div>
+                            <p className="font-semibold">Selected Assets ({selectedAssets.length}):</p>
+                            <ul className="list-disc list-inside">
+                                {selectedAssets.map(asset => <li key={asset.id}>{asset.name}</li>)}
+                            </ul>
+                        </div>
+                    </div>
+                </ScrollArea>
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>Go Back</Button>
+                    <Button onClick={onConfirm}>Confirm & Publish</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 export default function PostJobPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
@@ -65,6 +106,7 @@ export default function PostJobPage() {
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
     const [step, setStep] = React.useState(1);
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = React.useState(false);
 
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
     const documentsInputRef = React.useRef<HTMLInputElement>(null);
@@ -218,25 +260,20 @@ export default function PostJobPage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
+            <div className="mb-12">
                 <nav aria-label="Progress">
-                    <ol role="list" className="flex items-center">
+                    <ol role="list" className="flex items-center justify-between">
                         {steps.map((s, index) => (
-                        <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "pr-8 sm:pr-20" : "")}>
-                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                            <div className={cn("h-0.5 w-full", step > s.id ? "bg-primary" : "bg-border")} />
-                            </div>
-                            <button
-                                onClick={() => step > s.id && setStep(s.id)}
-                                className="relative flex h-8 w-8 items-center justify-center rounded-full"
-                                disabled={step < s.id}
+                        <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
+                            {index > 0 && <div className="absolute inset-0 top-4 -ml-px mt-0.5 h-0.5 w-full bg-border" aria-hidden="true" />}
+                            <div className="relative flex h-8 w-8 items-center justify-center rounded-full"
                             >
                                 {step > s.id ? (
-                                    <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                                    <button onClick={() => setStep(s.id)} className="h-8 w-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90">
                                         <Check className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
-                                    </div>
+                                    </button>
                                 ) : step === s.id ? (
-                                    <div className="h-8 w-8 rounded-full border-2 border-primary bg-background flex items-center justify-center">
+                                    <div className="h-8 w-8 rounded-full border-2 border-primary bg-background flex items-center justify-center" aria-current="step">
                                         <span className="text-primary font-semibold">{s.id}</span>
                                     </div>
                                 ) : (
@@ -244,15 +281,15 @@ export default function PostJobPage() {
                                         <span className="text-muted-foreground font-semibold">{s.id}</span>
                                     </div>
                                 )}
-                                <span className="absolute -bottom-6 text-xs text-center w-24">{s.name}</span>
-                            </button>
+                            </div>
+                            <span className="absolute -bottom-7 text-xs text-center w-full hidden sm:block">{s.name}</span>
                         </li>
                         ))}
                     </ol>
                 </nav>
             </div>
             
-            <Form {...form}>
+            <FormProvider {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                     {/* Step 1: Core Details */}
                     {step === 1 && (
@@ -350,12 +387,21 @@ export default function PostJobPage() {
                         ) : (
                              <div className="flex gap-2">
                                 <Button type="submit" variant="outline">Save as Draft</Button>
-                                <Button type="submit">{isClient ? 'Publish Job' : 'Create Job'}</Button>
+                                <Button type="button" onClick={() => setIsReviewDialogOpen(true)}>{isClient ? 'Review & Publish' : 'Review & Create'}</Button>
                             </div>
                         )}
                     </div>
                 </form>
-            </Form>
+            </FormProvider>
+
+            <ReviewDialog 
+                isOpen={isReviewDialogOpen}
+                onClose={() => setIsReviewDialogOpen(false)}
+                onConfirm={form.handleSubmit(onSubmit)}
+                jobData={form.getValues()}
+                clientAssets={clientAssets}
+                allTechniques={NDTTechniques}
+            />
         </div>
     );
 }

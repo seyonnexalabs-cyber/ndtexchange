@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -456,5 +455,4 @@ export default function MyJobsPage() {
             )}
         </div>
     );
-
-    
+}

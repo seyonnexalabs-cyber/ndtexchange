@@ -55,6 +55,10 @@ service cloud.firestore {
         // Only allow admin to create/delete notifications, not the user client-side
         allow create, delete: if isAdmin();
       }
+      
+      match /tasks/{taskId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /companies/{companyId} {

@@ -90,6 +90,7 @@ const clientMenu = [
   {
     title: 'Tools',
     items: [
+      { id: 'tasks', href: '/dashboard/tasks', label: 'Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
@@ -130,6 +131,7 @@ const inspectorMenu = [
   {
     title: 'Tools',
     items: [
+      { id: 'tasks', href: '/dashboard/tasks', label: 'Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
@@ -150,6 +152,7 @@ const adminMenu = [
     title: 'Platform',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'tasks', href: '/dashboard/tasks', label: 'Tasks', icon: ClipboardList },
       { id: 'analytics', href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
       { id: 'reviews', href: '/dashboard/reviews', label: 'Reviews', icon: Star },
       { id: 'audit-log', href: '/dashboard/audit-log', label: 'Audit Log', icon: History },
@@ -189,6 +192,7 @@ const auditorMenu = [
   {
     title: 'Tools',
     items: [
+      { id: 'tasks', href: '/dashboard/tasks', label: 'Tasks', icon: ClipboardList },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
     ]
@@ -405,5 +409,3 @@ const AppSidebar = () => {
 };
 
 export default AppSidebar;
-
-    

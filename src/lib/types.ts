@@ -411,3 +411,13 @@ export type NDTTechnique = {
     modifiedAt?: any;
     modifiedBy?: string;
 };
+
+export type Task = {
+  id: string;
+  title: string;
+  label: string;
+  status: 'todo' | 'in progress' | 'done' | 'canceled';
+  priority: 'low' | 'medium' | 'high';
+  userId: string;
+  createdAt?: any;
+};

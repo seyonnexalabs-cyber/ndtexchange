@@ -376,6 +376,21 @@
             "notes": { "type": "string", "description": "Additional notes about the event." }
         },
         "required": ["event", "timestamp", "user"]
+    },
+    "Task": {
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a user-created task.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the task." },
+        "title": { "type": "string", "description": "The title of the task." },
+        "label": { "type": "string", "description": "A label for the task (e.g., bug, feature, documentation)." },
+        "status": { "type": "string", "description": "The current status of the task (e.g., todo, in progress, done)." },
+        "priority": { "type": "string", "description": "The priority of the task (e.g., low, medium, high)." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string", "description": "The ID of the user who owns this task." }
+      },
+      "required": ["id", "title", "label", "status", "priority", "userId"]
     }
   },
   "auth": {
@@ -420,6 +435,14 @@
               "description": "The unique ID of the notification."
             }
           ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": { "$ref": "#/backend/entities/Task" },
+          "description": "Stores tasks for a specific user. Access is restricted to the user."
         }
       },
       {

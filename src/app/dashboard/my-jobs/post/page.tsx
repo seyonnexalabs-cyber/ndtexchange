@@ -39,9 +39,7 @@ const baseSchemaObject = z.object({
   jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
   industry: z.string({ required_error: 'Please select an industry.' }),
   location: z.string().min(2, 'Location is required.'),
-  description: z.string().optional(),
   workflow: z.enum(['standard', 'level3', 'auto']),
-  documents: z.any().optional(), // For file uploads
   isMarketplaceJob: z.boolean().default(true),
   bidExpiryDate: z.date().optional(),
   scheduledStartDate: z.date().optional(),
@@ -49,31 +47,58 @@ const baseSchemaObject = z.object({
   estimatedBudget: z.string().optional(),
   certificationsRequired: z.array(z.string()).min(1, "At least one certification is required."),
   scheduledEndDate: z.date().optional(),
+  documents: z.any().optional(), // For file uploads
+  description: z.string().optional(),
 });
 
 const jobRefinement = (data: any, ctx: z.RefinementCtx) => {
-    if (!data.isMarketplaceJob) {
-        if (!data.scheduledStartDate) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['scheduledStartDate'],
-            message: 'A start date is required for internal jobs.',
-          });
-        }
-        if (!data.durationDays && !data.scheduledEndDate) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['durationDays'],
-            message: 'Either a duration or an end date is required for internal jobs.',
-          });
-        }
-    }
+    // Rule 1: End date must be after start date
     if (data.scheduledEndDate && data.scheduledStartDate && data.scheduledEndDate < data.scheduledStartDate) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['scheduledEndDate'],
             message: 'End date cannot be before start date.',
         });
+    }
+
+    // Rule 2: Marketplace jobs have specific requirements
+    if (data.isMarketplaceJob) {
+        if (!data.bidExpiryDate) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['bidExpiryDate'],
+                message: 'A bid closing date is required for marketplace jobs.',
+            });
+        }
+        if (!data.scheduledStartDate) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['scheduledStartDate'],
+                message: 'A target start date is required for marketplace jobs.',
+            });
+        }
+         if (!data.durationDays && !data.scheduledEndDate) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['durationDays'],
+                message: 'Either an estimated duration or a target end date is required.',
+            });
+        }
+    } else { // Internal jobs
+        if (!data.scheduledStartDate) {
+            ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scheduledStartDate'],
+            message: 'A start date is required for internal jobs.',
+          });
+        }
+        if (!data.durationDays && !data.scheduledEndDate) {
+            ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['durationDays'],
+            message: 'Either a duration or an end date is required for internal jobs.',
+          });
+        }
     }
 };
 
@@ -84,9 +109,36 @@ const clientJobSchema = baseSchemaObject.extend({
 
 const inspectorJobSchema = baseSchemaObject.extend({
     clientName: z.string().min(2, "Client Name is required."),
-    description: z.string().min(10, "A description of the asset(s) and scope of work is required."),
     techniques: z.array(z.string()).min(1, "At least one technique is required."),
-}).superRefine(jobRefinement);
+}).superRefine((data, ctx) => {
+    // Inspector jobs are always internal
+    const internalJobData = { ...data, isMarketplaceJob: false };
+
+    // End date must be after start date
+    if (internalJobData.scheduledEndDate && internalJobData.scheduledStartDate && internalJobData.scheduledEndDate < internalJobData.scheduledStartDate) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scheduledEndDate'],
+            message: 'End date cannot be before start date.',
+        });
+    }
+
+    // Internal jobs need a start date and duration/end date
+    if (!internalJobData.scheduledStartDate) {
+        ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['scheduledStartDate'],
+        message: 'A start date is required for internal jobs.',
+        });
+    }
+    if (!internalJobData.durationDays && !internalJobData.scheduledEndDate) {
+        ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['durationDays'],
+        message: 'Either a duration or an end date is required for internal jobs.',
+        });
+    }
+});
 
 
 const industries = [
@@ -196,18 +248,18 @@ export default function PostJobPage() {
     });
 
     const clientSteps = [
-        { id: 1, name: 'Core Details', fields: ['title', 'jobType', 'industry', 'location', 'certificationsRequired', 'estimatedBudget'] },
+        { id: 1, name: 'Core Details', fields: ['title', 'jobType', 'industry', 'location', 'certificationsRequired', 'estimatedBudget', 'isMarketplaceJob', 'workflow'] },
         { id: 2, name: 'Asset Selection', fields: ['assetIds'] },
         { id: 3, name: 'Technique Assignment', fields: ['scope'] },
-        { id: 4, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'documents', 'bidExpiryDate'] },
-        { id: 5, name: 'Review & Publish', fields: ['description', 'isMarketplaceJob', 'workflow'] }
+        { id: 4, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'scheduledEndDate', 'bidExpiryDate', 'documents'] },
+        { id: 5, name: 'Review & Publish', fields: ['description'] }
     ];
 
     const inspectorSteps = [
         { id: 1, name: 'Core Details', fields: ['title', 'clientName', 'jobType', 'industry', 'location'] },
-        { id: 2, name: 'Scope & Requirements', fields: ['description', 'techniques', 'certificationsRequired', 'estimatedBudget'] },
-        { id: 3, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'documents'] },
-        { id: 4, name: 'Review & Create', fields: [] }
+        { id: 2, name: 'Scope & Requirements', fields: ['techniques', 'certificationsRequired', 'estimatedBudget'] },
+        { id: 3, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'scheduledEndDate', 'documents'] },
+        { id: 4, name: 'Review & Create', fields: ['description'] }
     ];
 
     const steps = isClient ? clientSteps : inspectorSteps;
@@ -282,12 +334,12 @@ export default function PostJobPage() {
                 documents: documentMetadata,
                 jobType: values.jobType,
                 industry: values.industry,
-                durationDays: values.durationDays,
                 certificationsRequired: values.certificationsRequired,
+                estimatedBudget: values.estimatedBudget || '',
             };
             
-            if (newJobData.durationDays === undefined) {
-                delete newJobData.durationDays;
+            if (values.durationDays) {
+                newJobData.durationDays = values.durationDays;
             }
 
             batch.set(jobRef, newJobData);
@@ -322,6 +374,7 @@ export default function PostJobPage() {
             toast({ variant: "destructive", title: "Error", description: "Failed to post job." });
         } finally {
             setIsSubmitting(false);
+            setIsReviewDialogOpen(false);
         }
     };
     
@@ -380,6 +433,9 @@ export default function PostJobPage() {
                         <Card>
                             <CardHeader><CardTitle>Core Details</CardTitle><CardDescription>Start with the basic information for your job.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
+                                {isClient && (
+                                    <FormField control={form.control} name="isMarketplaceJob" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border bg-background p-4"><div className="space-y-0.5"><FormLabel className="text-base">Post to Marketplace</FormLabel><FormDescription>Post this job publicly to all qualified providers.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
+                                )}
                                 <FormField name="title" control={form.control} render={({ field }) => (<FormItem><FormLabel>Job Title*</FormLabel><FormControl><Input placeholder="e.g., Annual Shutdown Inspection — Crude Unit C3" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 {isInspector && <FormField name="clientName" control={form.control} render={({ field }) => (<FormItem><FormLabel>Client Name*</FormLabel><FormControl><Input placeholder="Enter the name of your client" {...field} /></FormControl><FormMessage /></FormItem>)} />}
                                 <div className="grid md:grid-cols-2 gap-4">
@@ -388,7 +444,8 @@ export default function PostJobPage() {
                                 </div>
                                 <FormField name="location" control={form.control} render={({ field }) => (<FormItem><FormLabel>Site Location*</FormLabel><FormControl><Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField name="certificationsRequired" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Certifications Required*</FormLabel><MultiSelect options={certificationOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select certifications..." /><FormMessage /></FormItem>)} />
-                                <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                {isMarketplaceJob && <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)}/>}
+                                {isMarketplaceJob && <FormField control={form.control} name="workflow" render={({ field }) => (<FormItem><FormLabel>Approval Workflow</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl><SelectContent><SelectItem value="standard">Standard (Client Review Only)</SelectItem><SelectItem value="level3">Level III Audit (Manual)</SelectItem><SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>}
                             </CardContent>
                         </Card>
                     )}
@@ -410,6 +467,16 @@ export default function PostJobPage() {
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
+                            </CardContent>
+                        </Card>
+                    )}
+                    
+                    {step === 2 && isInspector && (
+                         <Card>
+                            <CardHeader><CardTitle>Scope & Requirements</CardTitle><CardDescription>Detail the work required for this internal job.</CardDescription></CardHeader>
+                            <CardContent className="space-y-4">
+                                <FormField name="techniques" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Techniques Required*</FormLabel><MultiSelect options={techniqueOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select required techniques..." /><FormMessage /></FormItem>)} />
+                                <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Job Value / Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)}/>}
                             </CardContent>
                         </Card>
                     )}
@@ -451,33 +518,24 @@ export default function PostJobPage() {
                             <CardHeader><CardTitle>Scheduling & Documents</CardTitle><CardDescription>Provide target dates and attach relevant files.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <FormField name="scheduledStartDate" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Target Start Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                    <FormField name="durationDays" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Duration (Days)</FormLabel><FormControl><Input type="number" placeholder="e.g., 21" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField name="scheduledStartDate" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Target Start Date {isMarketplaceJob || isInspector ? '*' : ''}</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField name="durationDays" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Duration (Days) {isMarketplaceJob || isInspector ? '*' : ''}</FormLabel><FormControl><Input type="number" placeholder="e.g., 21" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                                 </div>
-                                {isClient && isMarketplaceJob && <FormField name="bidExpiryDate" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Bid Closing Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)}/>}
+                                {isClient && isMarketplaceJob && <FormField name="bidExpiryDate" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Bid Closing Date*</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)}/>}
                                 <FormField control={form.control} name="documents" render={() => (<FormItem><FormLabel>Attach Scope Documents (Optional)</FormLabel><Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>Select Files</Button><FormControl><Input ref={documentsInputRef} type="file" multiple accept={ACCEPTED_FILE_TYPES} className="hidden" /></FormControl><FormDescription>Attach P&IDs, drawings, etc. Max {MAX_FILE_SIZE_MB}MB each.</FormDescription><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>
                     ) : null}
 
-                    {(step === 5 && isClient) ? (
+                    {(step === 5 && isClient) || (step === 4 && isInspector) ? (
                          <Card>
-                            <CardHeader><CardTitle>Final Details & Publish</CardTitle><CardDescription>Add a description and finalize workflow options before posting.</CardDescription></CardHeader>
+                            <CardHeader><CardTitle>Final Details</CardTitle><CardDescription>Provide an overall job description before finishing.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
-                                <FormField name="description" control={form.control} render={({ field }) => (<FormItem><FormLabel>Overall Job Description</FormLabel><FormControl><Textarea placeholder="Provide a summary of the work..." {...field} className="min-h-[150px]" /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="isMarketplaceJob" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border bg-background p-4"><div className="space-y-0.5"><FormLabel className="text-base">Post to Marketplace</FormLabel><FormDescription>Post this job publicly to all qualified providers.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
-                                {isMarketplaceJob && <FormField control={form.control} name="workflow" render={({ field }) => (<FormItem><FormLabel>Approval Workflow</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl><SelectContent><SelectItem value="standard">Standard (Client Review Only)</SelectItem><SelectItem value="level3">Level III Audit (Manual)</SelectItem><SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>}
+                                <FormField name="description" control={form.control} render={({ field }) => (<FormItem><FormLabel>Overall Job Description (Optional)</FormLabel><FormControl><Textarea placeholder="Provide a summary of the work, special instructions, or any other relevant details..." {...field} className="min-h-[150px]" /></FormControl><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>
                     ) : null}
                     
-                    {step === 4 && isInspector && (
-                         <Card>
-                            <CardHeader><CardTitle>Review & Create</CardTitle><CardDescription>Review all details before creating this internal job.</CardDescription></CardHeader>
-                            <CardContent><p>Review summary will be displayed here.</p></CardContent>
-                        </Card>
-                    )}
-
                     <div className="flex justify-between">
                         <Button type="button" variant="outline" onClick={handleBack} disabled={step === 1}>
                             <ArrowLeft className="mr-2 h-4 w-4" /> Previous
@@ -507,3 +565,5 @@ export default function PostJobPage() {
         </div>
     );
 }
+
+    

@@ -66,7 +66,7 @@ service cloud.firestore {
       // Admins or the initial company contact can create a company document.
       allow create: if (isSignedIn() && request.resource.data.contactEmail == request.auth.token.email);
       // All company documents are readable by any signed in user.
-      allow read: if isSignedIn();
+      allow read: if true;
       // Only admins can modify company data.
       allow update: if isAdmin();
 
@@ -181,9 +181,9 @@ service cloud.firestore {
     }
     
     // All other collections that are either public or admin-only
-    match /asset_types/{assetTypeId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /techniques/{techniqueId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /manufacturers/{manufacturerId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /asset_types/{assetTypeId} { allow read: if true; allow write: if isAdmin(); }
+    match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
+    match /manufacturers/{manufacturerId} { allow read: if true; allow write: if isAdmin(); }
     match /equipment/{equipmentId} {
       // An inspector can create equipment for their own company.
       allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid));

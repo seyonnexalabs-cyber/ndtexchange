@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
@@ -26,7 +26,7 @@ const equipmentIcons: { [key: string]: React.ReactNode } = {
     'Calibration': <Wrench className="w-4 h-4 text-primary" />,
 };
 
-type JobView = 'active' | 'completed' | 'upcoming';
+type JobView = 'active' | 'completed' | 'upcoming' | 'drafts';
 
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
@@ -85,11 +85,12 @@ export default function MyJobsPage() {
     };
 
     const jobsByCategory = useMemo(() => {
-        if (!jobsFromDb) return { active: [], completed: [], upcoming: [] };
+        if (!jobsFromDb) return { active: [], completed: [], upcoming: [], drafts: [] };
         return {
             active: jobsFromDb.filter(job => job.status === 'In Progress'),
             completed: jobsFromDb.filter(job => ['Completed', 'Paid'].includes(job.status)),
             upcoming: jobsFromDb.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status)),
+            drafts: jobsFromDb.filter(job => job.status === 'Draft'),
         };
     }, [jobsFromDb, role]);
 
@@ -113,6 +114,11 @@ export default function MyJobsPage() {
                 jobsToShow = jobsByCategory.upcoming;
                 pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
                 PageIcon = Award;
+                break;
+            case 'drafts':
+                jobsToShow = jobsByCategory.drafts;
+                pageTitle = 'Drafts';
+                PageIcon = FileText;
                 break;
         }
 
@@ -227,6 +233,7 @@ export default function MyJobsPage() {
                     My Jobs
                 </h1>
                 <div className="flex gap-2">
+                    {role === 'client' && <Button variant={view === 'drafts' ? 'default' : 'outline'} onClick={() => setView('drafts')}>Drafts</Button>}
                     <Button variant={view === 'active' ? 'default' : 'outline'} onClick={() => setView('active')}>Active</Button>
                     <Button variant={view === 'upcoming' ? 'default' : 'outline'} onClick={() => setView('upcoming')}>
                         {role === 'inspector' ? 'Upcoming' : 'Pending'}
@@ -431,6 +438,9 @@ export default function MyJobsPage() {
                     <h2 className="mt-4 text-xl font-headline">No {view} jobs</h2>
                     <p className="mt-2 text-muted-foreground">You don't have any jobs currently in this category or matching your filters.</p>
                      <div className="mt-4 space-y-1 text-sm">
+                        {role === 'client' && view !== 'drafts' && jobsByCategory.drafts.length > 0 && (
+                            <p>You have {jobsByCategory.drafts.length} job(s) in the <Button variant="link" className="p-0 h-auto" onClick={() => setView('drafts')}>Drafts</Button> tab.</p>
+                        )}
                         {view !== 'completed' && jobsByCategory.completed.length > 0 && (
                             <p>You have {jobsByCategory.completed.length} job(s) in the <Button variant="link" className="p-0 h-auto" onClick={() => setView('completed')}>Completed</Button> tab.</p>
                         )}
@@ -446,4 +456,5 @@ export default function MyJobsPage() {
             )}
         </div>
     );
-}
+
+    

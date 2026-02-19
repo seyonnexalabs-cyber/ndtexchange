@@ -112,8 +112,8 @@ export default function AboutPage() {
                 </p>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3 max-w-5xl mx-auto">
-                <Card className="p-2 border-0 bg-transparent shadow-none">
+            <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
+                <Card className="p-2">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <div className="bg-primary/10 p-4 rounded-full w-fit">
@@ -126,7 +126,7 @@ export default function AboutPage() {
                         <p>We are the only platform that seamlessly integrates a competitive service procurement marketplace with a robust suite of operational management tools for both asset owners and service providers. This eliminates silos and creates a single, end-to-end workflow from job creation to final report.</p>
                     </CardContent>
                 </Card>
-                <Card className="p-2 border-0 bg-transparent shadow-none">
+                <Card className="p-2">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">
@@ -139,7 +139,7 @@ export default function AboutPage() {
                         <p>NDT EXCHANGE is designed for every stakeholder. Clients gain control over their assets, Providers find work and manage operations, Auditors ensure compliance, and OEMs connect with their user base. This network effect creates unparalleled value and efficiency for everyone.</p>
                     </CardContent>
                 </Card>
-                 <Card className="p-2 border-0 bg-transparent shadow-none">
+                 <Card className="p-2">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">

@@ -74,10 +74,10 @@ const clientMenu = [
     ]
   },
   {
-    title: 'Jobs',
+    title: 'Projects',
     items: [
-      { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
-      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Post New Job', icon: PlusCircle },
+      { id: 'my-jobs-client', href: '/dashboard/my-jobs', label: 'My Projects', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'New Project', icon: PlusCircle },
     ]
   },
   {
@@ -110,14 +110,14 @@ const inspectorMenu = [
     title: 'Workspace',
     items: [
       { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Jobs', icon: Briefcase },
-      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Create Job', icon: PlusCircle },
+      { id: 'my-jobs-inspector', href: '/dashboard/my-jobs', label: 'My Projects', icon: Briefcase },
+      { id: 'post-job', href: '/dashboard/my-jobs/post', label: 'Create Project', icon: PlusCircle },
     ]
   },
   {
     title: 'Marketplace',
     items: [
-        { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Jobs', icon: Search },
+        { id: 'find-jobs', href: '/dashboard/find-jobs', label: 'Find Projects', icon: Search },
         { id: 'my-bids', href: '/dashboard/my-bids', label: 'My Bids', icon: Gavel },
     ]
   },
@@ -167,7 +167,7 @@ const adminMenu = [
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'manufacturers', href: '/dashboard/manufacturers', label: 'Manufacturers', icon: Factory },
-      { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
+      { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Projects', icon: Briefcase },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
       { id: 'payments', href: '/dashboard/payments', label: 'Payments', icon: DollarSign },

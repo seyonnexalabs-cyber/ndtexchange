@@ -6,15 +6,15 @@ import { Badge } from '@/components/ui/badge';
 
 // A single, more descriptive data source for the steps
 const lifecycleSteps = [
-    { step: 1, icon: FilePlus2, title: 'Job Creation', description: 'Client defines the scope, assets, and requirements for the inspection.', actor: 'Client' },
-    { step: 2, icon: Gavel, title: 'Marketplace Bidding', description: 'Qualified service providers submit competitive bids for the job.', actor: 'Service Provider' },
-    { step: 3, icon: Award, title: 'Job Award & Assignment', description: 'Client reviews bids, awards the contract, and assigns the job.', actor: 'Client' },
+    { step: 1, icon: FilePlus2, title: 'Project Creation', description: 'Client defines the scope, assets, and requirements for the inspection.', actor: 'Client' },
+    { step: 2, icon: Gavel, title: 'Marketplace Bidding', description: 'Qualified service providers submit competitive bids for the project.', actor: 'Service Provider' },
+    { step: 3, icon: Award, title: 'Project Award & Assignment', description: 'Client reviews bids, awards the contract, and assigns the project.', actor: 'Client' },
     { step: 4, icon: CalendarCheck, title: 'Pre-Inspection Prep', description: 'Provider confirms site readiness, prepares an inspection plan, and mobilizes team.', actor: 'Service Provider' },
     { step: 5, icon: Search, title: 'Inspection Execution', description: 'Provider performs the on-site NDT work, capturing all necessary data.', actor: 'Service Provider' },
     { step: 6, icon: FileText, title: 'Report Drafting & Submission', description: 'Provider uses platform tools to create and submit a digital report.', actor: 'Service Provider' },
     { step: 7, icon: Users, title: 'Collaborative Report Review', description: 'Auditor (if required) and Client review the report and provide feedback.', actor: 'All Parties' },
     { step: 8, icon: UserCheck, title: 'Final Report Approval', description: 'Client gives final approval, confirming the work meets all requirements.', actor: 'Client' },
-    { step: 9, icon: Archive, title: 'Job Closure & Archiving', description: 'The platform archives all documents and updates the asset’s history.', actor: 'Platform' },
+    { step: 9, icon: Archive, title: 'Project Closure & Archiving', description: 'The platform archives all documents and updates the asset’s history.', actor: 'Platform' },
     { step: 10, icon: DollarSign, title: 'Payment & Billing', description: 'Client settles the invoice directly with the provider. Financial reports are generated.', actor: 'Client & Provider' },
 ];
 

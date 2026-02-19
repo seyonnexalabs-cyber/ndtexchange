@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
@@ -13,7 +14,7 @@ import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const jobsByMonthChartConfig = {
-  count: { label: "Jobs", color: "hsl(var(--accent))" },
+  count: { label: "Projects", color: "hsl(var(--accent))" },
 } satisfies ChartConfig;
 
 const revenueByMonthChartConfig = {
@@ -22,7 +23,7 @@ const revenueByMonthChartConfig = {
 
 
 const techniquesChartConfig = {
-  count: { label: "Jobs" },
+  count: { label: "Projects" },
   UT: { label: "UT", color: "hsl(var(--chart-1))" },
   PAUT: { label: "PAUT", color: "hsl(var(--chart-2))" },
   RT: { label: "RT", color: "hsl(var(--chart-3))" },
@@ -136,7 +137,7 @@ export default function AnalyticsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">${analyticsData.totalRevenue.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">All-time revenue from completed jobs</p>
+                        <p className="text-xs text-muted-foreground">All-time revenue from completed projects</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -151,22 +152,22 @@ export default function AnalyticsPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
                         <FileCheck className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{jobs?.length || 0}</div>
-                        <p className="text-xs text-muted-foreground">All jobs created on the platform</p>
+                        <p className="text-xs text-muted-foreground">All projects created on the platform</p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Jobs This Month</CardTitle>
+                        <CardTitle className="text-sm font-medium">Projects This Month</CardTitle>
                         <BarChart3 className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{analyticsData.jobsByMonthData[0]?.count || 0}</div>
-                        <p className="text-xs text-muted-foreground">New jobs created this month</p>
+                        <p className="text-xs text-muted-foreground">New projects created this month</p>
                     </CardContent>
                 </Card>
             </div>
@@ -174,7 +175,7 @@ export default function AnalyticsPage() {
             <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Jobs Created Per Month</CardTitle>
+                        <CardTitle>Projects Created Per Month</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ChartContainer config={jobsByMonthChartConfig} className="h-[300px] w-full">
@@ -220,7 +221,7 @@ export default function AnalyticsPage() {
              <div className="grid gap-6 mt-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle>Job Distribution by Technique</CardTitle>
+                        <CardTitle>Project Distribution by Technique</CardTitle>
                         <CardDescription>An overview of the most requested NDT techniques.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex items-center justify-center">

@@ -70,7 +70,7 @@ export default function FindJobsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                     <SearchIcon className="text-primary" />
-                    Find Jobs
+                    Find Projects
                 </h1>
                 <div className="flex items-center gap-2">
                     <Input 
@@ -190,8 +190,8 @@ export default function FindJobsPage() {
             {filteredJobs.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
                     <Briefcase className="mx-auto h-12 w-12 text-primary" />
-                    <h2 className="mt-4 text-xl font-headline">No Open Jobs</h2>
-                    <p className="mt-2 text-muted-foreground">There are currently no new jobs matching your filters.</p>
+                    <h2 className="mt-4 text-xl font-headline">No Open Projects</h2>
+                    <p className="mt-2 text-muted-foreground">There are currently no new projects matching your filters.</p>
                 </div>
             )}
         </div>

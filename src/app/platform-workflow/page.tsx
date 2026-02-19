@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from 'next';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -8,7 +9,7 @@ import * as React from 'react';
 
 export const metadata: Metadata = {
   title: 'Platform Workflow',
-  description: 'End-to-end process from job creation to payment — a step-by-step breakdown of each phase of the NDT Exchange platform.',
+  description: 'End-to-end process from project creation to payment — a step-by-step breakdown of each phase of the NDT Exchange platform.',
 };
 
 const actors = [
@@ -21,33 +22,33 @@ const actors = [
 const workflowData = [
   {
     phase: 'PHASE 01',
-    title: 'Job Creation & Scoping',
+    title: 'Project Creation & Scoping',
     actor: 'Client',
-    description: 'Client details the job: assets, NDT methods, urgency, and location. They select a workflow (Standard, Level III Required) and upload scope documents. The platform verifies and publishes the job.',
+    description: 'Client details the project: assets, NDT methods, urgency, and location. They select a workflow (Standard, Level III Required) and upload scope documents. The platform verifies and publishes the project.',
   },
   {
     phase: 'PHASE 02',
     title: 'Marketplace Bidding',
     actor: 'Service Provider',
-    description: 'Inspectors discover jobs, review requirements, ask questions via a structured Q&A channel, and submit detailed bids including price, schedule, and qualifications.',
+    description: 'Inspectors discover projects, review requirements, ask questions via a structured Q&A channel, and submit detailed bids including price, schedule, and qualifications.',
   },
   {
     phase: 'PHASE 03',
-    title: 'Job Award & Assignment',
+    title: 'Project Award & Assignment',
     actor: 'Client',
-    description: 'Client compares bids, chats with inspectors, and awards the job. The platform auto-generates a service contract for e-signature. The job status updates to "Assigned".',
+    description: 'Client compares bids, chats with inspectors, and awards the contract. The platform auto-generates a service contract for e-signature. The project status updates to "Assigned".',
   },
   {
     phase: 'PHASE 04',
     title: 'Pre-Inspection & Scheduling',
     actor: 'Service Provider',
-    description: 'The awarded provider confirms site readiness, prepares an inspection plan (which an Auditor may review if required), and mobilizes team and equipment. The job is formally scheduled on the platform.',
+    description: 'The awarded provider confirms site readiness, prepares an inspection plan (which an Auditor may review if required), and mobilizes team and equipment. The project is formally scheduled on the platform.',
   },
   {
     phase: 'PHASE 05',
     title: 'Inspection Execution',
     actor: 'Service Provider',
-    description: 'The inspector performs the on-site NDT work, capturing all necessary data, readings, and defect information as per the job scope. Progress can be tracked on the platform.',
+    description: 'The inspector performs the on-site NDT work, capturing all necessary data, readings, and defect information as per the project scope. Progress can be tracked on the platform.',
   },
   {
     phase: 'PHASE 06',
@@ -65,11 +66,11 @@ const workflowData = [
     phase: 'PHASE 08',
     title: 'Final Report Approval',
     actor: 'Client',
-    description: 'After all revisions, the Client gives final approval on the report, confirming that the work meets all requirements. The job is marked as completed.',
+    description: 'After all revisions, the Client gives final approval on the report, confirming that the work meets all requirements. The project is marked as completed.',
   },
   {
     phase: 'PHASE 09',
-    title: 'Job Closure & Data Archiving',
+    title: 'Project Closure & Data Archiving',
     actor: 'Platform',
     description: 'The system generates a final PDF of the report, updates the asset\'s history with the new inspection data, logs all activity, and enables client reviews and ratings.',
   },
@@ -118,7 +119,7 @@ export default function PlatformWorkflowPage() {
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
                     <div className="text-center mb-12">
                         <h1 className="text-4xl font-headline font-bold">Platform Workflow</h1>
-                        <p className="mt-4 text-lg text-muted-foreground">End-to-end process from job creation to payment — a step-by-step breakdown of each phase.</p>
+                        <p className="mt-4 text-lg text-muted-foreground">End-to-end process from project creation to payment — a step-by-step breakdown of each phase.</p>
                     </div>
 
                     <div className="flex justify-center items-center gap-4 mb-12 flex-wrap">

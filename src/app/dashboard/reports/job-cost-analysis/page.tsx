@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -46,7 +47,7 @@ export default function JobCostAnalysisReportPage() {
           }
         },
     });
-
+    
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const constructUrl = (base: string) => {
@@ -76,7 +77,7 @@ export default function JobCostAnalysisReportPage() {
             .filter(job => {
                 const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
                 const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerId!);
-                const techniqueMatch = techniqueIds.length === 0 || techniqueIds.includes(job.technique);
+                const techniqueMatch = techniqueIds.length === 0 || job.techniques.some(t => values.techniqueIds?.includes(t));
                 const dateMatch = !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
 
                 return providerMatch && techniqueMatch && dateMatch;
@@ -109,9 +110,9 @@ export default function JobCostAnalysisReportPage() {
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <FileText className="text-primary" />
-                        Job Cost & Duration Analysis
+                        Project Cost & Duration Analysis
                     </h1>
-                    <p className="text-muted-foreground mt-1">Analyze costs and timelines for completed jobs.</p>
+                    <p className="text-muted-foreground mt-1">Analyze costs and timelines for completed projects.</p>
                 </div>
                 <Button onClick={() => window.print()}>
                     <Printer className="mr-2 h-4 w-4"/>
@@ -125,7 +126,7 @@ export default function JobCostAnalysisReportPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
                            <FormField
                                 control={form.control}
                                 name="providerIds"
@@ -275,7 +276,7 @@ export default function JobCostAnalysisReportPage() {
              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Jobs Analyzed</CardTitle>
+                        <CardTitle className="text-sm font-medium">Projects Analyzed</CardTitle>
                         <BarChart2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -293,7 +294,7 @@ export default function JobCostAnalysisReportPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Job Cost</CardTitle>
+                        <CardTitle className="text-sm font-medium">Average Project Cost</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -302,7 +303,7 @@ export default function JobCostAnalysisReportPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Job Duration</CardTitle>
+                        <CardTitle className="text-sm font-medium">Average Project Duration</CardTitle>
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -313,7 +314,7 @@ export default function JobCostAnalysisReportPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Detailed Job Data</CardTitle>
+                    <CardTitle>Detailed Project Data</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {isMobile ? (
@@ -333,7 +334,7 @@ export default function JobCostAnalysisReportPage() {
                             ))}
                             {filteredJobs.length === 0 && (
                                 <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
-                                    No jobs found matching your criteria.
+                                    No projects found matching your criteria.
                                 </div>
                             )}
                         </div>
@@ -341,8 +342,8 @@ export default function JobCostAnalysisReportPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Job ID</TableHead>
-                                    <TableHead>Job Title</TableHead>
+                                    <TableHead>Project ID</TableHead>
+                                    <TableHead>Project Title</TableHead>
                                     <TableHead>Provider</TableHead>
                                     <TableHead>Technique</TableHead>
                                     <TableHead>Cost</TableHead>
@@ -365,7 +366,7 @@ export default function JobCostAnalysisReportPage() {
                                 {filteredJobs.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center h-24">
-                                            No jobs found matching your criteria.
+                                            No projects found matching your criteria.
                                         </TableCell>
                                     </TableRow>
                                 )}

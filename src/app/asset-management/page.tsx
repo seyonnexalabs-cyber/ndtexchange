@@ -180,6 +180,10 @@ export default function AssetManagementPage() {
                             <h4 className="font-semibold">Fitness-for-Service (FFS)</h4>
                             <p className="text-muted-foreground"><span className="font-bold text-foreground">API 579-1 / ASME FFS-1:</span> Evaluate if flawed equipment can remain in service.</p>
                           </div>
+                          <div>
+                            <h4 className="font-semibold">Digital Data Standard</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">ASTM E2339 (DICONDE):</span> Standard for interoperable storage of NDT data, which guides our future data strategy.</p>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>

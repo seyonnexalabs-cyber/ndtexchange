@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, FormProvider } from 'react-hook-form';
@@ -262,7 +263,7 @@ export default function PostJobPage() {
         <div className="max-w-4xl mx-auto">
             <div className="mb-12">
                 <nav aria-label="Progress">
-                    <ol role="list" className="flex items-center justify-between">
+                    <ol role="list" className="flex items-center">
                         {steps.map((s, index) => (
                         <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
                             {index > 0 && <div className="absolute inset-0 top-4 -ml-px mt-0.5 h-0.5 w-full bg-border" aria-hidden="true" />}

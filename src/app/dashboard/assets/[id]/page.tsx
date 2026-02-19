@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CraneIcon, PipeIcon, TankIcon, WeldIcon } from "@/app/components/icons";
-import { FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, Check, Settings, History, AlertTriangle, QrCode, Printer } from "lucide-react";
+import { FileText, ImageIcon, Calendar, MapPin, Tag, ChevronLeft, Maximize, Check, Settings, History, AlertTriangle, QrCode, Printer, Move } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMobile } from '@/hooks/use-mobile';
@@ -40,6 +40,7 @@ const assetSchema = z.object({
     type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
     location: z.string().min(2, 'Location is required.'),
     status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']),
+    isMovable: z.boolean().default(false),
     nextInspection: z.date({ required_error: "Please select a valid date." }),
     manufacturer: z.string().optional(),
     model: z.string().optional(),
@@ -187,26 +188,59 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
                                 )}
                             />
                         </div>
+                         <FormField
+                            control={form.control}
+                            name="location"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Primary Site / Location</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="isMovable"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel>Movable Asset</FormLabel>
+                                        <FormDescription>
+                                            Indicates if this asset is mobile (like a crane) or fixed (like a tank).
+                                        </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <FormField
-                                control={form.control}
-                                name="location"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Location</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
                                 control={form.control}
                                 name="installationDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
                                         <FormLabel>Installation Date</FormLabel>
+                                        <FormControl>
+                                            <CustomDateInput {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="nextInspection"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Next Inspection Date</FormLabel>
                                         <FormControl>
                                             <CustomDateInput {...field} />
                                         </FormControl>
@@ -301,19 +335,6 @@ const AssetForm = ({ asset, onSubmit, onCancel }: { asset: Asset, onSubmit: (val
                                     <FormDescription>
                                         This image will be used as the display card for the asset.
                                     </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="nextInspection"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Next Inspection Date</FormLabel>
-                                    <FormControl>
-                                        <CustomDateInput {...field} />
-                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -833,7 +854,8 @@ export default function AssetDetailPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                                         <DetailItem label="Asset ID" value={<span className='font-extrabold'>{asset.id}</span>} />
                                         <DetailItem label="Asset Type" value={asset.type} />
-                                        <DetailItem label="Location" value={asset.location} />
+                                        <DetailItem label="Primary Site / Location" value={asset.location} />
+                                        <DetailItem label="Asset Mobility" value={asset.isMovable ? 'Movable' : 'Fixed'} />
                                         <DetailItem label="Status" value={<Badge variant={
                                             asset.status === 'Operational' ? 'success' :
                                             asset.status === 'Requires Inspection' ? 'destructive' :
@@ -866,6 +888,13 @@ export default function AssetDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm p-6 pt-0">
+                             <div className="flex items-start">
+                                <Move className="w-4 h-4 mr-3 mt-1 text-primary"/>
+                                <div>
+                                    <p className="font-semibold">Mobility</p>
+                                    <p className="text-muted-foreground">{asset.isMovable ? 'Movable' : 'Fixed'}</p>
+                                </div>
+                            </div>
                             <div className="flex items-start">
                                 <Tag className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
@@ -880,7 +909,7 @@ export default function AssetDetailPage() {
                              <div className="flex items-start">
                                 <MapPin className="w-4 h-4 mr-3 mt-1 text-primary"/>
                                 <div>
-                                    <p className="font-semibold">Location</p>
+                                    <p className="font-semibold">Primary Site</p>
                                     <p className="text-muted-foreground">{asset.location}</p>
                                 </div>
                             </div>

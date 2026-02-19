@@ -21,7 +21,8 @@
         "assetTypeId": { "type": "string", "description": "Reference to the AssetType entity. (Relationship: AssetType 1:N Asset)" },
         "name": { "type": "string", "description": "The name of the asset." },
         "description": { "type": "string", "description": "A detailed description of the asset." },
-        "location": { "type": "string", "description": "The physical location of the asset." },
+        "location": { "type": "string", "description": "The primary site where the asset is typically located (e.g., 'Houston Refinery')." },
+        "isMovable": { "type": "boolean", "description": "Indicates if the asset is movable (e.g., a mobile crane) or fixed." },
         "qrCode": { "type": "string", "description": "The QR code associated with the asset for scanning." },
         "documentIds": { "type": "array", "description": "References to Documents associated with this Asset. (Relationship: Asset 1:N Document)", "items": { "type": "string" } },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -29,7 +30,7 @@
         "modifiedAt": { "type": "string", "format": "date-time" },
         "modifiedBy": { "type": "string" }
       },
-      "required": ["id", "companyId", "name"]
+      "required": ["id", "companyId", "name", "isMovable"]
     },
     "AssetType": {
       "$schema": "http://json-schema.org/draft-07/schema#",

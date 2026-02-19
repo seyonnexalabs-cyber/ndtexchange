@@ -13,6 +13,7 @@ export type Asset = {
     name: string;
     type: 'Tank' | 'Piping' | 'Vessel' | 'Crane' | 'Weld Joint';
     location: string;
+    isMovable: boolean;
     status: 'Operational' | 'Requires Inspection' | 'Under Repair' | 'Decommissioned';
     approvalStatus: 'Approved' | 'Pending Approval' | 'Rejected';
     nextInspection: string;

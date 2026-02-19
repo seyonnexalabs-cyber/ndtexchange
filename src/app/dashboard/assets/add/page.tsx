@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -22,12 +23,14 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
 import type { PlatformUser, JobDocument } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
 
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
     type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
     location: z.string({ required_error: 'Please select a location or add a new one.'}),
+    isMovable: z.boolean().default(false),
     newLocation: z.string().optional(),
     nextInspection: z.date({ required_error: 'Please select a valid date.' }),
     notes: z.string().optional(),
@@ -79,6 +82,7 @@ export default function AddAssetPage() {
             name: '',
             type: 'Tank',
             notes: '',
+            isMovable: false,
         }
     });
 
@@ -308,7 +312,7 @@ export default function AddAssetPage() {
                                 name="location"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Location <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>Primary Site / Location <span className="text-destructive">*</span></FormLabel>
                                         <Select onValueChange={(value) => {
                                             field.onChange(value);
                                             setShowNewLocation(value === '__add_new__');
@@ -340,6 +344,26 @@ export default function AddAssetPage() {
                                     )}
                                 />
                             )}
+                             <FormField
+                                control={form.control}
+                                name="isMovable"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                        <div className="space-y-0.5">
+                                            <FormLabel>Movable Asset</FormLabel>
+                                            <FormDescription>
+                                                Is this a movable asset (e.g., a mobile crane)?
+                                            </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
                              <FormField
                                 control={form.control}
                                 name="nextInspection"

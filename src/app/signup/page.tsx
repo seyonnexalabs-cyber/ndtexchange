@@ -22,7 +22,6 @@ import type { PlatformUser, Client, NDTServiceProvider, AuditFirm } from '@/lib/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { countries } from '@/lib/countries';
-import InteractiveHexagonGrid from '../components/interactive-hexagon-grid';
 
 
 const companySignupSchema = z.object({
@@ -170,12 +169,12 @@ export default function SignupPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <InteractiveHexagonGrid className="hidden lg:block relative">
+      <div className="hidden lg:block relative static-hexagon-grid">
         <div className="absolute bottom-10 left-10 text-white">
           <h2 className="text-4xl font-bold font-headline">The Digital Marketplace for Asset Integrity</h2>
           <p className="mt-4 text-lg max-w-xl text-gray-300">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
         </div>
-      </InteractiveHexagonGrid>
+      </div>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-md gap-6">
             <div className="space-y-2 text-center">

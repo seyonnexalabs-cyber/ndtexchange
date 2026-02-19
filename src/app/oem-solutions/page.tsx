@@ -6,7 +6,6 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { FeatureCard } from '@/app/components/feature-card';
 import { Target, Zap, LineChart, Handshake } from 'lucide-react';
-import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 
 export const metadata: Metadata = {
   title: 'OEM Solutions | NDT EXCHANGE',
@@ -20,7 +19,7 @@ export default function OEMSolutionsPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative py-20 md:py-32 bg-muted overflow-hidden hexagon-grid-container">
+                <section className="relative py-20 md:py-32 bg-muted overflow-hidden static-hexagon-grid">
                     <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div>

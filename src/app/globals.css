@@ -268,61 +268,19 @@
   }
 }
 
-@layer components {
-  .stage-card {
-    animation: highlight-stage 14s infinite;
-  }
-  .icon-container {
-    animation: highlight-icon 14s infinite;
-  }
-}
-
-@keyframes highlight-stage {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  }
-  3% {
-    transform: scale(1.05);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    border-color: hsl(var(--accent));
-  }
-  6%, 100% {
-    transform: scale(1);
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  }
-}
-
-@keyframes highlight-icon {
-  0%, 100% {
-    background-color: hsl(var(--primary) / 0.1);
-    color: hsl(var(--primary));
-  }
-  3% {
-    background-color: hsl(var(--accent) / 0.1);
-    color: hsl(var(--accent));
-  }
-  6%, 100% {
-    background-color: hsl(var(--primary) / 0.1);
-    color: hsl(var(--primary));
-  }
-}
-
 @layer utilities {
-  .hexagon-grid-container {
+  .static-hexagon-grid {
     background-color: #0a0a0a;
-    --mouse-x: 50%;
-    --mouse-y: 50%;
   }
 
-  .hexagon-grid-container::before {
+  .static-hexagon-grid::before {
     content: '';
     position: absolute;
     inset: 0;
     --s: 120px;
-    --c1: hsla(100, 30%, 70%, 0.4); /* dot color */
-    --c2: hsla(180, 40%, 40%, 0.4); /* line color 1 */
-    --c3: hsla(80, 40%, 50%, 0.3); /* line color 2 */
+    --c1: hsla(0, 0%, 100%, 0.05);
+    --c2: hsla(0, 0%, 100%, 0.05);
+    --c3: hsla(0, 0%, 100%, 0.03);
 
     --_g: var(--c3) 0 119.5deg, #0000 0;
     --_g2: var(--c2) 0 119.5deg, #0000 0;
@@ -335,21 +293,12 @@
       conic-gradient(from 179.5deg at 25% calc(500%/-6), var(--_g2)),
       conic-gradient(from 179.5deg at 75% calc(500%/-6), var(--_g));
     background-size: var(--s) calc(var(--s)*1.1547);
-    animation: pan 120s linear infinite;
   }
-
-  .hexagon-grid-container::after {
+  
+  .static-hexagon-grid::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), transparent, #0a0a0a 40%);
-    transition: background-position 0.3s ease;
-  }
-
-  @keyframes pan {
-    0% { background-position: 0% 0%; }
-    100% { background-position: 200% 200%; }
+    background: radial-gradient(circle at center, transparent, #0a0a0a 70%);
   }
 }
-
-    

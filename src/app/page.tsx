@@ -17,7 +17,6 @@ import { collection } from 'firebase/firestore';
 import type { NDTServiceProvider, AuditFirm, Client, NDTTechnique, Manufacturer } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 
 
 export default function HomePage() {
@@ -86,8 +85,7 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-24 overflow-hidden">
-          <InteractiveHexagonGrid className="absolute inset-0" />
+        <section className="relative py-20 md:py-24 overflow-hidden static-hexagon-grid">
           <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
               <h1 className="text-4xl md:text-6xl font-headline font-bold text-white">

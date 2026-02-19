@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const GLOBAL_DATE_FORMAT = "EEE dd MMM yyyy";
+export const GLOBAL_DATE_FORMAT = "dd-MMM-yyyy, EEE";
 export const GLOBAL_DATETIME_FORMAT = "EEE dd MMM yyyy p (OOO)";
 
 export const ACCEPTED_FILE_TYPES = '.pdf,.jpg,.jpeg,.png';

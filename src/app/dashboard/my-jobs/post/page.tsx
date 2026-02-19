@@ -34,7 +34,7 @@ const scopeItemSchema = z.object({
   techniques: z.array(z.string()).min(1, "Please select at least one technique for this asset."),
 });
 
-const baseSchema = z.object({
+const baseSchemaObject = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
   industry: z.string({ required_error: 'Please select an industry.' }),
@@ -49,7 +49,9 @@ const baseSchema = z.object({
   estimatedBudget: z.string().optional(),
   certificationsRequired: z.array(z.string()).min(1, "At least one certification is required."),
   scheduledEndDate: z.date().optional(),
-}).superRefine((data, ctx) => {
+});
+
+const jobRefinement = (data: any, ctx: z.RefinementCtx) => {
     if (!data.isMarketplaceJob) {
         if (!data.scheduledStartDate) {
           ctx.addIssue({
@@ -73,7 +75,19 @@ const baseSchema = z.object({
             message: 'End date cannot be before start date.',
         });
     }
-});
+};
+
+const clientJobSchema = baseSchemaObject.extend({
+    assetIds: z.array(z.string()).min(1, "Please select at least one asset."),
+    scope: z.array(scopeItemSchema).min(1, "You must define a scope for at least one asset."),
+}).superRefine(jobRefinement);
+
+const inspectorJobSchema = baseSchemaObject.extend({
+    clientName: z.string().min(2, "Client Name is required."),
+    description: z.string().min(10, "A description of the asset(s) and scope of work is required."),
+    techniques: z.array(z.string()).min(1, "At least one technique is required."),
+}).superRefine(jobRefinement);
+
 
 const industries = [
     'Oil & Gas — Upstream', 'Oil & Gas — Midstream', 'Oil & Gas — Downstream/Refinery',
@@ -157,27 +171,11 @@ export default function PostJobPage() {
 
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
-    
-    const jobSchema = React.useMemo(() => {
-        let schema = baseSchema;
-        if (isClient) {
-            schema = schema.extend({
-                assetIds: z.array(z.string()).min(1, "Please select at least one asset."),
-                scope: z.array(scopeItemSchema).min(1, "You must define a scope for at least one asset."),
-            });
-        } else { // inspector
-            schema = schema.extend({
-                clientName: z.string().min(2, "Client Name is required."),
-                description: z.string().min(10, "A description of the asset(s) and scope of work is required."),
-                techniques: z.array(z.string()).min(1, "At least one technique is required."),
-            });
-        }
-        return schema;
-    }, [isClient]);
-    
 
-    const form = useForm<z.infer<typeof jobSchema>>({
-        resolver: zodResolver(jobSchema),
+    const currentSchema = isClient ? clientJobSchema : inspectorJobSchema;
+    
+    const form = useForm<z.infer<typeof currentSchema>>({
+        resolver: zodResolver(currentSchema),
         mode: 'onChange',
         defaultValues: {
             title: '', jobType: 'project', industry: undefined, location: '',
@@ -194,7 +192,7 @@ export default function PostJobPage() {
 
     const { fields: scopeFields, replace: replaceScope } = useFieldArray({
         control: form.control,
-        name: "scope",
+        name: "scope" as any, // Type assertion to handle union type
     });
 
     const clientSteps = [
@@ -221,13 +219,13 @@ export default function PostJobPage() {
 
         if (isValid) {
             if (step === 2 && isClient) { // After asset selection
-                const selectedAssetIds = form.getValues('assetIds') || [];
-                const currentScope = form.getValues('scope') || [];
-                const newScope = selectedAssetIds.map(assetId => {
-                    const existingScopeItem = currentScope.find(s => s.assetId === assetId);
+                const selectedAssetIds = form.getValues('assetIds' as any) || [];
+                const currentScope = form.getValues('scope' as any) || [];
+                const newScope = selectedAssetIds.map((assetId: string) => {
+                    const existingScopeItem = currentScope.find((s: any) => s.assetId === assetId);
                     return existingScopeItem || { assetId, techniques: [] };
                 });
-                replaceScope(newScope);
+                replaceScope(newScope as any);
             }
             setStep(prev => Math.min(prev + 1, steps.length));
         }
@@ -235,7 +233,7 @@ export default function PostJobPage() {
 
     const handleBack = () => setStep(prev => Math.max(prev - 1, 1));
 
-    const onSubmit = async (values: z.infer<typeof jobSchema>) => {
+    const onSubmit = async (values: z.infer<typeof currentSchema>) => {
         if (!firestore || !user || (isClient && !clientAssets)) {
             toast({ variant: "destructive", title: "Error", description: "Required data not loaded. Please try again." });
             return;
@@ -256,9 +254,9 @@ export default function PostJobPage() {
 
             const documentMetadata: JobDocument[] = documentFiles.map(file => ({ name: file.name, url: '#' }));
             
-            const jobScope = 'scope' in values ? values.scope : [];
-            const flatAssetIds = jobScope.map(s => s.assetId);
-            const flatTechniques = [...new Set(jobScope.flatMap(s => s.techniques))];
+            const jobScope = 'scope' in values ? (values.scope as any) : [];
+            const flatAssetIds = isClient ? (values as any).assetIds : [];
+            const flatTechniques = isClient ? [...new Set(jobScope.flatMap((s: any) => s.techniques))] : (values as any).techniques;
 
             const newJobData: any = {
                 id: jobRef.id,

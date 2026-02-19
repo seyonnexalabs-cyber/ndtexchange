@@ -20,21 +20,25 @@ import { useToast } from '@/hooks/use-toast';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format, addDays } from 'date-fns';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useFieldArray } from 'react-hook-form';
 
+const scopeItemSchema = z.object({
+  assetId: z.string(),
+  techniques: z.array(z.string()).min(1, "Please select at least one technique for this asset."),
+});
 
 const baseSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
   industry: z.string({ required_error: 'Please select an industry.' }),
   location: z.string().min(2, 'Location is required.'),
-  techniques: z.array(z.string()).min(1, "At least one technique is required."),
   description: z.string().optional(),
   workflow: z.enum(['standard', 'level3', 'auto']),
   documents: z.any().optional(), // For file uploads
@@ -63,8 +67,6 @@ const certificationBodies = [
 const ReviewDialog = ({ isOpen, onClose, onConfirm, jobData, clientAssets, allTechniques }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, jobData: any, clientAssets: Asset[] | null, allTechniques: any[] }) => {
     if (!jobData) return null;
     
-    const selectedAssets = clientAssets?.filter(asset => jobData.assets?.includes(asset.id)) || [];
-
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl">
@@ -78,15 +80,19 @@ const ReviewDialog = ({ isOpen, onClose, onConfirm, jobData, clientAssets, allTe
                         <p><span className="font-semibold">Type:</span> {jobData.jobType}</p>
                         <p><span className="font-semibold">Industry:</span> {jobData.industry}</p>
                         <p><span className="font-semibold">Location:</span> {jobData.location}</p>
-                        <p><span className="font-semibold">Techniques:</span> {jobData.techniques?.join(', ')}</p>
                         <p><span className="font-semibold">Certifications:</span> {jobData.certificationsRequired?.join(', ')}</p>
                         <p><span className="font-semibold">Budget:</span> {jobData.estimatedBudget || 'N/A'}</p>
                         <p><span className="font-semibold">Workflow:</span> {jobData.workflow}</p>
                         <p><span className="font-semibold">Start Date:</span> {jobData.scheduledStartDate ? format(jobData.scheduledStartDate, 'PPP') : 'N/A'}</p>
                         <div>
-                            <p className="font-semibold">Selected Assets ({selectedAssets.length}):</p>
-                            <ul className="list-disc list-inside">
-                                {selectedAssets.map(asset => <li key={asset.id}>{asset.name}</li>)}
+                            <p className="font-semibold">Scope ({jobData.scope?.length || 0} assets):</p>
+                            <ul className="list-disc list-inside space-y-2 mt-2">
+                                {jobData.scope?.map((s: any) => {
+                                    const asset = clientAssets?.find(a => a.id === s.assetId);
+                                    return (
+                                        <li key={s.assetId}>{asset?.name}: <span className="font-medium text-primary">{s.techniques.join(', ')}</span></li>
+                                    )
+                                })}
                             </ul>
                         </div>
                     </div>
@@ -127,31 +133,34 @@ export default function PostJobPage() {
 
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
-
+    
     const jobSchema = React.useMemo(() => {
         let schema = baseSchema;
         if (isClient) {
             schema = schema.extend({
-                assets: z.array(z.string()).refine(value => value.length > 0, {
-                    message: "You have to select at least one asset for this job.",
-                }),
+                assetIds: z.array(z.string()).min(1, "Please select at least one asset."),
+                scope: z.array(scopeItemSchema).min(1, "You must define a scope for at least one asset."),
             });
         } else { // inspector
             schema = schema.extend({
                 clientName: z.string().min(2, "Client Name is required."),
                 description: z.string().min(10, "A description of the asset(s) and scope of work is required."),
+                techniques: z.array(z.string()).min(1, "At least one technique is required."),
             });
         }
         return schema;
     }, [isClient]);
+    
 
     const form = useForm<z.infer<typeof jobSchema>>({
         resolver: zodResolver(jobSchema),
+        mode: 'onChange',
         defaultValues: {
             title: '', jobType: 'project', industry: undefined, location: '',
-            scheduledStartDate: undefined, durationDays: undefined, techniques: [],
+            scheduledStartDate: undefined, durationDays: undefined, 
             estimatedBudget: '', certificationsRequired: [], description: '',
-            bidExpiryDate: undefined, assets: [], workflow: 'standard', isMarketplaceJob: true,
+            bidExpiryDate: undefined, workflow: 'standard', isMarketplaceJob: true,
+            ...(isClient ? { assetIds: [], scope: [] } : { techniques: [] })
         },
     });
 
@@ -159,12 +168,17 @@ export default function PostJobPage() {
     const techniqueOptions = React.useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.title} (${t.id})` })), []);
     const certificationOptions = React.useMemo(() => certificationBodies.map(c => ({ value: c, label: c })), []);
 
+    const { fields: scopeFields, replace: replaceScope } = useFieldArray({
+        control: form.control,
+        name: "scope",
+    });
+
     const clientSteps = [
-        { id: 1, name: 'Core Details', fields: ['title', 'jobType', 'industry', 'location'] },
-        { id: 2, name: 'Scope & Requirements', fields: ['techniques', 'certificationsRequired', 'description', 'estimatedBudget'] },
-        { id: 3, name: 'Asset Selection', fields: ['assets'] },
+        { id: 1, name: 'Core Details', fields: ['title', 'jobType', 'industry', 'location', 'certificationsRequired', 'estimatedBudget'] },
+        { id: 2, name: 'Asset Selection', fields: ['assetIds'] },
+        { id: 3, name: 'Technique Assignment', fields: ['scope'] },
         { id: 4, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'documents', 'bidExpiryDate'] },
-        { id: 5, name: 'Review & Publish', fields: ['isMarketplaceJob', 'workflow'] }
+        { id: 5, name: 'Review & Publish', fields: ['description', 'isMarketplaceJob', 'workflow'] }
     ];
 
     const inspectorSteps = [
@@ -180,7 +194,17 @@ export default function PostJobPage() {
     const handleNext = async () => {
         const currentStepFields = steps.find(s => s.id === step)?.fields;
         const isValid = await form.trigger(currentStepFields as any);
+
         if (isValid) {
+            if (step === 2 && isClient) { // After asset selection
+                const selectedAssetIds = form.getValues('assetIds') || [];
+                const currentScope = form.getValues('scope') || [];
+                const newScope = selectedAssetIds.map(assetId => {
+                    const existingScopeItem = currentScope.find(s => s.assetId === assetId);
+                    return existingScopeItem || { assetId, techniques: [] };
+                });
+                replaceScope(newScope);
+            }
             setStep(prev => Math.min(prev + 1, steps.length));
         }
     };
@@ -208,17 +232,21 @@ export default function PostJobPage() {
 
             const documentMetadata: JobDocument[] = documentFiles.map(file => ({ name: file.name, url: '#' }));
             
+            const jobScope = 'scope' in values ? values.scope : [];
+            const flatAssetIds = jobScope.map(s => s.assetId);
+            const flatTechniques = [...new Set(jobScope.flatMap(s => s.techniques))];
+
             const newJobData = {
                 id: jobRef.id,
                 title: values.title,
                 location: values.location,
-                techniques: values.techniques,
+                techniques: flatTechniques,
                 description: values.description || '',
                 workflow: values.workflow,
                 isInternal: isInternalJob,
-                assetIds: 'assets' in values ? values.assets : [],
-                clientId: user.uid, // Placeholder - a real app would use a company profile
-                client: 'clientName' in values ? values.clientName : "Global Energy Corp.", // Placeholder
+                assetIds: flatAssetIds,
+                clientId: user.uid,
+                client: 'clientName' in values ? values.clientName : "Global Energy Corp.",
                 clientCompanyId: 'client-01', // Placeholder
                 status: newJobStatus,
                 postedDate: format(new Date(), 'yyyy-MM-dd'),
@@ -238,17 +266,16 @@ export default function PostJobPage() {
             
             batch.set(jobRef, newJobData);
 
-            // Create inspection documents for each asset/technique combination
-            if (isClient && values.assets && values.techniques) {
-                for (const assetId of values.assets) {
-                    const asset = clientAssets!.find(a => a.id === assetId);
+            if (isClient && jobScope) {
+                for (const scopeItem of jobScope) {
+                    const asset = clientAssets!.find(a => a.id === scopeItem.assetId);
                     if (!asset) continue;
 
-                    for (const technique of values.techniques) {
-                        const inspectionRef = doc(collection(firestore, `assets/${assetId}/inspections`));
+                    for (const technique of scopeItem.techniques) {
+                        const inspectionRef = doc(collection(firestore, `assets/${scopeItem.assetId}/inspections`));
                         const inspectionData: Omit<Inspection, 'id' | 'report'> = {
                             jobId: jobRef.id,
-                            assetId: assetId,
+                            assetId: scopeItem.assetId,
                             assetName: asset.name,
                             technique: technique,
                             inspector: "Unassigned",
@@ -292,12 +319,12 @@ export default function PostJobPage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <div className="mb-12">
+             <div className="mb-12">
                 <nav aria-label="Progress">
                     <ol role="list" className="flex items-center justify-between">
                         {steps.map((s, index) => (
                         <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
-                            {index > 0 && <div className="absolute inset-0 top-4 -ml-px mt-0.5 h-0.5 w-full bg-border" aria-hidden="true" />}
+                            {index > 0 && <div className={cn("absolute inset-0 top-4 -ml-px mt-0.5 h-0.5 w-full", step > index ? "bg-primary" : "bg-border")} aria-hidden="true" />}
                             <div className="relative flex h-8 w-8 items-center justify-center rounded-full"
                             >
                                 {step > s.id ? (
@@ -323,7 +350,6 @@ export default function PostJobPage() {
             
             <FormProvider {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Step 1: Core Details */}
                     {step === 1 && (
                         <Card>
                             <CardHeader><CardTitle>Core Details</CardTitle><CardDescription>Start with the basic information for your job.</CardDescription></CardHeader>
@@ -335,25 +361,13 @@ export default function PostJobPage() {
                                     <FormField name="industry" control={form.control} render={({ field }) => (<FormItem><FormLabel>Industry / Sector*</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select an industry" /></SelectTrigger></FormControl><SelectContent><ScrollArea className="h-60">{industries.map(industry => <SelectItem key={industry} value={industry}>{industry}</SelectItem>)}</ScrollArea></SelectContent></Select><FormMessage /></FormItem>)} />
                                 </div>
                                 <FormField name="location" control={form.control} render={({ field }) => (<FormItem><FormLabel>Site Location*</FormLabel><FormControl><Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Step 2: Scope & Requirements */}
-                    {step === 2 && (
-                         <Card>
-                            <CardHeader><CardTitle>Scope & Requirements</CardTitle><CardDescription>Define the technical requirements and scope of work.</CardDescription></CardHeader>
-                            <CardContent className="space-y-4">
-                                <FormField name="description" control={form.control} render={({ field }) => (<FormItem><FormLabel>Scope Description{isInspector ? '*' : ''}</FormLabel><FormControl><Textarea placeholder="Provide a detailed scope of work..." {...field} className="min-h-[150px]" /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField name="techniques" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>NDT Techniques Required*</FormLabel><MultiSelect options={techniqueOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select techniques..." /><FormMessage /></FormItem>)} />
                                 <FormField name="certificationsRequired" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Certifications Required*</FormLabel><MultiSelect options={certificationOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select certifications..." /><FormMessage /></FormItem>)} />
                                 <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>
                     )}
 
-                    {/* Step 3: Asset Selection (Client Only) */}
-                    {step === 3 && isClient && (
+                    {step === 2 && isClient && (
                          <Card>
                             <CardHeader><CardTitle>Asset Selection</CardTitle><CardDescription>Choose which of your assets are included in this job's scope.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
@@ -362,10 +376,10 @@ export default function PostJobPage() {
                                     <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueLocations.map(l => <SelectItem key={l} value={l}>{l === 'all' ? 'All Locations' : l}</SelectItem>)}</SelectContent></Select>
                                     <Select value={assetTypeFilter} onValueChange={setAssetTypeFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueTypes.map(t => <SelectItem key={t} value={t}>{t === 'all' ? 'All Types' : t}</SelectItem>)}</SelectContent></Select>
                                 </div>
-                                <FormField control={form.control} name="assets" render={() => (
+                                <FormField control={form.control} name="assetIds" render={() => (
                                     <FormItem>
                                         <ScrollArea className="h-60 w-full rounded-md border">
-                                            <div className="p-4">{filteredAssets.map((asset) => (<FormField key={asset.id} control={form.control} name="assets" render={({ field }) => (<FormItem key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3"><FormControl><Checkbox checked={field.value?.includes(asset.id)} onCheckedChange={(checked) => (checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange(field.value?.filter((value) => value !== asset.id)))} /></FormControl><FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location} / {asset.type})</span></FormLabel></FormItem>)} />))}</div>
+                                            <div className="p-4">{filteredAssets.map((asset) => (<FormField key={asset.id} control={form.control} name="assetIds" render={({ field }) => (<FormItem key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3"><FormControl><Checkbox checked={field.value?.includes(asset.id)} onCheckedChange={(checked) => (checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange(field.value?.filter((value) => value !== asset.id)))} /></FormControl><FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location} / {asset.type})</span></FormLabel></FormItem>)} />))}</div>
                                         </ScrollArea>
                                         <FormMessage />
                                     </FormItem>
@@ -374,7 +388,38 @@ export default function PostJobPage() {
                         </Card>
                     )}
 
-                    {/* Step 4 (Client) or 3 (Inspector): Scheduling & Documents */}
+                    {step === 3 && isClient && (
+                         <Card>
+                            <CardHeader><CardTitle>Technique Assignment</CardTitle><CardDescription>Assign specific NDT techniques to each selected asset.</CardDescription></CardHeader>
+                            <CardContent className="space-y-6">
+                                {scopeFields.map((field, index) => {
+                                    const asset = clientAssets?.find(a => a.id === field.assetId);
+                                    return (
+                                        <div key={field.id} className="rounded-md border p-4 space-y-4">
+                                            <h4 className="font-semibold">{asset?.name} <span className="text-sm font-normal text-muted-foreground">({asset?.location})</span></h4>
+                                            <FormField
+                                                control={form.control}
+                                                name={`scope.${index}.techniques`}
+                                                render={({ field: multiSelectField }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="sr-only">Techniques for {asset?.name}</FormLabel>
+                                                        <MultiSelect
+                                                            options={techniqueOptions}
+                                                            selected={multiSelectField.value}
+                                                            onChange={multiSelectField.onChange}
+                                                            placeholder="Select techniques for this asset..."
+                                                        />
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    )
+                                })}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {(step === 4 && isClient) || (step === 3 && isInspector) ? (
                          <Card>
                             <CardHeader><CardTitle>Scheduling & Documents</CardTitle><CardDescription>Provide target dates and attach relevant files.</CardDescription></CardHeader>
@@ -389,18 +434,17 @@ export default function PostJobPage() {
                         </Card>
                     ) : null}
 
-                    {/* Step 5 (Client): Review & Publish */}
-                    {step === 5 && isClient && (
+                    {(step === 5 && isClient) ? (
                          <Card>
-                            <CardHeader><CardTitle>Review & Publish</CardTitle><CardDescription>Finalize marketplace and workflow options before posting.</CardDescription></CardHeader>
+                            <CardHeader><CardTitle>Final Details & Publish</CardTitle><CardDescription>Add a description and finalize workflow options before posting.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
+                                <FormField name="description" control={form.control} render={({ field }) => (<FormItem><FormLabel>Overall Job Description</FormLabel><FormControl><Textarea placeholder="Provide a summary of the work..." {...field} className="min-h-[150px]" /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="isMarketplaceJob" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border bg-background p-4"><div className="space-y-0.5"><FormLabel className="text-base">Post to Marketplace</FormLabel><FormDescription>Post this job publicly to all qualified providers.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
                                 {isMarketplaceJob && <FormField control={form.control} name="workflow" render={({ field }) => (<FormItem><FormLabel>Approval Workflow</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl><SelectContent><SelectItem value="standard">Standard (Client Review Only)</SelectItem><SelectItem value="level3">Level III Audit (Manual)</SelectItem><SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>}
                             </CardContent>
                         </Card>
-                    )}
+                    ) : null}
                     
-                    {/* Step 4 (Inspector): Review & Create */}
                     {step === 4 && isInspector && (
                          <Card>
                             <CardHeader><CardTitle>Review & Create</CardTitle><CardDescription>Review all details before creating this internal job.</CardDescription></CardHeader>
@@ -437,3 +481,5 @@ export default function PostJobPage() {
         </div>
     );
 }
+
+    

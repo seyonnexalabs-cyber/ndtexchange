@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -25,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Job, JobPayment, PlatformUser } from '@/lib/types';
 
 
@@ -221,6 +220,7 @@ const PaymentsPage = () => {
     const { data: jobPayments } = useCollection<JobPayment>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobPayments') : null, [firestore, user]));
     const { data: jobs } = useCollection<Job>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]));
     const { data: currentUser } = useDoc<PlatformUser>(useMemoFirebase(() => firestore && user ? doc(firestore, 'users', user.uid) : null, [firestore, user]));
+    const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'companies') : null, [firestore, user]));
     
     const { filteredPayments, title, canRecordPayment } = useMemo(() => {
         if (!jobPayments || !currentUser) return { filteredPayments: [], title: 'Payment Tracking', canRecordPayment: false };
@@ -264,17 +264,63 @@ const PaymentsPage = () => {
         return [];
     }, [role, jobs, currentUser]);
 
-     const handleFormSubmit = (values: PaymentFormValues) => {
-        if (!jobs) return;
+    const handleFormSubmit = async (values: PaymentFormValues) => {
+        if (!jobs || !currentUser || !firestore || !allCompanies) return;
         const job = jobs.find(j => j.id === values.jobId);
         if (!job) return;
 
-        toast({
-            title: "Payment Recorded",
-            description: `A payment of $${values.amount.toLocaleString()} for job "${job.title}" has been recorded.`,
-        });
-        setIsRecordPaymentOpen(false);
-        console.log("Recorded Payment: ", values);
+        const provider = allCompanies.find(c => c.id === job.providerId);
+        // This is a simplification. A real app would have a dedicated auditor assignment.
+        const auditor = allCompanies.find(c => c.type === 'Auditor'); 
+
+        let payeeName = '';
+        let payeeType: 'Provider' | 'Auditor' = 'Provider';
+
+        if (values.payeeType === 'Provider') {
+            payeeName = provider?.name || 'Unknown Provider';
+            payeeType = 'Provider';
+        } else if (values.payeeType === 'Auditor') {
+            payeeName = auditor?.name || 'NDT Auditors LLC';
+            payeeType = 'Auditor';
+        } else {
+            // Default to provider if type is not specified (e.g., standard workflow)
+            payeeName = provider?.name || 'Unknown Provider';
+        }
+
+        const newPaymentRef = doc(collection(firestore, 'jobPayments'));
+        
+        const newPaymentData: Omit<JobPayment, 'id'> = {
+            jobId: values.jobId,
+            jobTitle: job.title,
+            amount: values.amount,
+            payer: currentUser.company,
+            payee: payeeName,
+            payeeType: payeeType,
+            paidOn: format(values.paymentDate, 'yyyy-MM-dd'),
+            status: 'Paid',
+        };
+
+        try {
+            await setDoc(newPaymentRef, { id: newPaymentRef.id, ...newPaymentData });
+
+            // If paying the provider, and not an auditor, update the job status.
+            if (payeeType === 'Provider' && job.status !== 'Paid') {
+                await updateDoc(doc(firestore, 'jobs', job.id), { status: 'Paid' });
+            }
+
+            toast({
+                title: "Payment Recorded",
+                description: `A payment of $${values.amount.toLocaleString()} for job "${job.title}" has been recorded.`,
+            });
+            setIsRecordPaymentOpen(false);
+        } catch (error) {
+            console.error("Error recording payment: ", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to record payment",
+                description: "An error occurred while saving the payment record."
+            });
+        }
     };
 
     const constructUrl = (base: string) => {

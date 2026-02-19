@@ -24,7 +24,7 @@ const workflowData = [
     phase: 'PHASE 01',
     title: 'Project Creation & Scoping',
     actor: 'Client',
-    description: 'Client details the project: assets, NDT methods, urgency, and location. They select a workflow (Standard, Level III Required) and upload scope documents. The platform verifies and publishes the project.',
+    description: 'Client details the project: assets, NDT methods, urgency, and location. They select a workflow (Standard or Level III Required) and upload scope documents. The platform verifies and publishes the project.',
   },
   {
     phase: 'PHASE 02',
@@ -60,7 +60,7 @@ const workflowData = [
     phase: 'PHASE 07',
     title: 'Collaborative Report Review',
     actor: 'Both Parties',
-    description: 'Depending on the selected workflow, the report is routed to a Level III Auditor and/or the Client for review. Comments and revision requests are handled directly on the platform.',
+    description: 'The report is routed for review. If a Level III workflow was selected, an Auditor reviews it first. Otherwise, it goes directly to the Client. Comments and revision requests are handled on the platform.',
   },
   {
     phase: 'PHASE 08',

@@ -129,7 +129,7 @@ export default function NDT40Page() {
                         <Link href="/signup">Start Your Free Trial</Link>
                       </Button>
                       <Button size="lg" asChild variant="outline">
-                        <Link href="/contact">Request a Demo</Link>
+                        <Link href="/request-demo">Request a Demo</Link>
                       </Button>
                     </div>
                   </div>

@@ -20,7 +20,7 @@ export default function PublicHeader() {
     { href: '/manufacturers', label: 'Manufacturers' },
     { href: '/auditors', label: 'Auditors' },
     { href: '/platform-workflow', label: 'Workflow' },
-    { href: '/contact', label: 'Request a Demo' },
+    { href: '/request-demo', label: 'Request a Demo' },
     { href: '/help', label: 'Help' },
   ];
 

@@ -99,7 +99,7 @@ export default function HomePage() {
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="/contact">Request a Demo</Link>
+                  <Link href="/request-demo">Request a Demo</Link>
                 </Button>
                 <Button size="lg" variant="link" asChild>
                   <Link href="/platform-workflow">How It Works</Link>

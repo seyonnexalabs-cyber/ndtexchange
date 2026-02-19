@@ -6,6 +6,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { FeatureCard } from '@/app/components/feature-card';
 import { Target, Zap, LineChart, Handshake } from 'lucide-react';
+import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 
 export const metadata: Metadata = {
   title: 'OEM Solutions | NDT EXCHANGE',

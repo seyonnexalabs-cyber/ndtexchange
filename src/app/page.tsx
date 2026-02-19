@@ -17,6 +17,7 @@ import { collection } from 'firebase/firestore';
 import type { NDTServiceProvider, AuditFirm, Client, NDTTechnique, Manufacturer } from '@/lib/types';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import InteractiveHexagonGrid from '@/app/components/interactive-hexagon-grid';
 
 
 export default function HomePage() {
@@ -85,13 +86,14 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-24 overflow-hidden bg-muted hexagon-grid-container">
+        <section className="relative py-20 md:py-24 overflow-hidden">
+          <InteractiveHexagonGrid className="absolute inset-0" />
           <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl text-center mx-auto">
-              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary">
+              <h1 className="text-4xl md:text-6xl font-headline font-bold text-white">
                 The Digital Marketplace for Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-gray-300">
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">

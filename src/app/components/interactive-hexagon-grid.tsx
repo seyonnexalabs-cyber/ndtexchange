@@ -20,7 +20,7 @@ export default function InteractiveHexagonGrid({ className, children }: { classN
         <div
             ref={containerRef}
             onMouseMove={handleMouseMove}
-            className={cn('hexagon-grid-container relative', className)}
+            className={cn('hexagon-grid-container', className)}
         >
             {children}
         </div>

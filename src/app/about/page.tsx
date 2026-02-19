@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck, Building, UserCheck, CheckCircle, Globe } from 'lucide-react';
+import { ShieldCheck, Building, UserCheck, CheckCircle, Globe, Workflow, Users, DatabaseZap } from 'lucide-react';
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -101,7 +101,62 @@ export default function AboutPage() {
           </div>
         </section>
 
-         <section className="bg-card py-20">
+        <section className="py-20 bg-card">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl font-headline font-semibold text-primary">
+                    Our Unique Approach: A Connected Ecosystem
+                </h2>
+                <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                    While other platforms may offer project management or data storage, NDT EXCHANGE is built on a different philosophy: we connect the entire asset integrity ecosystem.
+                </p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3 max-w-5xl mx-auto">
+                <Card className="p-2 border-0 bg-transparent shadow-none">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/10 p-4 rounded-full w-fit">
+                                <Workflow className="w-8 h-8 text-primary" />
+                            </div>
+                            <CardTitle className="text-2xl font-headline">Marketplace & Management in One</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>We are the only platform that seamlessly integrates a competitive service procurement marketplace with a robust suite of operational management tools for both asset owners and service providers. This eliminates silos and creates a single, end-to-end workflow from job creation to final report.</p>
+                    </CardContent>
+                </Card>
+                <Card className="p-2 border-0 bg-transparent shadow-none">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                           <div className="bg-primary/10 p-4 rounded-full w-fit">
+                                <Users className="w-8 h-8 text-primary" />
+                            </div>
+                            <CardTitle className="text-2xl font-headline">For the Entire Industry</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>NDT EXCHANGE is designed for every stakeholder. Clients gain control over their assets, Providers find work and manage operations, Auditors ensure compliance, and OEMs connect with their user base. This network effect creates unparalleled value and efficiency for everyone.</p>
+                    </CardContent>
+                </Card>
+                 <Card className="p-2 border-0 bg-transparent shadow-none">
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                           <div className="bg-primary/10 p-4 rounded-full w-fit">
+                                <DatabaseZap className="w-8 h-8 text-primary" />
+                            </div>
+                            <CardTitle className="text-2xl font-headline">Built for NDT 4.0</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-muted-foreground">
+                        <p>We treat your data as a valuable asset from day one. By enforcing structured digital reporting instead of just storing static files, our platform paves the way for advanced analytics, predictive maintenance, and the full realization of NDT 4.0 principles.</p>
+                    </CardContent>
+                </Card>
+            </div>
+          </div>
+        </section>
+
+         <section className="bg-background py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-headline font-semibold text-primary">
               Ready to Join NDT EXCHANGE?

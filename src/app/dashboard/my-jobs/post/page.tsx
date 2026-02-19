@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NDTTechniques } from "@/lib/seed-data";
-import type { Asset, JobDocument } from '@/lib/types';
+import type { Asset, JobDocument, Inspection } from '@/lib/types';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X, Check, ArrowRight, ArrowLeft } from "lucide-react";
 import Link from 'next/link';
@@ -23,7 +23,7 @@ import { format, addDays } from 'date-fns';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -175,6 +175,7 @@ export default function PostJobPage() {
     ];
 
     const steps = isClient ? clientSteps : inspectorSteps;
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const handleNext = async () => {
         const currentStepFields = steps.find(s => s.id === step)?.fields;
@@ -187,57 +188,87 @@ export default function PostJobPage() {
     const handleBack = () => setStep(prev => Math.max(prev - 1, 1));
 
     const onSubmit = async (values: z.infer<typeof jobSchema>) => {
-        if (!firestore || !user) {
-            toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to create a job." });
+        if (!firestore || !user || (isClient && !clientAssets)) {
+            toast({ variant: "destructive", title: "Error", description: "Required data not loaded. Please try again." });
             return;
         }
 
-        const isInternalJob = isInspector || (isClient && !values.isMarketplaceJob);
-        const newJobStatus = (isInternalJob ? 'Assigned' : 'Posted');
-        const jobRef = doc(collection(firestore, 'jobs'), `JOB-${Date.now()}`);
-        
-        let endDate = values.scheduledEndDate;
-        if(values.scheduledStartDate && values.durationDays) {
-            endDate = addDays(values.scheduledStartDate, values.durationDays);
-        }
+        setIsSubmitting(true);
+        const batch = writeBatch(firestore);
 
-        const documentMetadata: JobDocument[] = documentFiles.map(file => ({ name: file.name, url: '#' }));
-        
-        const newJobData = {
-            id: jobRef.id,
-            title: values.title,
-            location: values.location,
-            techniques: values.techniques,
-            description: values.description || '',
-            workflow: values.workflow,
-            isInternal: isInternalJob,
-            assetIds: 'assets' in values ? values.assets : [],
-            clientId: user.uid,
-            client: 'clientName' in values ? values.clientName : "Global Energy Corp.",
-            clientCompanyId: 'client-01',
-            status: newJobStatus,
-            postedDate: format(new Date(), 'yyyy-MM-dd'),
-            createdAt: serverTimestamp(),
-            createdBy: user.uid,
-            modifiedAt: serverTimestamp(),
-            modifiedBy: user.uid,
-            bidExpiryDate: values.bidExpiryDate ? format(values.bidExpiryDate, 'yyyy-MM-dd') : null,
-            scheduledStartDate: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : null,
-            scheduledEndDate: endDate ? format(endDate, 'yyyy-MM-dd') : null,
-            documents: documentMetadata,
-            jobType: values.jobType,
-            industry: values.industry,
-            durationDays: values.durationDays,
-            certificationsRequired: values.certificationsRequired,
-        };
-        
         try {
-            await setDoc(jobRef, newJobData);
-            toast({ title: 'Job Posted Successfully', description: `${values.title} is now available in your jobs list.` });
+            const isInternalJob = isInspector || (isClient && !values.isMarketplaceJob);
+            const newJobStatus = (isInternalJob ? 'Assigned' : 'Posted');
+            const jobRef = doc(collection(firestore, 'jobs'));
+            
+            let endDate = values.scheduledEndDate;
+            if(values.scheduledStartDate && values.durationDays) {
+                endDate = addDays(values.scheduledStartDate, values.durationDays);
+            }
+
+            const documentMetadata: JobDocument[] = documentFiles.map(file => ({ name: file.name, url: '#' }));
+            
+            const newJobData = {
+                id: jobRef.id,
+                title: values.title,
+                location: values.location,
+                techniques: values.techniques,
+                description: values.description || '',
+                workflow: values.workflow,
+                isInternal: isInternalJob,
+                assetIds: 'assets' in values ? values.assets : [],
+                clientId: user.uid, // Placeholder - a real app would use a company profile
+                client: 'clientName' in values ? values.clientName : "Global Energy Corp.", // Placeholder
+                clientCompanyId: 'client-01', // Placeholder
+                status: newJobStatus,
+                postedDate: format(new Date(), 'yyyy-MM-dd'),
+                createdAt: serverTimestamp(),
+                createdBy: user.uid,
+                modifiedAt: serverTimestamp(),
+                modifiedBy: user.uid,
+                bidExpiryDate: values.bidExpiryDate ? format(values.bidExpiryDate, 'yyyy-MM-dd') : null,
+                scheduledStartDate: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : null,
+                scheduledEndDate: endDate ? format(endDate, 'yyyy-MM-dd') : null,
+                documents: documentMetadata,
+                jobType: values.jobType,
+                industry: values.industry,
+                durationDays: values.durationDays,
+                certificationsRequired: values.certificationsRequired,
+            };
+            
+            batch.set(jobRef, newJobData);
+
+            // Create inspection documents for each asset/technique combination
+            if (isClient && values.assets && values.techniques) {
+                for (const assetId of values.assets) {
+                    const asset = clientAssets!.find(a => a.id === assetId);
+                    if (!asset) continue;
+
+                    for (const technique of values.techniques) {
+                        const inspectionRef = doc(collection(firestore, `assets/${assetId}/inspections`));
+                        const inspectionData: Omit<Inspection, 'id' | 'report'> = {
+                            jobId: jobRef.id,
+                            assetId: assetId,
+                            assetName: asset.name,
+                            technique: technique,
+                            inspector: "Unassigned",
+                            date: values.scheduledStartDate ? format(values.scheduledStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+                            status: 'Scheduled',
+                        };
+                        batch.set(inspectionRef, { id: inspectionRef.id, ...inspectionData });
+                    }
+                }
+            }
+
+            await batch.commit();
+            
+            toast({ title: 'Job Posted Successfully', description: `${values.title} has been created and relevant inspections are scheduled.` });
             router.push(constructUrl('/dashboard/my-jobs'));
         } catch(error) {
             console.error(error);
             toast({ variant: "destructive", title: "Error", description: "Failed to post job." });
+        } finally {
+            setIsSubmitting(false);
         }
     };
     
@@ -263,7 +294,7 @@ export default function PostJobPage() {
         <div className="max-w-4xl mx-auto">
             <div className="mb-12">
                 <nav aria-label="Progress">
-                    <ol role="list" className="flex items-center">
+                    <ol role="list" className="flex items-center justify-between">
                         {steps.map((s, index) => (
                         <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
                             {index > 0 && <div className="absolute inset-0 top-4 -ml-px mt-0.5 h-0.5 w-full bg-border" aria-hidden="true" />}
@@ -387,8 +418,8 @@ export default function PostJobPage() {
                             </Button>
                         ) : (
                              <div className="flex gap-2">
-                                <Button type="submit" variant="outline">Save as Draft</Button>
-                                <Button type="button" onClick={() => setIsReviewDialogOpen(true)}>{isClient ? 'Review & Publish' : 'Review & Create'}</Button>
+                                <Button type="submit" variant="outline" disabled={isSubmitting}>Save as Draft</Button>
+                                <Button type="button" onClick={() => setIsReviewDialogOpen(true)} disabled={isSubmitting}>{isClient ? 'Review & Publish' : 'Review & Create'}</Button>
                             </div>
                         )}
                     </div>

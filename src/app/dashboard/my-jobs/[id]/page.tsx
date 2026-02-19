@@ -167,16 +167,17 @@ const InspectorActions = ({ status, onScheduleClick }: { status: Job['status'], 
 }
 
 
-const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprove, onReject }: { 
+const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprove, onReject, inspections, handleViewDocuments }: { 
     status: Job['status'], 
     workflow: Job['workflow'], 
     isAuditor: boolean, 
     reportSubmitted: boolean,
     onApprove: () => void, 
-    onReject: (comments: string) => void 
+    onReject: (comments: string) => void,
+    inspections: Inspection[],
+    handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void,
 }) => {
     const [rejectionComment, setRejectionComment] = React.useState('');
-    // 1. Standard workflow - always disabled and just provides info
     if (workflow === 'standard') {
         return (
             <Card>
@@ -188,10 +189,8 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         );
     }
     
-    // 2. Level 3/Auto workflow
     const isPostAudit = ['Audit Approved', 'Client Review', 'Client Approved', 'Completed', 'Paid'].includes(status);
 
-    // 2a. Audit is completed and approved
     if (isPostAudit) {
         return (
             <Card>
@@ -211,8 +210,6 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         )
     }
 
-    // 2b. Audit is pending or active
-    // If report is not submitted yet
     if (!reportSubmitted) {
          return (
             <Card>
@@ -224,15 +221,31 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         );
     }
 
-    // If report submitted and user IS the auditor
     if (isAuditor) {
-         return (
+        const reportsToReview = inspections.filter(i => i.report && i.status === 'Completed');
+        return (
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Auditor Actions</CardTitle>
                     <CardDescription>Review the report and provide your decision.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    <div>
+                        <h4 className="font-semibold mb-2">Reports for Review:</h4>
+                        {reportsToReview.length > 0 ? (
+                            <div className="space-y-2 rounded-md border p-2">
+                                {reportsToReview.map(inspection => (
+                                    <div key={inspection.id} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
+                                        <div className="flex items-center gap-2 truncate">
+                                            <FileText className="h-4 w-4 shrink-0 text-primary" />
+                                            <span className="truncate">{inspection.assetName} - {inspection.technique} Report</span>
+                                        </div>
+                                        <Button variant="ghost" size="sm" onClick={() => handleViewDocuments(inspection.report ? [{ name: `Report_${inspection.report.id}.pdf`, url: '', source: 'Generated Report' }] : [])}>View</Button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : <p className="text-sm text-muted-foreground">No reports submitted for review yet.</p>}
+                    </div>
                     <div>
                         <Label htmlFor="audit-comments">Comments for Provider (if requesting revisions)</Label>
                         <Textarea id="audit-comments" placeholder="e.g., 'Please clarify the UT readings in section 3.2...'" className="mt-2 min-h-[120px]" value={rejectionComment} onChange={(e) => setRejectionComment(e.target.value)} />
@@ -252,7 +265,6 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
         )
     }
 
-    // If report submitted and user is NOT the auditor (client or inspector)
     return (
          <Card>
             <CardHeader>
@@ -263,12 +275,14 @@ const AuditorActions = ({ status, workflow, isAuditor, reportSubmitted, onApprov
     );
 };
 
-const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }: { 
+const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject, inspections, handleViewDocuments }: { 
     status: Job['status'], 
     workflow: Job['workflow'],
     isClient: boolean, 
     onApprove: () => void, 
-    onReject: (comments: string) => void 
+    onReject: (comments: string) => void,
+    inspections: Inspection[],
+    handleViewDocuments: (docs: ViewerDocument[], initialDoc?: string) => void,
 }) => {
     const [rejectionComment, setRejectionComment] = React.useState('');
     const showStandardReview = isClient && status === 'Report Submitted' && workflow === 'standard';
@@ -278,6 +292,7 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
         return null;
     }
 
+    const reportsToReview = inspections.filter(i => i.report && i.status === 'Completed');
     const title = showAuditedReview ? 'Final Review' : 'Report Review';
     const description = showAuditedReview
         ? 'The audited report is ready for your final approval.'
@@ -289,9 +304,24 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
                 <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> {title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-sm text-muted-foreground">Review the submitted report and documents. Approve the report to proceed, or request revisions from the provider.</p>
-                <div className="mt-4">
+            <CardContent className="space-y-4">
+                <div>
+                    <h4 className="font-semibold mb-2">Reports for Your Approval:</h4>
+                    {reportsToReview.length > 0 ? (
+                        <div className="space-y-2 rounded-md border p-2">
+                             {reportsToReview.map(inspection => (
+                                <div key={inspection.id} className="flex items-center justify-between text-sm p-1 hover:bg-muted rounded">
+                                    <div className="flex items-center gap-2 truncate">
+                                        <FileText className="h-4 w-4 shrink-0 text-primary" />
+                                        <span className="truncate">{inspection.assetName} - {inspection.technique} Report</span>
+                                    </div>
+                                    <Button variant="ghost" size="sm" onClick={() => handleViewDocuments(inspection.report ? [{ name: `Report_${inspection.report.id}.pdf`, url: '', source: 'Generated Report' }] : [])}>View</Button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : <p className="text-sm text-muted-foreground">No reports are ready for your review.</p>}
+                </div>
+                 <div className="mt-4">
                     <Label htmlFor="client-rejection-comments">Comments for Provider (if requesting revisions)</Label>
                     <Textarea id="client-rejection-comments" placeholder="e.g., 'Please provide a higher resolution image for Fig 3...'" className="mt-2 min-h-[120px]" value={rejectionComment} onChange={(e) => setRejectionComment(e.target.value)} />
                 </div>
@@ -309,6 +339,9 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject }
         </Card>
     );
 };
+
+// ... (Rest of the file remains the same, only the two components above are updated with inspections prop and rendering logic)
+
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -1151,6 +1184,8 @@ export default function JobDetailPage() {
                                     isClient={isClient}
                                     onApprove={handleClientApprove}
                                     onReject={handleClientReject}
+                                    inspections={inspections || []}
+                                    handleViewDocuments={handleViewDocuments}
                                 />
                                 <AuditorActions 
                                     status={jobDetails.status} 
@@ -1159,6 +1194,8 @@ export default function JobDetailPage() {
                                     reportSubmitted={reportSubmitted}
                                     onApprove={handleAuditorApprove}
                                     onReject={handleAuditorReject}
+                                    inspections={inspections || []}
+                                    handleViewDocuments={handleViewDocuments}
                                 />
 
                                 <Card>

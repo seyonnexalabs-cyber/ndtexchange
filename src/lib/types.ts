@@ -87,7 +87,7 @@ export type Job = {
     industry?: string;
     durationDays?: number;
     estimatedBudget?: string;
-    certificationsRequired?: string;
+    certificationsRequired?: string[];
     clientCompanyId?: string;
     createdAt?: any;
     createdBy?: string;

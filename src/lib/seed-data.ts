@@ -455,7 +455,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['UT', 'MT'],
         jobType: 'project',
         industry: 'Oil & Gas — Downstream/Refinery',
-        certificationsRequired: 'ASNT UT L-II, ASNT MT L-II',
+        certificationsRequired: ['ASNT UT L-II', 'ASNT MT L-II'],
         estimatedBudget: '$25,000',
     },
     { 
@@ -481,7 +481,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         jobType: 'project',
         industry: 'Chemical Processing',
         estimatedBudget: '$15,000',
-        certificationsRequired: 'ASNT UT L-II'
+        certificationsRequired: ['ASNT UT L-II']
     },
     { 
         id: 'JOB-002', 
@@ -515,9 +515,9 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         jobType: 'callout',
         industry: 'Oil & Gas — Downstream/Refinery',
         estimatedBudget: '$5,000',
-        certificationsRequired: 'ASNT MT L-II'
+        certificationsRequired: ['ASNT MT L-II']
     },
-    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', providerId: 'provider-01', location: 'Vessel MT-Alpha', techniques: ['UT'], status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-tech-01'], equipmentIds: ['EQUIP-1000'], assetIds: ['ASSET-001'], workflow: 'standard', jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT UT L-I' },
+    { id: 'JOB-003', title: 'Annual UT Thickness Survey', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', providerId: 'provider-01', location: 'Vessel MT-Alpha', techniques: ['UT'], status: 'Completed', postedDate: '2024-05-15', scheduledStartDate: '2024-06-10', scheduledEndDate: '2024-06-12', technicianIds: ['user-tech-01'], equipmentIds: ['EQUIP-1000'], assetIds: ['ASSET-001'], workflow: 'standard', jobType: 'project', industry: 'Marine', certificationsRequired: ['ASNT UT L-I'] },
     { 
         id: 'JOB-004', 
         title: 'Pipeline Weld Inspections', 
@@ -536,7 +536,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['PAUT'],
         jobType: 'project',
         industry: 'Oil & Gas — Midstream',
-        certificationsRequired: 'ASNT UT L-II PAUT'
+        certificationsRequired: ['ASNT UT L-II PAUT']
     },
     { 
         id: 'JOB-005', 
@@ -553,11 +553,11 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['VT'],
         jobType: 'project',
         industry: 'Infrastructure & Construction',
-        certificationsRequired: 'CWI'
+        certificationsRequired: ['CWI']
     },
-    { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', clientCompanyId: 'client-06', location: 'Houston, TX', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3', assetIds: ['ASSET-007'], techniques: ['RT'], jobType: 'shutdown', industry: 'Power Generation — Fossil Fuel', certificationsRequired: 'ASNT RT L-II' },
-    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', clientCompanyId: 'client-05', providerId: 'provider-01', location: 'Baton Rouge, LA', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-tech-01'], workflow: 'level3', techniques: ['ET'], jobType: 'project', industry: 'Chemical Processing', certificationsRequired: 'ASNT ET L-II' },
-    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-03', location: 'Long Beach, CA', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], equipmentIds: ['EQUIP-1000'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['UT'], jobType: 'callout', industry: 'Oil & Gas — Downstream/Refinery', certificationsRequired: 'ASNT UT L-II' },
+    { id: 'JOB-006', title: 'RT on Boiler Tubes', client: 'Power Generation LLC', clientCompanyId: 'client-06', location: 'Houston, TX', status: 'Posted', postedDate: '2024-07-03', bidExpiryDate: nextWeek.toISOString().split('T')[0], workflow: 'level3', assetIds: ['ASSET-007'], techniques: ['RT'], jobType: 'shutdown', industry: 'Power Generation — Fossil Fuel', certificationsRequired: ['ASNT RT L-II'] },
+    { id: 'JOB-007', title: 'Eddy Current on Heat Exchanger Tubes', client: 'Chemical Plant C', clientCompanyId: 'client-05', providerId: 'provider-01', location: 'Baton Rouge, LA', status: 'Report Submitted', postedDate: '2024-07-05', scheduledStartDate: yesterday.toISOString().split('T')[0], scheduledEndDate: yesterday.toISOString().split('T')[0], assetIds: ['ASSET-003'], technicianIds: ['user-tech-01'], workflow: 'level3', techniques: ['ET'], jobType: 'project', industry: 'Chemical Processing', certificationsRequired: ['ASNT ET L-II'] },
+    { id: 'JOB-008', title: 'Emergency Repair Verification', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-03', location: 'Long Beach, CA', status: 'Scheduled', postedDate: '2024-07-10', scheduledStartDate: tomorrow.toISOString().split('T')[0], scheduledEndDate: dayAfterTomorrow.toISOString().split('T')[0], technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], equipmentIds: ['EQUIP-1000'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['UT'], jobType: 'callout', industry: 'Oil & Gas — Downstream/Refinery', certificationsRequired: ['ASNT UT L-II'] },
     { 
         id: 'JOB-009', 
         title: 'APR Inspection of Boiler Tubes', 
@@ -574,12 +574,12 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['APR'],
         jobType: 'project',
         industry: 'Chemical Processing',
-        certificationsRequired: 'OEM Certified'
+        certificationsRequired: ['OEM Certified']
     },
-    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', clientCompanyId: 'client-07', providerId: 'provider-04', location: 'Port Terminal F', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-tech-01'], assetIds: ['ASSET-009'], workflow: 'standard', techniques: ['VT'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT VT L-II' },
-    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', providerId: 'provider-02', location: 'New Orleans, LA', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-007'], workflow: 'standard', techniques: ['UT', 'MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT UT L-I' },
-    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', clientCompanyId: 'client-06', providerId: 'provider-01', location: 'Houston, TX', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-tech-01'], assetIds: ['ASSET-007'], workflow: 'level3', techniques: ['DR'], jobType: 'project', industry: 'Power Generation — Fossil Fuel', certificationsRequired: 'ASNT DR L-II' },
-    { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-09', location: 'Freeport, TX', status: 'Assigned', postedDate: '2024-07-20', assetIds: ['ASSET-003'], workflow: 'level3', techniques: ['AE'], jobType: 'project', industry: 'Oil & Gas — Midstream', certificationsRequired: 'ASNT AE L-II' },
+    { id: 'JOB-010', title: 'Gantry Crane Cable Inspection', client: 'Port Authority', clientCompanyId: 'client-07', providerId: 'provider-04', location: 'Port Terminal F', status: 'Completed', postedDate: '2024-07-08', scheduledStartDate: '2024-07-14', scheduledEndDate: '2024-07-15', technicianIds: ['user-tech-01'], assetIds: ['ASSET-009'], workflow: 'standard', techniques: ['VT'], jobType: 'project', industry: 'Marine', certificationsRequired: ['ASNT VT L-II'] },
+    { id: 'JOB-011', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', providerId: 'provider-02', location: 'New Orleans, LA', status: 'Completed', postedDate: '2024-06-01', scheduledStartDate: '2024-06-20', scheduledEndDate: '2024-06-22', technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'], assetIds: ['ASSET-007'], workflow: 'standard', techniques: ['UT', 'MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: ['ASNT UT L-I'] },
+    { id: 'JOB-012', title: 'Advanced RT of Turbine Blades', client: 'Power Generation LLC', clientCompanyId: 'client-06', providerId: 'provider-01', location: 'Houston, TX', status: 'Paid', postedDate: '2024-05-01', scheduledStartDate: '2024-05-25', scheduledEndDate: '2024-05-26', technicianIds: ['user-tech-01'], assetIds: ['ASSET-007'], workflow: 'level3', techniques: ['DR'], jobType: 'project', industry: 'Power Generation — Fossil Fuel', certificationsRequired: ['ASNT DR L-II'] },
+    { id: 'JOB-013', title: 'Acoustic Emission Monitoring of Sphere Tank', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-09', location: 'Freeport, TX', status: 'Assigned', postedDate: '2024-07-20', assetIds: ['ASSET-003'], workflow: 'level3', techniques: ['AE'], jobType: 'project', industry: 'Oil & Gas — Midstream', certificationsRequired: ['ASNT AE L-II'] },
     { 
         id: 'JOB-014', 
         title: 'Internal Corrosion Mapping of Piping', 
@@ -605,10 +605,10 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['UT'],
         jobType: 'project',
         industry: 'Oil & Gas — Midstream',
-        certificationsRequired: 'ASNT UT L-II'
+        certificationsRequired: ['ASNT UT L-II']
     },
-    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', clientCompanyId: 'client-08', providerId: 'provider-07', location: 'Detroit, MI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-tech-01'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['RVI'], jobType: 'project', industry: 'Manufacturing', certificationsRequired: 'ASNT VT L-II' },
-    { id: 'JOB-016', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto', techniques: ['MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: 'ASNT MFL L-II' },
+    { id: 'JOB-015', title: 'Remote Visual Inspection of Gearbox', client: 'Manufacturing Solutions Inc.', clientCompanyId: 'client-08', providerId: 'provider-07', location: 'Detroit, MI', status: 'Completed', postedDate: '2024-07-01', scheduledStartDate: '2024-07-10', scheduledEndDate: '2024-07-10', technicianIds: ['user-tech-01'], assetIds: ['ASSET-004'], workflow: 'standard', techniques: ['RVI'], jobType: 'project', industry: 'Manufacturing', certificationsRequired: ['ASNT VT L-II'] },
+    { id: 'JOB-016', title: 'Tank Floor Corrosion Mapping', client: 'Marine Tankers Ltd.', clientCompanyId: 'client-02', status: 'Posted', postedDate: '2024-07-22', bidExpiryDate: nextMonth.toISOString().split('T')[0], assetIds: ['ASSET-001'], workflow: 'auto', techniques: ['MFL'], jobType: 'project', industry: 'Marine', certificationsRequired: ['ASNT MFL L-II'] },
     { 
         id: 'JOB-017', 
         title: 'Shutdown Support - PT', 
@@ -625,11 +625,11 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['PT'],
         jobType: 'shutdown',
         industry: 'Oil & Gas — Downstream/Refinery',
-        certificationsRequired: 'ASNT PT L-II'
+        certificationsRequired: ['ASNT PT L-II']
     },
-    { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', clientCompanyId: 'client-09', location: 'Wichita, KS', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: ['ASSET-005'], workflow: 'level3', techniques: ['RT'], jobType: 'project', industry: 'Aerospace & Defense', certificationsRequired: 'ASNT RT L-II' },
-    { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', clientCompanyId: 'client-09', location: 'Wichita, KS', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: ['ASSET-005'], workflow: 'standard', techniques: ['ET'], jobType: 'project', industry: 'Aerospace & Defense', certificationsRequired: 'ASNT ET L-II' },
-    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-12', location: 'Gulf of Mexico', status: 'Completed', postedDate: '2024-06-15', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-tech-01'], assetIds: ['ASSET-006'], workflow: 'standard', techniques: ['UT'], jobType: 'project', industry: 'Oil & Gas — Upstream', certificationsRequired: 'ASNT UT L-II' },
+    { id: 'JOB-018', title: 'Landing Gear Weld Inspection', client: 'Aviation Maintenance Pros', clientCompanyId: 'client-09', location: 'Wichita, KS', status: 'Posted', postedDate: '2024-07-28', bidExpiryDate: '2024-08-10', assetIds: ['ASSET-005'], workflow: 'level3', techniques: ['RT'], jobType: 'project', industry: 'Aerospace & Defense', certificationsRequired: ['ASNT RT L-II'] },
+    { id: 'JOB-019', title: 'Fuselage Skin Eddy Current Scan', client: 'Aviation Maintenance Pros', clientCompanyId: 'client-09', location: 'Wichita, KS', status: 'Posted', postedDate: '2024-07-29', bidExpiryDate: '2024-08-12', assetIds: ['ASSET-005'], workflow: 'standard', techniques: ['ET'], jobType: 'project', industry: 'Aerospace & Defense', certificationsRequired: ['ASNT ET L-II'] },
+    { id: 'JOB-020', title: 'Marine Riser Inspection', client: 'Global Energy Corp.', clientCompanyId: 'client-01', providerId: 'provider-12', location: 'Gulf of Mexico', status: 'Completed', postedDate: '2024-06-15', scheduledStartDate: '2024-07-01', scheduledEndDate: '2024-07-03', technicianIds: ['user-tech-01'], assetIds: ['ASSET-006'], workflow: 'standard', techniques: ['UT'], jobType: 'project', industry: 'Oil & Gas — Upstream', certificationsRequired: ['ASNT UT L-II'] },
     { 
         id: 'JOB-021', 
         title: 'Tank Wall Thickness UT', 
@@ -652,7 +652,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['UT'],
         jobType: 'callout',
         industry: 'Oil & Gas — Downstream/Refinery',
-        certificationsRequired: 'ASNT UT L-I'
+        certificationsRequired: ['ASNT UT L-I']
     },
     { 
         id: 'JOB-022', 
@@ -676,7 +676,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['PAUT'],
         jobType: 'project',
         industry: 'Oil & Gas — Midstream',
-        certificationsRequired: 'ASNT UT L-II PAUT'
+        certificationsRequired: ['ASNT UT L-II PAUT']
     },
      { 
         id: 'JOB-023', 
@@ -695,7 +695,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['RVI'],
         jobType: 'project',
         industry: 'Oil & Gas — Midstream',
-        certificationsRequired: 'ASNT VT L-II'
+        certificationsRequired: ['ASNT VT L-II']
     },
     { 
         id: 'JOB-024', 
@@ -716,7 +716,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['RT'],
         jobType: 'project',
         industry: 'Marine',
-        certificationsRequired: 'ASNT RT L-II'
+        certificationsRequired: ['ASNT RT L-II']
     },
     { 
         id: 'JOB-025', 
@@ -734,7 +734,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         techniques: ['MT'],
         jobType: 'shutdown',
         industry: 'Oil & Gas — Downstream/Refinery',
-        certificationsRequired: 'ASNT MT L-II'
+        certificationsRequired: ['ASNT MT L-II']
     },
 ];
 

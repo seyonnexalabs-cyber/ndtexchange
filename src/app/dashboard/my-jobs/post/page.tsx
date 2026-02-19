@@ -42,7 +42,7 @@ const baseSchema = z.object({
   scheduledStartDate: z.date().optional(),
   durationDays: z.coerce.number().int().positive().optional(),
   estimatedBudget: z.string().optional(),
-  certificationsRequired: z.string({ required_error: 'Please select a certification body.' }),
+  certificationsRequired: z.array(z.string()).min(1, "At least one certification is required."),
   scheduledEndDate: z.date().optional(), // This is for internal calculation, not a form field
 });
 
@@ -157,7 +157,7 @@ export default function PostJobPage() {
             durationDays: undefined,
             techniques: [],
             estimatedBudget: '',
-            certificationsRequired: undefined,
+            certificationsRequired: [],
             description: '',
             bidExpiryDate: undefined,
             assets: [],
@@ -172,6 +172,7 @@ export default function PostJobPage() {
     const uniqueTypes = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.type))], [clientAssets]);
     const uniqueStatuses = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.status))], [clientAssets]);
     const techniqueOptions = React.useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.title} (${t.id})`})), []);
+    const certificationOptions = React.useMemo(() => certificationBodies.map(c => ({ value: c, label: c })), []);
 
     const filteredAssets = React.useMemo(() => {
         if (!clientAssets) return [];
@@ -294,7 +295,6 @@ export default function PostJobPage() {
             jobType: values.jobType,
             industry: values.industry,
             durationDays: values.durationDays,
-            estimatedBudget: values.estimatedBudget,
             certificationsRequired: values.certificationsRequired,
         };
         
@@ -485,14 +485,14 @@ export default function PostJobPage() {
                                     control={form.control}
                                     name="certificationsRequired"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Primary Certification Required <span className="text-destructive">*</span></FormLabel>
-                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Select required certification" /></SelectTrigger></FormControl>
-                                                <SelectContent>
-                                                    {certificationBodies.map(cert => <SelectItem key={cert} value={cert}>{cert}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>Certifications Required <span className="text-destructive">*</span></FormLabel>
+                                            <MultiSelect
+                                                options={certificationOptions}
+                                                selected={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Select required certifications..."
+                                            />
                                             <FormMessage />
                                         </FormItem>
                                     )}

@@ -427,7 +427,7 @@ export default function JobDetailPage() {
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     const isMobile = useMobile();
-    const { firestore, user: authUser } = useFirebase();
+    const { firestore, authUser } = useFirebase();
     
     const [isTechDialogOpen, setIsTechDialogOpen] = React.useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = React.useState(false);
@@ -935,7 +935,7 @@ export default function JobDetailPage() {
         }
         
         const certificationsForChecklist = [ "ASNT UT L-II", "TOFD", "PAUT", "RT Source", "PCN", "API 510", "API 570" ];
-        const allJobTags = [...(jobDetails.techniques || []), ...(jobDetails.certificationsRequired?.split(',').map(s => s.trim()) || [])];
+        const allJobTags = [...(jobDetails.techniques || []), ...(jobDetails.certificationsRequired || [])];
         
         return (
             <div className="grid lg:grid-cols-5 gap-8">
@@ -977,7 +977,7 @@ export default function JobDetailPage() {
                             <div>
                                 <h3 className="font-semibold text-lg mb-2">Requirements</h3>
                                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                   {jobDetails.certificationsRequired?.split(',').map((req, index) => <li key={`${req.trim()}-${index}`}>{req.trim()}</li>)}
+                                   {jobDetails.certificationsRequired?.map((req, index) => <li key={`${req.trim()}-${index}`}>{req.trim()}</li>)}
                                    {/* Add more static requirements if needed from description */}
                                    <li>Minimum 5 years refinery inspection experience</li>
                                    <li>Valid OISD / PESO certifications</li>
@@ -1125,7 +1125,7 @@ export default function JobDetailPage() {
                                             <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-primary" /> <span>Industry: {jobDetails.industry}</span></div>
                                             <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> <span>Duration: {duration} days</span></div>
                                             <div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-primary" /> <span>Budget: {jobDetails.estimatedBudget}</span></div>
-                                            <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {jobDetails.certificationsRequired}</span></div>
+                                            <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {jobDetails.certificationsRequired?.join(', ')}</span></div>
                                         </div>
 
                                         <div className="border-t pt-4">

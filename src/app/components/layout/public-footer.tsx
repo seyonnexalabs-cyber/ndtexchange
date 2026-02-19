@@ -20,6 +20,7 @@ export default function PublicFooter() {
         { href: '/manufacturers', label: 'Manufacturers' },
         { href: '/providers', label: 'Providers' },
         { href: '/auditors', label: 'Auditors' },
+        { href: '/ndt-4-0', label: 'NDT 4.0' },
     ];
 
     const companyLinks = [

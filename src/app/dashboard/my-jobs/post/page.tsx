@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NDTTechniques } from "@/lib/seed-data";
-import type { Asset, JobDocument, Inspection } from '@/lib/types';
+import type { Asset, JobDocument, Inspection, PlatformUser } from '@/lib/types';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X, Check, ArrowRight, ArrowLeft } from "lucide-react";
 import Link from 'next/link';
@@ -22,7 +22,7 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format, addDays } from 'date-fns';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -208,6 +208,10 @@ export default function PostJobPage() {
     const [documentFiles, setDocumentFiles] = React.useState<File[]>([]);
     const documentsInputRef = React.useRef<HTMLInputElement>(null);
 
+    const { data: userProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
+    );
+    
     const assetsQuery = useMemoFirebase(() => {
         if (!firestore || role !== 'client') return null;
         return collection(firestore, 'assets');
@@ -286,7 +290,7 @@ export default function PostJobPage() {
     const handleBack = () => setStep(prev => Math.max(prev - 1, 1));
 
     const onSubmit = async (values: z.infer<typeof currentSchema>) => {
-        if (!firestore || !user || (isClient && !clientAssets)) {
+        if (!firestore || !user || !userProfile || (isClient && !clientAssets)) {
             toast({ variant: "destructive", title: "Error", description: "Required data not loaded. Please try again." });
             return;
         }
@@ -320,8 +324,8 @@ export default function PostJobPage() {
                 isInternal: isInternalJob,
                 assetIds: flatAssetIds,
                 clientId: user.uid,
-                client: 'clientName' in values ? values.clientName : "Global Energy Corp.",
-                clientCompanyId: 'client-01', // Placeholder
+                client: userProfile.company,
+                clientCompanyId: userProfile.companyId,
                 status: newJobStatus,
                 postedDate: format(new Date(), 'yyyy-MM-dd'),
                 createdAt: serverTimestamp(),
@@ -565,4 +569,6 @@ export default function PostJobPage() {
         </div>
     );
 }
+    
+
     

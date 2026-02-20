@@ -397,41 +397,13 @@ export default function JobDetailPage() {
     const bidsQuery = useMemoFirebase(() => (isReady && id ? collection(firestore, 'jobs', id, 'bids') : null), [isReady, id]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
-    const [inspections, setInspections] = React.useState<Inspection[]>([]);
-    const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
-
-     React.useEffect(() => {
-        if (!jobDetails) return;
-
-        const fetchInspections = async () => {
-            if (!firestore || !jobDetails.assetIds || jobDetails.assetIds.length === 0) {
-                setInspections([]);
-                setIsLoadingInspections(false);
-                return;
-            }
-            try {
-                const inspectionPromises = jobDetails.assetIds.map(assetId => {
-                    const inspectionsRef = collection(firestore, 'assets', assetId, 'inspections');
-                    const q = query(inspectionsRef, where('jobId', '==', jobDetails.id));
-                    return getDocs(q);
-                });
-                const inspectionSnapshots = await Promise.all(inspectionPromises);
-                const fetchedInspections = inspectionSnapshots.flatMap(snapshot =>
-                    snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Inspection))
-                );
-                setInspections(fetchedInspections);
-            } catch (error) {
-                console.error("Error fetching inspections:", error);
-                setInspections([]);
-            } finally {
-                setIsLoadingInspections(false);
-            }
-        };
-
-        setIsLoadingInspections(true);
-        fetchInspections();
-
+    const inspectionsQuery = useMemoFirebase(() => {
+        if (!firestore || !jobDetails) return null;
+        // Efficiently query the inspections subcollection across all assets for this job.
+        return query(collectionGroup(firestore, 'inspections'), where('jobId', '==', jobDetails.id));
     }, [firestore, jobDetails]);
+
+    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
     React.useEffect(() => {
         if (!jobDetails) return;

@@ -111,8 +111,8 @@ service cloud.firestore {
     
     // Rule to allow participants to perform collection group queries on inspections for their jobs.
     match /{path=**}/inspections/{inspectionId} {
-        allow get: if isAdmin() || (isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid)));
-        allow list: if isAdmin() || (isSignedIn() && isJobParticipant(resource.data.jobId));
+      allow get: if isAdmin() || (isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid)));
+      allow list: if isAdmin() || (isSignedIn() && isJobParticipant(resource.data.jobId));
     }
 
     match /jobs/{jobId} {
@@ -196,8 +196,9 @@ service cloud.firestore {
       allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid));
       // A user can read, update, or delete equipment IFF they belong to that provider's company.
       allow get, update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/equipment/$(equipmentId)).data.providerId || isAdmin()));
-      // Listing is allowed for inspectors querying their own company's equipment.
-      allow list: if isSignedIn();
+      // Listing is allowed for public product galleries.
+      // Client-side queries should filter for `isPublic == true`.
+      allow list: if true;
     }
     match /defects/{defectId} { allow read, write: if isAdmin(); }
     match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }

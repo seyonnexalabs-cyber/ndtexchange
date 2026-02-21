@@ -63,6 +63,16 @@
       "fields": [
         { "fieldPath": "jobId", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "equipment",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isPublic",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

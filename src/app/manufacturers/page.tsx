@@ -9,7 +9,7 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import { useMemo } from 'react';
 import { Manufacturer, NDTTechnique, Equipment } from '@/lib/types';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 import Image from 'next/image';
@@ -29,7 +29,7 @@ export default function ManufacturersPage() {
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
-    const equipmentQuery = useMemoFirebase(() => firestore ? collection(firestore, 'equipment') : null, [firestore]);
+    const equipmentQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'equipment'), where('isPublic', '==', true)) : null, [firestore]);
     const { data: allEquipment, isLoading: isLoadingEquipment } = useCollection<Equipment>(equipmentQuery);
 
     const groupedManufacturers = useMemo(() => {
@@ -207,4 +207,3 @@ export default function ManufacturersPage() {
         </div>
     );
 }
-

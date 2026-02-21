@@ -13,7 +13,7 @@ import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChar
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
 import React, { useState, useEffect, useMemo } from "react";
@@ -25,8 +25,10 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
-import { jobs as seedJobs, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData } from "@/lib/seed-data";
+import { jobs as seedJobs, inspectorAssets, allUsers as seedAllUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 
 // --- SHARED COMPONENTS & CONFIGS ---
@@ -634,12 +636,25 @@ const getLogIcon = (action: string) => {
 
 const AdminDashboard = () => {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const [isSeeding, setIsSeeding] = useState(false);
     const { user, firestore } = useFirebase();
     const { toast } = useToast();
     const role = searchParams.get('role');
     
-    const isReady = firestore && user && role === 'admin';
+    const isAdminUser = user && (user.uid === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || user.uid === '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
+    const isReady = firestore && user && role === 'admin' && isAdminUser;
+    
+    useEffect(() => {
+        if (role === 'admin' && user && !isAdminUser) {
+            toast({
+                variant: 'destructive',
+                title: 'Access Denied',
+                description: 'You do not have permission to view the admin dashboard.',
+            });
+            router.replace('/dashboard');
+        }
+    }, [role, user, isAdminUser, router, toast]);
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
@@ -692,11 +707,11 @@ const AdminDashboard = () => {
             console.groupEnd();
             
             console.group("Step 2: Users & Roles");
-            await seedCollection('users', allUsers, 'id', (user) => {
+            await seedCollection('users', seedAllUsers, 'id', (user) => {
                 const { password, ...userToSave } = user;
                 return { ...userToSave, createdAt: new Date(user.createdAt) };
             });
-            const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
+            const adminUser = seedAllUsers.find(u => u.email === 'admin@ndtexchange.com');
             if (adminUser) {
                 await setDoc(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
                 console.log(`[SEED] ✅ Success: roles_admin seeded.`);
@@ -818,6 +833,20 @@ const AdminDashboard = () => {
         return <DashboardSkeleton />;
     }
 
+    if (role === 'admin' && user && !isAdminUser) {
+        return (
+            <div className="flex h-full w-full items-center justify-center p-10">
+                 <Alert variant="destructive" className="max-w-md">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Access Denied</AlertTitle>
+                    <AlertDescription>
+                        You do not have permission to view the admin dashboard.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
+    
     return (
          <div className="grid gap-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

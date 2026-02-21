@@ -1037,7 +1037,7 @@ export default function JobDetailPage() {
                                             <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-primary" /> <span>Industry: {jobDetails.industry}</span></div>
                                             <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> <span>Duration: {duration} days</span></div>
                                             <div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-primary" /> <span>Budget: {jobDetails.estimatedBudget}</span></div>
-                                            <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {jobDetails.certificationsRequired?.join(', ')}</span></div>
+                                            <div className="flex items-center gap-2 md:col-span-2"><UserCheck className="w-4 h-4 text-primary" /> <span>Certs: {Array.isArray(jobDetails.certificationsRequired) ? jobDetails.certificationsRequired.join(', ') : jobDetails.certificationsRequired || 'N/A'}</span></div>
                                         </div>
 
                                         <div className="border-t pt-4">
@@ -1256,3 +1256,5 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+
+    

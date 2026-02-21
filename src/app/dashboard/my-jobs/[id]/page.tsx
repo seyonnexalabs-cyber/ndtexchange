@@ -366,7 +366,8 @@ export default function JobDetailPage() {
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     const isMobile = useMobile();
-    const { firestore, authUser } = useFirebase();
+    const { firestore } = useFirebase();
+    const { user: authUser, isUserLoading: isAuthLoading } = useUser();
     
     const [isTechDialogOpen, setIsTechDialogOpen] = React.useState(false);
     const [isEquipDialogOpen, setIsEquipDialogOpen] = React.useState(false);
@@ -385,7 +386,7 @@ export default function JobDetailPage() {
     const [rating, setRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
 
-    const { data: currentUserProfile } = useDoc<PlatformUser>(
+    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
     );
 
@@ -456,7 +457,7 @@ export default function JobDetailPage() {
 
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
-    const isLoading = isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingInspections || isLoadingClientCompany || isLoadingAllTechniques || isLoadingProviderTeam;
+    const isLoading = isAuthLoading || isLoadingProfile || isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingInspections || isLoadingClientCompany || isLoadingAllTechniques || isLoadingProviderTeam;
     
     if (isLoading) {
         return (

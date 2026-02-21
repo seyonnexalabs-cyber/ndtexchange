@@ -98,7 +98,7 @@ export default function ManufacturersPage() {
                                                 {group.manufacturers.map(manufacturer => (
                                                     <Card key={manufacturer.id} className="flex flex-col">
                                                         <CardHeader>
-                                                             <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
+                                                            <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
                                                                 <Image 
                                                                     src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
                                                                     alt={`${manufacturer.name} logo`}
@@ -209,3 +209,5 @@ export default function ManufacturersPage() {
         </div>
     );
 }
+
+    

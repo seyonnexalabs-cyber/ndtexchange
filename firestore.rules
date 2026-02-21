@@ -42,7 +42,7 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow get: if isSignedIn();
       allow update, delete: if isOwner(userId);
-      allow list: if isSignedIn(); // Allow listing users for team management features.
+      allow list: if true; // WARNING: Overly permissive for demo. In production, restrict to admins or specific queries.
 
       // FCM tokens can only be managed by the owner
       match /fcmTokens/{token} {
@@ -87,7 +87,7 @@ service cloud.firestore {
       // Listing is allowed, and secured by client-side queries.
       allow list: if isSignedIn();
       // A user can read, update, or delete an asset IFF they belong to that asset's company.
-      allow get, update, delete: if (isSignedIn() && userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId);
+      allow get, update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == resource.data.companyId || isAdmin()));
       
       match /inspections/{inspectionId} {
         allow write: if isAdmin(); // Admin can seed
@@ -102,41 +102,44 @@ service cloud.firestore {
 
     // Rule to allow inspectors to query their own bids across all jobs.
     match /{path=**}/bids/{bidId} {
-      allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+      allow list: if request.auth.uid == request.query.where.inspectorId.value;
+      allow get: if (isSignedIn() && (
+                        isOwner(resource.data.inspectorId) || 
+                        userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(path[1])).data.clientCompanyId
+                      )) || isAdmin();
     }
     
     // Rule to allow participants to perform collection group queries on inspections for their jobs.
     match /{path=**}/inspections/{inspectionId} {
-        // FIX: The previous rule used `resource.data` which is not available for list queries.
-        // This rule checks the parent asset's companyId to determine ownership.
-        // `path[1]` corresponds to the `{assetId}` wildcard from the path template: `/assets/{assetId}/inspections/{inspectionId}`
         allow read: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid));
     }
 
     match /jobs/{jobId} {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.
-      allow create: if (isSignedIn() && request.resource.data.clientId == request.auth.uid);
+      allow create: if (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.companyId == userCompanyId(request.auth.uid)));
       
       // Allow LISTING jobs for marketplace browsing
       allow list: if isSignedIn();
       
-      // Allow GETTING a job's details only by participants or if it's public
+      // Allow GETTING a job's details
       allow get: if (isSignedIn() && (
                       resource.data.status == 'Posted' || // Anyone can see open jobs
                       userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
+                      userCompanyId(request.auth.uid) == resource.data.companyId || // legacy support
                       (exists(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))) && get(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))).data.type == 'Provider' && userCompanyId(request.auth.uid) == resource.data.providerId)
                     )) || isAdmin();
 
       // Only the client, the awarded provider, or an admin can update a job.
       allow update: if (isSignedIn() && (
                         userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
+                        userCompanyId(request.auth.uid) == resource.data.companyId || // legacy support
                         (exists(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))) && get(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))).data.type == 'Provider' && userCompanyId(request.auth.uid) == resource.data.providerId)
                       )) || isAdmin();
 
       // Only the client or an admin can delete a job.
       allow delete: if (isSignedIn() && 
-                       (userCompanyId(request.auth.uid) == resource.data.clientCompanyId)
+                       (userCompanyId(request.auth.uid) == resource.data.clientCompanyId || userCompanyId(request.auth.uid) == resource.data.companyId)
                       ) || isAdmin();
 
       match /bids/{bidId} {

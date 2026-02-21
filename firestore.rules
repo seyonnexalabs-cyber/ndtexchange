@@ -102,7 +102,7 @@ service cloud.firestore {
 
     // Rule to allow inspectors to query their own bids across all jobs.
     match /{path=**}/bids/{bidId} {
-      allow list: if request.auth.uid == request.query.where.inspectorId.value;
+      allow list: if request.auth.uid == resource.data.inspectorId;
       allow get: if (isSignedIn() && (
                         isOwner(resource.data.inspectorId) || 
                         userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(path[1])).data.clientCompanyId
@@ -111,13 +111,14 @@ service cloud.firestore {
     
     // Rule to allow participants to perform collection group queries on inspections for their jobs.
     match /{path=**}/inspections/{inspectionId} {
-        allow read: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid));
+        allow get: if isAdmin() || (isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid)));
+        allow list: if isAdmin() || (isSignedIn() && isJobParticipant(resource.data.jobId));
     }
 
     match /jobs/{jobId} {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.
-      allow create: if (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.companyId == userCompanyId(request.auth.uid)));
+      allow create: if (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.clientCompanyId == userCompanyId(request.auth.uid)));
       
       // Allow LISTING jobs for marketplace browsing
       allow list: if isSignedIn();

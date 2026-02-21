@@ -24,6 +24,8 @@ import type { NDTServiceProvider, NDTTechnique, Review } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -47,6 +49,7 @@ export default function ProvidersPage() {
     const [sortBy, setSortBy] = useState('rating-desc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
+    const [selectedProvider, setSelectedProvider] = useState<NDTServiceProvider | null>(null);
     
     const providersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]);
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(providersQuery);
@@ -260,6 +263,9 @@ export default function ProvidersPage() {
                                             <Skeleton className="h-10 w-full" />
                                             <Skeleton className="h-10 w-full" />
                                         </CardContent>
+                                        <CardFooter>
+                                            <Skeleton className="h-10 w-full" />
+                                        </CardFooter>
                                     </Card>
                                 ))}
                                 </div>
@@ -313,6 +319,9 @@ export default function ProvidersPage() {
                                                     </div>
                                                 </div>
                                             </CardContent>
+                                            <CardFooter>
+                                                <Button className="w-full" onClick={() => setSelectedProvider(provider)}>View Profile</Button>
+                                            </CardFooter>
                                         </Card>
                                     ))}
                                     {filteredProviders.length === 0 && (
@@ -369,6 +378,70 @@ export default function ProvidersPage() {
                 </main>
 
                 <PublicFooter />
+
+                 <Dialog open={!!selectedProvider} onOpenChange={(open) => !open && setSelectedProvider(null)}>
+                    <DialogContent className="max-w-2xl">
+                        {selectedProvider && (
+                            <>
+                                <DialogHeader>
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <Avatar className="h-20 w-20">
+                                            {selectedProvider.logoUrl && <AvatarImage src={selectedProvider.logoUrl} alt={`${selectedProvider.name} logo`} />}
+                                            <AvatarFallback className="text-3xl">{selectedProvider.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <DialogTitle className="text-2xl font-headline">{selectedProvider.name}</DialogTitle>
+                                            <DialogDescription className="flex items-center gap-1.5 pt-1">
+                                                <MapPin className="w-4 h-4"/> {selectedProvider.location}
+                                            </DialogDescription>
+                                            <div className="mt-2"><StarRating rating={selectedProvider.rating} /></div>
+                                        </div>
+                                    </div>
+                                </DialogHeader>
+                                <ScrollArea className="max-h-[60vh] pr-4">
+                                    <div className="space-y-6 py-4">
+                                        <div>
+                                            <h4 className="font-semibold mb-2">About</h4>
+                                            <p className="text-sm text-muted-foreground">{selectedProvider.description}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold mb-2">Techniques Offered</h4>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {selectedProvider.techniques?.map(techAcronym => {
+                                                    const technique = ndtTechniques?.find(t => t.acronym === techAcronym);
+                                                    return (
+                                                        <Tooltip key={techAcronym}>
+                                                            <TooltipTrigger>
+                                                                <Badge variant="secondary" shape="rounded">{techAcronym}</Badge>
+                                                            </TooltipTrigger>
+                                                            {technique && (
+                                                                <TooltipContent><p>{technique.title}</p></TooltipContent>
+                                                            )}
+                                                        </Tooltip>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold mb-2">Industry Focus</h4>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {selectedProvider.industries?.map(ind => (
+                                                    <Badge key={ind} variant="outline" shape="rounded">{ind}</Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollArea>
+                                 <DialogFooter className="pt-4">
+                                    <Button variant="outline" onClick={() => setSelectedProvider(null)}>Close</Button>
+                                    <Button asChild>
+                                        <a href={`mailto:${selectedProvider.contactEmail}`}>Contact {selectedProvider.name}</a>
+                                    </Button>
+                                </DialogFooter>
+                            </>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </div>
         </TooltipProvider>
     );

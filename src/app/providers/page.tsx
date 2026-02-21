@@ -20,15 +20,31 @@ import { Pagination, PaginationContent, PaginationItem, PaginationNext, Paginati
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import type { NDTServiceProvider, NDTTechnique } from '@/lib/types';
+import type { NDTServiceProvider, NDTTechnique, Review } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
+import { Input } from '@/components/ui/input';
+
+const StarRating = ({ rating }: { rating: number }) => {
+    return (
+        <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+                <Star
+                    key={i}
+                    className={`w-5 h-5 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
+                />
+            ))}
+            <span className="ml-2 text-sm text-muted-foreground">{rating.toFixed(1)}</span>
+        </div>
+    );
+};
 
 export default function ProvidersPage() {
     const { firestore } = useFirebase();
     const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-    const [sortBy, setSortBy] = useState('name-asc');
+    const [locationFilter, setLocationFilter] = useState('');
+    const [sortBy, setSortBy] = useState('rating-desc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(25);
     
@@ -38,6 +54,8 @@ export default function ProvidersPage() {
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
+    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null, [firestore]));
+
     const auditFirmIndustries = useMemo(() => {
         if (!serviceProviders) return [];
         const industries = new Set(serviceProviders.flatMap(p => p.industries || []));
@@ -45,22 +63,42 @@ export default function ProvidersPage() {
     }, [serviceProviders]);
 
     const filteredProviders = useMemo(() => {
-        if (!serviceProviders) return [];
+        if (!serviceProviders || !reviews) return [];
 
-        let providers = serviceProviders.filter(provider => {
+        const providersWithStats = serviceProviders.map(provider => {
+            const providerReviews = reviews.filter(r => r.providerId === provider.id);
+            const avgRating = providerReviews.length > 0
+                ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length
+                : 0;
+            return { ...provider, rating: avgRating };
+        });
+
+        let providers = providersWithStats.filter(provider => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques?.includes(tech));
             const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(ind => provider.industries?.includes(ind));
-            return techniqueMatch && industryMatch;
+            const locationMatch = !locationFilter || provider.location.toLowerCase().includes(locationFilter.toLowerCase());
+            return techniqueMatch && industryMatch && locationMatch;
         });
 
         switch (sortBy) {
-            case 'name-asc': providers.sort((a, b) => a.name.localeCompare(b.name)); break;
-            case 'name-desc': providers.sort((a, b) => b.name.localeCompare(a.name)); break;
-            default: break;
+            case 'rating-desc':
+                providers.sort((a, b) => b.rating - a.rating);
+                break;
+            case 'rating-asc':
+                providers.sort((a, b) => a.rating - b.rating);
+                break;
+            case 'name-asc': 
+                providers.sort((a, b) => a.name.localeCompare(b.name)); 
+                break;
+            case 'name-desc': 
+                providers.sort((a, b) => b.name.localeCompare(a.name)); 
+                break;
+            default: 
+                break;
         }
 
         return providers;
-    }, [serviceProviders, selectedTechniques, selectedIndustries, sortBy]);
+    }, [serviceProviders, selectedTechniques, selectedIndustries, sortBy, reviews, locationFilter]);
 
     const pageCount = Math.ceil(filteredProviders.length / itemsPerPage);
     const paginatedProviders = useMemo(() => {
@@ -81,6 +119,7 @@ export default function ProvidersPage() {
     const clearFilters = () => {
         setSelectedTechniques([]);
         setSelectedIndustries([]);
+        setLocationFilter('');
         setCurrentPage(1);
     };
 
@@ -89,8 +128,8 @@ export default function ProvidersPage() {
         setCurrentPage(1);
     };
     
-    const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0;
-    const isLoading = isLoadingProviders || isLoadingTechniques;
+    const hasActiveFilters = selectedTechniques.length > 0 || selectedIndustries.length > 0 || locationFilter.length > 0;
+    const isLoading = isLoadingProviders || isLoadingTechniques || isLoadingReviews;
 
     return (
         <TooltipProvider>
@@ -113,6 +152,13 @@ export default function ProvidersPage() {
                             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                                 <h2 className="text-2xl font-headline font-semibold">Service Provider Directory ({filteredProviders.length})</h2>
                                 <div className="flex flex-wrap items-center gap-2">
+                                     <Input 
+                                        placeholder="Filter by location..."
+                                        className="w-full sm:w-auto"
+                                        value={locationFilter}
+                                        onChange={(e) => setLocationFilter(e.target.value)}
+                                        disabled={isLoading}
+                                    />
                                     <Popover>
                                         <PopoverTrigger asChild><Button variant="outline" disabled={isLoading}>Technique ({selectedTechniques.length})</Button></PopoverTrigger>
                                         <PopoverContent className="w-80">
@@ -146,10 +192,12 @@ export default function ProvidersPage() {
                                         </PopoverContent>
                                     </Popover>
                                     <Select value={sortBy} onValueChange={setSortBy} disabled={isLoading}>
-                                        <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectTrigger className="w-full sm:w-auto">
                                             <SelectValue placeholder="Sort by" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
+                                            <SelectItem value="rating-asc">Rating: Low to High</SelectItem>
                                             <SelectItem value="name-asc">Name: A-Z</SelectItem>
                                             <SelectItem value="name-desc">Name: Z-A</SelectItem>
                                         </SelectContent>
@@ -174,6 +222,12 @@ export default function ProvidersPage() {
                             {hasActiveFilters && (
                                 <div className="mb-4 flex items-center flex-wrap gap-2">
                                     <span className="text-sm font-medium">Active Filters:</span>
+                                    {locationFilter && (
+                                        <Badge variant="secondary">
+                                            Location: {locationFilter}
+                                            <button onClick={() => setLocationFilter('')} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5"><X className="h-3 w-3" /></button>
+                                        </Badge>
+                                    )}
                                     {selectedTechniques.map(techId => (
                                         <Badge key={techId} variant="secondary">
                                             {ndtTechniques?.find(t => t.acronym === techId)?.title}
@@ -228,6 +282,7 @@ export default function ProvidersPage() {
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="flex-grow space-y-4">
+                                                <StarRating rating={provider.rating} />
                                                 <p className="text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
                                                 <div>
                                                     <h4 className="text-sm font-semibold mb-2">Techniques Offered</h4>
@@ -318,4 +373,3 @@ export default function ProvidersPage() {
         </TooltipProvider>
     );
 }
-    

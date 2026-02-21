@@ -94,11 +94,11 @@ export default function ManufacturersPage() {
                                                 <h2 className="text-2xl font-headline font-semibold text-primary">{group.title} ({group.acronym})</h2>
                                                 <p className="mt-2 text-muted-foreground max-w-2xl">{group.description}</p>
                                             </div>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                                 {group.manufacturers.map(manufacturer => (
                                                     <Card key={manufacturer.id} className="flex flex-col">
-                                                        <CardHeader className="p-4 flex-grow">
-                                                            <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20">
+                                                        <CardHeader>
+                                                             <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
                                                                 <Image 
                                                                     src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
                                                                     alt={`${manufacturer.name} logo`}
@@ -107,10 +107,29 @@ export default function ManufacturersPage() {
                                                                 />
                                                             </a>
                                                         </CardHeader>
-                                                        <CardContent className="p-4 pt-0 text-center">
-                                                            <p className="font-semibold text-sm truncate" title={manufacturer.name}>{manufacturer.name}</p>
+                                                        <CardContent className="p-6 pt-0 flex-grow space-y-4">
+                                                            <CardTitle className="text-lg leading-tight" title={manufacturer.name}>{manufacturer.name}</CardTitle>
+                                                            {manufacturer.description && <p className="text-sm text-muted-foreground h-20 overflow-hidden">{manufacturer.description}</p>}
+                                                            <div>
+                                                                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Specialties</h4>
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {manufacturer.techniqueIds.map(techId => {
+                                                                        const technique = ndtTechniques?.find(t => t.acronym === techId);
+                                                                        return (
+                                                                             <Tooltip key={techId}>
+                                                                                <TooltipTrigger>
+                                                                                    <Badge variant="secondary" shape="rounded">{techId}</Badge>
+                                                                                </TooltipTrigger>
+                                                                                {technique && (
+                                                                                    <TooltipContent><p>{technique.title}</p></TooltipContent>
+                                                                                )}
+                                                                            </Tooltip>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            </div>
                                                         </CardContent>
-                                                        <CardFooter className="p-4 pt-0">
+                                                        <CardFooter className="p-6 pt-0">
                                                             <Button variant="outline" className="w-full" size="sm" onClick={() => setSelectedManufacturer(manufacturer)}>
                                                                 View Products
                                                             </Button>
@@ -190,4 +209,3 @@ export default function ManufacturersPage() {
         </div>
     );
 }
-

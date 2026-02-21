@@ -67,6 +67,8 @@ service cloud.firestore {
       allow create: if (isSignedIn() && request.resource.data.contactEmail == request.auth.token.email);
       // All company documents are readable by any signed in user.
       allow read: if true;
+      // All signed in users can list companies for directories.
+      allow list: if true;
       // Only admins can modify company data.
       allow update: if isAdmin();
 

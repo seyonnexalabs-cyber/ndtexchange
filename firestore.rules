@@ -122,18 +122,20 @@ service cloud.firestore {
       allow get: if (isSignedIn() && (
                       resource.data.status == 'Posted' || // Anyone can see open jobs
                       userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
+                      userCompanyId(request.auth.uid) == resource.data.companyId ||
                       (resource.data.providerId != null && userCompanyId(request.auth.uid) == resource.data.providerId)
                     )) || isAdmin();
 
       // Only the client, the awarded provider, or an admin can update a job.
       allow update: if (isSignedIn() && (
                         userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
+                        userCompanyId(request.auth.uid) == resource.data.companyId ||
                         (resource.data.providerId != null && userCompanyId(request.auth.uid) == resource.data.providerId)
                       )) || isAdmin();
 
       // Only the client or an admin can delete a job.
       allow delete: if (isSignedIn() && 
-                       userCompanyId(request.auth.uid) == resource.data.clientCompanyId
+                       (userCompanyId(request.auth.uid) == resource.data.clientCompanyId || userCompanyId(request.auth.uid) == resource.data.companyId)
                       ) || isAdmin();
 
       match /bids/{bidId} {

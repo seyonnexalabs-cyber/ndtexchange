@@ -25,15 +25,19 @@ export interface UseCollectionResult<T> {
   error: FirestoreError | Error | null; // Error object, or null.
 }
 
-/* Internal implementation of Query:
-  https://github.com/firebase/firebase-js-sdk/blob/c5f08a9bc5da0d2b0207802c972d53724ccef055/packages/firestore/src/lite-api/reference.ts#L143
+/* 
+  This is a simplified interface for accessing internal properties of a Firestore query.
+  These properties are not part of the public API and may change, but are useful for debugging.
 */
 export interface InternalQuery extends Query<DocumentData> {
   _query: {
     path: {
       canonicalString(): string;
       toString(): string;
-    }
+    },
+    limit?: number | null,
+    filters: any[],
+    orderBy: any[],
   }
 }
 
@@ -85,20 +89,46 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        // This logic extracts the path from either a ref or a query
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+        const internalQuery = (memoizedTargetRefOrQuery as unknown as InternalQuery)._query;
+        const path: string = internalQuery.path.canonicalString();
+
+        const queryConstraints: any = {};
+        if (internalQuery.limit != null) {
+          queryConstraints.limit = internalQuery.limit;
+        }
+
+        if (internalQuery.filters && internalQuery.filters.length > 0) {
+            // This is a simplified representation of the filters for debugging purposes.
+            // It accesses internal properties that may change in future SDK versions.
+            queryConstraints.where = internalQuery.filters.map((f: any) => {
+                try {
+                    const fieldPath = f.field.canonicalString();
+                    // Firestore stores different value types in different keys (e.g., stringValue, integerValue)
+                    // We'll try to find any value that exists.
+                    const value = f.value.stringValue ?? f.value.integerValue ?? f.value.doubleValue ?? f.value.booleanValue ?? f.value.arrayValue?.values?.map((v:any) => v.stringValue) ?? 'COMPLEX_VALUE';
+                    return [fieldPath, f.op, value];
+                } catch {
+                    return ["<parsing_error>", f.op, "<parsing_error>"];
+                }
+            });
+        }
+        
+        if (internalQuery.orderBy && internalQuery.orderBy.length > 0) {
+            queryConstraints.orderBy = internalQuery.orderBy.map((o: any) => ({
+                field: o.field.canonicalString(),
+                direction: o.dir,
+            }));
+        }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path,
-        })
+          query: Object.keys(queryConstraints).length > 0 ? queryConstraints : undefined,
+        });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
         // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);

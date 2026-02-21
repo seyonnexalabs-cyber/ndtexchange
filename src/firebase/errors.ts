@@ -1,10 +1,18 @@
 'use client';
 import { getAuth, type User } from 'firebase/auth';
 
-type SecurityRuleContext = {
+type SecurityRuleQuery = {
+  limit?: number;
+  offset?: number;
+  orderBy?: { field: string; direction: string }[];
+  where?: any[];
+};
+
+export type SecurityRuleContext = {
   path: string;
   operation: 'get' | 'list' | 'create' | 'update' | 'delete' | 'write';
   requestResourceData?: any;
+  query?: SecurityRuleQuery;
 };
 
 interface FirebaseAuthToken {
@@ -32,6 +40,7 @@ interface SecurityRuleRequest {
   resource?: {
     data: any;
   };
+  query?: SecurityRuleQuery;
 }
 
 /**
@@ -93,6 +102,7 @@ function buildRequestObject(context: SecurityRuleContext): SecurityRuleRequest {
     method: context.operation,
     path: `/databases/(default)/documents/${context.path}`,
     resource: context.requestResourceData ? { data: context.requestResourceData } : undefined,
+    query: context.query,
   };
 }
 

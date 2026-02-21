@@ -66,9 +66,7 @@ service cloud.firestore {
       // Admins or the initial company contact can create a company document.
       allow create: if (isSignedIn() && request.resource.data.contactEmail == request.auth.token.email);
       // All company documents are readable by any signed in user.
-      allow read: if true;
-      // All signed in users can list companies for directories.
-      allow list: if true;
+      allow read, list: if true;
       // Only admins can modify company data.
       allow update: if isAdmin();
 
@@ -109,7 +107,10 @@ service cloud.firestore {
     
     // Rule to allow participants to perform collection group queries on inspections for their jobs.
     match /{path=**}/inspections/{inspectionId} {
-      allow read: if isAdmin() || (isSignedIn() && isJobParticipant(resource.data.jobId));
+        // FIX: The previous rule used `resource.data` which is not available for list queries.
+        // This rule checks the parent asset's companyId to determine ownership.
+        // `path[1]` corresponds to the `{assetId}` wildcard from the path template: `/assets/{assetId}/inspections/{inspectionId}`
+        allow read: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid));
     }
 
     match /jobs/{jobId} {
@@ -124,20 +125,18 @@ service cloud.firestore {
       allow get: if (isSignedIn() && (
                       resource.data.status == 'Posted' || // Anyone can see open jobs
                       userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
-                      userCompanyId(request.auth.uid) == resource.data.companyId ||
-                      (resource.data.providerId != null && userCompanyId(request.auth.uid) == resource.data.providerId)
+                      (exists(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))) && get(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))).data.type == 'Provider' && userCompanyId(request.auth.uid) == resource.data.providerId)
                     )) || isAdmin();
 
       // Only the client, the awarded provider, or an admin can update a job.
       allow update: if (isSignedIn() && (
                         userCompanyId(request.auth.uid) == resource.data.clientCompanyId ||
-                        userCompanyId(request.auth.uid) == resource.data.companyId ||
-                        (resource.data.providerId != null && userCompanyId(request.auth.uid) == resource.data.providerId)
+                        (exists(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))) && get(/databases/$(database)/documents/companies/$(userCompanyId(request.auth.uid))).data.type == 'Provider' && userCompanyId(request.auth.uid) == resource.data.providerId)
                       )) || isAdmin();
 
       // Only the client or an admin can delete a job.
       allow delete: if (isSignedIn() && 
-                       (userCompanyId(request.auth.uid) == resource.data.clientCompanyId || userCompanyId(request.auth.uid) == resource.data.companyId)
+                       (userCompanyId(request.auth.uid) == resource.data.clientCompanyId)
                       ) || isAdmin();
 
       match /bids/{bidId} {

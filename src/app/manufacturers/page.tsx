@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -62,7 +63,8 @@ export default function ManufacturersPage() {
                             <div className="space-y-12">
                                 {[...Array(5)].map((_, i) => (
                                     <div key={i}>
-                                        <Skeleton className="h-8 w-1/3 mb-6" />
+                                        <Skeleton className="h-8 w-1/3 mb-2" />
+                                        <Skeleton className="h-4 w-2/3 mb-6" />
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
                                             {[...Array(6)].map((_, j) => <Skeleton key={j} className="h-16 w-full" />)}
                                         </div>
@@ -71,15 +73,18 @@ export default function ManufacturersPage() {
                             </div>
                         ) : (
                             <TooltipProvider>
-                                <div className="space-y-12">
+                                <div className="space-y-16">
                                     {groupedManufacturers.map(group => (
                                         <div key={group.id}>
-                                            <h2 className="text-2xl font-headline font-semibold text-primary mb-6">{group.title} ({group.acronym})</h2>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
+                                            <div className="mb-8">
+                                                <h2 className="text-2xl font-headline font-semibold text-primary">{group.title} ({group.acronym})</h2>
+                                                <p className="mt-2 text-muted-foreground max-w-2xl">{group.description}</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-8 gap-y-12 items-center">
                                                 {group.manufacturers.map(manufacturer => (
                                                     <Tooltip key={manufacturer.id}>
                                                         <TooltipTrigger asChild>
-                                                            <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="grayscale opacity-75 hover:grayscale-0 hover:opacity-100 transition-all duration-300 ease-in-out">
+                                                            <Link href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="grayscale opacity-75 hover:grayscale-0 hover:opacity-100 transition-all duration-300 ease-in-out flex items-center justify-center">
                                                                 <Image 
                                                                     src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
                                                                     alt={`${manufacturer.name} logo`}

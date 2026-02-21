@@ -68,13 +68,15 @@ export default function ProvidersPage() {
     const filteredProviders = useMemo(() => {
         if (!serviceProviders || !reviews) return [];
 
-        const providersWithStats = serviceProviders.map(provider => {
-            const providerReviews = reviews.filter(r => r.providerId === provider.id);
-            const avgRating = providerReviews.length > 0
-                ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length
-                : 0;
-            return { ...provider, rating: avgRating };
-        });
+        const providersWithStats = serviceProviders
+            .filter(provider => provider.name !== 'NDT EXCHANGE') // Filter out the platform provider
+            .map(provider => {
+                const providerReviews = reviews.filter(r => r.providerId === provider.id);
+                const avgRating = providerReviews.length > 0
+                    ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length
+                    : 0;
+                return { ...provider, rating: avgRating };
+            });
 
         let providers = providersWithStats.filter(provider => {
             const techniqueMatch = selectedTechniques.length === 0 || selectedTechniques.every(tech => provider.techniques?.includes(tech));
@@ -301,9 +303,7 @@ export default function ProvidersPage() {
                                                                         <Badge variant="secondary" shape="rounded">{techAcronym}</Badge>
                                                                     </TooltipTrigger>
                                                                     {technique && (
-                                                                        <TooltipContent>
-                                                                            <p>{technique.title}</p>
-                                                                        </TooltipContent>
+                                                                        <TooltipContent><p>{technique.title}</p></TooltipContent>
                                                                     )}
                                                                 </Tooltip>
                                                             )

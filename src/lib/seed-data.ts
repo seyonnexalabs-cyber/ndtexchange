@@ -30,8 +30,8 @@ export const NDTTechniques: NDTTechnique[] = [
 ];
 
 export const manufacturersData: Manufacturer[] = [
-  { id: 'manu-01', name: 'Olympus', url: 'https://www.olympus-ims.com/', logoUrl: 'https://placehold.co/200x80/0055A8/FFFFFF/png?text=OLYMPUS', description: 'A leading manufacturer of optical and digital precision technology.', techniqueIds: ['UT', 'PAUT', 'ET', 'VT'] },
-  { id: 'manu-02', name: 'GE Inspection Technologies', url: 'https://www.bakerhughes.com/waygate-technologies', logoUrl: 'https://placehold.co/200x80/00A9E0/FFFFFF/png?text=GE', description: 'Provides a wide range of non-destructive testing solutions.', techniqueIds: ['UT', 'RT', 'ET', 'VT'] },
+  { id: 'manu-01', name: 'Evident Scientific', url: 'https://www.evidentscientific.com/', logoUrl: 'https://placehold.co/200x80/0055A8/FFFFFF/png?text=EVIDENT', description: 'Formerly Olympus Scientific Solutions, a leading manufacturer of optical and digital precision technology.', techniqueIds: ['UT', 'PAUT', 'ET', 'VT'] },
+  { id: 'manu-02', name: 'Waygate Technologies', url: 'https://www.bakerhughes.com/waygate-technologies', logoUrl: 'https://placehold.co/200x80/00A9E0/FFFFFF/png?text=Waygate', description: 'Formerly GE Inspection Technologies, provides a wide range of non-destructive testing solutions.', techniqueIds: ['UT', 'RT', 'ET', 'VT'] },
   { id: 'manu-03', name: 'Zetec', url: 'https://www.zetec.com/', logoUrl: 'https://placehold.co/200x80/D9232D/FFFFFF/png?text=Zetec', description: 'A global leader in nondestructive testing (NDT) solutions for the critical inspection needs of industries.', techniqueIds: ['ET', 'PAUT', 'UT'] },
   { id: 'manu-04', name: 'Sonatest', url: 'https://www.sonatest.com/', logoUrl: 'https://placehold.co/200x80/00AEEF/FFFFFF/png?text=Sonatest', description: 'A leading manufacturer of ultrasonic NDT equipment.', techniqueIds: ['UT', 'PAUT', 'TOFD'] },
   { id: 'manu-05', name: 'Fujifilm', url: 'https://www.fujifilm.com/us/en/business/ndt', description: 'Provider of high-quality imaging products for radiographic testing.', techniqueIds: ['RT', 'CR', 'DR'] },
@@ -39,7 +39,24 @@ export const manufacturersData: Manufacturer[] = [
   { id: 'manu-07', name: 'Magnaflux', url: 'https://www.magnaflux.com/', description: 'A global leader in magnetic particle and liquid penetrant inspection materials and equipment.', techniqueIds: ['MT', 'PT'] },
   { id: 'manu-08', name: 'Physical Acoustics Corp (PAC)', url: 'https://www.physicalacoustics.com/', description: 'A member of the MISTRAS Group, specializing in acoustic emission technology.', techniqueIds: ['AE'] },
   { id: 'manu-09', name: 'Talcyon', url: 'https://www.talcyon.com/', description: 'Developer of Acoustic Pulse Reflectometry (APR) for tube inspections.', techniqueIds: ['APR'] },
-  { id: 'manu-10', name: 'Guided Ultrasonics Ltd (GUL)', url: 'https://www.guided-ultrasonics.com/', description: 'Pioneers and leaders in the field of guided wave testing technology.', techniqueIds: ['GWT'] }
+  { id: 'manu-10', name: 'Guided Ultrasonics Ltd (GUL)', url: 'https://www.guided-ultrasonics.com/', description: 'Pioneers and leaders in the field of guided wave testing technology.', techniqueIds: ['GWT'] },
+  { id: 'manu-11', name: 'NDT Global', logoUrl: 'https://placehold.co/200x80/00A9E0/FFFFFF/png?text=NDT+Global', url: 'https://ndt-global.com/', description: 'The leading provider of ultra-high-tech diagnostic and inspection solutions for ensuring the safety and longevity of assets.', techniqueIds: ['UT', 'PAUT', 'MFL'] },
+  { id: 'manu-12', name: 'TÜV NORD GROUP', logoUrl: 'https://placehold.co/200x80/004B8D/FFFFFF/png?text=TUV+NORD', url: 'https://www.tuv-nord.com/', description: 'As a knowledge-based company, we have made it our mission to use our consulting and inspection services to ensure that technology is a benefit to people and the environment.', techniqueIds: ['UT', 'RT', 'MT', 'PT', 'VT', 'ET', 'LT'] },
+  { id: 'manu-13', name: 'Intero Integrity Services', logoUrl: 'https://placehold.co/200x80/FF6B00/FFFFFF/png?text=Intero', url: 'https://www.intero-integrity.com/', description: 'Global leader in inspection and integrity services for pipelines and other critical infrastructure. We provide the data, insights, and expertise to help asset owners operate safely and efficiently.', techniqueIds: ['UT', 'MFL'] },
+  { id: 'manu-14', name: 'Rosen Group', logoUrl: 'https://placehold.co/200x80/E60000/FFFFFF/png?text=ROSEN', url: 'https://www.rosen-group.com/', description: 'A leading global provider of cutting-edge solutions in all areas of the integrity process chain. We offer inspection and integrity management for a wide range of assets.', techniqueIds: ['MFL', 'UT', 'ET'] },
+  { id: 'manu-15', name: 'Ether NDE', url: 'https://www.ethernde.com/', logoUrl: 'https://placehold.co/200x80/7D7D7D/FFFFFF/png?text=Ether+NDE', description: 'Specialist in eddy current NDT equipment, probes, and accessories.', techniqueIds: ['ET'] },
+  { id: 'manu-16', name: 'Mitcorp', url: 'https://www.mitcorp.com/', logoUrl: 'https://placehold.co/200x80/0066CC/FFFFFF/png?text=Mitcorp', description: 'Leading manufacturer of industrial videoscope and borescope technology for remote visual inspection.', techniqueIds: ['VT', 'RVI'] },
+  { id: 'manu-17', name: 'Eddyfi Technologies', url: 'https://www.eddyfi.com/', logoUrl: 'https://placehold.co/200x80/F05A28/FFFFFF/png?text=Eddyfi', description: 'Offers a diversified portfolio of NDT inspection technologies including ACFM, ET, MFL, and more.', techniqueIds: ['ET', 'ACFM', 'MFL', 'PAUT'] },
+  { id: 'manu-18', name: 'Screening Eagle', url: 'https://www.screeningeagle.com/', logoUrl: 'https://placehold.co/200x80/1A1A1A/FFFFFF/png?text=Screening+Eagle', description: 'Formerly Proceq, provides portable NDT solutions including ultrasonic instruments and ground penetrating radar.', techniqueIds: ['UT'] },
+  { id: 'manu-19', name: 'VisiConsult', url: 'https://visiconsult.de/x-ray-solutions/', logoUrl: 'https://placehold.co/200x80/ED1C24/FFFFFF/png?text=VisiConsult', description: 'A leading specialist for customized and standard X-ray inspection systems and solutions.', techniqueIds: ['RT', 'DR', 'CR'] },
+  { id: 'manu-20', name: 'Teledyne ICM', url: 'https://www.teledyneicm.com/', logoUrl: 'https://placehold.co/200x80/00A99D/FFFFFF/png?text=Teledyne', description: 'Expert in portable X-ray solutions for non-destructive testing.', techniqueIds: ['RT'] },
+  { id: 'manu-21', name: 'Yxlon International', url: 'https://www.yxlon.com/', logoUrl: 'https://placehold.co/200x80/A6CE39/FFFFFF/png?text=YXlON', description: 'Offers X-ray and CT inspection systems for industrial applications.', techniqueIds: ['RT', 'CR'] },
+  { id: 'manu-22', name: 'Karl Deutsch', url: 'https://www.karldeutsch.de/en/', logoUrl: 'https://placehold.co/200x80/003366/FFFFFF/png?text=KARL+DEUTSCH', description: 'Develops and produces instruments for non-destructive material testing including UT, MT, and PT.', techniqueIds: ['UT', 'MT', 'PT'] },
+  { id: 'manu-23', name: 'FLIR Systems', url: 'https://www.flir.com/', logoUrl: 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=FLIR', description: 'The world\'s sixth sense, creating intelligent sensing technologies for industrial applications including infrared thermography.', techniqueIds: ['IR'] },
+  { id: 'manu-24', name: 'Nikon Metrology', url: 'https://www.nikonmetrology.com/', logoUrl: 'https://placehold.co/200x80/FFE600/000000/png?text=Nikon', description: 'Provides a wide range of metrology solutions, including X-ray and CT inspection systems.', techniqueIds: ['RT', 'CR'] },
+  { id: 'manu-25', name: 'AcousticEye', url: 'https://www.acousticeye.com/', logoUrl: 'https://placehold.co/200x80/00A1DE/FFFFFF/png?text=AcousticEye', description: 'Offers a breakthrough solution for non-traversing tube inspection using acoustic pulse reflectometry.', techniqueIds: ['APR'] },
+  { id: 'manu-26', name: 'Vallen Systeme', url: 'https://www.vallen.de/en/', logoUrl: 'https://placehold.co/200x80/C60C30/FFFFFF/png?text=Vallen', description: 'A world leading manufacturer of Acoustic Emission (AE) test equipment and accessories.', techniqueIds: ['AE'] },
+  { id: 'manu-27', name: '3E NDT', url: 'https://www.3endt.com/', logoUrl: 'https://placehold.co/200x80/007DC5/FFFFFF/png?text=3E+NDT', description: 'Manufactures a variety of NDT equipment and accessories, specializing in MT and PT systems.', techniqueIds: ['MT', 'PT'] },
 ];
 
 export const productsData: Product[] = [
@@ -47,7 +64,7 @@ export const productsData: Product[] = [
         id: 'PROD-001',
         name: 'OmniScan X3',
         manufacturerId: 'manu-01',
-        manufacturerName: 'Olympus',
+        manufacturerName: 'Evident Scientific',
         type: 'Instrument',
         techniques: ['PAUT', 'TOFD', 'UT'],
         description: 'An advanced phased array flaw detector with powerful imaging capabilities and a user-friendly interface.',
@@ -57,7 +74,7 @@ export const productsData: Product[] = [
         id: 'PROD-002',
         name: 'USM Go+',
         manufacturerId: 'manu-02',
-        manufacturerName: 'GE Inspection Technologies',
+        manufacturerName: 'Waygate Technologies',
         type: 'Instrument',
         techniques: ['UT'],
         description: 'A portable and rugged ultrasonic flaw detector for field use.',
@@ -368,7 +385,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'EQUIP-1000', 
         name: 'Olympus 45MG', 
         type: 'Instrument',
-        manufacturer: 'Olympus',
+        manufacturer: 'Evident Scientific',
         model: '45MG',
         serialNumber: 'SN-45MG-12345',
         techniques: ['UT'], 
@@ -388,7 +405,7 @@ export const inspectorAssets: InspectorAsset[] = [
         id: 'EQUIP-1001', 
         name: '5MHz Phased Array Probe', 
         type: 'Probe',
-        manufacturer: 'Olympus',
+        manufacturer: 'Evident Scientific',
         model: '5L64-A2',
         serialNumber: 'SN-PROBE-67890',
         techniques: ['PAUT', 'UT'], 
@@ -576,7 +593,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
         jobType: 'project',
         industry: 'Chemical Processing',
         estimatedBudget: '$15,000',
-        certificationsRequired: ['ASNT UT L-II']
+        certificationsRequired: ['ASNT UT L-II PAUT']
     },
     { 
         id: 'JOB-002', 

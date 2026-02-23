@@ -15,6 +15,13 @@ import type { Product, Manufacturer, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 const StarRating = ({ rating, reviewCount }: { rating: number, reviewCount: number }) => {
     return (
@@ -99,15 +106,31 @@ export default function PublicProductProfilePage() {
                 <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
                     <div className="md:col-span-1">
                         <Card className="overflow-hidden">
-                             <div className="relative aspect-square bg-muted">
-                                {product.imageUrl ? (
-                                    <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4"/>
-                                ) : (
-                                    <div className="flex items-center justify-center h-full">
-                                        <Wrench className="w-24 h-24 text-muted-foreground/30"/>
-                                    </div>
+                            <Carousel className="w-full">
+                                <CarouselContent>
+                                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                                        product.imageUrls.map((url, index) => (
+                                            <CarouselItem key={index}>
+                                                <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+                                                    <Image src={url} alt={`${product.name} image ${index + 1}`} fill className="object-contain p-4" />
+                                                </div>
+                                            </CarouselItem>
+                                        ))
+                                    ) : (
+                                        <CarouselItem>
+                                            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center h-full">
+                                                <Wrench className="w-24 h-24 text-muted-foreground/30"/>
+                                            </div>
+                                        </CarouselItem>
+                                    )}
+                                </CarouselContent>
+                                {product.imageUrls && product.imageUrls.length > 1 && (
+                                    <>
+                                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                    </>
                                 )}
-                            </div>
+                            </Carousel>
                         </Card>
                     </div>
 

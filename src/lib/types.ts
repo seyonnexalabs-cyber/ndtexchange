@@ -151,7 +151,7 @@ export type Product = {
     type: EquipmentType;
     techniques: string[];
     description?: string;
-    imageUrl?: string;
+    imageUrls?: string[];
 };
 
 export type Certification = {

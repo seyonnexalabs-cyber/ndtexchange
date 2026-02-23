@@ -409,7 +409,7 @@ export default function EcosystemPage() {
                                         <Card className="overflow-hidden flex flex-col h-full">
                                             <CardHeader className="p-0">
                                                 <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
-                                                    {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
+                                                    {product.imageUrls && product.imageUrls.length > 0 ? <Image src={product.imageUrls[0]} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="p-4 flex-grow">

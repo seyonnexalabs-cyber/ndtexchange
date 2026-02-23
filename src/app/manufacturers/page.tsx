@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Manufacturer, NDTTechnique, Product } from '@/lib/types';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 import Image from 'next/image';
@@ -17,10 +17,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wrench, Handshake } from 'lucide-react';
-import { productsData } from '@/lib/seed-data'; // Static import
 
 export default function ManufacturersPage() {
     const { firestore } = useFirebase();
+    const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null);
 
     const manufacturersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'manufacturers') : null, [firestore]);
     const { data: manufacturers, isLoading: isLoadingManufacturers } = useCollection<Manufacturer>(manufacturersQuery);
@@ -28,21 +28,21 @@ export default function ManufacturersPage() {
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
-    const groupedManufacturers = useMemo(() => {
-        if (!ndtTechniques || !manufacturers) return [];
-        return ndtTechniques
-            .map(technique => {
-                const associatedManufacturers = manufacturers.filter(m => m.techniqueIds.includes(technique.acronym));
-                return {
-                    ...technique,
-                    manufacturers: associatedManufacturers
-                };
-            })
-            .filter(group => group.manufacturers.length > 0)
-            .sort((a,b) => a.title.localeCompare(b.title));
-    }, [ndtTechniques, manufacturers]);
+    const productsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'products')) : null, [firestore]);
+    const { data: productsData, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-    const isLoading = isLoadingManufacturers || isLoadingTechniques;
+    const filteredManufacturers = useMemo(() => {
+        if (!manufacturers) return [];
+        if (!selectedTechnique) return manufacturers;
+        return manufacturers.filter(m => m.techniqueIds.includes(selectedTechnique));
+    }, [manufacturers, selectedTechnique]);
+
+    const sortedNdtTechniques = useMemo(() => {
+        if (!ndtTechniques) return [];
+        return [...ndtTechniques].sort((a,b) => a.title.localeCompare(b.title));
+    }, [ndtTechniques]);
+
+    const isLoading = isLoadingManufacturers || isLoadingTechniques || isLoadingProducts;
 
     return (
         <TooltipProvider>
@@ -61,79 +61,77 @@ export default function ManufacturersPage() {
                         </div>
                     </HoneycombHero>
                     
-                    <section className="py-20">
+                     <section className="py-20">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            {isLoading ? (
-                                <div className="space-y-12">
-                                    {[...Array(5)].map((_, i) => (
-                                        <div key={i}>
-                                            <Skeleton className="h-8 w-1/3 mb-2" />
-                                            <Skeleton className="h-4 w-2/3 mb-6" />
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                                                {[...Array(5)].map((_, j) => <Skeleton key={j} className="h-48 w-full" />)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="space-y-16">
-                                    {groupedManufacturers.map(group => (
-                                        <div key={group.id}>
-                                            <div className="mb-8">
-                                                <h2 className="text-2xl font-headline font-semibold text-primary">{group.title} ({group.acronym})</h2>
-                                                <p className="mt-2 text-muted-foreground max-w-2xl">{group.description}</p>
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                                {group.manufacturers.map(manufacturer => (
-                                                    <Card key={manufacturer.id} className="flex flex-col">
-                                                        <CardHeader>
-                                                            <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
-                                                                <Image 
-                                                                    src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
-                                                                    alt={`${manufacturer.name} logo`}
-                                                                    fill
-                                                                    className="object-contain"
-                                                                />
-                                                            </a>
-                                                        </CardHeader>
-                                                        <CardContent className="p-6 pt-0 flex-grow space-y-4">
-                                                            <CardTitle className="text-lg leading-tight" title={manufacturer.name}>{manufacturer.name}</CardTitle>
-                                                            {manufacturer.description && <p className="text-sm text-muted-foreground h-20 overflow-hidden">{manufacturer.description}</p>}
-                                                            <div>
-                                                                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Specialties</h4>
-                                                                <div className="flex flex-wrap gap-1.5">
-                                                                    {manufacturer.techniqueIds.map(techId => {
-                                                                        const technique = ndtTechniques?.find(t => t.acronym === techId);
-                                                                        return (
-                                                                            <Tooltip key={techId}>
-                                                                                <TooltipTrigger>
-                                                                                    <Badge variant="secondary" shape="rounded">{techId}</Badge>
-                                                                                </TooltipTrigger>
-                                                                                {technique && (
-                                                                                    <TooltipContent><p>{technique.title}</p></TooltipContent>
-                                                                                )}
-                                                                            </Tooltip>
-                                                                        )
-                                                                    })}
-                                                                </div>
-                                                            </div>
-                                                        </CardContent>
-                                                        <CardFooter className="p-6 pt-0">
-                                                            <Button asChild variant="outline" className="w-full" size="sm">
-                                                                <a href={manufacturer.url} target="_blank" rel="noopener noreferrer">Visit Website</a>
-                                                            </Button>
-                                                        </CardFooter>
-                                                    </Card>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {groupedManufacturers.length === 0 && (
-                                        <div className="col-span-full text-center py-20">
-                                            <p className="text-xl font-semibold">No Manufacturers Found</p>
-                                            <p className="text-muted-foreground mt-2">Check back soon as we continue to grow our directory.</p>
-                                        </div>
-                                    )}
+                            <div className="text-center mb-12">
+                                <h2 className="text-3xl font-headline font-semibold text-primary">Manufacturers Directory</h2>
+                                <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Filter by technology to discover leading equipment suppliers.</p>
+                            </div>
+
+                            <div className="flex flex-wrap justify-center gap-2 mb-12">
+                                <Button variant={!selectedTechnique ? 'default' : 'outline'} onClick={() => setSelectedTechnique(null)}>All Manufacturers</Button>
+                                {isLoadingTechniques ? (
+                                    <Skeleton className="h-10 w-48" />
+                                ) : (
+                                    sortedNdtTechniques?.map(technique => (
+                                        <Button key={technique.id} variant={selectedTechnique === technique.acronym ? 'default' : 'outline'} onClick={() => setSelectedTechnique(technique.acronym)}>
+                                            {technique.title}
+                                        </Button>
+                                    ))
+                                )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                                {isLoadingManufacturers ? (
+                                    [...Array(10)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)
+                                ) : (
+                                    filteredManufacturers.map(manufacturer => (
+                                        <Card key={manufacturer.id} className="flex flex-col">
+                                            <CardHeader>
+                                                <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
+                                                    <Image 
+                                                        src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
+                                                        alt={`${manufacturer.name} logo`}
+                                                        fill
+                                                        className="object-contain"
+                                                    />
+                                                </a>
+                                            </CardHeader>
+                                            <CardContent className="p-6 pt-0 flex-grow space-y-4">
+                                                <CardTitle className="text-base leading-tight" title={manufacturer.name}>{manufacturer.name}</CardTitle>
+                                                {manufacturer.description && <p className="text-sm text-muted-foreground h-20 overflow-hidden">{manufacturer.description}</p>}
+                                                <div>
+                                                    <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Specialties</h4>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {manufacturer.techniqueIds.map(techId => {
+                                                            const technique = ndtTechniques?.find(t => t.acronym === techId);
+                                                            return (
+                                                                <Tooltip key={techId}>
+                                                                    <TooltipTrigger>
+                                                                        <Badge variant="secondary" shape="rounded">{techId}</Badge>
+                                                                    </TooltipTrigger>
+                                                                    {technique && (
+                                                                        <TooltipContent><p>{technique.title}</p></TooltipContent>
+                                                                    )}
+                                                                </Tooltip>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                            <CardFooter className="p-6 pt-0">
+                                                <Button asChild variant="outline" className="w-full" size="sm">
+                                                    <a href={manufacturer.url} target="_blank" rel="noopener noreferrer">Visit Website</a>
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ))
+                                )}
+                            </div>
+                             {filteredManufacturers.length === 0 && !isLoadingManufacturers && (
+                                <div className="col-span-full text-center py-20">
+                                    <p className="text-xl font-semibold">No Manufacturers Found</p>
+                                    <p className="text-muted-foreground mt-2">No manufacturers match the selected technique.</p>
                                 </div>
                             )}
                         </div>
@@ -145,8 +143,10 @@ export default function ManufacturersPage() {
                                 <h2 className="text-3xl font-headline font-semibold text-primary">Featured Products</h2>
                                 <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">A gallery of cutting-edge NDT equipment used by professionals on the platform.</p>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {productsData.map(product => (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                                {isLoadingProducts ? (
+                                    [...Array(10)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />)
+                                ) : (productsData || []).map(product => (
                                     <Card key={product.id} className="group">
                                         <CardHeader className="p-0">
                                             <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">

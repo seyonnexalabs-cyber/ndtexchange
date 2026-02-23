@@ -17,9 +17,7 @@ export default function PublicFooter() {
 
     const resourcesLinks = [
         { href: '/#techniques', label: 'NDT Techniques' },
-        { href: '/manufacturers', label: 'Manufacturers' },
-        { href: '/providers', label: 'Providers' },
-        { href: '/auditors', label: 'Auditors' },
+        { href: '/manufacturers', label: 'Ecosystem' },
         { href: '/ndt-4-0', label: 'NDT 4.0' },
     ];
 

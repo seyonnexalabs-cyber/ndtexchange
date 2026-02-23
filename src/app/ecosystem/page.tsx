@@ -16,7 +16,7 @@ import Image from 'next/image';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wrench, Handshake, Star, MapPin, Filter, X, Eye, HardHat, Factory, Check } from 'lucide-react';
+import { Wrench, Handshake, Star, MapPin, Filter, X, Eye, HardHat, Factory, Check, Search as SearchIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -27,6 +27,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -56,19 +64,69 @@ const createReferralUrl = (url: string) => {
     }
 };
 
+const ITEMS_PER_PAGE = 9;
+
+const PaginationControls = ({ currentPage, pageCount, onPageChange }: { currentPage: number, pageCount: number, onPageChange: (page: number) => void }) => (
+    pageCount > 1 && (
+        <div className="mt-12 flex justify-center">
+            <Pagination>
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onPageChange(Math.max(currentPage - 1, 1));
+                            }}
+                            className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                        />
+                    </PaginationItem>
+                    <PaginationItem>
+                        <span className="text-sm font-medium p-2">Page {currentPage} of {pageCount}</span>
+                    </PaginationItem>
+                    <PaginationItem>
+                        <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onPageChange(Math.min(currentPage + 1, pageCount));
+                            }}
+                            className={cn(currentPage === pageCount && "pointer-events-none opacity-50")}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        </div>
+    )
+);
+
 export default function EcosystemPage() {
     const searchParams = useSearchParams();
     const defaultTab = searchParams.get('tab') || 'providers';
     const { firestore } = useFirebase();
 
+    // Provider States
     const [selectedProviderTechniques, setSelectedProviderTechniques] = useState<string[]>([]);
     const [selectedProviderIndustries, setSelectedProviderIndustries] = useState<string[]>([]);
     const [providerSortBy, setProviderSortBy] = useState('rating-desc');
+    const [providerSearch, setProviderSearch] = useState('');
+    const [providerPage, setProviderPage] = useState(1);
     
+    // Auditor States
     const [selectedAuditorServices, setSelectedAuditorServices] = useState<string[]>([]);
     const [selectedAuditorIndustries, setSelectedAuditorIndustries] = useState<string[]>([]);
+    const [auditorSearch, setAuditorSearch] = useState('');
+    const [auditorPage, setAuditorPage] = useState(1);
     
+    // Manufacturer States
     const [selectedManufacturerTechnique, setSelectedManufacturerTechnique] = useState<string | null>(null);
+    const [manufacturerSearch, setManufacturerSearch] = useState('');
+    const [manufacturerPage, setManufacturerPage] = useState(1);
+
+    // Product States
+    const [productSearch, setProductSearch] = useState('');
+    const [productPage, setProductPage] = useState(1);
+
 
     const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider | AuditFirm | Client>(companiesQuery);
@@ -84,11 +142,9 @@ export default function EcosystemPage() {
 
     const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null, [firestore]));
 
-
-    // Data for Providers tab
+    // --- PROVIDER LOGIC ---
     const { serviceProviders, providerTechniqueOptions, providerIndustryOptions } = useMemo(() => {
         if (!companies || !reviews) return { serviceProviders: [], providerTechniqueOptions: [], providerIndustryOptions: [] };
-
         const providers = companies.filter(c => c.type === 'Provider' && c.name !== 'NDT EXCHANGE') as NDTServiceProvider[];
         const techniques = new Set(providers.flatMap(p => p.techniques || []));
         const industries = new Set(providers.flatMap(p => p.industries || []));
@@ -106,14 +162,16 @@ export default function EcosystemPage() {
             providerTechniqueOptions: Array.from(techniques).sort(), 
             providerIndustryOptions: Array.from(industries).sort() 
         };
-
     }, [companies, reviews]);
 
      const filteredProviders = useMemo(() => {
         let providers = serviceProviders.filter(provider => {
             const techniqueMatch = selectedProviderTechniques.length === 0 || selectedProviderTechniques.every(tech => (provider.techniques || []).includes(tech));
             const industryMatch = selectedProviderIndustries.length === 0 || selectedProviderIndustries.every(ind => (provider.industries || []).includes(ind));
-            return techniqueMatch && industryMatch;
+            const searchMatch = providerSearch === '' || 
+                                provider.name.toLowerCase().includes(providerSearch.toLowerCase()) ||
+                                (provider.description && provider.description.toLowerCase().includes(providerSearch.toLowerCase()));
+            return techniqueMatch && industryMatch && searchMatch;
         });
         
         switch (providerSortBy) {
@@ -124,10 +182,15 @@ export default function EcosystemPage() {
         }
 
         return providers;
-    }, [serviceProviders, selectedProviderTechniques, selectedProviderIndustries, providerSortBy]);
+    }, [serviceProviders, selectedProviderTechniques, selectedProviderIndustries, providerSortBy, providerSearch]);
 
+    const providerPageCount = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
+    const paginatedProviders = useMemo(() => {
+        const startIndex = (providerPage - 1) * ITEMS_PER_PAGE;
+        return filteredProviders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredProviders, providerPage]);
 
-    // Data for Auditors tab
+    // --- AUDITOR LOGIC ---
     const { auditorFirms, auditorServiceOptions, auditorIndustryOptions } = useMemo(() => {
         if (!companies) return { auditorFirms: [], auditorServiceOptions: [], auditorIndustryOptions: [] };
         const auditors = companies.filter(c => c.type === 'Auditor') as AuditFirm[];
@@ -141,27 +204,59 @@ export default function EcosystemPage() {
     }, [companies]);
 
     const filteredAuditors = useMemo(() => {
-        if (!auditorFirms) return [];
         return auditorFirms.filter(firm => {
             const serviceMatch = selectedAuditorServices.length === 0 || selectedAuditorServices.every(s => (firm.services || []).includes(s));
             const industryMatch = selectedAuditorIndustries.length === 0 || selectedAuditorIndustries.every(i => (firm.industries || []).includes(i));
-            return serviceMatch && industryMatch;
+            const searchMatch = auditorSearch === '' ||
+                                firm.name.toLowerCase().includes(auditorSearch.toLowerCase()) ||
+                                (firm.description && firm.description.toLowerCase().includes(auditorSearch.toLowerCase()));
+            return serviceMatch && industryMatch && searchMatch;
         });
-    }, [auditorFirms, selectedAuditorServices, selectedAuditorIndustries]);
-
+    }, [auditorFirms, selectedAuditorServices, selectedAuditorIndustries, auditorSearch]);
     
-    // Data for Manufacturers tab
+    const auditorPageCount = Math.ceil(filteredAuditors.length / ITEMS_PER_PAGE);
+    const paginatedAuditors = useMemo(() => {
+        const startIndex = (auditorPage - 1) * ITEMS_PER_PAGE;
+        return filteredAuditors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredAuditors, auditorPage]);
+
+    // --- MANUFACTURER LOGIC ---
      const filteredManufacturers = useMemo(() => {
         if (!manufacturers) return [];
-        if (!selectedManufacturerTechnique) return manufacturers;
-        return manufacturers.filter(m => m.techniqueIds.includes(selectedManufacturerTechnique));
-    }, [manufacturers, selectedManufacturerTechnique]);
+        let filtered = manufacturers;
+
+        if (selectedManufacturerTechnique) {
+            filtered = filtered.filter(m => m.techniqueIds.includes(selectedManufacturerTechnique));
+        }
+        if (manufacturerSearch) {
+             filtered = filtered.filter(m => m.name.toLowerCase().includes(manufacturerSearch.toLowerCase()));
+        }
+        return filtered;
+    }, [manufacturers, selectedManufacturerTechnique, manufacturerSearch]);
+
+    const manufacturerPageCount = Math.ceil(filteredManufacturers.length / ITEMS_PER_PAGE);
+    const paginatedManufacturers = useMemo(() => {
+        const startIndex = (manufacturerPage - 1) * ITEMS_PER_PAGE;
+        return filteredManufacturers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredManufacturers, manufacturerPage]);
     
+    // --- PRODUCT LOGIC ---
+     const filteredProducts = useMemo(() => {
+        if (!productsData) return [];
+        if (!productSearch) return productsData;
+        return productsData.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) || p.manufacturerName.toLowerCase().includes(productSearch.toLowerCase()));
+    }, [productsData, productSearch]);
+
+    const productPageCount = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+    const paginatedProducts = useMemo(() => {
+        const startIndex = (productPage - 1) * ITEMS_PER_PAGE;
+        return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredProducts, productPage]);
+
     const sortedNdtTechniques = useMemo(() => {
         if (!ndtTechniques) return [];
         return [...ndtTechniques].sort((a,b) => a.title.localeCompare(b.title));
     }, [ndtTechniques]);
-
 
     const isLoading = isLoadingCompanies || isLoadingTechniques || isLoadingManufacturers || isLoadingProducts || isLoadingReviews;
 
@@ -191,12 +286,20 @@ export default function EcosystemPage() {
                         
                         {/* PROVIDERS TAB */}
                         <TabsContent value="providers" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                <h2 className="text-3xl font-headline font-semibold text-primary text-center sm:text-left">Find NDT Service Providers</h2>
-                                <div className="flex gap-2">
+                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center mb-8">
+                                <div className="relative lg:col-span-1">
+                                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search providers by name or description..."
+                                        className="pl-10 w-full"
+                                        value={providerSearch}
+                                        onChange={(e) => { setProviderSearch(e.target.value); setProviderPage(1); }}
+                                    />
+                                </div>
+                                <div className="flex gap-2 lg:col-span-2 justify-start lg:justify-end">
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button variant="outline" disabled={isLoading}>Tech ({selectedProviderTechniques.length})</Button>
+                                            <Button variant="outline" disabled={isLoading}>Techniques ({selectedProviderTechniques.length})</Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-80">
                                             <Command>
@@ -204,7 +307,8 @@ export default function EcosystemPage() {
                                                 <CommandList><CommandEmpty>No results found.</CommandEmpty><CommandGroup>
                                                     {providerTechniqueOptions.map(tech => (
                                                         <CommandItem key={tech} onSelect={() => {
-                                                            setSelectedProviderTechniques(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech])
+                                                            setSelectedProviderTechniques(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]);
+                                                            setProviderPage(1);
                                                         }}>
                                                             <Check className={cn("mr-2 h-4 w-4", selectedProviderTechniques.includes(tech) ? "opacity-100" : "opacity-0")} />
                                                             {ndtTechniques?.find(t => t.acronym === tech)?.title || tech}
@@ -215,14 +319,15 @@ export default function EcosystemPage() {
                                         </PopoverContent>
                                     </Popover>
                                     <Popover>
-                                        <PopoverTrigger asChild><Button variant="outline" disabled={isLoading}>Industry ({selectedProviderIndustries.length})</Button></PopoverTrigger>
+                                        <PopoverTrigger asChild><Button variant="outline" disabled={isLoading}>Industries ({selectedProviderIndustries.length})</Button></PopoverTrigger>
                                         <PopoverContent className="w-80">
-                                            <Command>
+                                             <Command>
                                                 <CommandInput placeholder="Filter by industry..." />
                                                 <CommandList><CommandEmpty>No results found.</CommandEmpty><CommandGroup>
                                                 {providerIndustryOptions.map(ind => (
                                                     <CommandItem key={ind} onSelect={() => {
-                                                        setSelectedProviderIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])
+                                                        setSelectedProviderIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind]);
+                                                        setProviderPage(1);
                                                     }}>
                                                         <Check className={cn("mr-2 h-4 w-4", selectedProviderIndustries.includes(ind) ? "opacity-100" : "opacity-0")} />
                                                         {ind}
@@ -233,7 +338,7 @@ export default function EcosystemPage() {
                                         </PopoverContent>
                                     </Popover>
                                     <Select value={providerSortBy} onValueChange={setProviderSortBy}>
-                                        <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
+                                        <SelectTrigger className="w-[180px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
                                             <SelectItem value="name-asc">Name: A-Z</SelectItem>
@@ -242,8 +347,8 @@ export default function EcosystemPage() {
                                 </div>
                             </div>
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                               {isLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-96" />) : filteredProviders.map(provider => (
-                                    <Card key={provider.id} className="flex flex-col">
+                               {isLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-96" />) : paginatedProviders.map(provider => (
+                                    <Card key={provider.id} className="flex flex-col group">
                                         <CardHeader>
                                             <div className="flex items-center gap-4">
                                                 <Avatar className="h-16 w-16">
@@ -251,26 +356,42 @@ export default function EcosystemPage() {
                                                     <AvatarFallback className="text-xl">{provider.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <CardTitle className="font-headline">{provider.name}</CardTitle>
+                                                    <CardTitle className="font-headline group-hover:text-primary transition-colors">{provider.name}</CardTitle>
                                                     <CardDescription className="flex items-center gap-1.5 mt-1"><MapPin className="w-3 h-3 text-primary"/> {provider.location}</CardDescription>
                                                 </div>
                                             </div>
                                         </CardHeader>
                                         <CardContent className="flex-grow space-y-4">
                                             <StarRating rating={provider.rating} />
-                                            <p className="text-sm text-muted-foreground h-20 overflow-hidden">{provider.description}</p>
+                                            <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{provider.description}</p>
+                                            <div>
+                                                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Techniques</h4>
+                                                <div className="flex flex-wrap gap-1.5 min-h-[26px]">
+                                                    {(provider.techniques || []).slice(0, 5).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
+                                                    {(provider.techniques || []).length > 5 && <Badge variant="outline">+{ (provider.techniques || []).length - 5} more</Badge>}
+                                                </div>
+                                            </div>
                                         </CardContent>
                                         <CardFooter><Button asChild className="w-full"><Link href={`/dashboard/providers/${provider.id}`}>View Profile</Link></Button></CardFooter>
                                     </Card>
                                ))}
                             </div>
+                            <PaginationControls currentPage={providerPage} pageCount={providerPageCount} onPageChange={setProviderPage} />
                         </TabsContent>
                         
                         {/* AUDITORS TAB */}
                         <TabsContent value="auditors" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                <h2 className="text-3xl font-headline font-semibold text-primary text-center sm:text-left">Find Auditors & Level III Services</h2>
-                                <div className="flex gap-2">
+                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center mb-8">
+                                <div className="relative lg:col-span-1">
+                                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search auditors..."
+                                        className="pl-10 w-full"
+                                        value={auditorSearch}
+                                        onChange={(e) => { setAuditorSearch(e.target.value); setAuditorPage(1); }}
+                                    />
+                                </div>
+                                <div className="flex gap-2 lg:col-span-2 justify-start lg:justify-end">
                                     <Popover>
                                         <PopoverTrigger asChild><Button variant="outline" disabled={isLoading}>Services ({selectedAuditorServices.length})</Button></PopoverTrigger>
                                         <PopoverContent className="w-80">
@@ -278,7 +399,10 @@ export default function EcosystemPage() {
                                                 <CommandInput placeholder="Filter by service..." />
                                                 <CommandList><CommandEmpty>No results.</CommandEmpty><CommandGroup>
                                                 {auditorServiceOptions.map(service => (
-                                                    <CommandItem key={service} onSelect={() => setSelectedAuditorServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service])}>
+                                                    <CommandItem key={service} onSelect={() => {
+                                                        setSelectedAuditorServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
+                                                        setAuditorPage(1);
+                                                    }}>
                                                         <Check className={cn("mr-2 h-4 w-4", selectedAuditorServices.includes(service) ? "opacity-100" : "opacity-0")} />{service}
                                                     </CommandItem>
                                                 ))}
@@ -293,7 +417,10 @@ export default function EcosystemPage() {
                                                 <CommandInput placeholder="Filter by industry..." />
                                                 <CommandList><CommandEmpty>No results.</CommandEmpty><CommandGroup>
                                                 {auditorIndustryOptions.map(ind => (
-                                                    <CommandItem key={ind} onSelect={() => setSelectedAuditorIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])}>
+                                                    <CommandItem key={ind} onSelect={() => {
+                                                        setSelectedAuditorIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind]);
+                                                        setAuditorPage(1);
+                                                    }}>
                                                         <Check className={cn("mr-2 h-4 w-4", selectedAuditorIndustries.includes(ind) ? "opacity-100" : "opacity-0")} />{ind}
                                                     </CommandItem>
                                                 ))}
@@ -304,99 +431,115 @@ export default function EcosystemPage() {
                                 </div>
                             </div>
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {isLoading ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />) : filteredAuditors.map(firm => (
-                                     <Card key={firm.id} className="flex flex-col">
+                                {isLoading ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />) : paginatedAuditors.map(firm => (
+                                     <Card key={firm.id} className="flex flex-col group">
                                         <CardHeader><div className="flex items-center gap-4">
                                             <Avatar className="h-16 w-16"><AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback></Avatar>
                                             <div>
-                                                <CardTitle className="font-headline">{firm.name}</CardTitle>
+                                                <CardTitle className="font-headline group-hover:text-primary transition-colors">{firm.name}</CardTitle>
                                                 <CardDescription className="flex items-center gap-1.5 mt-1"><MapPin className="w-3 h-3 text-primary"/> {firm.location}</CardDescription>
                                             </div>
                                         </div></CardHeader>
                                         <CardContent className="flex-grow space-y-4">
-                                            <p className="text-sm text-muted-foreground pt-2 h-24 overflow-hidden">{firm.description}</p>
-                                            <div><h4 className="text-sm font-semibold mb-2">Services Offered</h4><div className="flex flex-wrap gap-1.5 min-h-[50px]">
-                                                {(firm.services || []).map(tech => (<Badge key={tech} variant="secondary" shape="rounded">{tech}</Badge>))}
-                                            </div></div>
-                                            <div><h4 className="text-sm font-semibold mb-2">Industry Focus</h4><div className="flex flex-wrap gap-1.5 min-h-[50px]">
-                                                {(firm.industries || []).map(tech => (<Badge key={tech} variant="outline" shape="rounded">{tech}</Badge>))}
+                                            <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{firm.description}</p>
+                                            <div><h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Services</h4><div className="flex flex-wrap gap-1.5 mt-2 min-h-[50px]">
+                                                {(firm.services || []).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
                                             </div></div>
                                         </CardContent>
                                         <CardFooter><Button asChild className="w-full"><Link href={`/dashboard/auditors/${firm.id}`}>View Profile</Link></Button></CardFooter>
                                     </Card>
                                 ))}
                             </div>
+                            <PaginationControls currentPage={auditorPage} pageCount={auditorPageCount} onPageChange={setAuditorPage} />
                         </TabsContent>
                         
                         {/* MANUFACTURERS TAB */}
                         <TabsContent value="manufacturers" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                             <div className="text-center mb-12">
-                                <h2 className="text-3xl font-headline font-semibold text-primary">Manufacturers Directory</h2>
-                                <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Filter by technology to discover leading equipment suppliers.</p>
-                            </div>
-                             <div className="flex flex-wrap justify-center gap-2 mb-12">
-                                <Button variant={!selectedManufacturerTechnique ? 'default' : 'outline'} onClick={() => setSelectedManufacturerTechnique(null)}>All Manufacturers</Button>
-                                {isLoadingTechniques ? <Skeleton className="h-10 w-48" /> : (
-                                    sortedNdtTechniques?.map(technique => (
-                                        <Button key={technique.id} variant={selectedManufacturerTechnique === technique.acronym ? 'default' : 'outline'} onClick={() => setSelectedManufacturerTechnique(technique.acronym)}>
-                                            {technique.title}
-                                        </Button>
-                                    ))
-                                )}
+                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center mb-8">
+                                <div className="relative lg:col-span-1">
+                                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search manufacturers..."
+                                        className="pl-10 w-full"
+                                        value={manufacturerSearch}
+                                        onChange={(e) => { setManufacturerSearch(e.target.value); setManufacturerPage(1); }}
+                                    />
+                                </div>
+                                <div className="lg:col-span-2 justify-start lg:justify-end">
+                                     <ScrollArea className="w-full">
+                                        <div className="flex w-max space-x-2 pb-2">
+                                            <Button variant={!selectedManufacturerTechnique ? 'default' : 'outline'} onClick={() => { setSelectedManufacturerTechnique(null); setManufacturerPage(1); }}>All</Button>
+                                            {isLoadingTechniques ? <Skeleton className="h-10 w-48" /> : (
+                                                sortedNdtTechniques?.map(technique => (
+                                                    <Button key={technique.id} variant={selectedManufacturerTechnique === technique.acronym ? 'default' : 'outline'} onClick={() => { setSelectedManufacturerTechnique(technique.acronym); setManufacturerPage(1); }}>
+                                                        {technique.title}
+                                                    </Button>
+                                                ))
+                                            )}
+                                        </div>
+                                     </ScrollArea>
+                                </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                                {isLoadingManufacturers ? [...Array(10)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : (
-                                    filteredManufacturers.map(manufacturer => (
-                                        <Card key={manufacturer.id} className="flex flex-col">
-                                            <CardHeader>
-                                                <a href={createReferralUrl(manufacturer.url)} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
-                                                    <Image 
-                                                        src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
-                                                        alt={`${manufacturer.name} logo`}
-                                                        fill
-                                                        className="object-contain"
-                                                    />
-                                                </a>
-                                            </CardHeader>
-                                            <CardContent className="p-6 pt-0 flex-grow space-y-4">
-                                                <CardTitle className="text-base leading-tight" title={manufacturer.name}>{manufacturer.name}</CardTitle>
-                                                {manufacturer.description && <p className="text-sm text-muted-foreground h-20 overflow-hidden">{manufacturer.description}</p>}
-                                            </CardContent>
-                                            <CardFooter className="p-6 pt-0">
-                                                <Button asChild variant="outline" className="w-full" size="sm">
-                                                    <a href={createReferralUrl(manufacturer.url)} target="_blank" rel="noopener noreferrer">Visit Website</a>
-                                                </Button>
-                                            </CardFooter>
+                                {isLoadingManufacturers ? [...Array(10)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />) : (
+                                    paginatedManufacturers.map(manufacturer => (
+                                        <Card key={manufacturer.id} className="flex flex-col group">
+                                            <a href={createReferralUrl(manufacturer.url)} target="_blank" rel="noopener noreferrer" className="block">
+                                                <CardHeader className="p-0">
+                                                    <div className="relative h-20 bg-card p-2 rounded-t-lg">
+                                                        <Image 
+                                                            src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
+                                                            alt={`${manufacturer.name} logo`}
+                                                            fill
+                                                            className="object-contain"
+                                                        />
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="p-4 flex-grow">
+                                                    <CardTitle className="text-base leading-tight group-hover:text-primary transition-colors" title={manufacturer.name}>{manufacturer.name}</CardTitle>
+                                                </CardContent>
+                                            </a>
                                         </Card>
                                     ))
                                 )}
                             </div>
+                            <PaginationControls currentPage={manufacturerPage} pageCount={manufacturerPageCount} onPageChange={setManufacturerPage} />
                         </TabsContent>
                         
                         {/* PRODUCTS TAB */}
                         <TabsContent value="products" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                            <div className="text-center mb-12">
-                                <h2 className="text-3xl font-headline font-semibold text-primary">Featured Products</h2>
-                                <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">A gallery of cutting-edge NDT equipment used by professionals on the platform.</p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                                {isLoadingProducts ? [...Array(10)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />) : (productsData || []).map(product => (
-                                    <Card key={product.id} className="group">
+                             <div className="grid md:grid-cols-3 gap-6 items-center mb-8">
+                                <div className="relative md:col-span-2">
+                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                     <Input 
+                                        placeholder="Search products by name or manufacturer..."
+                                        className="pl-10 w-full"
+                                        value={productSearch}
+                                        onChange={(e) => { setProductSearch(e.target.value); setProductPage(1); }}
+                                    />
+                                </div>
+                             </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {isLoadingProducts ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : paginatedProducts.map(product => (
+                                    <Card key={product.id} className="group overflow-hidden flex flex-col">
                                         <CardHeader className="p-0">
                                             <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
                                                 {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
                                             </div>
                                         </CardHeader>
-                                        <CardContent className="p-4">
-                                            <CardTitle className="text-base font-semibold" title={product.name}>{product.name}</CardTitle>
+                                        <CardContent className="p-4 flex-grow">
+                                            <CardTitle className="text-base font-semibold leading-tight mb-1" title={product.name}>{product.name}</CardTitle>
                                             <CardDescription>{product.manufacturerName}</CardDescription>
-                                            <div className="flex flex-wrap gap-1 mt-2">
+                                        </CardContent>
+                                        <CardFooter className="p-4 pt-0">
+                                            <div className="flex flex-wrap gap-1">
                                                 {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
                                             </div>
-                                        </CardContent>
+                                        </CardFooter>
                                     </Card>
                                 ))}
                             </div>
+                             <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} />
                         </TabsContent>
 
                     </Tabs>

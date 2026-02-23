@@ -306,7 +306,7 @@ export type Notification = {
   userId: string;
   title: string;
   description: string;
-  timestamp: string;
+  timestamp: any;
   read: boolean;
   href: string;
   createdAt?: any;

@@ -167,7 +167,9 @@ const AppHeader = () => {
                                             <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
                                                 <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
                                                 <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                                                <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">
+                                                    {notification.timestamp && formatDistanceToNow(notification.timestamp.toDate ? notification.timestamp.toDate() : new Date(notification.timestamp), { addSuffix: true })}
+                                                </p>
                                             </div>
                                         </div>
                                     </Link>

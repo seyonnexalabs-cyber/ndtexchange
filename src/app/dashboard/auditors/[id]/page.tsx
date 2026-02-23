@@ -35,7 +35,9 @@ export default function AuditorDetailPage() {
 
     const { data: auditorTeam, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
-    if (isLoadingAuditor || (role === 'admin' && isLoadingTeam)) {
+    const isLoading = isLoadingAuditor || (role === 'admin' && isLoadingTeam) || !id;
+
+    if (isLoading) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-1/4 mb-6" />

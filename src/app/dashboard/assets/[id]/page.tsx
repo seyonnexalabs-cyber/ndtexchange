@@ -624,7 +624,9 @@ export default function AssetDetailPage() {
         return docs;
     }, [asset]);
 
-    if (isLoadingAsset || isUserLoading) {
+    const isLoading = isLoadingAsset || isUserLoading || !id;
+
+    if (isLoading) {
         return <div>Loading...</div>;
     }
     

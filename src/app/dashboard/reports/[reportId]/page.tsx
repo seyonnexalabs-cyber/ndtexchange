@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -24,16 +25,28 @@ import { Badge } from '@/components/ui/badge';
 import UniformDocumentViewer, { ViewerDocument } from '@/app/dashboard/components/uniform-document-viewer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirebase, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc, collection, writeBatch, serverTimestamp, arrayUnion, getDoc } from 'firebase/firestore';
-import type { Job, Client, NDTServiceProvider, Inspection, InspectionReport, JobUpdate, PlatformUser, NDTTechnique } from '@/lib/types';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { CustomDateInput } from '@/components/ui/custom-date-input';
+import JobChatWindow from '@/app/dashboard/my-jobs/components/job-chat-window';
+import { useMobile } from '@/hooks/use-mobile';
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc, useUser } from '@/firebase';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
+import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection, InspectionReport } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import WorkBreakdownAccordion from '../../my-jobs/components/work-breakdown-accordion';
+import { JobLifecycle } from '../../my-jobs/components/job-lifecycle';
 
 
-const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    'Scheduled': 'secondary',
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destructive' | 'secondary' > = {
     'Completed': 'success',
-    'Requires Review': 'destructive'
+    'Scheduled': 'secondary',
+    'Requires Review': 'destructive',
 };
 
 // --- Report Viewer Component ---
@@ -257,7 +270,9 @@ const ReportGeneratorPage = () => {
         }
     };
     
-    if (isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile) {
+    const isLoading = isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile || !jobId || !inspectionId || !assetId;
+
+    if (isLoading) {
         return (
             <div className="space-y-6">
                 <Skeleton className="h-10 w-48" />

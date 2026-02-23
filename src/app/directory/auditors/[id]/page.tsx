@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -63,7 +64,7 @@ export default function PublicAuditorProfilePage() {
     }, [auditorReviews]);
 
 
-    const isLoading = isLoadingAuditor || isLoadingReviews || isLoadingClients;
+    const isLoading = isLoadingAuditor || isLoadingReviews || isLoadingClients || !id;
 
     if (isLoading) {
         return (

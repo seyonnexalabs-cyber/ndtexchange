@@ -61,7 +61,7 @@ export default function PublicProductProfilePage() {
     
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
 
-    const isLoading = isLoadingProduct || isLoadingManufacturer || isLoadingTechniques;
+    const isLoading = isLoadingProduct || isLoadingManufacturer || isLoadingTechniques || !id;
 
     if (isLoading) {
         return (
@@ -70,7 +70,7 @@ export default function PublicProductProfilePage() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="space-y-6">
                         <Skeleton className="h-8 w-1/4 mb-6" />
-                        <div className="grid md:grid-cols-3 gap-8">
+                        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
                             <Skeleton className="md:col-span-1 h-80 w-full" />
                             <div className="md:col-span-2 space-y-4">
                                 <Skeleton className="h-10 w-3/4" />

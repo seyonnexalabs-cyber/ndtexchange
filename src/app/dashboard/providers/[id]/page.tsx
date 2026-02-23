@@ -1,8 +1,9 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
-import { notFound, useSearchParams, useParams } from "next/navigation";
+import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,7 +79,7 @@ export default function ProviderDetailPage() {
         });
     }, [reviewsData, allClients]);
     
-    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques;
+    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques || !id;
 
     if (isLoading) {
        return (

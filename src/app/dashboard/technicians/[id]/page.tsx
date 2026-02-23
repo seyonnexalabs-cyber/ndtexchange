@@ -1,10 +1,11 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -265,7 +266,9 @@ export default function TechnicianDetailPage() {
         setIsFormOpen(false);
     };
 
-    if (isLoadingTechnician || isLoadingJobs) {
+    const isLoading = isLoadingTechnician || isLoadingJobs || !id;
+
+    if (isLoading) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-1/4" />

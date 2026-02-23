@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -457,7 +458,7 @@ export default function JobDetailPage() {
 
     const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
 
-    const isLoading = isAuthLoading || isLoadingProfile || isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingInspections || isLoadingClientCompany || isLoadingAllTechniques || isLoadingProviderTeam;
+    const isLoading = isAuthLoading || isLoadingProfile || isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingInspections || isLoadingClientCompany || isLoadingAllTechniques || isLoadingProviderTeam || !id;
     
     if (isLoading) {
         return (

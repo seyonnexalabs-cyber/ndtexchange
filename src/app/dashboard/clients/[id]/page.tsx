@@ -65,8 +65,9 @@ export default function ClientDetailPage() {
         return { activeJobs, totalSpend };
     }, [clientJobs]);
 
+    const isLoading = isLoadingClient || isLoadingJobs || isLoadingSubs || isLoadingTeam || !id;
 
-    if (isLoadingClient || isLoadingJobs || isLoadingSubs || isLoadingTeam) {
+    if (isLoading) {
         return (
             <div className="space-y-6">
                 <Skeleton className="h-8 w-1/4 mb-6" />

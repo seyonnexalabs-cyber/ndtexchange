@@ -192,13 +192,14 @@ service cloud.firestore {
     match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
     match /manufacturers/{manufacturerId} { allow read: if true; allow write: if isAdmin(); }
     match /equipment/{equipmentId} {
-      // An inspector can create equipment for their own company.
+      allow read: if true;
       allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid));
-      // A user can read, update, or delete equipment IFF they belong to that provider's company.
-      allow get, update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/equipment/$(equipmentId)).data.providerId || isAdmin()));
-      // Listing is allowed for public product galleries.
-      // Client-side queries should filter for `isPublic == true`.
+      allow update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/equipment/$(equipmentId)).data.providerId || isAdmin()));
       allow list: if true;
+    }
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
     match /defects/{defectId} { allow read, write: if isAdmin(); }
     match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }

@@ -1,6 +1,6 @@
 
 
-import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique } from '@/lib/types';
+import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product } from '@/lib/types';
 import { subscriptionPlans } from './subscription-plans';
 
 // This file serves as the master data source for seeding the Firestore database.
@@ -40,6 +40,49 @@ export const manufacturersData: Manufacturer[] = [
   { id: 'manu-08', name: 'Physical Acoustics Corp (PAC)', url: 'https://www.physicalacoustics.com/', description: 'A member of the MISTRAS Group, specializing in acoustic emission technology.', techniqueIds: ['AE'] },
   { id: 'manu-09', name: 'Talcyon', url: 'https://www.talcyon.com/', description: 'Developer of Acoustic Pulse Reflectometry (APR) for tube inspections.', techniqueIds: ['APR'] },
   { id: 'manu-10', name: 'Guided Ultrasonics Ltd (GUL)', url: 'https://www.guided-ultrasonics.com/', description: 'Pioneers and leaders in the field of guided wave testing technology.', techniqueIds: ['GWT'] }
+];
+
+export const productsData: Product[] = [
+    {
+        id: 'PROD-001',
+        name: 'OmniScan X3',
+        manufacturerId: 'manu-01',
+        manufacturerName: 'Olympus',
+        type: 'Instrument',
+        techniques: ['PAUT', 'TOFD', 'UT'],
+        description: 'An advanced phased array flaw detector with powerful imaging capabilities and a user-friendly interface.',
+        imageUrl: 'https://images.unsplash.com/photo-1628258334105-2a0b3d6ef5f3?q=80&w=2070&auto=format&fit=crop'
+    },
+    {
+        id: 'PROD-002',
+        name: 'USM Go+',
+        manufacturerId: 'manu-02',
+        manufacturerName: 'GE Inspection Technologies',
+        type: 'Instrument',
+        techniques: ['UT'],
+        description: 'A portable and rugged ultrasonic flaw detector for field use.',
+        imageUrl: 'https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=2070&auto=format&fit=crop'
+    },
+    {
+        id: 'PROD-003',
+        name: 'MIZ-21C',
+        manufacturerId: 'manu-03',
+        manufacturerName: 'Zetec',
+        type: 'Instrument',
+        techniques: ['ET'],
+        description: 'A handheld eddy current instrument designed for detecting surface and sub-surface defects in conductive materials.',
+        imageUrl: 'https://images.unsplash.com/photo-1729271753723-2a1a8579a4ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxlZGR5JTIwY3VycmVudHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080'
+    },
+    {
+        id: 'PROD-004',
+        name: 'Y-1 AC Magnetic Yoke',
+        manufacturerId: 'manu-07',
+        manufacturerName: 'Magnaflux',
+        type: 'Instrument',
+        techniques: ['MT'],
+        description: 'A lightweight, ergonomic yoke for magnetic particle inspection.',
+        imageUrl: 'https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=2070&auto=format&fit=crop'
+    },
 ];
 
 export const clientData: Client[] = [
@@ -920,7 +963,6 @@ export const payments: Payment[] = [
   { id: 'PAY-005', subscriptionId: 'SUB-007', companyName: 'State DOT', amount: 99, date: '2024-07-01', status: 'Failed' },
   { id: 'PAY-006', subscriptionId: 'SUB-001', companyName: 'Global Energy Corp.', amount: 499, date: '2024-06-01', status: 'Succeeded' },
   { id: 'PAY-007', subscriptionId: 'SUB-003', companyName: 'MISTRAS Group', amount: 299, date: '2024-06-01', status: 'Succeeded' },
-  { id: 'PAY-008', subscriptionId: 'SUB-009', companyName: 'Chemical Plant C', amount: 99, date: '2024-07-10', status: 'Succeeded' },
   { id: 'PAY-009', subscriptionId: 'SUB-010', companyName: 'Blue Horizon Services', amount: 299, date: '2024-07-20', status: 'Succeeded' },
   { id: 'PAY-010', subscriptionId: 'SUB-004', companyName: 'Applus+', amount: 299, date: '2024-06-01', status: 'Succeeded' },
   { id: 'PAY-011', subscriptionId: 'SUB-012', companyName: 'Aviation Maintenance Pros', amount: 499, date: '2024-07-25', status: 'Succeeded' },

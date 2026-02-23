@@ -143,6 +143,17 @@ export type Equipment = {
     modifiedBy?: string;
 };
 
+export type Product = {
+    id: string;
+    name: string;
+    manufacturerId: string;
+    manufacturerName: string;
+    type: EquipmentType;
+    techniques: string[];
+    description?: string;
+    imageUrl?: string;
+};
+
 export type Certification = {
   method: string;
   level: 'Level I' | 'Level II' | 'Level III';

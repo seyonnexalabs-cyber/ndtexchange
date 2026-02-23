@@ -7,7 +7,7 @@ import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { useMemo } from 'react';
-import { Manufacturer, NDTTechnique, Equipment } from '@/lib/types';
+import { Manufacturer, NDTTechnique, Product } from '@/lib/types';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,8 +29,8 @@ export default function ManufacturersPage() {
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
-    const equipmentQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'equipment'), where('isPublic', '==', true)) : null, [firestore]);
-    const { data: allEquipment, isLoading: isLoadingEquipment } = useCollection<Equipment>(equipmentQuery);
+    const productsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'products') : null, [firestore]);
+    const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
     const groupedManufacturers = useMemo(() => {
         if (!ndtTechniques || !manufacturers) return [];
@@ -46,7 +46,7 @@ export default function ManufacturersPage() {
             .sort((a,b) => a.title.localeCompare(b.title));
     }, [ndtTechniques, manufacturers]);
 
-    const isLoading = isLoadingManufacturers || isLoadingTechniques || isLoadingEquipment;
+    const isLoading = isLoadingManufacturers || isLoadingTechniques || isLoadingProducts;
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -153,12 +153,12 @@ export default function ManufacturersPage() {
                                     {isLoading ? (
                                         [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)
                                     ) : (
-                                        (allEquipment || []).map(product => (
+                                        (allProducts || []).map(product => (
                                             <Card key={product.id}>
                                                 <CardHeader className="p-0">
                                                     <div className="relative h-40 bg-muted rounded-t-lg">
-                                                        {product.thumbnailUrl ? (
-                                                            <Image src={product.thumbnailUrl} alt={product.name} fill className="object-contain p-2"/>
+                                                        {product.imageUrl ? (
+                                                            <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-2"/>
                                                         ) : (
                                                             <div className="flex items-center justify-center h-full">
                                                                 <Wrench className="w-12 h-12 text-muted-foreground"/>
@@ -168,7 +168,7 @@ export default function ManufacturersPage() {
                                                 </CardHeader>
                                                 <CardContent className="p-4">
                                                     <CardTitle className="text-base font-semibold" title={product.name}>{product.name}</CardTitle>
-                                                    <CardDescription>{product.manufacturer}</CardDescription>
+                                                    <CardDescription>{product.manufacturerName}</CardDescription>
                                                     <div className="flex flex-wrap gap-1 mt-2">
                                                         {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
                                                     </div>
@@ -176,10 +176,10 @@ export default function ManufacturersPage() {
                                             </Card>
                                         ))
                                     )}
-                                    {!isLoading && allEquipment?.length === 0 && (
+                                    {!isLoading && allProducts?.length === 0 && (
                                         <div className="col-span-full text-center py-20">
                                             <p className="text-xl font-semibold">No Products Found</p>
-                                            <p className="text-muted-foreground mt-2">Equipment logged by service providers will appear here.</p>
+                                            <p className="text-muted-foreground mt-2">Products from manufacturers will appear here.</p>
                                         </div>
                                     )}
                                 </div>
@@ -205,5 +205,6 @@ export default function ManufacturersPage() {
             </main>
             <PublicFooter />
         </div>
-    );
+    </TooltipProvider>
+  );
 }

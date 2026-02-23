@@ -167,6 +167,7 @@ const adminMenu = [
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'manufacturers', href: '/dashboard/manufacturers', label: 'Manufacturers', icon: Factory },
+      { id: 'products', href: '/dashboard/products', label: 'Products', icon: Wrench },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },

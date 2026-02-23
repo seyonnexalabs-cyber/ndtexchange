@@ -697,19 +697,19 @@ const AdminDashboard = () => {
                 const { password, ...userToSave } = user;
                 return { ...userToSave, createdAt: new Date(user.createdAt) };
             });
-            processCollection('subscriptions', subscriptionsData);
-            processCollection('payments', paymentsData);
-            processCollection('jobPayments', jobPaymentsData);
+            processCollection('subscriptions', subscriptions);
+            processCollection('payments', payments);
+            processCollection('jobPayments', jobPayments);
             processCollection('assets', clientAssets);
             processCollection('equipment', inspectorAssets);
             processCollection('jobs', seedJobs, 'id', (job) => {
                 const { bids, inspections, ...jobData } = job;
                 return jobData;
             });
-            processCollection('reviews', reviewsData, 'id', (review) => ({ ...review, date: new Date(review.date) }));
-            processCollection('userAuditLogs', userAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            processCollection('jobAuditLogs', jobAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            processCollection('billingAuditLogs', billingAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            processCollection('reviews', reviews, 'id', (review) => ({ ...review, date: new Date(review.date) }));
+            processCollection('userAuditLogs', userAuditLog, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            processCollection('jobAuditLogs', jobAuditLog, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            processCollection('billingAuditLogs', billingAuditLog, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
 
             const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
             if (adminUser) {

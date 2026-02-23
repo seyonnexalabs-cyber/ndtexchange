@@ -44,6 +44,19 @@ export default function ManufacturersPage() {
 
     const isLoading = isLoadingManufacturers || isLoadingTechniques || isLoadingProducts;
 
+    const createReferralUrl = (url: string) => {
+        try {
+            const referralUrl = new URL(url);
+            referralUrl.searchParams.set('utm_source', 'ndt_exchange');
+            referralUrl.searchParams.set('utm_medium', 'referral');
+            referralUrl.searchParams.set('utm_campaign', 'manufacturer_directory');
+            return referralUrl.toString();
+        } catch (error) {
+            console.error("Invalid URL for manufacturer:", url);
+            return url; // Fallback to original URL if invalid
+        }
+    };
+
     return (
         <TooltipProvider>
             <div className="flex flex-col min-h-screen bg-background">
@@ -85,10 +98,12 @@ export default function ManufacturersPage() {
                                 {isLoadingManufacturers ? (
                                     [...Array(10)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)
                                 ) : (
-                                    filteredManufacturers.map(manufacturer => (
+                                    filteredManufacturers.map(manufacturer => {
+                                        const referralUrl = createReferralUrl(manufacturer.url);
+                                        return (
                                         <Card key={manufacturer.id} className="flex flex-col">
                                             <CardHeader>
-                                                <a href={manufacturer.url} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
+                                                <a href={referralUrl} target="_blank" rel="noopener noreferrer" className="block relative h-20 bg-card p-2 rounded-md">
                                                     <Image 
                                                         src={manufacturer.logoUrl || `https://placehold.co/200x80/e2e8f0/64748b/png?text=${manufacturer.name.replace(/\s/g, '+')}`}
                                                         alt={`${manufacturer.name} logo`}
@@ -121,11 +136,11 @@ export default function ManufacturersPage() {
                                             </CardContent>
                                             <CardFooter className="p-6 pt-0">
                                                 <Button asChild variant="outline" className="w-full" size="sm">
-                                                    <a href={manufacturer.url} target="_blank" rel="noopener noreferrer">Visit Website</a>
+                                                    <a href={referralUrl} target="_blank" rel="noopener noreferrer">Visit Website</a>
                                                 </Button>
                                             </CardFooter>
                                         </Card>
-                                    ))
+                                    )})
                                 )}
                             </div>
                              {filteredManufacturers.length === 0 && !isLoadingManufacturers && (

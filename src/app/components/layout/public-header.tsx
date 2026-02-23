@@ -16,7 +16,7 @@ export default function PublicHeader() {
 
   const navLinks = [
     { href: '/about', label: 'About' },
-    { href: '/manufacturers', label: 'Ecosystem' },
+    { href: '/ecosystem', label: 'Ecosystem' },
     { href: '/platform-workflow', label: 'Workflow' },
     { href: '/request-demo', label: 'Request a Demo' },
     { href: '/help', label: 'Help' },

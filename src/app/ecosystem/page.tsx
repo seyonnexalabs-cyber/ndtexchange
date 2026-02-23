@@ -405,22 +405,24 @@ export default function EcosystemPage() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {isLoading ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : paginatedProducts.map(product => (
-                                    <Card key={product.id} className="group overflow-hidden flex flex-col">
-                                        <CardHeader className="p-0">
-                                            <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
-                                                {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="p-4 flex-grow">
-                                            <CardTitle className="text-base font-semibold leading-tight mb-1" title={product.name}>{product.name}</CardTitle>
-                                            <CardDescription>{product.manufacturerName}</CardDescription>
-                                        </CardContent>
-                                        <CardFooter className="p-4 pt-0">
-                                            <div className="flex flex-wrap gap-1">
-                                                {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
+                                    <Link key={product.id} href={`/products/${product.id}`} className="block group">
+                                        <Card className="overflow-hidden flex flex-col h-full">
+                                            <CardHeader className="p-0">
+                                                <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
+                                                    {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="p-4 flex-grow">
+                                                <CardTitle className="text-base font-semibold leading-tight mb-1 group-hover:text-primary" title={product.name}>{product.name}</CardTitle>
+                                                <CardDescription>{product.manufacturerName}</CardDescription>
+                                            </CardContent>
+                                            <CardFooter className="p-4 pt-0">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                                </div>
+                                            </CardFooter>
+                                        </Card>
+                                    </Link>
                                 ))}
                             </div>
                              <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredProducts.length}/>

@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { jobsData, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData, productsData, notifications } from "@/lib/seed-data";
+import { jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, inspectionsData, productsData, notifications } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -659,7 +659,7 @@ const AdminDashboard = () => {
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
+    const { data: jobsData, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
     const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? collection(firestore, 'reviews') : null, [isReady, firestore]));
@@ -678,8 +678,11 @@ const AdminDashboard = () => {
         try {
             const batch = writeBatch(firestore);
 
-            const safeNewDate = (dateString?: string) => dateString ? new Date(dateString) : undefined;
-            const toTimestamp = (date?: Date) => date || serverTimestamp();
+            const safeNewDate = (dateString?: string): Date | undefined => {
+                if (!dateString) return undefined;
+                const date = new Date(dateString);
+                return isNaN(date.getTime()) ? undefined : date;
+            };
 
             console.log(`[SEED] Preparing: techniques, manufacturers, products...`);
             NDTTechniques.forEach(item => batch.set(doc(firestore, 'techniques', item.id), item));
@@ -694,25 +697,33 @@ const AdminDashboard = () => {
             console.log(`[SEED] Preparing: users...`);
             allUsers.forEach(user => {
                 const { password, ...userToSave } = user;
+                const createdAtDate = safeNewDate(user.createdAt as string);
                 batch.set(doc(firestore, 'users', user.id), {
                     ...userToSave,
-                    createdAt: safeNewDate(user.createdAt)
+                    createdAt: createdAtDate || serverTimestamp()
                 });
             });
             console.log(`[SEED] ✅ Prepared users.`);
             
             console.log(`[SEED] Preparing: assets, equipment...`);
             clientAssets.forEach(asset => {
-                batch.set(doc(firestore, 'assets', asset.id), {
+                const assetWithDates = {
                     ...asset,
-                    history: (asset.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) }))
-                });
+                    history: (asset.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) || serverTimestamp() })),
+                    installationDate: safeNewDate(asset.installationDate),
+                    createdAt: safeNewDate(asset.createdAt as string || undefined),
+                    modifiedAt: safeNewDate(asset.modifiedAt as string || undefined)
+                };
+                batch.set(doc(firestore, 'assets', asset.id), assetWithDates);
             });
             inspectorAssets.forEach(equip => {
-                 batch.set(doc(firestore, 'equipment', equip.id), {
+                 const equipWithDates = {
                     ...equip,
-                    history: (equip.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) }))
-                });
+                    history: (equip.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) || serverTimestamp() })),
+                    createdAt: safeNewDate(equip.createdAt as string || undefined),
+                    modifiedAt: safeNewDate(equip.modifiedAt as string || undefined)
+                 };
+                 batch.set(doc(firestore, 'equipment', equip.id), equipWithDates);
             });
             console.log(`[SEED] ✅ Prepared assets and equipment.`);
             
@@ -720,7 +731,7 @@ const AdminDashboard = () => {
             subscriptions.forEach(sub => batch.set(doc(firestore, 'subscriptions', sub.id), { ...sub, startDate: safeNewDate(sub.startDate), endDate: safeNewDate(sub.endDate) }));
             payments.forEach(p => batch.set(doc(firestore, 'payments', p.id), { ...p, date: safeNewDate(p.date) }));
             jobPayments.forEach(p => batch.set(doc(firestore, 'jobPayments', p.id), { ...p, paidOn: safeNewDate(p.paidOn) }));
-            reviews.forEach(r => batch.set(doc(firestore, 'reviews', r.id), { ...r, date: safeNewDate(r.date) }));
+            reviews.forEach(r => batch.set(doc(firestore, 'reviews', r.id), { ...r, date: safeNewDate(r.date as string) }));
             console.log(`[SEED] ✅ Prepared subscriptions, payments, reviews.`);
 
             console.log(`[SEED] Preparing: audit logs...`);
@@ -737,24 +748,24 @@ const AdminDashboard = () => {
             console.log(`[SEED] ✅ Prepared notifications.`);
 
             console.log(`[SEED] Preparing: jobs and subcollections...`);
-            jobsData.forEach(job => {
+            jobs.forEach(job => {
                 const { bids, inspections, ...jobData } = job;
                 const jobRef = doc(firestore, 'jobs', job.id);
                 
                 const jobDataWithDates = {
                     ...jobData,
-                    postedDate: safeNewDate(jobData.postedDate),
+                    postedDate: safeNewDate(jobData.postedDate as string),
                     createdAt: safeNewDate(jobData.createdAt as string),
                     modifiedAt: safeNewDate(jobData.modifiedAt as string),
-                    bidExpiryDate: safeNewDate(jobData.bidExpiryDate),
-                    scheduledStartDate: safeNewDate(jobData.scheduledStartDate),
-                    scheduledEndDate: safeNewDate(jobData.scheduledEndDate),
-                    history: (jobData.history || []).map(h => ({...h, timestamp: safeNewDate(h.timestamp)}))
+                    bidExpiryDate: safeNewDate(jobData.bidExpiryDate as string),
+                    scheduledStartDate: safeNewDate(jobData.scheduledStartDate as string),
+                    scheduledEndDate: safeNewDate(jobData.scheduledEndDate as string),
+                    history: (jobData.history || []).map(h => ({...h, timestamp: safeNewDate(h.timestamp as string)}))
                 };
                 
                 batch.set(jobRef, jobDataWithDates);
 
-                bidsData.filter(b => b.jobId === job.id).forEach(bid => {
+                bids.forEach(bid => {
                     const bidRef = doc(firestore, 'jobs', bid.jobId, 'bids', bid.id);
                     batch.set(bidRef, { ...bid, submittedDate: safeNewDate(bid.submittedDate) });
                 });
@@ -820,7 +831,7 @@ const AdminDashboard = () => {
         totalUsers: users?.length || 0,
         totalProviders: companies?.filter(c => c.type === 'Provider').length || 0,
         pendingReviews: pendingReviews,
-        activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
+        activeJobs: jobsData?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
 
     const userGrowthData = useMemo(() => {

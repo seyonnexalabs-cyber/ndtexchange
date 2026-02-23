@@ -405,7 +405,7 @@ export default function EcosystemPage() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {isLoading ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : paginatedProducts.map(product => (
-                                    <Link key={product.id} href={`/products/${product.id}`} className="block group">
+                                    <Link key={product.id} href={`/directory/products/${product.id}`} className="block group">
                                         <Card className="overflow-hidden flex flex-col h-full">
                                             <CardHeader className="p-0">
                                                 <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">

@@ -1,3 +1,5 @@
+
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -5,16 +7,19 @@ import { notFound, useSearchParams, useParams, useRouter } from "next/navigation
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronLeft, MapPin, Star, Users, Wrench } from "lucide-react";
+import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useFirebase, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
-import type { NDTServiceProvider, InspectorAsset, Review, NDTTechnique } from '@/lib/types';
+import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -70,7 +75,7 @@ export default function PublicProviderProfilePage() {
     }, [providerReviews]);
 
 
-    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingReviews || isLoadingClients || isLoadingTechniques;
+    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingReviews || isLoadingClients || isLoadingTechniques || !id;
 
     if (isLoading) {
         return (
@@ -185,7 +190,9 @@ export default function PublicProviderProfilePage() {
                         <TabsContent value="reviews">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><Star className="text-primary" /> Client Reviews</CardTitle>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Star className="text-primary" /> Client Reviews
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {providerReviews.length > 0 ? (

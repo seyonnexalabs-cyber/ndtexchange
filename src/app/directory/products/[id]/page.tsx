@@ -6,7 +6,7 @@ import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Star, ExternalLink, Wrench } from "lucide-react";
 import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';

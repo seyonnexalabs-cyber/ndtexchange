@@ -1,7 +1,6 @@
 
 
 import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product } from '@/lib/types';
-import { subscriptionPlans } from './subscription-plans';
 
 // This file serves as the master data source for seeding the Firestore database.
 // The application itself should NOT import data from this file for rendering.
@@ -89,7 +88,22 @@ export const productsData: Product[] = [
     { id: 'PROD-027', name: 'D-Test Penetrant Kit', manufacturerId: 'manu-22', manufacturerName: 'Karl Deutsch', type: 'Accessory', techniques: ['PT'], description: 'A complete kit for red and fluorescent color contrast penetrant testing.', imageUrls: [] },
     { id: 'PROD-028', name: 'Vantage 64', manufacturerId: 'manu-03', manufacturerName: 'Zetec', type: 'Instrument', techniques: ['PAUT'], description: 'A powerful phased array ultrasonic testing data acquisition system.', imageUrls: [] },
     { id: 'PROD-029', name: 'FSM-2 Film Digitizer', manufacturerId: 'manu-05', manufacturerName: 'Fujifilm', type: 'Instrument', techniques: ['RT'], description: 'High-speed film digitizer for converting industrial X-ray films to high-quality digital images.', imageUrls: [] },
-    { id: 'PROD-030', name: 'Phasec 3 Series', manufacturerId: 'manu-15', manufacturerName: 'Ether NDE', type: 'Instrument', techniques: ['ET'], description: 'Hand-held dual frequency eddy current flaw detector.', imageUrls: [] }
+    { id: 'PROD-030', name: 'Dolphin G4', manufacturerId: 'manu-09', manufacturerName: 'Talcyon', type: 'Instrument', techniques: ['APR'], description: 'The next generation of Acoustic Pulse Reflectometry for even faster and more accurate tube inspections.', imageUrls: [] },
+    { id: 'PROD-031', name: 'P-Scan Stack System', manufacturerId: 'manu-04', manufacturerName: 'Sonatest', type: 'Instrument', techniques: ['PAUT', 'UT'], description: 'A versatile, automated weld inspection system using phased array technology.', imageUrls: [] },
+    { id: 'PROD-032', 'name': 'DR 25C', 'manufacturerId': 'manu-06', 'manufacturerName': 'Carestream', 'type': 'Sensor', 'techniques': ['DR'], 'description': 'A lightweight, wireless digital detector for portable radiographic inspections.', 'imageUrls': [] },
+    { id: 'PROD-033', 'name': 'EV1000 LED UV Lamp', 'manufacturerId': 'manu-07', 'manufacturerName': 'Magnaflux', 'type': 'Visual Aid', 'techniques': ['PT', 'MT'], 'description': 'A handheld, cool-running LED UV lamp for fluorescent NDT inspections.', 'imageUrls': [] },
+    { id: 'PROD-034', 'name': 'Sensor Highway II', 'manufacturerId': 'manu-08', 'manufacturerName': 'Physical Acoustics Corp (PAC)', 'type': 'Sensor', 'techniques': ['AE'], 'description': 'A permanent monitoring system for Acoustic Emission testing on large structures.', 'imageUrls': [] },
+    { id: 'PROD-035', 'name': 'Lyft', 'manufacturerId': 'manu-17', 'manufacturerName': 'Eddyfi Technologies', 'type': 'Instrument', 'techniques': ['ET'], 'description': 'A pulsed eddy current (PEC) instrument for detecting corrosion under insulation (CUI).', 'imageUrls': [] },
+    { id: 'PROD-036', 'name': 'FLIR GF343', 'manufacturerId': 'manu-23', 'manufacturerName': 'FLIR Systems', 'type': 'Instrument', 'techniques': ['IR'], 'description': 'An optical gas imaging camera that can detect and visualize CO2 leaks safely and quickly.', 'imageUrls': [] },
+    { id: 'PROD-037', 'name': 'DEUTROFLUX UWE 900', 'manufacturerId': 'manu-22', 'manufacturerName': 'Karl Deutsch', 'type': 'Instrument', 'techniques': ['MT'], 'description': 'A universal magnetic particle testing bench for detecting surface cracks on ferromagnetic components.', 'imageUrls': [] },
+    { id: 'PROD-038', 'name': 'HD-130 Videoscope', 'manufacturerId': 'manu-16', 'manufacturerName': 'Mitcorp', 'type': 'Instrument', 'techniques': ['VT', 'RVI'], 'description': 'A high-definition videoscope with interchangeable probes and a large touch-screen display.', 'imageUrls': [] },
+    { id: 'PROD-039', 'name': 'VEO3 Phased Array', 'manufacturerId': 'manu-04', 'manufacturerName': 'Sonatest', 'type': 'Instrument', 'techniques': ['PAUT'], 'description': 'An advanced phased array flaw detector with a rugged design and superior performance for challenging inspection environments.', 'imageUrls': [] },
+    { id: 'PROD-040', 'name': 'X-RAY CT Metrology', 'manufacturerId': 'manu-24', 'manufacturerName': 'Nikon Metrology', 'type': 'Instrument', 'techniques': ['RT'], 'description': 'High-precision X-ray computed tomography systems for detailed internal and external measurements of complex parts.', 'imageUrls': [] },
+    { id: 'PROD-041', 'name': 'EchoTREK', 'manufacturerId': 'manu-15', 'manufacturerName': 'Ether NDE', 'type': 'Instrument', 'techniques': ['UT'], 'description': 'A robust ultrasonic thickness gauge with a color display and A-scan capabilities.', 'imageUrls': [] },
+    { id: 'PROD-042', 'name': 'Rotoscan', 'manufacturerId': 'manu-14', 'manufacturerName': 'Rosen Group', 'type': 'Sensor', 'techniques': ['UT'], 'description': 'An automated ultrasonic pipeline inspection system for detecting corrosion and cracks.', 'imageUrls': [] },
+    { id: 'PROD-043', 'name': 'Zetec Topaz64', 'manufacturerId': 'manu-03', 'manufacturerName': 'Zetec', 'type': 'Instrument', 'techniques': ['PAUT', 'TOFD'], 'description': 'A fully integrated, portable 64-channel phased array ultrasonic instrument with real-time TFM.', 'imageUrls': [] },
+    { id: 'PROD-044', 'name': '300kV X-Ray Source', 'manufacturerId': 'manu-02', 'manufacturerName': 'Waygate Technologies', 'type': 'Source', 'techniques': ['RT'], 'description': 'A powerful and stable 300kV microfocus X-ray source for high-resolution industrial inspection.', 'imageUrls': [] },
+    { id: 'PROD-045', 'name': '15MHz Shear Wave Probe', 'manufacturerId': 'manu-01', 'manufacturerName': 'Evident Scientific', 'type': 'Probe', 'techniques': ['UT'], 'description': 'A high-frequency shear wave transducer for detecting very small flaws near the surface.', 'imageUrls': [] }
 ];
 
 export const clientData: Client[] = [
@@ -945,21 +959,21 @@ export const inspectionsData: Inspection[] = [
 ];
 
 export const subscriptions: Subscription[] = [
-    { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Client Plus', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 500 },
-    { id: 'SUB-002', companyId: 'client-02', companyName: 'Marine Tankers Ltd.', plan: 'Client Access', status: 'Trialing', startDate: '2024-07-05', endDate: '2024-08-04', userCount: 5, dataUsageGB: 2.1, userLimit: 10, dataLimitGB: 20 },
-    { id: 'SUB-003', companyId: 'provider-01', companyName: 'MISTRAS Group', plan: 'Company Growth', status: 'Active', startDate: '2024-03-20', userCount: 50, dataUsageGB: 45.8, userLimit: 50, dataLimitGB: 100 },
-    { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Provider Pro', status: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5, userLimit: 75, dataLimitGB: 120 },
-    { id: 'SUB-005', companyId: 'client-03', companyName: 'Energy Transfer', plan: 'Client Access', status: 'Canceled', startDate: '2024-02-01', endDate: '2024-05-01', userCount: 10, dataUsageGB: 8.7, userLimit: 10, dataLimitGB: 20 },
-    { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Company Growth', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1, userLimit: 150, dataLimitGB: 100 },
-    { id: 'SUB-007', companyId: 'client-04', companyName: 'State DOT', plan: 'Client Access', status: 'Payment Failed', startDate: '2024-04-15', userCount: 8, dataUsageGB: 12.3, userLimit: 10, dataLimitGB: 20 },
-    { id: 'SUB-008', companyId: 'auditor-firm-01', companyName: 'NDT Auditors LLC', plan: 'Free Access', status: 'Active', startDate: '2024-01-01', userCount: 2, dataUsageGB: 1.5, userLimit: 200, dataLimitGB: 500 },
-    { id: 'SUB-009', companyId: 'client-05', companyName: 'Chemical Plant C', plan: 'Client Access', status: 'Active', startDate: '2024-07-10', userCount: 3, dataUsageGB: 0.5, userLimit: 10, dataLimitGB: 20 },
-    { id: 'SUB-010', companyId: 'provider-09', companyName: 'Blue Horizon Services', plan: 'Provider Pro', status: 'Active', startDate: '2024-07-20', userCount: 12, dataUsageGB: 4.5, userLimit: 50, dataLimitGB: 100 },
-    { id: 'SUB-011', companyId: 'client-08', companyName: 'Manufacturing Solutions Inc.', plan: 'Client Access', status: 'Trialing', startDate: '2024-07-15', endDate: '2024-08-14', userCount: 2, dataUsageGB: 0.8, userLimit: 5, dataLimitGB: 5 },
-    { id: 'SUB-012', companyId: 'client-09', companyName: 'Aviation Maintenance Pros', plan: 'Client Plus', status: 'Active', startDate: '2024-07-25', userCount: 1, dataUsageGB: 0.1, userLimit: 200, dataLimitGB: 500 },
-    { id: 'SUB-013', companyId: 'provider-11', companyName: 'SGS', plan: 'Provider Pro', status: 'Active', startDate: '2024-07-26', userCount: 2, dataUsageGB: 0.3, userLimit: 50, dataLimitGB: 100 },
-    { id: 'SUB-014', companyId: 'provider-12', companyName: 'DNV (Det Norske Veritas)', plan: 'Company Growth', status: 'Active', startDate: '2024-06-10', userCount: 1, dataUsageGB: 2.5, userLimit: 200, dataLimitGB: 500 },
-    { id: 'SUB-015', companyId: 'provider-03', companyName: 'TEAM, Inc.', plan: 'Company Growth', status: 'Active', startDate: '2024-01-01', userCount: 3, dataUsageGB: 10, userLimit: 15, dataLimitGB: 75 },
+  { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Client Plus', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 500 },
+  { id: 'SUB-002', companyId: 'client-02', companyName: 'Marine Tankers Ltd.', plan: 'Client Access', status: 'Trialing', startDate: '2024-07-05', endDate: '2024-08-04', userCount: 5, dataUsageGB: 2.1, userLimit: 10, dataLimitGB: 20 },
+  { id: 'SUB-003', companyId: 'provider-01', companyName: 'MISTRAS Group', plan: 'Company Growth', status: 'Active', startDate: '2024-03-20', userCount: 50, dataUsageGB: 45.8, userLimit: 50, dataLimitGB: 100 },
+  { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Provider Pro', status: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5, userLimit: 75, dataLimitGB: 120 },
+  { id: 'SUB-005', companyId: 'client-03', companyName: 'Energy Transfer', plan: 'Client Access', status: 'Canceled', startDate: '2024-02-01', endDate: '2024-05-01', userCount: 10, dataUsageGB: 8.7, userLimit: 10, dataLimitGB: 20 },
+  { id: 'SUB-006', companyId: 'provider-04', companyName: 'TÜV Rheinland', plan: 'Company Growth', status: 'Active', startDate: '2024-06-01', userCount: 150, dataUsageGB: 88.1, userLimit: 150, dataLimitGB: 100 },
+  { id: 'SUB-007', companyId: 'client-04', companyName: 'State DOT', plan: 'Client Access', status: 'Payment Failed', startDate: '2024-04-15', userCount: 8, dataUsageGB: 12.3, userLimit: 10, dataLimitGB: 20 },
+  { id: 'SUB-008', companyId: 'auditor-firm-01', companyName: 'NDT Auditors LLC', plan: 'Free Access', status: 'Active', startDate: '2024-01-01', userCount: 2, dataUsageGB: 1.5, userLimit: 200, dataLimitGB: 500 },
+  { id: 'SUB-009', companyId: 'client-05', companyName: 'Chemical Plant C', plan: 'Client Access', status: 'Active', startDate: '2024-07-10', userCount: 3, dataUsageGB: 0.5, userLimit: 10, dataLimitGB: 20 },
+  { id: 'SUB-010', companyId: 'provider-09', companyName: 'Blue Horizon Services', plan: 'Provider Pro', status: 'Active', startDate: '2024-07-20', userCount: 12, dataUsageGB: 4.5, userLimit: 50, dataLimitGB: 100 },
+  { id: 'SUB-011', companyId: 'client-08', companyName: 'Manufacturing Solutions Inc.', plan: 'Client Access', status: 'Trialing', startDate: '2024-07-15', endDate: '2024-08-14', userCount: 2, dataUsageGB: 0.8, userLimit: 5, dataLimitGB: 5 },
+  { id: 'SUB-012', companyId: 'client-09', companyName: 'Aviation Maintenance Pros', plan: 'Client Plus', status: 'Active', startDate: '2024-07-25', userCount: 1, dataUsageGB: 0.1, userLimit: 200, dataLimitGB: 500 },
+  { id: 'SUB-013', companyId: 'provider-11', companyName: 'SGS', plan: 'Provider Pro', status: 'Active', startDate: '2024-07-26', userCount: 2, dataUsageGB: 0.3, userLimit: 50, dataLimitGB: 100 },
+  { id: 'SUB-014', companyId: 'provider-12', companyName: 'DNV (Det Norske Veritas)', plan: 'Company Growth', status: 'Active', startDate: '2024-06-10', userCount: 1, dataUsageGB: 2.5, userLimit: 200, dataLimitGB: 500 },
+  { id: 'SUB-015', companyId: 'provider-03', companyName: 'TEAM, Inc.', plan: 'Company Growth', status: 'Active', startDate: '2024-01-01', userCount: 3, dataUsageGB: 10, userLimit: 15, dataLimitGB: 75 },
 ];
 
 export const payments: Payment[] = [

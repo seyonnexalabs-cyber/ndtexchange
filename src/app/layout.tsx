@@ -7,6 +7,20 @@ import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
 import { ModeProvider } from '@/app/components/layout/mode-provider';
+import { Playfair_Display, PT_Sans } from 'next/font/google';
+
+const pt_sans = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-pt-sans',
+});
+
+const playfair_display = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-playfair-display',
+});
 
 
 export const metadata: Metadata = {
@@ -23,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${pt_sans.variable} ${playfair_display.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="NDT EXCHANGE" />
@@ -33,9 +47,6 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3B82F6" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=PT+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
         <Suspense fallback={<div>Loading...</div>}>

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -22,9 +23,9 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup } from 'firebase/firestore';
+import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { jobs as seedJobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData, productsData } from "@/lib/seed-data";
+import { jobsData, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData, productsData, notifications } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -677,71 +678,124 @@ const AdminDashboard = () => {
         try {
             const batch = writeBatch(firestore);
 
-            const processCollection = (collectionName: string, data: any[], idField = 'id', customizer?: (item: any) => any) => {
-                console.log(`[SEED] Preparing: ${collectionName} (${data.length} docs)...`);
-                data.forEach(item => {
-                    const itemData = customizer ? customizer(item) : item;
-                    const docId = item[idField];
-                    const docRef = doc(firestore, collectionName, docId);
-                    batch.set(docRef, itemData);
-                });
-                console.log(`[SEED] ✅ Prepared: ${collectionName}.`);
-            };
+            const safeNewDate = (dateString?: string) => dateString ? new Date(dateString) : undefined;
+            const toTimestamp = (date?: Date) => date || serverTimestamp();
 
-            const allCompaniesData = [...clientData, ...serviceProviders, ...auditFirms];
-            processCollection('techniques', NDTTechniques);
-            processCollection('manufacturers', manufacturersData);
-            processCollection('products', productsData);
-            processCollection('companies', allCompaniesData);
-            processCollection('users', allUsers, 'id', (user) => {
+            console.log(`[SEED] Preparing: techniques, manufacturers, products...`);
+            NDTTechniques.forEach(item => batch.set(doc(firestore, 'techniques', item.id), item));
+            manufacturersData.forEach(item => batch.set(doc(firestore, 'manufacturers', item.id), item));
+            productsData.forEach(item => batch.set(doc(firestore, 'products', item.id), item));
+            console.log(`[SEED] ✅ Prepared simple collections.`);
+
+            console.log(`[SEED] Preparing: companies...`);
+            [...clientData, ...serviceProviders, ...auditFirms].forEach(item => batch.set(doc(firestore, 'companies', item.id), item));
+            console.log(`[SEED] ✅ Prepared companies.`);
+
+            console.log(`[SEED] Preparing: users...`);
+            allUsers.forEach(user => {
                 const { password, ...userToSave } = user;
-                return { ...userToSave, createdAt: new Date(user.createdAt) };
+                batch.set(doc(firestore, 'users', user.id), {
+                    ...userToSave,
+                    createdAt: safeNewDate(user.createdAt)
+                });
             });
-            processCollection('subscriptions', subscriptions);
-            processCollection('payments', payments);
-            processCollection('jobPayments', jobPayments);
-            processCollection('assets', clientAssets);
-            processCollection('equipment', inspectorAssets);
-            processCollection('jobs', seedJobs, 'id', (job) => {
+            console.log(`[SEED] ✅ Prepared users.`);
+            
+            console.log(`[SEED] Preparing: assets, equipment...`);
+            clientAssets.forEach(asset => {
+                batch.set(doc(firestore, 'assets', asset.id), {
+                    ...asset,
+                    history: (asset.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) }))
+                });
+            });
+            inspectorAssets.forEach(equip => {
+                 batch.set(doc(firestore, 'equipment', equip.id), {
+                    ...equip,
+                    history: (equip.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) }))
+                });
+            });
+            console.log(`[SEED] ✅ Prepared assets and equipment.`);
+            
+            console.log(`[SEED] Preparing: subscriptions, payments, reviews...`);
+            subscriptions.forEach(sub => batch.set(doc(firestore, 'subscriptions', sub.id), { ...sub, startDate: safeNewDate(sub.startDate), endDate: safeNewDate(sub.endDate) }));
+            payments.forEach(p => batch.set(doc(firestore, 'payments', p.id), { ...p, date: safeNewDate(p.date) }));
+            jobPayments.forEach(p => batch.set(doc(firestore, 'jobPayments', p.id), { ...p, paidOn: safeNewDate(p.paidOn) }));
+            reviews.forEach(r => batch.set(doc(firestore, 'reviews', r.id), { ...r, date: safeNewDate(r.date) }));
+            console.log(`[SEED] ✅ Prepared subscriptions, payments, reviews.`);
+
+            console.log(`[SEED] Preparing: audit logs...`);
+            userAuditLog.forEach(log => batch.set(doc(firestore, 'userAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) }));
+            jobAuditLog.forEach(log => batch.set(doc(firestore, 'jobAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) }));
+            billingAuditLog.forEach(log => batch.set(doc(firestore, 'billingAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) }));
+            console.log(`[SEED] ✅ Prepared audit logs.`);
+            
+            console.log(`[SEED] Preparing: notifications...`);
+            notifications.forEach(n => {
+                const notifRef = doc(firestore, 'users', n.userId, 'notifications', n.id);
+                batch.set(notifRef, { ...n, timestamp: safeNewDate(n.timestamp) });
+            });
+            console.log(`[SEED] ✅ Prepared notifications.`);
+
+            console.log(`[SEED] Preparing: jobs and subcollections...`);
+            jobsData.forEach(job => {
                 const { bids, inspections, ...jobData } = job;
-                return jobData;
+                const jobRef = doc(firestore, 'jobs', job.id);
+                
+                const jobDataWithDates = {
+                    ...jobData,
+                    postedDate: safeNewDate(jobData.postedDate),
+                    createdAt: safeNewDate(jobData.createdAt as string),
+                    modifiedAt: safeNewDate(jobData.modifiedAt as string),
+                    bidExpiryDate: safeNewDate(jobData.bidExpiryDate),
+                    scheduledStartDate: safeNewDate(jobData.scheduledStartDate),
+                    scheduledEndDate: safeNewDate(jobData.scheduledEndDate),
+                    history: (jobData.history || []).map(h => ({...h, timestamp: safeNewDate(h.timestamp)}))
+                };
+                
+                batch.set(jobRef, jobDataWithDates);
+
+                bidsData.filter(b => b.jobId === job.id).forEach(bid => {
+                    const bidRef = doc(firestore, 'jobs', bid.jobId, 'bids', bid.id);
+                    batch.set(bidRef, { ...bid, submittedDate: safeNewDate(bid.submittedDate) });
+                });
+
+                jobChats.filter(c => c.jobId === job.id).forEach(chat => {
+                    chat.messages.forEach(msg => {
+                        const msgRef = doc(firestore, 'jobs', chat.jobId, 'messages', msg.id);
+                        batch.set(msgRef, { ...msg, timestamp: safeNewDate(msg.timestamp) });
+                    });
+                });
             });
-            processCollection('reviews', reviews, 'id', (review) => ({ ...review, date: new Date(review.date) }));
-            processCollection('userAuditLogs', userAuditLog, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            processCollection('jobAuditLogs', jobAuditLog, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            processCollection('billingAuditLogs', billingAuditLog, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            console.log(`[SEED] ✅ Prepared: jobs and subcollections.`);
 
-            const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
-            if (adminUser) {
-                batch.set(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
-            }
-
-            bidsData.forEach(bid => {
-                const bidRef = doc(firestore, 'jobs', bid.jobId, 'bids', bid.id);
-                batch.set(bidRef, bid);
-            });
-
+            console.log(`[SEED] Preparing: inspections and reports...`);
             inspectionsData.forEach(inspection => {
                 if (!inspection.assetId || inspection.assetId === 'N/A') return;
                 const { report, ...inspectionData } = inspection;
                 const inspectionRef = doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id);
-                batch.set(inspectionRef, inspectionData);
+                
+                const inspectionDataWithDate = {
+                    ...inspectionData,
+                    date: safeNewDate(inspectionData.date),
+                    report: report ? {
+                        ...report,
+                        submittedOn: safeNewDate(report.submittedOn),
+                        documents: report.documents || [],
+                    } : undefined
+                };
+                batch.set(inspectionRef, inspectionDataWithDate);
+
                 if (report) {
                     const reportRef = doc(firestore, 'reports', report.id);
-                    batch.set(reportRef, report);
+                    batch.set(reportRef, { ...report, submittedOn: safeNewDate(report.submittedOn) });
                 }
             });
+            console.log(`[SEED] ✅ Prepared: inspections and reports.`);
 
-            jobChats.forEach(chat => {
-                chat.messages.forEach(msg => {
-                    const msgRef = doc(firestore, 'jobs', chat.jobId, 'messages', msg.id);
-                    batch.set(msgRef, {
-                        senderId: msg.senderId,
-                        text: msg.text,
-                        timestamp: new Date(msg.timestamp),
-                    });
-                });
-            });
+            const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
+            if (adminUser) batch.set(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
+            const seyonUser = allUsers.find(u => u.email === 'seyonnexalabs@gmail.com');
+            if (seyonUser) batch.set(doc(firestore, 'roles_admin', seyonUser.id), { isAdmin: true });
 
             await batch.commit();
 

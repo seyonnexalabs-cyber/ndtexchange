@@ -21,6 +21,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel"
 
 const StarRating = ({ rating, reviewCount }: { rating: number, reviewCount: number }) => {
@@ -53,6 +54,10 @@ export default function PublicProductProfilePage() {
     const { id } = params;
     const { firestore } = useFirebase();
 
+    const [api, setApi] = React.useState<CarouselApi>()
+    const [current, setCurrent] = React.useState(0)
+    const [count, setCount] = React.useState(0)
+
     const productRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'products', id as string) : null), [firestore, id]);
     const { data: product, isLoading: isLoadingProduct } = useDoc<Product>(productRef);
 
@@ -61,7 +66,24 @@ export default function PublicProductProfilePage() {
     
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
 
+    React.useEffect(() => {
+        if (!api) {
+            return
+        }
+
+        setCount(api.scrollSnapList().length)
+        setCurrent(api.selectedScrollSnap() + 1)
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap() + 1)
+        })
+    }, [api])
+
     const isLoading = isLoadingProduct || isLoadingManufacturer || isLoadingTechniques || !id;
+
+    if (!id) {
+        notFound();
+    }
 
     if (isLoading) {
         return (
@@ -106,7 +128,7 @@ export default function PublicProductProfilePage() {
                 <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
                     <div className="md:col-span-1">
                         <Card className="overflow-hidden">
-                            <Carousel className="w-full">
+                            <Carousel setApi={setApi} className="w-full">
                                 <CarouselContent>
                                     {product.imageUrls && product.imageUrls.length > 0 ? (
                                         product.imageUrls.map((url, index) => (
@@ -131,6 +153,11 @@ export default function PublicProductProfilePage() {
                                     </>
                                 )}
                             </Carousel>
+                             {count > 1 && (
+                                <div className="py-2 text-center text-sm text-muted-foreground">
+                                    Image {current} of {count}
+                                </div>
+                            )}
                         </Card>
                     </div>
 

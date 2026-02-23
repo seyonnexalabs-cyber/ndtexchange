@@ -684,69 +684,86 @@ const AdminDashboard = () => {
                 return isNaN(date.getTime()) ? undefined : date;
             };
 
+            const removeUndefined = (obj: any) => {
+                Object.keys(obj).forEach(key => {
+                    if (obj[key] === undefined) {
+                        delete obj[key];
+                    }
+                });
+                return obj;
+            };
+
+            // Seed simple collections
             console.log(`[SEED] Preparing: techniques, manufacturers, products...`);
             NDTTechniques.forEach(item => batch.set(doc(firestore, 'techniques', item.id), item));
             manufacturersData.forEach(item => batch.set(doc(firestore, 'manufacturers', item.id), item));
             productsData.forEach(item => batch.set(doc(firestore, 'products', item.id), item));
             console.log(`[SEED] ✅ Prepared simple collections.`);
 
+            // Seed companies
             console.log(`[SEED] Preparing: companies...`);
             [...clientData, ...serviceProviders, ...auditFirms].forEach(item => batch.set(doc(firestore, 'companies', item.id), item));
             console.log(`[SEED] ✅ Prepared companies.`);
 
+            // Seed users
             console.log(`[SEED] Preparing: users...`);
             allUsers.forEach(user => {
                 const { password, ...userToSave } = user;
-                const createdAtDate = safeNewDate(user.createdAt as string);
-                batch.set(doc(firestore, 'users', user.id), {
+                const userWithDate = {
                     ...userToSave,
-                    createdAt: createdAtDate || serverTimestamp()
-                });
+                    createdAt: safeNewDate(user.createdAt as string) || serverTimestamp(),
+                };
+                batch.set(doc(firestore, 'users', user.id), removeUndefined(userWithDate));
             });
             console.log(`[SEED] ✅ Prepared users.`);
             
+            // Seed assets and equipment
             console.log(`[SEED] Preparing: assets, equipment...`);
             clientAssets.forEach(asset => {
                 const assetWithDates = {
                     ...asset,
                     history: (asset.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) || serverTimestamp() })),
                     installationDate: safeNewDate(asset.installationDate),
-                    createdAt: safeNewDate(asset.createdAt as string || undefined),
-                    modifiedAt: safeNewDate(asset.modifiedAt as string || undefined)
+                    createdAt: safeNewDate(asset.createdAt as string),
+                    modifiedAt: safeNewDate(asset.modifiedAt as string)
                 };
-                batch.set(doc(firestore, 'assets', asset.id), assetWithDates);
+                batch.set(doc(firestore, 'assets', asset.id), removeUndefined(assetWithDates));
             });
             inspectorAssets.forEach(equip => {
                  const equipWithDates = {
                     ...equip,
                     history: (equip.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) || serverTimestamp() })),
-                    createdAt: safeNewDate(equip.createdAt as string || undefined),
-                    modifiedAt: safeNewDate(equip.modifiedAt as string || undefined)
+                    createdAt: safeNewDate(equip.createdAt as string),
+                    modifiedAt: safeNewDate(equip.modifiedAt as string)
                  };
-                 batch.set(doc(firestore, 'equipment', equip.id), equipWithDates);
+                 batch.set(doc(firestore, 'equipment', equip.id), removeUndefined(equipWithDates));
             });
             console.log(`[SEED] ✅ Prepared assets and equipment.`);
             
+            // Seed financial and review data
             console.log(`[SEED] Preparing: subscriptions, payments, reviews...`);
-            subscriptions.forEach(sub => batch.set(doc(firestore, 'subscriptions', sub.id), { ...sub, startDate: safeNewDate(sub.startDate), endDate: safeNewDate(sub.endDate) }));
-            payments.forEach(p => batch.set(doc(firestore, 'payments', p.id), { ...p, date: safeNewDate(p.date) }));
-            jobPayments.forEach(p => batch.set(doc(firestore, 'jobPayments', p.id), { ...p, paidOn: safeNewDate(p.paidOn) }));
-            reviews.forEach(r => batch.set(doc(firestore, 'reviews', r.id), { ...r, date: safeNewDate(r.date as string) }));
+            subscriptions.forEach(sub => batch.set(doc(firestore, 'subscriptions', sub.id), removeUndefined({ ...sub, startDate: safeNewDate(sub.startDate), endDate: safeNewDate(sub.endDate) })));
+            payments.forEach(p => batch.set(doc(firestore, 'payments', p.id), { ...p, date: safeNewDate(p.date)! }));
+            jobPayments.forEach(p => batch.set(doc(firestore, 'jobPayments', p.id), { ...p, paidOn: safeNewDate(p.paidOn)! }));
+            reviews.forEach(r => batch.set(doc(firestore, 'reviews', r.id), { ...r, date: safeNewDate(r.date as string) || serverTimestamp() }));
             console.log(`[SEED] ✅ Prepared subscriptions, payments, reviews.`);
 
+            // Seed audit logs
             console.log(`[SEED] Preparing: audit logs...`);
-            userAuditLog.forEach(log => batch.set(doc(firestore, 'userAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) }));
-            jobAuditLog.forEach(log => batch.set(doc(firestore, 'jobAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) }));
-            billingAuditLog.forEach(log => batch.set(doc(firestore, 'billingAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) }));
+            userAuditLog.forEach(log => batch.set(doc(firestore, 'userAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
+            jobAuditLog.forEach(log => batch.set(doc(firestore, 'jobAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
+            billingAuditLog.forEach(log => batch.set(doc(firestore, 'billingAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
             console.log(`[SEED] ✅ Prepared audit logs.`);
             
+            // Seed notifications
             console.log(`[SEED] Preparing: notifications...`);
             notifications.forEach(n => {
                 const notifRef = doc(firestore, 'users', n.userId, 'notifications', n.id);
-                batch.set(notifRef, { ...n, timestamp: safeNewDate(n.timestamp) });
+                batch.set(notifRef, removeUndefined({ ...n, timestamp: safeNewDate(n.timestamp) }));
             });
             console.log(`[SEED] ✅ Prepared notifications.`);
 
+            // Seed jobs and subcollections
             console.log(`[SEED] Preparing: jobs and subcollections...`);
             jobs.forEach(job => {
                 const { bids, inspections, ...jobData } = job;
@@ -760,20 +777,20 @@ const AdminDashboard = () => {
                     bidExpiryDate: safeNewDate(jobData.bidExpiryDate as string),
                     scheduledStartDate: safeNewDate(jobData.scheduledStartDate as string),
                     scheduledEndDate: safeNewDate(jobData.scheduledEndDate as string),
-                    history: (jobData.history || []).map(h => ({...h, timestamp: safeNewDate(h.timestamp as string)}))
+                    history: (jobData.history || []).map(h => removeUndefined({...h, timestamp: safeNewDate(h.timestamp as string)}))
                 };
                 
-                batch.set(jobRef, jobDataWithDates);
+                batch.set(jobRef, removeUndefined(jobDataWithDates));
 
                 bids.forEach(bid => {
                     const bidRef = doc(firestore, 'jobs', bid.jobId, 'bids', bid.id);
-                    batch.set(bidRef, { ...bid, submittedDate: safeNewDate(bid.submittedDate) });
+                    batch.set(bidRef, removeUndefined({ ...bid, submittedDate: safeNewDate(bid.submittedDate) }));
                 });
 
                 jobChats.filter(c => c.jobId === job.id).forEach(chat => {
                     chat.messages.forEach(msg => {
                         const msgRef = doc(firestore, 'jobs', chat.jobId, 'messages', msg.id);
-                        batch.set(msgRef, { ...msg, timestamp: safeNewDate(msg.timestamp) });
+                        batch.set(msgRef, removeUndefined({ ...msg, timestamp: safeNewDate(msg.timestamp) }));
                     });
                 });
             });
@@ -788,21 +805,21 @@ const AdminDashboard = () => {
                 const inspectionDataWithDate = {
                     ...inspectionData,
                     date: safeNewDate(inspectionData.date),
-                    report: report ? {
+                    report: report ? removeUndefined({
                         ...report,
                         submittedOn: safeNewDate(report.submittedOn),
-                        documents: report.documents || [],
-                    } : undefined
+                    }) : undefined
                 };
-                batch.set(inspectionRef, inspectionDataWithDate);
+                batch.set(inspectionRef, removeUndefined(inspectionDataWithDate));
 
                 if (report) {
                     const reportRef = doc(firestore, 'reports', report.id);
-                    batch.set(reportRef, { ...report, submittedOn: safeNewDate(report.submittedOn) });
+                    batch.set(reportRef, removeUndefined({ ...report, submittedOn: safeNewDate(report.submittedOn) }));
                 }
             });
             console.log(`[SEED] ✅ Prepared: inspections and reports.`);
 
+            // Seed admin roles
             const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
             if (adminUser) batch.set(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
             const seyonUser = allUsers.find(u => u.email === 'seyonnexalabs@gmail.com');

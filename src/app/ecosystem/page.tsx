@@ -514,7 +514,7 @@ export default function EcosystemPage() {
                                                 </div>
                                             </div>
                                         </CardContent>
-                                        <CardFooter><Button asChild className="w-full"><Link href={`/dashboard/providers/${provider.id}`}>View Profile</Link></Button></CardFooter>
+                                        <CardFooter><Button asChild className="w-full"><Link href={`/directory/providers/${provider.id}`}>View Profile</Link></Button></CardFooter>
                                     </Card>
                                ))}
                             </div>
@@ -588,7 +588,7 @@ export default function EcosystemPage() {
                                                 {(firm.services || []).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
                                             </div></div>
                                         </CardContent>
-                                        <CardFooter><Button asChild className="w-full"><Link href={`/dashboard/auditors/${firm.id}`}>View Profile</Link></Button></CardFooter>
+                                        <CardFooter><Button asChild className="w-full"><Link href={`/directory/auditors/${firm.id}`}>View Profile</Link></Button></CardFooter>
                                     </Card>
                                 ))}
                             </div>

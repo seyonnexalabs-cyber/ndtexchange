@@ -25,7 +25,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
-import { jobs as seedJobs, inspectorAssets, allUsers as seedAllUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData } from "@/lib/seed-data";
+import { jobs as seedJobs, inspectorAssets, allUsers as seedAllUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData, productsData } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -703,6 +703,7 @@ const AdminDashboard = () => {
             console.group("Step 1: Foundational & Company Data");
             await seedCollection('techniques', NDTTechniques);
             await seedCollection('manufacturers', manufacturersData);
+            await seedCollection('products', productsData);
             await seedCollection('companies', allCompanies);
             console.groupEnd();
             
@@ -992,3 +993,5 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    

@@ -509,8 +509,8 @@ export default function EcosystemPage() {
                                             <StarRating rating={provider.rating} />
                                             <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{provider.description}</p>
                                             <div>
-                                                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Techniques</h4>
-                                                <div className="flex flex-wrap gap-1.5 min-h-[26px]">
+                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Techniques</h4>
+                                                <div className="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
                                                     {(provider.techniques || []).slice(0, 5).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
                                                     {(provider.techniques || []).length > 5 && <Badge variant="outline">+{ (provider.techniques || []).length - 5} more</Badge>}
                                                 </div>
@@ -660,17 +660,6 @@ export default function EcosystemPage() {
                         </TabsContent>
 
                     </Tabs>
-
-                    <section className="py-20">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <div className="p-8 md:p-12 bg-accent/10 rounded-lg max-w-4xl mx-auto border border-accent/20">
-                            <div className="mx-auto bg-accent p-4 rounded-full w-fit mb-6"><Handshake className="w-10 h-10 text-accent-foreground" /></div>
-                            <h2 className="text-3xl font-headline font-semibold text-accent">Are you an OEM?</h2>
-                            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Connect with a targeted audience of NDT professionals and asset owners. Showcase your products and generate qualified leads by being featured on our platform.</p>
-                            <div className="mt-8"><Button size="lg" asChild><Link href="/oem-solutions">Explore OEM Solutions</Link></Button></div>
-                        </div>
-                    </div>
-                    </section>
                 </main>
                 <PublicFooter />
             </div>

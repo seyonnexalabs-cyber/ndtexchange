@@ -130,7 +130,7 @@ const PaginationControls = ({ currentPage, pageCount, onPageChange, itemsPerPage
 
 export default function EcosystemPage() {
     const searchParams = useSearchParams();
-    const defaultTab = searchParams.get('tab') || 'providers';
+    const defaultTab = searchParams.get('tab') || 'products';
     const { firestore } = useFirebase();
 
     // Items per page state
@@ -150,11 +150,13 @@ export default function EcosystemPage() {
     const [auditorPage, setAuditorPage] = useState(1);
     
     // Manufacturer States
-    const [selectedManufacturerTechnique, setSelectedManufacturerTechnique] = useState<string | null>(null);
+    const [selectedManufacturerTechniques, setSelectedManufacturerTechniques] = useState<string[]>([]);
     const [manufacturerSearch, setManufacturerSearch] = useState('');
     const [manufacturerPage, setManufacturerPage] = useState(1);
 
     // Product States
+    const [selectedProductTechniques, setSelectedProductTechniques] = useState<string[]>([]);
+    const [selectedProductManufacturers, setSelectedProductManufacturers] = useState<string[]>([]);
     const [productSearch, setProductSearch] = useState('');
     const [productPage, setProductPage] = useState(1);
 
@@ -174,7 +176,8 @@ export default function EcosystemPage() {
     const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null, [firestore]));
 
     const handleItemsPerPageChange = (value: string) => {
-        setItemsPerPage(Number(value));
+        const newSize = Number(value);
+        setItemsPerPage(newSize);
         setProviderPage(1);
         setAuditorPage(1);
         setManufacturerPage(1);
@@ -260,18 +263,20 @@ export default function EcosystemPage() {
     }, [filteredAuditors, auditorPage, itemsPerPage]);
 
     // --- MANUFACTURER LOGIC ---
+    const manufacturerTechniqueOptions = useMemo(() => {
+        if (!manufacturers) return [];
+        const techniques = new Set(manufacturers.flatMap(m => m.techniqueIds || []));
+        return Array.from(techniques).sort();
+    }, [manufacturers]);
+
      const filteredManufacturers = useMemo(() => {
         if (!manufacturers) return [];
-        let filtered = manufacturers;
-
-        if (selectedManufacturerTechnique) {
-            filtered = filtered.filter(m => m.techniqueIds.includes(selectedManufacturerTechnique));
-        }
-        if (manufacturerSearch) {
-             filtered = filtered.filter(m => m.name.toLowerCase().includes(manufacturerSearch.toLowerCase()));
-        }
-        return filtered;
-    }, [manufacturers, selectedManufacturerTechnique, manufacturerSearch]);
+        return manufacturers.filter(m => {
+            const searchMatch = manufacturerSearch === '' || m.name.toLowerCase().includes(manufacturerSearch.toLowerCase());
+            const techMatch = selectedManufacturerTechniques.length === 0 || selectedManufacturerTechniques.some(tech => (m.techniqueIds || []).includes(tech));
+            return searchMatch && techMatch;
+        });
+    }, [manufacturers, selectedManufacturerTechniques, manufacturerSearch]);
 
     const manufacturerPageCount = Math.ceil(filteredManufacturers.length / itemsPerPage);
     const paginatedManufacturers = useMemo(() => {
@@ -280,11 +285,29 @@ export default function EcosystemPage() {
     }, [filteredManufacturers, manufacturerPage, itemsPerPage]);
     
     // --- PRODUCT LOGIC ---
+    const productTechniqueOptions = useMemo(() => {
+        if (!productsData) return [];
+        const techniques = new Set(productsData.flatMap(p => p.techniques || []));
+        return Array.from(techniques).sort();
+    }, [productsData]);
+    
+    const productManufacturerOptions = useMemo(() => {
+        if (!productsData) return [];
+        const manu = new Set(productsData.map(p => p.manufacturerName));
+        return Array.from(manu).sort();
+    }, [productsData]);
+
      const filteredProducts = useMemo(() => {
         if (!productsData) return [];
-        if (!productSearch) return productsData;
-        return productsData.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) || p.manufacturerName.toLowerCase().includes(productSearch.toLowerCase()));
-    }, [productsData, productSearch]);
+        return productsData.filter(p => {
+             const searchMatch = productSearch === '' || 
+                p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+                p.manufacturerName.toLowerCase().includes(productSearch.toLowerCase());
+            const techMatch = selectedProductTechniques.length === 0 || selectedProductTechniques.every(tech => (p.techniques || []).includes(tech));
+            const manuMatch = selectedProductManufacturers.length === 0 || selectedProductManufacturers.includes(p.manufacturerName);
+            return searchMatch && techMatch && manuMatch;
+        });
+    }, [productsData, productSearch, selectedProductTechniques, selectedProductManufacturers]);
 
     const productPageCount = Math.ceil(filteredProducts.length / itemsPerPage);
     const paginatedProducts = useMemo(() => {
@@ -317,12 +340,92 @@ export default function EcosystemPage() {
                     
                     <Tabs defaultValue={defaultTab} className="py-20">
                         <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-2 md:grid-cols-4 h-auto">
+                            <TabsTrigger value="products" className="gap-2 py-3"><Wrench /> Products</TabsTrigger>
                             <TabsTrigger value="providers" className="gap-2 py-3"><HardHat /> Providers</TabsTrigger>
                             <TabsTrigger value="auditors" className="gap-2 py-3"><Eye /> Auditors</TabsTrigger>
                             <TabsTrigger value="manufacturers" className="gap-2 py-3"><Factory /> Manufacturers</TabsTrigger>
-                            <TabsTrigger value="products" className="gap-2 py-3"><Wrench /> Products</TabsTrigger>
                         </TabsList>
                         
+                        {/* PRODUCTS TAB */}
+                        <TabsContent value="products" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center mb-8">
+                                <div className="relative lg:col-span-1">
+                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                     <Input 
+                                        placeholder="Search products..."
+                                        className="pl-10 w-full"
+                                        value={productSearch}
+                                        onChange={(e) => { setProductSearch(e.target.value); setProductPage(1); }}
+                                    />
+                                </div>
+                                <div className="flex gap-2 lg:col-span-2 justify-start lg:justify-end">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" disabled={isLoading}>Techniques ({selectedProductTechniques.length})</Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80">
+                                            <Command>
+                                                <CommandInput placeholder="Filter techniques..." />
+                                                <CommandList><CommandEmpty>No results.</CommandEmpty><CommandGroup>
+                                                {productTechniqueOptions.map(tech => (
+                                                    <CommandItem key={tech} onSelect={() => {
+                                                        setSelectedProductTechniques(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]);
+                                                        setProductPage(1);
+                                                    }}>
+                                                        <Check className={cn("mr-2 h-4 w-4", selectedProductTechniques.includes(tech) ? "opacity-100" : "opacity-0")} />
+                                                        {ndtTechniques?.find(t => t.acronym === tech)?.title || tech}
+                                                    </CommandItem>
+                                                ))}
+                                                </CommandGroup></CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" disabled={isLoading}>Manufacturers ({selectedProductManufacturers.length})</Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80">
+                                            <Command>
+                                                <CommandInput placeholder="Filter manufacturers..." />
+                                                <CommandList><CommandEmpty>No results.</CommandEmpty><CommandGroup>
+                                                {productManufacturerOptions.map(manu => (
+                                                    <CommandItem key={manu} onSelect={() => {
+                                                        setSelectedProductManufacturers(prev => prev.includes(manu) ? prev.filter(m => m !== manu) : [...prev, manu]);
+                                                        setProductPage(1);
+                                                    }}>
+                                                        <Check className={cn("mr-2 h-4 w-4", selectedProductManufacturers.includes(manu) ? "opacity-100" : "opacity-0")} />
+                                                        {manu}
+                                                    </CommandItem>
+                                                ))}
+                                                </CommandGroup></CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {isLoading ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : paginatedProducts.map(product => (
+                                    <Card key={product.id} className="group overflow-hidden flex flex-col">
+                                        <CardHeader className="p-0">
+                                            <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
+                                                {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="p-4 flex-grow">
+                                            <CardTitle className="text-base font-semibold leading-tight mb-1" title={product.name}>{product.name}</CardTitle>
+                                            <CardDescription>{product.manufacturerName}</CardDescription>
+                                        </CardContent>
+                                        <CardFooter className="p-4 pt-0">
+                                            <div className="flex flex-wrap gap-1">
+                                                {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                            </div>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                             <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredProducts.length}/>
+                        </TabsContent>
+
                         {/* PROVIDERS TAB */}
                         <TabsContent value="providers" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
                              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center mb-8">
@@ -505,18 +608,27 @@ export default function EcosystemPage() {
                                     />
                                 </div>
                                 <div className="lg:col-span-2 justify-start lg:justify-end">
-                                     <ScrollArea className="w-full">
-                                        <div className="flex w-max space-x-2 pb-2">
-                                            <Button variant={!selectedManufacturerTechnique ? 'default' : 'outline'} onClick={() => { setSelectedManufacturerTechnique(null); setManufacturerPage(1); }}>All</Button>
-                                            {isLoadingTechniques ? <Skeleton className="h-10 w-48" /> : (
-                                                sortedNdtTechniques?.map(technique => (
-                                                    <Button key={technique.id} variant={selectedManufacturerTechnique === technique.acronym ? 'default' : 'outline'} onClick={() => { setSelectedManufacturerTechnique(technique.acronym); setManufacturerPage(1); }}>
-                                                        {technique.title}
-                                                    </Button>
-                                                ))
-                                            )}
-                                        </div>
-                                     </ScrollArea>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" disabled={isLoading}>Techniques ({selectedManufacturerTechniques.length})</Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80">
+                                            <Command>
+                                                <CommandInput placeholder="Filter techniques..." />
+                                                <CommandList><CommandEmpty>No results.</CommandEmpty><CommandGroup>
+                                                {manufacturerTechniqueOptions.map(tech => (
+                                                    <CommandItem key={tech} onSelect={() => {
+                                                        setSelectedManufacturerTechniques(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]);
+                                                        setManufacturerPage(1);
+                                                    }}>
+                                                        <Check className={cn("mr-2 h-4 w-4", selectedManufacturerTechniques.includes(tech) ? "opacity-100" : "opacity-0")} />
+                                                        {ndtTechniques?.find(t => t.acronym === tech)?.title || tech}
+                                                    </CommandItem>
+                                                ))}
+                                                </CommandGroup></CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -543,42 +655,6 @@ export default function EcosystemPage() {
                                 )}
                             </div>
                             <PaginationControls currentPage={manufacturerPage} pageCount={manufacturerPageCount} onPageChange={setManufacturerPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredManufacturers.length}/>
-                        </TabsContent>
-                        
-                        {/* PRODUCTS TAB */}
-                        <TabsContent value="products" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                             <div className="grid md:grid-cols-3 gap-6 items-center mb-8">
-                                <div className="relative md:col-span-2">
-                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                     <Input 
-                                        placeholder="Search products by name or manufacturer..."
-                                        className="pl-10 w-full"
-                                        value={productSearch}
-                                        onChange={(e) => { setProductSearch(e.target.value); setProductPage(1); }}
-                                    />
-                                </div>
-                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {isLoadingProducts ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : paginatedProducts.map(product => (
-                                    <Card key={product.id} className="group overflow-hidden flex flex-col">
-                                        <CardHeader className="p-0">
-                                            <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
-                                                {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="p-4 flex-grow">
-                                            <CardTitle className="text-base font-semibold leading-tight mb-1" title={product.name}>{product.name}</CardTitle>
-                                            <CardDescription>{product.manufacturerName}</CardDescription>
-                                        </CardContent>
-                                        <CardFooter className="p-4 pt-0">
-                                            <div className="flex flex-wrap gap-1">
-                                                {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
-                             <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredProducts.length}/>
                         </TabsContent>
 
                     </Tabs>

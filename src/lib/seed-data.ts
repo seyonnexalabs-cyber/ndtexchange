@@ -60,46 +60,36 @@ export const manufacturersData: Manufacturer[] = [
 ];
 
 export const productsData: Product[] = [
-    {
-        id: 'PROD-001',
-        name: 'OmniScan X3',
-        manufacturerId: 'manu-01',
-        manufacturerName: 'Evident Scientific',
-        type: 'Instrument',
-        techniques: ['PAUT', 'TOFD', 'UT'],
-        description: 'An advanced phased array flaw detector with powerful imaging capabilities and a user-friendly interface.',
-        imageUrl: 'https://images.unsplash.com/photo-1628258334105-2a0b3d6ef5f3?q=80&w=2070&auto=format&fit=crop'
-    },
-    {
-        id: 'PROD-002',
-        name: 'USM Go+',
-        manufacturerId: 'manu-02',
-        manufacturerName: 'Waygate Technologies',
-        type: 'Instrument',
-        techniques: ['UT'],
-        description: 'A portable and rugged ultrasonic flaw detector for field use.',
-        imageUrl: 'https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=2070&auto=format&fit=crop'
-    },
-    {
-        id: 'PROD-003',
-        name: 'MIZ-21C',
-        manufacturerId: 'manu-03',
-        manufacturerName: 'Zetec',
-        type: 'Instrument',
-        techniques: ['ET'],
-        description: 'A handheld eddy current instrument designed for detecting surface and sub-surface defects in conductive materials.',
-        imageUrl: 'https://images.unsplash.com/photo-1729271753723-2a1a8579a4ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxlZGR5JTIwY3VycmVudHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080'
-    },
-    {
-        id: 'PROD-004',
-        name: 'Y-1 AC Magnetic Yoke',
-        manufacturerId: 'manu-07',
-        manufacturerName: 'Magnaflux',
-        type: 'Instrument',
-        techniques: ['MT'],
-        description: 'A lightweight, ergonomic yoke for magnetic particle inspection.',
-        imageUrl: 'https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=2070&auto=format&fit=crop'
-    },
+    { id: 'PROD-001', name: 'OmniScan X3', manufacturerId: 'manu-01', manufacturerName: 'Evident Scientific', type: 'Instrument', techniques: ['PAUT', 'TOFD', 'UT'], description: 'An advanced phased array flaw detector with powerful imaging capabilities and a user-friendly interface.', imageUrl: 'https://images.unsplash.com/photo-1628258334105-2a0b3d6ef5f3?q=80&w=2070&auto=format&fit=crop' },
+    { id: 'PROD-002', name: 'USM Go+', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Instrument', techniques: ['UT'], description: 'A portable and rugged ultrasonic flaw detector for field use.', imageUrl: 'https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=2070&auto=format&fit=crop' },
+    { id: 'PROD-003', name: 'MIZ-21C', manufacturerId: 'manu-03', manufacturerName: 'Zetec', type: 'Instrument', techniques: ['ET'], description: 'A handheld eddy current instrument designed for detecting surface and sub-surface defects in conductive materials.', imageUrl: 'https://images.unsplash.com/photo-1729271753723-2a1a8579a4ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxlZGR5JTIwY3VycmVudHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+    { id: 'PROD-004', name: 'Y-1 AC Magnetic Yoke', manufacturerId: 'manu-07', manufacturerName: 'Magnaflux', type: 'Instrument', techniques: ['MT'], description: 'A lightweight, ergonomic yoke for magnetic particle inspection.', imageUrl: 'https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=2070&auto=format&fit=crop' },
+    { id: 'PROD-005', name: 'Mentor UT', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Instrument', techniques: ['UT', 'PAUT'], description: 'A powerful and portable ultrasonic flaw detector with 3D visualization capabilities.', imageUrl: 'https://images.unsplash.com/photo-1581092921447-4e4b52474969?q=80&w=2070&auto=format&fit=crop' },
+    { id: 'PROD-006', name: 'SPOTCHECK SKL-SP2', manufacturerId: 'manu-07', manufacturerName: 'Magnaflux', type: 'Accessory', techniques: ['PT'], description: 'Solvent-removable penetrant for locating surface-breaking flaws.', imageUrl: 'https://images.unsplash.com/photo-1655182513906-1755106518af?q=80&w=1932&auto=format&fit=crop' },
+    { id: 'PROD-007', name: 'X-CUBE Compact', manufacturerId: 'manu-21', manufacturerName: 'Yxlon International', type: 'Instrument', techniques: ['RT', 'DR'], description: 'A compact and versatile X-ray inspection cabinet for a wide range of applications.', imageUrl: 'https://images.unsplash.com/photo-1579169187310-815e1a13d745?q=80&w=1932&auto=format&fit=crop' },
+    { id: 'PROD-008', name: 'X-Test 90 Portable X-ray', manufacturerId: 'manu-20', manufacturerName: 'Teledyne ICM', type: 'Instrument', techniques: ['RT'], description: 'A lightweight and robust portable X-ray generator for field inspections.', imageUrl: 'https://images.unsplash.com/photo-1579169187310-815e1a13d745?q=80&w=1932&auto=format&fit=crop' },
+    { id: 'PROD-009', name: 'AMIGO2 ACFM Instrument', manufacturerId: 'manu-17', manufacturerName: 'Eddyfi Technologies', type: 'Instrument', techniques: ['ACFM'], description: 'An advanced instrument for detecting and sizing surface-breaking cracks through coatings.', imageUrl: 'https://images.unsplash.com/photo-1729271753723-2a1a8579a4ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxlZGR5JTIwY3VycmVudHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+    { id: 'PROD-010', name: 'G3-R Imaging Camera', manufacturerId: 'manu-23', manufacturerName: 'FLIR Systems', type: 'Instrument', techniques: ['IR'], description: 'A high-definition thermal imaging camera for detecting temperature anomalies.', imageUrl: 'https://images.unsplash.com/photo-1643461214011-a161ac8850cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx0aGVybWFsJTIwaW1hZ2luZ3xlbnwwfHx8fDE3Njg5MjEzNTB8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+    { id: 'PROD-011', name: 'Vanta Handheld XRF', manufacturerId: 'manu-01', manufacturerName: 'Evident Scientific', type: 'Instrument', techniques: [], description: 'A handheld X-ray fluorescence (XRF) analyzer for rapid material identification and chemical analysis.' },
+    { id: 'PROD-012', name: 'Dolphin G3', manufacturerId: 'manu-09', manufacturerName: 'Talcyon', type: 'Instrument', techniques: ['APR'], description: 'Acoustic Pulse Reflectometry system for non-traversing tube inspection.', imageUrl: 'https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8fDE3Njg5Mjk0Mzh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+    { id: 'PROD-013', name: 'Wavemaker G4', manufacturerId: 'manu-10', manufacturerName: 'Guided Ultrasonics Ltd (GUL)', type: 'Instrument', techniques: ['GWT'], description: 'The leading instrument for Guided Wave Testing of pipes and pipelines.' },
+    { id: 'PROD-014', name: 'AMSY-6', manufacturerId: 'manu-26', manufacturerName: 'Vallen Systeme', type: 'Sensor', techniques: ['AE'], description: 'A multi-channel acoustic emission system for structural health monitoring.' },
+    { id: 'PROD-015', name: 'USM Vision', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Instrument', techniques: ['UT', 'PAUT', 'TOFD'], description: 'Advanced ultrasonic flaw detector with real-time imaging and data analysis capabilities.' },
+    { id: 'PROD-016', name: 'Site-Scan 500S', manufacturerId: 'manu-04', manufacturerName: 'Sonatest', type: 'Instrument', techniques: ['UT'], description: 'A rugged and portable ultrasonic flaw detector designed for site use.' },
+    { id: 'PROD-017', name: 'DynamIx HR2', manufacturerId: 'manu-05', manufacturerName: 'Fujifilm', type: 'Instrument', techniques: ['CR'], description: 'A high-resolution computed radiography system for demanding NDT applications.' },
+    { id: 'PROD-018', name: 'MFL 2000', manufacturerId: 'manu-17', manufacturerName: 'Eddyfi Technologies', type: 'Instrument', techniques: ['MFL'], description: 'Magnetic flux leakage system for tank floor inspection.' },
+    { id: 'PROD-019', name: 'Pundit PD8000', manufacturerId: 'manu-18', manufacturerName: 'Screening Eagle', type: 'Instrument', techniques: ['UT'], description: 'Ultrasonic pulse velocity tester for concrete and rock assessment.' },
+    { id: 'PROD-020', name: 'ECHOMETER 1077', manufacturerId: 'manu-22', manufacturerName: 'Karl Deutsch', type: 'Instrument', techniques: ['UT'], description: 'Data logger for wall thickness measurement.' },
+    { id: 'PROD-021', name: 'Everest Mentor Visual iQ', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Instrument', techniques: ['VT', 'RVI'], description: 'Advanced videoscope for remote visual inspection with 3D measurement capabilities.' },
+    { id: 'PROD-022', name: 'X-Test 90', manufacturerId: 'manu-15', manufacturerName: 'Ether NDE', type: 'Instrument', techniques: ['ET'], description: 'Portable eddy current flaw detector for aerospace and industrial applications.' },
+    { id: 'PROD-023', name: 'X-Flex Flexible Videoscope', manufacturerId: 'manu-16', manufacturerName: 'Mitcorp', type: 'Instrument', techniques: ['VT', 'RVI'], description: 'A flexible and durable videoscope for inspecting hard-to-reach areas.' },
+    { id: 'PROD-024', name: 'ROSEN RoCorr MFL-A', manufacturerId: 'manu-14', manufacturerName: 'Rosen Group', type: 'Instrument', techniques: ['MFL'], description: 'High-resolution MFL-A technology for pipeline inspection.' },
+    { id: 'PROD-025', name: 'EPOCH 650', manufacturerId: 'manu-01', manufacturerName: 'Evident Scientific', type: 'Instrument', techniques: ['UT'], description: 'A versatile, portable ultrasonic flaw detector offering excellent performance and usability for a wide range of applications.' },
+    { id: 'PROD-026', name: 'Silverwing FloormapX', manufacturerId: 'manu-17', manufacturerName: 'Eddyfi Technologies', type: 'Instrument', techniques: ['MFL'], description: 'Advanced MFL tank floor inspection system with sophisticated reporting software.' },
+    { id: 'PROD-027', name: 'D-Test Penetrant Kit', manufacturerId: 'manu-22', manufacturerName: 'Karl Deutsch', type: 'Accessory', techniques: ['PT'], description: 'A complete kit for red and fluorescent color contrast penetrant testing.' },
+    { id: 'PROD-028', name: 'Vantage 64', manufacturerId: 'manu-03', manufacturerName: 'Zetec', type: 'Instrument', techniques: ['PAUT'], description: 'A powerful phased array ultrasonic testing data acquisition system.' },
+    { id: 'PROD-029', name: 'FSM-2 Film Digitizer', manufacturerId: 'manu-05', manufacturerName: 'Fujifilm', type: 'Instrument', techniques: ['RT'], description: 'High-speed film digitizer for converting industrial X-ray films to high-quality digital images.' },
+    { id: 'PROD-030', name: 'Phasec 3 Series', manufacturerId: 'manu-15', manufacturerName: 'Ether NDE', type: 'Instrument', techniques: ['ET'], description: 'Hand-held dual frequency eddy current flaw detector.' }
 ];
 
 export const clientData: Client[] = [

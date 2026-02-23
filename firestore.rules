@@ -207,8 +207,10 @@ service cloud.firestore {
     match /payments/{paymentId} { allow read, write: if isAdmin(); }
     match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
     match /reviews/{reviewId} {
-        // Allow public read for approved reviews, otherwise must be signed in.
-        allow read: if resource.data.status == 'Approved' || isSignedIn();
+        // Allow public listing of reviews. The client query is responsible for filtering by 'Approved'.
+        allow list: if true;
+        // Allow getting a single document if it's approved, or if the user is signed in.
+        allow get: if resource.data.status == 'Approved' || isSignedIn();
         allow create: if isSignedIn() || isAdmin();
         allow write: if isAdmin();
     }

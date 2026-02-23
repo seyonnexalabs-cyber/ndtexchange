@@ -7,7 +7,7 @@ import Link from 'next/link';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { useMemo, useState } from 'react';
-import type { Manufacturer, NDTTechnique, Product, NDTServiceProvider, AuditFirm, Review, Client } from '@/lib/types';
+import type { Manufacturer, NDTTechnique, Product, NDTServiceProvider, AuditFirm, Client, Review } from '@/lib/types';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -64,46 +64,77 @@ const createReferralUrl = (url: string) => {
     }
 };
 
-const ITEMS_PER_PAGE = 9;
-
-const PaginationControls = ({ currentPage, pageCount, onPageChange }: { currentPage: number, pageCount: number, onPageChange: (page: number) => void }) => (
-    pageCount > 1 && (
-        <div className="mt-12 flex justify-center">
-            <Pagination>
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            href="#"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onPageChange(Math.max(currentPage - 1, 1));
-                            }}
-                            className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
-                        />
-                    </PaginationItem>
-                    <PaginationItem>
-                        <span className="text-sm font-medium p-2">Page {currentPage} of {pageCount}</span>
-                    </PaginationItem>
-                    <PaginationItem>
-                        <PaginationNext
-                            href="#"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onPageChange(Math.min(currentPage + 1, pageCount));
-                            }}
-                            className={cn(currentPage === pageCount && "pointer-events-none opacity-50")}
-                        />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
+const PaginationControls = ({ currentPage, pageCount, onPageChange, itemsPerPage, onItemsPerPageChange, totalItems }: { 
+    currentPage: number, 
+    pageCount: number, 
+    onPageChange: (page: number) => void,
+    itemsPerPage: number,
+    onItemsPerPageChange: (value: string) => void,
+    totalItems: number,
+}) => (
+    (pageCount > 1 || totalItems > 0) && (
+        <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+                Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">Items per page</p>
+                    <Select value={`${itemsPerPage}`} onValueChange={onItemsPerPageChange}>
+                        <SelectTrigger className="h-9 w-[70px]">
+                            <SelectValue placeholder={itemsPerPage} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {[25, 50, 100].map((pageSize) => (
+                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                {pageSize}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                {pageCount > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onPageChange(Math.max(currentPage - 1, 1));
+                                    }}
+                                    className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <span className="text-sm font-medium p-2">Page {currentPage} of {pageCount}</span>
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onPageChange(Math.min(currentPage + 1, pageCount));
+                                    }}
+                                    className={cn(currentPage === pageCount && "pointer-events-none opacity-50")}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
         </div>
     )
 );
+
 
 export default function EcosystemPage() {
     const searchParams = useSearchParams();
     const defaultTab = searchParams.get('tab') || 'providers';
     const { firestore } = useFirebase();
+
+    // Items per page state
+    const [itemsPerPage, setItemsPerPage] = useState(25);
 
     // Provider States
     const [selectedProviderTechniques, setSelectedProviderTechniques] = useState<string[]>([]);
@@ -141,6 +172,14 @@ export default function EcosystemPage() {
     const { data: productsData, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
     const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null, [firestore]));
+
+    const handleItemsPerPageChange = (value: string) => {
+        setItemsPerPage(Number(value));
+        setProviderPage(1);
+        setAuditorPage(1);
+        setManufacturerPage(1);
+        setProductPage(1);
+    };
 
     // --- PROVIDER LOGIC ---
     const { serviceProviders, providerTechniqueOptions, providerIndustryOptions } = useMemo(() => {
@@ -184,11 +223,11 @@ export default function EcosystemPage() {
         return providers;
     }, [serviceProviders, selectedProviderTechniques, selectedProviderIndustries, providerSortBy, providerSearch]);
 
-    const providerPageCount = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
+    const providerPageCount = Math.ceil(filteredProviders.length / itemsPerPage);
     const paginatedProviders = useMemo(() => {
-        const startIndex = (providerPage - 1) * ITEMS_PER_PAGE;
-        return filteredProviders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [filteredProviders, providerPage]);
+        const startIndex = (providerPage - 1) * itemsPerPage;
+        return filteredProviders.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredProviders, providerPage, itemsPerPage]);
 
     // --- AUDITOR LOGIC ---
     const { auditorFirms, auditorServiceOptions, auditorIndustryOptions } = useMemo(() => {
@@ -214,11 +253,11 @@ export default function EcosystemPage() {
         });
     }, [auditorFirms, selectedAuditorServices, selectedAuditorIndustries, auditorSearch]);
     
-    const auditorPageCount = Math.ceil(filteredAuditors.length / ITEMS_PER_PAGE);
+    const auditorPageCount = Math.ceil(filteredAuditors.length / itemsPerPage);
     const paginatedAuditors = useMemo(() => {
-        const startIndex = (auditorPage - 1) * ITEMS_PER_PAGE;
-        return filteredAuditors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [filteredAuditors, auditorPage]);
+        const startIndex = (auditorPage - 1) * itemsPerPage;
+        return filteredAuditors.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredAuditors, auditorPage, itemsPerPage]);
 
     // --- MANUFACTURER LOGIC ---
      const filteredManufacturers = useMemo(() => {
@@ -234,11 +273,11 @@ export default function EcosystemPage() {
         return filtered;
     }, [manufacturers, selectedManufacturerTechnique, manufacturerSearch]);
 
-    const manufacturerPageCount = Math.ceil(filteredManufacturers.length / ITEMS_PER_PAGE);
+    const manufacturerPageCount = Math.ceil(filteredManufacturers.length / itemsPerPage);
     const paginatedManufacturers = useMemo(() => {
-        const startIndex = (manufacturerPage - 1) * ITEMS_PER_PAGE;
-        return filteredManufacturers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [filteredManufacturers, manufacturerPage]);
+        const startIndex = (manufacturerPage - 1) * itemsPerPage;
+        return filteredManufacturers.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredManufacturers, manufacturerPage, itemsPerPage]);
     
     // --- PRODUCT LOGIC ---
      const filteredProducts = useMemo(() => {
@@ -247,11 +286,11 @@ export default function EcosystemPage() {
         return productsData.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) || p.manufacturerName.toLowerCase().includes(productSearch.toLowerCase()));
     }, [productsData, productSearch]);
 
-    const productPageCount = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+    const productPageCount = Math.ceil(filteredProducts.length / itemsPerPage);
     const paginatedProducts = useMemo(() => {
-        const startIndex = (productPage - 1) * ITEMS_PER_PAGE;
-        return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [filteredProducts, productPage]);
+        const startIndex = (productPage - 1) * itemsPerPage;
+        return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredProducts, productPage, itemsPerPage]);
 
     const sortedNdtTechniques = useMemo(() => {
         if (!ndtTechniques) return [];
@@ -376,7 +415,7 @@ export default function EcosystemPage() {
                                     </Card>
                                ))}
                             </div>
-                            <PaginationControls currentPage={providerPage} pageCount={providerPageCount} onPageChange={setProviderPage} />
+                            <PaginationControls currentPage={providerPage} pageCount={providerPageCount} onPageChange={setProviderPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredProviders.length}/>
                         </TabsContent>
                         
                         {/* AUDITORS TAB */}
@@ -450,7 +489,7 @@ export default function EcosystemPage() {
                                     </Card>
                                 ))}
                             </div>
-                            <PaginationControls currentPage={auditorPage} pageCount={auditorPageCount} onPageChange={setAuditorPage} />
+                            <PaginationControls currentPage={auditorPage} pageCount={auditorPageCount} onPageChange={setAuditorPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredAuditors.length}/>
                         </TabsContent>
                         
                         {/* MANUFACTURERS TAB */}
@@ -503,7 +542,7 @@ export default function EcosystemPage() {
                                     ))
                                 )}
                             </div>
-                            <PaginationControls currentPage={manufacturerPage} pageCount={manufacturerPageCount} onPageChange={setManufacturerPage} />
+                            <PaginationControls currentPage={manufacturerPage} pageCount={manufacturerPageCount} onPageChange={setManufacturerPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredManufacturers.length}/>
                         </TabsContent>
                         
                         {/* PRODUCTS TAB */}
@@ -539,7 +578,7 @@ export default function EcosystemPage() {
                                     </Card>
                                 ))}
                             </div>
-                             <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} />
+                             <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredProducts.length}/>
                         </TabsContent>
 
                     </Tabs>

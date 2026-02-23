@@ -24,11 +24,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
-import { jobs as seedJobs, inspectorAssets, allUsers as seedAllUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData, productsData } from "@/lib/seed-data";
+import { jobs as seedJobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, bidsData, inspectionsData, productsData } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import type { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
 
 
 // --- SHARED COMPONENTS & CONFIGS ---
@@ -673,118 +673,89 @@ const AdminDashboard = () => {
         toast({ title: "Database Seeding Started", description: "This may take a minute. Check the browser console for detailed progress." });
         console.clear();
         console.log("%c--- Starting Database Seed ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
-    
-        const seedCollection = async (collectionName: string, data: any[], idField = 'id', customizer?: (item: any) => any) => {
-            console.log(`[SEED] Starting: ${collectionName} (${data.length} docs)...`);
-            let count = 0;
-            for (const item of data) {
-                try {
+
+        try {
+            const batch = writeBatch(firestore);
+
+            const processCollection = (collectionName: string, data: any[], idField = 'id', customizer?: (item: any) => any) => {
+                console.log(`[SEED] Preparing: ${collectionName} (${data.length} docs)...`);
+                data.forEach(item => {
                     const itemData = customizer ? customizer(item) : item;
                     const docId = item[idField];
                     const docRef = doc(firestore, collectionName, docId);
-                    await setDoc(docRef, itemData);
-                    count++;
-                } catch (error: any) {
-                    console.error(`[SEED] ❌ Failed to write document: ${collectionName}/${item[idField]}`, error);
-                    toast({
-                        variant: "destructive",
-                        title: `Seeding Failed on: ${collectionName}/${item[idField]}`,
-                        description: `Error: ${error.message}. Check console for details.`,
-                    });
-                    throw new Error(`Failed to seed ${collectionName}`);
-                }
-            }
-            console.log(`[SEED] ✅ Success: Seeded ${count}/${data.length} documents into ${collectionName}.`);
-        };
+                    batch.set(docRef, itemData);
+                });
+                console.log(`[SEED] ✅ Prepared: ${collectionName}.`);
+            };
 
-        const allCompanies = [...clientData, ...serviceProviders, ...auditFirms];
-    
-        try {
-            console.group("Step 1: Foundational & Company Data");
-            await seedCollection('techniques', NDTTechniques);
-            await seedCollection('manufacturers', manufacturersData);
-            await seedCollection('products', productsData);
-            await seedCollection('companies', allCompanies);
-            console.groupEnd();
-            
-            console.group("Step 2: Users & Roles");
-            await seedCollection('users', seedAllUsers, 'id', (user) => {
+            const allCompaniesData = [...clientData, ...serviceProviders, ...auditFirms];
+            processCollection('techniques', NDTTechniques);
+            processCollection('manufacturers', manufacturersData);
+            processCollection('products', productsData);
+            processCollection('companies', allCompaniesData);
+            processCollection('users', allUsers, 'id', (user) => {
                 const { password, ...userToSave } = user;
                 return { ...userToSave, createdAt: new Date(user.createdAt) };
             });
-            const adminUser = seedAllUsers.find(u => u.email === 'admin@ndtexchange.com');
+            processCollection('subscriptions', subscriptionsData);
+            processCollection('payments', paymentsData);
+            processCollection('jobPayments', jobPaymentsData);
+            processCollection('assets', clientAssets);
+            processCollection('equipment', inspectorAssets);
+            processCollection('jobs', seedJobs, 'id', (job) => {
+                const { bids, inspections, ...jobData } = job;
+                return jobData;
+            });
+            processCollection('reviews', reviewsData, 'id', (review) => ({ ...review, date: new Date(review.date) }));
+            processCollection('userAuditLogs', userAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            processCollection('jobAuditLogs', jobAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+            processCollection('billingAuditLogs', billingAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
+
+            const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
             if (adminUser) {
-                await setDoc(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
-                console.log(`[SEED] ✅ Success: roles_admin seeded.`);
+                batch.set(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
             }
-            console.groupEnd();
 
-            console.group("Step 3: Financial & Subscription Data");
-            await seedCollection('subscriptions', subscriptionsData);
-            await seedCollection('payments', paymentsData);
-            await seedCollection('jobPayments', jobPaymentsData);
-            console.groupEnd();
-
-            console.group("Step 4: Core Operational Data");
-            await seedCollection('assets', clientAssets);
-            await seedCollection('equipment', inspectorAssets);
-            await seedCollection('jobs', seedJobs.map(({ bids, inspections, ...job }) => job));
-            console.groupEnd();
-
-            console.group("Step 5: Subcollection Data");
-            const subcollectionBatch = writeBatch(firestore);
             bidsData.forEach(bid => {
                 const bidRef = doc(firestore, 'jobs', bid.jobId, 'bids', bid.id);
-                subcollectionBatch.set(bidRef, bid);
+                batch.set(bidRef, bid);
             });
+
             inspectionsData.forEach(inspection => {
-                 if (!inspection.assetId || inspection.assetId === 'N/A') {
-                    console.warn(`[SEED] Skipping inspection ${inspection.id} due to invalid assetId.`);
-                    return;
-                }
+                if (!inspection.assetId || inspection.assetId === 'N/A') return;
                 const { report, ...inspectionData } = inspection;
                 const inspectionRef = doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id);
-                subcollectionBatch.set(inspectionRef, inspectionData);
-                if(report) {
+                batch.set(inspectionRef, inspectionData);
+                if (report) {
                     const reportRef = doc(firestore, 'reports', report.id);
-                    subcollectionBatch.set(reportRef, report);
+                    batch.set(reportRef, report);
                 }
             });
-            await subcollectionBatch.commit();
-            console.log(`[SEED] ✅ Success: Bids and Inspections/Reports subcollections seeded.`);
-            console.groupEnd();
-            
-            console.group("Step 6: Relational & Log Data");
-            await seedCollection('reviews', reviewsData, 'id', (review) => ({ ...review, date: new Date(review.date) }));
-            await seedCollection('userAuditLogs', userAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            await seedCollection('jobAuditLogs', jobAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            await seedCollection('billingAuditLogs', billingAuditLogData, 'id', (log) => ({ ...log, timestamp: new Date(log.timestamp) }));
-            console.groupEnd();
-            
-            console.group("Step 7: Chat Data");
-            const chatBatch = writeBatch(firestore);
+
             jobChats.forEach(chat => {
-                // The chat object itself is not stored; only its messages are, under the correct job.
                 chat.messages.forEach(msg => {
                     const msgRef = doc(firestore, 'jobs', chat.jobId, 'messages', msg.id);
-                    chatBatch.set(msgRef, {
+                    batch.set(msgRef, {
                         senderId: msg.senderId,
                         text: msg.text,
                         timestamp: new Date(msg.timestamp),
                     });
                 });
             });
-            await chatBatch.commit();
-            console.log(`[SEED] ✅ Success: Job messages seeded into subcollections.`);
-            console.groupEnd();
-    
+
+            await batch.commit();
+
             toast({
                 title: "Database Seeded Successfully!",
-                description: "All collections have been populated.",
+                description: "All collections have been populated. Please refresh the page.",
             });
-    
-        } catch (error) {
+        } catch (error: any) {
             console.error("Seeding process stopped due to an error.", error);
+            toast({
+                variant: 'destructive',
+                title: "Seeding Failed",
+                description: `An error occurred: ${error.message}`,
+            });
         } finally {
             setIsSeeding(false);
             console.log("%c--- Database Seed Finished ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
@@ -993,5 +964,3 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
-    

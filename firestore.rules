@@ -178,7 +178,7 @@ service cloud.firestore {
     }
 
     match /reports/{reportId} {
-      allow write: if isAdmin(); // Admin can seed
+      allow write: if isAdmin(); // Admin can seed and manage all reports
       // Any signed-in user can create a report document.
       allow create: if isSignedIn();
       // Access to reports is determined by involvement in the job/asset.
@@ -191,9 +191,11 @@ service cloud.firestore {
     match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
     match /manufacturers/{manufacturerId} { allow read: if true; allow write: if isAdmin(); }
     match /equipment/{equipmentId} {
+      allow write: if isAdmin(); // Admin can seed and manage all equipment
       allow read: if true;
-      allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid)) || isAdmin();
-      allow update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/equipment/$(equipmentId)).data.providerId || isAdmin()));
+      allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid));
+      // Simplified update rule to avoid get() in batch writes
+      allow update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == resource.data.providerId));
       allow list: if true;
     }
     match /products/{productId} {

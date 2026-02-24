@@ -51,9 +51,8 @@ service cloud.firestore {
 
       // Notifications can only be read and updated by the owner
       match /notifications/{notificationId} {
+        allow write: if isAdmin();
         allow read, update: if isOwner(userId);
-        // Only allow admin to create/delete notifications, not the user client-side
-        allow create, delete: if isAdmin();
       }
       
       match /tasks/{taskId} {

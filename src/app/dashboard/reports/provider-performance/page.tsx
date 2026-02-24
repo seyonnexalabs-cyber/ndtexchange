@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,11 +7,9 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, reviews, clientData, serviceProviders } from '@/lib/seed-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star } from 'lucide-react';
 import { parseISO, differenceInDays, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -18,14 +17,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useMobile } from '@/hooks/use-mobile';
-
+import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
+import { collection, collectionGroup, query, where, doc } from 'firebase/firestore';
+import type { Job, Bid, PlatformUser, NDTServiceProvider, Review } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const reportSchema = z.object({
-  providerIds: z.array(z.string()),
+  providerIds: z.array(z.string()).optional(),
   dateRange: z.object({
     from: z.date().optional(),
     to: z.date().optional(),
@@ -53,35 +55,49 @@ export default function ProviderPerformanceReportPage() {
     
     const searchParams = useSearchParams();
     const isMobile = useMobile();
+    const { firestore, user } = useFirebase();
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
+
+    const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null), [firestore]));
+    
+    const jobsQuery = useMemoFirebase(() => {
+      if (!firestore || !userProfile?.companyId) return null;
+      return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
+    }, [firestore, userProfile]);
+
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => (firestore ? query(collectionGroup(firestore, 'bids'), where('status', '==', 'Awarded')) : null), [firestore]));
+    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => (firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null), [firestore]));
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
     const filters = form.watch();
-    const clientId = 'client-01'; // For demo, assuming the client is Global Energy Corp.
 
     const performanceData = React.useMemo(() => {
+        if (!jobs || !reviews || !serviceProviders || !bids) return [];
+
         const { providerIds, dateRange } = filters;
 
-        const clientJobs = jobs.filter(job => job.client === clientData.find(c => c.id === clientId)?.name);
-
         let relevantProviders = serviceProviders.filter(provider => {
-            const hasJobs = clientJobs.some(job => job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status));
+            const hasJobs = jobs.some(job => job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status));
             return hasJobs;
         });
 
-        if (providerIds.length > 0) {
+        if (providerIds && providerIds.length > 0) {
             relevantProviders = relevantProviders.filter(p => providerIds.includes(p.id));
         }
 
         const data: ProviderPerformanceData[] = relevantProviders.map(provider => {
-            const providerJobs = clientJobs.filter(job => {
+            const providerJobs = jobs.filter(job => {
                 const jobIsForProvider = job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status);
                 if (!jobIsForProvider) return false;
 
-                const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
-                const dateMatch = !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
+                const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
+                const dateMatch = !dateRange?.from || !dateRange?.to || (jobDate && jobDate >= dateRange.from && jobDate <= dateRange.to);
                 
                 return dateMatch;
             });
@@ -89,10 +105,10 @@ export default function ProviderPerformanceReportPage() {
             if (providerJobs.length === 0) return null;
 
             const jobIds = providerJobs.map(j => j.id);
-            const providerReviews = reviews.filter(r => r.providerId === provider.id && r.clientId === clientId);
+            const providerReviews = reviews.filter(r => r.providerId === provider.id && r.clientId === userProfile?.id);
             
             const totalSpend = providerJobs.reduce((acc, job) => {
-                const awardedBid = job.bids?.find(b => b.status === 'Awarded');
+                const awardedBid = bids.find(b => b.jobId === job.id);
                 return acc + (awardedBid?.amount || 0);
             }, 0);
 
@@ -112,7 +128,7 @@ export default function ProviderPerformanceReportPage() {
 
         return data;
 
-    }, [filters, clientId]);
+    }, [filters, jobs, reviews, serviceProviders, bids, userProfile]);
 
      const summaryStats = React.useMemo(() => {
         const totalProviders = new Set(performanceData.map(p => p.providerId)).size;
@@ -134,6 +150,19 @@ export default function ProviderPerformanceReportPage() {
       }, {} as ChartConfig)
     ), [performanceData]);
 
+    const isLoading = isLoadingJobs || isLoadingBids || isLoadingProfile || isLoadingProviders || isLoadingReviews;
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        )
+    }
+    
     return (
         <div className="space-y-6">
             <Button asChild variant="outline" size="sm">
@@ -162,7 +191,7 @@ export default function ProviderPerformanceReportPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <FormField
                                 control={form.control}
                                 name="providerIds"
@@ -170,7 +199,7 @@ export default function ProviderPerformanceReportPage() {
                                 <FormItem>
                                     <FormLabel>Filter by Provider(s)</FormLabel>
                                     <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                        {serviceProviders.map((provider) => (
+                                        {(serviceProviders || []).map((provider) => (
                                         <FormField
                                             key={provider.id}
                                             control={form.control}
@@ -255,7 +284,7 @@ export default function ProviderPerformanceReportPage() {
                                         </FormItem>
                                     )}
                                 />
-                                <div className="flex items-end">
+                                <div className="flex items-end md:col-span-2">
                                     <Button type="button" variant="outline" onClick={() => form.reset({ providerIds: [], dateRange: { from: undefined, to: undefined }})}>
                                         Clear Filters
                                     </Button>
@@ -265,10 +294,10 @@ export default function ProviderPerformanceReportPage() {
                 </CardContent>
             </Card>
 
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Providers Worked With</CardTitle>
+                        <CardTitle className="text-sm font-medium">Providers Analyzed</CardTitle>
                         <HardHat className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -412,4 +441,3 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
-    

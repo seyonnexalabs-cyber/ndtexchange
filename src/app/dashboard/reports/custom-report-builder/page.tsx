@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, bids, NDTTechniques as NDTTechniquesData, serviceProviders } from '@/lib/seed-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,10 +15,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { format, parseISO } from 'date-fns';
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
+import { format } from 'date-fns';
 import { Settings2, Filter, Printer, ChevronLeft, Calendar as CalendarIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where, collectionGroup } from 'firebase/firestore';
+import type { Job, Bid, NDTServiceProvider, NDTTechnique } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const reportBuilderSchema = z.object({
     dataSource: z.enum(['jobs', 'assets'], { required_error: 'Please select a data source.' }),
@@ -52,6 +56,13 @@ export default function CustomReportBuilderPage() {
     const [isReportGenerated, setIsReportGenerated] = React.useState(false);
 
     const searchParams = useSearchParams();
+    const { firestore } = useFirebase();
+
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]));
+    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => firestore ? query(collectionGroup(firestore, 'bids'), where('status', '==', 'Awarded')) : null, [firestore]));
+    const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]));
+    const { data: techniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+    
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -73,18 +84,18 @@ export default function CustomReportBuilderPage() {
         const headers = values.columns.map(colId => jobColumns.find(c => c.id === colId)?.label || colId);
         setReportHeaders(headers);
 
-        if (values.dataSource === 'jobs') {
+        if (values.dataSource === 'jobs' && jobs) {
             const filteredJobs = jobs.filter(job => {
-                const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
+                const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                 const providerMatch = !values.providerIds || values.providerIds.length === 0 || values.providerIds.includes(job.providerId!);
                 const techniqueMatch = !values.techniqueIds || values.techniqueIds.length === 0 || job.techniques.some(t => values.techniqueIds?.includes(t));
-                const dateMatch = !values.dateRange?.from || !values.dateRange?.to || (jobDate >= values.dateRange.from && jobDate <= values.dateRange.to);
+                const dateMatch = !values.dateRange?.from || !values.dateRange?.to || (jobDate && jobDate >= values.dateRange.from && jobDate <= values.dateRange.to);
                 return providerMatch && techniqueMatch && dateMatch;
             });
 
             results = filteredJobs.map(job => {
-                const awardedBid = bids.find(bid => bid.jobId === job.id && bid.status === 'Awarded');
-                const provider = serviceProviders.find(p => p.id === job.providerId);
+                const awardedBid = bids?.find(bid => bid.jobId === job.id);
+                const provider = serviceProviders?.find(p => p.id === job.providerId);
                 
                 const row: ReportData = {};
                 for (const col of values.columns) {
@@ -94,8 +105,8 @@ export default function CustomReportBuilderPage() {
                         case 'provider': row[col] = provider?.name || 'N/A'; break;
                         case 'status': row[col] = job.status; break;
                         case 'cost': row[col] = awardedBid ? `$${awardedBid.amount.toLocaleString()}` : 'N/A'; break;
-                        case 'postedDate': row[col] = format(new Date(job.postedDate), GLOBAL_DATE_FORMAT); break;
-                        case 'scheduledStartDate': row[col] = job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'; break;
+                        case 'postedDate': row[col] = format(safeParseDate(job.postedDate)!, GLOBAL_DATE_FORMAT); break;
+                        case 'scheduledStartDate': row[col] = job.scheduledStartDate ? format(safeParseDate(job.scheduledStartDate)!, GLOBAL_DATE_FORMAT) : 'N/A'; break;
                         case 'technique': row[col] = job.techniques.join(', '); break;
                     }
                 }
@@ -106,6 +117,8 @@ export default function CustomReportBuilderPage() {
         setReportData(results);
         setIsReportGenerated(true);
     };
+    
+    const isLoading = isLoadingJobs || isLoadingBids || isLoadingProviders || isLoadingTechniques;
 
     return (
         <div className="space-y-6">
@@ -230,7 +243,7 @@ export default function CustomReportBuilderPage() {
                                     <FormField
                                         control={form.control}
                                         name="providerIds"
-                                        render={({ field }) => (
+                                        render={() => (
                                             <FormItem>
                                                 <FormLabel>Providers</FormLabel>
                                                 <FormControl>
@@ -242,7 +255,7 @@ export default function CustomReportBuilderPage() {
                                      <FormField
                                         control={form.control}
                                         name="techniqueIds"
-                                        render={({ field }) => (
+                                        render={() => (
                                             <FormItem>
                                                 <FormLabel>Techniques</FormLabel>
                                                 <FormControl>

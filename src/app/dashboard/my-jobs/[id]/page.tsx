@@ -69,19 +69,9 @@ const statusDescriptions: Record<Job['status'], string> = {
 };
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    'Draft': 'outline',
-    'Posted': 'secondary',
-    'Assigned': 'default',
-    'Scheduled': 'default',
-    'In Progress': 'default',
-    'Report Submitted': 'secondary',
-    'Under Audit': 'secondary',
-    'Audit Approved': 'success',
-    'Client Review': 'secondary',
-    'Client Approved': 'success',
-    'Completed': 'success',
-    'Paid': 'success',
-    'Revisions Requested': 'destructive'
+    'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
+    'Report Submitted': 'secondary', 'Under Audit': 'secondary', 'Audit Approved': 'success', 'Client Review': 'secondary',
+    'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success', 'Revisions Requested': 'destructive'
 };
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destructive' | 'secondary' > = {
@@ -1050,11 +1040,13 @@ export default function JobDetailPage() {
                 <Tabs defaultValue="overview" className="w-full">
                     <TabsList className="mb-4">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="work-scope">Work Scope</TabsTrigger>
                         <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                         <TabsTrigger value="chat">Chat</TabsTrigger>
                     </TabsList>
+
                     <TabsContent value="overview">
-                        <div className="grid gap-6 lg:grid-cols-3">
+                         <div className="grid gap-6 lg:grid-cols-3">
                             <div className="lg:col-span-2 space-y-6">
                                 <Card>
                                     <CardHeader>
@@ -1135,65 +1127,6 @@ export default function JobDetailPage() {
                                     inspections={inspections || []}
                                     handleViewDocuments={handleViewDocuments}
                                 />
-
-                                <Card>
-                                    <Tabs defaultValue="scope" className="w-full">
-                                        <CardHeader className="p-4">
-                                        <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="scope">Work Scope</TabsTrigger>
-                                            <TabsTrigger value="activity">Activity Log</TabsTrigger>
-                                        </TabsList>
-                                        </CardHeader>
-                                        <TabsContent value="scope">
-                                            <CardContent className="space-y-6">
-                                                <div>
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <h3 className="text-base font-semibold">Job-Level Documents</h3>
-                                                        {(jobDetails.documents && jobDetails.documents.length > 0) && (
-                                                                <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
-                                                                <Maximize className="mr-2 h-4 w-4" />
-                                                                View All
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                    {(jobDetails.documents && jobDetails.documents.length > 0) ? (
-                                                        <div className="space-y-2 rounded-md border p-2">
-                                                            {jobDetails.documents.map((doc, i) => (
-                                                                <button 
-                                                                    key={`${doc.name}-${i}`} 
-                                                                    className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
-                                                                    onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
-                                                                >
-                                                                    <div className="flex items-center gap-2">
-                                                                        <FileText className="h-4 w-4 text-primary" />
-                                                                        <span className="font-medium text-sm">{doc.name}</span>
-                                                                    </div>
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
-                                                </div>
-                                                <Separator />
-                                                <div>
-                                                    <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
-                                                    <WorkBreakdownAccordion
-                                                        inspections={inspections || []}
-                                                        job={jobDetails}
-                                                        constructUrl={constructUrl}
-                                                        role={role}
-                                                        handleViewDocuments={handleViewDocuments}
-                                                        allNdtTechniques={allNdtTechniques}
-                                                    />
-                                                </div>
-                                            </CardContent>
-                                        </TabsContent>
-                                        <TabsContent value="activity">
-                                        <CardContent>
-                                            <JobActivityLog history={jobDetails.history} />
-                                        </CardContent>
-                                        </TabsContent>
-                                    </Tabs>
-                                </Card>
                             </div>
 
                             <div className="space-y-6">
@@ -1254,6 +1187,51 @@ export default function JobDetailPage() {
                                 </Card>
                             </div>
                         </div>
+                    </TabsContent>
+                    <TabsContent value="work-scope">
+                        <Card>
+                            <CardContent className="space-y-6 pt-6">
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-base font-semibold">Job-Level Documents</h3>
+                                        {(jobDetails.documents && jobDetails.documents.length > 0) && (
+                                                <Button variant="outline" size="sm" onClick={() => handleViewDocuments(jobDetails.documents)}>
+                                                <Maximize className="mr-2 h-4 w-4" />
+                                                View All
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {(jobDetails.documents && jobDetails.documents.length > 0) ? (
+                                        <div className="space-y-2 rounded-md border p-2">
+                                            {jobDetails.documents.map((doc, i) => (
+                                                <button 
+                                                    key={`${doc.name}-${i}`} 
+                                                    className="w-full flex items-center justify-between p-2 hover:bg-muted rounded-md text-left"
+                                                    onClick={() => handleViewDocuments(jobDetails.documents, doc.name)}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="h-4 w-4 text-primary" />
+                                                        <span className="font-medium text-sm">{doc.name}</span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : <p className="text-sm text-muted-foreground text-center py-4">No job-level documents were provided.</p>}
+                                </div>
+                                <Separator />
+                                <div>
+                                    <h3 className="text-base font-semibold mb-4">Work Breakdown</h3>
+                                    <WorkBreakdownAccordion
+                                        inspections={inspections || []}
+                                        job={jobDetails}
+                                        constructUrl={constructUrl}
+                                        role={role}
+                                        handleViewDocuments={handleViewDocuments}
+                                        allNdtTechniques={allNdtTechniques}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
                     <TabsContent value="lifecycle">
                          <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} />
@@ -1317,4 +1295,5 @@ export default function JobDetailPage() {
 }
 
     
+
 

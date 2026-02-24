@@ -1,9 +1,8 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Building, HardHat, Eye, Cloud, GitBranch, Cpu, Send, Mail, Phone } from 'lucide-react';
+import { CheckCircle, Building, HardHat, Eye, Send, Mail, Phone, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -19,9 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { subscriptionPlans } from '@/lib/subscription-plans';
+import { subscriptionPlans, type Plan } from '@/lib/subscription-plans';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 type Currency = 'USD' | 'EUR' | 'INR';
@@ -68,20 +65,20 @@ function PricingCard({ plan, priceUSD, currency, description, features, isFeatur
                 ⭐ Most Chosen
             </div>
        )}
-      <CardHeader>
+      <CardHeader className="text-center">
         <CardTitle className="text-xl font-headline">{plan}</CardTitle>
-        <div className="pt-2">
-            <span className="text-3xl font-bold">{displayPrice}</span>
+        <CardDescription className="pt-2 !mt-2 h-10">{description}</CardDescription>
+        <div className="pt-4">
+            <span className="text-4xl font-bold">{displayPrice}</span>
             {priceUSD > 0 && priceUSD !== Infinity && <span className="text-muted-foreground">/ month</span>}
         </div>
-        <CardDescription className="pt-2 !mt-2">{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
         <ul className="space-y-3">
           {features.map((feature, i) => (
             <li key={i} className="flex items-start">
               <CheckCircle className="w-5 h-5 text-primary mr-3 mt-0.5 shrink-0" />
-              <span className="text-muted-foreground">{feature}</span>
+              <span className="text-sm text-muted-foreground">{feature}</span>
             </li>
           ))}
         </ul>
@@ -234,6 +231,101 @@ const ContactForm = () => {
 };
 
 
+const featureCategories = [
+  { 
+    category: 'Core Features', 
+    features: [
+      { name: 'User Seats', prop: 'userLimit', type: 'value' },
+      { name: 'Data Storage', prop: 'dataLimitGB', type: 'value', suffix: ' GB' },
+      { name: 'Marketplace Access', prop: 'marketplaceAccess', type: 'boolean' },
+    ]
+  },
+  {
+    category: 'Client Features',
+    features: [
+      { name: 'Managed Assets', prop: 'assetLimit', type: 'value' }
+    ]
+  },
+  {
+    category: 'Provider Features',
+    features: [
+      { name: 'Equipment Inventory', prop: 'equipmentLimit', type: 'value' },
+      { name: 'Marketplace Bids', prop: 'biddingLimit', type: 'value', suffix: ' / month' },
+    ]
+  },
+  {
+    category: 'Advanced Features',
+    features: [
+      { name: 'Reporting Level', prop: 'reportingLevel', type: 'value' },
+      { name: 'Custom Branding', prop: 'customBranding', type: 'boolean' },
+      { name: 'API Access', prop: 'apiAccess', type: 'boolean' },
+    ]
+  }
+];
+
+const FeatureComparisonTable = ({ plans, audience }: { plans: Plan[], audience: 'Client' | 'Provider' }) => {
+    return (
+        <div className="mt-20">
+            <h2 className="text-3xl font-headline font-semibold text-center mb-10">Feature Comparison</h2>
+            <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm text-left">
+                    <thead>
+                        <tr className="border-b">
+                            <th className="w-1/3 py-4 font-semibold text-lg"></th>
+                            {plans.map(plan => (
+                                <th key={plan.id} className="w-1/3 md:w-auto p-4 text-center">
+                                    <h4 className="text-lg font-semibold">{plan.name}</h4>
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {featureCategories.map(category => {
+                            const relevantFeatures = category.features.filter(feature => {
+                                if (audience === 'Client' && category.category === 'Provider Features') return false;
+                                if (audience === 'Provider' && category.category === 'Client Features') return false;
+                                return true;
+                            });
+
+                            if (relevantFeatures.length === 0) return null;
+
+                            return (
+                                <React.Fragment key={category.category}>
+                                    <tr className="bg-muted/30">
+                                        <th colSpan={plans.length + 1} className="p-3 font-semibold text-base">{category.category}</th>
+                                    </tr>
+                                    {relevantFeatures.map(feature => (
+                                        <tr key={feature.name} className="border-b">
+                                            <td className="p-4 font-medium">{feature.name}</td>
+                                            {plans.map(plan => {
+                                                const value = (plan as any)[feature.prop];
+                                                let displayValue: React.ReactNode;
+
+                                                if (feature.type === 'boolean') {
+                                                    displayValue = value ? <Check className="mx-auto text-primary" /> : <X className="mx-auto text-muted-foreground" />;
+                                                } else {
+                                                    displayValue = value === 'Unlimited' || value === Infinity ? 'Unlimited' : `${value}${feature.suffix || ''}`;
+                                                }
+
+                                                return (
+                                                    <td key={`${plan.id}-${feature.prop}`} className="p-4 text-center text-muted-foreground">
+                                                        {displayValue}
+                                                    </td>
+                                                )
+                                            })}
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
+                            )
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+
 export default function ContactPage() {
     const [currency, setCurrency] = React.useState<Currency>('USD');
     
@@ -281,13 +373,13 @@ export default function ContactPage() {
         <HoneycombHero>
             <div className="max-w-3xl mx-auto">
               <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-                Simple, Transparent Pricing for the NDT Industry
+                Simple, Transparent Pricing for Every Role
               </h1>
               <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-                Start free. Scale as your inspections, teams, and projects grow.
+                Whether you're an asset owner, service provider, or auditor, we have a plan that fits your needs. Start free and scale as you grow.
               </p>
               <p className="mt-4 text-sm text-muted-foreground">
-                  14-Day Free Trial • No credit card required • Clients & Level‑III are free.
+                  14-Day Free Trial • No credit card required • Clients & Level‑III are free to start.
               </p>
               <div className="mt-8 flex justify-center gap-4">
                   <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
@@ -318,13 +410,12 @@ export default function ContactPage() {
                 </div>
                 
                 <TabsContent value="asset-owners" className="container mx-auto px-4 sm:px-6 lg:px-8">
-                     {/* 3. CLIENT (ASSET OWNER) PRICING */}
                     <section id="asset-owner-pricing" className="mb-16">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl font-headline font-semibold text-primary">For Asset Owners & Clients</h2>
                             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">Gain secure access to inspection data across vendors, projects, and shutdowns.</p>
                         </div>
-                        <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+                        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                             {clientPlans.map(plan => (
                                 <PricingCard
                                     key={plan.id}
@@ -334,16 +425,17 @@ export default function ContactPage() {
                                     description={plan.description}
                                     features={plan.features}
                                     isFeatured={plan.isFeatured}
-                                    ctaText="Get Started"
+                                    popularBadge={plan.isPopular}
+                                    ctaText="Get Started Free"
                                     ctaLink="/signup"
                                 />
                             ))}
                         </div>
+                        <FeatureComparisonTable plans={clientPlans} audience="Client" />
                     </section>
                 </TabsContent>
 
                  <TabsContent value="ndt-companies" className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* 4. NDT COMPANY & INSPECTOR PRICING */}
                     <section id="ndt-company-pricing" className="mb-16">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl font-headline font-semibold text-primary">For NDT Companies & Inspectors</h2>
@@ -360,16 +452,16 @@ export default function ContactPage() {
                                     features={plan.features}
                                     isFeatured={plan.isFeatured}
                                     popularBadge={plan.isPopular}
-                                    ctaText="Get Started"
+                                    ctaText="Start Free Trial"
                                     ctaLink="/signup"
                                 />
                             ))}
                         </div>
+                        <FeatureComparisonTable plans={providerPlans} audience="Provider" />
                     </section>
                  </TabsContent>
                 
                  <TabsContent value="auditors" className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* 5. LEVEL-III / AUDITOR ACCESS */}
                     <section id="auditor-pricing" className="mb-16">
                          <div className="text-center mb-12">
                             <h2 className="text-3xl font-headline font-semibold text-primary">For Level-III & Auditors</h2>
@@ -379,7 +471,7 @@ export default function ContactPage() {
                                 <CardTitle className="text-2xl">{auditorPlan?.name || 'Free Access'}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                 <ul className="mx-auto max-w-md space-y-3 text-center">
+                                 <ul className="mx-auto max-w-md space-y-3">
                                     {(auditorPlan?.features || []).map(feature => (
                                          <li key={feature} className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>{feature}</li>
                                     ))}
@@ -395,73 +487,8 @@ export default function ContactPage() {
             </Tabs>
         </div>
 
-        
-        {/* 7. SHUTDOWN MAINTENANCE PRICING */}
-        <section className="py-20">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl font-headline font-semibold text-primary">Shutdown Maintenance Events</h2>
-                </div>
-                 <Card className="max-w-2xl mx-auto bg-accent/10 border-accent">
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-2xl text-accent">{formatPrice(30000, currency)} per shutdown event</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                         <ul className="mx-auto max-w-md space-y-3">
-                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Multi-vendor coordination</li>
-                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Asset-wise inspection visibility</li>
-                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Live shutdown progress tracking</li>
-                            <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Central report repository</li>
-                             <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-primary"/>Consolidated asset inspection view with vendor equipment traceability during shutdowns</li>
-                        </ul>
-                    </CardContent>
-                    <CardFooter className="justify-center">
-                        <Button asChild><Link href="#contact-form">Plan a Shutdown</Link></Button>
-                    </CardFooter>
-                </Card>
-            </div>
-        </section>
-
-        {/* 8. TRUST & ASSURANCE SECTION */}
-        <section className="py-20 bg-card">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                         <h2 className="text-3xl font-headline font-semibold text-primary">Trust & Assurance</h2>
-                         <div className="mt-8 space-y-6">
-                            <div className="flex items-start gap-4">
-                                <div className="bg-primary/10 p-3 rounded-full"><GitBranch className="w-6 h-6 text-primary"/></div>
-                                <div>
-                                    <h4 className="font-semibold">Industry-Aligned Workflows</h4>
-                                    <p className="text-muted-foreground text-sm">Built for how the NDT industry actually works.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4">
-                                <div className="bg-primary/10 p-3 rounded-full"><Cloud className="w-6 h-6 text-primary"/></div>
-                                <div>
-                                    <h4 className="font-semibold">Secure Cloud Infrastructure</h4>
-                                    <p className="text-muted-foreground text-sm">Your data is protected with enterprise-grade security.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4">
-                                <div className="bg-primary/10 p-3 rounded-full"><Cpu className="w-6 h-6 text-primary"/></div>
-                                <div>
-                                    <h4 className="font-semibold">Pilot-Friendly Pricing</h4>
-                                    <p className="text-muted-foreground text-sm">Start small and scale as you see value. No long-term contracts.</p>
-                                </div>
-                            </div>
-                         </div>
-                    </div>
-                     <div className="p-8 border-l-4 border-primary bg-background">
-                        <p className="text-lg italic text-muted-foreground">“NDT EXCHANGE simplified multi‑vendor inspections during shutdowns.”</p>
-                        <p className="mt-4 font-semibold">- Plant Manager, Oil & Gas Sector</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        {/* 9. FAQ SECTION */}
-        <section id="faq" className="py-20">
+        {/* FAQ SECTION */}
+        <section id="faq" className="py-20 bg-card">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
                  <div className="text-center mb-12">
                     <h2 className="text-3xl font-headline font-semibold text-primary">Frequently Asked Questions</h2>
@@ -470,35 +497,32 @@ export default function ContactPage() {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Do clients have to pay?</AccordionTrigger>
                         <AccordionContent>
-                        Client access is free for basic use. Paid plans are available for unlimited assets and advanced features.
+                        Our "Client Access" plan is completely free and allows you to post jobs, manage a substantial number of assets, and use our core features. Paid plans are available for organizations that require management for unlimited assets, advanced analytics, and more data storage.
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value="item-2">
-                        <AccordionTrigger>Is Level-III really free?</AccordionTrigger>
+                     <AccordionItem value="item-2">
+                        <AccordionTrigger>What does "Marketplace Access" mean for providers?</AccordionTrigger>
                         <AccordionContent>
-                        Yes, to ensure audit credibility. Auditors are invited to jobs by clients or providers.
+                        All provider plans include access to our job marketplace. The primary difference is the number of bids you can submit per month. Our "Company Growth" plan offers unlimited bidding.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-3">
                         <AccordionTrigger>How does NDT EXCHANGE make money?</AccordionTrigger>
                         <AccordionContent>
-                        NDT EXCHANGE operates on a subscription (SaaS) model. We charge a monthly or annual fee for access to our platform features, depending on the plan you choose. We do not take a commission on jobs awarded through the marketplace.
+                        NDT EXCHANGE operates on a subscription (SaaS) model. We charge a monthly or annual fee for access to our platform's premium features, depending on the plan you choose. We do not take a commission on jobs awarded through the marketplace.
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value="item-4">
-                        <AccordionTrigger>Can pricing change later?</AccordionTrigger>
+                     <AccordionItem value="item-4">
+                        <AccordionTrigger>What happens at the end of my free trial?</AccordionTrigger>
                         <AccordionContent>
-                        Early users will be grandfathered into favorable pricing.
+                        Towards the end of your 14-day free trial, we will contact you to discuss paid plan options. If you choose not to subscribe, your account will be transitioned to our free "Starter" or "Access" plan, so you won't lose your data.
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
-                <p className="text-center text-sm text-muted-foreground mt-12">
-                    Prices are shown in local currency for convenience. Final billing currency depends on billing location.
-                </p>
             </div>
         </section>
         
-        {/* 10. FINAL CTA / CONTACT FORM */}
+        {/* FINAL CTA / CONTACT FORM */}
         <section id="contact-form" className="py-20 bg-muted/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">

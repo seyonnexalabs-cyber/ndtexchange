@@ -2,7 +2,7 @@
 import { Job, JobUpdate } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import * as React from 'react';
 import { FileText, PlusCircle, Gavel, Award, History, Users, Calendar } from 'lucide-react';
@@ -24,12 +24,30 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Revisions Requested': 'destructive',
 };
 
+const safeParseDate = (dateInput: any): Date | null => {
+    if (!dateInput) return null;
+    if (dateInput.toDate) { // Firestore Timestamp
+        return dateInput.toDate();
+    }
+    if (dateInput instanceof Date && isValid(dateInput)) {
+         return dateInput;
+    }
+    if (typeof dateInput === 'string') { // ISO String
+        const d = parseISO(dateInput);
+        return isValid(d) ? d : null;
+    }
+    return null;
+};
+
+
 const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
-        setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
+        const date = safeParseDate(timestamp);
+        if (date) {
+            setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
+        }
     }, [timestamp]);
 
     return (
@@ -58,8 +76,9 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
     }
     
     const sortedHistory = [...history].sort((a, b) => {
-        const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
-        const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
+        const dateA = safeParseDate(a.timestamp);
+        const dateB = safeParseDate(b.timestamp);
+        if (!dateA || !dateB) return 0;
         return dateB.getTime() - dateA.getTime();
     });
 

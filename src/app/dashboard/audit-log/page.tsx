@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { History, User, Briefcase, DollarSign, PlusCircle, Award, Gavel, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATETIME_FORMAT, safeParseDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
@@ -19,12 +19,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { UserAuditLog, JobAuditLog, BillingAuditLog } from '@/lib/types';
 
 
-const ClientFormattedDate = ({ timestamp }: { timestamp: string | Timestamp }) => {
+const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp.toDate();
-        setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
+        const date = safeParseDate(timestamp);
+        if (date) {
+            setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
+        }
     }, [timestamp]);
 
     return <span className="text-xs text-muted-foreground/80 shrink-0">{formattedDate || '...'}</span>;

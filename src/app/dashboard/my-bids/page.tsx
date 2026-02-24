@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, collectionGroup, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
@@ -69,7 +69,9 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
     if (isMobile) {
         return (
             <div className="space-y-4">
-                {bids.map(bid => (
+                {bids.map(bid => {
+                    const expiryDate = safeParseDate(bid.job.bidExpiryDate);
+                    return (
                     <Card key={bid.id} className="flex flex-col">
                         <CardHeader>
                              <div className="flex justify-between items-start gap-4">
@@ -91,7 +93,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Decision By</span>
                                 <span className="font-medium flex items-center gap-2">
-                                  {bid.job.bidExpiryDate ? format(new Date(bid.job.bidExpiryDate), GLOBAL_DATE_FORMAT) : 'N/A'}
+                                  {expiryDate ? format(expiryDate, GLOBAL_DATE_FORMAT) : 'N/A'}
                                 </span>
                             </div>
                         </CardContent>
@@ -115,7 +117,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                             )}
                         </CardFooter>
                     </Card>
-                ))}
+                )})}
             </div>
         )
     }
@@ -133,7 +135,9 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {bids.map(bid => (
+                    {bids.map(bid => {
+                        const expiryDate = safeParseDate(bid.job.bidExpiryDate);
+                        return (
                         <TableRow key={bid.id}>
                             <TableCell>
                                 <div className="font-medium">{bid.job?.title}</div>
@@ -148,8 +152,8 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <span>{bid.job.bidExpiryDate ? format(new Date(bid.job.bidExpiryDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                  {bid.job.bidExpiryDate && isToday(new Date(bid.job.bidExpiryDate)) && <Badge>Today</Badge>}
+                                  <span>{expiryDate ? format(expiryDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                  {expiryDate && isToday(expiryDate) && <Badge>Today</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -176,7 +180,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                                 )}
                             </TableCell>
                         </TableRow>
-                    ))}
+                    )})}
                 </TableBody>
             </Table>
         </Card>

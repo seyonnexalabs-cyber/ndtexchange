@@ -15,7 +15,7 @@ import { collection, query, where, doc, getDoc } from 'firebase/firestore';
 import type { Asset, PlatformUser } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, differenceInDays, startOfDay } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -27,9 +27,12 @@ const statusConfig: { [key in ComplianceStatus]: { variant: 'success' | 'seconda
     'Overdue': { variant: 'destructive', daysRemaining: (days) => `Overdue by ${Math.abs(days)} days` },
 };
 
-const getComplianceStatus = (nextInspection: string, today: Date): { status: ComplianceStatus, days: number } => {
-    const inspectionDate = startOfDay(new Date(nextInspection));
-    const days = differenceInDays(inspectionDate, today);
+const getComplianceStatus = (nextInspection: string, today: Date): { status: ComplianceStatus, days: number } | null => {
+    const inspectionDate = safeParseDate(nextInspection);
+    if (!inspectionDate) return null;
+    
+    const inspectionDay = startOfDay(inspectionDate);
+    const days = differenceInDays(inspectionDay, today);
 
     if (days < 0) {
         return { status: 'Overdue', days };
@@ -66,10 +69,13 @@ export default function CompliancePage() {
 
     const assetComplianceData = useMemo(() => {
         if (!assets) return [];
-        return assets.map(asset => ({
-            ...asset,
-            compliance: getComplianceStatus(asset.nextInspection, today)
-        })).sort((a, b) => a.compliance.days - b.compliance.days);
+        return assets.map(asset => {
+            const compliance = getComplianceStatus(asset.nextInspection, today);
+            return {
+                ...asset,
+                compliance
+            };
+        }).filter(asset => asset.compliance !== null).sort((a, b) => a.compliance!.days - b.compliance!.days) as (Asset & { compliance: NonNullable<ReturnType<typeof getComplianceStatus>> })[];
     }, [assets, today]);
     
     const filteredData = useMemo(() => {
@@ -170,7 +176,9 @@ export default function CompliancePage() {
                 <CardContent>
                     {isMobile ? (
                         <div className="space-y-4">
-                            {filteredData.map(asset => (
+                            {filteredData.map(asset => {
+                                const nextInspectionDate = safeParseDate(asset.nextInspection);
+                                return (
                                 <Card key={asset.id} className="p-4">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -183,7 +191,7 @@ export default function CompliancePage() {
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-2">
                                         <p>Location: {asset.location}</p>
-                                        <p>Next Inspection: {format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</p>
+                                        <p>Next Inspection: {nextInspectionDate ? format(nextInspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                         <p>Days Remaining: {statusConfig[asset.compliance.status].daysRemaining(asset.compliance.days)}</p>
                                     </div>
                                     <CardFooter className="p-0 pt-4">
@@ -192,7 +200,7 @@ export default function CompliancePage() {
                                         </Button>
                                     </CardFooter>
                                 </Card>
-                            ))}
+                            )})}
                         </div>
                     ) : (
                         <Table>
@@ -207,11 +215,13 @@ export default function CompliancePage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredData.map(asset => (
+                                {filteredData.map(asset => {
+                                    const nextInspectionDate = safeParseDate(asset.nextInspection);
+                                    return (
                                     <TableRow key={asset.id}>
                                         <TableCell className="font-medium">{asset.name}</TableCell>
                                         <TableCell>{asset.location}</TableCell>
-                                        <TableCell>{format(new Date(asset.nextInspection), GLOBAL_DATE_FORMAT)}</TableCell>
+                                        <TableCell>{nextInspectionDate ? format(nextInspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                         <TableCell>
                                             <Badge variant={statusConfig[asset.compliance.status].variant}>
                                                 {asset.compliance.status}
@@ -224,7 +234,7 @@ export default function CompliancePage() {
                                             </Button>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                             </TableBody>
                         </Table>
                     )}

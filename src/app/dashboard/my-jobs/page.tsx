@@ -7,8 +7,8 @@ import { Briefcase, CheckCircle, MapPin, Award, PlusCircle, Filter, X, Gavel, Bu
 import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
-import { format, isToday, parseISO, isValid } from 'date-fns';
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
+import { format, isToday } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -122,24 +122,9 @@ export default function MyJobsPage() {
         return { displayedJobs: filtered, title: pageTitle, Icon: PageIcon };
     }, [view, role, selectedProviders, selectedClients, auditFilter, jobsByCategory, searchQuery, allCompanies]);
 
-    const getSafeDate = (dateInput: any): Date | null => {
-        if (!dateInput) return null;
-        if (typeof dateInput.toDate === 'function') { // Firestore Timestamp
-            return dateInput.toDate();
-        }
-        if (dateInput instanceof Date) { // JS Date
-            return dateInput;
-        }
-        if (typeof dateInput === 'string') { // ISO String
-            const d = parseISO(dateInput);
-            return isValid(d) ? d : null;
-        }
-        return null;
-    };
-
     const jobsByMonth = useMemo(() => {
         return displayedJobs.reduce((acc, job) => {
-            const date = getSafeDate(job.scheduledStartDate || job.postedDate);
+            const date = safeParseDate(job.scheduledStartDate || job.postedDate);
             if (!date) return acc;
 
             const monthYear = format(date, 'MMMM yyyy');
@@ -346,7 +331,7 @@ export default function MyJobsPage() {
                             <h2 className="font-semibold text-lg mb-4 pl-4">{month}</h2>
                             <div className="space-y-4">
                                 {jobs.map(job => {
-                                    const jobDate = getSafeDate(job.scheduledStartDate || job.postedDate);
+                                    const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                                     if (!jobDate) return null;
                                     const provider = allCompanies?.find(p => p.id === job.providerId);
                                     return (

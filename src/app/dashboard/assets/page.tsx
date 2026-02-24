@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, Building, QrCode, Printer, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
+import Link from 'next/link';
 import Image from "next/image";
 import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ import { useSearch } from "@/app/components/layout/search-provider";
 import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, safeParseDate } from "@/lib/utils";
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -105,6 +105,7 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                     <h2 className="text-xl font-semibold mb-4">{location}</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {locationAssets.map((asset) => {
+                            const nextInspectionDate = safeParseDate(asset.nextInspection);
                             return (
                                 <Card key={asset.id} className={cn(
                                     "flex flex-col cursor-pointer transition-all hover:border-primary/50 hover:shadow-md",
@@ -157,7 +158,7 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                             </div>
                                         ) : (
                                             <>
-                                                <span>Next: {format(new Date(asset.nextInspection), 'dd-MMM-yyyy')}</span>
+                                                <span>Next: {nextInspectionDate ? format(nextInspectionDate, 'dd-MMM-yyyy') : 'N/A'}</span>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>

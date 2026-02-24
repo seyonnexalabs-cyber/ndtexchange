@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { Briefcase, MapPin, Calendar, AlarmClock, Filter, X, Building } from "lu
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -342,7 +343,10 @@ export default function AllJobsPage() {
             {isMobile ? (
                 <>
                     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                        {paginatedJobs.map(job => (
+                        {paginatedJobs.map(job => {
+                            const postedDate = safeParseDate(job.postedDate);
+                            const expiryDate = safeParseDate(job.bidExpiryDate);
+                            return (
                             <Card key={job.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
@@ -365,14 +369,14 @@ export default function AllJobsPage() {
                                     </div>
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                        <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                        {today && isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
+                                        <span>Posted: {postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                        {postedDate && isToday(postedDate) && <Badge className="ml-2">Today</Badge>}
                                     </div>
-                                    {job.bidExpiryDate && (
+                                    {expiryDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <AlarmClock className="w-4 h-4 mr-2 text-primary" />
-                                            <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
-                                            {today && isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
+                                            <span>Bids Expire: {format(expiryDate, GLOBAL_DATE_FORMAT)}</span>
+                                            {isToday(expiryDate) && <Badge className="ml-2">Today</Badge>}
                                         </div>
                                     )}
                                 </CardContent>
@@ -382,7 +386,7 @@ export default function AllJobsPage() {
                                     </Button>
                                 </CardFooter>
                             </Card>
-                        ))}
+                        )})}
                     </div>
                      <PaginationControls />
                 </>
@@ -404,7 +408,9 @@ export default function AllJobsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedJobs.map(job => (
+                                {paginatedJobs.map(job => {
+                                    const postedDate = safeParseDate(job.postedDate);
+                                    return (
                                     <TableRow key={job.id}>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
@@ -414,8 +420,8 @@ export default function AllJobsPage() {
                                         <TableCell>{job.location}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <span>{format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                                {today && isToday(new Date(job.postedDate)) && <Badge>Today</Badge>}
+                                                <span>{postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                {postedDate && isToday(postedDate) && <Badge>Today</Badge>}
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -427,7 +433,7 @@ export default function AllJobsPage() {
                                             </Button>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                             </TableBody>
                         </Table>
                     </Card>

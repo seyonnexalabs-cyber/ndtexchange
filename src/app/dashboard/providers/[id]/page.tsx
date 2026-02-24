@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
@@ -157,7 +157,7 @@ export default function ProviderDetailPage() {
                                     <div>
                                         <h3 className="font-semibold text-sm mb-1">Member Since</h3>
                                         <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                                            <Calendar className="w-4 h-4" /> {format(new Date(subscription.startDate), GLOBAL_DATE_FORMAT)}
+                                            <Calendar className="w-4 h-4" /> {subscription.startDate ? format(safeParseDate(subscription.startDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}
                                         </p>
                                     </div>
                                 )}

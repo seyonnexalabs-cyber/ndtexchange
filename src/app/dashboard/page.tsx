@@ -164,7 +164,7 @@ const ClientDashboard = () => {
         return Object.entries(statusCounts)
             .filter(([, value]) => value > 0)
             .map(([name, value]) => ({
-                name: (assetStatusChartConfig as any)[name]?.label || name,
+                name: name,
                 value,
                 fill: `var(--color-${name})`,
             }));
@@ -254,7 +254,7 @@ const ClientDashboard = () => {
                     <CardContent>
                         <ChartContainer config={assetStatusChartConfig} className="mx-auto aspect-square h-[250px]">
                         <PieChart>
-                            <ChartTooltip content={<ChartTooltipContent nameKey="value" hideLabel />} />
+                            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                             <Pie data={assetStatusData} dataKey="value" nameKey="name" innerRadius={60}>
                                 <LabelList
                                     dataKey="value"

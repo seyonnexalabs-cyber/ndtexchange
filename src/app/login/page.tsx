@@ -20,7 +20,7 @@ import { toast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-type UserType = 'client' | 'inspector' | 'auditor' | 'admin';
+type UserType = 'client' | 'inspector' | 'auditor' | 'admin' | 'manufacturer';
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),

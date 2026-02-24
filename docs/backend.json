@@ -191,7 +191,7 @@
         "company": { "type": "string", "description": "The name of the company the user belongs to." },
         "name": { "type": "string", "description": "The user's full name." },
         "email": { "type": "string", "description": "The user's email address.", "format": "email" },
-        "role": { "type": "string", "description": "The user's role (e.g., Client, Inspector, Auditor, Admin)." },
+        "role": { "type": "string", "description": "The user's role (e.g., Client, Inspector, Auditor, Admin, Manufacturer)." },
         "certifications": { "type": "array", "description": "List of certifications held by the user (especially for inspectors).", "items": { "type": "string" } },
         "skills": { "type": "array", "description": "List of skills possessed by the user (especially for inspectors).", "items": { "type": "string" } },
         "createdAt": { "type": "string", "format": "date-time" },

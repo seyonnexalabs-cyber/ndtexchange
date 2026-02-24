@@ -26,7 +26,7 @@ import { countries } from '@/lib/countries';
 
 const companySignupSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
-  companyType: z.enum(["client", "inspector", "auditor"], { required_error: 'Please select a company type.' }),
+  companyType: z.enum(["client", "inspector", "auditor", "manufacturer"], { required_error: 'Please select a company type.' }),
   fullName: z.string().min(2, "Your full name is required."),
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters."),
@@ -45,8 +45,8 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const [selectedCompany, setSelectedCompany] = useState<{ name: string; type: "client" | "inspector" | "auditor"; } | null>(null);
-  const [suggestions, setSuggestions] = useState<{ name: string; type: "client" | "inspector" | "auditor"; }[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<{ name: string; type: "client" | "inspector" | "auditor" | "manufacturer"; } | null>(null);
+  const [suggestions, setSuggestions] = useState<{ name: string; type: "client" | "inspector" | "auditor" | "manufacturer"; }[]>([]);
   const companyInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +75,7 @@ export default function SignupPage() {
     if (!companiesFromDb) return [];
     return companiesFromDb.map(c => ({
         name: c.name,
-        type: c.type.toLowerCase() as "client" | "inspector" | "auditor"
+        type: c.type.toLowerCase() as "client" | "inspector" | "auditor" | "manufacturer"
     }));
   }, [companiesFromDb]);
 
@@ -297,6 +297,7 @@ export default function SignupPage() {
                                                 <SelectItem value="client">Client / Asset Owner</SelectItem>
                                                 <SelectItem value="inspector">NDT Provider / Inspector</SelectItem>
                                                 <SelectItem value="auditor">Auditor / Level-III</SelectItem>
+                                                <SelectItem value="manufacturer">Manufacturer / OEM</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

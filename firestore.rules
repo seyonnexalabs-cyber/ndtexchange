@@ -57,7 +57,7 @@ service cloud.firestore {
       }
       
       match /tasks/{taskId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
@@ -192,12 +192,16 @@ service cloud.firestore {
     match /manufacturers/{manufacturerId} { allow read: if true; allow write: if isAdmin(); }
     match /equipment/{equipmentId} {
       allow read: if true;
-      allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid));
+      allow create: if (isSignedIn() && request.resource.data.providerId == userCompanyId(request.auth.uid)) || isAdmin();
       allow update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/equipment/$(equipmentId)).data.providerId || isAdmin()));
       allow list: if true;
     }
     match /products/{productId} {
       allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /plans/{planId} {
+      allow read: if true; 
       allow write: if isAdmin();
     }
     match /defects/{defectId} { allow read, write: if isAdmin(); }

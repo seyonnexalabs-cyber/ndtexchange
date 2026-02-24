@@ -28,6 +28,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useFieldArray } from 'react-hook-form';
+import { Separator } from '@/components/ui/separator';
 
 const scopeItemSchema = z.object({
   assetId: z.string(),
@@ -258,9 +259,17 @@ export default function PostJobPage() {
     const techniqueOptions = React.useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.title} (${t.id})` })), []);
     const certificationOptions = React.useMemo(() => certificationBodies.map(c => ({ value: c, label: c })), []);
     const [showNewLocation, setShowNewLocation] = React.useState(false);
+
     const uniqueLocations = React.useMemo(() => {
         if (!clientAssets) return [];
-        return [...new Set(clientAssets.map(asset => asset.location))];
+        const allLocations = clientAssets.map(asset => asset.location);
+        return ['all', ...new Set(allLocations)];
+    }, [clientAssets]);
+
+    const uniqueTypes = React.useMemo(() => {
+        if (!clientAssets) return [];
+        const allTypes = clientAssets.map(asset => asset.type);
+        return ['all', ...new Set(allTypes)];
     }, [clientAssets]);
 
     const { fields: scopeFields, replace: replaceScope } = useFieldArray({
@@ -435,48 +444,56 @@ export default function PostJobPage() {
         });
     }, [clientAssets, assetNameFilter, assetLocationFilter, assetTypeFilter]);
 
+    const assetsGroupedByLocation = React.useMemo(() => {
+        if (!filteredAssets) return {};
+        return filteredAssets.reduce((acc, asset) => {
+            const location = asset.location || 'Uncategorized';
+            if (!acc[location]) {
+                acc[location] = [];
+            }
+            acc[location].push(asset);
+            return acc;
+        }, {} as Record<string, Asset[]>);
+    }, [filteredAssets]);
+
     return (
         <div className="max-w-4xl mx-auto">
             <div className="mb-12">
                 <nav aria-label="Progress">
-                    <div className="flex items-start">
+                    <ol role="list" className="flex items-center">
                         {steps.map((s, index) => (
-                            <React.Fragment key={s.id}>
-                                <div className="group relative flex flex-col items-center text-center w-28">
-                                    {step > s.id ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setStep(s.id)}
-                                            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                                        >
+                            <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
+                                {step > s.id ? (
+                                     <div className="flex items-center font-semibold">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                                             <Check className="h-5 w-5" />
-                                        </button>
-                                    ) : (
-                                        <div className={cn(
-                                            "flex h-8 w-8 items-center justify-center rounded-full border-2",
-                                            step === s.id ? "border-primary bg-background" : "border-border bg-background"
-                                        )}>
-                                            <span className={cn(
-                                                "font-semibold",
-                                                step === s.id ? "text-primary" : "text-muted-foreground"
-                                            )}>{s.id}</span>
-                                        </div>
-                                    )}
-                                    <p className={cn(
-                                      "mt-2 text-xs",
-                                      step >= s.id ? "text-foreground font-medium" : "text-muted-foreground"
-                                      )}>{s.name}</p>
-                                </div>
-
-                                {index < steps.length - 1 && (
-                                    <div className={cn(
-                                        "flex-auto border-t-2 mt-4",
-                                        step > s.id ? "border-primary" : "border-border"
-                                    )} />
+                                        </span>
+                                        <span className="ml-2 text-xs text-foreground">{s.name}</span>
+                                    </div>
+                                ) : step === s.id ? (
+                                    <div className="flex items-center font-semibold" aria-current="step">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary bg-background">
+                                            <span className="text-primary">{s.id}</span>
+                                        </span>
+                                        <span className="ml-2 text-xs text-primary">{s.name}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-border bg-background">
+                                            <span className="text-muted-foreground">{s.id}</span>
+                                        </span>
+                                        <span className="ml-2 text-xs text-muted-foreground">{s.name}</span>
+                                    </div>
                                 )}
-                            </React.Fragment>
+                                 {index < steps.length - 1 ? (
+                                    <div className={cn(
+                                        "absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5",
+                                        step > s.id ? 'bg-primary' : 'bg-border'
+                                    )} />
+                                ) : null}
+                            </li>
                         ))}
-                    </div>
+                    </ol>
                 </nav>
             </div>
             
@@ -511,7 +528,7 @@ export default function PostJobPage() {
                                                             <SelectTrigger><SelectValue placeholder="Select a site location" /></SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            {uniqueLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                                                            {uniqueLocations.map(l => <SelectItem key={l} value={l}>{l === 'all' ? 'All Locations' : l}</SelectItem>)}
                                                             <SelectItem value="__add_new__">+ Add a new location</SelectItem>
                                                         </SelectContent>
                                                     </Select>
@@ -551,13 +568,32 @@ export default function PostJobPage() {
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-3 gap-4">
                                     <Input placeholder="Filter by name..." value={assetNameFilter} onChange={(e) => setAssetNameFilter(e.target.value)} />
-                                    <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueLocations.map(l => <SelectItem key={l} value={l}>{l === 'all' ? 'All Locations' : l}</SelectItem>)}</SelectContent></Select>
-                                    <Select value={assetTypeFilter} onValueChange={setAssetTypeFilter}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{uniqueTypes.map(t => <SelectItem key={t} value={t}>{t === 'all' ? 'All Types' : t}</SelectItem>)}</SelectContent></Select>
+                                    <Select value={assetLocationFilter} onValueChange={setAssetLocationFilter}><SelectTrigger><SelectValue placeholder="Filter by location"/></SelectTrigger><SelectContent>{uniqueLocations.map(l => <SelectItem key={l} value={l}>{l === 'all' ? 'All Locations' : l}</SelectItem>)}</SelectContent></Select>
+                                    <Select value={assetTypeFilter} onValueChange={setAssetTypeFilter}><SelectTrigger><SelectValue placeholder="Filter by type"/></SelectTrigger><SelectContent>{uniqueTypes.map(t => <SelectItem key={t} value={t}>{t === 'all' ? 'All Types' : t}</SelectItem>)}</SelectContent></Select>
                                 </div>
                                 <FormField control={form.control} name="assetIds" render={() => (
                                     <FormItem>
                                         <ScrollArea className="h-60 w-full rounded-md border">
-                                            <div className="p-4">{filteredAssets.map((asset) => (<FormField key={asset.id} control={form.control} name="assetIds" render={({ field }) => (<FormItem key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3"><FormControl><Checkbox checked={field.value?.includes(asset.id)} onCheckedChange={(checked) => (checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange(field.value?.filter((value) => value !== asset.id)))} /></FormControl><FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location} / {asset.type})</span></FormLabel></FormItem>)} />))}</div>
+                                            {Object.keys(assetsGroupedByLocation).length > 0 ? (
+                                                Object.entries(assetsGroupedByLocation).map(([location, assets], index, array) => (
+                                                    <div key={location} className="p-4">
+                                                        <h4 className="mb-2 font-semibold tracking-tight text-sm text-muted-foreground">{location}</h4>
+                                                        {assets.map((asset) => (
+                                                            <FormField key={asset.id} control={form.control} name="assetIds" render={({ field }) => (
+                                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-3 pl-2">
+                                                                    <FormControl><Checkbox checked={(field.value || []).includes(asset.id)} onCheckedChange={(checked) => (checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange((field.value || []).filter((value) => value !== asset.id)))} /></FormControl>
+                                                                    <FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.type})</span></FormLabel>
+                                                                </FormItem>
+                                                            )} />
+                                                        ))}
+                                                        {index < array.length - 1 && <Separator className="mt-4" />}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                                                    No assets found for the current filters.
+                                                </div>
+                                            )}
                                         </ScrollArea>
                                         <FormMessage />
                                     </FormItem>
@@ -660,6 +696,3 @@ export default function PostJobPage() {
         </div>
     );
 }
-    
-
-    

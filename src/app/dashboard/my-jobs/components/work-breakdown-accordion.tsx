@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Folder, File, FileUp } from 'lucide-react';
 import type { Inspection, Job, NDTTechnique } from '@/lib/types';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import Link from 'next/link';
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destructive' | 'secondary' > = {
@@ -26,6 +26,21 @@ const WorkBreakdownAccordion = ({ inspections, job, constructUrl, role, handleVi
 }) => {
     const isClient = role === 'client';
     const isInspector = role === 'inspector';
+
+    const getSafeDate = (dateInput: any): Date | null => {
+        if (!dateInput) return null;
+        if (dateInput.toDate) { // Firestore Timestamp
+            return dateInput.toDate();
+        }
+        if (dateInput instanceof Date && isValid(dateInput)) {
+            return dateInput;
+        }
+        if (typeof dateInput === 'string') { // String from seed data or API
+            const d = parseISO(dateInput);
+            return isValid(d) ? d : null;
+        }
+        return null;
+    };
 
     const groupedData = React.useMemo(() => {
         if (!inspections || inspections.length === 0) return [];
@@ -79,33 +94,36 @@ const WorkBreakdownAccordion = ({ inspections, job, constructUrl, role, handleVi
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="pl-8 space-y-2 pt-2">
-                                        {assetData.inspections.map(inspection => (
-                                            <div key={inspection.id} className="flex justify-between items-center bg-background p-2 rounded-md border">
-                                                <div className="flex items-center gap-3">
-                                                    <File className="h-4 w-4 text-muted-foreground"/>
+                                        {assetData.inspections.map(inspection => {
+                                            const inspectionDate = getSafeDate(inspection.date);
+                                            return (
+                                                <div key={inspection.id} className="flex justify-between items-center bg-background p-2 rounded-md border">
+                                                    <div className="flex items-center gap-3">
+                                                        <File className="h-4 w-4 text-muted-foreground"/>
+                                                        <div>
+                                                            <p className="text-sm font-medium">Inspection: {inspectionDate ? format(inspectionDate, 'dd-MMM-yy') : 'Invalid Date'}</p>
+                                                            <Badge variant={inspectionStatusVariants[inspection.status]} className="mt-1">{inspection.status}</Badge>
+                                                        </div>
+                                                    </div>
                                                     <div>
-                                                        <p className="text-sm font-medium">Inspection: {format(parseISO(inspection.date), 'dd-MMM-yy')}</p>
-                                                        <Badge variant={inspectionStatusVariants[inspection.status]} className="mt-1">{inspection.status}</Badge>
+                                                    {inspection.report ? (
+                                                        <Button variant="outline" size="sm" onClick={() => handleViewDocuments([{ name: `Report_${inspection.report?.id}.pdf`, url: '', source: 'Generated Report' }])}>
+                                                            View Report
+                                                        </Button>
+                                                    ) : (
+                                                        (isInspector || (isClient && job.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(job.status) && (
+                                                            <Button asChild size="sm">
+                                                                <Link href={constructUrl(`/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}&assetId=${assetId}`)}>
+                                                                    <FileUp className="mr-2 h-4 w-4" />
+                                                                    Generate Report
+                                                                </Link>
+                                                            </Button>
+                                                        )
+                                                    )}
                                                     </div>
                                                 </div>
-                                                <div>
-                                                {inspection.report ? (
-                                                    <Button variant="outline" size="sm" onClick={() => handleViewDocuments([{ name: `Report_${inspection.report?.id}.pdf`, url: '', source: 'Generated Report' }])}>
-                                                        View Report
-                                                    </Button>
-                                                ) : (
-                                                    (isInspector || (isClient && job.isInternal)) && ['Assigned', 'In Progress', 'Scheduled', 'Revisions Requested'].includes(job.status) && (
-                                                        <Button asChild size="sm">
-                                                            <Link href={constructUrl(`/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}&assetId=${assetId}`)}>
-                                                                <FileUp className="mr-2 h-4 w-4" />
-                                                                Generate Report
-                                                            </Link>
-                                                        </Button>
-                                                    )
-                                                )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                     </AccordionContent>
                                 </AccordionItem>
                             ))}

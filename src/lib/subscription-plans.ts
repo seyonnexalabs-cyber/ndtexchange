@@ -10,8 +10,8 @@ export type Plan = {
     };
     priceDescription?: string;
     description: string;
-    userLimit: number;
-    dataLimitGB: number;
+    userLimit: number | 'Unlimited';
+    dataLimitGB: number | 'Unlimited';
     assetLimit: 'Unlimited' | number;
     biddingLimit: 'Unlimited' | number;
     equipmentLimit: 'Unlimited' | number;
@@ -62,7 +62,7 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Client',
         price: {
             monthlyUSD: 9900,
-            yearlyUSD: 95000,
+            yearlyUSD: 99000,
         },
         priceDescription: '/ month',
         description: "For multi‑vendor operations.",
@@ -119,7 +119,7 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Provider',
         price: {
             monthlyUSD: 2900,
-            yearlyUSD: 27800,
+            yearlyUSD: 29000,
         },
         priceDescription: '/ company / month',
         description: "For professional teams and growing companies.",
@@ -150,7 +150,7 @@ export const subscriptionPlans: Plan[] = [
         audience: 'Provider',
         price: {
             monthlyUSD: 9900,
-            yearlyUSD: 95000,
+            yearlyUSD: 99000,
         },
         priceDescription: '/ company / month',
         description: "Per company",

@@ -6,13 +6,13 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, reviews, clientData, serviceProviders } from '@/lib/placeholder-data';
+import { jobs, reviews, clientData, serviceProviders } from '@/lib/seed-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star } from 'lucide-react';
-import { parseISO, format } from 'date-fns';
+import { parseISO, differenceInDays, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -412,3 +412,4 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
+    

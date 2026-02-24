@@ -109,12 +109,6 @@ service cloud.firestore {
                       )) || isAdmin();
     }
     
-    // Rule to allow participants to perform collection group queries on inspections for their jobs.
-    match /{path=**}/inspections/{inspectionId} {
-      allow get: if isAdmin() || (isSignedIn() && (isOwner(resource.data.inspectorId) || get(/databases/$(database)/documents/assets/$(path[1])).data.companyId == userCompanyId(request.auth.uid)));
-      allow list: if isAdmin() || (isSignedIn() && isJobParticipant(resource.data.jobId));
-    }
-
     match /jobs/{jobId} {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.

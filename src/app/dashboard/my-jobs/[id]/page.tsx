@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -399,13 +398,50 @@ export default function JobDetailPage() {
     const bidsQuery = useMemoFirebase(() => (isReady && id ? collection(firestore, 'jobs', id, 'bids') : null), [isReady, id]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
-    const inspectionsQuery = useMemoFirebase(() => {
-        if (!firestore || !jobDetails) return null;
-        // Efficiently query the inspections subcollection across all assets for this job.
-        return query(collectionGroup(firestore, 'inspections'), where('jobId', '==', jobDetails.id));
-    }, [firestore, jobDetails]);
+    const [inspections, setInspections] = React.useState<Inspection[]>([]);
+    const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
 
-    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
+    React.useEffect(() => {
+        if (!firestore || !jobDetails) {
+            if (!isLoadingJob) setIsLoadingInspections(false);
+            return;
+        };
+
+        const fetchInspections = async () => {
+            if (!jobDetails.assetIds || jobDetails.assetIds.length === 0) {
+                setInspections([]);
+                setIsLoadingInspections(false);
+                return;
+            }
+            
+            setIsLoadingInspections(true);
+            try {
+                const allInspections: Inspection[] = [];
+                // Use getDocs for non-realtime fetching to avoid security rule complexity
+                const inspectionPromises = jobDetails.assetIds.map(assetId => {
+                    const inspectionsRef = collection(firestore, `assets/${assetId}/inspections`);
+                    const q = query(inspectionsRef, where('jobId', '==', jobDetails.id));
+                    return getDocs(q);
+                });
+
+                const querySnapshots = await Promise.all(inspectionPromises);
+
+                for (const querySnapshot of querySnapshots) {
+                    querySnapshot.forEach(doc => {
+                        allInspections.push({ id: doc.id, ...doc.data() } as Inspection);
+                    });
+                }
+                setInspections(allInspections);
+            } catch (err) {
+                console.error("Error fetching inspections:", err);
+            } finally {
+                setIsLoadingInspections(false);
+            }
+        };
+
+        fetchInspections();
+    }, [firestore, jobDetails, isLoadingJob]);
+
     
     React.useEffect(() => {
         if (!jobDetails) return;
@@ -457,26 +493,23 @@ export default function JobDetailPage() {
     const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
     const duration = React.useMemo(() => {
-        if (!jobDetails?.scheduledStartDate || !jobDetails?.scheduledEndDate) {
+        if (!jobDetails?.scheduledStartDate) {
             return jobDetails?.durationDays;
         }
         
         const safeParse = (dateInput: any): Date | null => {
             if (!dateInput) return null;
-            // Handle Firestore Timestamps
             if (typeof dateInput.toDate === 'function') {
                 return dateInput.toDate();
             }
-            // Handle ISO strings or existing Date objects
             const d = new Date(dateInput);
             return isValid(d) ? d : null;
         };
 
         const startDate = safeParse(jobDetails.scheduledStartDate);
-        const endDate = safeParse(jobDetails.scheduledEndDate);
+        const endDate = safeParse(jobDetails.scheduledEndDate) || startDate;
 
         if (startDate && endDate) {
-            // Add 1 to make it inclusive
             return differenceInDays(endDate, startDate) + 1;
         }
 
@@ -1284,3 +1317,4 @@ export default function JobDetailPage() {
 }
 
     
+

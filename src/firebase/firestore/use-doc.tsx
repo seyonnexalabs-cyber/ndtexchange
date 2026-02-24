@@ -50,7 +50,7 @@ export function useDoc<T = any>(
   useEffect(() => {
     if (!memoizedDocRef) {
       setData(null);
-      setIsLoading(true);
+      setIsLoading(false); // Correctly set loading to false if no ref is provided
       setError(null);
       return;
     }

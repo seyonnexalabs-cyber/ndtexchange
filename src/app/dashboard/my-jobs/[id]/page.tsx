@@ -1295,5 +1295,3 @@ export default function JobDetailPage() {
 }
 
     
-
-

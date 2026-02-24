@@ -981,7 +981,7 @@ export const inspectionsData: Inspection[] = [
 ];
 
 export const subscriptions: Subscription[] = [
-  { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Client Plus', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 500 },
+  { id: 'SUB-001', companyId: 'client-01', companyName: 'Global Energy Corp.', plan: 'Client Plus', status: 'Active', startDate: '2024-01-15', userCount: 25, dataUsageGB: 15.2, userLimit: 200, dataLimitGB: 50 },
   { id: 'SUB-002', companyId: 'client-02', companyName: 'Marine Tankers Ltd.', plan: 'Client Access', status: 'Trialing', startDate: '2024-07-05', endDate: '2024-08-04', userCount: 5, dataUsageGB: 2.1, userLimit: 10, dataLimitGB: 20 },
   { id: 'SUB-003', companyId: 'provider-01', companyName: 'MISTRAS Group', plan: 'Company Growth', status: 'Active', startDate: '2024-03-20', userCount: 50, dataUsageGB: 45.8, userLimit: 50, dataLimitGB: 100 },
   { id: 'SUB-004', companyId: 'provider-02', companyName: 'Applus+', plan: 'Provider Pro', status: 'Past Due', startDate: '2023-11-10', userCount: 38, dataUsageGB: 32.5, userLimit: 75, dataLimitGB: 120 },
@@ -1008,9 +1008,9 @@ export const payments: Payment[] = [
   { id: 'PAY-007', subscriptionId: 'SUB-003', companyName: 'MISTRAS Group', amount: 299, date: '2024-06-01', status: 'Succeeded' },
   { id: 'PAY-009', subscriptionId: 'SUB-010', companyName: 'Blue Horizon Services', amount: 299, date: '2024-07-20', status: 'Succeeded' },
   { id: 'PAY-010', subscriptionId: 'SUB-004', companyName: 'Applus+', amount: 299, date: '2024-06-01', status: 'Succeeded' },
-  { id: 'PAY-011', subscriptionId: 'SUB-012', companyName: 'Aviation Maintenance Pros', amount: 499, date: '2024-07-25', status: 'Succeeded' },
-  { id: 'PAY-012', subscriptionId: 'SUB-013', companyName: 'SGS', amount: 299, date: '2024-07-26', status: 'Succeeded' },
-  { id: 'PAY-013', subscriptionId: 'SUB-014', companyName: 'DNV (Det Norske Veritas)', amount: 499, date: '2024-07-10', status: 'Succeeded' },
+  { id: 'PAY-012', subscriptionId: 'Aviation Maintenance Pros', amount: 499, date: '2024-07-25', status: 'Succeeded' },
+  { id: 'PAY-013', subscriptionId: 'SGS', amount: 299, date: '2024-07-26', status: 'Succeeded' },
+  { id: 'PAY-014', subscriptionId: 'DNV (Det Norske Veritas)', amount: 499, date: '2024-07-10', status: 'Succeeded' },
 ];
 
 export const jobPayments: JobPayment[] = [

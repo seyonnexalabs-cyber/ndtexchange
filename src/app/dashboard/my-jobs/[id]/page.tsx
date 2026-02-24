@@ -482,22 +482,28 @@ export default function JobDetailPage() {
 
     const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
+    const safeParseDate = (dateInput: any): Date | null => {
+        if (!dateInput) return null;
+        if (dateInput.toDate) { // Firestore Timestamp
+            return dateInput.toDate();
+        }
+        if (dateInput instanceof Date && isValid(dateInput)) {
+             return dateInput;
+        }
+        if (typeof dateInput === 'string') { // String from seed data or API
+            const d = parseISO(dateInput);
+            return isValid(d) ? d : null;
+        }
+        return null;
+    };
+
     const duration = React.useMemo(() => {
-        if (!jobDetails?.scheduledStartDate) {
+        const startDate = safeParseDate(jobDetails?.scheduledStartDate);
+        if (!startDate) {
             return jobDetails?.durationDays;
         }
         
-        const safeParse = (dateInput: any): Date | null => {
-            if (!dateInput) return null;
-            if (typeof dateInput.toDate === 'function') {
-                return dateInput.toDate();
-            }
-            const d = new Date(dateInput);
-            return isValid(d) ? d : null;
-        };
-
-        const startDate = safeParse(jobDetails.scheduledStartDate);
-        const endDate = safeParse(jobDetails.scheduledEndDate) || startDate;
+        const endDate = safeParseDate(jobDetails?.scheduledEndDate) || startDate;
 
         if (startDate && endDate) {
             return differenceInDays(endDate, startDate) + 1;
@@ -790,6 +796,7 @@ export default function JobDetailPage() {
                         const provider = allCompanies?.find(p => p.id === bid.providerId);
                         if (!provider) return null;
                         const isAwarded = bid.status === 'Awarded';
+                        const submittedDate = safeParseDate(bid.submittedDate);
                         return (
                             <div key={bid.id} className={cn(
                                 "flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4",
@@ -808,7 +815,7 @@ export default function JobDetailPage() {
                                 <div className="flex items-center gap-6 w-full sm:w-auto">
                                     <div className="text-left sm:text-right flex-grow">
                                         <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
-                                        <p className="text-xs text-muted-foreground">Submitted on {format(new Date(bid.submittedDate), GLOBAL_DATE_FORMAT)}</p>
+                                        <p className="text-xs text-muted-foreground">Submitted on {submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                     </div>
                                     {isAwarded ? (
                                         <Badge variant="success" className="gap-2">
@@ -844,6 +851,11 @@ export default function JobDetailPage() {
     const lastRejection = jobDetails.history?.find(h => h.statusChange === 'Revisions Requested');
 
     const isBiddingView = jobDetails.status === 'Posted' && role === 'inspector';
+    
+    const postedDate = safeParseDate(jobDetails.postedDate);
+    const scheduledStartDate = safeParseDate(jobDetails.scheduledStartDate);
+    const scheduledEndDate = safeParseDate(jobDetails.scheduledEndDate);
+    const bidExpiryDate = safeParseDate(jobDetails.bidExpiryDate);
     
     const JobBiddingView = ({ allNdtTechniques }: { allNdtTechniques: NDTTechnique[] | null }) => {
         const { auth, firestore } = useFirebase();
@@ -911,7 +923,7 @@ export default function JobDetailPage() {
                                 <CardTitle className="text-2xl font-headline">{jobDetails.title}</CardTitle>
                                 <div className="mt-4 flex flex-wrap gap-x-6 gap-y-4 text-muted-foreground">
                                     <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {jobDetails.location}</div>
-                                    {jobDetails.scheduledStartDate && <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> {format(parseISO(jobDetails.scheduledStartDate), 'dd MMM')} &ndash; {jobDetails.scheduledEndDate ? format(parseISO(jobDetails.scheduledEndDate), 'dd MMM yyyy') : ''}</div>}
+                                    {scheduledStartDate && <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> {format(scheduledStartDate, 'dd MMM')} &ndash; {scheduledEndDate ? format(scheduledEndDate, 'dd MMM yyyy') : ''}</div>}
                                     {duration && <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {duration} days</div>}
                                     {jobDetails.industry && <div className="flex items-center gap-2"><Factory className="h-4 w-4 text-primary" /> {jobDetails.industry}</div>}
                                 </div>
@@ -925,7 +937,7 @@ export default function JobDetailPage() {
                                 </div>
                                 <div className="border-l pl-4">
                                     <p className="text-sm text-muted-foreground">Bidding</p>
-                                    <p className="font-semibold">{bids?.length || 0} bids · Closes {jobDetails.bidExpiryDate ? format(parseISO(jobDetails.bidExpiryDate), 'dd MMM') : 'N/A'}</p>
+                                    <p className="font-semibold">{bids?.length || 0} bids · Closes {bidExpiryDate ? format(bidExpiryDate, 'dd MMM') : 'N/A'}</p>
                                 </div>
                             </div>
 
@@ -1082,7 +1094,7 @@ export default function JobDetailPage() {
                                     <CardContent className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 text-sm text-muted-foreground border-t pt-4">
                                             <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> <span>{jobDetails.location}</span></div>
-                                            <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> <span>Posted: {format(new Date(jobDetails.postedDate), GLOBAL_DATE_FORMAT)}</span></div>
+                                            <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> <span>Posted: {postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span></div>
                                             <div className="flex items-center gap-2"><Workflow className="w-4 h-4 text-primary" /> <span>Workflow: {jobDetails.workflow}</span></div>
                                             <div className="flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> <span>Job Type: {jobDetails.jobType}</span></div>
                                             <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-primary" /> <span>Industry: {jobDetails.industry}</span></div>

@@ -211,7 +211,7 @@ export default function SupportPage() {
   const roleGuides: { [key: string]: { component: React.ComponentType, title: string, description: string } } = {
         client: {
             component: ClientMaintenanceWorkflow,
-            title: 'Client Maintenance Workflow',
+            title: 'Client Workflow Guide',
             description: 'A guide to how client-side maintenance activities are carried out within the NDT EXCHANGE app.'
         },
         inspector: {

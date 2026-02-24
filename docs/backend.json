@@ -405,10 +405,11 @@
         "label": { "type": "string", "description": "A label for the task (e.g., bug, feature, documentation)." },
         "status": { "type": "string", "description": "The current status of the task (e.g., todo, in progress, done)." },
         "priority": { "type": "string", "description": "The priority of the task (e.g., low, medium, high)." },
+        "type": { "type": "string", "description": "The type of task.", "enum": ["One-Time", "Recurring"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "userId": { "type": "string", "description": "The ID of the user who owns this task." }
       },
-      "required": ["id", "title", "label", "status", "priority", "userId"]
+      "required": ["id", "title", "label", "status", "priority", "userId", "type"]
     }
   },
   "auth": {

@@ -1,4 +1,3 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -22,6 +21,7 @@ import { subscriptionPlans, type Plan } from '@/lib/subscription-plans';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 type Currency = 'USD' | 'EUR' | 'INR' | 'GBP' | 'CAD';
 type BillingCycle = 'monthly' | 'yearly';

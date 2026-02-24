@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -1083,7 +1084,7 @@ export default function JobDetailPage() {
                     <TabsList className="mb-4">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="work-scope">Work Scope</TabsTrigger>
-                        <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                        <TabsTrigger value="history">History</TabsTrigger>
                         <TabsTrigger value="chat">Chat</TabsTrigger>
                     </TabsList>
 
@@ -1275,8 +1276,16 @@ export default function JobDetailPage() {
                             </CardContent>
                         </Card>
                     </TabsContent>
-                    <TabsContent value="lifecycle">
-                         <JobLifecycle status={jobDetails.status} workflow={jobDetails.workflow} />
+                    <TabsContent value="history">
+                         <Card>
+                             <CardHeader>
+                                 <CardTitle className="flex items-center gap-3"><History className="w-6 h-6 text-primary" /> Job History</CardTitle>
+                                 <CardDescription>A complete, auditable log of all actions taken on this job.</CardDescription>
+                             </CardHeader>
+                             <CardContent>
+                                <JobActivityLog history={jobDetails.history} />
+                             </CardContent>
+                         </Card>
                     </TabsContent>
                     <TabsContent value="chat">
                         <JobChatWindow job={jobDetails} onSendMessage={handleSendMessage} />

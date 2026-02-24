@@ -1,5 +1,4 @@
 
-
 import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan } from '@/lib/types';
 
 // This file serves as the master data source for seeding the Firestore database.
@@ -99,11 +98,11 @@ export const productsData: Product[] = [
     { id: 'PROD-038', 'name': 'HD-130 Videoscope', 'manufacturerId': 'manu-16', 'manufacturerName': 'Mitcorp', 'type': 'Instrument', 'techniques': ['VT', 'RVI'], 'description': 'A high-definition videoscope with interchangeable probes and a large touch-screen display.', 'imageUrls': [] },
     { id: 'PROD-039', 'name': 'VEO3 Phased Array', 'manufacturerId': 'manu-04', 'manufacturerName': 'Sonatest', 'type': 'Instrument', 'techniques': ['PAUT'], 'description': 'An advanced phased array flaw detector with a rugged design and superior performance for challenging inspection environments.', 'imageUrls': [] },
     { id: 'PROD-040', 'name': 'X-RAY CT Metrology', 'manufacturerId': 'manu-24', 'manufacturerName': 'Nikon Metrology', 'type': 'Instrument', 'techniques': ['RT'], 'description': 'High-precision X-ray computed tomography systems for detailed internal and external measurements of complex parts.', 'imageUrls': [] },
-    { id: 'PROD-041', 'name': 'EchoTREK', 'manufacturerId': 'manu-15', 'manufacturerName': 'Ether NDE', 'type': 'Instrument', 'techniques': ['UT'], 'description': 'A robust ultrasonic thickness gauge with a color display and A-scan capabilities.', 'imageUrls': [] },
-    { id: 'PROD-042', 'name': 'Rotoscan', 'manufacturerId': 'manu-14', 'manufacturerName': 'Rosen Group', 'type': 'Sensor', 'techniques': ['UT'], 'description': 'An automated ultrasonic pipeline inspection system for detecting corrosion and cracks.', 'imageUrls': [] },
-    { id: 'PROD-043', 'name': 'Zetec Topaz64', 'manufacturerId': 'manu-03', 'manufacturerName': 'Zetec', 'type': 'Instrument', 'techniques': ['PAUT', 'TOFD'], 'description': 'A fully integrated, portable 64-channel phased array ultrasonic instrument with real-time TFM.', 'imageUrls': [] },
-    { id: 'PROD-044', 'name': '300kV X-Ray Source', 'manufacturerId': 'manu-02', 'manufacturerName': 'Waygate Technologies', 'type': 'Source', 'techniques': ['RT'], 'description': 'A powerful and stable 300kV microfocus X-ray source for high-resolution industrial inspection.', 'imageUrls': [] },
-    { id: 'PROD-045', 'name': '15MHz Shear Wave Probe', 'manufacturerId': 'manu-01', 'manufacturerName': 'Evident Scientific', 'type': 'Probe', 'techniques': ['UT'], 'description': 'A high-frequency shear wave transducer for detecting very small flaws near the surface.', 'imageUrls': [] }
+    { id: 'PROD-041', name: 'EchoTREK', manufacturerId: 'manu-15', manufacturerName: 'Ether NDE', type: 'Instrument', techniques: ['UT'], description: 'A robust ultrasonic thickness gauge with a color display and A-scan capabilities.', 'imageUrls': [] },
+    { id: 'PROD-042', name: 'Rotoscan', manufacturerId: 'manu-14', manufacturerName: 'Rosen Group', type: 'Sensor', techniques: ['UT'], description: 'An automated ultrasonic pipeline inspection system for detecting corrosion and cracks.', 'imageUrls': [] },
+    { id: 'PROD-043', name: 'Zetec Topaz64', manufacturerId: 'manu-03', manufacturerName: 'Zetec', type: 'Instrument', techniques: ['PAUT', 'TOFD'], description: 'A fully integrated, portable 64-channel phased array ultrasonic instrument with real-time TFM.', 'imageUrls': [] },
+    { id: 'PROD-044', name: '300kV X-Ray Source', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Source', techniques: ['RT'], description: 'A powerful and stable 300kV microfocus X-ray source for high-resolution industrial inspection.', 'imageUrls': [] },
+    { id: 'PROD-045', name: '15MHz Shear Wave Probe', manufacturerId: 'manu-01', manufacturerName: 'Evident Scientific', type: 'Probe', techniques: ['UT'], description: 'A high-frequency shear wave transducer for detecting very small flaws near the surface.', imageUrls: [] }
 ];
 
 export const clientData: Client[] = [
@@ -819,7 +818,7 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
     },
      { 
         id: 'JOB-023', 
-        title: 'Flare Stack RVI', 
+        title: 'Internal Job For TEAM', 
         client: 'TEAM, Inc.', 
         clientCompanyId: 'provider-03',
         providerId: 'provider-03', 
@@ -997,6 +996,7 @@ export const subscriptions: Subscription[] = [
   { id: 'SUB-013', companyId: 'provider-11', companyName: 'SGS', plan: 'Provider Pro', status: 'Active', startDate: '2024-07-26', userCount: 2, dataUsageGB: 0.3, userLimit: 50, dataLimitGB: 100 },
   { id: 'SUB-014', companyId: 'provider-12', companyName: 'DNV (Det Norske Veritas)', plan: 'Company Growth', status: 'Active', startDate: '2024-06-10', userCount: 1, dataUsageGB: 2.5, userLimit: 200, dataLimitGB: 500 },
   { id: 'SUB-015', companyId: 'provider-03', companyName: 'TEAM, Inc.', plan: 'Company Growth', status: 'Active', startDate: '2024-01-01', userCount: 3, dataUsageGB: 10, userLimit: 15, dataLimitGB: 75 },
+  { id: 'SUB-ADMIN', companyId: 'provider-ndtx', companyName: 'NDT EXCHANGE', plan: 'Platform Admin', status: 'Active', startDate: '2024-01-01', userCount: 2, dataUsageGB: 25, userLimit: 9999, dataLimitGB: 9999 },
 ];
 
 export const payments: Payment[] = [
@@ -1100,6 +1100,7 @@ export const notifications: Notification[] = [
     {
         id: 'NOTIF-001',
         userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        type: 'job',
         title: 'New Bid on "PAUT on Pressure Vessel Welds"',
         description: 'TEAM, Inc. has placed a bid for $11,800.',
         timestamp: '2024-07-01T11:30:00Z',
@@ -1109,6 +1110,7 @@ export const notifications: Notification[] = [
     {
         id: 'NOTIF-002',
         userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2',
+        type: 'job',
         title: 'Job Awarded: "MT Inspection on Crane Hooks"',
         description: 'Your bid for $4,800 has been accepted by Global Energy Corp.',
         timestamp: '2024-06-19T15:05:00Z',
@@ -1118,6 +1120,7 @@ export const notifications: Notification[] = [
     {
         id: 'NOTIF-003',
         userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        type: 'message',
         title: 'New Message on "MT Inspection on Crane Hooks"',
         description: 'Maria Garcia: "Not a problem, John. I\'ve added it to the inspection plan..."',
         timestamp: '2024-06-20T15:00:00Z',
@@ -1127,6 +1130,7 @@ export const notifications: Notification[] = [
     {
         id: 'NOTIF-004',
         userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2',
+        type: 'job',
         title: 'Report Approved for "Tank Floor Corrosion Mapping"',
         description: 'The client has approved your report for JOB-011.',
         timestamp: '2024-07-03T16:00:00Z',
@@ -1343,3 +1347,5 @@ export const subscriptionPlanDetails = subscriptionPlans.reduce((acc, plan) => {
     acc[plan.name] = plan;
     return acc;
 }, {} as Record<string, Plan>);
+
+    

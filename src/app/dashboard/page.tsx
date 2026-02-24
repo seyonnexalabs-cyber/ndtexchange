@@ -1,5 +1,4 @@
 
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -19,13 +18,13 @@ import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
 import React, { useState, useEffect, useMemo } from "react";
 import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid } from "date-fns";
-import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from "@/lib/utils";
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, inspectionsData, productsData, notifications, tasks } from "@/lib/seed-data";
+import { jobs as jobsData, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, inspectionsData, productsData, notifications, tasks, subscriptionPlans } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -131,9 +130,11 @@ const ClientDashboard = () => {
 
     const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const assetsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const providersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]);
     
     const { data: clientJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: currentClientAssets, isLoading: isLoadingAssets } = useCollection<any>(assetsQuery);
+    const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(providersQuery);
     
     const stats = useMemo(() => {
         const totalAssets = currentClientAssets?.length || 0;
@@ -189,7 +190,10 @@ const ClientDashboard = () => {
         nextSevenDays.setDate(today.getDate() + 7);
         
         return clientJobs
-            .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
+            .filter(j => {
+                const startDate = safeParseDate(j.scheduledStartDate);
+                return startDate && isWithinInterval(startDate, { start: today, end: nextSevenDays });
+            })
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
     }, [clientJobs, today]);
     
@@ -204,7 +208,7 @@ const ClientDashboard = () => {
         }
     };
     
-    if (isLoadingJobs || isLoadingAssets || !userProfile) {
+    if (isLoadingJobs || isLoadingAssets || !userProfile || isLoadingProviders) {
         return <DashboardSkeleton />;
     }
 
@@ -333,7 +337,7 @@ const ClientDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                        <TableCell>{serviceProviders?.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                         <TableCell>{getNextStep(job.status)}</TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
@@ -408,7 +412,7 @@ const ClientDashboard = () => {
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell>{job.title}</TableCell>
-                                        <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                        <TableCell>{serviceProviders?.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
                                                 <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
@@ -457,7 +461,10 @@ const InspectorDashboard = () => {
             activeAssignments: providerJobs?.filter(j => j.status === 'In Progress').length || 0,
             openBidsCount: openBids.length,
             equipmentAlerts: providerEquipment?.filter(e => e.status === 'Calibration Due' || e.status === 'Out of Service').length || 0,
-            reportsToSubmit: providerJobs?.filter(j => (j.status === 'In Progress' && j.scheduledEndDate && isAfter(new Date(), new Date(j.scheduledEndDate))) || j.status === 'Completed').length || 0,
+            reportsToSubmit: providerJobs?.filter(j => {
+                const endDate = safeParseDate(j.scheduledEndDate);
+                return (j.status === 'In Progress' && endDate && isAfter(new Date(), endDate)) || j.status === 'Completed';
+            }).length || 0,
     }}, [providerJobs, providerEquipment, myBids]);
 
     const schedule = useMemo(() => {
@@ -466,7 +473,10 @@ const InspectorDashboard = () => {
         nextSevenDays.setDate(today.getDate() + 7);
         
         return providerJobs
-            .filter(j => j.scheduledStartDate && isWithinInterval(new Date(j.scheduledStartDate), { start: today, end: nextSevenDays }))
+            .filter(j => {
+                const startDate = safeParseDate(j.scheduledStartDate);
+                return startDate && isWithinInterval(startDate, { start: today, end: nextSevenDays });
+            })
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
     }, [providerJobs, today]);
 
@@ -561,11 +571,8 @@ const InspectorDashboard = () => {
 // --- AUDITOR DASHBOARD ---
 const AuditorDashboard = () => {
     const searchParams = useSearchParams();
-    const [today, setToday] = useState<Date | undefined>(undefined);
     const { firestore, user } = useFirebase();
 
-    useEffect(() => { setToday(new Date()) }, []);
-    
     const jobsQuery = useMemoFirebase(() => {
       if (!firestore || !user) return null;
       return query(collection(firestore, 'jobs'), where('workflow', 'in', ['level3', 'auto']));
@@ -577,16 +584,9 @@ const AuditorDashboard = () => {
     const auditsCompleted = useMemo(() => jobs?.filter(j => j.status === 'Audit Approved').length || 0, [jobs]);
     const averageReviewTime = "22h"; // Placeholder
 
-    const getSafeDate = (ts: any): Date | null => {
-        if (!ts) return null;
-        if (ts.toDate) return ts.toDate(); // Firestore Timestamp
-        const d = new Date(ts);
-        return isValid(d) ? d : null;
-    };
-    
     const getSortableTimestamp = (job: Job): number => {
         const historyItem = job.history?.find(h => h.statusChange === 'Report Submitted');
-        const date = getSafeDate(historyItem?.timestamp);
+        const date = safeParseDate(historyItem?.timestamp);
         return date ? date.getTime() : 0;
     };
     
@@ -642,7 +642,7 @@ const AuditorDashboard = () => {
                         <TableBody>
                             {auditQueue.sort((a,b) => getSortableTimestamp(a) - getSortableTimestamp(b)).map(job => {
                                 const reportId = job.inspections?.find(insp => insp.report)?.report?.id;
-                                const submittedDate = getSafeDate(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp);
+                                const submittedDate = safeParseDate(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp);
 
                                 return (
                                 <TableRow key={job.id}>
@@ -652,13 +652,9 @@ const AuditorDashboard = () => {
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
                                     <TableCell>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
-                                        {reportId ? (
-                                            <Button asChild>
-                                                <Link href={constructUrl(`/dashboard/reports/${reportId}`, searchParams)}>Audit Report</Link>
-                                            </Button>
-                                        ) : (
-                                            <Button variant="outline" size="sm" disabled>No Report</Button>
-                                        )}
+                                        <Button asChild>
+                                            <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Audit Report</Link>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             )})}
@@ -706,7 +702,7 @@ const AdminDashboard = () => {
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
-    const { data: jobsData, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
     const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? collection(firestore, 'reviews') : null, [isReady, firestore]));
@@ -725,163 +721,54 @@ const AdminDashboard = () => {
         try {
             const batch = writeBatch(firestore);
 
-            const safeNewDate = (dateString?: string): Date | undefined => {
-                if (!dateString) return undefined;
-                const date = new Date(dateString);
-                return isNaN(date.getTime()) ? undefined : date;
-            };
+            const collectionsToSeed = [
+                { name: 'techniques', data: NDTTechniques },
+                { name: 'manufacturers', data: manufacturersData },
+                { name: 'products', data: productsData },
+                { name: 'companies', data: [...clientData, ...serviceProviders, ...auditFirms] },
+                { name: 'users', data: allUsers.map(u => { const { password, ...user } = u; return user; }) },
+                { name: 'assets', data: clientAssets },
+                { name: 'equipment', data: inspectorAssets },
+                { name: 'subscriptions', data: subscriptionsData },
+                { name: 'payments', data: paymentsData },
+                { name: 'jobPayments', data: jobPaymentsData },
+                { name: 'reviews', data: reviewsData },
+                { name: 'userAuditLogs', data: userAuditLogData },
+                { name: 'jobAuditLogs', data: jobAuditLogData },
+                { name: 'billingAuditLogs', data: billingAuditLogData },
+                { name: 'plans', data: subscriptionPlans },
+            ];
 
-            const removeUndefined = (obj: any) => {
-                Object.keys(obj).forEach(key => {
-                    if (obj[key] === undefined) {
-                        delete obj[key];
-                    }
-                });
-                return obj;
-            };
-
-            // Seed simple collections
-            console.log(`[SEED] Preparing: techniques, manufacturers, products...`);
-            NDTTechniques.forEach(item => batch.set(doc(firestore, 'techniques', item.id), item));
-            manufacturersData.forEach(item => batch.set(doc(firestore, 'manufacturers', item.id), item));
-            productsData.forEach(item => batch.set(doc(firestore, 'products', item.id), item));
-            console.log(`[SEED] ✅ Prepared simple collections.`);
-
-            // Seed companies
-            console.log(`[SEED] Preparing: companies...`);
-            [...clientData, ...serviceProviders, ...auditFirms].forEach(item => batch.set(doc(firestore, 'companies', item.id), item));
-            console.log(`[SEED] ✅ Prepared companies.`);
-
-            // Seed users
-            console.log(`[SEED] Preparing: users...`);
-            allUsers.forEach(user => {
-                const { password, ...userToSave } = user;
-                const userWithDate = {
-                    ...userToSave,
-                    createdAt: safeNewDate(user.createdAt as string) || serverTimestamp(),
-                };
-                batch.set(doc(firestore, 'users', user.id), removeUndefined(userWithDate));
-            });
-            console.log(`[SEED] ✅ Prepared users.`);
+            for (const { name, data } of collectionsToSeed) {
+                console.log(`[SEED] Preparing: ${name}...`);
+                for (const item of data) {
+                    batch.set(doc(firestore, name, item.id), item);
+                }
+                console.log(`[SEED] ✅ Prepared ${data.length} documents for ${name}.`);
+            }
             
-            // Seed assets and equipment
-            console.log(`[SEED] Preparing: assets, equipment...`);
-            clientAssets.forEach(asset => {
-                const assetWithDates = {
-                    ...asset,
-                    history: (asset.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) || serverTimestamp() })),
-                    installationDate: safeNewDate(asset.installationDate),
-                    createdAt: safeNewDate(asset.createdAt as string),
-                    modifiedAt: safeNewDate(asset.modifiedAt as string)
-                };
-                batch.set(doc(firestore, 'assets', asset.id), removeUndefined(assetWithDates));
-            });
-            inspectorAssets.forEach(equip => {
-                 const equipWithDates = {
-                    ...equip,
-                    history: (equip.history || []).map(h => ({ ...h, timestamp: safeNewDate(h.timestamp) || serverTimestamp() })),
-                    createdAt: safeNewDate(equip.createdAt as string),
-                    modifiedAt: safeNewDate(equip.modifiedAt as string)
-                 };
-                 batch.set(doc(firestore, 'equipment', equip.id), removeUndefined(equipWithDates));
-            });
-            console.log(`[SEED] ✅ Prepared assets and equipment.`);
-            
-            // Seed financial and review data
-            console.log(`[SEED] Preparing: subscriptions, payments, reviews...`);
-            subscriptions.forEach(sub => batch.set(doc(firestore, 'subscriptions', sub.id), removeUndefined({ ...sub, startDate: safeNewDate(sub.startDate), endDate: safeNewDate(sub.endDate) })));
-            payments.forEach(p => batch.set(doc(firestore, 'payments', p.id), { ...p, date: safeNewDate(p.date)! }));
-            jobPayments.forEach(p => batch.set(doc(firestore, 'jobPayments', p.id), { ...p, paidOn: safeNewDate(p.paidOn)! }));
-            reviews.forEach(r => batch.set(doc(firestore, 'reviews', r.id), { ...r, date: safeNewDate(r.date as string) || serverTimestamp() }));
-            console.log(`[SEED] ✅ Prepared subscriptions, payments, reviews.`);
-
-            // Seed audit logs
-            console.log(`[SEED] Preparing: audit logs...`);
-            userAuditLog.forEach(log => batch.set(doc(firestore, 'userAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
-            jobAuditLog.forEach(log => batch.set(doc(firestore, 'jobAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
-            billingAuditLog.forEach(log => batch.set(doc(firestore, 'billingAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
-            console.log(`[SEED] ✅ Prepared audit logs.`);
-            
-             // Seed tasks
-            console.log(`[SEED] Preparing: tasks...`);
-            tasks.forEach(task => {
-                const taskRef = doc(firestore, 'users', task.userId, 'tasks', task.id);
-                batch.set(taskRef, {
-                    ...task,
-                    createdAt: serverTimestamp()
-                });
-            });
-            console.log(`[SEED] ✅ Prepared tasks.`);
-
-            // Seed notifications
-            console.log(`[SEED] Preparing: notifications...`);
-            notifications.forEach(n => {
-                const notifRef = doc(firestore, 'users', n.userId, 'notifications', n.id);
-                batch.set(notifRef, removeUndefined({ ...n, timestamp: safeNewDate(n.timestamp) }));
-            });
-            console.log(`[SEED] ✅ Prepared notifications.`);
-
-            // Seed jobs and subcollections
             console.log(`[SEED] Preparing: jobs and subcollections...`);
-            jobs.forEach(job => {
+            jobsData.forEach(job => {
                 const { bids, inspections, ...jobData } = job;
-                const jobRef = doc(firestore, 'jobs', job.id);
-                
-                const jobDataWithDates = {
-                    ...jobData,
-                    postedDate: safeNewDate(jobData.postedDate as string),
-                    createdAt: safeNewDate(jobData.createdAt as string),
-                    modifiedAt: safeNewDate(jobData.modifiedAt as string),
-                    bidExpiryDate: safeNewDate(jobData.bidExpiryDate as string),
-                    scheduledStartDate: safeNewDate(jobData.scheduledStartDate as string),
-                    scheduledEndDate: safeNewDate(jobData.scheduledEndDate as string),
-                    history: (jobData.history || []).map(h => removeUndefined({...h, timestamp: safeNewDate(h.timestamp as string)}))
-                };
-                
-                batch.set(jobRef, removeUndefined(jobDataWithDates));
-
-                bids.forEach(bid => {
-                    const bidRef = doc(firestore, 'jobs', bid.jobId, 'bids', bid.id);
-                    batch.set(bidRef, removeUndefined({ ...bid, submittedDate: safeNewDate(bid.submittedDate) }));
-                });
-
+                batch.set(doc(firestore, 'jobs', job.id), jobData);
+                bids.forEach(bid => batch.set(doc(firestore, 'jobs', bid.jobId, 'bids', bid.id), bid));
                 jobChats.filter(c => c.jobId === job.id).forEach(chat => {
-                    chat.messages.forEach(msg => {
-                        const msgRef = doc(firestore, 'jobs', chat.jobId, 'messages', msg.id);
-                        batch.set(msgRef, removeUndefined({ ...msg, timestamp: safeNewDate(msg.timestamp) }));
-                    });
+                    chat.messages.forEach(msg => batch.set(doc(firestore, 'jobs', chat.jobId, 'messages', msg.id), msg));
                 });
             });
-            console.log(`[SEED] ✅ Prepared: jobs and subcollections.`);
-
-            console.log(`[SEED] Preparing: inspections and reports...`);
+            console.log(`[SEED] ✅ Prepared jobs and subcollections.`);
+            
+            console.log(`[SEED] Preparing: tasks, notifications, inspections...`);
+            tasks.forEach(task => batch.set(doc(firestore, 'users', task.userId, 'tasks', task.id), task));
+            notifications.forEach(n => batch.set(doc(firestore, 'users', n.userId, 'notifications', n.id), n));
             inspectionsData.forEach(inspection => {
-                if (!inspection.assetId || inspection.assetId === 'N/A') return;
                 const { report, ...inspectionData } = inspection;
-                const inspectionRef = doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id);
-                
-                const inspectionDataWithDate = {
-                    ...inspectionData,
-                    date: safeNewDate(inspectionData.date),
-                    report: report ? removeUndefined({
-                        ...report,
-                        submittedOn: safeNewDate(report.submittedOn),
-                    }) : undefined
-                };
-                batch.set(inspectionRef, removeUndefined(inspectionDataWithDate));
-
+                batch.set(doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id), inspectionData);
                 if (report) {
-                    const reportRef = doc(firestore, 'reports', report.id);
-                    batch.set(reportRef, removeUndefined({ ...report, submittedOn: safeNewDate(report.submittedOn) }));
+                    batch.set(doc(firestore, 'reports', report.id), report);
                 }
             });
-            console.log(`[SEED] ✅ Prepared: inspections and reports.`);
-
-            // Seed admin roles
-            const adminUser = allUsers.find(u => u.email === 'admin@ndtexchange.com');
-            if (adminUser) batch.set(doc(firestore, 'roles_admin', adminUser.id), { isAdmin: true });
-            const seyonUser = allUsers.find(u => u.email === 'seyonnexalabs@gmail.com');
-            if (seyonUser) batch.set(doc(firestore, 'roles_admin', seyonUser.id), { isAdmin: true });
+            console.log(`[SEED] ✅ Prepared tasks, notifications, and inspections.`);
 
             await batch.commit();
 
@@ -906,7 +793,7 @@ const AdminDashboard = () => {
         totalUsers: users?.length || 0,
         totalProviders: companies?.filter(c => c.type === 'Provider').length || 0,
         pendingReviews: pendingReviews,
-        activeJobs: jobsData?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
+        activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
 
     const userGrowthData = useMemo(() => {
@@ -915,7 +802,6 @@ const AdminDashboard = () => {
         const usersByMonth: { [key: string]: number } = {};
         const monthOrder: string[] = [];
 
-        // Get last 6 months
         for (let i = 5; i >= 0; i--) {
             const d = new Date();
             d.setMonth(d.getMonth() - i);
@@ -926,8 +812,8 @@ const AdminDashboard = () => {
         
         users.forEach(user => {
             if (!user.createdAt) return;
-            const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
-            if (isValid(date)) {
+            const date = safeParseDate(user.createdAt);
+            if (date && isValid(date)) {
                 const monthKey = date.toLocaleString('default', { month: 'short', year: '2-digit' });
                 if (monthKey in usersByMonth) {
                     usersByMonth[monthKey]++;

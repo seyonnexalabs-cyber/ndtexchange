@@ -9,11 +9,14 @@ import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { allPayments, subscriptions } from '@/lib/seed-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { Payment, Subscription, Plan } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
     plan: string; 
@@ -60,100 +63,37 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
 }
 
 
-const ClientPlans = ({ onUpgradeClick }: { onUpgradeClick: (plan: string, price: string) => void }) => (
+const ClientPlans = ({ onUpgradeClick, plans }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[] }) => (
     <>
-        <PricingCard
-            plan="Client Basic"
-            price="$99"
-            description="For asset owners with smaller-scale needs."
-            features={[
-                "Up to 100 managed assets",
-                "Secure Document & Data Vault (10GB)",
-                "Post jobs to the marketplace",
-                "Transparent bidding process",
-                "Standard historical reporting",
-                "Email Support",
-            ]}
-            isCurrent={true}
-            onUpgradeClick={onUpgradeClick}
-        />
-        <PricingCard
-            plan="Client Pro"
-            price="$299"
-            description="For growing organizations managing more assets."
-            features={[
-                "Up to 500 managed assets",
-                "Secure Document & Data Vault (50GB)",
-                "All Client Basic features",
-                "Advanced analytics & cost analysis",
-                "Priority email & phone support",
-                "Team management up to 10 users",
-            ]}
-            isFeatured={true}
-            onUpgradeClick={onUpgradeClick}
-        />
-        <PricingCard
-            plan="Enterprise"
-            price="Custom"
-            description="For large organizations with advanced needs."
-            features={[
-                "Unlimited assets & users",
-                "Full API access for integrations",
-                "Single Sign-On (SSO)",
-                "Dedicated Auditor & Regulator portals",
-                "A dedicated Account Manager",
-                "24/7/365 Premium Support",
-            ]}
-            onUpgradeClick={onUpgradeClick}
-        />
+        {plans.filter(p => p.audience === 'Client').map(plan => (
+            <PricingCard
+                key={plan.id}
+                plan={plan.name}
+                price={plan.price.monthlyUSD === 0 ? 'Free' : (plan.price.monthlyUSD === Infinity ? 'Custom' : `$${plan.price.monthlyUSD / 100}`)}
+                description={plan.description}
+                features={plan.features}
+                isCurrent={plan.id === 'client-free'} // Simplified for demo
+                isFeatured={plan.isFeatured}
+                onUpgradeClick={onUpgradeClick}
+            />
+        ))}
     </>
 );
 
-const ProviderPlans = ({ onUpgradeClick }: { onUpgradeClick: (plan: string, price: string) => void }) => (
+const ProviderPlans = ({ onUpgradeClick, plans }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[] }) => (
     <>
-        <PricingCard
-            plan="Provider Starter"
-            price="$29"
-            description="For individual inspectors or small teams."
-            features={[
-                "Access to job marketplace",
-                "Submit up to 10 bids per month",
-                "Manage up to 5 technicians",
-                "Digital reporting tools",
-                "Direct client communication",
-            ]}
-            isCurrent={true}
-            onUpgradeClick={onUpgradeClick}
-        />
-        <PricingCard
-            plan="Provider Growth"
-            price="$99"
-            description="For established NDT companies."
-            features={[
-                "Unlimited bids",
-                "Manage up to 25 technicians",
-                "Advanced equipment management",
-                "Calendar & scheduling tools",
-                "Company performance analytics",
-                "Priority email & phone support",
-            ]}
-            isFeatured={true}
-            onUpgradeClick={onUpgradeClick}
-        />
-        <PricingCard
-            plan="Enterprise"
-            price="Custom"
-            description="For large service providers with complex needs."
-            features={[
-                "All Provider Growth features",
-                "Full API access for integrations",
-                "Multi-location management",
-                "Custom branding on reports",
-                "A dedicated Account Manager",
-                "24/7/365 Premium Support",
-            ]}
-             onUpgradeClick={onUpgradeClick}
-        />
+       {plans.filter(p => p.audience === 'Provider').map(plan => (
+            <PricingCard
+                key={plan.id}
+                plan={plan.name}
+                price={plan.price.monthlyUSD === 0 ? 'Free' : (plan.price.monthlyUSD === Infinity ? 'Custom' : `$${plan.price.monthlyUSD / 100}`)}
+                description={plan.description}
+                features={plan.features}
+                isCurrent={plan.id === 'provider-starter'} // Simplified for demo
+                isFeatured={plan.isFeatured}
+                onUpgradeClick={onUpgradeClick}
+            />
+        ))}
     </>
 );
 
@@ -200,10 +140,16 @@ const AdminView = ({ constructUrl }: { constructUrl: (url: string) => string }) 
 );
 
 const PaymentHistory = ({ companyName }: { companyName: string }) => {
-    const companyPayments = allPayments.filter(p => p.companyName === companyName)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    const companySubscriptions = subscriptions.filter(s => s.companyName === companyName);
+    const { firestore } = useFirebase();
+    const paymentsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'payments'), where('companyName', '==', companyName), orderBy('date', 'desc')) : null, [firestore, companyName]);
+    const { data: companyPayments, isLoading } = useCollection<Payment>(paymentsQuery);
+    
+    const subscriptionsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'subscriptions'), where('companyName', '==', companyName)) : null, [firestore, companyName]);
+    const { data: companySubscriptions } = useCollection<Subscription>(subscriptionsQuery);
+    
+    if (isLoading) {
+        return <Skeleton className="h-48" />;
+    }
 
     return (
         <Card>
@@ -223,8 +169,8 @@ const PaymentHistory = ({ companyName }: { companyName: string }) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {companyPayments.length > 0 ? companyPayments.map(payment => {
-                            const sub = companySubscriptions.find(s => s.id === payment.subscriptionId);
+                        {companyPayments && companyPayments.length > 0 ? companyPayments.map(payment => {
+                            const sub = companySubscriptions?.find(s => s.id === payment.subscriptionId);
                             return (
                                 <TableRow key={payment.id}>
                                     <TableCell>{format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</TableCell>
@@ -255,6 +201,7 @@ const userDetails = {
     inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.', currency: 'USD' },
     auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', currency: 'USD' },
     admin: { name: 'Admin User', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE', currency: 'USD' },
+    manufacturer: { name: 'OEM User', email: 'oem.user@evident.com', company: 'Evident Scientific', currency: 'USD' },
 };
 
 
@@ -262,6 +209,10 @@ export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
+    const { firestore } = useFirebase();
+
+    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
+
     const currentUser = useMemo(() => userDetails[role as keyof typeof userDetails] || userDetails.client, [role]);
 
     useEffect(() => {
@@ -315,17 +266,20 @@ export default function BillingPage() {
     };
 
   const renderPlansByRole = () => {
+    if (isLoadingPlans) {
+        return [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />);
+    }
     switch(role) {
         case 'client':
-            return <ClientPlans onUpgradeClick={handleUpgradeClick} />;
+            return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />;
         case 'inspector':
-            return <ProviderPlans onUpgradeClick={handleUpgradeClick} />;
+            return <ProviderPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />;
         case 'auditor':
             return <AuditorView constructUrl={constructUrl} />;
         case 'admin':
             return <AdminView constructUrl={constructUrl} />;
         default:
-             return <ClientPlans onUpgradeClick={handleUpgradeClick} />; // Default to client view
+             return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />; // Default to client view
     }
   }
 

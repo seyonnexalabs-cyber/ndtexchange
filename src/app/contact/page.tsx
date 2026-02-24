@@ -1,3 +1,4 @@
+
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -17,7 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { subscriptionPlans, type Plan } from '@/lib/subscription-plans';
+import { subscriptionPlans } from '@/lib/seed-data';
+import type { Plan } from '@/lib/types';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

@@ -30,7 +30,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { subscriptionPlans as initialPlans, Plan, subscriptionPlanDetails } from '@/lib/subscription-plans';
+import { subscriptionPlans as initialPlans, subscriptionPlanDetails } from '@/lib/seed-data';
+import type { Plan } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc, updateDoc } from 'firebase/firestore';
@@ -512,7 +513,7 @@ const PlanManagementView = () => {
                             <TableRow key={plan.id}>
                                 <TableCell className="font-medium">{plan.name}</TableCell>
                                 <TableCell>{plan.audience}</TableCell>
-                                <TableCell>{plan.price.monthly.USD}</TableCell>
+                                <TableCell>{plan.price.monthlyUSD}</TableCell>
                                 <TableCell>{plan.userLimit}</TableCell>
                                 <TableCell>{plan.dataLimitGB} GB</TableCell>
                                 <TableCell>

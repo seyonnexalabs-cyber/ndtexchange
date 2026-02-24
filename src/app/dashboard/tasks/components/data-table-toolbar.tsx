@@ -1,3 +1,4 @@
+
 "use client"
 
 import { X, PlusCircle } from "lucide-react"
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
 
-import { priorities, statuses, types } from "../data/data"
+import { priorities, statuses, types } from "@/lib/tasks-data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 
 interface DataTableToolbarProps<TData> {

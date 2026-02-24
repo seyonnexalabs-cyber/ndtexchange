@@ -434,3 +434,30 @@ export type Task = {
   userId: string;
   createdAt?: any;
 };
+
+export type Plan = {
+    id: string;
+    name: string;
+    audience: 'Client' | 'Provider' | 'Auditor';
+    price: {
+        // Price in USD cents to avoid floating point issues
+        monthlyUSD: number;
+        yearlyUSD: number;
+    };
+    priceDescription?: string;
+    description: string;
+    userLimit: number | 'Unlimited';
+    dataLimitGB: number | 'Unlimited';
+    assetLimit: 'Unlimited' | number;
+    biddingLimit: 'Unlimited' | number;
+    equipmentLimit: 'Unlimited' | number;
+    marketplaceAccess: boolean;
+    reportingLevel: 'Basic' | 'Advanced';
+    apiAccess: boolean;
+    customBranding: boolean;
+    isPublic: boolean;
+    isActive: boolean;
+    isFeatured?: boolean;
+    isPopular?: boolean;
+    features: string[];
+};

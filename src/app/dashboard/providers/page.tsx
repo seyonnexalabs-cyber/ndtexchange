@@ -1,28 +1,30 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { NDTServiceProvider } from "@/lib/types";
-import { serviceProviders as initialServiceProviders, NDTTechniques, auditFirmIndustries } from "@/lib/seed-data";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { NDTServiceProvider, NDTTechnique, Review } from "@/lib/types";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MapPin, Star, MoreVertical, Edit } from "lucide-react";
 import { useMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const providerSchema = z.object({
@@ -36,7 +38,7 @@ const providerSchema = z.object({
   industries: z.array(z.string()).min(1, "Select at least one industry."),
 });
 
-const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (values: z.infer<typeof providerSchema>) => void; }) => {
+const ProviderForm = ({ onCancel, onSubmit, allTechniques, allIndustries }: { onCancel: () => void; onSubmit: (values: z.infer<typeof providerSchema>) => void; allTechniques: NDTTechnique[], allIndustries: string[] }) => {
     const form = useForm<z.infer<typeof providerSchema>>({
         resolver: zodResolver(providerSchema),
         defaultValues: {
@@ -132,7 +134,7 @@ const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
                         <FormItem>
                             <FormLabel>Techniques Offered</FormLabel>
                             <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                {NDTTechniques.map((tech) => (
+                                {allTechniques.map((tech) => (
                                 <FormField
                                     key={`tech-${tech.id}`}
                                     control={form.control}
@@ -142,13 +144,13 @@ const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
                                         <FormItem key={tech.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
                                             <FormControl>
                                                 <Checkbox
-                                                    checked={field.value?.includes(tech.id)}
+                                                    checked={field.value?.includes(tech.acronym)}
                                                     onCheckedChange={(checked) => {
-                                                        return checked ? field.onChange([...(field.value || []), tech.id]) : field.onChange(field.value?.filter((value) => value !== tech.id));
+                                                        return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym));
                                                     }}
                                                 />
                                             </FormControl>
-                                            <FormLabel className="font-normal text-sm">{tech.name}</FormLabel>
+                                            <FormLabel className="font-normal text-sm">{tech.title}</FormLabel>
                                         </FormItem>
                                     )
                                     }}
@@ -166,7 +168,7 @@ const ProviderForm = ({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
                         <FormItem>
                             <FormLabel>Industry Focus</FormLabel>
                             <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                {auditFirmIndustries.map((industry) => (
+                                {allIndustries.map((industry) => (
                                 <FormField
                                     key={industry}
                                     control={form.control}
@@ -219,7 +221,7 @@ const StarRating = ({ rating }: { rating: number }) => {
 };
 
 
-const DesktopView = ({ constructUrl, providers }: { constructUrl: (base: string) => string; providers: NDTServiceProvider[] }) => (
+const DesktopView = ({ constructUrl, providers }: { constructUrl: (base: string) => string; providers: (NDTServiceProvider & { rating: number })[] }) => (
     <Card>
         <CardHeader>
             <CardTitle>Service Providers</CardTitle>
@@ -266,7 +268,7 @@ const DesktopView = ({ constructUrl, providers }: { constructUrl: (base: string)
     </Card>
 );
 
-const MobileView = ({ constructUrl, providers }: { constructUrl: (base: string) => string; providers: NDTServiceProvider[] }) => (
+const MobileView = ({ constructUrl, providers }: { constructUrl: (base: string) => string; providers: (NDTServiceProvider & { rating: number })[] }) => (
     <div className="space-y-4">
         {providers.map(provider => (
             <Card key={provider.id}>
@@ -310,7 +312,25 @@ export default function ProvidersPage() {
     const role = searchParams.get('role');
     const { toast } = useToast();
     const [isAddProviderOpen, setAddProviderOpen] = useState(false);
-    const [providers, setProviders] = useState(initialServiceProviders);
+    const { firestore } = useFirebase();
+
+    const { data: serviceProvidersFromDb, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]));
+    const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null, [firestore]));
+    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+
+    const providers = useMemo(() => {
+        if (!serviceProvidersFromDb || !reviews) return [];
+        return serviceProvidersFromDb.map(provider => {
+            const providerReviews = reviews.filter(r => r.providerId === provider.id);
+            const avgRating = providerReviews.length > 0 ? providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length : 0;
+            return { ...provider, rating: avgRating };
+        });
+    }, [serviceProvidersFromDb, reviews]);
+    
+    const allIndustries = useMemo(() => {
+        if (!serviceProvidersFromDb) return [];
+        return Array.from(new Set(serviceProvidersFromDb.flatMap(p => p.industries || []))).sort();
+    }, [serviceProvidersFromDb]);
 
 
     useEffect(() => {
@@ -325,18 +345,26 @@ export default function ProvidersPage() {
     };
 
     const handleFormSubmit = (values: z.infer<typeof providerSchema>) => {
-        const newProvider: NDTServiceProvider = {
-            id: `provider-${Date.now()}`,
-            rating: 0, // New providers start with 0 rating
-            ...values,
-        };
-        setProviders(prev => [newProvider, ...prev]);
+        // This would be a firestore call in a real app
+        console.log("New Provider Data:", values);
         toast({
             title: "Provider Company Created",
             description: `${values.name} has been added. You can now invite users to this company.`,
         });
         setAddProviderOpen(false);
     };
+
+    if (isLoadingProviders || isLoadingReviews || isLoadingTechniques) {
+        return (
+             <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <Skeleton className="h-96 w-full" />
+            </div>
+        )
+    }
 
     if (role !== 'admin') {
         return null;
@@ -367,6 +395,8 @@ export default function ProvidersPage() {
                     <ProviderForm
                         onSubmit={handleFormSubmit}
                         onCancel={() => setAddProviderOpen(false)}
+                        allTechniques={allTechniques || []}
+                        allIndustries={allIndustries}
                     />
                 </DialogContent>
             </Dialog>

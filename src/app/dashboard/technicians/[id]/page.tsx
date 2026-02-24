@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -9,8 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlatformUser, Job, Certification } from "@/lib/types";
-import { serviceProviders, NDTTechniques } from "@/lib/seed-data";
+import { PlatformUser, Job, Certification, NDTServiceProvider, NDTTechnique } from "@/lib/types";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle, Trash } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { format, isToday } from 'date-fns';
@@ -60,7 +60,7 @@ const technicianSchema = z.object({
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
 
-const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>}) => {
+const TechnicianForm = ({ onCancel, onSubmit, defaultValues, allTechniques }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>; allTechniques: NDTTechnique[] }) => {
     const form = useForm<TechnicianFormValues>({
         resolver: zodResolver(technicianSchema),
         defaultValues: defaultValues || {
@@ -130,7 +130,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues }: { onCancel: () =>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {NDTTechniques.map(t => <SelectItem key={t.id} value={t.id}>{t.title} ({t.id})</SelectItem>)}
+                                        {(allTechniques || []).map(t => <SelectItem key={t.id} value={t.acronym}>{t.title} ({t.acronym})</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -215,10 +215,15 @@ export default function TechnicianDetailPage() {
     const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
     const { data: technician, isLoading: isLoadingTechnician } = useDoc<PlatformUser>(technicianRef);
 
+    const { data: provider } = useDoc<NDTServiceProvider>(useMemoFirebase(() => (firestore && technician?.companyId ? doc(firestore, 'companies', technician.companyId) : null), [firestore, technician]));
+
     const jobsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'jobs'), where('technicianIds', 'array-contains', id as string)) : null), [firestore, id]);
     const { data: assignedJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
-    const provider = useMemo(() => serviceProviders.find(p => p.id === technician?.providerId), [technician]);
+    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
+        useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore])
+    );
+    
     const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
     
     const highestLevel = technician?.certifications?.reduce((highest, cert) => {
@@ -266,7 +271,7 @@ export default function TechnicianDetailPage() {
         setIsFormOpen(false);
     };
 
-    const isLoading = isLoadingTechnician || isLoadingJobs || !id;
+    const isLoading = isLoadingTechnician || isLoadingJobs || isLoadingTechniques || !id;
 
     if (isLoading) {
         return (
@@ -464,6 +469,7 @@ export default function TechnicianDetailPage() {
                     <TechnicianForm
                         onSubmit={handleFormSubmit}
                         onCancel={() => setIsFormOpen(false)}
+                        allTechniques={allTechniques || []}
                         defaultValues={{
                             name: technician.name,
                             workStatus: technician.workStatus,

@@ -30,7 +30,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { subscriptionPlans as initialPlans, subscriptionPlanDetails } from '@/lib/seed-data';
 import type { Plan } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -57,45 +56,54 @@ const SubscriptionForm = ({
     onSubmit, 
     defaultValues,
     isEditing,
-    allCompanies
+    allCompanies,
+    subscriptionPlans
 }: { 
     formId: string, 
     onSubmit: (values: SubscriptionFormValues) => void,
     defaultValues?: Partial<SubscriptionFormValues>,
     isEditing: boolean,
-    allCompanies: any[]
+    allCompanies: any[],
+    subscriptionPlans: Plan[],
 }) => {
     const form = useForm<SubscriptionFormValues>({
         resolver: zodResolver(subscriptionSchema),
         defaultValues: defaultValues,
     });
-
-    const plan = form.watch('plan');
+    
+    const planName = form.watch('plan');
     const userLimit = form.watch('userLimit');
     const dataLimitGB = form.watch('dataLimitGB');
+
+    const subscriptionPlanDetails = useMemo(() => {
+        return subscriptionPlans.reduce((acc, plan) => {
+            acc[plan.name] = plan;
+            return acc;
+        }, {} as Record<string, Plan>);
+    }, [subscriptionPlans]);
     
     // Effect to update limits when a standard plan is chosen
     useEffect(() => {
-        const planDetails = Object.values(subscriptionPlanDetails).find(p => p.name === plan);
-        if (plan && plan !== 'Custom' && planDetails) {
+        const planDetails = subscriptionPlanDetails[planName];
+        if (planName && planName !== 'Custom' && planDetails) {
             if (form.getValues('userLimit') !== planDetails.userLimit) {
-                form.setValue('userLimit', planDetails.userLimit);
+                form.setValue('userLimit', planDetails.userLimit as number);
             }
             if (form.getValues('dataLimitGB') !== planDetails.dataLimitGB) {
-                form.setValue('dataLimitGB', planDetails.dataLimitGB);
+                form.setValue('dataLimitGB', planDetails.dataLimitGB as number);
             }
         }
-    }, [plan, form]);
+    }, [planName, form, subscriptionPlanDetails]);
 
     // Effect to set plan to "Custom" if limits are manually changed
     useEffect(() => {
-        const planDetails = Object.values(subscriptionPlanDetails).find(p => p.name === plan);
-        if (plan && plan !== 'Custom' && planDetails) {
+        const planDetails = subscriptionPlanDetails[planName];
+        if (planName && planName !== 'Custom' && planDetails) {
             if (userLimit !== planDetails.userLimit || dataLimitGB !== planDetails.dataLimitGB) {
                 form.setValue('plan', 'Custom');
             }
         }
-    }, [userLimit, dataLimitGB, plan, form]);
+    }, [userLimit, dataLimitGB, planName, form, subscriptionPlanDetails]);
     
     const companyOptions = useMemo(() => allCompanies.map(c => ({ id: c.id, name: c.name })).sort((a,b) => a.name.localeCompare(b.name)), [allCompanies]);
 
@@ -129,7 +137,7 @@ const SubscriptionForm = ({
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {initialPlans.map(p => (
+                                    {subscriptionPlans.map(p => (
                                         <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                                     ))}
                                     <SelectItem value="Custom">Custom</SelectItem>
@@ -473,18 +481,7 @@ const PaymentHistoryMobileView = ({ allPayments }: { allPayments: Payment[] }) =
     </div>
 );
 
-const PlanManagementView = () => {
-    const [plans, setPlans] = useState<Plan[]>(initialPlans);
-    const { toast } = useToast();
-
-    const handlePlanStatusChange = (planId: string, isActive: boolean) => {
-        setPlans(prevPlans => prevPlans.map(p => p.id === planId ? { ...p, isActive } : p));
-        toast({
-            title: `Plan ${isActive ? 'Enabled' : 'Disabled'}`,
-            description: `${plans.find(p => p.id === planId)?.name} will now be ${isActive ? 'visible' : 'hidden'} on the public pricing page.`
-        });
-    };
-
+const PlanManagementView = ({ plans, onPlanStatusChange }: { plans: Plan[], onPlanStatusChange: (id: string, active: boolean) => void }) => {
     return (
         <Card>
             <CardHeader>
@@ -528,7 +525,7 @@ const PlanManagementView = () => {
                                 <TableCell>
                                     <Switch
                                         checked={plan.isActive}
-                                        onCheckedChange={(checked) => handlePlanStatusChange(plan.id, checked as boolean)}
+                                        onCheckedChange={(checked) => onPlanStatusChange(plan.id, checked as boolean)}
                                     />
                                 </TableCell>
                             </TableRow>
@@ -565,6 +562,8 @@ export default function SubscriptionsPage() {
 
     const paymentsQuery = useMemoFirebase(() => isReady ? query(collection(firestore, 'payments'), orderBy('date', 'desc')) : null, [isReady, firestore]);
     const { data: allPayments, isLoading: isLoadingPayments } = useCollection<Payment>(paymentsQuery);
+    
+    const { data: allPlans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => isReady ? collection(firestore, 'plans') : null, [isReady, firestore]));
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -609,6 +608,20 @@ export default function SubscriptionsPage() {
             toast({ title: "Subscription Created", description: `A new subscription has been created for ${company?.name}.` });
         }
         closeDialog();
+    };
+
+    const handlePlanStatusChange = async (planId: string, isActive: boolean) => {
+        if (!firestore) return;
+        const planRef = doc(firestore, 'plans', planId);
+        try {
+            await updateDoc(planRef, { isActive });
+            toast({
+                title: `Plan ${isActive ? 'Enabled' : 'Disabled'}`,
+                description: `The plan will now be ${isActive ? 'visible' : 'hidden'} on the public pricing page.`
+            });
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not update plan status.' });
+        }
     };
 
     const getContactEmailForSubscription = (subscription: Subscription) => {
@@ -695,7 +708,7 @@ export default function SubscriptionsPage() {
         setSelectedSubscriptions([]);
     };
     
-    if (isLoadingSubscriptions || isLoadingCompanies || isLoadingPayments) {
+    if (isLoadingSubscriptions || isLoadingCompanies || isLoadingPayments || isLoadingPlans) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-1/3" />
@@ -758,7 +771,7 @@ export default function SubscriptionsPage() {
                     }
                 </TabsContent>
                 <TabsContent value="plans">
-                    <PlanManagementView />
+                    <PlanManagementView plans={allPlans || []} onPlanStatusChange={handlePlanStatusChange}/>
                 </TabsContent>
                 <TabsContent value="payment-history">
                     {isMobile ? <PaymentHistoryMobileView allPayments={allPayments || []} /> : <PaymentHistoryDesktopView allPayments={allPayments || []} />}
@@ -783,9 +796,10 @@ export default function SubscriptionsPage() {
                                 ...editingSubscription,
                                 startDate: new Date(editingSubscription.startDate),
                                 endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
-                            } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5, plan: 'Free Trial', status: 'Trialing' }}
+                            } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5, plan: 'Client Access', status: 'Trialing' }}
                             isEditing={!!editingSubscription}
                             allCompanies={allCompanies || []}
+                            subscriptionPlans={allPlans || []}
                         />
                      </div>
                      <DialogFooter className="p-6 pt-4 border-t">

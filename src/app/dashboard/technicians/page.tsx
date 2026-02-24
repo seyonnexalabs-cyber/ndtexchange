@@ -1,8 +1,8 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { PlatformUser, Certification } from "@/lib/types";
-import { NDTTechniques } from "@/lib/seed-data";
+import { PlatformUser, Certification, NDTTechnique } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, MoreVertical, Edit, Trash } from "lucide-react";
@@ -44,7 +44,7 @@ const technicianSchema = z.object({
 
 type TechnicianFormValues = z.infer<typeof technicianSchema>;
 
-const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>, isEditing: boolean }) => {
+const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing, allTechniques }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>, isEditing: boolean, allTechniques: NDTTechnique[] }) => {
     const form = useForm<TechnicianFormValues>({
         resolver: zodResolver(technicianSchema),
         defaultValues: defaultValues || {
@@ -131,7 +131,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing }: { onCa
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {NDTTechniques.map(t => <SelectItem key={t.id} value={t.id}>{t.title} ({t.id})</SelectItem>)}
+                                        {(allTechniques || []).map(t => <SelectItem key={t.id} value={t.acronym}>{t.title} ({t.acronym})</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -235,6 +235,10 @@ export default function TechniciansPage() {
     }, [firestore, currentUserProfile]);
 
     const { data: technicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(companyTechniciansQuery);
+
+    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
+        useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore])
+    );
     
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -275,7 +279,7 @@ export default function TechniciansPage() {
         }
     };
     
-    if (isLoadingProfile || isLoadingTechnicians) {
+    if (isLoadingProfile || isLoadingTechnicians || isLoadingTechniques) {
         return (
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
@@ -407,6 +411,7 @@ export default function TechniciansPage() {
                         onCancel={() => { setIsAddUserOpen(false); setEditingUser(null); }}
                         onSubmit={handleFormSubmit}
                         isEditing={!!editingUser}
+                        allTechniques={allTechniques || []}
                         defaultValues={editingUser ? {
                             id: editingUser.id,
                             name: editingUser.name,

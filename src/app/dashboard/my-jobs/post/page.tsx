@@ -10,8 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques } from "@/lib/seed-data";
-import type { Asset, JobDocument, Inspection, PlatformUser } from '@/lib/types';
+import type { Asset, JobDocument, Inspection, PlatformUser, NDTTechnique } from '@/lib/types';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { PlusCircle, ChevronLeft, FileText, X, Check, ArrowRight, ArrowLeft } from "lucide-react";
 import Link from 'next/link';
@@ -229,8 +228,12 @@ export default function PostJobPage() {
         if (!firestore || role !== 'client') return null;
         return collection(firestore, 'assets');
     }, [firestore, role]);
-
+    
     const { data: clientAssets } = useCollection<Asset>(assetsQuery);
+
+    const techniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
+    const { data: NDTTechniques } = useCollection<NDTTechnique>(techniquesQuery);
+
 
     React.useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
@@ -256,7 +259,7 @@ export default function PostJobPage() {
     });
 
     const isMarketplaceJob = form.watch('isMarketplaceJob');
-    const techniqueOptions = React.useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.title} (${t.id})` })), []);
+    const techniqueOptions = React.useMemo(() => (NDTTechniques || []).map(t => ({ value: t.acronym, label: `${t.title} (${t.acronym})` })), [NDTTechniques]);
     const certificationOptions = React.useMemo(() => certificationBodies.map(c => ({ value: c, label: c })), []);
     const [showNewLocation, setShowNewLocation] = React.useState(false);
 
@@ -455,6 +458,11 @@ export default function PostJobPage() {
             return acc;
         }, {} as Record<string, Asset[]>);
     }, [filteredAssets]);
+    
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -691,7 +699,7 @@ export default function PostJobPage() {
                 onConfirm={form.handleSubmit(onSubmit)}
                 jobData={form.getValues()}
                 clientAssets={clientAssets}
-                allTechniques={NDTTechniques}
+                allTechniques={NDTTechniques || []}
             />
         </div>
     );

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import { useForm } from 'react-hook-form';
@@ -139,6 +139,7 @@ export default function LoginPage() {
     { name: 'Client', email: 'john.d@globalenergy.corp', password: 'password123' },
     { name: 'Inspector', email: 'maria.garcia@teaminc.com', password: 'password123' },
     { name: 'Auditor', email: 'alex.c@ndtauditors.gov', password: 'password123' },
+    { name: 'Manufacturer', email: 'oem.user@evident.com', password: 'password123' },
     { name: 'Admin', email: 'admin@ndtexchange.com', password: 'password123' },
     { name: 'Seyon', email: 'seyonnexalabs@gmail.com', password: 'password123' },
   ].filter(Boolean);

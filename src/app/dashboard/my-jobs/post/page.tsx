@@ -402,32 +402,46 @@ export default function PostJobPage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-             <div className="mb-12">
+            <div className="mb-12">
                 <nav aria-label="Progress">
-                    <ol role="list" className="flex items-center justify-between">
+                    <div className="flex items-start">
                         {steps.map((s, index) => (
-                        <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
-                            {index > 0 && <div className={cn("absolute inset-0 top-4 -ml-px mt-0.5 h-0.5 w-full", step > index ? "bg-primary" : "bg-border")} aria-hidden="true" />}
-                            <div className="relative flex h-8 w-8 items-center justify-center rounded-full"
-                            >
-                                {step > s.id ? (
-                                    <button onClick={() => setStep(s.id)} className="h-8 w-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90">
-                                        <Check className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
-                                    </button>
-                                ) : step === s.id ? (
-                                    <div className="h-8 w-8 rounded-full border-2 border-primary bg-background flex items-center justify-center" aria-current="step">
-                                        <span className="text-primary font-semibold">{s.id}</span>
-                                    </div>
-                                ) : (
-                                     <div className="h-8 w-8 rounded-full border-2 border-border bg-background flex items-center justify-center">
-                                        <span className="text-muted-foreground font-semibold">{s.id}</span>
-                                    </div>
+                            <React.Fragment key={s.id}>
+                                <div className="group relative flex flex-col items-center text-center w-28">
+                                    {step > s.id ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setStep(s.id)}
+                                            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                        >
+                                            <Check className="h-5 w-5" />
+                                        </button>
+                                    ) : (
+                                        <div className={cn(
+                                            "flex h-8 w-8 items-center justify-center rounded-full border-2",
+                                            step === s.id ? "border-primary bg-background" : "border-border bg-background"
+                                        )}>
+                                            <span className={cn(
+                                                "font-semibold",
+                                                step === s.id ? "text-primary" : "text-muted-foreground"
+                                            )}>{s.id}</span>
+                                        </div>
+                                    )}
+                                    <p className={cn(
+                                      "mt-2 text-xs",
+                                      step >= s.id ? "text-foreground font-medium" : "text-muted-foreground"
+                                      )}>{s.name}</p>
+                                </div>
+
+                                {index < steps.length - 1 && (
+                                    <div className={cn(
+                                        "flex-auto border-t-2 mt-4",
+                                        step > s.id ? "border-primary" : "border-border"
+                                    )} />
                                 )}
-                            </div>
-                            <span className="absolute -bottom-7 text-xs text-center w-full hidden sm:block">{s.name}</span>
-                        </li>
+                            </React.Fragment>
                         ))}
-                    </ol>
+                    </div>
                 </nav>
             </div>
             

@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File } from 'lucide-react';
-import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import { format, parseISO, differenceInDays, addDays, isValid } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -456,7 +456,32 @@ export default function JobDetailPage() {
 
     const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
-    const duration = jobDetails?.scheduledStartDate && jobDetails?.scheduledEndDate ? differenceInDays(parseISO(jobDetails.scheduledEndDate), parseISO(jobDetails.scheduledStartDate)) + 1 : jobDetails?.durationDays;
+    const duration = useMemo(() => {
+        if (!jobDetails?.scheduledStartDate || !jobDetails?.scheduledEndDate) {
+            return jobDetails?.durationDays;
+        }
+        
+        const safeParse = (dateInput: any): Date | null => {
+            if (!dateInput) return null;
+            // Handle Firestore Timestamps
+            if (typeof dateInput.toDate === 'function') {
+                return dateInput.toDate();
+            }
+            // Handle ISO strings or existing Date objects
+            const d = new Date(dateInput);
+            return isValid(d) ? d : null;
+        };
+
+        const startDate = safeParse(jobDetails.scheduledStartDate);
+        const endDate = safeParse(jobDetails.scheduledEndDate);
+
+        if (startDate && endDate) {
+            // Add 1 to make it inclusive
+            return differenceInDays(endDate, startDate) + 1;
+        }
+
+        return jobDetails?.durationDays;
+    }, [jobDetails]);
 
     const isLoading = isAuthLoading || isLoadingProfile || isLoadingJob || isLoadingBids || isLoadingCompanies || isLoadingEquipment || isLoadingInspections || isLoadingClientCompany || isLoadingAllTechniques || isLoadingProviderTeam || !id;
     

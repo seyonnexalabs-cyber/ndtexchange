@@ -271,30 +271,54 @@ export default function ContactPage() {
                         <thead>
                             <tr className="border-b">
                                 <th className="w-1/4 p-4 text-left font-semibold text-lg"></th>
-                                {allPlans.map(plan => (
-                                    <th key={plan.id} className={cn("w-1/5 p-4 text-center border-l", plan.isFeatured && "border-primary")}>
+                                {allPlans.map((plan, index) => {
+                                    const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
+                                    let audienceBg = '';
+                                    switch(plan.audience) {
+                                        case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
+                                        case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
+                                        case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
+                                    }
+                                    return (
+                                    <th key={plan.id} className={cn(
+                                        "w-1/5 p-4 text-center",
+                                        audienceBg,
+                                        isNewAudience && "border-l-4 border-border",
+                                        plan.isFeatured && "border-y-2 border-primary"
+                                    )}>
                                         <h3 className="text-lg font-bold">{plan.name}</h3>
                                         <p className="text-sm text-muted-foreground">{plan.description}</p>
                                     </th>
-                                ))}
+                                )})}
                             </tr>
                             <tr className="border-b">
                                 <th className="p-4 text-left font-semibold">Price</th>
-                                {allPlans.map(plan => (
-                                     <td key={plan.id} className={cn("p-4 text-center border-l", plan.isFeatured && "border-primary")}>
+                                {allPlans.map((plan, index) => {
+                                    const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
+                                    let audienceBg = '';
+                                    switch(plan.audience) {
+                                        case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
+                                        case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
+                                        case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
+                                    }
+                                    return (
+                                     <td key={plan.id} className={cn(
+                                         "p-4 text-center", 
+                                         audienceBg,
+                                         isNewAudience && "border-l-4 border-border",
+                                         plan.isFeatured && "border-y-2 border-primary"
+                                        )}>
                                         <p className="text-3xl font-bold">{formatPrice(plan.price.monthlyUSD)}</p>
                                         <p className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'month' : 'year'}</p>
                                     </td>
-                                ))}
+                                )})}
                             </tr>
                         </thead>
                         <tbody>
                             {featureCategories.map(category => {
-                                // Don't render the category if no plans have any of its features
                                 const hasFeatureInCategory = allPlans.some(plan => 
                                     category.features.some(feature => (plan as any)[feature.prop] !== undefined && (plan as any)[feature.prop] !== 0 && (plan as any)[feature.prop] !== false)
                                 );
-
                                 if (!hasFeatureInCategory) return null;
 
                                 return (
@@ -303,26 +327,36 @@ export default function ContactPage() {
                                         <th colSpan={allPlans.length + 1} className="p-3 font-semibold text-base">{category.category}</th>
                                     </tr>
                                     {category.features.map(feature => {
-                                        // Don't render the feature row if no plan uses it
                                         const hasFeature = allPlans.some(plan => (plan as any)[feature.prop] !== undefined && (plan as any)[feature.prop] !== 0 && (plan as any)[feature.prop] !== false);
                                         if(!hasFeature) return null;
 
                                         return (
                                             <tr key={feature.name} className="border-b">
                                                 <td className="p-4 font-medium">{feature.name}</td>
-                                                {allPlans.map(plan => {
+                                                {allPlans.map((plan, index) => {
                                                     const value = (plan as any)[feature.prop];
                                                     let displayValue: React.ReactNode;
-
                                                     if (feature.type === 'boolean') {
                                                         displayValue = value ? <Check className="mx-auto text-primary" /> : <X className="mx-auto text-muted-foreground" />;
                                                     } else {
                                                         const formattedValue = value === 'Unlimited' || value === Infinity ? 'Unlimited' : `${value}${feature.suffix || ''}`;
                                                         displayValue = (value === undefined || value === 0 || value === false) ? <X className="mx-auto text-muted-foreground" /> : formattedValue;
                                                     }
+                                                    const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
+                                                    let audienceBg = '';
+                                                    switch(plan.audience) {
+                                                        case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
+                                                        case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
+                                                        case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
+                                                    }
                                                     
                                                     return (
-                                                         <td key={plan.id} className={cn("p-4 text-center text-muted-foreground border-l", plan.isFeatured && "border-primary")}>
+                                                         <td key={plan.id} className={cn(
+                                                             "p-4 text-center text-muted-foreground",
+                                                              audienceBg,
+                                                              isNewAudience && "border-l-4 border-border",
+                                                              plan.isFeatured && "border-y-2 border-primary"
+                                                            )}>
                                                             {displayValue}
                                                         </td>
                                                     )
@@ -334,13 +368,26 @@ export default function ContactPage() {
                             )})}
                             <tr className="">
                                 <td className="p-4"></td>
-                                {allPlans.map(plan => (
-                                    <td key={plan.id} className={cn("p-4 text-center border-l", plan.isFeatured && "border-primary")}>
+                                {allPlans.map((plan, index) => {
+                                     const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
+                                     let audienceBg = '';
+                                     switch(plan.audience) {
+                                         case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
+                                         case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
+                                         case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
+                                     }
+                                    return (
+                                    <td key={plan.id} className={cn(
+                                        "p-4 text-center", 
+                                        audienceBg,
+                                        isNewAudience && "border-l-4 border-border",
+                                        plan.isFeatured && "border-y-2 border-primary"
+                                        )}>
                                         <Button asChild variant={plan.isFeatured ? 'default' : 'outline'} className="w-full">
                                             <Link href="/signup">Get Started</Link>
                                         </Button>
                                     </td>
-                                ))}
+                                )})}
                             </tr>
                         </tbody>
                     </table>

@@ -10,7 +10,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer, Line, LineChart, LabelList } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Bar, XAxis, YAxis, CartesianGrid, BarChart, ResponsiveContainer, LabelList } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ import { jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAudi
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import type { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from "@/lib/types";
+import type { Job, Review, PlatformUser, Subscription, Payment, JobPayment, UserAuditLog, NDTServiceProvider, AuditFirm, Client, Bid, Inspection } from '@/lib/types';
 
 
 // --- SHARED COMPONENTS & CONFIGS ---
@@ -98,11 +98,20 @@ const StatCard = ({
 );
 
 // --- CLIENT DASHBOARD ---
-const clientChartConfig = {
+const assetStatusChartConfig = {
   operational: { label: "Operational", color: "hsl(var(--chart-2))" },
   inspection: { label: "Requires Inspection", color: "hsl(var(--chart-4))" },
   repair: { label: "Under Repair", color: "hsl(var(--chart-5))" },
+  decommissioned: { label: "Decommissioned", color: "hsl(var(--chart-1))" },
 } satisfies ChartConfig;
+
+const jobStatusChartConfig = {
+  count: {
+    label: "Jobs",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
+
 
 const ClientDashboard = () => {
     const searchParams = useSearchParams();
@@ -136,19 +145,43 @@ const ClientDashboard = () => {
 
     const jobsForReview = useMemo(() => clientJobs?.filter(j => j.status === 'Client Review' || j.status === 'Audit Approved').slice(0, 5) || [], [clientJobs]);
     
-    const assetStatusByLocationData = useMemo(() => {
+    const assetStatusData = useMemo(() => {
         if (!currentClientAssets) return [];
-        const locations = [...new Set(currentClientAssets.map(a => a.location))];
-        return locations.map(location => {
-            const assetsInLocation = currentClientAssets.filter(a => a.location === location);
-            return {
-                location: location,
-                operational: assetsInLocation.filter(a => a.status === 'Operational').length,
-                inspection: assetsInLocation.filter(a => a.status === 'Requires Inspection').length,
-                repair: assetsInLocation.filter(a => a.status === 'Under Repair').length,
-            };
+        const statusCounts: {[key: string]: number} = {
+            operational: 0,
+            inspection: 0,
+            repair: 0,
+            decommissioned: 0,
+        };
+
+        currentClientAssets.forEach(asset => {
+            if (asset.status === 'Operational') statusCounts.operational++;
+            else if (asset.status === 'Requires Inspection') statusCounts.inspection++;
+            else if (asset.status === 'Under Repair') statusCounts.repair++;
+            else if (asset.status === 'Decommissioned') statusCounts.decommissioned++;
         });
+
+        return Object.entries(statusCounts)
+            .filter(([, value]) => value > 0)
+            .map(([name, value]) => ({
+                name: (assetStatusChartConfig as any)[name]?.label || name,
+                value,
+                fill: `var(--color-${name})`,
+            }));
     }, [currentClientAssets]);
+    
+    const jobStatusData = useMemo(() => {
+        if (!clientJobs) return [];
+        const statusOrder: Job['status'][] = ['Posted', 'Assigned', 'Scheduled', 'In Progress', 'Report Submitted', 'Under Audit', 'Audit Approved', 'Client Review', 'Client Approved', 'Completed'];
+        const statusCounts = clientJobs.reduce((acc, job) => {
+            acc[job.status] = (acc[job.status] || 0) + 1;
+            return acc;
+        }, {} as Record<Job['status'], number>);
+        
+        return statusOrder
+            .filter(status => statusCounts[status] > 0)
+            .map(status => ({ name: status, count: statusCounts[status] }));
+    }, [clientJobs]);
     
     const schedule = useMemo(() => {
         if (!today || !clientJobs) return [];
@@ -210,6 +243,50 @@ const ClientDashboard = () => {
                     color="bg-card-color-2"
                     iconBg="bg-card-color-2"
                 />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Asset Health Overview</CardTitle>
+                        <CardDescription>A summary of your asset portfolio's current status.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={assetStatusChartConfig} className="mx-auto aspect-square h-[250px]">
+                        <PieChart>
+                            <ChartTooltip content={<ChartTooltipContent nameKey="value" hideLabel />} />
+                            <Pie data={assetStatusData} dataKey="value" nameKey="name" innerRadius={60}>
+                                <LabelList
+                                    dataKey="value"
+                                    className="fill-background"
+                                    stroke="none"
+                                    fontSize={12}
+                                />
+                            </Pie>
+                            <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+                        </PieChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Job Status Breakdown</CardTitle>
+                        <CardDescription>An overview of jobs currently in the workflow.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <ChartContainer config={jobStatusChartConfig} className="h-[250px] w-full">
+                            <BarChart accessibilityLayer data={jobStatusData}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} angle={-30} textAnchor="end" height={60} interval={0} fontSize={10} />
+                                <YAxis />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                                <Bar dataKey="count" fill="var(--color-count)" radius={4}>
+                                    <LabelList position="top" offset={4} className="fill-foreground" fontSize={12} />
+                                </Bar>
+                            </BarChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
             </div>
 
             <Card>
@@ -343,36 +420,6 @@ const ClientDashboard = () => {
                             </TableBody>
                         </Table>
                     )}
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Asset Status by Location</CardTitle>
-                    <CardDescription>An overview of your fleet's operational status across all sites.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ChartContainer config={clientChartConfig} className="h-[300px] w-full">
-                        <BarChart accessibilityLayer data={assetStatusByLocationData}>
-                            <CartesianGrid vertical={false} />
-                            <XAxis
-                                dataKey="location"
-                                tickLine={false}
-                                tickMargin={10}
-                                axisLine={false}
-                                tickFormatter={(value) => value.substring(0, 10)}
-                                angle={-30}
-                                textAnchor="end"
-                                height={50}
-                            />
-                            <YAxis />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            <Bar dataKey="operational" stackId="a" fill="var(--color-operational)" radius={[0, 0, 4, 4]} />
-                            <Bar dataKey="inspection" stackId="a" fill="var(--color-inspection)" />
-                            <Bar dataKey="repair" stackId="a" fill="var(--color-repair)" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ChartContainer>
                 </CardContent>
             </Card>
         </div>

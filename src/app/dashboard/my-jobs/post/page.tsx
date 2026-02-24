@@ -38,7 +38,7 @@ const baseSchemaObject = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
   industry: z.string({ required_error: 'Please select an industry.' }),
-  location: z.string().min(2, 'Location is required.'),
+  location: z.string({ required_error: 'Please select a location or add a new one.'}),
   workflow: z.enum(['standard', 'level3', 'auto']),
   isMarketplaceJob: z.boolean().default(true),
   bidExpiryDate: z.date().optional(),
@@ -105,7 +105,19 @@ const jobRefinement = (data: any, ctx: z.RefinementCtx) => {
 const clientJobSchema = baseSchemaObject.extend({
     assetIds: z.array(z.string()).min(1, "Please select at least one asset."),
     scope: z.array(scopeItemSchema).min(1, "You must define a scope for at least one asset."),
-}).superRefine(jobRefinement);
+    newLocation: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (data.location === '__add_new__') {
+        if (!data.newLocation || data.newLocation.length < 3) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['newLocation'],
+                message: 'New location name must be at least 3 characters.',
+            });
+        }
+    }
+    jobRefinement(data, ctx);
+});
 
 const inspectorJobSchema = baseSchemaObject.extend({
     clientName: z.string().min(2, "Client Name is required."),
@@ -245,11 +257,33 @@ export default function PostJobPage() {
     const isMarketplaceJob = form.watch('isMarketplaceJob');
     const techniqueOptions = React.useMemo(() => NDTTechniques.map(t => ({ value: t.id, label: `${t.title} (${t.id})` })), []);
     const certificationOptions = React.useMemo(() => certificationBodies.map(c => ({ value: c, label: c })), []);
+    const [showNewLocation, setShowNewLocation] = React.useState(false);
+    const uniqueLocations = React.useMemo(() => {
+        if (!clientAssets) return [];
+        return [...new Set(clientAssets.map(asset => asset.location))];
+    }, [clientAssets]);
 
     const { fields: scopeFields, replace: replaceScope } = useFieldArray({
         control: form.control,
         name: "scope" as any, // Type assertion to handle union type
     });
+
+    const selectedAssetIds = form.watch('assetIds' as any);
+    
+    React.useEffect(() => {
+        if (isClient && selectedAssetIds && selectedAssetIds.length > 0 && clientAssets) {
+            const selectedAssets = clientAssets.filter(asset => selectedAssetIds.includes(asset.id));
+            const uniqueSelectedLocations = [...new Set(selectedAssets.map(asset => asset.location))];
+    
+            if (uniqueSelectedLocations.length === 1) {
+                const newLocation = uniqueSelectedLocations[0];
+                if (form.getValues('location') !== newLocation) {
+                    form.setValue('location', newLocation);
+                    setShowNewLocation(false);
+                }
+            }
+        }
+    }, [selectedAssetIds, clientAssets, form, isClient]);
 
     const clientSteps = [
         { id: 1, name: 'Core Details', fields: ['isMarketplaceJob', 'title', 'jobType', 'industry', 'location', 'workflow', 'certificationsRequired', 'estimatedBudget'] },
@@ -314,10 +348,14 @@ export default function PostJobPage() {
             const flatAssetIds = isClient ? (values as any).assetIds : [];
             const flatTechniques = isClient ? [...new Set(jobScope.flatMap((s: any) => s.techniques))] : (values as any).techniques;
 
+            const jobLocation = (values as any).location === '__add_new__' 
+                ? (values as any).newLocation 
+                : (values as any).location;
+
             const newJobData: any = {
                 id: jobRef.id,
                 title: values.title,
-                location: values.location,
+                location: jobLocation,
                 techniques: flatTechniques,
                 description: values.description || '',
                 workflow: values.workflow,
@@ -386,9 +424,6 @@ export default function PostJobPage() {
     const [assetNameFilter, setAssetNameFilter] = React.useState('');
     const [assetLocationFilter, setAssetLocationFilter] = React.useState('all');
     const [assetTypeFilter, setAssetTypeFilter] = React.useState('all');
-
-    const uniqueLocations = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.location))], [clientAssets]);
-    const uniqueTypes = React.useMemo(() => ['all', ...new Set((clientAssets || []).map(a => a.type))], [clientAssets]);
 
     const filteredAssets = React.useMemo(() => {
         if (!clientAssets) return [];
@@ -460,7 +495,49 @@ export default function PostJobPage() {
                                     <FormField name="jobType" control={form.control} render={({ field }) => (<FormItem><FormLabel>Job Type*</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a job type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="shutdown">Plant Shutdown</SelectItem><SelectItem value="project">Project-Based</SelectItem><SelectItem value="callout">Emergency Call-Out</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                                     <FormField name="industry" control={form.control} render={({ field }) => (<FormItem><FormLabel>Industry / Sector*</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select an industry" /></SelectTrigger></FormControl><SelectContent><ScrollArea className="h-60">{industries.map(industry => <SelectItem key={industry} value={industry}>{industry}</SelectItem>)}</ScrollArea></SelectContent></Select><FormMessage /></FormItem>)} />
                                 </div>
-                                <FormField name="location" control={form.control} render={({ field }) => (<FormItem><FormLabel>Site Location*</FormLabel><FormControl><Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                {isClient && (
+                                    <>
+                                        <FormField
+                                            control={form.control}
+                                            name="location"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Site Location*</FormLabel>
+                                                    <Select onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        setShowNewLocation(value === '__add_new__');
+                                                    }} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger><SelectValue placeholder="Select a site location" /></SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {uniqueLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                                                            <SelectItem value="__add_new__">+ Add a new location</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        {showNewLocation && (
+                                            <FormField
+                                                control={form.control}
+                                                name="newLocation"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>New Location Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="e.g., Warehouse B, Section 3" {...field} autoFocus />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        )}
+                                    </>
+                                )}
+                                {!isClient && <FormField name="location" control={form.control} render={({ field }) => (<FormItem><FormLabel>Site Location*</FormLabel><FormControl><Input placeholder="e.g., Jamnagar, Gujarat, India" {...field} /></FormControl><FormMessage /></FormItem>)} />}
+
                                 <FormField name="certificationsRequired" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Certifications Required*</FormLabel><MultiSelect options={certificationOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select certifications..." /><FormMessage /></FormItem>)} />
                                 {isMarketplaceJob && <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)} />}
                                 {isMarketplaceJob && <FormField control={form.control} name="workflow" render={({ field }) => (<FormItem><FormLabel>Approval Workflow</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger></FormControl><SelectContent><SelectItem value="standard">Standard (Client Review Only)</SelectItem><SelectItem value="level3">Level III Audit (Manual)</SelectItem><SelectItem value="auto">Level III Audit (Auto-Assigned)</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />}

@@ -84,23 +84,23 @@ export default function CalendarPage() {
         setToday(new Date());
     }, []);
 
+    const getSafeDate = (dateInput: any): Date | null => {
+        if (!dateInput) return null;
+        if (dateInput.toDate) { // Firestore Timestamp
+            return dateInput.toDate();
+        }
+        if (dateInput instanceof Date) { // JS Date
+            return dateInput;
+        }
+        if (typeof dateInput === 'string') { // String from seed data or API
+            const d = parseISO(dateInput);
+            return isValid(d) ? d : null;
+        }
+        return null;
+    };
+
     const events: CalendarEvent[] = useMemo(() => {
         const scheduledJobs = (jobs || []).filter(job => job.scheduledStartDate);
-
-        const getSafeDate = (dateInput: any): Date | null => {
-            if (!dateInput) return null;
-            if (dateInput.toDate) { // Firestore Timestamp
-                return dateInput.toDate();
-            }
-            if (dateInput instanceof Date) { // JS Date
-                return dateInput;
-            }
-            if (typeof dateInput === 'string') { // String from seed data or API
-                const d = parseISO(dateInput);
-                return isValid(d) ? d : null;
-            }
-            return null;
-        };
         
         const createEventsForJob = (job: Job): CalendarEvent[] => {
             const startDate = getSafeDate(job.scheduledStartDate);
@@ -229,6 +229,9 @@ export default function CalendarPage() {
 
         if (selectedEvent.type === 'job') {
             const job = selectedEvent.data as Job;
+            const safeStartDate = getSafeDate(job.scheduledStartDate);
+            const safeEndDate = getSafeDate(job.scheduledEndDate);
+            
             return (
                 <>
                     <DialogHeader>
@@ -257,12 +260,12 @@ export default function CalendarPage() {
                                 <p className="text-muted-foreground">{job.techniques.join(', ')}</p>
                             </div>
                         </div>
-                        {job.scheduledStartDate && (
+                        {safeStartDate && (
                              <div className="flex items-center">
                                 <CalendarIcon className="w-4 h-4 mr-3 text-primary" />
                                 <div>
                                     <p className="font-semibold">Scheduled Dates</p>
-                                    <p className="text-muted-foreground">{format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</p>
+                                    <p className="text-muted-foreground">{format(safeStartDate, GLOBAL_DATE_FORMAT)}{safeEndDate && safeEndDate.getTime() !== safeStartDate.getTime() ? ` to ${format(safeEndDate, GLOBAL_DATE_FORMAT)}` : ''}</p>
                                 </div>
                             </div>
                         )}
@@ -415,4 +418,3 @@ export default function CalendarPage() {
         </div>
     );
 }
-

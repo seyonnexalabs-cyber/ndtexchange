@@ -109,6 +109,11 @@ service cloud.firestore {
                       )) || isAdmin();
     }
     
+    match /{path=**}/supportChats/{chatId} {
+      // Allow admins to query across all company support chats
+      allow read: if isAdmin();
+    }
+
     match /jobs/{jobId} {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.

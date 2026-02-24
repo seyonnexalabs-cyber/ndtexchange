@@ -431,7 +431,6 @@ export default function JobDetailPage() {
 
         fetchInspections();
     }, [firestore, jobDetails, isLoadingJob]);
-
     
     React.useEffect(() => {
         if (!jobDetails) return;

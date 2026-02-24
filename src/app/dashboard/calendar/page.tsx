@@ -19,7 +19,8 @@ import {
     format,
     isSameDay,
     isSameMonth,
-    parseISO
+    parseISO,
+    isValid,
 } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -86,9 +87,27 @@ export default function CalendarPage() {
     const events: CalendarEvent[] = useMemo(() => {
         const scheduledJobs = (jobs || []).filter(job => job.scheduledStartDate);
 
+        const getSafeDate = (dateInput: any): Date | null => {
+            if (!dateInput) return null;
+            if (dateInput.toDate) { // Firestore Timestamp
+                return dateInput.toDate();
+            }
+            if (dateInput instanceof Date) { // JS Date
+                return dateInput;
+            }
+            if (typeof dateInput === 'string') { // String from seed data or API
+                const d = parseISO(dateInput);
+                return isValid(d) ? d : null;
+            }
+            return null;
+        };
+        
         const createEventsForJob = (job: Job): CalendarEvent[] => {
-            const startDate = parseISO(job.scheduledStartDate as string);
-            const endDate = job.scheduledEndDate ? parseISO(job.scheduledEndDate) : startDate;
+            const startDate = getSafeDate(job.scheduledStartDate);
+            if (!startDate) return [];
+
+            const endDate = getSafeDate(job.scheduledEndDate) || startDate;
+            
             const interval = eachDayOfInterval({ start: startDate, end: endDate });
 
             return interval.map(date => ({
@@ -112,9 +131,10 @@ export default function CalendarPage() {
             const equipmentList = inspectorAssets || [];
 
             scheduledJobs.forEach(job => {
-                if (!job.scheduledStartDate) return;
-                const startDate = parseISO(job.scheduledStartDate);
-                const endDate = job.scheduledEndDate ? parseISO(job.scheduledEndDate) : startDate;
+                const startDate = getSafeDate(job.scheduledStartDate);
+                if (!startDate) return;
+                
+                const endDate = getSafeDate(job.scheduledEndDate) || startDate;
                 const interval = eachDayOfInterval({ start: startDate, end: endDate });
 
                 const resourceIds = activeTab === 'technicians' ? job.technicianIds : job.equipmentIds;
@@ -395,3 +415,4 @@ export default function CalendarPage() {
         </div>
     );
 }
+

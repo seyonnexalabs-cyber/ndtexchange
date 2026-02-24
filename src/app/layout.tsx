@@ -7,19 +7,19 @@ import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
 import { ModeProvider } from '@/app/components/layout/mode-provider';
-import { Playfair_Display, PT_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans, Fraunces } from 'next/font/google';
 
-const pt_sans = PT_Sans({
+const plus_jakarta_sans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
   style: ['normal', 'italic'],
-  variable: '--font-pt-sans',
+  variable: '--font-plus-jakarta-sans',
 });
 
-const playfair_display = Playfair_Display({
+const fraunces = Fraunces({
   subsets: ['latin'],
   weight: ['700'],
-  variable: '--font-playfair-display',
+  variable: '--font-fraunces',
 });
 
 
@@ -37,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${pt_sans.variable} ${playfair_display.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${plus_jakarta_sans.variable} ${fraunces.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="NDT EXCHANGE" />

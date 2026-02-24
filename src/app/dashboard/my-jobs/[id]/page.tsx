@@ -385,14 +385,30 @@ export default function JobDetailPage() {
     const jobRef = useMemoFirebase(() => (isReady && id ? doc(firestore, 'jobs', id) : null), [isReady, id]);
     const { data: jobDetails, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(jobRef);
 
-    const bidsQuery = useMemoFirebase(() => (isReady && id ? collection(firestore, 'jobs', id, 'bids') : null), [isReady, id]);
+    const isAuthorized = React.useMemo(() => {
+        if (!jobDetails || !currentUserProfile) return false;
+        if (role === 'admin') return true;
+        if (role === 'client') {
+            return jobDetails.clientCompanyId === currentUserProfile.companyId;
+        }
+        if (role === 'inspector') {
+            if (jobDetails.status === 'Posted') return true;
+            if (jobDetails.providerId === currentUserProfile.companyId) return true;
+        }
+        if (role === 'auditor') {
+             return jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto';
+        }
+        return false;
+    }, [jobDetails, currentUserProfile, role]);
+
+    const bidsQuery = useMemoFirebase(() => (isReady && id && jobDetails && isAuthorized ? collection(firestore, 'jobs', id, 'bids') : null), [isReady, id, jobDetails, isAuthorized]);
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
     const [inspections, setInspections] = React.useState<Inspection[]>([]);
     const [isLoadingInspections, setIsLoadingInspections] = React.useState(true);
 
     React.useEffect(() => {
-        if (!firestore || !jobDetails) {
+        if (!firestore || !jobDetails || !isAuthorized) {
             if (!isLoadingJob) setIsLoadingInspections(false);
             return;
         };
@@ -430,10 +446,10 @@ export default function JobDetailPage() {
         };
 
         fetchInspections();
-    }, [firestore, jobDetails, isLoadingJob]);
+    }, [firestore, jobDetails, isLoadingJob, isAuthorized]);
     
     React.useEffect(() => {
-        if (!jobDetails) return;
+        if (!jobDetails || !isAuthorized) return;
 
         const checkForReview = async () => {
             if (!firestore || !jobDetails.providerId || !authUser) return;
@@ -455,7 +471,7 @@ export default function JobDetailPage() {
         };
 
         checkForReview();
-    }, [id, firestore, jobDetails, authUser]);
+    }, [id, firestore, jobDetails, authUser, isAuthorized]);
     
     const assignedEquipmentQuery = useMemoFirebase(() => {
         if (role !== 'inspector' || !firestore || !jobDetails?.equipmentIds || jobDetails.equipmentIds.length === 0) {
@@ -559,6 +575,26 @@ export default function JobDetailPage() {
         )
     }
     
+    if (!isLoading && !isAuthorized) {
+        return (
+            <div className="text-center p-10">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Access Denied</AlertTitle>
+                    <AlertDescription>
+                        You do not have permission to view this job's details.
+                    </AlertDescription>
+                </Alert>
+                 <Button asChild variant="outline" className="mt-4">
+                     <Link href={constructUrl(role === 'client' ? "/dashboard/my-jobs" : "/dashboard/find-jobs")}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back to Jobs
+                    </Link>
+                </Button>
+            </div>
+        )
+    }
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;

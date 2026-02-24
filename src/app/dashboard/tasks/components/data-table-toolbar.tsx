@@ -1,6 +1,6 @@
 "use client"
 
-import { X } from "lucide-react"
+import { X, PlusCircle } from "lucide-react"
 import { Table } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
@@ -12,10 +12,12 @@ import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
+  onNewTaskClick: () => void
 }
 
 export function DataTableToolbar<TData>({
   table,
+  onNewTaskClick,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -62,7 +64,13 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      <div className="flex items-center space-x-2">
+        <DataTableViewOptions table={table} />
+        <Button onClick={onNewTaskClick} size="sm" className="ml-2 h-8">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Task
+        </Button>
+      </div>
     </div>
   )
 }

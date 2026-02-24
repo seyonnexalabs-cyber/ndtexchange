@@ -456,7 +456,7 @@ export default function JobDetailPage() {
 
     const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
 
-    const duration = useMemo(() => {
+    const duration = React.useMemo(() => {
         if (!jobDetails?.scheduledStartDate || !jobDetails?.scheduledEndDate) {
             return jobDetails?.durationDays;
         }

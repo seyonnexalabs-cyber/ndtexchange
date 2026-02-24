@@ -2,12 +2,12 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Users, Wrench, Calendar, User, SlidersHorizontal, RadioTower, History, Award, AlarmClock, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Award, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText, History } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
-import { format, isToday } from 'date-fns';
+import { format, isToday, parseISO } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -17,15 +17,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { useSearch } from "@/app/components/layout/search-provider";
 
-
-const equipmentIcons: { [key: string]: React.ReactNode } = {
-    'UT': <RadioTower className="w-4 h-4 text-primary" />,
-    'PAUT': <SlidersHorizontal className="w-4 h-4 text-primary" />,
-    'MT': <Wrench className="w-4 h-4 text-primary" />,
-    'Calibration': <Wrench className="w-4 h-4 text-primary" />,
-};
-
 type JobView = 'active' | 'completed' | 'upcoming' | 'drafts';
+
+const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
+    'Report Submitted': 'secondary', 'Under Audit': 'secondary', 'Audit Approved': 'success', 'Client Review': 'secondary',
+    'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success', 'Revisions Requested': 'destructive'
+};
 
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
@@ -66,23 +64,6 @@ export default function MyJobsPage() {
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'companies') : null, [firestore, user]));
 
-
-    const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
-        'Draft': 'outline',
-        'Posted': 'secondary',
-        'Assigned': 'default',
-        'Scheduled': 'default',
-        'In Progress': 'default',
-        'Report Submitted': 'secondary',
-        'Under Audit': 'secondary',
-        'Audit Approved': 'success',
-        'Client Review': 'secondary',
-        'Client Approved': 'success',
-        'Completed': 'success',
-        'Paid': 'success',
-        'Revisions Requested': 'destructive'
-    };
-
     const jobsByCategory = useMemo(() => {
         if (!jobsFromDb) return { active: [], completed: [], upcoming: [], drafts: [] };
         return {
@@ -92,7 +73,7 @@ export default function MyJobsPage() {
             drafts: jobsFromDb.filter(job => job.status === 'Draft'),
         };
     }, [jobsFromDb, role]);
-
+    
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow: Job[] = [];
         let pageTitle = '';
@@ -139,6 +120,19 @@ export default function MyJobsPage() {
 
         return { displayedJobs: filtered, title: pageTitle, Icon: PageIcon };
     }, [view, role, selectedProviders, selectedClients, auditFilter, jobsByCategory, searchQuery, allCompanies]);
+
+    const jobsByMonth = useMemo(() => {
+        return displayedJobs.reduce((acc, job) => {
+            const date = job.scheduledStartDate ? parseISO(job.scheduledStartDate) : parseISO(job.postedDate);
+            const monthYear = format(date, 'MMMM yyyy');
+            if (!acc[monthYear]) {
+                acc[monthYear] = [];
+            }
+            acc[monthYear].push(job);
+            return acc;
+        }, {} as Record<string, Job[]>);
+    }, [displayedJobs]);
+
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -203,21 +197,15 @@ export default function MyJobsPage() {
                         My Jobs
                     </h1>
                 </div>
-                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                    {[...Array(4)].map((_, i) => (
-                        <Card key={i}>
-                            <CardHeader>
-                                <Skeleton className="h-6 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-full" />
-                            </CardContent>
-                            <CardFooter>
-                                <Skeleton className="h-10 w-28" />
-                            </CardFooter>
-                        </Card>
+                <div className="space-y-8">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i}>
+                            <Skeleton className="h-8 w-48 mb-4" />
+                            <div className="space-y-4">
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -334,103 +322,42 @@ export default function MyJobsPage() {
             )}
              
             {displayedJobs.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                    {displayedJobs.map(job => {
-                        const isOverdue = job.scheduledStartDate && new Date(job.scheduledStartDate) < new Date() && !['Completed', 'Paid'].includes(job.status);
-
-                        const submittedBids = job.bids?.filter(b => b.status === 'Submitted').length || 0;
-
-                        return (
-                            <Card key={job.id} className="flex flex-col">
-                                <CardHeader className={cn(job.isInternal && 'bg-accent/10')}>
-                                    <div className="flex justify-between items-start gap-4">
-                                        <div>
-                                            <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                                            <p className="text-xs text-muted-foreground font-bold">{job.id}</p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-1 shrink-0">
-                                            <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
-                                            {isOverdue && <Badge variant="destructive" className="text-xs"><AlarmClock className="w-3.5 h-3.5 mr-1"/>Overdue</Badge>}
-                                            {job.isInternal && <Badge variant="outline" className="mt-1">Internal</Badge>}
-                                        </div>
-                                    </div>
-                                    <CardDescription className="pt-2">{job.client} - {(job.techniques || []).join(', ')}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4 flex-grow">
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <MapPin className="w-4 h-4 mr-2 text-primary" />
-                                        <span>{job.location}</span>
-                                    </div>
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <Building className="w-4 h-4 mr-2 text-primary" />
-                                        <span>{job.assetIds?.length || '0'} Asset(s) Involved</span>
-                                    </div>
-                                     {job.estimatedBudget && (() => {
-                                        const budgetString = job.estimatedBudget;
-                                        let budgetIcon = <DollarSign className="w-4 h-4 mr-2 text-primary" />;
-                                        if (budgetString?.includes('₹')) {
-                                            budgetIcon = <span className="font-semibold mr-2">₹</span>;
-                                        } else if (budgetString?.includes('€')) {
-                                            budgetIcon = <span className="font-semibold mr-2">€</span>;
-                                        }
-
-                                        return (
-                                            <div className="flex items-center text-sm text-muted-foreground">
-                                                {budgetIcon}
-                                                <span>Budget: {budgetString}</span>
+                 <div className="space-y-8">
+                    {Object.entries(jobsByMonth).map(([month, jobs]) => (
+                        <div key={month}>
+                            <h2 className="font-semibold text-lg mb-4 pl-4">{month}</h2>
+                            <div className="space-y-4">
+                                {jobs.map(job => {
+                                    const jobDate = job.scheduledStartDate ? parseISO(job.scheduledStartDate) : parseISO(job.postedDate);
+                                    const provider = allCompanies?.find(p => p.id === job.providerId);
+                                    return (
+                                        <Card key={job.id} className="mx-auto w-full transition-shadow hover:shadow-md">
+                                            <div className="flex items-stretch">
+                                                <div className="flex flex-col items-center justify-center p-4 border-r text-center w-24">
+                                                    <p className="text-sm font-semibold text-muted-foreground">{format(jobDate, 'EEE')}</p>
+                                                    <p className="text-3xl font-bold">{format(jobDate, 'dd')}</p>
+                                                </div>
+                                                <div className="flex-1 p-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>
+                                                            <CardTitle className="font-semibold text-lg hover:underline">{job.title}</CardTitle>
+                                                        </Link>
+                                                        <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                                                        <p className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-primary" />{job.location}</p>
+                                                        {role === 'inspector' && <p className="flex items-center"><Building className="w-4 h-4 mr-2 text-primary" />{job.client}</p>}
+                                                        {role === 'client' && provider && <p className="flex items-center"><HardHat className="w-4 h-4 mr-2 text-primary" />{provider.name}</p>}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        );
-                                    })()}
-                                     <div className="flex items-center text-sm text-muted-foreground">
-                                        <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                        <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                        {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
-                                    </div>
-                                     {job.bidExpiryDate && (
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                            <AlarmClock className="w-4 h-4 mr-2 text-primary" />
-                                            <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
-                                            {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
-                                        </div>
-                                    )}
-                                    {job.scheduledStartDate && (
-                                        <div className={cn("flex items-center text-sm", isOverdue ? "text-destructive font-medium" : "text-muted-foreground")}>
-                                            <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                            <span>Inspection: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
-                                            {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
-                                        </div>
-                                    )}
-                                    
-                                    {role === 'client' && job.status === 'Posted' && submittedBids > 0 && (
-                                        <div className="flex items-center text-sm font-semibold text-primary pt-2">
-                                            <Gavel className="w-4 h-4 mr-2" />
-                                            <span>{submittedBids} Bid(s) Received - Ready for Review</span>
-                                        </div>
-                                    )}
-
-                                    {(view === 'active' || view === 'upcoming') && role === 'inspector' && (
-                                        <>
-                                            <div>
-                                                <h4 className="font-semibold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Assigned Technicians</h4>
-                                                <p className="text-xs text-muted-foreground">{job.technicianIds?.length || 0} technician(s) assigned.</p>
-                                            </div>
-
-                                             <div>
-                                                <h4 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4 text-primary"/> Assigned Equipment</h4>
-                                                <p className="text-xs text-muted-foreground">{job.equipmentIds?.length || 0} item(s) assigned.</p>
-                                            </div>
-                                        </>
-                                    )}
-                                </CardContent>
-                                <CardFooter className="justify-end">
-                                    <Button asChild>
-                                        <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job Details</Link>
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        )
-                    })}
-                </div>
+                                        </Card>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                 </div>
             ) : (
                  <div className="text-center p-10 border rounded-lg">
                     <Icon className="mx-auto h-12 w-12 text-primary" />

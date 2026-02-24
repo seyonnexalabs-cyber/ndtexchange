@@ -430,6 +430,7 @@ export type Task = {
   label: string;
   status: 'todo' | 'in progress' | 'done' | 'canceled';
   priority: 'low' | 'medium' | 'high';
+  type: 'One-Time' | 'Recurring';
   userId: string;
   createdAt?: any;
 };

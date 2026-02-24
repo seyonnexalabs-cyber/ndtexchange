@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, inspectionsData, productsData, notifications } from "@/lib/seed-data";
+import { jobs, inspectorAssets, allUsers, userAuditLog, jobAuditLog, billingAuditLog, reviews, subscriptions, clientData, payments, jobPayments, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, inspectionsData, productsData, notifications, tasks } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -802,6 +802,17 @@ const AdminDashboard = () => {
             billingAuditLog.forEach(log => batch.set(doc(firestore, 'billingAuditLogs', log.id), { ...log, timestamp: safeNewDate(log.timestamp as string) || serverTimestamp() }));
             console.log(`[SEED] ✅ Prepared audit logs.`);
             
+             // Seed tasks
+            console.log(`[SEED] Preparing: tasks...`);
+            tasks.forEach(task => {
+                const taskRef = doc(firestore, 'users', task.userId, 'tasks', task.id);
+                batch.set(taskRef, {
+                    ...task,
+                    createdAt: serverTimestamp()
+                });
+            });
+            console.log(`[SEED] ✅ Prepared tasks.`);
+
             // Seed notifications
             console.log(`[SEED] Preparing: notifications...`);
             notifications.forEach(n => {

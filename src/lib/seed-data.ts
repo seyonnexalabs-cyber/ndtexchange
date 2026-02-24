@@ -1,6 +1,6 @@
 
 
-import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product } from '@/lib/types';
+import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task } from '@/lib/types';
 
 // This file serves as the master data source for seeding the Firestore database.
 // The application itself should NOT import data from this file for rendering.
@@ -146,9 +146,9 @@ export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-03',
         name: 'TEAM, Inc.',
-        type: 'Provider',
         logoUrl: 'https://placehold.co/200x80/FF6600/FFFFFF/png?text=TEAM',
         brandColor: '#FF6600',
+        type: 'Provider',
         contactPerson: 'Maria Garcia',
         contactEmail: 'maria.garcia@teaminc.com',
         location: 'Sugar Land, TX, USA (Global)',
@@ -511,6 +511,28 @@ export const allUsers: PlatformUser[] = [
     { id: 'user-tech-02', name: 'David Lee', email: 'david.lee@applus.com', role: 'Inspector', companyId: 'provider-02', company: 'Applus+', status: 'Active', certifications: [{method: 'UT', level: 'Level II'}, {method: 'MT', level: 'Level II'}], workStatus: 'On Assignment', providerId: 'provider-02', level: 'Level II', password: 'password123', createdAt: '2024-06-01T10:00:00Z' },
     { id: 'user-tech-03', name: 'Samantha Wu', email: 'samantha.wu@tuv.com', role: 'Inspector', companyId: 'provider-04', company: 'TÜV Rheinland', status: 'Active', certifications: [{method: 'TOFD', level: 'Level II'}, {method: 'PAUT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-04', level: 'Level II', password: 'password123', createdAt: '2024-06-15T10:00:00Z' },
     { id: 'user-tech-04', name: 'James Wilson', email: 'james.wilson@teaminc.com', role: 'Inspector', companyId: 'provider-03', company: 'TEAM, Inc.', status: 'Active', certifications: [{method: 'MT', level: 'Level II'}, {method: 'PT', level: 'Level II'}], workStatus: 'Available', providerId: 'provider-03', level: 'Level II', password: 'password123', createdAt: '2024-07-01T10:00:00Z' },
+];
+
+export const tasks: Task[] = [
+    // Tasks for John Doe (Client)
+    { id: 'TASK-001', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', title: 'Follow up with TEAM, Inc. on JOB-002 report revisions', label: 'feature', status: 'in progress', priority: 'high', type: 'One-Time' },
+    { id: 'TASK-002', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', title: 'Prepare scope for Q4 shutdown', label: 'documentation', status: 'todo', priority: 'medium', type: 'One-Time' },
+    { id: 'TASK-003', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', title: 'Review new bids for JOB-001', label: 'feature', status: 'todo', priority: 'high', type: 'One-Time' },
+    { id: 'TASK-004', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', title: 'Renew annual subscription', label: 'bug', status: 'done', priority: 'medium', type: 'Recurring' },
+
+    // Tasks for Maria Garcia (Inspector)
+    { id: 'TASK-005', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', title: 'Submit final report for JOB-002 revisions', label: 'documentation', status: 'in progress', priority: 'high', type: 'One-Time' },
+    { id: 'TASK-006', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', title: 'Calibrate Olympus 45MG (EQUIP-1000)', label: 'feature', status: 'todo', priority: 'medium', type: 'Recurring' },
+    { id: 'TASK-007', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', title: 'Complete safety training module', label: 'documentation', status: 'done', priority: 'low', type: 'One-Time' },
+    { id: 'TASK-008', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', title: 'Prepare bid for JOB-001', label: 'feature', status: 'in progress', priority: 'high', type: 'One-Time' },
+
+    // Tasks for Alex Chen (Auditor)
+    { id: 'TASK-009', userId: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', title: 'Audit report for JOB-PERFECT', label: 'feature', status: 'done', priority: 'high', type: 'One-Time' },
+    { id: 'TASK-010', userId: 'gpx1kGbkuqQz0Fhmgfhyv4t3B3f2', title: 'Review new ISO standard draft', label: 'documentation', status: 'todo', priority: 'medium', type: 'One-Time' },
+
+    // Tasks for Admin User
+    { id: 'TASK-011', userId: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', title: 'Moderate pending user reviews', label: 'bug', status: 'in progress', priority: 'high', type: 'Recurring' },
+    { id: 'TASK-012', userId: 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2', title: 'Plan Q4 feature release', label: 'feature', status: 'todo', priority: 'medium', type: 'One-Time' },
 ];
 
 const today = new Date();

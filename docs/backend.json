@@ -10,6 +10,33 @@
       },
       "required": ["amount", "currency"]
     },
+    "Address": {
+      "title": "Address",
+      "type": "object",
+      "description": "Represents a physical address.",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "country": { "type": "string" }
+      },
+      "required": ["city", "country"]
+    },
+    "Company": {
+      "title": "Company",
+      "type": "object",
+      "description": "Represents a company, which can be a Client, Provider, or Auditor.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Client", "Provider", "Auditor"] },
+        "address": { "$ref": "#/entities/Address" },
+        "contactPerson": { "type": "string" },
+        "contactEmail": { "type": "string", "format": "email" }
+      },
+      "required": ["id", "name", "type"]
+    },
     "Asset": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Asset",
@@ -118,7 +145,7 @@
         "id": { "type": "string", "description": "Unique identifier for the Job entity." },
         "clientId": { "type": "string", "description": "Reference to the User who created the job request. (Relationship: User 1:N Job)" },
         "clientCompanyId": { "type": "string", "description": "Reference to the Client Company who owns the job." },
-        "location": { "type": "string", "description": "The location where the job needs to be performed." },
+        "location": { "$ref": "#/entities/Address", "description": "The location where the job needs to be performed." },
         "techniques": { "type": "array", "description": "The NDT techniques required for the job (e.g., UT, RT).", "items": { "type": "string" } },
         "standards": { "type": "string", "description": "The applicable standards for the job (e.g., ISO 9712, ASME)." },
         "urgency": { "type": "string", "description": "The urgency of the job (e.g., High, Medium, Low)." },
@@ -434,6 +461,16 @@
               "description": "The unique ID of the user."
             }
           ]
+        }
+      },
+       {
+        "path": "/companies/{companyId}",
+        "definition": {
+          "entityName": "Company",
+          "schema": {
+            "$ref": "#/backend/entities/Company"
+          },
+          "description": "Stores company profiles for Clients, Providers, and Auditors."
         }
       },
       {

@@ -43,11 +43,16 @@ const profileSchema = z.object({
 
 const companyProfileSchema = z.object({
   name: z.string().min(3, 'Company name must be at least 3 characters.'),
-  address: z.string().optional(),
+  address: z.object({
+    street: z.string().optional(),
+    city: z.string().min(2, "City is required"),
+    state: z.string().min(2, "State/Province is required"),
+    postalCode: z.string().optional(),
+    country: z.string({ required_error: "Country is required." }),
+  }),
   description: z.string().optional(),
   techniques: z.array(z.string()).optional(),
   industries: z.array(z.string()).optional(),
-  country: z.string().optional(),
   currency: z.string().optional(),
 });
 
@@ -64,11 +69,10 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
       name: companyDetails?.name || '',
-      address: companyDetails?.address || '',
+      address: companyDetails?.address || { city: '', country: '', state: ''},
       description: companyDetails?.description || '',
       techniques: companyDetails?.techniques || [],
       industries: companyDetails?.industries || [],
-      country: companyDetails?.country || '',
       currency: companyDetails?.currency || 'USD',
     },
   });
@@ -77,11 +81,10 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
     if (companyDetails) {
         form.reset({
             name: companyDetails.name,
-            address: companyDetails.address || '',
+            address: companyDetails.address || { city: '', country: '', state: ''},
             description: companyDetails.description || '',
             techniques: companyDetails.techniques || [],
             industries: companyDetails.industries || [],
-            country: companyDetails.country || '',
             currency: companyDetails.currency || 'USD',
         });
     }
@@ -117,42 +120,34 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
                     </FormItem>
                 )}
                 />
+                
+                <div className="space-y-2">
+                    <FormLabel>Company Address</FormLabel>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField control={form.control} name="address.street" render={({ field }) => (
+                            <FormItem className="col-span-2"><FormLabel className="text-xs">Street Address</FormLabel><FormControl><Input {...field} disabled={isReadOnly} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={form.control} name="address.city" render={({ field }) => (
+                            <FormItem><FormLabel className="text-xs">City</FormLabel><FormControl><Input {...field} disabled={isReadOnly} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={form.control} name="address.state" render={({ field }) => (
+                            <FormItem><FormLabel className="text-xs">State / Province</FormLabel><FormControl><Input {...field} disabled={isReadOnly} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={form.control} name="address.postalCode" render={({ field }) => (
+                            <FormItem><FormLabel className="text-xs">Postal Code</FormLabel><FormControl><Input {...field} disabled={isReadOnly} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                        <FormField control={form.control} name="address.country" render={({ field }) => (
+                             <FormItem><FormLabel className="text-xs">Country</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
+                        )}/>
+                    </div>
+                </div>
+
                 <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                        <Input {...field} disabled={isReadOnly} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                    control={form.control}
-                    name="country"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Country</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
                     control={form.control}
                     name="currency"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Currency</FormLabel>
+                            <FormLabel>Primary Currency</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                 <SelectContent>
@@ -165,8 +160,8 @@ const CompanyProfileSettings = ({ companyDetails, isReadOnly = false, role, tech
                             <FormMessage />
                         </FormItem>
                     )}
-                    />
-                </div>
+                />
+                
                 {role === 'inspector' && (
                     <>
                     <FormField
@@ -861,7 +856,6 @@ export default function SettingsPage() {
                 description: data.description,
                 techniques: data.techniques,
                 industries: data.industries,
-                country: data.country,
                 currency: data.currency,
             });
             toast({
@@ -1052,3 +1046,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

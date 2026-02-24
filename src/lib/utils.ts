@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { isValid, parseISO } from 'date-fns';
@@ -6,8 +7,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const GLOBAL_DATE_FORMAT = "PPP";
-export const GLOBAL_DATETIME_FORMAT = "PPP p";
+export const GLOBAL_DATE_FORMAT = "PPPP"; // locale-sensitive long date with day of the week
+export const GLOBAL_DATETIME_FORMAT = "PPPP p"; // locale-sensitive long date with time and day of the week
 
 export const ACCEPTED_FILE_TYPES = '.pdf,.jpg,.jpeg,.png';
 

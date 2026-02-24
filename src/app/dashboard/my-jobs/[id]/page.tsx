@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -331,9 +330,6 @@ const ClientReviewActions = ({ status, workflow, isClient, onApprove, onReject, 
     );
 };
 
-// ... (Rest of the file remains the same, only the two components above are updated with inspections prop and rendering logic)
-
-
 const StarRating = ({ rating }: { rating: number }) => {
     return (
         <div className="flex items-center">
@@ -375,6 +371,11 @@ export default function JobDetailPage() {
     const [hasBeenSubmittedOnce, setHasBeenSubmittedOnce] = React.useState(false);
     const [rating, setRating] = React.useState(0);
     const [reviewComment, setReviewComment] = React.useState("");
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
@@ -423,7 +424,6 @@ export default function JobDetailPage() {
             setIsLoadingInspections(true);
             try {
                 const allInspections: Inspection[] = [];
-                // Use getDocs for non-realtime fetching to avoid security rule complexity
                 const inspectionPromises = jobDetails.assetIds.map(assetId => {
                     const inspectionsRef = collection(firestore, `assets/${assetId}/inspections`);
                     const q = query(inspectionsRef, where('jobId', '==', jobDetails.id));
@@ -561,20 +561,6 @@ export default function JobDetailPage() {
         );
     }
     
-    if (!jobDetails) {
-        return (
-             <div className="text-center p-10">
-                <Alert>
-                    <Briefcase className="h-4 w-4" />
-                    <AlertTitle>Job Not Found</AlertTitle>
-                    <AlertDescription>
-                        The job you are looking for does not exist or you may not have permission to view it.
-                    </AlertDescription>
-                </Alert>
-            </div>
-        )
-    }
-    
     if (!isLoading && !isAuthorized) {
         return (
             <div className="text-center p-10">
@@ -594,10 +580,19 @@ export default function JobDetailPage() {
             </div>
         )
     }
-
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
+    
+    if (!jobDetails) {
+        return (
+             <div className="text-center p-10">
+                <Alert>
+                    <Briefcase className="h-4 w-4" />
+                    <AlertTitle>Job Not Found</AlertTitle>
+                    <AlertDescription>
+                        The job you are looking for does not exist or you may not have permission to view it.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )
     }
     
     const openTechDialog = () => {
@@ -1340,5 +1335,3 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
-
-    

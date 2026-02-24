@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, HelpCircle, XCircle, ArrowDown, ArrowRight, ArrowUp, LucideIcon } from 'lucide-react';
+import { CheckCircle2, Circle, HelpCircle, XCircle, ArrowDown, ArrowRight, ArrowUp, Repeat, Square } from 'lucide-react';
 
 export const labels = [
   { value: "bug", label: "Bug" },
@@ -17,4 +17,9 @@ export const priorities = [
   { label: "Low", value: "low", icon: ArrowDown },
   { label: "Medium", value: "medium", icon: ArrowRight },
   { label: "High", value: "high", icon: ArrowUp },
+];
+
+export const types = [
+    { label: "One-Time", value: "One-Time", icon: Square },
+    { label: "Recurring", value: "Recurring", icon: Repeat },
 ];

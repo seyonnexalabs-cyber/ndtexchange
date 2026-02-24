@@ -23,6 +23,7 @@ export default function TasksPage() {
       status: task.status,
       label: task.label,
       priority: task.priority,
+      type: task.type,
   })) || [];
 
   return (

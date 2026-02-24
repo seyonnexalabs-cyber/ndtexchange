@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Metadata } from 'next';
@@ -226,7 +225,7 @@ export default function HomePage() {
             </div>
              <div className="mt-12 text-center">
                 <Button asChild variant="outline">
-                    <Link href="/manufacturers">View All Techniques & Manufacturers</Link>
+                    <Link href="/techniques">View All Techniques & Manufacturers</Link>
                 </Button>
             </div>
           </div>

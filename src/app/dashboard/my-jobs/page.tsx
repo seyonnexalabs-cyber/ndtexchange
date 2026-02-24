@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Award, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText, History } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Award, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText, History, HardHat } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";

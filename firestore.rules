@@ -191,12 +191,11 @@ service cloud.firestore {
     }
     
     match /products/{productId} {
-      allow read: if request.auth != null;
-      // Temporarily disabling write rules to debug list query permissions.
-      // This is the most likely cause of the "insufficient permissions" error on list queries,
-      // as get() calls within write rules can interfere with list operations.
-      // allow create: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
-      // allow update, delete: if isAdmin() || (isManufacturer() && resource.data.manufacturerId == userCompanyId(request.auth.uid));
+      // Allow any signed-in user to read products. This is necessary for the public catalog 
+      // and for the manufacturer's own dashboard query to work without being blocked by write rules.
+      allow read: if isSignedIn();
+      // Temporarily disable writes to isolate and confirm the read issue.
+      allow write: if false;
     }
     
     // All other collections that are either public or admin-only

@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award, Maximize, ChevronRight } from "lucide-react";
-import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
-import type { Product, Manufacturer, NDTTechnique, Review, PlatformUser, ReviewReply } from '@/lib/types';
+import type { Product, Manufacturer, NDTTechnique, Review, ReviewReply } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -30,6 +30,118 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const reviewSchema = z.object({
+  userName: z.string().min(2, "Please enter your name."),
+  userEmail: z.string().email("Please enter a valid email address."),
+  rating: z.number().min(1, "Please select a rating."),
+  comment: z.string().optional(),
+});
+
+const NewReviewForm = ({ onSubmit }: { onSubmit: (data: z.infer<typeof reviewSchema>) => void }) => {
+    const [rating, setRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
+
+    const form = useForm<z.infer<typeof reviewSchema>>({
+        resolver: zodResolver(reviewSchema),
+        defaultValues: {
+            userName: '',
+            userEmail: '',
+            rating: 0,
+            comment: '',
+        },
+    });
+
+    React.useEffect(() => {
+        form.setValue('rating', rating);
+    }, [rating, form]);
+
+    const handleSubmit = (values: z.infer<typeof reviewSchema>) => {
+        if (values.rating === 0) {
+            form.setError('rating', { type: 'manual', message: 'Please select a star rating.' });
+            return;
+        }
+        onSubmit(values);
+        form.reset();
+        setRating(0);
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Write a review</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleSubmit)} id="review-form" className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="userName" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Name</FormLabel>
+                                    <FormControl><Input placeholder="Your Name" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={form.control} name="userEmail" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Email</FormLabel>
+                                    <FormControl><Input type="email" placeholder="your@email.com" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                        
+                        <FormField control={form.control} name="rating" render={() => (
+                            <FormItem>
+                                <FormLabel>Your Rating</FormLabel>
+                                <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, index) => {
+                                        const ratingValue = index + 1;
+                                        return (
+                                            <button
+                                                key={ratingValue}
+                                                type="button"
+                                                onClick={() => {
+                                                    setRating(ratingValue);
+                                                    form.setValue('rating', ratingValue);
+                                                    form.clearErrors('rating');
+                                                }}
+                                                onMouseEnter={() => setHoverRating(ratingValue)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                            >
+                                                <Star className={`w-6 h-6 transition-colors ${ratingValue <= (hoverRating || rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`} />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <FormField control={form.control} name="comment" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Your Review</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Share your experience with this product..." className="min-h-[120px]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </form>
+                </Form>
+            </CardContent>
+            <CardFooter>
+                <Button type="submit" form="review-form"><Send className="mr-2 h-4 w-4"/> Submit Review</Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
 
 const StarRating = ({ rating, reviewCount, size = "md" }: { rating: number, reviewCount?: number, size?: 'sm' | 'md' }) => {
     const starSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
@@ -49,81 +161,6 @@ const StarRating = ({ rating, reviewCount, size = "md" }: { rating: number, revi
     );
 };
 
-const NewReviewForm = ({ productId, productName, user, onSubmit }: { productId: string, productName: string, user: PlatformUser | null, onSubmit: (data: { rating: number, comment: string }) => void }) => {
-    const [rating, setRating] = useState(0);
-    const [hoverRating, setHoverRating] = useState(0);
-    const [comment, setComment] = useState("");
-    const { toast } = useToast();
-
-    const handleSubmit = () => {
-        if (rating === 0) {
-            toast({ variant: 'destructive', title: "Rating required", description: "Please select a star rating." });
-            return;
-        }
-        onSubmit({ rating, comment });
-        setRating(0);
-        setComment("");
-    };
-
-    if (!user) {
-        return (
-            <Card className="bg-muted/50">
-                <CardContent className="pt-6 text-center">
-                    <p className="text-muted-foreground">You must be logged in to leave a review.</p>
-                    <Button asChild className="mt-4">
-                        <Link href="/login">Log In or Sign Up</Link>
-                    </Button>
-                </CardContent>
-            </Card>
-        );
-    }
-    
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Write a review for {productName}</CardTitle>
-                 <CardDescription>
-                    Posting as <span className="font-semibold text-foreground">{user.name}</span>.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div>
-                    <p className="font-medium mb-2">Your Rating</p>
-                    <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, index) => {
-                            const ratingValue = index + 1;
-                            return (
-                                <button
-                                    key={ratingValue}
-                                    type="button"
-                                    onClick={() => setRating(ratingValue)}
-                                    onMouseEnter={() => setHoverRating(ratingValue)}
-                                    onMouseLeave={() => setHoverRating(0)}
-                                >
-                                    <Star className={`w-6 h-6 transition-colors ${ratingValue <= (hoverRating || rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`} />
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-                 <div>
-                    <p className="font-medium mb-2">Your Review</p>
-                    <Textarea 
-                        placeholder="Share your experience with this product..."
-                        className="min-h-[120px]"
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                    />
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Button onClick={handleSubmit}><Send className="mr-2 h-4 w-4"/> Submit Review</Button>
-            </CardFooter>
-        </Card>
-    );
-};
-
-
 const createReferralUrl = (url: string) => {
     try {
         const referralUrl = new URL(url);
@@ -140,8 +177,7 @@ const createReferralUrl = (url: string) => {
 export default function PublicProductProfilePage() {
     const params = useParams();
     const { id } = params;
-    const { firestore, auth } = useFirebase();
-    const { user: authUser } = useUser();
+    const { firestore } = useFirebase();
     const { toast } = useToast();
 
     const [api, setApi] = React.useState<CarouselApi>();
@@ -161,10 +197,6 @@ export default function PublicProductProfilePage() {
     const reviewsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'reviews'), where('productId', '==', id), where('status', '==', 'Approved')) : null), [firestore, id]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
     
-    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]));
-
-    const { data: currentUserProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser]));
-
     React.useEffect(() => {
         if (!api) return;
 
@@ -175,21 +207,10 @@ export default function PublicProductProfilePage() {
     }, [api]);
     
     const productReviews = useMemo(() => {
-        if (!reviewsData || !allUsers) return [];
-        return reviewsData.map(review => {
-            const user = allUsers.find(u => u.id === review.clientId);
-            return {
-                ...review,
-                userName: user ? user.name : 'Anonymous User',
-                userCompany: user ? user.company : 'N/A',
-            };
-        });
-    }, [reviewsData, allUsers]);
+        if (!reviewsData) return [];
+        return reviewsData;
+    }, [reviewsData]);
 
-    const currentUserReview = useMemo(() => {
-        if (!authUser || !productReviews) return null;
-        return productReviews.find(r => r.clientId === authUser.uid);
-    }, [authUser, productReviews]);
 
     const { avgRating, reviewCount } = useMemo(() => {
         if (!productReviews || productReviews.length === 0) return { avgRating: 0, reviewCount: 0 };
@@ -221,21 +242,21 @@ export default function PublicProductProfilePage() {
     };
 
 
-    const handleReviewSubmit = async (data: { rating: number, comment: string }) => {
-        if (!firestore || !authUser || !currentUserProfile || !product) {
-            toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to submit a review.' });
+    const handleReviewSubmit = async (data: z.infer<typeof reviewSchema>) => {
+        if (!firestore || !product) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not submit review. Please try again.' });
             return;
         }
 
         const reviewsRef = collection(firestore, 'reviews');
-        const q = query(reviewsRef, where('productId', '==', product.id), where('clientId', '==', authUser.uid));
+        const q = query(reviewsRef, where('productId', '==', product.id), where('userEmail', '==', data.userEmail));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             toast({
                 variant: "destructive",
                 title: "Already Reviewed",
-                description: "You have already submitted a review for this product.",
+                description: "This email address has already been used to review this product.",
             });
             return;
         }
@@ -243,9 +264,10 @@ export default function PublicProductProfilePage() {
         const newReview = {
             productId: product.id,
             productName: product.name,
-            clientId: authUser.uid,
+            userEmail: data.userEmail,
+            userName: data.userName,
             rating: data.rating,
-            comment: data.comment,
+            comment: data.comment || '',
             date: serverTimestamp(),
             status: 'Pending',
         };
@@ -263,7 +285,7 @@ export default function PublicProductProfilePage() {
     };
 
 
-    const isLoading = isLoadingProduct || isLoadingManufacturer || isLoadingTechniques || isLoadingReviews || isLoadingUsers;
+    const isLoading = isLoadingProduct || isLoadingManufacturer || isLoadingTechniques || isLoadingReviews;
 
     if (!id) {
         notFound();
@@ -432,14 +454,13 @@ export default function PublicProductProfilePage() {
                                                     </Avatar>
                                                     <div>
                                                         <p className="font-semibold">{review.userName}</p>
-                                                        <p className="text-xs text-muted-foreground">{review.userCompany}</p>
+                                                        <StarRating rating={review.rating} size="sm" />
                                                     </div>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                             </div>
                                         </CardHeader>
                                         <CardContent>
-                                            <StarRating rating={review.rating} size="sm" />
                                             <p className="mt-2 text-sm text-muted-foreground italic">"{review.comment}"</p>
                                             {review.reply && (
                                                 <div className="mt-4 ml-8 p-4 bg-muted/50 rounded-lg border">
@@ -459,26 +480,7 @@ export default function PublicProductProfilePage() {
                             )}
                         </div>
                         <div className="sticky top-24">
-                           {currentUserReview ? (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Your Review</CardTitle>
-                                        <CardDescription>You have already reviewed this product.</CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <StarRating rating={currentUserReview.rating} size="sm" />
-                                        <p className="mt-4 text-sm text-muted-foreground italic">"{currentUserReview.comment}"</p>
-                                        <Badge variant={currentUserReview.status === 'Pending' ? 'secondary' : 'success'} className="mt-4">{currentUserReview.status}</Badge>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <NewReviewForm
-                                    productId={product.id}
-                                    productName={product.name}
-                                    user={currentUserProfile}
-                                    onSubmit={handleReviewSubmit}
-                                />
-                            )}
+                           <NewReviewForm onSubmit={handleReviewSubmit} />
                         </div>
                     </div>
                 </div>

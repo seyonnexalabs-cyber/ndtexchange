@@ -174,7 +174,9 @@ export type Review = {
   productId?: string;
   productName?: string;
   providerId?: string;
-  clientId: string;
+  clientId?: string;
+  userEmail: string;
+  userName: string;
   rating: number;
   comment: string;
   date: any;

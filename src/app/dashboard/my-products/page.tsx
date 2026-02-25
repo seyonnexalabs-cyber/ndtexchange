@@ -297,7 +297,7 @@ const ProductDetailItem = ({ product, reviews, allTechniques, onEditClick, onApp
                                 <CardHeader><StarRating rating={review.rating} /></CardHeader>
                                 <CardContent>
                                     <p className="italic text-muted-foreground">"{review.comment}"</p>
-                                    <p className="text-xs text-muted-foreground mt-2">By {review.userName} from {review.userCompany} on {review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground mt-2">By {review.userName} on {review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                 </CardContent>
                                 <CardFooter className="flex justify-end gap-2">
                                     <Button variant="outline" size="sm" onClick={() => onRejectReview(review.id)}><X className="mr-2 h-4 w-4" /> Reject</Button>
@@ -319,7 +319,7 @@ const ProductDetailItem = ({ product, reviews, allTechniques, onEditClick, onApp
                                </CardHeader>
                                 <CardContent>
                                     <p className="italic text-muted-foreground">"{review.comment}"</p>
-                                    <p className="text-xs text-muted-foreground mt-2">By {review.userName} from {review.userCompany}</p>
+                                    <p className="text-xs text-muted-foreground mt-2">By {review.userName}</p>
                                     {review.reply ? (
                                          <div className="mt-4 ml-8 p-4 bg-muted/50 rounded-lg border">
                                             <p className="text-sm font-semibold flex items-center gap-2">
@@ -350,7 +350,7 @@ const ProductDetailItem = ({ product, reviews, allTechniques, onEditClick, onApp
                                 <CardHeader><StarRating rating={review.rating} /></CardHeader>
                                 <CardContent>
                                     <p className="italic text-muted-foreground line-through">"{review.comment}"</p>
-                                    <p className="text-xs text-muted-foreground mt-2">By {review.userName} from {review.userCompany} on {review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground mt-2">By {review.userName} on {review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                 </CardContent>
                             </Card>
                         ))
@@ -391,25 +391,18 @@ export default function MyProductsPage() {
     }, [firestore, currentUserProfile, products]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
     
-    const { data: allUsers, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]));
-
     const reviewsByProduct = useMemo(() => {
-        if (!reviewsData || !allUsers) return new Map();
+        if (!reviewsData) return new Map();
         return reviewsData.reduce((acc, review) => {
             if (review.productId) {
                 if (!acc.has(review.productId)) {
                     acc.set(review.productId, []);
                 }
-                const user = allUsers.find(u => u.id === review.clientId);
-                acc.get(review.productId)!.push({
-                    ...review,
-                    userName: user?.name || 'Anonymous',
-                    userCompany: user?.company || 'N/A',
-                });
+                acc.get(review.productId)!.push(review);
             }
             return acc;
         }, new Map<string, any[]>());
-    }, [reviewsData, allUsers]);
+    }, [reviewsData]);
 
     const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
         useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore])
@@ -498,7 +491,7 @@ export default function MyProductsPage() {
         return null;
     }
 
-    const isLoading = isLoadingProducts || isLoadingProfile || isLoadingTechniques || isLoadingReviews || isLoadingUsers;
+    const isLoading = isLoadingProducts || isLoadingProfile || isLoadingTechniques || isLoadingReviews;
 
     return (
         <div>

@@ -3,10 +3,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Wrench, MoreVertical, Edit, PlusCircle } from "lucide-react";
+import { Wrench, MoreVertical, Edit, PlusCircle, Trash } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useMemo, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
-import { Trash } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 
 const productSchema = z.object({
@@ -259,70 +259,71 @@ export default function MyProductsPage() {
             </div>
 
             {isLoading ? (
-                <div className="space-y-4">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-48 w-full" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="p-0">
+                                <Skeleton className="h-48 w-full rounded-t-lg" />
+                            </CardHeader>
+                            <CardContent className="p-4 space-y-2">
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                            <CardFooter className="p-4 pt-0">
+                                <div className="flex flex-wrap gap-1">
+                                    <Skeleton className="h-5 w-12" />
+                                    <Skeleton className="h-5 w-16" />
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    ))}
                 </div>
             ) : (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Your Product Catalog</CardTitle>
-                        <CardDescription>Manage all your company's products listed on the NDT EXCHANGE platform.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Product Name</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Techniques</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {products?.map(prod => (
-                                    <TableRow key={prod.id}>
-                                        <TableCell className="font-medium flex items-center gap-3">
-                                            <Avatar className="h-10 w-10">
-                                                {prod.imageUrls && prod.imageUrls[0] && <AvatarImage src={prod.imageUrls[0]} alt={prod.name} className="object-contain" />}
-                                                <AvatarFallback>{prod.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                            </Avatar>
-                                            {prod.name}
-                                        </TableCell>
-                                        <TableCell>{prod.type}</TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-wrap gap-1">
-                                                {prod.techniques.map(techId => <Badge key={techId} variant="secondary">{techId}</Badge>)}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                        <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleEditClick(prod)}>
-                                                        <Edit className="mr-2 h-4 w-4"/>
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {products?.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                                            You haven't added any products yet.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {(products || []).map(prod => (
+                        <Card key={prod.id} className="flex flex-col group">
+                            <CardHeader className="p-0 relative">
+                                <div className="absolute top-2 right-2 z-10">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="secondary" size="icon" className="h-8 w-8">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => handleEditClick(prod)}>
+                                                <Edit className="mr-2 h-4 w-4"/>
+                                                Edit
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
+                                    {prod.imageUrls && prod.imageUrls.length > 0 ? 
+                                        <Image src={prod.imageUrls[0]} alt={prod.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : 
+                                        <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>
+                                    }
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4 flex-grow">
+                                <CardTitle className="text-base font-semibold leading-tight mb-1" title={prod.name}>{prod.name}</CardTitle>
+                                <CardDescription>{prod.type}</CardDescription>
+                            </CardContent>
+                            <CardFooter className="p-4 pt-0">
+                                <div className="flex flex-wrap gap-1">
+                                    {prod.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                    {(products || []).length === 0 && (
+                        <div className="col-span-full text-center p-10 border rounded-lg">
+                            <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h2 className="mt-4 text-xl font-headline">No Products Added Yet</h2>
+                            <p className="mt-2 text-muted-foreground">Click "Add New Product" to build your catalog.</p>
+                        </div>
+                    )}
+                </div>
             )}
 
             <Dialog open={isFormOpen} onOpenChange={closeDialog}>

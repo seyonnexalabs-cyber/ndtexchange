@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award, Maximize, ChevronRight } from "lucide-react";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { doc, collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, query, where, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
 import type { Product, Manufacturer, NDTTechnique, Review, PlatformUser, ReviewReply } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
@@ -82,6 +82,9 @@ const NewReviewForm = ({ productId, productName, user, onSubmit }: { productId: 
         <Card>
             <CardHeader>
                 <CardTitle>Write a review for {productName}</CardTitle>
+                 <CardDescription>
+                    Posting as <span className="font-semibold text-foreground">{user.name}</span>.
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div>
@@ -183,6 +186,11 @@ export default function PublicProductProfilePage() {
         });
     }, [reviewsData, allUsers]);
 
+    const currentUserReview = useMemo(() => {
+        if (!authUser || !productReviews) return null;
+        return productReviews.find(r => r.clientId === authUser.uid);
+    }, [authUser, productReviews]);
+
     const { avgRating, reviewCount } = useMemo(() => {
         if (!productReviews || productReviews.length === 0) return { avgRating: 0, reviewCount: 0 };
         const totalRating = productReviews.reduce((acc, r) => acc + r.rating, 0);
@@ -216,6 +224,19 @@ export default function PublicProductProfilePage() {
     const handleReviewSubmit = async (data: { rating: number, comment: string }) => {
         if (!firestore || !authUser || !currentUserProfile || !product) {
             toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to submit a review.' });
+            return;
+        }
+
+        const reviewsRef = collection(firestore, 'reviews');
+        const q = query(reviewsRef, where('productId', '==', product.id), where('clientId', '==', authUser.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            toast({
+                variant: "destructive",
+                title: "Already Reviewed",
+                description: "You have already submitted a review for this product.",
+            });
             return;
         }
 
@@ -438,12 +459,26 @@ export default function PublicProductProfilePage() {
                             )}
                         </div>
                         <div className="sticky top-24">
-                            <NewReviewForm
-                                productId={product.id}
-                                productName={product.name}
-                                user={currentUserProfile}
-                                onSubmit={handleReviewSubmit}
-                            />
+                           {currentUserReview ? (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Your Review</CardTitle>
+                                        <CardDescription>You have already reviewed this product.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <StarRating rating={currentUserReview.rating} size="sm" />
+                                        <p className="mt-4 text-sm text-muted-foreground italic">"{currentUserReview.comment}"</p>
+                                        <Badge variant={currentUserReview.status === 'Pending' ? 'secondary' : 'success'} className="mt-4">{currentUserReview.status}</Badge>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <NewReviewForm
+                                    productId={product.id}
+                                    productName={product.name}
+                                    user={currentUserProfile}
+                                    onSubmit={handleReviewSubmit}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

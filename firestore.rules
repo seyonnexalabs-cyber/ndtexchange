@@ -192,8 +192,9 @@ service cloud.firestore {
     
     match /products/{productId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
-      allow update, delete: if isAdmin() || (isManufacturer() && resource.data.manufacturerId == userCompanyId(request.auth.uid));
+      // Temporarily disabling write rules to debug list query permissions.
+      // allow create: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
+      // allow update, delete: if isAdmin() || (isManufacturer() && resource.data.manufacturerId == userCompanyId(request.auth.uid));
     }
     
     // All other collections that are either public or admin-only
@@ -232,5 +233,3 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
-
-    

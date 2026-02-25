@@ -143,6 +143,12 @@ export type Equipment = {
     modifiedBy?: string;
 };
 
+export type Award = {
+    name: string;
+    year: number;
+    imageUrl?: string;
+};
+
 export type Product = {
     id: string;
     name: string;
@@ -152,49 +158,14 @@ export type Product = {
     techniques: string[];
     description?: string;
     imageUrls?: string[];
+    isAwardWinning?: boolean;
+    awards?: Award[];
 };
 
-export type Certification = {
-  method: string;
-  level: 'Level I' | 'Level II' | 'Level III';
-  certificateNumber?: string;
-  validUntil?: string;
-};
-
-export type Bid = {
-    id: string;
-    jobId: string;
-    inspectorId: string;
-    providerId: string;
-    providerName: string;
-    amount: number;
-    status: 'Submitted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Shortlisted' | 'Not Selected';
-    submittedDate: string;
-    comments?: string;
-    proposedTechnique?: string;
-    proposalJustification?: string;
-    createdAt?: any;
-    createdBy?: string;
-    modifiedAt?: any;
-    modifiedBy?: string;
-};
-
-export type Customer = {
-    id: string;
-    name: string;
-    type: 'Customer';
-    contactPerson: string;
-    contactEmail: string;
-    activeJobs: number;
-    totalSpend: number;
-    logoUrl?: string;
-    brandColor?: string;
-    country?: string;
-    currency?: string;
-    createdAt?: any;
-    createdBy?: string;
-    modifiedAt?: any;
-    modifiedBy?: string;
+export type ReviewReply = {
+    text: string;
+    authorName: string;
+    timestamp: any;
 };
 
 export type Review = {
@@ -208,6 +179,7 @@ export type Review = {
   comment: string;
   date: any;
   status: 'Pending' | 'Approved' | 'Rejected';
+  reply?: ReviewReply;
   createdAt?: any;
   createdBy?: string;
   modifiedAt?: any;
@@ -407,6 +379,7 @@ export type Manufacturer = {
   description?: string;
   logoUrl?: string;
   techniqueIds: string[];
+  contactEmail: string;
   createdAt?: any;
   createdBy?: string;
   modifiedAt?: any;

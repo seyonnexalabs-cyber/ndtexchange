@@ -6,12 +6,12 @@ import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Star, ExternalLink, Wrench, Send } from "lucide-react";
+import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award } from "lucide-react";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
-import type { Product, Manufacturer, NDTTechnique, Review, PlatformUser } from '@/lib/types';
+import type { Product, Manufacturer, NDTTechnique, Review, PlatformUser, ReviewReply } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -26,7 +26,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
@@ -302,6 +302,7 @@ export default function PublicProductProfilePage() {
                     </div>
 
                      <div className="md:col-span-2">
+                        {product.isAwardWinning && <Badge className="mb-2"><Award className="mr-2 h-4 w-4"/>Award-Winning Product</Badge>}
                         <h1 className="text-3xl lg:text-4xl font-headline font-bold">{product.name}</h1>
                         <p className="mt-2 text-lg text-primary font-semibold">by {manufacturer?.name || product.manufacturerName}</p>
                         
@@ -315,10 +316,10 @@ export default function PublicProductProfilePage() {
                             ))}
                         </div>
 
-                        {manufacturer?.url && (
+                        {manufacturer?.contactEmail && (
                              <Button asChild size="lg" className="mt-8">
-                                <a href={createReferralUrl(manufacturer.url)} target="_blank" rel="noopener noreferrer">
-                                    Visit Manufacturer <ExternalLink className="ml-2"/>
+                                <a href={`mailto:${manufacturer.contactEmail}?subject=Inquiry about ${product.name}`}>
+                                    Contact Manufacturer
                                 </a>
                             </Button>
                         )}
@@ -329,6 +330,23 @@ export default function PublicProductProfilePage() {
                                 {product.description || 'No description available for this product.'}
                             </p>
                         </div>
+
+                        {product.awards && product.awards.length > 0 && (
+                            <div className="mt-8 border-t pt-6">
+                                <h2 className="text-xl font-semibold">Awards & Recognitions</h2>
+                                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {product.awards.map(award => (
+                                        <div key={award.name} className="text-center">
+                                            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+                                                <Image src={award.imageUrl || ''} alt={award.name} fill className="object-contain p-2"/>
+                                            </div>
+                                            <p className="text-sm font-semibold mt-2">{award.name}</p>
+                                            <p className="text-xs text-muted-foreground">{award.year}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 
@@ -357,6 +375,16 @@ export default function PublicProductProfilePage() {
                                         <CardContent>
                                             <StarRating rating={review.rating} size="sm" />
                                             <p className="mt-2 text-sm text-muted-foreground italic">"{review.comment}"</p>
+                                            {review.reply && (
+                                                <div className="mt-4 ml-8 p-4 bg-muted/50 rounded-lg border">
+                                                    <p className="text-sm font-semibold flex items-center gap-2">
+                                                        <Avatar className="h-6 w-6"><AvatarFallback className="text-xs">{review.reply.authorName.split(' ').map(n=>n[0]).join('')}</AvatarFallback></Avatar>
+                                                        Reply from {review.reply.authorName}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground pl-8">{review.reply.timestamp?.toDate ? format(review.reply.timestamp.toDate(), GLOBAL_DATETIME_FORMAT) : ''}</p>
+                                                    <p className="mt-2 text-sm text-muted-foreground italic pl-8">"{review.reply.text}"</p>
+                                                </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 ))

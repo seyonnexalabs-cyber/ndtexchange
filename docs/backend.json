@@ -328,12 +328,13 @@
         "description": { "type": "string" },
         "logoUrl": { "type": "string", "format": "uri", "description": "URL of the manufacturer's logo." },
         "techniqueIds": { "type": "array", "description": "An array of NDT Technique IDs that this manufacturer specializes in.", "items": { "type": "string" } },
+        "contactEmail": { "type": "string", "format": "email", "description": "Public contact email for sales or product inquiries." },
         "createdAt": { "type": "string", "format": "date-time" },
         "createdBy": { "type": "string" },
         "modifiedAt": { "type": "string", "format": "date-time" },
         "modifiedBy": { "type": "string" }
       },
-      "required": ["id", "name", "url", "techniqueIds"]
+      "required": ["id", "name", "url", "techniqueIds", "contactEmail"]
     },
     "Payment": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -419,7 +420,21 @@
         "type": { "type": "string", "enum": ["Instrument", "Probe", "Source", "Sensor", "Calibration Standard", "Accessory", "Visual Aid"] },
         "techniques": { "type": "array", "items": { "type": "string" } },
         "description": { "type": "string" },
-        "imageUrl": { "type": "string", "format": "uri" }
+        "imageUrl": { "type": "string", "format": "uri" },
+        "isAwardWinning": { "type": "boolean", "description": "Indicates if the product has won any notable awards." },
+        "awards": {
+          "type": "array",
+          "description": "A list of awards or recognitions the product has received.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "year": { "type": "number" },
+              "imageUrl": { "type": "string", "format": "uri" }
+            },
+            "required": ["name", "year"]
+          }
+        }
       },
       "required": ["id", "name", "manufacturerId", "manufacturerName", "type", "techniques"]
     },
@@ -437,7 +452,17 @@
             "rating": { "type": "number" },
             "comment": { "type": "string" },
             "date": { "type": "string", "format": "date-time" },
-            "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] }
+            "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+            "reply": {
+              "type": "object",
+              "description": "A reply from the manufacturer to the review.",
+              "properties": {
+                "text": { "type": "string" },
+                "authorName": { "type": "string" },
+                "timestamp": { "type": "string", "format": "date-time" }
+              },
+              "required": ["text", "authorName", "timestamp"]
+            }
         },
         "required": ["id", "clientId", "rating", "comment", "date", "status"]
     },

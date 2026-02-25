@@ -1,10 +1,128 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      // In a real app, this should check a custom claim or a role document.
+      // For this demo, we are hardcoding admin UIDs.
+      return request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
+    }
+
+    // --- Publicly Readable Data ---
+    // These collections are readable by anyone to support public-facing pages.
+    
     match /products/{productId} {
       allow read: if true;
-      allow write: if false; // Temporarily disable writes to isolate read issue
+      allow write: if isAdmin();
     }
-    // All other collections are implicitly denied for this diagnostic step.
+
+    match /manufacturers/{manufacturerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /techniques/{techniqueId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /asset_types/{assetTypeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- User-Specific Data ---
+    // Users can only access their own subcollections.
+    match /users/{userId} {
+      // A user can read and write to their own profile.
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /users/{userId}/tasks/{taskId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+    }
+
+    // --- Main Application Data ---
+    // Access is generally restricted to signed-in users, with more specific
+    // logic handled by application code and more granular rules.
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /jobs/{jobId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn(); 
+    }
+
+    match /jobs/{jobId}/{subcollection}/{docId} {
+         allow read, write: if isSignedIn(); // Simplified for bids, messages, etc.
+    }
+
+    match /assets/{assetId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    match /assets/{assetId}/inspections/{inspectionId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    match /reports/{reportId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    match /equipment/{equipmentId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update: if isAdmin();
+    }
+
+    match /companies/{companyId}/supportChats/{chatId} {
+        allow read, write: if isSignedIn(); // Simplified for demo
+    }
+
+    match /companies/{companyId}/supportChats/{chatId}/supportMessages/{messageId} {
+         allow read, write: if isSignedIn(); // Simplified for demo
+    }
+    
+    // --- Admin-Only Logs & Payments ---
+    // These collections are restricted to platform administrators.
+    match /payments/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /jobPayments/{jobPaymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{path=**}/userAuditLogs/{logId} {
+        allow read, write: if isAdmin();
+    }
+
+    match /{path=**}/jobAuditLogs/{logId} {
+        allow read, write: if isAdmin();
+    }
+    
+    match /{path=**}/billingAuditLogs/{logId} {
+        allow read, write: if isAdmin();
+    }
   }
 }

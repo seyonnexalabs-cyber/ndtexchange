@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -374,7 +375,7 @@ export default function PublicProductProfilePage() {
                                 {product.description || 'No description available for this product.'}
                             </p>
                         </div>
-
+                        
                         {product.awards && product.awards.length > 0 && (
                             <div className="mt-8 border-t pt-6">
                                 <h2 className="text-xl font-semibold">Awards & Recognitions</h2>

@@ -32,16 +32,22 @@ service cloud.firestore {
              (job.clientCompanyId == userCompanyId(request.auth.uid) ||
              (job.providerId != null && job.providerId == userCompanyId(request.auth.uid)));
     }
+    
+    function isManufacturer() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return userRole == 'Manufacturer';
+    }
+
 
     // --------------------------------
     // Collection Rules
     // --------------------------------
 
+    // --- DEBUGGING RULE for /products ---
+    // Temporarily locking down list access to a specific UID to diagnose permission issue.
     match /products/{productId} {
-      // Allow any signed-in user to read products.
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      // Temporarily disable writes to isolate read issues.
+      allow list: if request.auth.uid == 'nLw39tgIl9eP58bJri5dhajT1zV2'; // Specific user ID from error
       allow write: if false;
     }
 
@@ -230,4 +236,4 @@ service cloud.firestore {
   }
 }
 
-  
+    

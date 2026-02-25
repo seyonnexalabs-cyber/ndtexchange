@@ -3,18 +3,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Start of Corrected Rule ---
+    // --------------------------------
+    // Public Read-Only Collections
+    // --------------------------------
     match /products/{productId} {
-      // Allow public read access to all products.
-      // This is necessary for public catalog pages and fixes the query permission error.
       allow get, list: if true;
-
-      // Only administrators can create, update, or delete products for now.
-      // This avoids using get() in rules which was causing the query to fail.
       allow write: if isAdmin();
     }
-    // --- End of Corrected Rule ---
-
+    match /manufacturers/{manufacturerId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+    match /techniques/{techniqueId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+    match /asset_types/{assetTypeId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+     match /plans/{planId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+    
     // --------------------------------
     // Helper Functions
     // --------------------------------
@@ -189,10 +201,6 @@ service cloud.firestore {
       allow update, delete: if isOwner(resource.data.inspectorId);
     }
 
-    // All other collections that are either public or admin-only
-    match /asset_types/{assetTypeId} { allow read: if true; allow write: if isAdmin(); }
-    match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
-    match /manufacturers/{manufacturerId} { allow read: if true; allow write: if isAdmin(); }
     match /equipment/{equipmentId} {
       allow write: if isAdmin(); // Admin can seed and manage all equipment
       allow read: if true;
@@ -201,10 +209,8 @@ service cloud.firestore {
       allow update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == resource.data.providerId));
       allow list: if true;
     }
-    match /plans/{planId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
+    
+    // All other collections that are either admin-only or have specific rules
     match /defects/{defectId} { allow read, write: if isAdmin(); }
     match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }
     match /roles_admin/{userId} { allow read, write: if isAdmin(); }

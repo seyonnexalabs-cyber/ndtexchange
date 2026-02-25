@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award, Maximize } from "lucide-react";
+import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award, Maximize, ChevronRight } from "lucide-react";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Product, Manufacturer, NDTTechnique, Review, PlatformUser, ReviewReply } from '@/lib/types';
@@ -144,6 +144,7 @@ export default function PublicProductProfilePage() {
     const [current, setCurrent] = React.useState(0);
     const [isImageViewerOpen, setIsImageViewerOpen] = React.useState(false);
     const [selectedImageUrl, setSelectedImageUrl] = React.useState<string | null>(null);
+    const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
 
     const productRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'products', id as string) : null), [firestore, id]);
     const { data: product, isLoading: isLoadingProduct } = useDoc<Product>(productRef);
@@ -190,10 +191,26 @@ export default function PublicProductProfilePage() {
         };
     }, [productReviews]);
     
-    const handleImageClick = (url: string) => {
+    const handleImageClick = (url: string, index: number) => {
         setSelectedImageUrl(url);
+        setSelectedImageIndex(index);
         setIsImageViewerOpen(true);
     };
+
+    const handlePrevImage = () => {
+        if (!product?.imageUrls) return;
+        const newIndex = Math.max(0, selectedImageIndex - 1);
+        setSelectedImageIndex(newIndex);
+        setSelectedImageUrl(product.imageUrls[newIndex]);
+    };
+
+    const handleNextImage = () => {
+        if (!product?.imageUrls) return;
+        const newIndex = Math.min(product.imageUrls.length - 1, selectedImageIndex + 1);
+        setSelectedImageIndex(newIndex);
+        setSelectedImageUrl(product.imageUrls[newIndex]);
+    };
+
 
     const handleReviewSubmit = async (data: { rating: number, comment: string }) => {
         if (!firestore || !authUser || !currentUserProfile || !product) {
@@ -256,6 +273,9 @@ export default function PublicProductProfilePage() {
     if (!product) {
         notFound();
     }
+    
+    const canGoPrev = selectedImageIndex > 0;
+    const canGoNext = product && product.imageUrls && selectedImageIndex < product.imageUrls.length - 1;
 
     return (
         <div className="bg-background">
@@ -281,7 +301,7 @@ export default function PublicProductProfilePage() {
                                                 <button 
                                                     type="button"
                                                     className="relative aspect-square bg-muted rounded-lg overflow-hidden block w-full group"
-                                                    onClick={() => handleImageClick(url)}
+                                                    onClick={() => handleImageClick(url, index)}
                                                 >
                                                     <Image src={url} alt={`${product.name} image ${index + 1}`} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/>
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
@@ -427,15 +447,37 @@ export default function PublicProductProfilePage() {
                     </div>
                 </div>
                  <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
-                    <DialogContent className="max-w-6xl h-[90vh] bg-transparent border-none shadow-none p-0">
+                    <DialogContent className="max-w-7xl w-full h-[95vh] bg-transparent border-none shadow-none p-0 flex items-center justify-center">
                         {selectedImageUrl && (
-                            <div className="relative w-full h-full">
+                             <div className="relative w-full h-full flex items-center justify-center">
                                 <Image
                                     src={selectedImageUrl}
                                     alt="Full screen product image"
                                     fill
                                     className="object-contain"
                                 />
+                                {product.imageUrls && product.imageUrls.length > 1 && (
+                                    <>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/20 hover:bg-black/40 text-white hover:text-white disabled:opacity-20 disabled:hover:bg-black/20"
+                                            onClick={handlePrevImage}
+                                            disabled={!canGoPrev}
+                                        >
+                                            <ChevronLeft className="h-8 w-8" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/20 hover:bg-black/40 text-white hover:text-white disabled:opacity-20 disabled:hover:bg-black/20"
+                                            onClick={handleNextImage}
+                                            disabled={!canGoNext}
+                                        >
+                                            <ChevronRight className="h-8 w-8" />
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </DialogContent>

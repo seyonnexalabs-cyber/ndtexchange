@@ -24,14 +24,6 @@ service cloud.firestore {
     function userCompanyId(userId) {
       return get(/databases/$(database)/documents/users/$(userId)).data.companyId;
     }
-    
-    function isManufacturer() {
-      // NOTE: This function's use in rules can block 'list' queries.
-      // It's better to use custom claims on the auth token for role checking in rules.
-      // For example: request.auth.token.isManufacturer == true
-      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return userRole == 'Manufacturer';
-    }
 
     // Helper function to check if a user is part of a job's client or provider company
     function isJobParticipant(jobId) {
@@ -198,10 +190,9 @@ service cloud.firestore {
       // and for the manufacturer's own dashboard query to work.
       allow read: if isSignedIn();
       
-      // Allow writes only for admins or the product's owning manufacturer.
-      // This is now based on a custom claim (`isManufacturer`) which should be set on the auth token
-      // to avoid using get() in security rules for list operations.
-      allow write: if isAdmin() || (request.auth.token.isManufacturer == true && request.auth.token.companyId == request.resource.data.manufacturerId);
+      // Temporarily simplify write rule to remove get() call from this path.
+      // A more robust solution using custom claims is needed for full manufacturer functionality.
+      allow write: if isAdmin();
     }
     
     // All other collections that are either public or admin-only

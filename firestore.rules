@@ -43,12 +43,13 @@ service cloud.firestore {
     // Collection Rules
     // --------------------------------
 
-    // --- DEBUGGING RULE for /products ---
-    // Temporarily locking down list access to a specific UID to diagnose permission issue.
     match /products/{productId} {
-      allow get: if isSignedIn();
-      allow list: if request.auth.uid == 'nLw39tgIl9eP58bJri5dhajT1zV2'; // Specific user ID from error
-      allow write: if false;
+      // Any signed in user can read products (for catalogs, etc.)
+      allow read: if isSignedIn();
+      
+      // Only admins or the product's owning manufacturer can write.
+      // This uses get() but is safe because it's on a single-document 'write' operation, not a 'list' query.
+      allow write: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
     }
 
     match /users/{userId} {
@@ -111,20 +112,6 @@ service cloud.firestore {
         // Only the assigned inspector or an admin can update/delete.
         allow update, delete: if isOwner(resource.data.inspectorId) || isAdmin();
       }
-    }
-
-    // Rule to allow inspectors to query their own bids across all jobs.
-    match /{path=**}/bids/{bidId} {
-      allow list: if request.auth.uid == resource.data.inspectorId;
-      allow get: if (isSignedIn() && (
-                        isOwner(resource.data.inspectorId) ||
-                        userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(path[1])).data.clientCompanyId
-                      )) || isAdmin();
-    }
-
-    match /{path=**}/supportChats/{chatId} {
-      // Allow admins to query across all company support chats
-      allow read: if isAdmin();
     }
 
     match /jobs/{jobId} {

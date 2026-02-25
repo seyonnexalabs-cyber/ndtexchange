@@ -203,7 +203,8 @@ service cloud.firestore {
       allow list: if true;
     }
     match /products/{productId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow list: if isManufacturer();
       allow create: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
       allow update, delete: if isAdmin() || (isManufacturer() && resource.data.manufacturerId == userCompanyId(request.auth.uid));
     }
@@ -231,3 +232,5 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
+
+    

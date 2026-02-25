@@ -199,8 +199,10 @@ export type Customer = {
 
 export type Review = {
   id: string;
-  jobId: string;
-  providerId: string;
+  jobId?: string;
+  productId?: string;
+  productName?: string;
+  providerId?: string;
   clientId: string;
   rating: number;
   comment: string;

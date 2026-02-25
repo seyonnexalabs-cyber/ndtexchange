@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Money": {
@@ -422,6 +423,24 @@
       },
       "required": ["id", "name", "manufacturerId", "manufacturerName", "type", "techniques"]
     },
+    "Review": {
+        "title": "Review",
+        "type": "object",
+        "description": "A review for a service provider or a product.",
+        "properties": {
+            "id": { "type": "string" },
+            "clientId": { "type": "string" },
+            "jobId": { "type": "string" },
+            "providerId": { "type": "string" },
+            "productId": { "type": "string" },
+            "productName": { "type": "string" },
+            "rating": { "type": "number" },
+            "comment": { "type": "string" },
+            "date": { "type": "string", "format": "date-time" },
+            "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] }
+        },
+        "required": ["id", "clientId", "rating", "comment", "date", "status"]
+    },
     "Task": {
       "title": "Task",
       "type": "object",
@@ -691,6 +710,14 @@
             "$ref": "#/backend/entities/Product"
           },
           "description": "Stores public product catalog information from manufacturers."
+        }
+      },
+       {
+        "path": "/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": { "$ref": "#/backend/entities/Review" },
+          "description": "Stores reviews for providers and products."
         }
       },
       {

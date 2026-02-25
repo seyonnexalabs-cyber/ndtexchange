@@ -37,6 +37,13 @@ service cloud.firestore {
     // Collection Rules
     // --------------------------------
 
+    match /products/{productId} {
+      // Allow any signed-in user to read products.
+      allow get, list: if isSignedIn();
+      // Temporarily simplify write rule to only allow admins to avoid get() call interference.
+      allow write: if isAdmin();
+    }
+
     match /users/{userId} {
       allow write: if isAdmin(); // Admin can seed
       allow create: if isOwner(userId);
@@ -54,7 +61,7 @@ service cloud.firestore {
         allow write: if isAdmin();
         allow read, update: if isOwner(userId);
       }
-      
+
       match /tasks/{taskId} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
@@ -72,13 +79,13 @@ service cloud.firestore {
       match /supportChats/{chatId} {
         // Allow members of the company or admins to access support chats.
         allow read, write: if userCompanyId(request.auth.uid) == companyId || isAdmin();
-        
+
         match /supportMessages/{messageId} {
           allow read, write: if userCompanyId(request.auth.uid) == companyId || isAdmin();
         }
       }
     }
-    
+
     match /assets/{assetId} {
       allow write: if isAdmin(); // Admin can seed
       // A user can create an asset for their own company.
@@ -87,7 +94,7 @@ service cloud.firestore {
       allow list: if isSignedIn();
       // A user can read, update, or delete an asset IFF they belong to that asset's company.
       allow get, update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == resource.data.companyId || isAdmin()));
-      
+
       match /inspections/{inspectionId} {
         allow write: if isAdmin(); // Admin can seed
         // Creating an inspection is allowed if you are a member of the asset's company.
@@ -103,11 +110,11 @@ service cloud.firestore {
     match /{path=**}/bids/{bidId} {
       allow list: if request.auth.uid == resource.data.inspectorId;
       allow get: if (isSignedIn() && (
-                        isOwner(resource.data.inspectorId) || 
+                        isOwner(resource.data.inspectorId) ||
                         userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(path[1])).data.clientCompanyId
                       )) || isAdmin();
     }
-    
+
     match /{path=**}/supportChats/{chatId} {
       // Allow admins to query across all company support chats
       allow read: if isAdmin();
@@ -117,10 +124,10 @@ service cloud.firestore {
       allow write: if isAdmin(); // Admin can seed
       // A signed-in user can create a job if they are the client.
       allow create: if (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.clientCompanyId == userCompanyId(request.auth.uid)));
-      
+
       // Allow LISTING jobs for marketplace browsing
       allow list: if isSignedIn();
-      
+
       // Allow GETTING a job's details
       allow get: if (isSignedIn() && (
                       resource.data.status == 'Posted' || // Anyone can see open jobs
@@ -137,7 +144,7 @@ service cloud.firestore {
                       )) || isAdmin();
 
       // Only the client or an admin can delete a job.
-      allow delete: if (isSignedIn() && 
+      allow delete: if (isSignedIn() &&
                        (userCompanyId(request.auth.uid) == resource.data.clientCompanyId || userCompanyId(request.auth.uid) == resource.data.companyId)
                       ) || isAdmin();
 
@@ -148,22 +155,22 @@ service cloud.firestore {
 
         // GET allows the job client or the bidding inspector to read a single bid.
         allow get: if (isSignedIn() && (
-                        isOwner(resource.data.inspectorId) || 
+                        isOwner(resource.data.inspectorId) ||
                         userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
                       )) || isAdmin();
 
         // LIST allows the job client to read all bids for their job.
-        allow list: if (isSignedIn() && 
+        allow list: if (isSignedIn() &&
                         userCompanyId(request.auth.uid) == get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId
                       ) || isAdmin();
-                      
+
         allow update: if (isSignedIn() && (
                       userCompanyId(request.auth.uid) == userCompanyId(resource.data.inspectorId) ||
                       get(/databases/$(database)/documents/jobs/$(jobId)).data.clientCompanyId == userCompanyId(request.auth.uid)
                     ));
         allow delete: if isSignedIn() && userCompanyId(request.auth.uid) == userCompanyId(resource.data.inspectorId);
       }
-      
+
       match /messages/{messageId} {
         allow write: if isAdmin(); // Admin can seed
         // Participants of the job can read messages and create new ones.
@@ -184,17 +191,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow update, delete: if isOwner(resource.data.inspectorId);
     }
-    
-    match /products/{productId} {
-      // Allow any signed-in user to read products. This is necessary for the public catalog 
-      // and for the manufacturer's own dashboard query to work.
-      allow read: if isSignedIn();
-      
-      // Temporarily simplify write rule to remove get() call from this path.
-      // A more robust solution using custom claims is needed for full manufacturer functionality.
-      allow write: if isAdmin();
-    }
-    
+
     // All other collections that are either public or admin-only
     match /asset_types/{assetTypeId} { allow read: if true; allow write: if isAdmin(); }
     match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
@@ -208,7 +205,7 @@ service cloud.firestore {
       allow list: if true;
     }
     match /plans/{planId} {
-      allow read: if true; 
+      allow read: if true;
       allow write: if isAdmin();
     }
     match /defects/{defectId} { allow read, write: if isAdmin(); }

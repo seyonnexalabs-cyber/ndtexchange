@@ -190,6 +190,12 @@ service cloud.firestore {
       allow update, delete: if isOwner(resource.data.inspectorId);
     }
     
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
+      allow update, delete: if isAdmin() || (isManufacturer() && resource.data.manufacturerId == userCompanyId(request.auth.uid));
+    }
+    
     // All other collections that are either public or admin-only
     match /asset_types/{assetTypeId} { allow read: if true; allow write: if isAdmin(); }
     match /techniques/{techniqueId} { allow read: if true; allow write: if isAdmin(); }
@@ -201,12 +207,6 @@ service cloud.firestore {
       // Simplified update rule to avoid get() in batch writes
       allow update, delete: if (isSignedIn() && (userCompanyId(request.auth.uid) == resource.data.providerId));
       allow list: if true;
-    }
-    match /products/{productId} {
-      allow get: if isSignedIn();
-      allow list: if isManufacturer();
-      allow create: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
-      allow update, delete: if isAdmin() || (isManufacturer() && resource.data.manufacturerId == userCompanyId(request.auth.uid));
     }
     match /plans/{planId} {
       allow read: if true; 

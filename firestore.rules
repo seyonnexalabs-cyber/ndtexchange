@@ -198,7 +198,7 @@ service cloud.firestore {
       allow list: if true;
     }
     match /products/{productId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
     match /plans/{planId} {

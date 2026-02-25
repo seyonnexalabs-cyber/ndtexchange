@@ -4,12 +4,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Wrench, MoreVertical, Edit } from "lucide-react";
+import { Wrench, MoreVertical, Edit, Trash } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useMemo, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -32,7 +32,7 @@ const productSchema = z.object({
   type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
   techniques: z.array(z.string()).min(1, "At least one technique must be selected."),
   description: z.string().optional(),
-  imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  imageUrls: z.array(z.object({ value: z.string().url({ message: "Please enter a valid URL." }).or(z.literal('')) })).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -54,6 +54,17 @@ const ProductForm = ({
         resolver: zodResolver(productSchema),
         defaultValues,
     });
+    
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name: "imageUrls",
+    });
+
+    useEffect(() => {
+        if (defaultValues) {
+            form.reset(defaultValues);
+        }
+    }, [defaultValues, form]);
     
     const techniqueOptions: MultiSelectOption[] = useMemo(() => 
         allTechniques.map(t => ({ value: t.acronym, label: `${t.title} (${t.acronym})` })), 
@@ -139,17 +150,37 @@ const ProductForm = ({
                         </FormItem>
                     )}
                 />
-                 <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Image URL (Optional)</FormLabel>
-                            <FormControl><Input placeholder="https://www.example.com/product.jpg" {...field} /></FormControl>
+                 <div className="space-y-2">
+                    <FormLabel>Image URLs (Optional)</FormLabel>
+                    {fields.map((field, index) => (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={`imageUrls.${index}.value`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center gap-2">
+                              <FormControl>
+                                <Input placeholder="https://example.com/image.jpg" {...field} />
+                              </FormControl>
+                              <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
                             <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => append({ value: "" })}
+                    >
+                      Add Image URL
+                    </Button>
+                </div>
             </form>
         </Form>
     );
@@ -164,6 +195,7 @@ export default function ProductsPage() {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [defaultValues, setDefaultValues] = useState<Partial<ProductFormValues>>({ techniques: [], imageUrls: [{value: ''}] });
 
     const productsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'products'), orderBy('name')) : null, [firestore]);
     const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
@@ -182,10 +214,18 @@ export default function ProductsPage() {
     
     const handleAddClick = () => {
         setEditingProduct(null);
+        setDefaultValues({ techniques: [], imageUrls: [{ value: '' }] });
         setIsFormOpen(true);
     };
 
     const handleEditClick = (product: Product) => {
+        const imageUrlsForForm = product.imageUrls?.map(url => ({ value: url })) || [{value: ''}];
+        if(imageUrlsForForm.length === 0) imageUrlsForForm.push({value: ''}); // Ensure at least one input
+        
+        setDefaultValues({
+            ...product,
+            imageUrls: imageUrlsForForm
+        });
         setEditingProduct(product);
         setIsFormOpen(true);
     };
@@ -206,9 +246,9 @@ export default function ProductsPage() {
             manufacturerId: values.manufacturerId,
             manufacturerName: manufacturer?.name || 'Unknown',
             type: values.type,
-            techniques: values.techniques,
+            techniques: values.techniques || [],
             description: values.description,
-            imageUrl: values.imageUrl,
+            imageUrls: values.imageUrls?.map(item => item.value).filter(Boolean) || [],
         };
 
         if (isEditing && editingProduct) {
@@ -269,7 +309,7 @@ export default function ProductsPage() {
                                 <TableRow key={prod.id}>
                                     <TableCell className="font-medium flex items-center gap-3">
                                         <Avatar className="h-10 w-10">
-                                            {prod.imageUrl && <AvatarImage src={prod.imageUrl} alt={prod.name} className="object-contain" />}
+                                            {prod.imageUrls && prod.imageUrls[0] && <AvatarImage src={prod.imageUrls[0]} alt={prod.name} className="object-contain" />}
                                             <AvatarFallback>{prod.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                         </Avatar>
                                         {prod.name}
@@ -307,21 +347,23 @@ export default function ProductsPage() {
             </Card>
 
              <Dialog open={isFormOpen} onOpenChange={closeDialog}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
+                 <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
+                    <DialogHeader className="p-6 pb-4 border-b">
                         <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
                         <DialogDescription>
                             {editingProduct ? 'Update the details for this product.' : 'Enter the details for a new product to add it to the catalog.'}
                         </DialogDescription>
                     </DialogHeader>
-                     <ProductForm
-                        formId="product-form"
-                        onSubmit={handleFormSubmit}
-                        defaultValues={editingProduct || { techniques: [] }}
-                        allTechniques={allTechniques || []}
-                        allManufacturers={allManufacturers || []}
-                    />
-                    <DialogFooter>
+                    <div className="flex-grow overflow-y-auto px-6">
+                        <ProductForm
+                            formId="product-form"
+                            onSubmit={handleFormSubmit}
+                            defaultValues={defaultValues}
+                            allTechniques={allTechniques || []}
+                            allManufacturers={allManufacturers || []}
+                        />
+                    </div>
+                    <DialogFooter className="p-6 pt-4 border-t">
                         <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
                         <Button type="submit" form="product-form">{editingProduct ? 'Save Changes' : 'Add Product'}</Button>
                     </DialogFooter>

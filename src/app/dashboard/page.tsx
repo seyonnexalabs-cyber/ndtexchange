@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -24,7 +25,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { jobs as jobsData, inspectorAssets, allUsers, userAuditLog as userAuditLogData, jobAuditLog as jobAuditLogData, billingAuditLog as billingAuditLogData, reviews as reviewsData, subscriptions as subscriptionsData, clientData, payments as paymentsData, jobPayments as jobPaymentsData, jobChats, serviceProviders, auditFirms, NDTTechniques, manufacturersData, clientAssets, inspectionsData, productsData, notifications, tasks, subscriptionPlans } from "@/lib/seed-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -579,6 +579,7 @@ const AuditorDashboard = () => {
     }, [firestore, user]);
 
     const { data: jobs, isLoading } = useCollection<Job>(jobsQuery);
+    const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<any>(useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]));
 
     const auditQueue = useMemo(() => jobs?.filter(j => j.status === 'Report Submitted') || [], [jobs]);
     const auditsCompleted = useMemo(() => jobs?.filter(j => j.status === 'Audit Approved').length || 0, [jobs]);
@@ -590,7 +591,7 @@ const AuditorDashboard = () => {
         return date ? date.getTime() : 0;
     };
     
-     if (isLoading) {
+     if (isLoading || isLoadingProviders) {
         return <DashboardSkeleton />;
     }
 
@@ -648,7 +649,7 @@ const AuditorDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
-                                    <TableCell>{serviceProviders.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                    <TableCell>{serviceProviders?.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
                                     <TableCell>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
@@ -721,22 +722,22 @@ const AdminDashboard = () => {
         try {
             const batch = writeBatch(firestore);
 
-            const collectionsToSeed = [
-                { name: 'techniques', data: NDTTechniques },
-                { name: 'manufacturers', data: manufacturersData },
-                { name: 'products', data: productsData },
-                { name: 'companies', data: [...clientData, ...serviceProviders, ...auditFirms] },
-                { name: 'users', data: allUsers.map(u => { const { password, ...user } = u; return user; }) },
-                { name: 'assets', data: clientAssets },
-                { name: 'equipment', data: inspectorAssets },
-                { name: 'subscriptions', data: subscriptionsData },
-                { name: 'payments', data: paymentsData },
-                { name: 'jobPayments', data: jobPaymentsData },
-                { name: 'reviews', data: reviewsData },
-                { name: 'userAuditLogs', data: userAuditLogData },
-                { name: 'jobAuditLogs', data: jobAuditLogData },
-                { name: 'billingAuditLogs', data: billingAuditLogData },
-                { name: 'plans', data: subscriptionPlans },
+            const collectionsToSeed: { name: string, data: any[] }[] = [
+                { name: 'techniques', data: (await import('@/lib/seed-data')).NDTTechniques },
+                { name: 'manufacturers', data: (await import('@/lib/seed-data')).manufacturersData },
+                { name: 'products', data: (await import('@/lib/seed-data')).productsData },
+                { name: 'companies', data: [...(await import('@/lib/seed-data')).clientData, ...(await import('@/lib/seed-data')).serviceProviders, ...(await import('@/lib/seed-data')).auditFirms] },
+                { name: 'users', data: (await import('@/lib/seed-data')).allUsers.map(u => { const { password, ...user } = u; return user; }) },
+                { name: 'assets', data: (await import('@/lib/seed-data')).clientAssets },
+                { name: 'equipment', data: (await import('@/lib/seed-data')).inspectorAssets },
+                { name: 'subscriptions', data: (await import('@/lib/seed-data')).subscriptionsData },
+                { name: 'payments', data: (await import('@/lib/seed-data')).paymentsData },
+                { name: 'jobPayments', data: (await import('@/lib/seed-data')).jobPaymentsData },
+                { name: 'reviews', data: (await import('@/lib/seed-data')).reviewsData },
+                { name: 'userAuditLogs', data: (await import('@/lib/seed-data')).userAuditLogData },
+                { name: 'jobAuditLogs', data: (await import('@/lib/seed-data')).jobAuditLogData },
+                { name: 'billingAuditLogs', data: (await import('@/lib/seed-data')).billingAuditLogData },
+                { name: 'plans', data: (await import('@/lib/seed-data')).subscriptionPlans },
             ];
 
             for (const { name, data } of collectionsToSeed) {
@@ -747,21 +748,23 @@ const AdminDashboard = () => {
                 console.log(`[SEED] ✅ Prepared ${data.length} documents for ${name}.`);
             }
             
+            const seedData = await import('@/lib/seed-data');
+            
             console.log(`[SEED] Preparing: jobs and subcollections...`);
-            jobsData.forEach(job => {
+            seedData.jobs.forEach(job => {
                 const { bids, inspections, ...jobData } = job;
                 batch.set(doc(firestore, 'jobs', job.id), jobData);
                 bids.forEach(bid => batch.set(doc(firestore, 'jobs', bid.jobId, 'bids', bid.id), bid));
-                jobChats.filter(c => c.jobId === job.id).forEach(chat => {
+                seedData.jobChats.filter(c => c.jobId === job.id).forEach(chat => {
                     chat.messages.forEach(msg => batch.set(doc(firestore, 'jobs', chat.jobId, 'messages', msg.id), msg));
                 });
             });
             console.log(`[SEED] ✅ Prepared jobs and subcollections.`);
             
             console.log(`[SEED] Preparing: tasks, notifications, inspections...`);
-            tasks.forEach(task => batch.set(doc(firestore, 'users', task.userId, 'tasks', task.id), task));
-            notifications.forEach(n => batch.set(doc(firestore, 'users', n.userId, 'notifications', n.id), n));
-            inspectionsData.forEach(inspection => {
+            seedData.tasks.forEach(task => batch.set(doc(firestore, 'users', task.userId, 'tasks', task.id), task));
+            seedData.notifications.forEach(n => batch.set(doc(firestore, 'users', n.userId, 'notifications', n.id), n));
+            seedData.inspectionsData.forEach(inspection => {
                 const { report, ...inspectionData } = inspection;
                 batch.set(doc(firestore, 'assets', inspection.assetId, 'inspections', inspection.id), inspectionData);
                 if (report) {
@@ -951,6 +954,29 @@ const AdminDashboard = () => {
     );
 };
 
+const ManufacturerDashboard = () => {
+    const searchParams = useSearchParams();
+
+    return (
+        <div className="grid gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Manufacturer Dashboard</CardTitle>
+                    <CardDescription>Welcome to the NDT Exchange Manufacturer Portal.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p>This is your central hub for managing products and viewing market insights.</p>
+                </CardContent>
+                 <CardFooter>
+                    <Button asChild>
+                        <Link href={constructUrl('/dashboard/my-products', searchParams)}>Manage My Products</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+        </div>
+    )
+}
+
 const DashboardSkeleton = () => (
     <div className="grid gap-6">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -984,6 +1010,7 @@ export default function DashboardPage() {
             case 'inspector': return <InspectorDashboard />;
             case 'admin': return <AdminDashboard />;
             case 'auditor': return <AuditorDashboard />;
+            case 'manufacturer': return <ManufacturerDashboard />;
             case 'client': default: return <ClientDashboard />;
         }
     };

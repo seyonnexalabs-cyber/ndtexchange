@@ -55,6 +55,7 @@ const userDetails = {
   inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.' },
   admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT EXCHANGE' },
   auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC' },
+  manufacturer: { name: 'OEM User', role: 'Product Manager', fallback: 'OM', company: 'Evident Scientific' },
   common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
@@ -167,6 +168,7 @@ const adminMenu = [
       { id: 'providers', href: '/dashboard/providers', label: 'Providers', icon: Users },
       { id: 'auditors', href: '/dashboard/auditors', label: 'Auditors', icon: Eye },
       { id: 'manufacturers', href: '/dashboard/manufacturers', label: 'Manufacturers', icon: Factory },
+      { id: 'products', href: '/dashboard/products', label: 'Products', icon: Wrench },
       { id: 'all-jobs', href: '/dashboard/all-jobs', label: 'All Jobs', icon: Briefcase },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'subscriptions', href: '/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
@@ -206,6 +208,29 @@ const auditorMenu = [
   }
 ];
 
+const manufacturerMenu = [
+    {
+    title: 'Workspace',
+    items: [
+      { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'my-products', href: '/dashboard/my-products', label: 'My Products', icon: Wrench },
+    ]
+  },
+  {
+    title: 'Growth',
+    items: [
+      { id: 'market-insights', href: '/dashboard/market-insights', label: 'Market Insights', icon: BarChart },
+    ]
+  },
+   {
+    title: 'Account',
+    items: [
+      { id: 'support', href: '/dashboard/support', label: 'Support', icon: LifeBuoy },
+      { id: 'settings', href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ]
+  }
+];
+
 
 const AppSidebar = () => {
   const pathname = usePathname();
@@ -214,7 +239,7 @@ const AppSidebar = () => {
   const { isMobile, setOpenMobile, state } = useSidebar();
   const { user, isUserLoading } = useUser();
 
-  const validRoles = ['client', 'inspector', 'admin', 'auditor'];
+  const validRoles = ['client', 'inspector', 'admin', 'auditor', 'manufacturer'];
   const roleParam = searchParams.get('role');
   const planParam = searchParams.get('plan');
 
@@ -265,6 +290,9 @@ const AppSidebar = () => {
         break;
       case 'auditor':
         menu = auditorMenu;
+        break;
+      case 'manufacturer':
+        menu = manufacturerMenu;
         break;
       default:
         menu = [];

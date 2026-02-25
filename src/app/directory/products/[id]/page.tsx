@@ -26,7 +26,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
@@ -140,9 +140,8 @@ export default function PublicProductProfilePage() {
     const { user: authUser } = useUser();
     const { toast } = useToast();
 
-    const [api, setApi] = React.useState<CarouselApi>()
-    const [current, setCurrent] = React.useState(0)
-    const [count, setCount] = React.useState(0)
+    const [api, setApi] = React.useState<CarouselApi>();
+    const [current, setCurrent] = React.useState(0);
 
     const productRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'products', id as string) : null), [firestore, id]);
     const { data: product, isLoading: isLoadingProduct } = useDoc<Product>(productRef);
@@ -159,13 +158,12 @@ export default function PublicProductProfilePage() {
 
     const { data: currentUserProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser]));
 
-
     React.useEffect(() => {
         if (!api) return;
-        setCount(api.scrollSnapList().length);
-        setCurrent(api.selectedScrollSnap() + 1);
+
+        setCurrent(api.selectedScrollSnap());
         api.on("select", () => {
-            setCurrent(api.selectedScrollSnap() + 1)
+            setCurrent(api.selectedScrollSnap());
         });
     }, [api]);
     
@@ -266,7 +264,7 @@ export default function PublicProductProfilePage() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-                    <div className="md:col-span-1">
+                    <div className="md:col-span-1 space-y-4">
                         <Card className="overflow-hidden">
                             <Carousel setApi={setApi} className="w-full">
                                 <CarouselContent>
@@ -293,12 +291,24 @@ export default function PublicProductProfilePage() {
                                     </>
                                 )}
                             </Carousel>
-                             {count > 1 && (
-                                <div className="py-2 text-center text-sm text-muted-foreground">
-                                    Image {current} of {count}
-                                </div>
-                            )}
                         </Card>
+                        {product.imageUrls && product.imageUrls.length > 1 && (
+                            <div className="grid grid-cols-5 gap-2">
+                                {product.imageUrls.map((url, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => api?.scrollTo(index)}
+                                        className={cn(
+                                            "relative aspect-square rounded-md overflow-hidden border-2 transition-all",
+                                            current === index ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
+                                        )}
+                                        aria-label={`Go to image ${index + 1}`}
+                                    >
+                                        <Image src={url} alt={`Thumbnail ${index + 1}`} fill className="object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                      <div className="md:col-span-2">

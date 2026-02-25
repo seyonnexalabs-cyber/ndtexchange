@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -8,7 +7,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award } from "lucide-react";
+import { ChevronLeft, Star, ExternalLink, Wrench, Send, Award, Maximize } from "lucide-react";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Product, Manufacturer, NDTTechnique, Review, PlatformUser, ReviewReply } from '@/lib/types';
@@ -29,6 +28,7 @@ import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const StarRating = ({ rating, reviewCount, size = "md" }: { rating: number, reviewCount?: number, size?: 'sm' | 'md' }) => {
     const starSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
@@ -142,6 +142,8 @@ export default function PublicProductProfilePage() {
 
     const [api, setApi] = React.useState<CarouselApi>();
     const [current, setCurrent] = React.useState(0);
+    const [isImageViewerOpen, setIsImageViewerOpen] = React.useState(false);
+    const [selectedImageUrl, setSelectedImageUrl] = React.useState<string | null>(null);
 
     const productRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'products', id as string) : null), [firestore, id]);
     const { data: product, isLoading: isLoadingProduct } = useDoc<Product>(productRef);
@@ -187,6 +189,11 @@ export default function PublicProductProfilePage() {
             reviewCount: productReviews.length
         };
     }, [productReviews]);
+    
+    const handleImageClick = (url: string) => {
+        setSelectedImageUrl(url);
+        setIsImageViewerOpen(true);
+    };
 
     const handleReviewSubmit = async (data: { rating: number, comment: string }) => {
         if (!firestore || !authUser || !currentUserProfile || !product) {
@@ -271,9 +278,16 @@ export default function PublicProductProfilePage() {
                                     {product.imageUrls && product.imageUrls.length > 0 ? (
                                         product.imageUrls.map((url, index) => (
                                             <CarouselItem key={index}>
-                                                <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-                                                    <Image src={url} alt={`${product.name} image ${index + 1}`} fill className="object-contain p-4" />
-                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    className="relative aspect-square bg-muted rounded-lg overflow-hidden block w-full group"
+                                                    onClick={() => handleImageClick(url)}
+                                                >
+                                                    <Image src={url} alt={`${product.name} image ${index + 1}`} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/>
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                                                        <Maximize className="w-10 h-10 text-white" />
+                                                    </div>
+                                                </button>
                                             </CarouselItem>
                                         ))
                                     ) : (
@@ -412,7 +426,20 @@ export default function PublicProductProfilePage() {
                         </div>
                     </div>
                 </div>
-
+                 <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
+                    <DialogContent className="max-w-6xl h-[90vh] bg-transparent border-none shadow-none p-0">
+                        {selectedImageUrl && (
+                            <div className="relative w-full h-full">
+                                <Image
+                                    src={selectedImageUrl}
+                                    alt="Full screen product image"
+                                    fill
+                                    className="object-contain"
+                                />
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </main>
             <PublicFooter />
         </div>

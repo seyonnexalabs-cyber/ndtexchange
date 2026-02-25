@@ -44,12 +44,8 @@ service cloud.firestore {
     // --------------------------------
 
     match /products/{productId} {
-      // Any signed in user can read products (for catalogs, etc.)
-      allow read: if isSignedIn();
-      
-      // Only admins or the product's owning manufacturer can write.
-      // This uses get() but is safe because it's on a single-document 'write' operation, not a 'list' query.
-      allow write: if isAdmin() || (isManufacturer() && request.resource.data.manufacturerId == userCompanyId(request.auth.uid));
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /users/{userId} {
@@ -222,3 +218,5 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
+
+    

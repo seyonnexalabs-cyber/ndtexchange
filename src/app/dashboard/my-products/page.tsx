@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wrench, Edit, PlusCircle, Trash, Separator } from "lucide-react";
@@ -178,11 +179,11 @@ const ProductForm = ({
 };
 
 const ProductDetailItem = ({ product, allTechniques, onEditClick }: { product: Product; allTechniques: NDTTechnique[]; onEditClick: (product: Product) => void; }) => {
-  const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!api) {
       return;
     }

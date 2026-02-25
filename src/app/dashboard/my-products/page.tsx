@@ -1,12 +1,10 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Wrench, MoreVertical, Edit, PlusCircle, Trash } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Wrench, Edit, PlusCircle, Trash, Separator } from "lucide-react";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,8 +21,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
 import Image from 'next/image';
-import Link from 'next/link';
-
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 const productSchema = z.object({
   id: z.string().optional(),
@@ -173,6 +177,81 @@ const ProductForm = ({
     );
 };
 
+const ProductDetailItem = ({ product, allTechniques, onEditClick }: { product: Product; allTechniques: NDTTechnique[]; onEditClick: (product: Product) => void; }) => {
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
+  return (
+    <div className="grid md:grid-cols-3 gap-8 lg:gap-12 items-start">
+      <div className="md:col-span-1 space-y-2">
+        <Card className="overflow-hidden">
+          <Carousel setApi={setApi} className="w-full">
+            <CarouselContent>
+              {product.imageUrls && product.imageUrls.length > 0 ? (
+                product.imageUrls.map((url, index) => (
+                  <CarouselItem key={index}>
+                    <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+                      <Image src={url} alt={`${product.name} image ${index + 1}`} fill className="object-contain p-4" />
+                    </div>
+                  </CarouselItem>
+                ))
+              ) : (
+                <CarouselItem>
+                  <div className="relative aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center h-full">
+                    <Wrench className="w-24 h-24 text-muted-foreground/30" />
+                  </div>
+                </CarouselItem>
+              )}
+            </CarouselContent>
+            {product.imageUrls && product.imageUrls.length > 1 && (
+              <>
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+              </>
+            )}
+          </Carousel>
+        </Card>
+        {count > 1 && (
+          <div className="text-center text-sm text-muted-foreground">
+            Image {current} of {count}
+          </div>
+        )}
+      </div>
+      <div className="md:col-span-2">
+        <div className="flex justify-between items-start">
+          <h2 className="text-2xl lg:text-3xl font-headline font-bold">{product.name}</h2>
+          <Button variant="outline" onClick={() => onEditClick(product)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+        </div>
+        <p className="mt-2 text-lg font-semibold text-primary">{product.type}</p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          {product.techniques.map(tech => (
+            <Badge key={tech} variant="secondary">{allTechniques?.find(t => t.acronym === tech)?.title || tech}</Badge>
+          ))}
+        </div>
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-xl font-semibold">Description</h3>
+          <p className="mt-4 text-muted-foreground whitespace-pre-wrap">
+            {product.description || 'No description available for this product.'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export default function MyProductsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -258,73 +337,30 @@ export default function MyProductsPage() {
                 <Button onClick={handleAddClick} className="w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add New Product</Button>
             </div>
 
-            {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {[...Array(4)].map((_, i) => (
-                        <Card key={i}>
-                            <CardHeader className="p-0">
-                                <Skeleton className="h-48 w-full rounded-t-lg" />
-                            </CardHeader>
-                            <CardContent className="p-4 space-y-2">
-                                <Skeleton className="h-5 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </CardContent>
-                            <CardFooter className="p-4 pt-0">
-                                <div className="flex flex-wrap gap-1">
-                                    <Skeleton className="h-5 w-12" />
-                                    <Skeleton className="h-5 w-16" />
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {(products || []).map(prod => (
-                        <Card key={prod.id} className="flex flex-col group">
-                            <CardHeader className="p-0 relative">
-                                <div className="absolute top-2 right-2 z-10">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="secondary" size="icon" className="h-8 w-8">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => handleEditClick(prod)}>
-                                                <Edit className="mr-2 h-4 w-4"/>
-                                                Edit
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                                <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
-                                    {prod.imageUrls && prod.imageUrls.length > 0 ? 
-                                        <Image src={prod.imageUrls[0]} alt={prod.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : 
-                                        <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>
-                                    }
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-4 flex-grow">
-                                <CardTitle className="text-base font-semibold leading-tight mb-1" title={prod.name}>{prod.name}</CardTitle>
-                                <CardDescription>{prod.type}</CardDescription>
-                            </CardContent>
-                            <CardFooter className="p-4 pt-0">
-                                <div className="flex flex-wrap gap-1">
-                                    {prod.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                    {(products || []).length === 0 && (
-                        <div className="col-span-full text-center p-10 border rounded-lg">
-                            <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
-                            <h2 className="mt-4 text-xl font-headline">No Products Added Yet</h2>
-                            <p className="mt-2 text-muted-foreground">Click "Add New Product" to build your catalog.</p>
-                        </div>
-                    )}
-                </div>
-            )}
+            <div className="space-y-12">
+                {isLoading ? (
+                    <Skeleton className="h-96 w-full" />
+                ) : (products || []).length > 0 ? (
+                    (products || []).map((prod, index) => (
+                        <React.Fragment key={prod.id}>
+                            <ProductDetailItem
+                                product={prod}
+                                allTechniques={allTechniques || []}
+                                onEditClick={handleEditClick}
+                            />
+                            {(products || []).length > 1 && index < (products || []).length - 1 && (
+                                <Separator className="my-12" />
+                            )}
+                        </React.Fragment>
+                    ))
+                ) : (
+                    <div className="col-span-full text-center p-10 border rounded-lg">
+                        <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
+                        <h2 className="mt-4 text-xl font-headline">No Products Added Yet</h2>
+                        <p className="mt-2 text-muted-foreground">Click "Add New Product" to build your catalog.</p>
+                    </div>
+                )}
+            </div>
 
             <Dialog open={isFormOpen} onOpenChange={closeDialog}>
                 <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">

@@ -436,3 +436,12 @@ export type Plan = {
     isPopular?: boolean;
     features: string[];
 };
+
+
+// The 'Certification' type was missing
+export type Certification = {
+  method: string;
+  level: 'Level I' | 'Level II' | 'Level III';
+  certificateNumber?: string;
+  validUntil?: string;
+};

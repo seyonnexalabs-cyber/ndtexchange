@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Edit, PlusCircle, Trash, Separator, Award, Star, Check, X, Send } from "lucide-react";
+import { Wrench, Edit, PlusCircle, Trash, Award, Star, Check, X, Send } from "lucide-react";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -31,6 +31,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';

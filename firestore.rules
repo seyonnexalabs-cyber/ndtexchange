@@ -26,6 +26,9 @@ service cloud.firestore {
     }
     
     function isManufacturer() {
+      // NOTE: This function's use in rules can block 'list' queries.
+      // It's better to use custom claims on the auth token for role checking in rules.
+      // For example: request.auth.token.isManufacturer == true
       let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
       return userRole == 'Manufacturer';
     }
@@ -192,10 +195,13 @@ service cloud.firestore {
     
     match /products/{productId} {
       // Allow any signed-in user to read products. This is necessary for the public catalog 
-      // and for the manufacturer's own dashboard query to work without being blocked by write rules.
+      // and for the manufacturer's own dashboard query to work.
       allow read: if isSignedIn();
-      // Temporarily disable writes to isolate and confirm the read issue.
-      allow write: if false;
+      
+      // Allow writes only for admins or the product's owning manufacturer.
+      // This is now based on a custom claim (`isManufacturer`) which should be set on the auth token
+      // to avoid using get() in security rules for list operations.
+      allow write: if isAdmin() || (request.auth.token.isManufacturer == true && request.auth.token.companyId == request.resource.data.manufacturerId);
     }
     
     // All other collections that are either public or admin-only
@@ -234,3 +240,5 @@ service cloud.firestore {
     match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
   }
 }
+
+    

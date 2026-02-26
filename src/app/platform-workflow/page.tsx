@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 import * as React from 'react';
 
 export const metadata: Metadata = {
@@ -115,45 +115,49 @@ export default function PlatformWorkflowPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <PublicHeader />
-            <main className="pt-28 pb-16">
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-headline font-bold">Platform Workflow</h1>
-                        <p className="mt-4 text-lg text-muted-foreground">End-to-end process from project creation to payment — a step-by-step breakdown of each phase.</p>
+            <main className="flex-grow">
+                <HoneycombHero>
+                    <div className="max-w-3xl mx-auto text-center">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">Platform Workflow</h1>
+                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">End-to-end process from project creation to payment — a step-by-step breakdown of each phase.</p>
                     </div>
+                </HoneycombHero>
 
-                    <div className="flex justify-center items-center gap-4 mb-12 flex-wrap">
-                        {actors.map(actor => (
-                            <div key={actor.name} className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full ${actor.color}`}></div>
-                                <span className="text-sm font-medium text-muted-foreground">{actor.name}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="relative pl-8">
-                      {/* Timeline line */}
-                      <div className="absolute left-8 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
-                      
-                      <div className="space-y-12">
-                        {workflowData.map((phase, index) => (
-                           <div key={phase.phase} className="relative">
-                              <div className="absolute -left-11 top-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm z-10">
-                                {index + 1}
-                              </div>
-                              <div className="ml-4">
-                                <p className="text-sm font-semibold text-primary">{phase.phase}</p>
-                                <div className="flex justify-between items-center">
-                                  <h3 className="text-xl font-headline font-semibold mt-1">{phase.title}</h3>
-                                  <ActorBadge actor={phase.actor} full={true} />
+                <section className="py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+                        <div className="flex justify-center items-center gap-4 mb-12 flex-wrap">
+                            {actors.map(actor => (
+                                <div key={actor.name} className="flex items-center gap-2">
+                                    <div className={`w-3 h-3 rounded-full ${actor.color}`}></div>
+                                    <span className="text-sm font-medium text-muted-foreground">{actor.name}</span>
                                 </div>
-                                <p className="mt-2 text-muted-foreground">{phase.description}</p>
-                              </div>
-                           </div>
-                        ))}
-                      </div>
+                            ))}
+                        </div>
+
+                        <div className="relative pl-8">
+                          {/* Timeline line */}
+                          <div className="absolute left-8 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
+                          
+                          <div className="space-y-12">
+                            {workflowData.map((phase, index) => (
+                               <div key={phase.phase} className="relative">
+                                  <div className="absolute -left-11 top-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm z-10">
+                                    {index + 1}
+                                  </div>
+                                  <div className="ml-4">
+                                    <p className="text-sm font-semibold text-primary">{phase.phase}</p>
+                                    <div className="flex justify-between items-center">
+                                      <h3 className="text-xl font-headline font-semibold mt-1">{phase.title}</h3>
+                                      <ActorBadge actor={phase.actor} full={true} />
+                                    </div>
+                                    <p className="mt-2 text-muted-foreground">{phase.description}</p>
+                                  </div>
+                               </div>
+                            ))}
+                          </div>
+                        </div>
                     </div>
-                </div>
+                </section>
             </main>
             <PublicFooter />
         </div>

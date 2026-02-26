@@ -19,9 +19,8 @@ service cloud.firestore {
     }
 
     // PUBLIC COLLECTIONS
-    // These collections are readable by anyone to support public-facing pages.
     match /products/{productId} {
-      allow get, list: if true;
+      allow read: if true;
       allow write: if isAdmin();
     }
     
@@ -41,7 +40,6 @@ service cloud.firestore {
     }
 
     // USER-SPECIFIC DATA
-    // Users can only read and write their own data.
     match /users/{userId} {
       allow read, update: if isOwner(userId) || isAdmin();
       allow create: if request.auth.uid == userId;

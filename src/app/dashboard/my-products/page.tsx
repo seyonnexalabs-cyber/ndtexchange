@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
-import { collection, doc, setDoc, updateDoc, query, where, serverTimestamp, addDoc, orderBy } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, query, where, serverTimestamp, addDoc, orderBy, getDocs } from 'firebase/firestore';
 import { Product, Manufacturer, NDTTechnique, PlatformUser, Review, ReviewReply } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +33,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
 import { Dialog as ViewerDialog, DialogContent as ViewerDialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -382,15 +381,22 @@ export default function MyProductsPage() {
     );
 
     const productsQuery = useMemoFirebase(() => {
-        if (!firestore || !currentUserProfile) return null;
-        return query(collection(firestore, 'products'), where("manufacturerId", "==", currentUserProfile.companyId), orderBy('name'));
-    }, [firestore, currentUserProfile]);
-    const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+        if (!firestore) return null;
+        // Fetch all products and filter on the client
+        return query(collection(firestore, 'products'), orderBy('name'));
+    }, [firestore]);
+    const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
+    const products = useMemo(() => {
+        if (!allProducts || !currentUserProfile) return [];
+        return allProducts.filter(p => p.manufacturerId === currentUserProfile.companyId);
+    }, [allProducts, currentUserProfile]);
+    
     const reviewsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUserProfile?.companyId) return null;
         const productIds = products?.map(p => p.id) || [];
         if (productIds.length === 0) return null;
+        // Firestore 'in' queries are limited to 30 items in the array.
         return query(collection(firestore, 'reviews'), where('productId', 'in', productIds.slice(0,30)));
     }, [firestore, currentUserProfile, products]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);

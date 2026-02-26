@@ -156,6 +156,7 @@ export default function EcosystemPage() {
 
     // Product States
     const [selectedProductTechniques, setSelectedProductTechniques] = useState<string[]>([]);
+    const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([]);
     const [selectedProductManufacturers, setSelectedProductManufacturers] = useState<string[]>([]);
     const [productSearch, setProductSearch] = useState('');
     const [productPage, setProductPage] = useState(1);
@@ -290,6 +291,12 @@ export default function EcosystemPage() {
         const techniques = new Set(productsData.flatMap(p => p.techniques || []));
         return Array.from(techniques).sort();
     }, [productsData]);
+
+    const productTypeOptions = useMemo(() => {
+        if (!productsData) return [];
+        const types = new Set(productsData.map(p => p.type));
+        return Array.from(types).sort();
+    }, [productsData]);
     
     const productManufacturerOptions = useMemo(() => {
         if (!productsData) return [];
@@ -304,10 +311,11 @@ export default function EcosystemPage() {
                 p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
                 p.manufacturerName.toLowerCase().includes(productSearch.toLowerCase());
             const techMatch = selectedProductTechniques.length === 0 || selectedProductTechniques.every(tech => (p.techniques || []).includes(tech));
+            const typeMatch = selectedProductTypes.length === 0 || selectedProductTypes.includes(p.type);
             const manuMatch = selectedProductManufacturers.length === 0 || selectedProductManufacturers.includes(p.manufacturerName);
-            return searchMatch && techMatch && manuMatch;
+            return searchMatch && techMatch && manuMatch && typeMatch;
         });
-    }, [productsData, productSearch, selectedProductTechniques, selectedProductManufacturers]);
+    }, [productsData, productSearch, selectedProductTechniques, selectedProductTypes, selectedProductManufacturers]);
 
     const productPageCount = Math.ceil(filteredProducts.length / itemsPerPage);
     const paginatedProducts = useMemo(() => {
@@ -348,8 +356,8 @@ export default function EcosystemPage() {
                         
                         {/* PRODUCTS TAB */}
                         <TabsContent value="products" className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center mb-8">
-                                <div className="relative lg:col-span-1">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-center mb-8">
+                                <div className="relative lg:col-span-2">
                                      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                      <Input 
                                         placeholder="Search products..."
@@ -359,6 +367,27 @@ export default function EcosystemPage() {
                                     />
                                 </div>
                                 <div className="flex gap-2 lg:col-span-2 justify-start lg:justify-end">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" disabled={isLoading}>Type ({selectedProductTypes.length})</Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80">
+                                            <Command>
+                                                <CommandInput placeholder="Filter types..." />
+                                                <CommandList><CommandEmpty>No results.</CommandEmpty><CommandGroup>
+                                                {productTypeOptions.map(type => (
+                                                    <CommandItem key={type} onSelect={() => {
+                                                        setSelectedProductTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+                                                        setProductPage(1);
+                                                    }}>
+                                                        <Check className={cn("mr-2 h-4 w-4", selectedProductTypes.includes(type) ? "opacity-100" : "opacity-0")} />
+                                                        {type}
+                                                    </CommandItem>
+                                                ))}
+                                                </CommandGroup></CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button variant="outline" disabled={isLoading}>Techniques ({selectedProductTechniques.length})</Button>

@@ -16,7 +16,8 @@ import { PlusCircle, ChevronLeft, Wrench, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, useStorage } from '@/firebase';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import type { Product, NDTTechnique, PlatformUser } from '@/lib/types';
 import Image from 'next/image';
@@ -121,6 +122,7 @@ export default function AddProductPage() {
     const { toast } = useToast();
     const { firestore, auth } = useFirebase();
     const { user: authUser } = useUser();
+    const storage = useStorage();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -209,27 +211,46 @@ export default function AddProductPage() {
     };
 
     const onSubmit = async (values: AddProductFormValues) => {
-        if (!firestore || !currentUserProfile) return;
+        if (!firestore || !currentUserProfile || !storage) return;
         setIsSubmitting(true);
 
         const { images, ...otherValues } = values;
+        
+        // 1. Get new document ID
+        const newProdRef = doc(collection(firestore, 'products'));
+        const newProdId = newProdRef.id;
 
+        // 2. Upload images
+        let uploadedImageUrls: string[] = [];
+        if (images && images.length > 0) {
+            toast({ title: "Uploading images...", description: "Please wait while we upload your product images." });
+            
+            const uploadPromises = images.map(async (file: File) => {
+                const storageRef = ref(storage, `products/${newProdId}/${file.name}`);
+                const uploadTask = await uploadBytes(storageRef, file);
+                return getDownloadURL(uploadTask.ref);
+            });
+            
+            try {
+                uploadedImageUrls = await Promise.all(uploadPromises);
+            } catch (error) {
+                console.error("Error uploading images:", error);
+                toast({ variant: 'destructive', title: 'Image Upload Failed', description: 'Could not upload product images. Please try again.' });
+                setIsSubmitting(false);
+                return;
+            }
+        }
+        
+        // 3. Save document with image URLs
         const dataToSave = {
+            id: newProdId,
             ...otherValues,
             manufacturerId: currentUserProfile.companyId,
             manufacturerName: currentUserProfile.company,
-            imageUrls: [], // In a real app, this would be populated after upload
+            imageUrls: uploadedImageUrls,
         };
         
-        if (images && images.length > 0) {
-            console.log("Files to upload:", images.map((f: File) => f.name));
-            // This is where you would add logic to upload the file to Firebase Storage
-            // and then save the resulting URL in the `imageUrls` array.
-            toast({ title: "Images ready for upload", description: `In a real app, your images would be uploaded to storage.` });
-        }
-        
-        const newProdRef = doc(collection(firestore, 'products'));
-        await setDoc(newProdRef, { id: newProdRef.id, ...dataToSave });
+        await setDoc(newProdRef, dataToSave);
 
         toast({ title: "Product Added", description: `${values.name} has been added to your catalog.` });
         setIsSubmitting(false);

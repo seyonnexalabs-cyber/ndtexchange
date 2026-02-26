@@ -3,9 +3,9 @@
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Edit, PlusCircle, Trash, Award, Star, Check, X, Send } from "lucide-react";
+import { Wrench, Edit, PlusCircle, Trash, Award, Star, Check, X, Send, Maximize, ChevronRight } from "lucide-react";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,6 +36,7 @@ import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
 import { Dialog as ViewerDialog, DialogContent as ViewerDialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from 'next/link';
 
 
 const productSchema = z.object({
@@ -372,7 +373,6 @@ export default function MyProductsPage() {
     const { firestore, auth } = useFirebase();
     const { user: authUser } = useUser();
 
-    const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [defaultValues, setDefaultValues] = useState<Partial<ProductFormValues>>({ techniques: [], imageUrls: [{value: ''}] });
 
@@ -424,12 +424,6 @@ export default function MyProductsPage() {
         }
     }, [role, router, searchParams]);
 
-    const handleAddClick = () => {
-        setEditingProduct(null);
-        setDefaultValues({ techniques: [], imageUrls: [{ value: '' }] });
-        setIsFormOpen(true);
-    };
-
     const handleEditClick = (product: Product) => {
         const imageUrlsForForm = product.imageUrls?.map(url => ({ value: url })) || [{value: ''}];
         if(imageUrlsForForm.length === 0) imageUrlsForForm.push({value: ''});
@@ -439,18 +433,14 @@ export default function MyProductsPage() {
             imageUrls: imageUrlsForForm
         });
         setEditingProduct(product);
-        setIsFormOpen(true);
     };
 
     const closeDialog = () => {
-        setIsFormOpen(false);
         setEditingProduct(null);
     };
 
     const handleFormSubmit = async (values: ProductFormValues) => {
-        if (!firestore || !currentUserProfile) return;
-
-        const isEditing = !!editingProduct;
+        if (!firestore || !currentUserProfile || !editingProduct) return;
         
         const dataToSave: Omit<Product, 'id'> = {
             name: values.name,
@@ -462,15 +452,10 @@ export default function MyProductsPage() {
             imageUrls: values.imageUrls?.map(item => item.value).filter(Boolean) || [],
         };
 
-        if (isEditing && editingProduct) {
-            const prodRef = doc(firestore, 'products', editingProduct.id);
-            await updateDoc(prodRef, dataToSave);
-            toast({ title: "Product Updated", description: `${values.name} has been updated.` });
-        } else {
-            const newProdRef = doc(collection(firestore, 'products'));
-            await setDoc(newProdRef, { id: newProdRef.id, ...dataToSave });
-            toast({ title: "Product Added", description: `${values.name} has been added to your catalog.` });
-        }
+        const prodRef = doc(firestore, 'products', editingProduct.id);
+        await updateDoc(prodRef, dataToSave);
+        toast({ title: "Product Updated", description: `${values.name} has been updated.` });
+        
         closeDialog();
     };
     
@@ -497,6 +482,11 @@ export default function MyProductsPage() {
         toast({ title: 'Reply Posted' });
     };
 
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+
     if (role !== 'manufacturer') {
         return null;
     }
@@ -510,7 +500,11 @@ export default function MyProductsPage() {
                     <Wrench className="text-primary"/>
                     My Products
                 </h1>
-                <Button onClick={handleAddClick} className="w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add New Product</Button>
+                <Button asChild className="w-full sm:w-auto">
+                    <Link href={constructUrl("/dashboard/my-products/add")}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add New Product
+                    </Link>
+                </Button>
             </div>
 
             <div className="space-y-12">
@@ -543,12 +537,12 @@ export default function MyProductsPage() {
                 )}
             </div>
 
-            <Dialog open={isFormOpen} onOpenChange={closeDialog}>
+            <Dialog open={!!editingProduct} onOpenChange={closeDialog}>
                 <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
                     <DialogHeader className="p-6 pb-4 border-b">
-                        <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+                        <DialogTitle>Edit Product</DialogTitle>
                         <DialogDescription>
-                            {editingProduct ? 'Update the details for this product.' : 'Enter the details for a new product to add it to your catalog.'}
+                            Update the details for this product.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex-grow overflow-y-auto px-6">
@@ -561,7 +555,7 @@ export default function MyProductsPage() {
                     </div>
                     <DialogFooter className="p-6 pt-4 border-t">
                         <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
-                        <Button type="submit" form="product-form">{editingProduct ? 'Save Changes' : 'Add Product'}</Button>
+                        <Button type="submit" form="product-form">Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

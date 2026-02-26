@@ -107,7 +107,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = 'Se
                         ? selected.filter((item) => item !== option.value)
                         : [...selected, option.value]
                     );
-                    setOpen(false);
+                    setOpen(true);
                   }}
                 >
                   <Check

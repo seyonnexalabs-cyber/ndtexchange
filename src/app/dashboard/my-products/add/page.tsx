@@ -22,48 +22,78 @@ import type { Product, NDTTechnique, PlatformUser } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 const addProductSchema = z.object({
   name: z.string().min(2, "Product name is required."),
   type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
   techniques: z.array(z.string()).min(1, "At least one technique must be selected."),
   description: z.string().optional(),
-  thumbnail: z.any().optional(),
+  images: z.array(z.any()).optional(),
 });
 
 type AddProductFormValues = z.infer<typeof addProductSchema>;
 
 const ProductPreview = ({ productData, manufacturerName }: { productData: Partial<AddProductFormValues>, manufacturerName: string }) => {
-    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+    const [api, setApi] = React.useState<CarouselApi>();
+    const [previewUrls, setPreviewUrls] = React.useState<string[]>([]);
 
     React.useEffect(() => {
-        let objectUrl: string | null = null;
-        if (productData.thumbnail && productData.thumbnail instanceof File) {
-            objectUrl = URL.createObjectURL(productData.thumbnail);
-            setPreviewUrl(objectUrl);
-        } else {
-            setPreviewUrl(null);
+        if (!productData.images || productData.images.length === 0) {
+            setPreviewUrls([]);
+            return;
         }
 
-        return () => {
-            if (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
+        const objectUrls = productData.images.map(file => {
+            if (file instanceof File) {
+                return URL.createObjectURL(file);
             }
+            return null;
+        }).filter((url): url is string => url !== null);
+        
+        setPreviewUrls(objectUrls);
+
+        return () => {
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
         };
-    }, [productData.thumbnail]);
+    }, [productData.images]);
+
 
     return (
         <Card className="overflow-hidden flex flex-col h-full">
             <CardHeader className="p-0">
-                <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
-                    {previewUrl ? (
-                        <Image src={previewUrl} alt={productData.name || "Product Preview"} fill className="object-contain p-4" />
-                    ) : (
-                        <div className="flex items-center justify-center h-full">
-                            <Wrench className="w-12 h-12 text-muted-foreground" />
-                        </div>
+                <Carousel setApi={setApi} className="w-full">
+                    <CarouselContent>
+                        {previewUrls.length > 0 ? (
+                            previewUrls.map((url, index) => (
+                                <CarouselItem key={index}>
+                                    <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                        <Image src={url} alt={`Product Preview ${index + 1}`} fill className="object-contain p-4" />
+                                    </div>
+                                </CarouselItem>
+                            ))
+                        ) : (
+                            <CarouselItem>
+                                <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden flex items-center justify-center h-full">
+                                    <Wrench className="w-12 h-12 text-muted-foreground/30" />
+                                </div>
+                            </CarouselItem>
+                        )}
+                    </CarouselContent>
+                    {previewUrls.length > 1 && (
+                        <>
+                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                        </>
                     )}
-                </div>
+                </Carousel>
             </CardHeader>
             <CardContent className="p-4 flex-grow">
                 <CardTitle className="text-base font-semibold leading-tight mb-1" title={productData.name}>{productData.name || "Product Name"}</CardTitle>
@@ -87,6 +117,8 @@ export default function AddProductPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [imageFiles, setImageFiles] = React.useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = React.useState<string[]>([]);
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
@@ -108,24 +140,47 @@ export default function AddProductPage() {
             type: 'Instrument',
             techniques: [],
             description: '',
+            images: [],
         },
     });
 
     const watchedFormData = form.watch();
 
-    const handleFileUpload = (file: File | null) => {
-        if (file) {
+    React.useEffect(() => {
+        const urls = imageFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(urls);
+    
+        return () => {
+          urls.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [imageFiles]);
+
+    const handleFilesUpload = (files: FileList | null) => {
+        if (!files) return;
+        const newFiles = Array.from(files);
+
+        // Validation
+        const validFiles = newFiles.filter(file => {
             if (!['image/png', 'image/jpeg', 'image/gif'].includes(file.type)) {
-                form.setError('thumbnail', { type: 'manual', message: 'Only image files (PNG, JPG, GIF) are accepted.' });
-                return;
+                toast({ variant: 'destructive', title: 'Invalid File Type', description: `Skipping ${file.name}: Only image files are accepted.` });
+                return false;
             }
             if (file.size > 2 * 1024 * 1024) { // 2MB
-                form.setError('thumbnail', { type: 'manual', message: 'File size cannot exceed 2MB.' });
-                return;
+                toast({ variant: 'destructive', title: 'File Too Large', description: `Skipping ${file.name}: Image must be smaller than 2MB.` });
+                return false;
             }
-            form.setValue('thumbnail', file, { shouldValidate: true });
-            form.clearErrors('thumbnail');
-        }
+            return true;
+        });
+
+        const updatedFiles = [...imageFiles, ...validFiles];
+        setImageFiles(updatedFiles);
+        form.setValue('images', updatedFiles, { shouldValidate: true });
+    };
+
+    const handleRemoveImage = (index: number) => {
+        const newFiles = imageFiles.filter((_, i) => i !== index);
+        setImageFiles(newFiles);
+        form.setValue('images', newFiles, { shouldValidate: true });
     };
     
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
@@ -134,7 +189,7 @@ export default function AddProductPage() {
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFileUpload(e.dataTransfer.files[0]);
+            handleFilesUpload(e.dataTransfer.files);
             e.dataTransfer.clearData();
         }
     };
@@ -143,7 +198,7 @@ export default function AddProductPage() {
         if (!firestore || !currentUserProfile) return;
         setIsSubmitting(true);
 
-        const { thumbnail, ...otherValues } = values;
+        const { images, ...otherValues } = values;
 
         const dataToSave = {
             ...otherValues,
@@ -152,11 +207,11 @@ export default function AddProductPage() {
             imageUrls: [], // In a real app, this would be populated after upload
         };
         
-        if (thumbnail && thumbnail instanceof File) {
-            console.log("File to upload:", thumbnail.name);
+        if (images && images.length > 0) {
+            console.log("Files to upload:", images.map((f: File) => f.name));
             // This is where you would add logic to upload the file to Firebase Storage
             // and then save the resulting URL in the `imageUrls` array.
-            toast({ title: "Image ready for upload", description: `In a real app, '${thumbnail.name}' would be uploaded to storage.` });
+            toast({ title: "Images ready for upload", description: `In a real app, your images would be uploaded to storage.` });
         }
         
         const newProdRef = doc(collection(firestore, 'products'));
@@ -261,12 +316,12 @@ export default function AddProductPage() {
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
+                                     <FormField
                                         control={form.control}
-                                        name="thumbnail"
+                                        name="images"
                                         render={() => (
                                             <FormItem>
-                                            <FormLabel>Product Image</FormLabel>
+                                            <FormLabel>Product Images</FormLabel>
                                             <div
                                                 onDragEnter={handleDragEnter}
                                                 onDragLeave={handleDragLeave}
@@ -274,26 +329,43 @@ export default function AddProductPage() {
                                                 onDrop={handleDrop}
                                                 onClick={() => fileInputRef.current?.click()}
                                                 className={cn(
-                                                    "relative mt-2 w-full aspect-video rounded-md border-2 border-dashed flex flex-col items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                                    "relative mt-2 w-full p-4 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
                                                     isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
                                                 )}
                                             >
-                                                <p>Click or drag & drop to upload image</p>
-                                                <p className="text-xs">PNG, JPG, or GIF, up to 2MB</p>
+                                                <p>Click or drag & drop to upload images</p>
+                                                <p className="text-xs">PNG, JPG, or GIF, up to 2MB each</p>
                                             </div>
                                             <FormControl>
                                                 <Input
-                                                ref={fileInputRef}
-                                                id="file-upload"
-                                                type="file"
-                                                className="hidden"
-                                                accept="image/png, image/jpeg, image/gif"
-                                                onChange={(e) =>
-                                                    handleFileUpload(e.target.files?.[0] || null)
-                                                }
+                                                    ref={fileInputRef}
+                                                    id="file-upload"
+                                                    type="file"
+                                                    multiple
+                                                    className="hidden"
+                                                    accept="image/png, image/jpeg, image/gif"
+                                                    onChange={(e) => handleFilesUpload(e.target.files)}
                                                 />
                                             </FormControl>
                                             <FormMessage />
+                                             {imagePreviews.length > 0 && (
+                                                <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                                                    {imagePreviews.map((url, index) => (
+                                                        <div key={index} className="relative aspect-square group">
+                                                            <Image src={url} alt={`Preview ${index}`} fill className="object-cover rounded-md" />
+                                                            <Button
+                                                                type="button"
+                                                                variant="destructive"
+                                                                size="icon"
+                                                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                onClick={() => handleRemoveImage(index)}
+                                                            >
+                                                                <Trash className="h-3 w-3" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                             </FormItem>
                                         )}
                                     />
@@ -315,3 +387,5 @@ export default function AddProductPage() {
         </div>
     );
 }
+
+    

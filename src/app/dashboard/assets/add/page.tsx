@@ -1,30 +1,28 @@
 
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
-import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
-import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { ChevronLeft } from "lucide-react";
-import Image from "next/image";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useToast } from "@/hooks/use-toast";
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChevronLeft } from "lucide-react";
+import Link from 'next/link';
+import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { doc, collection, serverTimestamp, setDoc } from 'firebase/firestore';
+import type { Asset, PlatformUser } from '@/lib/types';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { doc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
-import type { Asset, PlatformUser } from '@/lib/types';
-
+import Image from "next/image";
 
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
@@ -33,7 +31,6 @@ const assetSchema = z.object({
     isMovable: z.boolean().default(false),
     newLocation: z.string().optional(),
     nextInspection: z.date({ required_error: 'Please select a valid date.' }),
-    status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']).optional(),
     manufacturer: z.string().optional(),
     model: z.string().optional(),
     serialNumber: z.string().optional(),
@@ -52,46 +49,28 @@ const assetSchema = z.object({
 
 type AssetFormValues = z.infer<typeof assetSchema>;
 
-export default function EditAssetPage() {
-    const params = useParams();
-    const id = params.id as string;
+export default function AddAssetPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
+    const searchParams = useSearchParams();
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
     );
-    const { data: asset, isLoading: isLoadingAsset } = useDoc<Asset>(
-        useMemoFirebase(() => (firestore ? doc(firestore, 'assets', id) : null), [firestore, id])
-    );
     const { data: existingAssets, isLoading: isLoadingAssets } = useCollection<Asset>(
         useMemoFirebase(() => (firestore ? collection(firestore, 'assets') : null), [firestore])
     );
-    
+
+    const form = useForm<AssetFormValues>({
+        resolver: zodResolver(assetSchema),
+        defaultValues: { isMovable: false, name: '', newLocation: '', notes: '' }
+    });
+
     const [showNewLocation, setShowNewLocation] = React.useState(false);
     const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-    const form = useForm<AssetFormValues>({
-        resolver: zodResolver(assetSchema),
-    });
-
-    React.useEffect(() => {
-        if (asset) {
-            form.reset({
-                ...asset,
-                nextInspection: asset.nextInspection ? new Date(asset.nextInspection) : new Date(),
-                installationDate: asset.installationDate ? new Date(asset.installationDate) : undefined,
-                thumbnail: asset.thumbnailUrl,
-            });
-            if (asset.thumbnailUrl) {
-                setThumbnailPreview(asset.thumbnailUrl);
-            }
-        }
-    }, [asset, form]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -100,7 +79,7 @@ export default function EditAssetPage() {
 
     const handleFileChange = (file: File | null) => {
         form.setValue('thumbnail', file);
-        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) URL.revokeObjectURL(thumbnailPreview);
+        if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
         if (file) {
             if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
@@ -115,7 +94,7 @@ export default function EditAssetPage() {
             setThumbnailPreview(URL.createObjectURL(file));
             form.clearErrors('thumbnail');
         } else {
-            setThumbnailPreview(typeof asset?.thumbnailUrl === 'string' ? asset.thumbnailUrl : null);
+            setThumbnailPreview(null);
         }
     };
     
@@ -135,7 +114,6 @@ export default function EditAssetPage() {
         return [...new Set(allLocations)];
     }, [existingAssets]);
 
-
     const handleFormSubmit = async (values: AssetFormValues) => {
         if (!firestore || !user || !userProfile) {
             toast({ variant: "destructive", title: "Error", description: "Not authenticated. Please try again." });
@@ -143,23 +121,36 @@ export default function EditAssetPage() {
         }
 
         const location = values.location === '__add_new__' ? values.newLocation! : values.location;
-        const dataToSave: Partial<Asset> = {
-            ...values,
+        
+        const assetRef = doc(collection(firestore, 'assets'));
+        const dataToSave: Omit<Asset, 'id'> = {
             companyId: userProfile.companyId,
+            name: values.name,
+            type: values.type,
             location,
+            isMovable: values.isMovable,
+            status: 'Requires Inspection',
+            approvalStatus: 'Pending Approval',
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
+            manufacturer: values.manufacturer,
+            model: values.model,
+            serialNumber: values.serialNumber,
             installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined,
+            notes: values.notes,
+            createdAt: serverTimestamp(),
+            createdBy: user.uid,
             modifiedAt: serverTimestamp(),
             modifiedBy: user.uid,
+            history: [{
+                user: userProfile.name,
+                timestamp: new Date().toISOString(),
+                action: 'Asset Created'
+            }],
         };
-        delete (dataToSave as any).newLocation;
-        delete (dataToSave as any).documents;
-        delete (dataToSave as any).thumbnail;
 
         try {
-            const assetRef = doc(firestore, 'assets', id);
-            await updateDoc(assetRef, dataToSave);
-            toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
+            await setDoc(assetRef, { id: assetRef.id, ...dataToSave });
+            toast({ title: "Asset Submitted for Approval", description: `${values.name} is awaiting approval.` });
             router.push(constructUrl('/dashboard/assets'));
         } catch (error) {
             console.error("Error saving asset:", error);
@@ -167,25 +158,14 @@ export default function EditAssetPage() {
         }
     };
     
-    const isLoading = isLoadingAsset || isLoadingAssets || isLoadingProfile;
-    
-    if(isLoading) {
-        return (
-            <div className="space-y-6 max-w-4xl mx-auto">
-                <Skeleton className="h-10 w-48" />
-                <Skeleton className="h-screen" />
-            </div>
-        )
-    }
-
-    if (!asset) {
-        notFound();
+    if (isLoadingProfile || isLoadingAssets) {
+        return <div className="max-w-4xl mx-auto"><Skeleton className="h-screen" /></div>;
     }
 
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                 <Button asChild variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm">
                     <Link href={constructUrl('/dashboard/assets')}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to Assets
@@ -194,8 +174,8 @@ export default function EditAssetPage() {
             </div>
              <Card>
                 <CardHeader>
-                    <CardTitle>Editing: {asset.name}</CardTitle>
-                    <CardDescription>Make changes to the asset details below.</CardDescription>
+                    <CardTitle>Add New Asset</CardTitle>
+                    <CardDescription>Enter the details for the new asset.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -207,16 +187,16 @@ export default function EditAssetPage() {
                             <FormField control={form.control} name="isMovable" render={({ field }) => ( <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"> <div className="space-y-0.5"> <FormLabel>Movable Asset</FormLabel> <FormDescription>Is this a movable asset (e.g., a mobile crane)?</FormDescription> </div> <FormControl> <Switch checked={field.value} onCheckedChange={field.onChange} /> </FormControl> </FormItem> )}/>
                             <FormField control={form.control} name="nextInspection" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Next Inspection Date <span className="text-destructive">*</span></FormLabel> <FormControl> <CustomDateInput {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={form.control} name="manufacturer" render={({ field }) => (<FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
-                                <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Model</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
-                                <FormField control={form.control} name="serialNumber" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
+                                <FormField control={form.control} name="manufacturer" render={({ field }) => (<FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Model</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                <FormField control={form.control} name="serialNumber" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
                                 <FormField control={form.control} name="installationDate" render={({ field }) => (<FormItem className="col-span-2 flex flex-col"><FormLabel>Installation Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)}/>
                             </div>
-                            <FormField control={form.control} name="notes" render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
+                            <FormField control={form.control} name="notes" render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
                             <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag & drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the asset.</FormDescription> <FormMessage /> </FormItem> )}/>
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/assets'))}>Cancel</Button>
-                                <Button type="submit">Save Changes</Button>
+                                <Button type="submit">Submit for Approval</Button>
                             </div>
                         </form>
                     </Form>

@@ -1,6 +1,7 @@
 
 rules_version = '2';
 service cloud.firestore {
+
   match /databases/{database}/documents {
 
     // Helper Functions
@@ -25,8 +26,12 @@ service cloud.firestore {
 
     // PUBLIC COLLECTIONS
     match /products/{productId} {
-      // Allow public read access for the ecosystem page.
-      allow get, list: if true;
+      // Allow any user to get a single product document (for public product detail pages).
+      allow get: if true;
+      
+      // Allow any SIGNED-IN user to list/query the products collection.
+      // This satisfies the query constraints for both the public catalog and private manufacturer views.
+      allow list: if isSignedIn();
       
       // Write permissions are restricted to the product's manufacturer owner.
       allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);

@@ -26,14 +26,12 @@ service cloud.firestore {
 
     // PUBLIC COLLECTIONS
     match /products/{productId} {
-      // Allow any user to get a single product document (for public product detail pages).
+      // Allow ANY user (signed in or not) to get or list products.
+      // This makes the product catalog public for reading.
       allow get: if true;
+      allow list: if true;
       
-      // Allow any SIGNED-IN user to list/query the products collection.
-      // This satisfies the query constraints for both the public catalog and private manufacturer views.
-      allow list: if isSignedIn();
-      
-      // Write permissions are restricted to the product's manufacturer owner.
+      // Write permissions are still restricted to the product's manufacturer owner.
       allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);
       allow update: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
       allow delete: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);

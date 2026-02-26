@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -89,7 +90,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = 'Se
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 max-h-96">
         <Command>
           <CommandInput placeholder="Search..." />
           <CommandList>
@@ -104,6 +105,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = 'Se
                         ? selected.filter((item) => item !== option.value)
                         : [...selected, option.value]
                     );
+                    setOpen(false);
                   }}
                 >
                   <Check

@@ -1,5 +1,6 @@
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -160,6 +161,10 @@ export type Product = {
     imageUrls?: string[];
     isAwardWinning?: boolean;
     awards?: Award[];
+    createdAt?: any;
+    createdBy?: string;
+    modifiedAt?: any;
+    modifiedBy?: string;
 };
 
 export type ReviewReply = {
@@ -447,3 +452,5 @@ export type Certification = {
   certificateNumber?: string;
   validUntil?: string;
 };
+
+    

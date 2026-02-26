@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -37,6 +38,7 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
 import { Dialog as ViewerDialog, DialogContent as ViewerDialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
+import { Switch } from '@/components/ui/switch';
 
 
 const productSchema = z.object({
@@ -46,6 +48,12 @@ const productSchema = z.object({
   techniques: z.array(z.string()).min(1, "At least one technique must be selected."),
   description: z.string().optional(),
   imageUrls: z.array(z.object({ value: z.string().url({ message: "Please enter a valid URL." }).or(z.literal('')) })).optional(),
+  isAwardWinning: z.boolean().optional(),
+  awards: z.array(z.object({
+    name: z.string().min(2, "Award name is required."),
+    year: z.coerce.number().min(1900, "Invalid year.").max(new Date().getFullYear() + 1, "Invalid year."),
+    imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  })).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -70,6 +78,11 @@ const ProductForm = ({
       control: form.control,
       name: "imageUrls",
     });
+    
+    const { fields: awardFields, append: appendAward, remove: removeAward } = useFieldArray({
+        control: form.control,
+        name: "awards"
+    });
 
     useEffect(() => {
         if (defaultValues) {
@@ -77,7 +90,8 @@ const ProductForm = ({
                 ...defaultValues,
                 imageUrls: defaultValues.imageUrls && defaultValues.imageUrls.length > 0
                     ? defaultValues.imageUrls
-                    : [{ value: '' }]
+                    : [{value: ''}],
+                awards: defaultValues.awards || [],
             });
         }
     }, [defaultValues, form]);
@@ -179,6 +193,65 @@ const ProductForm = ({
                       onClick={() => append({ value: "" })}
                     >
                       Add Image URL
+                    </Button>
+                </div>
+                 <FormField
+                    control={form.control}
+                    name="isAwardWinning"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                            <FormLabel>Award-Winning Product</FormLabel>
+                        </div>
+                        <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                    )}
+                    />
+
+                <div className="space-y-2">
+                    <FormLabel>Awards &amp; Recognitions</FormLabel>
+                    {awardFields.map((field, index) => (
+                        <div key={field.id} className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-md relative">
+                            <FormField
+                                control={form.control}
+                                name={`awards.${index}.name`}
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                    <FormLabel className="text-xs">Award Name</FormLabel>
+                                    <FormControl><Input placeholder="e.g., Red Dot Design Award" {...field} /></FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`awards.${index}.year`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="text-xs">Year</FormLabel>
+                                    <FormControl><Input type="number" placeholder="e.g., 2023" {...field} /></FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`awards.${index}.imageUrl`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="text-xs">Image URL (Optional)</FormLabel>
+                                    <FormControl><Input placeholder="https://example.com/award.png" {...field} /></FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeAward(index)}>
+                                <Trash className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendAward({ name: '', year: new Date().getFullYear(), imageUrl: '' })}>
+                        Add Award
                     </Button>
                 </div>
             </form>
@@ -450,6 +523,8 @@ export default function MyProductsPage() {
             techniques: values.techniques || [],
             description: values.description,
             imageUrls: values.imageUrls?.map(item => item.value).filter(Boolean) || [],
+            isAwardWinning: values.isAwardWinning,
+            awards: values.awards?.filter(a => a.name) || [],
         };
 
         const prodRef = doc(firestore, 'products', editingProduct.id);
@@ -563,3 +638,5 @@ export default function MyProductsPage() {
         </div>
     );
 }
+
+    

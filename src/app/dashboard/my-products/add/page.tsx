@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { Switch } from '@/components/ui/switch';
 
 const addProductSchema = z.object({
   name: z.string().min(2, "Product name is required."),
@@ -37,6 +38,12 @@ const addProductSchema = z.object({
   techniques: z.array(z.string()).min(1, "At least one technique must be selected."),
   description: z.string().optional(),
   images: z.array(z.any()).optional(),
+  isAwardWinning: z.boolean().optional(),
+  awards: z.array(z.object({
+    name: z.string().min(2, "Award name is required."),
+    year: z.coerce.number().min(1900, "Invalid year.").max(new Date().getFullYear() + 1, "Invalid year."),
+    imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  })).optional(),
 });
 
 type AddProductFormValues = z.infer<typeof addProductSchema>;
@@ -141,7 +148,14 @@ export default function AddProductPage() {
             techniques: [],
             description: '',
             images: [],
+            isAwardWinning: false,
+            awards: [],
         },
+    });
+
+    const { fields: awardFields, append: appendAward, remove: removeAward } = useFieldArray({
+        control: form.control,
+        name: "awards"
     });
 
     const watchedFormData = form.watch();
@@ -369,6 +383,67 @@ export default function AddProductPage() {
                                             </FormItem>
                                         )}
                                     />
+                                    <FormField
+                                        control={form.control}
+                                        name="isAwardWinning"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                            <div className="space-y-0.5">
+                                                <FormLabel>Award-Winning Product</FormLabel>
+                                                <FormDescription>Highlight this product as an award-winner.</FormDescription>
+                                            </div>
+                                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                            </FormItem>
+                                        )}
+                                        />
+
+                                    <div className="space-y-2">
+                                        <FormLabel>Awards &amp; Recognitions</FormLabel>
+                                        {awardFields.map((field, index) => (
+                                            <div key={field.id} className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 border rounded-md relative">
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`awards.${index}.name`}
+                                                    render={({ field }) => (
+                                                        <FormItem className="col-span-2">
+                                                        <FormLabel className="text-xs">Award Name</FormLabel>
+                                                        <FormControl><Input placeholder="e.g., Red Dot Design Award" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`awards.${index}.year`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                        <FormLabel className="text-xs">Year</FormLabel>
+                                                        <FormControl><Input type="number" placeholder="e.g., 2023" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`awards.${index}.imageUrl`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                        <FormLabel className="text-xs">Image URL (Optional)</FormLabel>
+                                                        <FormControl><Input placeholder="https://example.com/award.png" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeAward(index)}>
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <Button type="button" variant="outline" size="sm" onClick={() => appendAward({ name: '', year: new Date().getFullYear(), imageUrl: '' })}>
+                                            Add Award
+                                        </Button>
+                                    </div>
+
                                     <div className="flex justify-end pt-4">
                                         <Button type="submit" disabled={isSubmitting}>
                                             {isSubmitting ? 'Saving...' : 'Save Product'}

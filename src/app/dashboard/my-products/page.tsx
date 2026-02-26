@@ -44,7 +44,9 @@ export default function MyProductsPage() {
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUserProfile) return null;
-        return query(collection(firestore, 'products'), where('manufacturerId', '==', currentUserProfile.companyId), orderBy('name'));
+        // Removed orderBy('name') to simplify the query and avoid potential complex index/permission issues.
+        // Sorting will be handled client-side.
+        return query(collection(firestore, 'products'), where('manufacturerId', '==', currentUserProfile.companyId));
     }, [firestore, currentUserProfile]);
     const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
@@ -57,8 +59,11 @@ export default function MyProductsPage() {
     
     const filteredProducts = useMemo(() => {
         if (!products) return [];
-        if (!searchQuery) return products;
-        return products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        // Sort products by name client-side
+        const sortedProducts = [...products].sort((a, b) => a.name.localeCompare(b.name));
+
+        if (!searchQuery) return sortedProducts;
+        return sortedProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [products, searchQuery]);
 
 
@@ -170,4 +175,3 @@ export default function MyProductsPage() {
         </div>
     );
 }
-

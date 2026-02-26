@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
 import { Dialog as ViewerDialog, DialogContent as ViewerDialogContent } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const productSchema = z.object({
@@ -380,13 +381,11 @@ export default function MyProductsPage() {
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
     );
 
-    const productsQuery = useMemoFirebase(() => (firestore ? query(collection(firestore, 'products'), orderBy('name')) : null), [firestore]);
-    const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
-
-    const products = useMemo(() => {
-        if (!allProducts || !currentUserProfile?.companyId) return [];
-        return allProducts.filter(p => p.manufacturerId === currentUserProfile.companyId);
-    }, [allProducts, currentUserProfile]);
+    const productsQuery = useMemoFirebase(() => {
+        if (!firestore || !currentUserProfile) return null;
+        return query(collection(firestore, 'products'), where("manufacturerId", "==", currentUserProfile.companyId), orderBy('name'));
+    }, [firestore, currentUserProfile]);
+    const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
     const reviewsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUserProfile?.companyId) return null;

@@ -37,16 +37,18 @@ import {
 } from "@/components/ui/pagination";
 
 
-const StarRating = ({ rating }: { rating: number }) => {
+const StarRating = ({ rating, reviewCount }: { rating: number, reviewCount?: number }) => {
     return (
-        <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-                <Star
-                    key={i}
-                    className={`w-5 h-5 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
-                />
-            ))}
-            <span className="ml-2 text-sm text-muted-foreground">{rating > 0 ? rating.toFixed(1) : 'No reviews'}</span>
+        <div className="flex items-center gap-2">
+            <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                    <Star
+                        key={i}
+                        className={`w-4 h-4 ${i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
+                    />
+                ))}
+            </div>
+            {reviewCount !== undefined && <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>}
         </div>
     );
 };
@@ -286,27 +288,32 @@ export default function EcosystemPage() {
     }, [filteredManufacturers, manufacturerPage, itemsPerPage]);
     
     // --- PRODUCT LOGIC ---
-    const productTechniqueOptions = useMemo(() => {
-        if (!productsData) return [];
-        const techniques = new Set(productsData.flatMap(p => p.techniques || []));
-        return Array.from(techniques).sort();
-    }, [productsData]);
+    const { products, productTechniqueOptions, productTypeOptions, productManufacturerOptions } = useMemo(() => {
+        if (!productsData || !reviews) return { products: [], productTechniqueOptions: [], productTypeOptions: [], productManufacturerOptions: [] };
+        
+        const productsWithStats = productsData.map(product => {
+            const productReviews = reviews.filter(r => r.productId === product.id);
+            const avgRating = productReviews.length > 0
+                ? productReviews.reduce((acc, r) => acc + r.rating, 0) / productReviews.length
+                : 0;
+            return { ...product, rating: avgRating, reviewCount: productReviews.length };
+        });
 
-    const productTypeOptions = useMemo(() => {
-        if (!productsData) return [];
-        const types = new Set(productsData.map(p => p.type));
-        return Array.from(types).sort();
-    }, [productsData]);
-    
-    const productManufacturerOptions = useMemo(() => {
-        if (!productsData) return [];
-        const manu = new Set(productsData.map(p => p.manufacturerName));
-        return Array.from(manu).sort();
-    }, [productsData]);
+        const techniques = new Set(productsWithStats.flatMap(p => p.techniques || []));
+        const types = new Set(productsWithStats.map(p => p.type));
+        const manus = new Set(productsWithStats.map(p => p.manufacturerName));
+        
+        return { 
+            products: productsWithStats,
+            productTechniqueOptions: Array.from(techniques).sort(), 
+            productTypeOptions: Array.from(types).sort(),
+            productManufacturerOptions: Array.from(manus).sort(),
+        };
+    }, [productsData, reviews]);
 
      const filteredProducts = useMemo(() => {
-        if (!productsData) return [];
-        return productsData.filter(p => {
+        if (!products) return [];
+        return products.filter(p => {
              const searchMatch = productSearch === '' || 
                 p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
                 p.manufacturerName.toLowerCase().includes(productSearch.toLowerCase());
@@ -315,7 +322,7 @@ export default function EcosystemPage() {
             const manuMatch = selectedProductManufacturers.length === 0 || selectedProductManufacturers.includes(p.manufacturerName);
             return searchMatch && techMatch && manuMatch && typeMatch;
         });
-    }, [productsData, productSearch, selectedProductTechniques, selectedProductTypes, selectedProductManufacturers]);
+    }, [products, productSearch, selectedProductTechniques, selectedProductTypes, selectedProductManufacturers]);
 
     const productPageCount = Math.ceil(filteredProducts.length / itemsPerPage);
     const paginatedProducts = useMemo(() => {
@@ -433,11 +440,11 @@ export default function EcosystemPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {isLoading ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) : paginatedProducts.map(product => (
-                                    <Link key={product.id} href={`/directory/products/${product.id}`} className="block group">
-                                        <Card className="overflow-hidden flex flex-col h-full">
+                                {isLoading ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />) : paginatedProducts.map(product => (
+                                    <Card key={product.id} className="flex flex-col group">
+                                        <Link href={`/directory/products/${product.id}`} className="flex flex-col flex-grow">
                                             <CardHeader className="p-0">
-                                                <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
+                                                <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden">
                                                     {product.imageUrls && product.imageUrls.length > 0 ? <Image src={product.imageUrls[0]} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
                                                     {product.isAwardWinning && (
                                                         <div className="absolute top-2 right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
@@ -447,16 +454,19 @@ export default function EcosystemPage() {
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="p-4 flex-grow">
-                                                <CardTitle className="text-base font-semibold leading-tight mb-1 group-hover:text-primary" title={product.name}>{product.name}</CardTitle>
+                                                <CardTitle className="text-base font-semibold leading-tight mb-1 group-hover:text-primary">{product.name}</CardTitle>
                                                 <CardDescription>{product.manufacturerName}</CardDescription>
-                                            </CardContent>
-                                            <CardFooter className="p-4 pt-0">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {product.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                                <div className="mt-2">
+                                                    <StarRating rating={product.rating} reviewCount={product.reviewCount} />
                                                 </div>
-                                            </CardFooter>
-                                        </Card>
-                                    </Link>
+                                            </CardContent>
+                                        </Link>
+                                        <CardFooter className="p-4 pt-0">
+                                            <Button asChild className="w-full" variant="outline">
+                                                <Link href={`/directory/products/${product.id}`}>View Details</Link>
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
                                 ))}
                             </div>
                              <PaginationControls currentPage={productPage} pageCount={productPageCount} onPageChange={setProductPage} itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} totalItems={filteredProducts.length}/>
@@ -540,15 +550,12 @@ export default function EcosystemPage() {
                                             </div>
                                         </CardHeader>
                                         <CardContent className="flex-grow space-y-4">
-                                            <StarRating rating={provider.rating} />
+                                            <StarRating rating={provider.rating} reviewCount={(reviews || []).filter(r => r.providerId === provider.id).length} />
                                             <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{provider.description}</p>
-                                            <div>
-                                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Techniques</h4>
-                                                <div className="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
-                                                    {(provider.techniques || []).slice(0, 5).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
-                                                    {(provider.techniques || []).length > 5 && <Badge variant="outline">+{ (provider.techniques || []).length - 5} more</Badge>}
-                                                </div>
-                                            </div>
+                                            <div><h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Techniques</h4><div className="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
+                                                {(provider.techniques || []).slice(0, 5).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
+                                                {(provider.techniques || []).length > 5 && <Badge variant="outline">+{ (provider.techniques || []).length - 5} more</Badge>}
+                                            </div></div>
                                         </CardContent>
                                         <CardFooter><Button asChild className="w-full"><Link href={`/directory/providers/${provider.id}`}>View Profile</Link></Button></CardFooter>
                                     </Card>

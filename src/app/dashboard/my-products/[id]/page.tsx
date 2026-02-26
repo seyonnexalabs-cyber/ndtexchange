@@ -46,6 +46,15 @@ const productSchema = z.object({
     year: z.coerce.number().min(1900, "Invalid year.").max(new Date().getFullYear() + 1, "Invalid year."),
     imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   })).optional(),
+  specifications: z.array(z.object({
+    name: z.string().min(1, "Please enter a name."),
+    value: z.string().min(1, "Please enter a value."),
+  })).optional(),
+  certifications: z.array(z.object({
+    name: z.string().min(1, "Please enter a name."),
+    authority: z.string().optional(),
+    logoUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  })).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -101,7 +110,7 @@ export default function EditProductPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const { firestore, auth } = useFirebase();
+    const { firestore, user } = useFirebase();
     const { user: authUser } = useUser();
     const storage = useStorage();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -152,6 +161,17 @@ export default function EditProductPage() {
         control: form.control,
         name: "awards"
     });
+    
+    const { fields: specFields, append: appendSpec, remove: removeSpec } = useFieldArray({
+        control: form.control,
+        name: "specifications"
+    });
+
+    const { fields: certFields, append: appendCert, remove: removeCert } = useFieldArray({
+        control: form.control,
+        name: "certifications"
+    });
+
 
     const watchedFormData = form.watch();
     const newImageFiles = form.watch('images') || [];
@@ -314,7 +334,107 @@ export default function EditProductPage() {
                 <div className="lg:col-span-2">
                     <Card>
                         <CardContent className="pt-6">
-                            {/* The entire Form component will go here */}
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
+                                    <FormField control={form.control} name="type" render={({ field }) => ( <FormItem> <FormLabel>Type</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Instrument">Instrument</SelectItem> <SelectItem value="Probe">Probe/Transducer</SelectItem> <SelectItem value="Source">Source</SelectItem> <SelectItem value="Sensor">Sensor/Detector</SelectItem> <SelectItem value="Calibration Standard">Calibration Standard</SelectItem> <SelectItem value="Accessory">Accessory</SelectItem> <SelectItem value="Visual Aid">Visual Aid</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
+                                    <FormField control={form.control} name="techniques" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Applicable Technique(s)</FormLabel> <MultiSelect options={techniqueOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select techniques..." /><FormMessage /> </FormItem> )}/>
+                                    <FormField control={form.control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the product..." {...field} className="min-h-[120px]" /></FormControl><FormMessage /></FormItem> )}/>
+                                    
+                                    {/* Image Upload */}
+                                    <FormItem>
+                                        <FormLabel>Product Images</FormLabel>
+                                        <div {...{ onDragEnter: handleDragEnter, onDragLeave: handleDragLeave, onDragOver: handleDragOver, onDrop: handleDrop }} onClick={() => fileInputRef.current?.click()} className={cn("relative w-full min-h-[12rem] rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50")}>
+                                            <p>Click or drag &amp; drop to upload images</p>
+                                            <FormControl><Input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFilesUpload(e.target.files)} /></FormControl>
+                                        </div>
+                                        <FormDescription>Upload one or more images for your product. Max 2MB each.</FormDescription>
+                                        <div className="flex flex-wrap gap-4 mt-4">
+                                            {existingImageUrls.map((url, index) => (
+                                                <div key={`existing-${index}`} className="relative w-24 h-24 rounded-md overflow-hidden border">
+                                                    <Image src={url} alt="Existing product image" fill className="object-cover" />
+                                                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => handleRemoveExistingImage(url)}><Trash className="h-3 w-3"/></Button>
+                                                </div>
+                                            ))}
+                                            {previewImageUrls.slice(existingImageUrls.length).map((url, index) => (
+                                                 <div key={`new-${index}`} className="relative w-24 h-24 rounded-md overflow-hidden border">
+                                                    <Image src={url} alt="New product image" fill className="object-cover" />
+                                                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => handleRemoveNewImage(index)}><Trash className="h-3 w-3"/></Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+
+                                    {/* Specifications */}
+                                    <FormItem>
+                                        <FormLabel>Technical Specifications</FormLabel>
+                                        <FormDescription>List the key technical details of the product.</FormDescription>
+                                        <div className="space-y-2">
+                                            {specFields.map((field, index) => (
+                                                <div key={field.id} className="flex gap-2 items-end">
+                                                    <FormField control={form.control} name={`specifications.${index}.name`} render={({ field }) => <FormItem className="flex-grow"><FormControl><Input placeholder="Spec Name (e.g., Weight)" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                    <FormField control={form.control} name={`specifications.${index}.value`} render={({ field }) => <FormItem className="flex-grow"><FormControl><Input placeholder="Value (e.g., 2.5kg)" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeSpec(index)}><Trash className="h-4 w-4" /></Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => appendSpec({ name: '', value: '' })}>Add Specification</Button>
+                                    </FormItem>
+                                    
+                                    {/* Certifications */}
+                                    <FormItem>
+                                        <FormLabel>Product Certifications</FormLabel>
+                                        <FormDescription>List any certifications this product complies with.</FormDescription>
+                                        <div className="space-y-4">
+                                            {certFields.map((field, index) => (
+                                                <div key={field.id} className="p-4 border rounded-md relative space-y-4">
+                                                     <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeCert(index)}><Trash className="h-4 w-4" /></Button>
+                                                     <FormField control={form.control} name={`certifications.${index}.name`} render={({ field }) => <FormItem><FormLabel>Certification Name</FormLabel><FormControl><Input placeholder="e.g., CE, IP67" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                     <div className="grid grid-cols-2 gap-4">
+                                                         <FormField control={form.control} name={`certifications.${index}.authority`} render={({ field }) => <FormItem><FormLabel>Authority (Optional)</FormLabel><FormControl><Input placeholder="e.g., European Commission" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>} />
+                                                         <FormField control={form.control} name={`certifications.${index}.logoUrl`} render={({ field }) => <FormItem><FormLabel>Logo URL (Optional)</FormLabel><FormControl><Input placeholder="https://..." {...field} value={field.value || ''}/></FormControl><FormMessage /></FormItem>} />
+                                                     </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendCert({ name: '', authority: '', logoUrl: '' })}>Add Certification</Button>
+                                    </FormItem>
+                                    
+                                    {/* Awards */}
+                                    <FormItem>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <FormLabel>Awards & Recognitions</FormLabel>
+                                                <FormDescription>Has this product won any industry awards?</FormDescription>
+                                            </div>
+                                            <FormField control={form.control} name="isAwardWinning" render={({ field }) => <FormItem><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>} />
+                                        </div>
+                                        {form.watch('isAwardWinning') && (
+                                            <div className="space-y-4 mt-2">
+                                                {awardFields.map((field, index) => (
+                                                    <div key={field.id} className="p-4 border rounded-md relative space-y-4">
+                                                        <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeAward(index)}><Trash className="h-4 w-4"/></Button>
+                                                        <FormField control={form.control} name={`awards.${index}.name`} render={({ field }) => <FormItem><FormLabel>Award Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <FormField control={form.control} name={`awards.${index}.year`} render={({ field }) => <FormItem><FormLabel>Year</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                            <FormField control={form.control} name={`awards.${index}.imageUrl`} render={({ field }) => <FormItem><FormLabel>Image URL (Optional)</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                <Button type="button" variant="outline" size="sm" onClick={() => appendAward({ name: '', year: new Date().getFullYear(), imageUrl: '' })}>Add Award</Button>
+                                            </div>
+                                        )}
+                                    </FormItem>
+                                    
+                                    <CardFooter className="px-0 pt-6 flex justify-end gap-2">
+                                        <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/my-products'))}>Cancel</Button>
+                                        <Button type="submit" disabled={isSubmitting}>
+                                            {isSubmitting ? 'Saving...' : 'Save Changes'}
+                                        </Button>
+                                    </CardFooter>
+                                </form>
+                            </Form>
                         </CardContent>
                     </Card>
                 </div>
@@ -328,5 +448,5 @@ export default function EditProductPage() {
                 </div>
             </div>
         </div>
-    );
+    )
 }

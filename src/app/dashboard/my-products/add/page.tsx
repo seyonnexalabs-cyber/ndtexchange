@@ -2,13 +2,13 @@
 'use client';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
@@ -45,6 +45,15 @@ const productSchema = z.object({
     name: z.string().min(2, "Award name is required."),
     year: z.coerce.number().min(1900, "Invalid year.").max(new Date().getFullYear() + 1, "Invalid year."),
     imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  })).optional(),
+  specifications: z.array(z.object({
+    name: z.string().min(1, "Please enter a name."),
+    value: z.string().min(1, "Please enter a value."),
+  })).optional(),
+  certifications: z.array(z.object({
+    name: z.string().min(1, "Please enter a name."),
+    authority: z.string().optional(),
+    logoUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   })).optional(),
 });
 
@@ -104,6 +113,9 @@ export default function AddProductPage() {
     const storage = useStorage();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+    const [isDragging, setIsDragging] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
     );
@@ -125,9 +137,19 @@ export default function AddProductPage() {
         },
     });
 
-    const { fields: awardFields, append: appendAward, remove: removeAward } = React.useFieldArray({
+    const { fields: awardFields, append: appendAward, remove: removeAward } = useFieldArray({
         control: form.control,
         name: "awards"
+    });
+    
+    const { fields: specFields, append: appendSpec, remove: removeSpec } = useFieldArray({
+        control: form.control,
+        name: "specifications"
+    });
+
+    const { fields: certFields, append: appendCert, remove: removeCert } = useFieldArray({
+        control: form.control,
+        name: "certifications"
     });
 
     const watchedFormData = form.watch();
@@ -142,6 +164,42 @@ export default function AddProductPage() {
             previewImageUrls.forEach(url => URL.revokeObjectURL(url));
         };
     }, [previewImageUrls]);
+
+    const handleFilesUpload = (files: FileList | null) => {
+        if (!files) return;
+        const newFiles = Array.from(files);
+        const validFiles = newFiles.filter(file => {
+            if (!['image/png', 'image/jpeg', 'image/gif'].includes(file.type)) {
+                toast({ variant: 'destructive', title: 'Invalid File Type', description: `Skipping ${file.name}: Only image files are accepted.` });
+                return false;
+            }
+            if (file.size > 2 * 1024 * 1024) { // 2MB
+                toast({ variant: 'destructive', title: 'File Too Large', description: `Skipping ${file.name}: Image must be smaller than 2MB.` });
+                return false;
+            }
+            return true;
+        });
+        
+        const currentFiles = form.getValues('images') || [];
+        form.setValue('images', [...currentFiles, ...validFiles], { shouldValidate: true });
+    };
+
+    const handleRemoveNewImage = (index: number) => {
+        const currentFiles = form.getValues('images') || [];
+        form.setValue('images', currentFiles.filter((_, i) => i !== index), { shouldValidate: true });
+    };
+    
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFilesUpload(e.dataTransfer.files);
+            e.dataTransfer.clearData();
+        }
+    };
+
 
     const onSubmit = async (values: ProductFormValues) => {
         if (!firestore || !currentUserProfile || !storage) return;
@@ -230,8 +288,97 @@ export default function AddProductPage() {
                 <div className="lg:col-span-2">
                     <Card>
                         <CardContent className="pt-6">
-                           {/* The entire Form component from [id] page goes here */}
-                           {/* I will copy it for brevity in thought, but generate the full code */}
+                           <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
+                                    <FormField control={form.control} name="type" render={({ field }) => ( <FormItem> <FormLabel>Type</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Instrument">Instrument</SelectItem> <SelectItem value="Probe">Probe/Transducer</SelectItem> <SelectItem value="Source">Source</SelectItem> <SelectItem value="Sensor">Sensor/Detector</SelectItem> <SelectItem value="Calibration Standard">Calibration Standard</SelectItem> <SelectItem value="Accessory">Accessory</SelectItem> <SelectItem value="Visual Aid">Visual Aid</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
+                                    <FormField control={form.control} name="techniques" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Applicable Technique(s)</FormLabel> <MultiSelect options={techniqueOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select techniques..." /><FormMessage /> </FormItem> )}/>
+                                    <FormField control={form.control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the product..." {...field} className="min-h-[120px]" /></FormControl><FormMessage /></FormItem> )}/>
+                                    
+                                    <FormItem>
+                                        <FormLabel>Product Images</FormLabel>
+                                        <div {...{ onDragEnter: handleDragEnter, onDragLeave: handleDragLeave, onDragOver: handleDragOver, onDrop: handleDrop }} onClick={() => fileInputRef.current?.click()} className={cn("relative w-full min-h-[12rem] rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50")}>
+                                            <p>Click or drag &amp; drop to upload images</p>
+                                            <FormControl><Input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFilesUpload(e.target.files)} /></FormControl>
+                                        </div>
+                                        <FormDescription>Upload one or more images for your product. Max 2MB each.</FormDescription>
+                                        <div className="flex flex-wrap gap-4 mt-4">
+                                            {previewImageUrls.map((url, index) => (
+                                                 <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
+                                                    <Image src={url} alt="New product image" fill className="object-cover" />
+                                                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => handleRemoveNewImage(index)}><Trash className="h-3 w-3"/></Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+
+                                    <FormItem>
+                                        <FormLabel>Technical Specifications</FormLabel>
+                                        <FormDescription>List the key technical details of the product.</FormDescription>
+                                        <div className="space-y-2">
+                                            {specFields.map((field, index) => (
+                                                <div key={field.id} className="flex gap-2 items-end">
+                                                    <FormField control={form.control} name={`specifications.${index}.name`} render={({ field }) => <FormItem className="flex-grow"><FormControl><Input placeholder="Spec Name (e.g., Weight)" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                    <FormField control={form.control} name={`specifications.${index}.value`} render={({ field }) => <FormItem className="flex-grow"><FormControl><Input placeholder="Value (e.g., 2.5kg)" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeSpec(index)}><Trash className="h-4 w-4" /></Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => appendSpec({ name: '', value: '' })}>Add Specification</Button>
+                                    </FormItem>
+                                    
+                                    <FormItem>
+                                        <FormLabel>Product Certifications</FormLabel>
+                                        <FormDescription>List any certifications this product complies with.</FormDescription>
+                                        <div className="space-y-4">
+                                            {certFields.map((field, index) => (
+                                                <div key={field.id} className="p-4 border rounded-md relative space-y-4">
+                                                     <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeCert(index)}><Trash className="h-4 w-4" /></Button>
+                                                     <FormField control={form.control} name={`certifications.${index}.name`} render={({ field }) => <FormItem><FormLabel>Certification Name</FormLabel><FormControl><Input placeholder="e.g., CE, IP67" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                     <div className="grid grid-cols-2 gap-4">
+                                                         <FormField control={form.control} name={`certifications.${index}.authority`} render={({ field }) => <FormItem><FormLabel>Authority (Optional)</FormLabel><FormControl><Input placeholder="e.g., European Commission" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>} />
+                                                         <FormField control={form.control} name={`certifications.${index}.logoUrl`} render={({ field }) => <FormItem><FormLabel>Logo URL (Optional)</FormLabel><FormControl><Input placeholder="https://..." {...field} value={field.value || ''}/></FormControl><FormMessage /></FormItem>} />
+                                                     </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendCert({ name: '', authority: '', logoUrl: '' })}>Add Certification</Button>
+                                    </FormItem>
+                                    
+                                    <FormItem>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <FormLabel>Awards & Recognitions</FormLabel>
+                                                <FormDescription>Has this product won any industry awards?</FormDescription>
+                                            </div>
+                                            <FormField control={form.control} name="isAwardWinning" render={({ field }) => <FormItem><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>} />
+                                        </div>
+                                        {form.watch('isAwardWinning') && (
+                                            <div className="space-y-4 mt-2">
+                                                {awardFields.map((field, index) => (
+                                                    <div key={field.id} className="p-4 border rounded-md relative space-y-4">
+                                                        <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeAward(index)}><Trash className="h-4 w-4"/></Button>
+                                                        <FormField control={form.control} name={`awards.${index}.name`} render={({ field }) => <FormItem><FormLabel>Award Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <FormField control={form.control} name={`awards.${index}.year`} render={({ field }) => <FormItem><FormLabel>Year</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>} />
+                                                            <FormField control={form.control} name={`awards.${index}.imageUrl`} render={({ field }) => <FormItem><FormLabel>Image URL (Optional)</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                <Button type="button" variant="outline" size="sm" onClick={() => appendAward({ name: '', year: new Date().getFullYear(), imageUrl: '' })}>Add Award</Button>
+                                            </div>
+                                        )}
+                                    </FormItem>
+                                    
+                                    <CardFooter className="px-0 pt-6 flex justify-end gap-2">
+                                        <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/my-products'))}>Cancel</Button>
+                                        <Button type="submit" disabled={isSubmitting}>
+                                            {isSubmitting ? 'Saving...' : 'Save Product'}
+                                        </Button>
+                                    </CardFooter>
+                                </form>
+                            </Form>
                         </CardContent>
                     </Card>
                 </div>
@@ -247,6 +394,3 @@ export default function AddProductPage() {
         </div>
     );
 }
-
-// Note: The form itself is missing from the above JSX for brevity, 
-// but it is identical to the form in the [id]/page.tsx. The final generated file will have it.

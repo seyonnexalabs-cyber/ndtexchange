@@ -419,6 +419,55 @@ export default function PublicProductProfilePage() {
                             </p>
                         </div>
                         
+                        {product.specifications && product.specifications.length > 0 && (
+                            <div className="mt-8">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Technical Specifications</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="divide-y">
+                                            {product.specifications.map(spec => (
+                                                <div key={spec.name} className="flex justify-between items-center py-2">
+                                                    <p className="text-sm font-medium text-muted-foreground">{spec.name}</p>
+                                                    <p className="text-sm font-semibold">{spec.value}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                        
+                        {product.certifications && product.certifications.length > 0 && (
+                            <div className="mt-8">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Certifications</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                            {product.certifications.map(cert => (
+                                                <div key={cert.name} className="text-center">
+                                                    <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+                                                        {cert.logoUrl ? (
+                                                            <Image src={cert.logoUrl} alt={cert.name} fill className="object-contain p-2"/>
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center bg-secondary">
+                                                                <Award className="h-8 w-8 text-muted-foreground" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm font-semibold mt-2">{cert.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{cert.authority}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                        
                         {product.awards && product.awards.length > 0 && (
                             <div className="mt-8">
                                 <Card>

@@ -1,6 +1,7 @@
 
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -150,6 +151,17 @@ export type Award = {
     imageUrl?: string;
 };
 
+export type Specification = {
+  name: string;
+  value: string;
+};
+
+export type ProductCertification = {
+  name: string;
+  authority?: string;
+  logoUrl?: string;
+};
+
 export type Product = {
     id: string;
     name: string;
@@ -161,6 +173,8 @@ export type Product = {
     imageUrls?: string[];
     isAwardWinning?: boolean;
     awards?: Award[];
+    specifications?: Specification[];
+    certifications?: ProductCertification[];
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;

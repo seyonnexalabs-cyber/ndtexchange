@@ -26,10 +26,9 @@ service cloud.firestore {
 
     // PUBLIC COLLECTIONS
     match /products/{productId} {
-      // Allow ANY user (signed in or not) to get or list products.
-      // This makes the product catalog public for reading.
-      allow get: if true;
-      allow list: if true;
+      // Allow ANYONE to read any product data. This is the most permissive rule possible
+      // and should allow all queries, filtered or not.
+      allow read: if true;
       
       // Write permissions are still restricted to the product's manufacturer owner.
       allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);
@@ -88,7 +87,7 @@ service cloud.firestore {
       allow write: if isSignedIn(); // Simplified
     }
     
-    match /assets/{assetId}/{subcollection=**} {
+     match /assets/{assetId}/{subcollection=**} {
        allow read, write: if isSignedIn(); // Simplified
     }
 

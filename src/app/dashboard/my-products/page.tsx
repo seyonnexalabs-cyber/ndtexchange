@@ -1,9 +1,10 @@
+
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Edit, PlusCircle, Star, Award, MoreVertical, ExternalLink } from "lucide-react";
+import { Wrench, Edit, PlusCircle, Star, Award, MoreVertical, ExternalLink, Search, Circle } from "lucide-react";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo } from "react";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
@@ -13,20 +14,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
 import Image from 'next/image';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
-const StarRating = ({ rating }: { rating: number }) => {
-    return (
-        <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-                <Star
-                    key={i}
-                    className={`w-4 h-4 ${i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
-                />
-            ))}
-            {rating > 0 && <span className="ml-2 text-xs text-muted-foreground">{rating.toFixed(1)}</span>}
-        </div>
-    );
-};
+const calculateCompleteness = (product: Product) => {
+    let score = 0;
+    const totalPoints = 5;
+    if (product.description && product.description.length > 20) score++;
+    if (product.imageUrls && product.imageUrls.length > 0) score++;
+    if (product.specifications && product.specifications.length > 0) score++;
+    if (product.certifications && product.certifications.length > 0) score++;
+    if (product.techniques && product.techniques.length > 1) score++;
+    return Math.round((score / totalPoints) * 100);
+}
+
 
 export default function MyProductsPage() {
     const router = useRouter();
@@ -34,6 +36,7 @@ export default function MyProductsPage() {
     const role = searchParams.get('role');
     const { firestore } = useFirebase();
     const { user: authUser } = useUser();
+    const [searchQuery, setSearchQuery] = useState('');
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
@@ -52,18 +55,11 @@ export default function MyProductsPage() {
     }, [firestore, products]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
     
-    const reviewsByProduct = useMemo(() => {
-        if (!reviewsData) return new Map();
-        return reviewsData.reduce((acc, review) => {
-            if (review.productId) {
-                if (!acc.has(review.productId)) {
-                    acc.set(review.productId, []);
-                }
-                acc.get(review.productId)!.push(review);
-            }
-            return acc;
-        }, new Map<string, any[]>());
-    }, [reviewsData]);
+    const filteredProducts = useMemo(() => {
+        if (!products) return [];
+        if (!searchQuery) return products;
+        return products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }, [products, searchQuery]);
 
 
     React.useEffect(() => {
@@ -84,92 +80,94 @@ export default function MyProductsPage() {
     const isLoading = isLoadingProducts || isLoadingProfile || isLoadingReviews;
 
     return (
-        <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                    <Wrench className="text-primary"/>
-                    My Products
-                </h1>
-                <Button asChild className="w-full sm:w-auto">
-                    <Link href={constructUrl("/dashboard/my-products/add")}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Product
-                    </Link>
-                </Button>
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-headline font-semibold">My Products</h1>
+                    <p className="text-muted-foreground">All products for {currentUserProfile?.company}.</p>
+                </div>
+            </div>
+             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="w-full sm:w-auto flex-grow max-w-sm">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search products..."
+                            className="pl-9"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <Button onClick={() => router.push(constructUrl("/dashboard/my-products/add"))} className="w-full sm:w-auto">Add Product</Button>
+                    <Button variant="outline" className="w-full sm:w-auto">Import</Button>
+                </div>
             </div>
             
             {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
                 </div>
-            ) : products && products.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {products.map(product => {
-                        const productReviews = reviewsByProduct.get(product.id) || [];
-                        const avgRating = productReviews.length > 0
-                            ? productReviews.reduce((acc: any, r: any) => acc + r.rating, 0) / productReviews.length
-                            : 0;
+            ) : filteredProducts && filteredProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {filteredProducts.map(product => {
+                        const completeness = calculateCompleteness(product);
+                        const completenessVariant: 'success' | 'destructive' | 'default' = completeness > 80 ? 'success' : completeness > 40 ? 'default' : 'destructive';
                         
                         return (
-                             <Card key={product.id} className="flex flex-col group overflow-hidden">
-                                <div className="relative">
-                                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem asChild>
-                                                    <Link href={constructUrl(`/dashboard/my-products/${product.id}`)}>
-                                                        <Edit className="mr-2 h-4 w-4" /> Edit Product
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <a href={`/directory/products/${product.id}`} target="_blank" rel="noopener noreferrer">
-                                                        <ExternalLink className="mr-2 h-4 w-4" /> View Public Page
-                                                    </a>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                             <Card key={product.id} className="group overflow-hidden transition-all hover:shadow-lg">
+                                <CardHeader className="p-3 flex-row items-center justify-between">
+                                    <Badge variant={completenessVariant}>{completeness}%</Badge>
+                                    <div className="flex items-center gap-0">
+                                        <Button asChild variant="ghost" size="icon" className="h-7 w-7">
+                                            <Link href={constructUrl(`/dashboard/my-products/${product.id}`)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
                                     </div>
-                                    {product.isAwardWinning && (
-                                        <div className="absolute top-2 left-2 z-10 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
-                                            <Award className="h-4 w-4" />
-                                        </div>
-                                    )}
-                                    <Link href={constructUrl(`/dashboard/my-products/${product.id}`)} className="block w-full h-full">
-                                        <div className="relative aspect-[4/3] bg-muted overflow-hidden rounded-t-lg">
-                                            {product.imageUrls && product.imageUrls.length > 0 ? (
-                                                <Image src={product.imageUrls[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                </CardHeader>
+                                <CardContent className="p-3 pt-0 text-center">
+                                    <Link href={constructUrl(`/dashboard/my-products/${product.id}`)}>
+                                        <div className="relative aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                                             {product.imageUrls && product.imageUrls.length > 0 ? (
+                                                <Image src={product.imageUrls[0]} alt={product.name} fill className="object-contain p-2 group-hover:scale-105 transition-transform" />
                                             ) : (
-                                                <div className="flex items-center justify-center h-full">
-                                                    <Wrench className="w-12 h-12 text-muted-foreground/30" />
-                                                </div>
+                                                <Wrench className="w-12 h-12 text-muted-foreground/30" />
                                             )}
                                         </div>
+                                        <p className="font-semibold text-sm mt-2 truncate group-hover:text-primary">{product.name}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{product.id}</p>
                                     </Link>
-                                </div>
-                                <CardContent className="p-4 flex-grow">
-                                    <CardTitle className="text-base font-semibold leading-tight mb-1">
-                                        <Link href={constructUrl(`/dashboard/my-products/${product.id}`)} className="hover:text-primary">{product.name}</Link>
-                                    </CardTitle>
-                                    <CardDescription>{product.type}</CardDescription>
-                                    <div className="mt-2">
-                                        <StarRating rating={avgRating} />
-                                    </div>
                                 </CardContent>
+                                <CardFooter className="p-3 flex justify-between items-center">
+                                    <div className="flex gap-1 flex-wrap">
+                                        {product.techniques.slice(0, 2).map(t => (
+                                            <Badge key={t} variant="secondary">{t}</Badge>
+                                        ))}
+                                    </div>
+                                    <div className={cn("h-2 w-2 rounded-full", 'bg-green-500')} />
+                                </CardFooter>
                             </Card>
                         )
                     })}
+                     <Link href={constructUrl("/dashboard/my-products/add")}>
+                        <Card className="h-full border-2 border-dashed bg-muted/50 hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center">
+                            <div className="text-center text-muted-foreground">
+                                <PlusCircle className="h-10 w-10 mx-auto" />
+                                <p className="mt-2 font-semibold">Add New Product</p>
+                            </div>
+                        </Card>
+                    </Link>
                 </div>
             ) : (
-                 <Card className="flex flex-col items-center justify-center text-center p-12 min-h-[50vh]">
-                    <Wrench className="mx-auto h-16 w-16 text-muted-foreground/50" />
-                    <h2 className="mt-4 text-xl font-headline">No Products Added Yet</h2>
+                 <div className="text-center p-10 border-2 border-dashed rounded-lg">
+                    <Wrench className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h2 className="mt-4 text-xl font-headline">No Products Found</h2>
                     <p className="mt-2 text-muted-foreground">Click "Add Product" to build your public catalog.</p>
-                </Card>
+                </div>
             )}
         </div>
     );
 }
+

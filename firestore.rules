@@ -26,7 +26,7 @@ service cloud.firestore {
     // PUBLIC COLLECTIONS
     match /products/{productId} {
       allow get: if true;
-      allow list: if true;
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);
       allow update: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
       allow delete: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);

@@ -73,7 +73,9 @@ export default function SignupPage() {
   
   const allCompanies = useMemo(() => {
     if (!companiesFromDb) return [];
-    return companiesFromDb.map(c => ({
+    return companiesFromDb
+      .filter(c => c && c.type)
+      .map(c => ({
         name: c.name,
         type: c.type.toLowerCase() as "client" | "inspector" | "auditor" | "manufacturer"
     }));

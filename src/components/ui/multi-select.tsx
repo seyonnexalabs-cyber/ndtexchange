@@ -31,9 +31,10 @@ interface MultiSelectProps {
   onChange: (selected: string[]) => void;
   className?: string;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-function MultiSelect({ options, selected, onChange, className, placeholder = 'Select options...', ...props }: MultiSelectProps) {
+function MultiSelect({ options, selected, onChange, className, placeholder = 'Select options...', disabled, ...props }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
 
   const handleUnselect = (item: string) => {
@@ -48,6 +49,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = 'Se
           role="combobox"
           aria-expanded={open}
           className={cn("w-full justify-between h-auto min-h-10", className)}
+          disabled={disabled}
         >
           <div className="flex gap-1 flex-wrap">
             {selected.length > 0 ? (
@@ -90,7 +92,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = 'Se
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 max-h-96">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
           <CommandInput placeholder="Search..." />
           <CommandList>

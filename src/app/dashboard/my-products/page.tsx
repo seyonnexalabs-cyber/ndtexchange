@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Edit, PlusCircle, Star, Award } from "lucide-react";
+import { Wrench, Edit, PlusCircle, Star, Award, MoreVertical, ExternalLink } from "lucide-react";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo } from "react";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
@@ -12,7 +12,7 @@ import { Product, PlatformUser, Review } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -106,41 +106,59 @@ export default function MyProductsPage() {
                     {products.map(product => {
                         const productReviews = reviewsByProduct.get(product.id) || [];
                         const avgRating = productReviews.length > 0
-                            ? productReviews.reduce((acc, r) => acc + r.rating, 0) / productReviews.length
+                            ? productReviews.reduce((acc: any, r: any) => acc + r.rating, 0) / productReviews.length
                             : 0;
                         
                         return (
-                             <Card key={product.id} className="flex flex-col group">
-                                <CardHeader className="p-0">
-                                    <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                        {product.imageUrls && product.imageUrls.length > 0 ? (
-                                            <Image src={product.imageUrls[0]} alt={product.name} fill className="object-contain p-4" />
-                                        ) : (
-                                            <div className="flex items-center justify-center h-full">
-                                                <Wrench className="w-12 h-12 text-muted-foreground/30" />
-                                            </div>
-                                        )}
-                                        {product.isAwardWinning && (
-                                            <div className="absolute top-2 right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
-                                                <Award className="h-4 w-4" />
-                                            </div>
-                                        )}
+                             <Card key={product.id} className="flex flex-col group overflow-hidden">
+                                <div className="relative">
+                                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={constructUrl(`/dashboard/my-products/${product.id}`)}>
+                                                        <Edit className="mr-2 h-4 w-4" /> Edit Product
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <a href={`/directory/products/${product.id}`} target="_blank" rel="noopener noreferrer">
+                                                        <ExternalLink className="mr-2 h-4 w-4" /> View Public Page
+                                                    </a>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
-                                </CardHeader>
+                                    {product.isAwardWinning && (
+                                        <div className="absolute top-2 left-2 z-10 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
+                                            <Award className="h-4 w-4" />
+                                        </div>
+                                    )}
+                                    <Link href={constructUrl(`/dashboard/my-products/${product.id}`)} className="block w-full h-full">
+                                        <div className="relative aspect-[4/3] bg-muted overflow-hidden rounded-t-lg">
+                                            {product.imageUrls && product.imageUrls.length > 0 ? (
+                                                <Image src={product.imageUrls[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full">
+                                                    <Wrench className="w-12 h-12 text-muted-foreground/30" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                </div>
                                 <CardContent className="p-4 flex-grow">
-                                    <CardTitle className="text-base font-semibold leading-tight mb-1">{product.name}</CardTitle>
+                                    <CardTitle className="text-base font-semibold leading-tight mb-1">
+                                        <Link href={constructUrl(`/dashboard/my-products/${product.id}`)} className="hover:text-primary">{product.name}</Link>
+                                    </CardTitle>
                                     <CardDescription>{product.type}</CardDescription>
                                     <div className="mt-2">
                                         <StarRating rating={avgRating} />
                                     </div>
                                 </CardContent>
-                                <CardFooter className="p-4 pt-0">
-                                    <Button asChild variant="outline" size="sm" className="w-full">
-                                        <Link href={constructUrl(`/dashboard/my-products/${product.id}`)}>
-                                            <Edit className="mr-2 h-4 w-4" /> Edit
-                                        </Link>
-                                    </Button>
-                                </CardFooter>
                             </Card>
                         )
                     })}

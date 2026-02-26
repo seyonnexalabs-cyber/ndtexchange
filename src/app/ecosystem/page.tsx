@@ -441,31 +441,32 @@ export default function EcosystemPage() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {isLoading ? [...Array(8)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />) : paginatedProducts.map(product => (
-                                    <Card key={product.id} className="flex flex-col group">
+                                    <Card key={product.id} className="flex flex-col group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
                                         <Link href={`/directory/products/${product.id}`} className="flex flex-col flex-grow">
-                                            <CardHeader className="p-0">
-                                                <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                                    {product.imageUrls && product.imageUrls.length > 0 ? <Image src={product.imageUrls[0]} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
-                                                    {product.isAwardWinning && (
-                                                        <div className="absolute top-2 right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
-                                                            <Award className="h-4 w-4" />
+                                            <div className="relative">
+                                                {product.isAwardWinning && (
+                                                    <div className="absolute top-3 right-3 z-10 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
+                                                        <Award className="h-5 w-5" />
+                                                    </div>
+                                                )}
+                                                <div className="relative aspect-[4/3] bg-muted overflow-hidden rounded-t-lg">
+                                                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                                                        <Image src={product.imageUrls[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                    ) : (
+                                                        <div className="flex items-center justify-center h-full">
+                                                            <Wrench className="w-12 h-12 text-muted-foreground/30" />
                                                         </div>
                                                     )}
                                                 </div>
-                                            </CardHeader>
+                                            </div>
                                             <CardContent className="p-4 flex-grow">
-                                                <CardTitle className="text-base font-semibold leading-tight mb-1 group-hover:text-primary">{product.name}</CardTitle>
                                                 <CardDescription>{product.manufacturerName}</CardDescription>
+                                                <CardTitle className="text-base font-semibold leading-tight mt-1 group-hover:text-primary">{product.name}</CardTitle>
                                                 <div className="mt-2">
                                                     <StarRating rating={product.rating} reviewCount={product.reviewCount} />
                                                 </div>
                                             </CardContent>
                                         </Link>
-                                        <CardFooter className="p-4 pt-0">
-                                            <Button asChild className="w-full" variant="outline">
-                                                <Link href={`/directory/products/${product.id}`}>View Details</Link>
-                                            </Button>
-                                        </CardFooter>
                                     </Card>
                                 ))}
                             </div>
@@ -536,28 +537,29 @@ export default function EcosystemPage() {
                             </div>
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                {isLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-96" />) : paginatedProviders.map(provider => (
-                                    <Card key={provider.id} className="flex flex-col group">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-4">
-                                                <Avatar className="h-16 w-16">
-                                                    {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
-                                                    <AvatarFallback className="text-xl">{provider.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <CardTitle className="font-headline group-hover:text-primary transition-colors">{provider.name}</CardTitle>
-                                                    <CardDescription className="flex items-center gap-1.5 mt-1"><MapPin className="w-3 h-3 text-primary"/> {provider.location}</CardDescription>
+                                    <Card key={provider.id} className="flex flex-col group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
+                                        <Link href={`/directory/providers/${provider.id}`} className="flex flex-col flex-grow">
+                                            <CardHeader>
+                                                <div className="flex items-center gap-4">
+                                                    <Avatar className="h-16 w-16 border-2 group-hover:border-primary transition-colors">
+                                                        {provider.logoUrl && <AvatarImage src={provider.logoUrl} alt={`${provider.name} logo`} />}
+                                                        <AvatarFallback className="text-xl">{provider.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <CardTitle className="font-headline group-hover:text-primary transition-colors">{provider.name}</CardTitle>
+                                                        <CardDescription className="flex items-center gap-1.5 mt-1"><MapPin className="w-3 h-3 text-primary"/> {provider.location}</CardDescription>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="flex-grow space-y-4">
-                                            <StarRating rating={provider.rating} reviewCount={(reviews || []).filter(r => r.providerId === provider.id).length} />
-                                            <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{provider.description}</p>
-                                            <div><h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Techniques</h4><div className="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
-                                                {(provider.techniques || []).slice(0, 5).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
-                                                {(provider.techniques || []).length > 5 && <Badge variant="outline">+{ (provider.techniques || []).length - 5} more</Badge>}
-                                            </div></div>
-                                        </CardContent>
-                                        <CardFooter><Button asChild className="w-full"><Link href={`/directory/providers/${provider.id}`}>View Profile</Link></Button></CardFooter>
+                                            </CardHeader>
+                                            <CardContent className="flex-grow space-y-4">
+                                                <StarRating rating={provider.rating} reviewCount={(reviews || []).filter(r => r.providerId === provider.id).length} />
+                                                <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{provider.description}</p>
+                                                <div><h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Techniques</h4><div className="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
+                                                    {(provider.techniques || []).slice(0, 5).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
+                                                    {(provider.techniques || []).length > 5 && <Badge variant="outline">+{ (provider.techniques || []).length - 5} more</Badge>}
+                                                </div></div>
+                                            </CardContent>
+                                        </Link>
                                     </Card>
                                ))}
                             </div>
@@ -617,21 +619,22 @@ export default function EcosystemPage() {
                             </div>
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {isLoading ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />) : paginatedAuditors.map(firm => (
-                                     <Card key={firm.id} className="flex flex-col group">
-                                        <CardHeader><div className="flex items-center gap-4">
-                                            <Avatar className="h-16 w-16"><AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback></Avatar>
-                                            <div>
-                                                <CardTitle className="font-headline group-hover:text-primary transition-colors">{firm.name}</CardTitle>
-                                                <CardDescription className="flex items-center gap-1.5 mt-1"><MapPin className="w-3 h-3 text-primary"/> {firm.location}</CardDescription>
-                                            </div>
-                                        </div></CardHeader>
-                                        <CardContent className="flex-grow space-y-4">
-                                            <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{firm.description}</p>
-                                            <div><h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Services</h4><div className="flex flex-wrap gap-1.5 mt-2 min-h-[50px]">
-                                                {(firm.services || []).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
-                                            </div></div>
-                                        </CardContent>
-                                        <CardFooter><Button asChild className="w-full"><Link href={`/directory/auditors/${firm.id}`}>View Profile</Link></Button></CardFooter>
+                                     <Card key={firm.id} className="flex flex-col group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
+                                        <Link href={`/directory/auditors/${firm.id}`} className="flex flex-col flex-grow">
+                                            <CardHeader><div className="flex items-center gap-4">
+                                                <Avatar className="h-16 w-16 border-2 group-hover:border-primary transition-colors"><AvatarFallback className="text-xl">{firm.name.split(' ').map(n => n[0]).join('').slice(0,3)}</AvatarFallback></Avatar>
+                                                <div>
+                                                    <CardTitle className="font-headline group-hover:text-primary transition-colors">{firm.name}</CardTitle>
+                                                    <CardDescription className="flex items-center gap-1.5 mt-1"><MapPin className="w-3 h-3 text-primary"/> {firm.location}</CardDescription>
+                                                </div>
+                                            </div></CardHeader>
+                                            <CardContent className="flex-grow space-y-4">
+                                                <p className="text-sm text-muted-foreground h-16 overflow-hidden text-ellipsis">{firm.description}</p>
+                                                <div><h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Services</h4><div className="flex flex-wrap gap-1.5 mt-2 min-h-[50px]">
+                                                    {(firm.services || []).map(tech => (<Badge key={tech} variant="secondary">{tech}</Badge>))}
+                                                </div></div>
+                                            </CardContent>
+                                        </Link>
                                     </Card>
                                 ))}
                             </div>
@@ -677,7 +680,7 @@ export default function EcosystemPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                                 {isLoadingManufacturers ? [...Array(10)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />) : (
                                     paginatedManufacturers.map(manufacturer => (
-                                        <Card key={manufacturer.id} className="flex flex-col group">
+                                        <Card key={manufacturer.id} className="flex flex-col group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
                                             <a href={createReferralUrl(manufacturer.url)} target="_blank" rel="noopener noreferrer" className="block">
                                                 <CardHeader className="p-0">
                                                     <div className="relative h-20 bg-card p-2 rounded-t-lg">

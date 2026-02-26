@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -420,19 +419,25 @@ export default function PublicProductProfilePage() {
                         </div>
                         
                         {product.awards && product.awards.length > 0 && (
-                            <div className="mt-8 border-t pt-6">
-                                <h2 className="text-xl font-semibold">Awards & Recognitions</h2>
-                                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                    {product.awards.map(award => (
-                                        <div key={award.name} className="text-center">
-                                            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-                                                <Image src={award.imageUrl || ''} alt={award.name} fill className="object-contain p-2"/>
-                                            </div>
-                                            <p className="text-sm font-semibold mt-2">{award.name}</p>
-                                            <p className="text-xs text-muted-foreground">{award.year}</p>
+                            <div className="mt-8">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Awards & Recognitions</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                            {product.awards.map(award => (
+                                                <div key={award.name} className="text-center">
+                                                    <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+                                                        <Image src={award.imageUrl || ''} alt={award.name} fill className="object-contain p-2"/>
+                                                    </div>
+                                                    <p className="text-sm font-semibold mt-2">{award.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{award.year}</p>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
+                                    </CardContent>
+                                </Card>
                             </div>
                         )}
                     </div>
@@ -525,5 +530,3 @@ export default function PublicProductProfilePage() {
         </div>
     );
 }
-
-    

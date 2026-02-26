@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -429,7 +430,13 @@ export default function PublicProductProfilePage() {
                                             {product.awards.map(award => (
                                                 <div key={award.name} className="text-center">
                                                     <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-                                                        <Image src={award.imageUrl || ''} alt={award.name} fill className="object-contain p-2"/>
+                                                        {award.imageUrl ? (
+                                                            <Image src={award.imageUrl} alt={award.name} fill className="object-contain p-2"/>
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center bg-secondary">
+                                                                <Award className="h-8 w-8 text-muted-foreground" />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <p className="text-sm font-semibold mt-2">{award.name}</p>
                                                     <p className="text-xs text-muted-foreground">{award.year}</p>

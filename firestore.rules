@@ -25,8 +25,10 @@ service cloud.firestore {
 
     // PUBLIC COLLECTIONS
     match /products/{productId} {
-      allow read: if (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role != 'Manufacturer')
-                  || (isSignedIn() && resource.data.manufacturerId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId);
+      // Allow any signed in user to get a single document or list the collection.
+      // This is necessary for both the public catalog and a manufacturer's private view of their own products.
+      // The filtering for a manufacturer's own products is handled by the client-side query.
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);
       allow update: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
       allow delete: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);

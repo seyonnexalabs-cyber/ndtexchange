@@ -17,11 +17,18 @@ service cloud.firestore {
       // For this demo, we are hardcoding the admin UIDs.
       return request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
     }
+    
+    function isManufacturerOwner(manufacturerId) {
+      let userCompanyId = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+      return userCompanyId == manufacturerId;
+    }
 
     // PUBLIC COLLECTIONS
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);
+      allow update: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
+      allow delete: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
     }
     
     match /manufacturers/{manufacturerId} {

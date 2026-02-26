@@ -16,7 +16,7 @@ import Image from 'next/image';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wrench, Handshake, Star, MapPin, Filter, X, Eye, HardHat, Factory, Check, Search as SearchIcon } from 'lucide-react';
+import { Wrench, Handshake, Star, MapPin, Filter, X, Eye, HardHat, Factory, Check, Search as SearchIcon, Award } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -410,6 +410,11 @@ export default function EcosystemPage() {
                                             <CardHeader className="p-0">
                                                 <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
                                                     {product.imageUrls && product.imageUrls.length > 0 ? <Image src={product.imageUrls[0]} alt={product.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"/> : <div className="flex items-center justify-center h-full"><Wrench className="w-12 h-12 text-muted-foreground"/></div>}
+                                                    {product.isAwardWinning && (
+                                                        <div className="absolute top-2 right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-lg" title="Award-Winning Product">
+                                                            <Award className="h-4 w-4" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="p-4 flex-grow">

@@ -1,12 +1,13 @@
+
 'use client';
 
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,26 +21,43 @@ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import type { Product, NDTTechnique, PlatformUser } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const addProductSchema = z.object({
   name: z.string().min(2, "Product name is required."),
   type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
   techniques: z.array(z.string()).min(1, "At least one technique must be selected."),
   description: z.string().optional(),
-  imageUrls: z.array(z.object({ value: z.string().url({ message: "Please enter a valid URL." }).or(z.literal('')) })).optional(),
+  thumbnail: z.any().optional(),
 });
 
 type AddProductFormValues = z.infer<typeof addProductSchema>;
 
 const ProductPreview = ({ productData, manufacturerName }: { productData: Partial<AddProductFormValues>, manufacturerName: string }) => {
-    const primaryImage = productData.imageUrls?.[0]?.value;
+    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        let objectUrl: string | null = null;
+        if (productData.thumbnail && productData.thumbnail instanceof File) {
+            objectUrl = URL.createObjectURL(productData.thumbnail);
+            setPreviewUrl(objectUrl);
+        } else {
+            setPreviewUrl(null);
+        }
+
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [productData.thumbnail]);
 
     return (
         <Card className="overflow-hidden flex flex-col h-full">
             <CardHeader className="p-0">
                 <div className="relative h-48 bg-muted rounded-t-lg overflow-hidden">
-                    {primaryImage ? (
-                        <Image src={primaryImage} alt={productData.name || "Product Preview"} fill className="object-contain p-4" />
+                    {previewUrl ? (
+                        <Image src={previewUrl} alt={productData.name || "Product Preview"} fill className="object-contain p-4" />
                     ) : (
                         <div className="flex items-center justify-center h-full">
                             <Wrench className="w-12 h-12 text-muted-foreground" />
@@ -67,6 +85,8 @@ export default function AddProductPage() {
     const { firestore, auth } = useFirebase();
     const { user: authUser } = useUser();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
@@ -88,30 +108,56 @@ export default function AddProductPage() {
             type: 'Instrument',
             techniques: [],
             description: '',
-            imageUrls: [{ value: '' }],
         },
-    });
-    
-    const { fields, append, remove } = useFieldArray({
-      control: form.control,
-      name: "imageUrls",
     });
 
     const watchedFormData = form.watch();
+
+    const handleFileUpload = (file: File | null) => {
+        if (file) {
+            if (!['image/png', 'image/jpeg', 'image/gif'].includes(file.type)) {
+                form.setError('thumbnail', { type: 'manual', message: 'Only image files (PNG, JPG, GIF) are accepted.' });
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) { // 2MB
+                form.setError('thumbnail', { type: 'manual', message: 'File size cannot exceed 2MB.' });
+                return;
+            }
+            form.setValue('thumbnail', file, { shouldValidate: true });
+            form.clearErrors('thumbnail');
+        }
+    };
+    
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileUpload(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
 
     const onSubmit = async (values: AddProductFormValues) => {
         if (!firestore || !currentUserProfile) return;
         setIsSubmitting(true);
 
+        const { thumbnail, ...otherValues } = values;
+
         const dataToSave = {
-            name: values.name,
+            ...otherValues,
             manufacturerId: currentUserProfile.companyId,
             manufacturerName: currentUserProfile.company,
-            type: values.type,
-            techniques: values.techniques || [],
-            description: values.description,
-            imageUrls: values.imageUrls?.map(item => item.value).filter(Boolean) || [],
+            imageUrls: [], // In a real app, this would be populated after upload
         };
+        
+        if (thumbnail && thumbnail instanceof File) {
+            console.log("File to upload:", thumbnail.name);
+            // This is where you would add logic to upload the file to Firebase Storage
+            // and then save the resulting URL in the `imageUrls` array.
+            toast({ title: "Image ready for upload", description: `In a real app, '${thumbnail.name}' would be uploaded to storage.` });
+        }
         
         const newProdRef = doc(collection(firestore, 'products'));
         await setDoc(newProdRef, { id: newProdRef.id, ...dataToSave });
@@ -215,37 +261,42 @@ export default function AddProductPage() {
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="space-y-2">
-                                        <FormLabel>Image URLs (Optional)</FormLabel>
-                                        {fields.map((field, index) => (
-                                        <FormField
-                                            key={field.id}
-                                            control={form.control}
-                                            name={`imageUrls.${index}.value`}
-                                            render={({ field }) => (
+                                    <FormField
+                                        control={form.control}
+                                        name="thumbnail"
+                                        render={() => (
                                             <FormItem>
-                                                <div className="flex items-center gap-2">
-                                                <FormControl>
-                                                    <Input placeholder="https://example.com/image.jpg" {...field} />
-                                                </FormControl>
-                                                <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                                                    <Trash className="h-4 w-4" />
-                                                </Button>
-                                                </div>
-                                                <FormMessage />
+                                            <FormLabel>Product Image</FormLabel>
+                                            <div
+                                                onDragEnter={handleDragEnter}
+                                                onDragLeave={handleDragLeave}
+                                                onDragOver={handleDragOver}
+                                                onDrop={handleDrop}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className={cn(
+                                                    "relative mt-2 w-full aspect-video rounded-md border-2 border-dashed flex flex-col items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
+                                                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                                )}
+                                            >
+                                                <p>Click or drag & drop to upload image</p>
+                                                <p className="text-xs">PNG, JPG, or GIF, up to 2MB</p>
+                                            </div>
+                                            <FormControl>
+                                                <Input
+                                                ref={fileInputRef}
+                                                id="file-upload"
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/png, image/jpeg, image/gif"
+                                                onChange={(e) =>
+                                                    handleFileUpload(e.target.files?.[0] || null)
+                                                }
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                             </FormItem>
-                                            )}
-                                        />
-                                        ))}
-                                        <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => append({ value: "" })}
-                                        >
-                                        Add Image URL
-                                        </Button>
-                                    </div>
+                                        )}
+                                    />
                                     <div className="flex justify-end pt-4">
                                         <Button type="submit" disabled={isSubmitting}>
                                             {isSubmitting ? 'Saving...' : 'Save Product'}

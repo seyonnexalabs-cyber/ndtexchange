@@ -1,18 +1,112 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow users to read their own profile
-    match /users/{userId} {
-      allow get: if request.auth.uid == userId;
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Allow public read access to products to fix the list query error.
-    // Write access is disabled for now.
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
+    }
+
+    // PUBLIC COLLECTIONS
+    // These collections are readable by anyone to support public-facing pages.
     match /products/{productId} {
       allow get, list: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
+    
+    match /manufacturers/{manufacturerId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /techniques/{techniqueId} {
+        allow get, list: if true;
+        allow write: if isAdmin();
+    }
+    
+    match /asset_types/{assetTypeId} {
+        allow get, list: if true;
+        allow write: if isAdmin();
+    }
+
+    // USER-SPECIFIC DATA
+    match /users/{userId} {
+      allow read, update: if isOwner(userId) || isAdmin();
+      // Allow creation only if the user is creating their own document
+      allow create: if request.auth.uid == userId;
+    }
+
+    match /users/{userId}/{document=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    
+    // JOB-RELATED COLLECTIONS
+    match /jobs/{jobId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Simplified for now, should be more granular
+    }
+
+    match /jobs/{jobId}/{subcollection}/{documentId} {
+      allow read, write: if isSignedIn(); // Simplified
+    }
+
+    // COMPANY DATA
+    match /companies/{companyId} {
+        allow read, list: if isSignedIn();
+        allow write: if isAdmin();
+    }
+    
+    match /companies/{companyId}/{subcollection=**} {
+        allow read, write: if isAdmin();
+    }
+    
+    // OTHER COLLECTIONS
+     match /assets/{assetId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Simplified
+    }
+    
+    match /assets/{assetId}/{subcollection=**} {
+       allow read, write: if isSignedIn(); // Simplified
+    }
+
+    match /reports/{reportId} {
+        allow read, write: if isSignedIn(); // Simplified
+    }
+
+    match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update: if isAdmin();
+    }
+
+    match /jobPayments/{paymentId} {
+        allow read, write: if isAdmin();
+    }
+    
+     match /payments/{paymentId} {
+        allow read, write: if isAdmin();
+    }
+    
+     match /userAuditLogs/{logId} {
+        allow read: if isAdmin();
+    }
+    
+    match /jobAuditLogs/{logId} {
+        allow read: if isAdmin();
+    }
+
+     match /billingAuditLogs/{logId} {
+        allow read: if isAdmin();
+    }
+
   }
 }

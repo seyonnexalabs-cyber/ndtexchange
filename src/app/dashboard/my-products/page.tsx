@@ -32,10 +32,10 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { Dialog as ViewerDialog, DialogContent as ViewerDialogContent } from '@/components/ui/dialog';
 
 
 const productSchema = z.object({
@@ -380,14 +380,18 @@ export default function MyProductsPage() {
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
     );
 
-    const productsQuery = useMemoFirebase(() => (firestore && currentUserProfile?.companyId ? query(collection(firestore, 'products'), where('manufacturerId', '==', currentUserProfile.companyId), orderBy('name')) : null), [firestore, currentUserProfile]);
-    const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+    const productsQuery = useMemoFirebase(() => (firestore ? query(collection(firestore, 'products'), orderBy('name')) : null), [firestore]);
+    const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+
+    const products = useMemo(() => {
+        if (!allProducts || !currentUserProfile?.companyId) return [];
+        return allProducts.filter(p => p.manufacturerId === currentUserProfile.companyId);
+    }, [allProducts, currentUserProfile]);
 
     const reviewsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUserProfile?.companyId) return null;
         const productIds = products?.map(p => p.id) || [];
         if (productIds.length === 0) return null;
-        // Firestore 'in' query is limited to 30 values.
         return query(collection(firestore, 'reviews'), where('productId', 'in', productIds.slice(0,30)));
     }, [firestore, currentUserProfile, products]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);

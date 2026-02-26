@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -12,6 +13,8 @@ service cloud.firestore {
     }
     
     function isAdmin() {
+      // In a real app, this would check a custom claim or a roles collection.
+      // For this demo, we are hardcoding the admin UIDs.
       return request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
     }
 
@@ -38,9 +41,9 @@ service cloud.firestore {
     }
 
     // USER-SPECIFIC DATA
+    // Users can only read and write their own data.
     match /users/{userId} {
       allow read, update: if isOwner(userId) || isAdmin();
-      // Allow creation only if the user is creating their own document
       allow create: if request.auth.uid == userId;
     }
 
@@ -107,6 +110,5 @@ service cloud.firestore {
      match /billingAuditLogs/{logId} {
         allow read: if isAdmin();
     }
-
   }
 }

@@ -1,13 +1,13 @@
 
 'use client';
 import * as React from 'react';
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Equipment, EquipmentHistory, NDTTechnique, Job, EquipmentType } from "@/lib/types";
+import { Equipment, EquipmentHistory, NDTTechnique, Job, EquipmentType, PlatformUser } from "@/lib/types";
 import { ChevronLeft, Wrench, Calendar, Info, History, Clock, Send, Building, SlidersHorizontal, Tag, ChevronsUpDown, Edit, Printer, QrCode, Package, PlusCircle, ChevronRight, MoreVertical, AlertTriangle } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { cn, GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
@@ -18,31 +18,15 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { RadioTower, Cpu, Waves, Cable, Eye } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFirebase, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, collection, setDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-
-
-const ClientFormattedDate = ({ timestamp }: { timestamp: string }) => {
-    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        setFormattedDate(format(parseISO(timestamp), GLOBAL_DATETIME_FORMAT));
-    }, [timestamp]);
-
-    return <>{formattedDate || '...'}</>;
-};
 
 const equipmentSchema = z.object({
   id: z.string().optional(),
@@ -60,40 +44,35 @@ const equipmentSchema = z.object({
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
-const EquipmentForm = ({ equipment, allEquipment, allTechniques, onSubmit, onCancel }: { 
-    equipment: Equipment, 
+const EquipmentForm = ({ allEquipment, allTechniques, onSubmit, onCancel, defaultValues, isEditing }: { 
     allEquipment: Equipment[], 
     allTechniques: NDTTechnique[],
     onSubmit: (values: EquipmentFormValues) => void, 
-    onCancel: () => void 
+    onCancel: () => void,
+    defaultValues: Partial<EquipmentFormValues>,
+    isEditing: boolean,
 }) => {
     const form = useForm<EquipmentFormValues>({
         resolver: zodResolver(equipmentSchema),
-        defaultValues: {
-            ...equipment,
-            nextCalibration: equipment.nextCalibration !== 'N/A' ? new Date(equipment.nextCalibration) : new Date(),
-        }
+        defaultValues,
     });
     
-    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(equipment.thumbnailUrl || null);
+    useEffect(() => {
+        form.reset(defaultValues);
+        if (typeof defaultValues.thumbnail === 'string') {
+            setThumbnailPreview(defaultValues.thumbnail);
+        }
+    }, [defaultValues, form]);
+    
+    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-    const possibleParents = React.useMemo(() => allEquipment.filter(e => e.id !== equipment.id && !e.parentId), [equipment.id, allEquipment]);
+    const possibleParents = React.useMemo(() => allEquipment.filter(e => e.id !== defaultValues.id && !e.parentId), [defaultValues.id, allEquipment]);
 
-    React.useEffect(() => {
-        return () => {
-            if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
-                URL.revokeObjectURL(thumbnailPreview);
-            }
-        };
-    }, [thumbnailPreview]);
-    
     const handleFileChange = (file: File | null) => {
         form.setValue('thumbnail', file);
-        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
-            URL.revokeObjectURL(thumbnailPreview);
-        }
+        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) URL.revokeObjectURL(thumbnailPreview);
         if (file) {
             if (!file.type.startsWith('image/')) {
                 setThumbnailPreview(null);
@@ -108,835 +87,161 @@ const EquipmentForm = ({ equipment, allEquipment, allTechniques, onSubmit, onCan
             setThumbnailPreview(URL.createObjectURL(file));
             form.clearErrors('thumbnail');
         } else {
-            setThumbnailPreview(equipment.thumbnailUrl || null);
+            setThumbnailPreview(typeof defaultValues.thumbnail === 'string' ? defaultValues.thumbnail : null);
         }
     };
 
-    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-    };
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFileChange(e.dataTransfer.files[0]);
-            e.dataTransfer.clearData();
-        }
-    };
-
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )}
-                />
-                    <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Instrument">Instrument</SelectItem>
-                                    <SelectItem value="Probe">Probe/Transducer</SelectItem>
-                                    <SelectItem value="Source">Source</SelectItem>
-                                    <SelectItem value="Sensor">Sensor/Detector</SelectItem>
-                                    <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
-                                    <SelectItem value="Accessory">Accessory</SelectItem>
-                                    <SelectItem value="Visual Aid">Visual Aid</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                    <FormField
-                    control={form.control}
-                    name="parentId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Parent Equipment (Optional)</FormLabel>
-                            <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Assign to a kit or system" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="none">None (Standalone Equipment)</SelectItem>
-                                    {possibleParents.map(parent => (
-                                            <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="manufacturer"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Manufacturer (Optional)</FormLabel>
-                                <FormControl><Input placeholder="e.g., Olympus" {...field} value={field.value || ''} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="model"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Model (Optional)</FormLabel>
-                                <FormControl><Input placeholder="e.g., 45MG" {...field} value={field.value || ''} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                <FormField
-                    control={form.control}
-                    name="serialNumber"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Serial Number (Optional)</FormLabel>
-                            <FormControl><Input placeholder="e.g., SN-12345" {...field} value={field.value || ''} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                    <FormField
-                    control={form.control}
-                    name="techniques"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Technique(s)</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>
-                                    {field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <ScrollArea className="h-48"><div className="p-2">
-                                        {allTechniques.map((tech) => (
-                                        <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
-                                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.acronym)} onCheckedChange={(checked) => {
-                                                return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym));
-                                            }}/>
-                                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.title} ({tech.acronym})</label>
-                                        </div>
-                                        ))}
-                                    </div></ScrollArea>
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Status</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Available">Available</SelectItem>
-                                    <SelectItem value="In Use">In Use</SelectItem>
-                                    <SelectItem value="Calibration Due">Calibration Due</SelectItem>
-                                    <SelectItem value="Out of Service">Out of Service</SelectItem>
-                                    <SelectItem value="Under Service">Under Service</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="nextCalibration"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Next Calibration Date</FormLabel>
-                        <FormControl><CustomDateInput {...field} /></FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="thumbnail"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>Thumbnail Image</FormLabel>
-                                <div
-                                onDragEnter={handleDragEnter}
-                                onDragLeave={handleDragLeave}
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                onClick={() => fileInputRef.current?.click()}
-                                className={cn(
-                                    "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors",
-                                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"
-                                )}
-                            >
-                                {thumbnailPreview ? (
-                                    <>
-                                        <Image
-                                            src={thumbnailPreview}
-                                            alt={`Thumbnail preview for ${equipment.name}`}
-                                            fill
-                                            className="object-contain rounded-md p-2"
-                                        />
-                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md">
-                                            <p className="text-white font-semibold">Click or drag to replace</p>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <p>Click or drag &amp; drop to upload thumbnail</p>
-                                )}
-                                <FormControl>
-                                    <Input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                                    />
-                                </FormControl>
-                            </div>
-                            <FormDescription>
-                                This image will be used as the display card for the equipment.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                    <Button type="submit">Save Changes</Button>
-                </DialogFooter>
-            </form>
-        </Form>
-    );
-};
-
-const addComponentSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
-  techniques: z.array(z.string()).min(1, "At least one technique is required."),
-  manufacturer: z.string().optional(),
-  model: z.string().optional(),
-  serialNumber: z.string().optional(),
-  status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
-  nextCalibration: z.date(),
-  thumbnail: z.any().optional(),
-});
-type AddComponentFormValues = z.infer<typeof addComponentSchema>;
-
-const AddComponentForm = ({ onCancel, onSubmit, allTechniques }: { 
-    onCancel: () => void, 
-    onSubmit: (values: AddComponentFormValues) => void,
-    allTechniques: NDTTechnique[]
-}) => {
-    const form = useForm<AddComponentFormValues>({
-        resolver: zodResolver(addComponentSchema),
-        defaultValues: { name: "", type: 'Probe', techniques: [], status: "Available", nextCalibration: new Date() },
+    const createDragHandlers = (setIsDragging: React.Dispatch<React.SetStateAction<boolean>>, handleFile: (file: File | null) => void) => ({
+        handleDragEnter: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); },
+        handleDragLeave: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); },
+        handleDragOver: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); },
+        handleDrop: (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        },
     });
 
-    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
-    const [isDragging, setIsDragging] = React.useState(false);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const dragHandlers = createDragHandlers(setIsDragging, handleFileChange);
 
-     React.useEffect(() => {
-        return () => { if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview); };
-    }, [thumbnailPreview]);
-    
-    const handleFileChange = (file: File | null) => {
-        form.setValue('thumbnail', file);
-        if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                setThumbnailPreview(null);
-                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
-                return;
-            }
-             if (file.size > MAX_FILE_SIZE_BYTES) {
-                setThumbnailPreview(null);
-                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
-                return;
-            }
-            setThumbnailPreview(URL.createObjectURL(file));
-            form.clearErrors('thumbnail');
-        } else { setThumbnailPreview(null); }
-    };
-
-    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFileChange(e.dataTransfer.files[0]);
-            e.dataTransfer.clearData();
-        }
-    };
-    
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Component Name</FormLabel><FormControl><Input placeholder="e.g., 5MHz Phased Array Probe" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                 <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select a type"/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Instrument">Instrument</SelectItem>
-                                    <SelectItem value="Probe">Probe/Transducer</SelectItem>
-                                    <SelectItem value="Source">Source</SelectItem>
-                                    <SelectItem value="Sensor">Sensor/Detector</SelectItem>
-                                    <SelectItem value="Calibration Standard">Calibration Standard</SelectItem>
-                                    <SelectItem value="Accessory">Accessory</SelectItem>
-                                    <SelectItem value="Visual Aid">Visual Aid</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="manufacturer" render={({ field }) => (<FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Model</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                </div>
-                 <FormField control={form.control} name="serialNumber" render={({ field }) => (<FormItem><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                 <FormField control={form.control} name="techniques" render={({ field }) => (
-                     <FormItem><FormLabel>Technique(s)</FormLabel>
-                         <Popover><PopoverTrigger asChild><FormControl><Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>{field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"}<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /></Button></FormControl></PopoverTrigger>
-                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0"><ScrollArea className="h-48"><div className="p-2">{allTechniques.map((tech) => (<div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
-                            <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.acronym)} onCheckedChange={(checked) => { return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym));}}/>
-                            <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium w-full">{tech.title} ({tech.acronym})</label>
-                         </div>))}</div></ScrollArea></PopoverContent></Popover><FormMessage /></FormItem>
-                 )}/>
-                 <FormField control={form.control} name="nextCalibration" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Next Calibration Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)} />
-                 <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button><Button type="submit">Add Component</Button></DialogFooter>
-            </form>
-        </Form>
+        <Card>
+            <CardHeader>
+                <CardTitle>{isEditing ? `Edit: ${defaultValues.name}` : 'Add New Equipment'}</CardTitle>
+                <CardDescription>{isEditing ? `Update the details for this piece of equipment.` : 'Enter the details for the new piece of equipment.'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="type" render={({ field }) => ( <FormItem> <FormLabel>Type</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Instrument">Instrument</SelectItem> <SelectItem value="Probe">Probe/Transducer</SelectItem> <SelectItem value="Source">Source</SelectItem> <SelectItem value="Sensor">Sensor/Detector</SelectItem> <SelectItem value="Calibration Standard">Calibration Standard</SelectItem> <SelectItem value="Accessory">Accessory</SelectItem> <SelectItem value="Visual Aid">Visual Aid</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
+                        <FormField control={form.control} name="parentId" render={({ field }) => ( <FormItem> <FormLabel>Parent Equipment (Optional)</FormLabel> <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Assign to a kit or system" /> </SelectTrigger> </FormControl> <SelectContent> <SelectItem value="none">None (Standalone Equipment)</SelectItem> {possibleParents.map(parent => ( <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem> ))} </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="manufacturer" render={({ field }) => ( <FormItem> <FormLabel>Manufacturer (Optional)</FormLabel> <FormControl><Input placeholder="e.g., Olympus" {...field} value={field.value || ''} /></FormControl> <FormMessage /> </FormItem> )}/>
+                            <FormField control={form.control} name="model" render={({ field }) => ( <FormItem> <FormLabel>Model (Optional)</FormLabel> <FormControl><Input placeholder="e.g., 45MG" {...field} value={field.value || ''} /></FormControl> <FormMessage /> </FormItem> )}/>
+                        </div>
+                        <FormField control={form.control} name="serialNumber" render={({ field }) => ( <FormItem> <FormLabel>Serial Number (Optional)</FormLabel> <FormControl><Input placeholder="e.g., SN-12345" {...field} value={field.value || ''} /></FormControl> <FormMessage /> </FormItem> )}/>
+                        <FormField control={form.control} name="techniques" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Technique(s)</FormLabel> <Popover> <PopoverTrigger asChild> <FormControl> <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}> {field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"} <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /> </Button> </FormControl> </PopoverTrigger> <PopoverContent className="w-[--radix-popover-trigger-width] p-0"> <ScrollArea className="h-48"><div className="p-2"> {allTechniques.map((tech) => ( <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"> <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.acronym)} onCheckedChange={(checked) => { return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym)); }}/> <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.title} ({tech.acronym})</label> </div> ))} </div></ScrollArea> </PopoverContent> </Popover> <FormMessage /> </FormItem> )}/>
+                        <FormField control={form.control} name="status" render={({ field }) => ( <FormItem> <FormLabel>Status</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Available">Available</SelectItem> <SelectItem value="In Use">In Use</SelectItem> <SelectItem value="Calibration Due">Calibration Due</SelectItem> <SelectItem value="Out of Service">Out of Service</SelectItem> <SelectItem value="Under Service">Under Service</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
+                        <FormField control={form.control} name="nextCalibration" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Next Calibration Date</FormLabel> <FormControl><CustomDateInput {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
+                        <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag &amp; drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the equipment.</FormDescription> <FormMessage /> </FormItem> )}/>
+                        <CardFooter className="px-0 pt-4 flex justify-end gap-2">
+                            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                            <Button type="submit">{isEditing ? 'Save Changes' : 'Submit for Approval'}</Button>
+                        </CardFooter>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
     );
 };
 
 
-const statusVariants: { [key in Equipment['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
-    'Available': 'success',
-    'In Use': 'default',
-    'Calibration Due': 'destructive',
-    'Out of Service': 'outline',
-    'Under Service': 'secondary'
-};
-
-const historyEventIcons: { [key in EquipmentHistory['event']]: React.ReactNode } = {
-    'Created': <Info className="h-4 w-4" />,
-    'Updated': <Info className="h-4 w-4" />,
-    'Checked Out': <Clock className="h-4 w-4" />,
-    'Checked In': <Clock className="h-4 w-4" />,
-    'Set to Available': <Info className="h-4 w-4" />,
-    'Set to Calibration Due': <Info className="h-4 w-4" />,
-    'Set to Out of Service': <Info className="h-4 w-4" />,
-    'Checked Out for Service': <Send className="h-4 w-4" />,
-    'Assigned to Kit': <Package className="h-4 w-4" />,
-    'Removed from Kit': <Package className="h-4 w-4" />,
-}
-
-export default function EquipmentDetailPage() {
+export default function AddEditEquipmentPage() {
     const params = useParams();
-    const { id } = params;
-    const searchParams = useSearchParams();
+    const id = params.id as string;
+    const isEditing = id !== 'add';
     const router = useRouter();
-    const role = searchParams.get('role');
-
-    // In a real app, this would come from a user context or subscription check.
-    const isSubscriptionActive = false;
-
+    const searchParams = useSearchParams();
     const { toast } = useToast();
-    const [isEditing, setIsEditing] = useState(false);
-    const [isAddComponentOpen, setIsAddComponentOpen] = useState(false);
-    const [editingComponent, setEditingComponent] = useState<Equipment | null>(null);
-    const [isEditComponentOpen, setIsEditComponentOpen] = useState(false);
-
     const { firestore, user } = useFirebase();
-    const equipmentRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'equipment', id as string) : null), [firestore, id]);
-    const { data: equipment, isLoading: isLoadingEquipment } = useDoc<Equipment>(equipmentRef);
 
-    const allEquipmentQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'equipment') : null), [firestore]);
-    const { data: allEquipmentFromDb, isLoading: isLoadingAllEquipment } = useCollection<Equipment>(allEquipmentQuery);
-    const allEquipment = allEquipmentFromDb || [];
-
-    const allTechniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
-    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(allTechniquesQuery);
-
-    const childEquipment = useMemo(() => allEquipment.filter(e => e.parentId === id), [id, allEquipment]);
-    const parentEquipment = useMemo(() => allEquipment.find(e => e.id === equipment?.parentId), [equipment, allEquipment]);
-
-    useEffect(() => {
-        if (role && role !== 'inspector') {
-            router.replace(`/dashboard?${searchParams.toString()}`);
-        }
-    }, [role, router, searchParams]);
-
-    if (!isLoadingEquipment && !equipment) {
-        notFound();
-    }
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
+    );
+    const { data: equipmentToEdit, isLoading: isLoadingEquipmentToEdit } = useDoc<Equipment>(
+        useMemoFirebase(() => (isEditing && firestore ? doc(firestore, 'equipment', id) : null), [isEditing, id, firestore])
+    );
+    const { data: allEquipment, isLoading: isLoadingAllEquipment } = useCollection<Equipment>(
+        useMemoFirebase(() => (firestore ? collection(firestore, 'equipment') : null), [firestore])
+    );
+    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
+        useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore])
+    );
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
-    }
+    };
 
     const handleFormSubmit = async (values: EquipmentFormValues) => {
-        if (!equipment || !firestore) return;
-        const { thumbnail, ...equipmentData } = values;
+        if (!firestore || !userProfile) return;
         
-        const updatedEquipmentData = {
+        const { thumbnail, ...equipmentData } = values;
+        const dataToSave = {
             ...equipmentData,
+            providerId: userProfile.companyId,
             nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
         };
         
-        const equipmentDocRef = doc(firestore, 'equipment', equipment.id);
-        await updateDoc(equipmentDocRef, {
-            ...updatedEquipmentData,
-            history: arrayUnion({ event: 'Updated', user: 'Maria Garcia', timestamp: new Date().toISOString() })
-        });
-        
-        toast({ title: "Equipment Updated", description: `${equipment.name} has been updated.` });
-        setIsEditing(false);
-    };
-
-    const handleAddComponentSubmit = async (values: AddComponentFormValues) => {
-        if (!equipment || !firestore) return;
-        const newComponentRef = doc(collection(firestore, 'equipment'), `EQUIP-${Date.now()}`);
-        const newComponentData: Omit<Equipment, 'history' | 'thumbnailUrl'> = {
-            id: newComponentRef.id,
-            providerId: equipment.providerId,
-            name: values.name,
-            type: values.type,
-            techniques: values.techniques,
-            manufacturer: values.manufacturer,
-            model: values.model,
-            serialNumber: values.serialNumber,
-            status: values.status,
-            approvalStatus: 'Pending Approval',
-            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
-            parentId: equipment.id,
-            isPublic: false,
-        };
-        await setDoc(newComponentRef, {
-            ...newComponentData,
-            history: [{ event: 'Created', user: 'Maria Garcia', timestamp: new Date().toISOString() }]
-        });
-        toast({ title: "Component Added", description: `"${values.name}" is pending approval and has been added to this kit.` });
-        setIsAddComponentOpen(false);
+        try {
+            if (isEditing) {
+                const equipmentDocRef = doc(firestore, 'equipment', id);
+                await updateDoc(equipmentDocRef, {
+                    ...dataToSave,
+                    history: arrayUnion({ event: 'Updated', user: userProfile.name, timestamp: new Date().toISOString() })
+                });
+                toast({ title: "Equipment Updated", description: `${values.name} has been updated.` });
+            } else {
+                const newEquipmentRef = doc(collection(firestore, 'equipment'));
+                await setDoc(newEquipmentRef, {
+                    id: newEquipmentRef.id,
+                    ...dataToSave,
+                    approvalStatus: 'Pending Approval',
+                    isPublic: false,
+                    history: [{ event: 'Created', user: userProfile.name, timestamp: new Date().toISOString() }]
+                });
+                toast({ title: "Equipment Submitted", description: `${values.name} is awaiting approval.` });
+            }
+            router.push(constructUrl('/dashboard/equipment'));
+        } catch (error) {
+            console.error("Error saving equipment:", error);
+            toast({ variant: "destructive", title: "Save Failed", description: "Could not save equipment." });
+        }
     };
     
+    const isLoading = isLoadingProfile || isLoadingAllEquipment || isLoadingTechniques || (isEditing && isLoadingEquipmentToEdit);
 
-    const handleEditComponentClick = (component: Equipment) => {
-        setEditingComponent(component);
-        setIsEditComponentOpen(true);
-    };
-
-    const handleComponentFormSubmit = async (values: EquipmentFormValues) => {
-        if (!editingComponent || !firestore) return;
-
-        const { thumbnail, ...equipmentData } = values;
-        
-        const updatedEquipmentData = {
-            ...equipmentData,
-            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
-        };
-        
-        const equipmentDocRef = doc(firestore, 'equipment', editingComponent.id);
-        await updateDoc(equipmentDocRef, {
-            ...updatedEquipmentData,
-            history: arrayUnion({ event: 'Updated', user: 'Maria Garcia', timestamp: new Date().toISOString() })
-        });
-        
-        toast({
-            title: "Component Updated",
-            description: `${values.name} has been updated.`,
-        });
-        setIsEditComponentOpen(false);
-    };
-
-    if (role && role !== 'inspector') {
-        return null;
-    }
-
-    if (isLoadingEquipment || isLoadingAllEquipment || isLoadingTechniques) {
+    if (isLoading) {
         return (
-             <div className="space-y-6">
-                <Skeleton className="h-8 w-1/4" />
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-1 space-y-6">
-                        <Skeleton className="h-64 w-full" />
-                        <Skeleton className="h-48 w-full" />
-                    </div>
-                    <div className="lg:col-span-2">
-                        <Skeleton className="h-96 w-full" />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    
-    if (!equipment) {
-        return <div>Equipment not found.</div>;
-    }
-
-    if (isEditing) {
-        return (
-             <div className="max-w-2xl mx-auto">
-                <Button variant="outline" size="sm" className="mb-4" onClick={() => setIsEditing(false)}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to View
-                </Button>
-                <EquipmentForm
-                    onSubmit={handleFormSubmit}
-                    onCancel={() => setIsEditing(false)}
-                    equipment={equipment}
-                    allEquipment={allEquipment}
-                    allTechniques={allTechniques || []}
-                />
+            <div className="max-w-2xl mx-auto space-y-6">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-screen" />
             </div>
         )
     }
 
+    if (isEditing && !equipmentToEdit) {
+        notFound();
+    }
+    
+    const defaultValues: Partial<EquipmentFormValues> = isEditing && equipmentToEdit ? {
+        ...equipmentToEdit,
+        nextCalibration: equipmentToEdit.nextCalibration !== 'N/A' ? new Date(equipmentToEdit.nextCalibration) : new Date(),
+        thumbnail: equipmentToEdit.thumbnailUrl,
+    } : {
+        name: "",
+        type: 'Instrument',
+        techniques: [],
+        status: "Available",
+        nextCalibration: new Date(),
+    };
+
     return (
-        <div>
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl("/dashboard/equipment")}>
-                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                        Back to Equipment
-                    </Link>
-                </Button>
-                <div className="flex gap-2">
-                    <Button onClick={() => setIsEditing(true)} disabled={!isSubscriptionActive}><Edit className="mr-2 h-4 w-4" />Edit</Button>
-                </div>
-            </div>
-
-            {!isSubscriptionActive && (
-                <Alert variant="destructive" className="mb-6">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Subscription Expired</AlertTitle>
-                    <AlertDescription>
-                        Your account is in read-only mode. You cannot edit equipment or kits.
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {parentEquipment ? (
-                <div className="mb-6">
-                    <div className="mb-2 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                        <Link href={constructUrl(`/dashboard/equipment/${parentEquipment.id}`)} className="hover:text-primary">
-                            {parentEquipment.name}
-                        </Link>
-                        <ChevronRight className="h-4 w-4" />
-                    </div>
-                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <Wrench className="h-6 w-6 text-primary" />
-                        {equipment.name}
-                    </h1>
-                    <p className="font-extrabold text-sm text-muted-foreground">ID: {equipment.id}</p>
-                </div>
-            ) : (
-                <div className="mb-6">
-                    <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                        <Wrench className="h-6 w-6 text-primary" />
-                        {equipment.name}
-                    </h1>
-                    <p className="font-extrabold text-sm text-muted-foreground">ID: {equipment.id}</p>
-                </div>
-            )}
-
-
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader className="p-0">
-                           {equipment.thumbnailUrl && (
-                                <div className="relative h-48 w-full block group">
-                                    <Image src={equipment.thumbnailUrl} alt={equipment.name} fill className="object-cover rounded-t-lg" />
-                                </div>
-                            )}
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm p-6">
-                            <div className="flex items-start">
-                                <Info className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Status</p>
-                                    <Badge variant={statusVariants[equipment.status]}>{equipment.status}</Badge>
-                                </div>
-                            </div>
-                             <div className="flex items-start">
-                                <Package className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Type</p>
-                                    <p className="text-muted-foreground">{equipment.type}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start">
-                                <SlidersHorizontal className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Technique(s)</p>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {equipment.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
-                                    </div>
-                                </div>
-                            </div>
-                             {equipment.manufacturer && (
-                                <div className="flex items-start">
-                                    <Building className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                    <div>
-                                        <p className="font-semibold">Manufacturer</p>
-                                        <p className="text-muted-foreground">{equipment.manufacturer}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {equipment.model && (
-                                <div className="flex items-start">
-                                    <Wrench className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                    <div>
-                                        <p className="font-semibold">Model</p>
-                                        <p className="text-muted-foreground">{equipment.model}</p>
-                                    </div>
-                                </div>
-                            )}
-                             {equipment.serialNumber && (
-                                <div className="flex items-start">
-                                    <Tag className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                    <div>
-                                        <p className="font-semibold">Serial Number</p>
-                                        <p className="font-bold text-muted-foreground">{equipment.serialNumber}</p>
-                                    </div>
-                                </div>
-                            )}
-                             <div className="flex items-start">
-                                <Calendar className="w-4 h-4 mr-3 mt-1 text-primary"/>
-                                <div>
-                                    <p className="font-semibold">Next Calibration</p>
-                                    <p className="text-muted-foreground">{equipment.nextCalibration === 'N/A' ? 'N/A' : format(new Date(equipment.nextCalibration), GLOBAL_DATE_FORMAT)}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <QrCode className="h-5 w-5 text-primary" />
-                                Equipment QR Code
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="printable-area border rounded-lg p-4 flex flex-col items-center justify-center gap-4">
-                                <Image 
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(equipment.id)}`}
-                                    alt={`QR Code for ${equipment.name}`}
-                                    width={250}
-                                    height={250}
-                                />
-                                <div className="text-center">
-                                    <p className="font-bold text-lg">{equipment.name}</p>
-                                    <p className="font-extrabold text-muted-foreground">{equipment.id}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                            <Button className="w-full" onClick={() => window.print()}>
-                                <Printer className="mr-2 h-4 w-4" />
-                                Print QR Code
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                </div>
-                <div className="lg:col-span-2">
-                    <Tabs defaultValue="history">
-                        <TabsList className="mb-4">
-                            <TabsTrigger value="history">Ledger</TabsTrigger>
-                            <TabsTrigger value="kit">Parts &amp; Kit</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="history">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><History className="text-primary" /> Equipment Ledger</CardTitle>
-                                    <CardDescription>A complete log of all check-in, check-out, and status changes for this item.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <ScrollArea className="h-96">
-                                        <div className="relative pl-6">
-                                            <div className="absolute left-6 top-0 h-full w-0.5 bg-border -translate-x-1/2" />
-                                            {equipment.history && equipment.history.length > 0 ? (
-                                                [...equipment.history].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((entry, index) => (
-                                                    <div key={index} className="relative mb-8 pl-8">
-                                                        <div className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background border-2 border-primary">
-                                                            <div className="text-primary">{historyEventIcons[entry.event]}</div>
-                                                        </div>
-                                                        <p className="text-sm font-medium">{entry.event}</p>
-                                                        <div className="text-xs text-muted-foreground">
-                                                            <ClientFormattedDate timestamp={entry.timestamp} /> by {entry.user}
-                                                        </div>
-                                                        {entry.notes && <p className="mt-1 text-xs italic text-muted-foreground">"{entry.notes}"</p>}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center text-muted-foreground py-10">
-                                                    No history found for this item.
-                                                </div>
-                                            )}
-                                        </div>
-                                    </ScrollArea>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                        <TabsContent value="kit">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2"><Package className="text-primary"/> Parts &amp; Kit Management</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {childEquipment.length > 0 ? (
-                                        <div>
-                                            <div className="flex justify-between items-center mb-4">
-                                                <h3 className="font-semibold">Components in this Kit ({childEquipment.length})</h3>
-                                                <Button onClick={() => setIsAddComponentOpen(true)} size="sm" disabled={!isSubscriptionActive}>
-                                                    <PlusCircle className="mr-2 h-4 w-4" /> Add Component
-                                                </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mb-4">This item is a parent system.</p>
-                                            <div className="space-y-2">
-                                                {childEquipment.map(child => (
-                                                    <div key={child.id} className="flex items-center justify-between rounded-md border p-3 hover:bg-muted/50 transition-colors">
-                                                        <Link href={constructUrl(`/dashboard/equipment/${child.id}`)} className="flex-grow">
-                                                            <p className="font-semibold hover:underline">{child.name}</p>
-                                                            <p className="text-xs font-extrabold text-muted-foreground">{child.id}</p>
-                                                        </Link>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant={statusVariants[child.status]}>{child.status}</Badge>
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                        <MoreVertical className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem onClick={() => handleEditComponentClick(child)} disabled={!isSubscriptionActive}>
-                                                                        <Edit className="mr-2 h-4 w-4"/>
-                                                                        Edit
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ) : parentEquipment ? (
-                                        <div>
-                                            <h3 className="font-semibold">Part of Kit</h3>
-                                            <p className="text-sm text-muted-foreground mb-4">This item is a component of a larger system.</p>
-                                            <Link href={constructUrl(`/dashboard/equipment/${parentEquipment.id}`)}>
-                                                <div className="flex items-center justify-between rounded-md border p-3 hover:bg-muted">
-                                                    <div>
-                                                        <p className="font-semibold">{parentEquipment.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{parentEquipment.id}</p>
-                                                    </div>
-                                                    <Button variant="outline" size="sm">View Parent System</Button>
-                                                </div>
-                                            </Link>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-10 text-muted-foreground">
-                                            <p>This is a standalone piece of equipment and is not part of a kit.</p>
-                                            <Button onClick={() => setIsAddComponentOpen(true)} className="mt-4" disabled={!isSubscriptionActive}>
-                                                <PlusCircle className="mr-2 h-4 w-4" /> Create a Kit
-                                            </Button>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-            </div>
-             <Dialog open={isAddComponentOpen} onOpenChange={setIsAddComponentOpen}>
-                <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
-                    <DialogHeader className="p-6 pb-4 border-b">
-                        <DialogTitle>Add Component to {equipment.name}</DialogTitle>
-                        <DialogDescription>
-                            Create a new equipment item that will be part of this kit. It will be submitted for approval.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex-grow overflow-y-auto px-6">
-                        <AddComponentForm
-                            onSubmit={handleAddComponentSubmit}
-                            onCancel={() => setIsAddComponentOpen(false)}
-                            allTechniques={allTechniques || []}
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={isEditComponentOpen} onOpenChange={setIsEditComponentOpen}>
-                <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
-                    <DialogHeader className="p-6 pb-4 border-b">
-                        <DialogTitle>Edit Component: {editingComponent?.name}</DialogTitle>
-                        <DialogDescription>
-                            Update the component's details below.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex-grow overflow-y-auto px-6">
-                        {editingComponent && (
-                            <EquipmentForm
-                                onSubmit={handleComponentFormSubmit}
-                                onCancel={() => setIsEditComponentOpen(false)}
-                                equipment={editingComponent}
-                                allEquipment={allEquipment}
-                                allTechniques={allTechniques || []}
-                            />
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog>
+        <div className="max-w-2xl mx-auto">
+            <Button asChild variant="outline" size="sm" className="mb-4">
+                <Link href={constructUrl("/dashboard/equipment")}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Equipment
+                </Link>
+            </Button>
+            <EquipmentForm
+                isEditing={isEditing}
+                defaultValues={defaultValues}
+                onSubmit={handleFormSubmit}
+                onCancel={() => router.push(constructUrl('/dashboard/equipment'))}
+                allEquipment={allEquipment || []}
+                allTechniques={allTechniques || []}
+            />
         </div>
-    );
+    )
 }

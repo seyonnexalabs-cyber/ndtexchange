@@ -108,71 +108,55 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                             const nextInspectionDate = safeParseDate(asset.nextInspection);
                             return (
                                 <Card key={asset.id} className={cn(
-                                    "flex flex-col cursor-pointer transition-all hover:border-primary/50 hover:shadow-md",
+                                    "flex flex-col transition-all hover:border-primary/50 hover:shadow-md",
                                     asset.approvalStatus === 'Pending Approval' && "border-amber-500/50 bg-amber-500/5",
                                     asset.status === 'Requires Inspection' && "border-destructive/50 bg-destructive/5"
-                                )}
-                                onClick={() => router.push(constructUrl(`/dashboard/assets/${asset.id}`))}
-                                >
-                                    <CardHeader className="p-0">
-                                        <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
-                                            {asset.thumbnailUrl ? (
-                                                <Image src={asset.thumbnailUrl} alt={asset.name} fill className="object-cover rounded-t-lg" />
-                                            ) : (
-                                                cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-16 h-16 text-primary/50' })
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    {asset.approvalStatus === 'Pending Approval' && (
-                                        <div className="p-4 pt-4 pb-0 text-amber-600 flex items-center gap-2 text-sm font-semibold">
-                                            <AlertTriangle className="h-4 w-4" />
-                                            Pending Admin Approval
-                                        </div>
-                                    )}
-                                    <CardContent className="p-4 flex-grow">
-                                        <div className="flex items-start justify-between">
-                                            {cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-6 h-6 text-primary' })}
-                                            <Badge variant={
-                                                asset.status === 'Operational' ? 'success' :
-                                                asset.status === 'Requires Inspection' ? 'destructive' :
-                                                asset.status === 'Under Repair' ? 'secondary' : 'outline'
-                                            }>{asset.status}</Badge>
-                                        </div>
-                                        <CardTitle className="mt-2 font-semibold text-lg flex items-center gap-2">
-                                            {asset.name}
-                                            {asset.status === 'Requires Inspection' && (
-                                                <AlertTriangle className="h-5 w-5 text-destructive" />
-                                            )}
-                                        </CardTitle>
-                                        <CardDescription className="font-bold">{asset.id}</CardDescription>
-                                    </CardContent>
-                                    <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-                                       {isCompanyAdmin && asset.approvalStatus === 'Pending Approval' ? (
+                                )}>
+                                    <Link href={constructUrl(`/dashboard/assets/${asset.id}`)} className="flex flex-col flex-grow">
+                                        <CardHeader className="p-0">
+                                            <div className="relative h-48 w-full flex items-center justify-center bg-muted/20 rounded-t-lg">
+                                                {asset.thumbnailUrl ? (
+                                                    <Image src={asset.thumbnailUrl} alt={asset.name} fill className="object-cover rounded-t-lg" />
+                                                ) : (
+                                                    cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-16 h-16 text-primary/50' })
+                                                )}
+                                            </div>
+                                        </CardHeader>
+                                        {asset.approvalStatus === 'Pending Approval' && (
+                                            <div className="p-4 pt-4 pb-0 text-amber-600 flex items-center gap-2 text-sm font-semibold">
+                                                <AlertTriangle className="h-4 w-4" />
+                                                Pending Admin Approval
+                                            </div>
+                                        )}
+                                        <CardContent className="p-4 flex-grow">
+                                            <div className="flex items-start justify-between">
+                                                {cloneElement(assetIcons[asset.type] || <Building />, { className: 'w-6 h-6 text-primary' })}
+                                                <Badge variant={
+                                                    asset.status === 'Operational' ? 'success' :
+                                                    asset.status === 'Requires Inspection' ? 'destructive' :
+                                                    asset.status === 'Under Repair' ? 'secondary' : 'outline'
+                                                }>{asset.status}</Badge>
+                                            </div>
+                                            <CardTitle className="mt-2 font-semibold text-lg flex items-center gap-2">
+                                                {asset.name}
+                                                {asset.status === 'Requires Inspection' && (
+                                                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                                                )}
+                                            </CardTitle>
+                                            <CardDescription className="font-bold">{asset.id}</CardDescription>
+                                        </CardContent>
+                                        <CardFooter className="p-4 pt-0 text-sm text-muted-foreground">
+                                           <span>Next: {nextInspectionDate ? format(nextInspectionDate, 'dd-MMM-yyyy') : 'N/A'}</span>
+                                        </CardFooter>
+                                    </Link>
+                                    {isCompanyAdmin && asset.approvalStatus === 'Pending Approval' && (
+                                        <CardFooter className="p-4 pt-0">
                                             <div className="flex w-full justify-end gap-2">
                                                 <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); onReject(asset.id)}}>Reject</Button>
                                                 <Button size="sm" onClick={(e) => {e.stopPropagation(); onApprove(asset.id)}}>Approve</Button>
                                             </div>
-                                        ) : asset.approvalStatus === 'Pending Approval' ? (
-                                            <div className="w-full text-center">
-                                                <Badge variant="secondary">Pending Approval</Badge>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <span>Next: {nextInspectionDate ? format(nextInspectionDate, 'dd-MMM-yyyy') : 'N/A'}</span>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                                            <MoreVertical className="h-4 w-4 text-primary" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                                        <DropdownMenuItem onClick={() => setQrCodeData({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                                                        <DropdownMenuItem>Archive</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </>
-                                        )}
-                                    </CardFooter>
+                                        </CardFooter>
+                                    )}
                                 </Card>
                             );
                         })}

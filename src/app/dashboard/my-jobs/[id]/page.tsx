@@ -911,10 +911,13 @@ export default function JobDetailPage() {
             const newBidData: Bid = {
                 id: bidRef.id,
                 jobId: jobDetails.id,
+                jobTitle: jobDetails.title,
                 inspectorId: authUser.uid,
                 providerCompanyId: currentUserProfile.companyId,
                 providerName: currentUserProfile.company,
                 userId: jobDetails.userId!,
+                client: jobDetails.client,
+                location: jobDetails.location,
                 amount: values.amount,
                 status: 'Submitted',
                 submittedDate: new Date().toISOString(),
@@ -1344,3 +1347,4 @@ export default function JobDetailPage() {
         </TooltipProvider>
     );
 }
+

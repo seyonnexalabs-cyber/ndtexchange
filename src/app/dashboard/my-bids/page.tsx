@@ -26,7 +26,7 @@ import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, collectionGroup, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
-import type { Job, Bid, NDTTechnique } from '@/lib/types';
+import type { Job, Bid, NDTTechnique } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 
 const bidSchema = z.object({
@@ -48,9 +48,7 @@ const statusConfig: { [key in Bid['status']]: { variant: 'success' | 'default' |
 };
 
 
-type MappedBid = Bid & { job: Job };
-
-const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[], onEdit: (bid: MappedBid) => void, onWithdraw: (bid: MappedBid) => void, constructUrl: (path: string) => string }) => {
+const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string }) => {
     const isMobile = useMobile();
 
     if (bids.length === 0) {
@@ -70,31 +68,24 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
         return (
             <div className="space-y-4">
                 {bids.map(bid => {
-                    const expiryDate = safeParseDate(bid.job.bidExpiryDate);
                     return (
                     <Card key={bid.id} className="flex flex-col">
                         <CardHeader>
                              <div className="flex justify-between items-start gap-4">
-                                <CardTitle className="text-lg font-semibold leading-tight">{bid.job?.title}</CardTitle>
+                                <CardTitle className="text-lg font-semibold leading-tight">{bid.jobTitle}</CardTitle>
                                 <Badge variant={statusConfig[bid.status].variant} className="gap-1 shrink-0">
                                     {statusConfig[bid.status].icon}
                                     {statusConfig[bid.status].label}
                                 </Badge>
                             </div>
                             <CardDescription>
-                                For <span className="font-semibold text-foreground">{bid.job?.client}</span> &bull; Job ID: <span className="font-semibold text-foreground">{bid.job?.id}</span>
+                                For <span className="font-semibold text-foreground">{bid.client}</span> &bull; Job ID: <span className="font-semibold text-foreground">{bid.jobId}</span>
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3 flex-grow pt-4">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-2"/>Your Bid</span>
                                 <span className="font-medium">${bid.amount.toLocaleString()}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Decision By</span>
-                                <span className="font-medium flex items-center gap-2">
-                                  {expiryDate ? format(expiryDate, GLOBAL_DATE_FORMAT) : 'N/A'}
-                                </span>
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
@@ -130,18 +121,18 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                         <TableHead>Job</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Your Bid</TableHead>
-                        <TableHead>Decision By</TableHead>
+                        <TableHead>Submitted</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {bids.map(bid => {
-                        const expiryDate = safeParseDate(bid.job.bidExpiryDate);
+                        const submittedDate = safeParseDate(bid.submittedDate);
                         return (
                         <TableRow key={bid.id}>
                             <TableCell>
-                                <div className="font-medium">{bid.job?.title}</div>
-                                <div className="text-xs text-muted-foreground">{bid.job?.client} &bull; {bid.job?.location}</div>
+                                <div className="font-medium">{bid.jobTitle}</div>
+                                <div className="text-xs text-muted-foreground">{bid.client} &bull; {bid.location}</div>
                             </TableCell>
                             <TableCell>
                                 <Badge variant={statusConfig[bid.status].variant} className="gap-1">
@@ -152,8 +143,8 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <span>{expiryDate ? format(expiryDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                  {expiryDate && isToday(expiryDate) && <Badge>Today</Badge>}
+                                  <span>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                  {submittedDate && isToday(submittedDate) && <Badge>Today</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -189,8 +180,8 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: MappedBid[
 
 
 export default function MyBidsPage() {
-    const [editingBid, setEditingBid] = useState<MappedBid | null>(null);
-    const [withdrawingBid, setWithdrawingBid] = useState<MappedBid | null>(null);
+    const [editingBid, setEditingBid] = useState<Bid | null>(null);
+    const [withdrawingBid, setWithdrawingBid] = useState<Bid | null>(null);
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
@@ -207,16 +198,10 @@ export default function MyBidsPage() {
         return query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc'));
     }, [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
-
-    const jobsQuery = useMemoFirebase(() => {
-        if (!firestore || !myBids || myBids.length === 0) return null;
-        const jobIds = [...new Set(myBids.map(bid => bid.jobId))];
-        return query(collection(firestore, 'jobs'), where('id', 'in', jobIds.slice(0, 30)));
-    }, [firestore, myBids]);
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
-    const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
-    const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
+    const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
+        useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore])
+    );
 
     const form = useForm<z.infer<typeof bidSchema>>({
         resolver: zodResolver(bidSchema),
@@ -242,25 +227,17 @@ export default function MyBidsPage() {
         return queryString ? `${pathname}?${queryString}` : pathname;
     }
 
-    const mappedBids = useMemo(() => {
-        if (!jobs || !myBids) return [];
-        return myBids.map(bid => {
-            const job = jobs.find(j => j.id === bid.jobId);
-            return { ...bid, job };
-        }).filter((bid): bid is MappedBid => !!bid.job);
-    }, [jobs, myBids]);
-
-    const handleEditClick = (bid: MappedBid) => {
+    const handleEditClick = (bid: Bid) => {
         setEditingBid(bid);
         form.reset({
             amount: bid.amount,
             comments: bid.comments || '',
-            proposedTechnique: bid.proposedTechnique || (bid.job?.techniques || [])[0],
+            proposedTechnique: bid.proposedTechnique || undefined,
             proposalJustification: bid.proposalJustification || '',
         });
     };
 
-    const handleWithdrawClick = (bid: MappedBid) => {
+    const handleWithdrawClick = (bid: Bid) => {
         setWithdrawingBid(bid);
     };
 
@@ -279,14 +256,15 @@ export default function MyBidsPage() {
     }
     
     const stats = useMemo(() => {
-        const activeBids = mappedBids.filter(b => b.status === 'Submitted').length;
-        const shortlistedBids = mappedBids.filter(b => b.status === 'Shortlisted').length;
-        const awardedBids = mappedBids.filter(b => b.status === 'Awarded').length;
-        const revenueYTD = mappedBids.filter(b => b.status === 'Awarded').reduce((acc, b) => acc + b.amount, 0);
+        if (!myBids) return { activeBids: 0, shortlistedBids: 0, awardedBids: 0, revenueYTD: 0 };
+        const activeBids = myBids.filter(b => b.status === 'Submitted').length;
+        const shortlistedBids = myBids.filter(b => b.status === 'Shortlisted').length;
+        const awardedBids = myBids.filter(b => b.status === 'Awarded').length;
+        const revenueYTD = myBids.filter(b => b.status === 'Awarded').reduce((acc, b) => acc + b.amount, 0);
         return { activeBids, shortlistedBids, awardedBids, revenueYTD };
-    }, [mappedBids]);
+    }, [myBids]);
 
-    const isLoading = isLoadingJobs || isLoadingBids || isLoadingTechniques;
+    const isLoading = isLoadingBids || isLoadingTechniques;
 
     if (isLoading) {
         return (
@@ -346,120 +324,56 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={mappedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>Edit Bid for: {editingBid?.job?.title}</DialogTitle>
+                        <DialogTitle>Edit Bid for: {editingBid?.jobTitle}</DialogTitle>
                         <DialogDescription>
                             Update your bid amount, comments, or proposed technique.
                         </DialogDescription>
                     </DialogHeader>
-                     <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 pt-4">
-                        <div className="space-y-4">
-                             <h3 className="font-semibold text-lg">Job Documents</h3>
-                             <div className="space-y-2">
-                                {editingBid?.job?.documents && editingBid.job.documents.length > 0 ? (
-                                    editingBid.job.documents.map((doc, index) => (
-                                        <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-sm font-medium">{doc.name}</span>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onBidSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="amount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Your Bid Amount ($USD)</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input type="number" placeholder="5000.00" className="pl-8" {...field} />
                                             </div>
-                                            <Button variant="ghost" size="sm" asChild>
-                                                <a href={doc.url} download>Download</a>
-                                            </Button>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No documents were attached to this job.</p>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
-                             </div>
-                        </div>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onBidSubmit)} className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="amount"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Your Bid Amount ($USD)</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input type="number" placeholder="5000.00" className="pl-8" {...field} />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="proposedTechnique"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Proposed Technique</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select a technique" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {ndtTechniques?.map(tech => (
-                                                        <SelectItem key={tech.id} value={tech.acronym}>{tech.title} ({tech.acronym})</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 {editingBid?.job?.techniques && !editingBid.job.techniques.includes(proposedTechnique) && proposedTechnique && (
-                                    <FormField
-                                        control={form.control}
-                                        name="proposalJustification"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Justification for Change</FormLabel>
-                                                <FormControl>
-                                                    <Textarea placeholder="Explain why this technique is a better choice for this job..." {...field} />
-                                                </FormControl>
-                                                 <Alert variant="destructive" className="p-2 text-sm flex items-center gap-2">
-                                                    <Info className="h-4 w-4"/>
-                                                    <AlertDescription>Client must approve technique changes.</AlertDescription>
-                                                 </Alert>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                 )}
-
-                                 <FormField
-                                    control={form.control}
-                                    name="comments"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Comments (Optional)</FormLabel>
-                                            <FormControl>
-                                                <Textarea placeholder="Add any notes or conditions for your bid..." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <DialogFooter className="pt-4 flex-col sm:flex-row sm:space-x-2">
-                                    <Button type="button" variant="ghost" onClick={() => setEditingBid(null)}>Cancel</Button>
-                                    <Button type="submit">
-                                        <Gavel className="mr-2"/>
-                                        Save Changes
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </Form>
-                    </div>
+                            />
+                             <FormField
+                                control={form.control}
+                                name="comments"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Comments (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Textarea placeholder="Add any notes or conditions for your bid..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter className="pt-4 flex-col sm:flex-row sm:space-x-2">
+                                <Button type="button" variant="ghost" onClick={() => setEditingBid(null)}>Cancel</Button>
+                                <Button type="submit">
+                                    <Gavel className="mr-2"/>
+                                    Save Changes
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
                 </DialogContent>
             </Dialog>
 

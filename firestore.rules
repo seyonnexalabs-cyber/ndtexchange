@@ -66,25 +66,26 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isSignedIn(); // Simplified for now, should be more granular
     }
+    
+    // This single rule block handles all access to bids, for both specific paths and collection group queries.
+    match /{path=**}/bids/{bidId} {
+        // READ access is granted if you are the inspector who made the bid,
+        // the client who owns the job, or an admin.
+        allow read: if isSignedIn() && (
+            resource.data.inspectorId == request.auth.uid ||
+            ('userId' in resource.data && resource.data.userId == request.auth.uid) ||
+            isAdmin()
+        );
 
-    match /jobs/{jobId}/bids/{bidId} {
-      // This combined read rule allows an inspector to read their own bids,
-      // a client to read bids on their job, and an admin to read any bid.
-      // It relies on clientId being present on the bid document, which is now added on creation.
-      allow read: if isSignedIn() && 
-                   (request.auth.uid == resource.data.inspectorId || 
-                    request.auth.uid == resource.data.clientId || 
-                    isAdmin());
-
-      // Only an inspector can create a bid on their own behalf.
-      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+        // CREATE access is only for the inspector placing their own bid.
+        allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
       
-      // Client can update bid status, inspector can withdraw their bid.
-      // The get() call is removed here to prevent conflicts with collection group queries.
-      allow update: if isSignedIn() && 
-                     (request.auth.uid == resource.data.clientId || 
-                      resource.data.inspectorId == request.auth.uid || 
-                      isAdmin());
+        // UPDATE access is for the client (to change status) or the inspector (to withdraw).
+        allow update: if isSignedIn() && (
+            ('userId' in resource.data && resource.data.userId == request.auth.uid) || 
+            resource.data.inspectorId == request.auth.uid || 
+            isAdmin()
+        );
     }
 
     match /jobs/{jobId}/messages/{messageId} {

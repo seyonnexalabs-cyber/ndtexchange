@@ -1,6 +1,7 @@
 
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -463,10 +464,13 @@ export type Plan = {
 export type Bid = {
   id: string;
   jobId: string;
+  jobTitle: string;
   inspectorId: string;
   providerCompanyId: string;
   providerName: string;
   userId: string; // The client user ID who owns the job
+  client: string; // The client company name
+  location: string;
   amount: number;
   status: 'Submitted' | 'Shortlisted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Not Selected';
   submittedDate: any;
@@ -485,4 +489,5 @@ export type Certification = {
   certificateNumber?: string;
   validUntil?: string;
 };
+
 

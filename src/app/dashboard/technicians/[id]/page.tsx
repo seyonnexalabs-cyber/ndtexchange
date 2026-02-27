@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useMemo, useState } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { PlatformUser, Job, Certification, NDTServiceProvider, NDTTechnique } fr
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle, Trash } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -297,12 +297,10 @@ export default function TechnicianDetailPage() {
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl("/dashboard/technicians")}>
-                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                        Back to Technicians
-                    </Link>
-                </Button>
+                 <Link href={constructUrl("/dashboard/technicians")} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mb-4 sm:mb-0")}>
+                    <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                    Back to Technicians
+                </Link>
                  <Button onClick={() => setIsFormOpen(true)}>
                     <Edit className="mr-2 h-4 w-4" /> Edit Technician
                 </Button>

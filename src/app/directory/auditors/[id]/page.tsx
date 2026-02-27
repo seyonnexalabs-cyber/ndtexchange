@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, MapPin, Users, Star } from "lucide-react";
@@ -18,7 +18,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -98,12 +98,10 @@ export default function PublicAuditorProfilePage() {
             <PublicHeader />
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                    <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                        <Link href="/ecosystem?tab=auditors">
-                            <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                            Back to Ecosystem
-                        </Link>
-                    </Button>
+                    <Link href="/ecosystem?tab=auditors" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mb-4 sm:mb-0")}>
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                        Back to Ecosystem
+                    </Link>
                      <div className="flex gap-2">
                         <Button asChild variant="outline"><Link href="/login">Log In to Contact</Link></Button>
                         <Button asChild><Link href="/signup">Post a Job</Link></Button>

@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -1060,12 +1060,10 @@ export default function JobDetailPage() {
        <TooltipProvider>
         {isBiddingView ? <JobBiddingView allNdtTechniques={allNdtTechniques} /> : (
             <div>
-                <Button asChild variant="outline" size="sm" className="mb-4">
-                     <Link href={constructUrl(backLink)}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back to {backText}
-                    </Link>
-                </Button>
+                 <Link href={constructUrl(backLink)} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mb-4")}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to {backText}
+                </Link>
 
                 {jobDetails.status === 'Revisions Requested' && lastRejection && (
                     <Alert variant="destructive" className="mb-6">

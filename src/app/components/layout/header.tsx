@@ -129,8 +129,10 @@ const AppHeader = () => {
 
                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
                     <Link href={constructUrl('/dashboard/messages')}>
-                        <MessageSquare className="h-5 w-5 text-primary" />
-                        <span className="sr-only">Messages</span>
+                        <>
+                            <MessageSquare className="h-5 w-5 text-primary" />
+                            <span className="sr-only">Messages</span>
+                        </>
                     </Link>
                 </Button>
 

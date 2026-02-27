@@ -403,9 +403,11 @@ const AppSidebar = () => {
                       tooltip={{ children: item.label }}
                     >
                       <Link href={item.href ? constructUrl(item.href) : '#'} onClick={handleLinkClick}>
-                        <item.icon className="text-primary" />
-                        <span>{item.label}</span>
-                        {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                        <>
+                            <item.icon className="text-primary" />
+                            <span>{item.label}</span>
+                            {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                        </>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

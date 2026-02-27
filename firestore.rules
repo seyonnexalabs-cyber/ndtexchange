@@ -63,9 +63,7 @@ service cloud.firestore {
     
     // This rule allows an inspector to query for their own bids across all jobs using a collection group query.
     match /{path=**}/bids/{bidId} {
-      // The query from the client MUST include a `where("inspectorId", "==", request.auth.uid)` clause.
-      // This rule then allows the query because it can validate that constraint against every document.
-      allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+      allow list: if request.auth.uid == resource.data.inspectorId;
     }
 
     // JOB-RELATED COLLECTIONS
@@ -75,9 +73,11 @@ service cloud.firestore {
     }
 
     match /jobs/{jobId}/bids/{bidId} {
-      // The `read` rule was changed to `get` to resolve a conflict with the collection group query rule for bids.
-      // Now, only direct document reads are allowed by this rule. A client can still read bids for their jobs.
-      allow get: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+      allow get: if (
+        request.auth.uid == resource.data.inspectorId ||
+        get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid ||
+        isAdmin()
+      );
       
       // Only an inspector can create a bid on their own behalf.
       allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;

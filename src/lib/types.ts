@@ -1,7 +1,5 @@
 
 
-
-
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -92,6 +90,7 @@ export type Job = {
     estimatedBudget?: string;
     certificationsRequired?: string[];
     clientCompanyId?: string;
+    clientId?: string; // This is the user ID of the client who created the job
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;
@@ -458,6 +457,23 @@ export type Plan = {
     features: string[];
 };
 
+export type Bid = {
+  id: string;
+  jobId: string;
+  inspectorId: string;
+  providerId: string;
+  providerName: string;
+  clientId: string; // The client user ID who owns the job
+  amount: number;
+  status: 'Submitted' | 'Shortlisted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Not Selected';
+  submittedDate: any;
+  comments?: string;
+  mobilizationDate: string;
+  certifications?: string[];
+  proposedTechnique?: string;
+  proposalJustification?: string;
+};
+
 
 // The 'Certification' type was missing
 export type Certification = {
@@ -466,5 +482,3 @@ export type Certification = {
   certificateNumber?: string;
   validUntil?: string;
 };
-
-    

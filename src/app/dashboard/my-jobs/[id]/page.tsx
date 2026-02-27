@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
@@ -781,7 +782,7 @@ export default function JobDetailPage() {
             status: 'Pending',
         };
     
-        await addDoc(collection(firestore, 'reviews'), reviewData);
+        await addDoc(collection(firestore, 'reviews'), newReview);
         
         toast({
             title: "Review Submitted!",
@@ -907,14 +908,15 @@ export default function JobDetailPage() {
         
             const bidRef = doc(collection(firestore, 'jobs', jobDetails.id, 'bids'));
             
-            const newBidData = {
+            const newBidData: Bid = {
                 id: bidRef.id,
                 jobId: jobDetails.id,
                 inspectorId: authUser.uid,
                 providerId: currentUserProfile.companyId,
                 providerName: currentUserProfile.company,
+                clientId: jobDetails.clientId!,
                 amount: values.amount,
-                status: 'Submitted' as Bid['status'],
+                status: 'Submitted',
                 submittedDate: new Date().toISOString(),
                 comments: values.coverNote,
                 mobilizationDate: format(values.mobilizationDate, 'yyyy-MM-dd'),

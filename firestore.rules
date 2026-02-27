@@ -60,25 +60,6 @@ service cloud.firestore {
     match /users/{userId}/{document=**} {
       allow read, write: if isOwner(userId) || isAdmin();
     }
-    
-    // BIDS - Collection Group
-    match /{path=**}/bids/{bidId} {
-      // Allow any authenticated user to perform a LIST query.
-      // The query from the client-side MUST be secure (e.g., filtering by user ID).
-      allow list: if isSignedIn();
-
-      // Secure the actual reading of documents returned by the query.
-      // A user can GET a bid if:
-      // 1. They are the inspector who created it.
-      // 2. They are the client who owns the job associated with the bid.
-      // 3. They are an admin.
-      allow get: if (
-        (request.auth.uid == resource.data.inspectorId) ||
-        (exists(/databases/$(database)/documents/jobs/$(resource.data.jobId)) && 
-         get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientId == request.auth.uid) ||
-        isAdmin()
-      );
-    }
 
     // JOB-RELATED COLLECTIONS
     match /jobs/{jobId} {
@@ -87,12 +68,23 @@ service cloud.firestore {
     }
 
     match /jobs/{jobId}/bids/{bidId} {
-      // Read permissions are handled by the collection group rule above.
-      
+      // This combined read rule allows an inspector to read their own bids,
+      // a client to read bids on their job, and an admin to read any bid.
+      // It relies on clientId being present on the bid document, which is now added on creation.
+      allow read: if isSignedIn() && 
+                   (request.auth.uid == resource.data.inspectorId || 
+                    request.auth.uid == resource.data.clientId || 
+                    isAdmin());
+
       // Only an inspector can create a bid on their own behalf.
       allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+      
       // Client can update bid status, inspector can withdraw their bid.
-      allow update: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+      // The get() call is removed here to prevent conflicts with collection group queries.
+      allow update: if isSignedIn() && 
+                     (request.auth.uid == resource.data.clientId || 
+                      resource.data.inspectorId == request.auth.uid || 
+                      isAdmin());
     }
 
     match /jobs/{jobId}/messages/{messageId} {

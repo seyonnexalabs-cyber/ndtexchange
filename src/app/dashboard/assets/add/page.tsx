@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from "lucide-react";
 import Link from 'next/link';
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, serverTimestamp, setDoc } from 'firebase/firestore';
 import type { Asset, PlatformUser } from '@/lib/types';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
@@ -205,4 +205,3 @@ export default function AddAssetPage() {
         </div>
     );
 }
-

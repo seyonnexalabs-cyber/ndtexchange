@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ export default function PublicHeader() {
   const navLinks = [
     { href: '/about', label: 'About' },
     { href: '/ecosystem', label: 'Ecosystem' },
+    { href: '/events', label: 'Events' },
     { href: '/platform-workflow', label: 'Workflow' },
     { href: '/request-demo', label: 'Request a Demo' },
     { href: '/help', label: 'Help' },

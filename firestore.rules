@@ -20,20 +20,20 @@ service cloud.firestore {
     }
     
     function isManufacturerOwner(manufacturerId) {
+      // This function uses get() and cannot be used in rules evaluated during batch writes.
+      // It's intended for UI operations by a logged-in manufacturer.
       let userCompanyId = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
       return userCompanyId == manufacturerId;
     }
 
     // PUBLIC COLLECTIONS
     match /products/{productId} {
-      // Allow ANYONE to read any product data. This is the most permissive rule possible
-      // and should allow all queries, filtered or not.
-      allow read: if true;
+      allow get, list: if true;
       
-      // Write permissions are still restricted to the product's manufacturer owner.
-      allow create: if isSignedIn() && isManufacturerOwner(request.resource.data.manufacturerId);
-      allow update: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
-      allow delete: if isSignedIn() && isManufacturerOwner(resource.data.manufacturerId);
+      // Admin can write for seeding. For UI edits, a different rule would be needed for manufacturers
+      // that doesn't rely on get() for write operations, or the UI must not use a batch.
+      // For now, prioritize seeding.
+      allow write: if isAdmin();
     }
     
     match /manufacturers/{manufacturerId} {
@@ -54,7 +54,8 @@ service cloud.firestore {
     // USER-SPECIFIC DATA
     match /users/{userId} {
       allow read, update: if isOwner(userId) || isAdmin();
-      allow create: if request.auth.uid == userId;
+      // Allow user to create own profile, or admin to create any profile for seeding.
+      allow create: if isOwner(userId) || isAdmin();
     }
 
     match /users/{userId}/{document=**} {
@@ -64,29 +65,28 @@ service cloud.firestore {
     // JOB-RELATED COLLECTIONS
     match /jobs/{jobId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // Simplified for now, should be more granular
+      allow write: if isSignedIn(); // Simplified for now
     }
     
-    // This single rule block handles all access to bids, for both specific paths and collection group queries.
     match /{path=**}/bids/{bidId} {
-        // READ access is granted if you are the inspector who made the bid,
-        // the client who owns the job, or an admin.
         allow read: if isSignedIn() && (
             resource.data.inspectorId == request.auth.uid ||
-            ('userId' in resource.data && resource.data.userId == request.auth.uid) ||
+            resource.data.userId == request.auth.uid ||
             isAdmin()
         );
 
-        // CREATE access is only for the inspector placing their own bid.
-        allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+        allow create: if isSignedIn() && (
+            (request.resource.data.inspectorId == request.auth.uid) || 
+            isAdmin()
+        );
       
-        // UPDATE access is for the client (to change status) or the inspector (to withdraw).
         allow update: if isSignedIn() && (
-            ('userId' in resource.data && resource.data.userId == request.auth.uid) || 
+            resource.data.userId == request.auth.uid || 
             resource.data.inspectorId == request.auth.uid || 
             isAdmin()
         );
     }
+
 
     match /jobs/{jobId}/messages/{messageId} {
       allow read, write: if isSignedIn(); // Simplified
@@ -121,7 +121,8 @@ service cloud.firestore {
         allow create: if isSignedIn();
         allow update: if isAdmin();
     }
-
+    
+    // ADMIN-ONLY COLLECTIONS
     match /jobPayments/{paymentId} {
         allow read, write: if isAdmin();
     }
@@ -129,17 +130,25 @@ service cloud.firestore {
      match /payments/{paymentId} {
         allow read, write: if isAdmin();
     }
+
+    match /subscriptions/{subscriptionId} {
+        allow read, write: if isAdmin();
+    }
+    
+    match /plans/{planId} {
+        allow read, write: if isAdmin();
+    }
     
      match /userAuditLogs/{logId} {
-        allow read: if isAdmin();
+        allow read, write: if isAdmin();
     }
     
      match /jobAuditLogs/{logId} {
-        allow read: if isAdmin();
+        allow read, write: if isAdmin();
     }
 
      match /billingAuditLogs/{logId} {
-        allow read: if isAdmin();
+        allow read, write: if isAdmin();
     }
   }
 }

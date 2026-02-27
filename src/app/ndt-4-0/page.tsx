@@ -56,7 +56,7 @@ export default function NDT40Page() {
                 </HoneycombHero>
 
                  {/* Core Technologies Section */}
-                <section className="py-20">
+                <section className="py-16">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h2 className="text-3xl font-headline font-semibold text-primary">Core Technologies of NDT 4.0</h2>
@@ -80,7 +80,7 @@ export default function NDT40Page() {
                 </section>
 
                 {/* How NDT EXCHANGE Fits In Section */}
-                <section className="py-20 bg-card">
+                <section className="py-16 bg-card">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div>
@@ -116,7 +116,7 @@ export default function NDT40Page() {
                 </section>
                 
                 {/* CTA Section */}
-                <section className="py-20">
+                <section className="py-16">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
                       Begin Your NDT 4.0 Journey

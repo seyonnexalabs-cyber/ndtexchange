@@ -108,7 +108,7 @@ export default function HomePage() {
         </HoneycombHero>
 
         {/* Solutions Section */}
-        <section id="solutions" className="py-20">
+        <section id="solutions" className="py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -150,7 +150,7 @@ export default function HomePage() {
         </section>
 
         {/* Social Proof Section */}
-        <section className="py-20 bg-card">
+        <section className="py-16 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -182,7 +182,7 @@ export default function HomePage() {
         </section>
 
         {/* How it works Section */}
-        <section className="py-20">
+        <section className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                   <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -197,7 +197,7 @@ export default function HomePage() {
         </section>
         
         {/* NDT Techniques Section */}
-        <section id="techniques" className="py-20 bg-card">
+        <section id="techniques" className="py-16 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -232,7 +232,7 @@ export default function HomePage() {
         </section>
 
          {/* Call to Action Section */}
-        <section className="bg-primary/90 py-20 text-primary-foreground">
+        <section className="bg-primary/90 py-16 text-primary-foreground">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-headline font-semibold">
               Ready to Join NDT EXCHANGE?

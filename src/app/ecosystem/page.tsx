@@ -353,7 +353,7 @@ export default function EcosystemPage() {
                         </div>
                     </HoneycombHero>
                     
-                    <Tabs defaultValue={defaultTab} className="py-20">
+                    <Tabs defaultValue={defaultTab} className="py-16">
                         <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-2 md:grid-cols-4 h-auto">
                             <TabsTrigger value="products" className="gap-2 py-3"><Wrench /> Products</TabsTrigger>
                             <TabsTrigger value="providers" className="gap-2 py-3"><HardHat /> Providers</TabsTrigger>

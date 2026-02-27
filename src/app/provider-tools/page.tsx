@@ -22,7 +22,7 @@ export default function ProviderToolsPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <HoneycombHero className="py-20 md:py-32">
+                <HoneycombHero className="py-16 md:py-28">
                     <div className="max-w-3xl mx-auto text-center">
                         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                             Grow and Streamline Your NDT Business
@@ -34,7 +34,7 @@ export default function ProviderToolsPage() {
                 </HoneycombHero>
                 
                  {/* Grow Business Section */}
-                <section id="provider-marketplace" className="py-20">
+                <section id="provider-marketplace" className="py-16">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h2 className="text-3xl font-headline font-semibold text-accent">Grow Your Business in the Marketplace</h2>
@@ -69,7 +69,7 @@ export default function ProviderToolsPage() {
                 </section>
 
                 {/* Workflow Diagram Section */}
-                <section className="py-20 bg-card">
+                <section className="py-16 bg-card">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <h2 className="text-3xl font-headline font-semibold text-accent">
@@ -84,7 +84,7 @@ export default function ProviderToolsPage() {
                 </section>
                 
                 {/* Features Section */}
-                <section id="provider-features" className="py-20">
+                <section id="provider-features" className="py-16">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-headline font-semibold text-accent">
@@ -121,7 +121,7 @@ export default function ProviderToolsPage() {
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-20 bg-card">
+                <section className="py-16 bg-card">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
                       Ready to Optimize Your Operations?

@@ -33,7 +33,7 @@ export default function HelpPage() {
             </div>
         </HoneycombHero>
 
-        <section className="py-20">
+        <section className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
               <Card>

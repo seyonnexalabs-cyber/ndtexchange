@@ -35,7 +35,7 @@ export default function RequestDemoPage() {
             </div>
         </HoneycombHero>
 
-        <section className="py-20">
+        <section className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -95,7 +95,7 @@ export default function RequestDemoPage() {
           </div>
         </section>
 
-         <section className="bg-card py-20">
+         <section className="bg-card py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-headline font-semibold text-primary">
               Ready for a Closer Look?

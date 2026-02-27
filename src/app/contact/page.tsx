@@ -62,7 +62,7 @@ const ContactForm = () => {
 
     return (
         <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
@@ -248,7 +248,7 @@ export default function ContactPage() {
             </div>
         </HoneycombHero>
 
-        <section id="pricing-table" className="py-20">
+        <section id="pricing-table" className="py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-12">
                     <div className="flex items-center space-x-2">
@@ -397,7 +397,7 @@ export default function ContactPage() {
             </div>
         </section>
 
-        <section id="faq" className="py-20 bg-card">
+        <section id="faq" className="py-16 bg-card">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
                  <div className="text-center mb-12">
                     <h2 className="text-3xl font-headline font-semibold text-primary">Frequently Asked Questions</h2>
@@ -431,7 +431,7 @@ export default function ContactPage() {
             </div>
         </section>
         
-        <section id="contact-form" className="py-20 bg-muted/30">
+        <section id="contact-form" className="py-16 bg-muted/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-headline font-semibold text-primary">

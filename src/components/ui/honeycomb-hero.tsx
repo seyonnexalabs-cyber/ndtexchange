@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 const HoneycombHero = ({ children, className }: { children: React.ReactNode, className?: string }) => {
   return (
-    <section className={cn("relative w-full bg-background overflow-hidden flex items-center justify-center py-20 md:py-24", className)}>
+    <section className={cn("relative w-full bg-background overflow-hidden flex items-center justify-center py-16 md:py-20", className)}>
       {/* Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-10">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">

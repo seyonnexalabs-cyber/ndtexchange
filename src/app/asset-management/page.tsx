@@ -24,7 +24,7 @@ export default function AssetManagementPage() {
 
             <main className="flex-grow">
                 {/* Hero Section */}
-                <HoneycombHero className="py-20 md:py-32">
+                <HoneycombHero className="py-16 md:py-28">
                     <div className="max-w-3xl mx-auto text-center">
                         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                             Total Lifecycle Asset Management
@@ -36,7 +36,7 @@ export default function AssetManagementPage() {
                 </HoneycombHero>
 
                 {/* Workflow Diagram Section */}
-                <section className="py-20">
+                <section className="py-16">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -51,7 +51,7 @@ export default function AssetManagementPage() {
                 </section>
 
                  {/* Shutdown Maintenance Section */}
-                <section className="py-20 bg-card">
+                <section className="py-16 bg-card">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -66,7 +66,7 @@ export default function AssetManagementPage() {
                 </section>
 
                 {/* Other Maintenance Strategies Section */}
-                <section className="py-20">
+                <section className="py-16">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -95,7 +95,7 @@ export default function AssetManagementPage() {
                     </div>
                 </section>
 
-                <section className="py-20 bg-card">
+                <section className="py-16 bg-card">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -190,7 +190,7 @@ export default function AssetManagementPage() {
                 </section>
                 
                 {/* Features Section */}
-                <section id="asset-management-features" className="py-20 bg-background">
+                <section id="asset-management-features" className="py-16 bg-background">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <h2 className="text-3xl font-headline font-semibold text-primary">
@@ -234,7 +234,7 @@ export default function AssetManagementPage() {
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-20">
+                <section className="py-16">
                   <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-headline font-semibold text-primary">
                       Ready to Take Control of Your Assets?

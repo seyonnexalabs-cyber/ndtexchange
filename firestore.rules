@@ -64,26 +64,20 @@ service cloud.firestore {
       allow write: if isSignedIn(); // Simplified for now
     }
     
+    // This single block now correctly handles all bid-related security.
     match /{path=**}/bids/{bidId} {
-        function isBidOwner() {
-            return request.auth.uid == resource.data.inspectorId;
-        }
-        function isJobOwner() {
-            return request.auth.uid == resource.data.userId;
-        }
-
-        // Allow an inspector to LIST bids where they are the owner.
-        // This is a collection group query.
+        // ALLOWS an inspector to query for their own bids across all jobs.
+        // The client-side query must include `where('inspectorId', '==', request.auth.uid)`.
         allow list: if request.auth.uid == resource.data.inspectorId;
-        
-        // Allow the inspector OR the job owner to GET a single bid.
-        allow get: if isBidOwner() || isJobOwner();
 
-        // Inspector can create a bid for themselves.
+        // ALLOWS the job owner OR the bid owner to get a single bid document.
+        allow get: if request.auth.uid == resource.data.userId || request.auth.uid == resource.data.inspectorId;
+
+        // ALLOWS an inspector to create a bid for themselves.
         allow create: if request.auth.uid == request.resource.data.inspectorId;
 
-        // Client can update status; Inspector can update their own submitted bid.
-        allow update: if isJobOwner() || (isBidOwner() && resource.data.status == 'Submitted');
+        // ALLOWS the client (job owner) to update status, or the inspector to update their own submitted bid.
+        allow update: if request.auth.uid == resource.data.userId || (request.auth.uid == resource.data.inspectorId && resource.data.status == 'Submitted');
     }
 
 

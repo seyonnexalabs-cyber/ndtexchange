@@ -72,18 +72,18 @@ service cloud.firestore {
             return request.auth.uid == resource.data.userId;
         }
 
-        // Inspector can list their own bids across all jobs.
-        // Client list is disabled for now to fix inspector view.
-        allow list: if isSignedIn() && request.auth.uid == resource.data.inspectorId;
+        // Allow an inspector to LIST bids where they are the owner.
+        // This is a collection group query.
+        allow list: if request.auth.uid == resource.data.inspectorId;
         
-        // Anyone involved can get a single bid document directly.
-        allow get: if isSignedIn() && (isBidOwner() || isJobOwner() || isAdmin());
+        // Allow the inspector OR the job owner to GET a single bid.
+        allow get: if isBidOwner() || isJobOwner();
 
-        // Inspector can create a bid.
-        allow create: if isSignedIn() && request.auth.uid == request.resource.data.inspectorId;
+        // Inspector can create a bid for themselves.
+        allow create: if request.auth.uid == request.resource.data.inspectorId;
 
         // Client can update status; Inspector can update their own submitted bid.
-        allow update: if isSignedIn() && (isJobOwner() || (isBidOwner() && resource.data.status == 'Submitted') || isAdmin());
+        allow update: if isJobOwner() || (isBidOwner() && resource.data.status == 'Submitted');
     }
 
 

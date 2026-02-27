@@ -61,13 +61,27 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
     
+    // This collection group query allows an inspector to fetch all of their own bids.
+    match /{path=**}/bids/{bidId} {
+      allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+    }
+
     // JOB-RELATED COLLECTIONS
     match /jobs/{jobId} {
       allow read: if isSignedIn();
       allow write: if isSignedIn(); // Simplified for now, should be more granular
     }
 
-    match /jobs/{jobId}/{subcollection}/{documentId} {
+    match /jobs/{jobId}/bids/{bidId} {
+      // The client of the job, the inspector who made the bid, and admins can read.
+      allow read: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+      // Only an inspector can create a bid on their own behalf.
+      allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
+      // Client can update bid status, inspector can withdraw their bid.
+      allow update: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+    }
+
+    match /jobs/{jobId}/messages/{messageId} {
       allow read, write: if isSignedIn(); // Simplified
     }
 
@@ -113,7 +127,7 @@ service cloud.firestore {
         allow read: if isAdmin();
     }
     
-    match /jobAuditLogs/{logId} {
+     match /jobAuditLogs/{logId} {
         allow read: if isAdmin();
     }
 

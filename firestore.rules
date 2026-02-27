@@ -67,7 +67,9 @@ service cloud.firestore {
     // This single block now correctly handles all bid-related security.
     match /{path=**}/bids/{bidId} {
         // ALLOWS an inspector to query for their own bids across all jobs.
-        // The client-side query must include `where('inspectorId', '==', request.auth.uid)`.
+        // For a 'list' operation, this condition is checked against every document
+        // returned by the query. The client-side query MUST include
+        // `where('inspectorId', '==', request.auth.uid)` to be efficient and secure.
         allow list: if request.auth.uid == resource.data.inspectorId;
 
         // ALLOWS the job owner OR the bid owner to get a single bid document.

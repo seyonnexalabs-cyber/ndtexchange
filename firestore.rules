@@ -61,9 +61,13 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
     
-    // This collection group query allows an inspector to fetch all of their own bids.
+    // This rule allows an inspector to query for their own bids across all jobs using a collection group query.
     match /{path=**}/bids/{bidId} {
-      allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+      // The query MUST include a "where('inspectorId', '==', request.auth.uid)" clause for this to pass.
+      allow list: if isSignedIn() && request.query.where.inspectorId == request.auth.uid;
+      
+      // This allows a user to directly read a specific bid document if they are the inspector.
+      allow get: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
 
     // JOB-RELATED COLLECTIONS

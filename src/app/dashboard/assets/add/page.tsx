@@ -169,8 +169,10 @@ export default function AddAssetPage() {
                     href={constructUrl('/dashboard/assets')}
                     className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
                 >
-                    <ChevronLeft />
-                    Back to Assets
+                    <span>
+                        <ChevronLeft />
+                        Back to Assets
+                    </span>
                 </Link>
             </div>
              <Card>

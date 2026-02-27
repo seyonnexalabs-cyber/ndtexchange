@@ -51,45 +51,47 @@ function MultiSelect({ options, selected, onChange, className, placeholder = 'Se
           className={cn("w-full justify-between h-auto min-h-10", className)}
           disabled={disabled}
         >
-          <div className="flex gap-1 flex-wrap">
-            {selected.length > 0 ? (
-              options.filter(o => selected.includes(o.value)).map((option) => (
-                <Badge
-                  variant="secondary"
-                  key={option.value}
-                  className="mr-1"
-                >
-                  {option.label}
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Remove ${option.label}`}
-                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+          <>
+            <div className="flex gap-1 flex-wrap">
+              {selected.length > 0 ? (
+                options.filter(o => selected.includes(o.value)).map((option) => (
+                  <Badge
+                    variant="secondary"
+                    key={option.value}
+                    className="mr-1"
+                  >
+                    {option.label}
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Remove ${option.label}`}
+                      className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleUnselect(option.value);
+                        }
+                      }}
+                      onMouseDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleUnselect(option.value);
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUnselect(option.value);
-                    }}
-                  >
-                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                  </span>
-                </Badge>
-              ))
-            ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
-            )}
-          </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      }}
+                    >
+                      <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </span>
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-muted-foreground">{placeholder}</span>
+              )}
+            </div>
+            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+          </>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">

@@ -186,8 +186,10 @@ export default function EditAssetPage() {
         <div className="max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                  <Link href={constructUrl('/dashboard/assets')} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                    <ChevronLeft />
-                    Back to Assets
+                    <span>
+                        <ChevronLeft />
+                        Back to Assets
+                    </span>
                 </Link>
             </div>
              <Card>

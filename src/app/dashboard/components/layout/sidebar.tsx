@@ -240,8 +240,10 @@ const AppSidebar = () => {
                           <SidebarMenuSubItem key={child.id}>
                             <SidebarMenuSubButton asChild isActive={child.id === activeItem?.id}>
                               <Link href={child.href ? constructUrl(child.href) : '#'}>
-                                <child.icon />
-                                <span>{child.label}</span>
+                                <>
+                                    <child.icon />
+                                    <span>{child.label}</span>
+                                </>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -260,8 +262,10 @@ const AppSidebar = () => {
                       onClick={() => setMessagesOpen(true)}
                       tooltip={{ children: item.label }}
                     >
-                      <item.icon />
-                      <span>{item.label}</span>
+                      <>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -275,9 +279,11 @@ const AppSidebar = () => {
                   tooltip={{ children: item.label }}
                 >
                   <Link href={item.href ? constructUrl(item.href) : '#'}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                    {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                    <>
+                        <item.icon />
+                        <span>{item.label}</span>
+                        {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                    </>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

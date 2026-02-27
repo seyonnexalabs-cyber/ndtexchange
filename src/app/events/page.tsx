@@ -1,3 +1,4 @@
+
 'use client';
 
 import PublicHeader from '@/app/components/layout/public-header';
@@ -21,7 +22,10 @@ export default function EventsPage() {
                 </HoneycombHero>
                 
                 <section className="py-8 md:py-12">
-                    <div className="container mx-auto px-0 sm:px-6 lg:px-8">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <p className="text-center text-sm text-muted-foreground mb-4">
+                            A special thank you to the <a href="https://www.icndt.org/" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">International Committee for Non-Destructive Testing (ICNDT)</a> for providing this calendar.
+                        </p>
                         <div className="w-full h-[90vh] bg-background">
                             <iframe
                                 src="https://www.icndt.org/Events/International-Event-Calendar"

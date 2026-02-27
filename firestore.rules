@@ -29,10 +29,6 @@ service cloud.firestore {
     // PUBLIC COLLECTIONS
     match /products/{productId} {
       allow get, list: if true;
-      
-      // Admin can write for seeding. For UI edits, a different rule would be needed for manufacturers
-      // that doesn't rely on get() for write operations, or the UI must not use a batch.
-      // For now, prioritize seeding.
       allow write: if isAdmin();
     }
     
@@ -69,22 +65,9 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-        allow read: if isSignedIn() && (
-            resource.data.inspectorId == request.auth.uid ||
-            resource.data.userId == request.auth.uid ||
-            isAdmin()
-        );
-
-        allow create: if isSignedIn() && (
-            (request.resource.data.inspectorId == request.auth.uid) || 
-            isAdmin()
-        );
-      
-        allow update: if isSignedIn() && (
-            resource.data.userId == request.auth.uid || 
-            resource.data.inspectorId == request.auth.uid || 
-            isAdmin()
-        );
+       allow get, update: if isSignedIn() && (get(/databases/$(database)/documents/$(path)).data.userId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+       allow list: if isSignedIn() && request.auth.uid == request.query.where[0][2];
+       allow create: if isSignedIn() && (request.resource.data.inspectorId == request.auth.uid || isAdmin());
     }
 
 
@@ -111,6 +94,10 @@ service cloud.firestore {
      match /assets/{assetId}/{subcollection=**} {
        allow read, write: if isSignedIn(); // Simplified
     }
+    
+    match /equipment/{equipmentId} {
+      allow read, write: if isAdmin();
+    }
 
     match /reports/{reportId} {
         allow read, write: if isSignedIn(); // Simplified
@@ -135,7 +122,7 @@ service cloud.firestore {
         allow read, write: if isAdmin();
     }
     
-    match /plans/{planId} {
+     match /plans/{planId} {
         allow read, write: if isAdmin();
     }
     

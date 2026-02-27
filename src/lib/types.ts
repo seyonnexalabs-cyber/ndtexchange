@@ -1,5 +1,6 @@
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -62,7 +63,9 @@ export type Job = {
     id: string;
     title: string;
     client: string;
-    providerId?: string;
+    providerCompanyId?: string;
+    auditorCompanyId?: string;
+    auditorUserId?: string;
     location: string;
     techniques: string[];
     status: 'Draft' | 'Posted' | 'Assigned' | 'Scheduled' | 'In Progress' | 'Report Submitted' | 'Under Audit' | 'Audit Approved' | 'Client Review' | 'Client Approved' | 'Completed' | 'Paid' | 'Revisions Requested';
@@ -90,7 +93,7 @@ export type Job = {
     estimatedBudget?: string;
     certificationsRequired?: string[];
     clientCompanyId?: string;
-    clientId?: string; // This is the user ID of the client who created the job
+    userId?: string; // The user ID of the creator of the job
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;
@@ -461,9 +464,9 @@ export type Bid = {
   id: string;
   jobId: string;
   inspectorId: string;
-  providerId: string;
+  providerCompanyId: string;
   providerName: string;
-  clientId: string; // The client user ID who owns the job
+  userId: string; // The client user ID who owns the job
   amount: number;
   status: 'Submitted' | 'Shortlisted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Not Selected';
   submittedDate: any;
@@ -482,3 +485,4 @@ export type Certification = {
   certificateNumber?: string;
   validUntil?: string;
 };
+

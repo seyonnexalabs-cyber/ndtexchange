@@ -396,7 +396,7 @@ export default function JobDetailPage() {
         }
         if (role === 'inspector') {
             if (jobDetails.status === 'Posted') return true;
-            if (jobDetails.providerId === currentUserProfile.companyId) return true;
+            if (jobDetails.providerCompanyId === currentUserProfile.companyId) return true;
         }
         if (role === 'auditor') {
              return jobDetails.workflow === 'level3' || jobDetails.workflow === 'auto';
@@ -454,7 +454,7 @@ export default function JobDetailPage() {
         if (!jobDetails || !isAuthorized) return;
 
         const checkForReview = async () => {
-            if (!firestore || !jobDetails.providerId || !authUser) return;
+            if (!firestore || !jobDetails.providerCompanyId || !authUser) return;
             const reviewsRef = collection(firestore, 'reviews');
             const q = query(reviewsRef, where('jobId', '==', id), where('clientId', '==', authUser.uid), limit(1));
             const querySnapshot = await getDocs(q);
@@ -485,8 +485,8 @@ export default function JobDetailPage() {
     const { data: assignedEquipment, isLoading: isLoadingEquipment } = useCollection<any>(assignedEquipmentQuery);
 
     const providerTeamQuery = useMemoFirebase(() => {
-        if (role !== 'inspector' || !firestore || !jobDetails?.providerId) return null;
-        return query(collection(firestore, 'users'), where('companyId', '==', jobDetails.providerId));
+        if (role !== 'inspector' || !firestore || !jobDetails?.providerCompanyId) return null;
+        return query(collection(firestore, 'users'), where('companyId', '==', jobDetails.providerCompanyId));
     }, [firestore, role, jobDetails]);
     const { data: providerTeamMembers, isLoading: isLoadingProviderTeam } = useCollection<PlatformUser>(providerTeamQuery);
     
@@ -497,7 +497,7 @@ export default function JobDetailPage() {
         useMemoFirebase(() => (firestore && jobDetails?.clientCompanyId ? doc(firestore, 'companies', jobDetails.clientCompanyId) : null), [firestore, jobDetails])
     );
 
-    const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerId), [allCompanies, jobDetails]);
+    const provider = React.useMemo(() => allCompanies?.find(p => p.id === jobDetails?.providerCompanyId), [allCompanies, jobDetails]);
 
     const safeParseDate = (dateInput: any): Date | null => {
         if (!dateInput) return null;
@@ -639,7 +639,7 @@ export default function JobDetailPage() {
         toast({ title: `Status changed to ${newStatus}.` });
     };
 
-    const handleAwardBid = async (awardedBidId: string, providerId: string) => {
+    const handleAwardBid = async (awardedBidId: string, providerCompanyId: string) => {
         if (!jobDetails || !bids || !firestore) return;
     
         try {
@@ -659,7 +659,7 @@ export default function JobDetailPage() {
             const jobRef = doc(firestore, 'jobs', jobDetails.id);
             batch.update(jobRef, {
                 status: 'Assigned',
-                providerId: providerId,
+                providerCompanyId: providerCompanyId,
             });
     
             // Add to history
@@ -667,7 +667,7 @@ export default function JobDetailPage() {
                 user: currentUserProfile?.name || 'System',
                 timestamp: serverTimestamp(),
                 action: `Awarded job to provider`,
-                details: `Provider ID: ${providerId}`,
+                details: `Provider ID: ${providerCompanyId}`,
                 statusChange: 'Assigned' as Job['status']
             };
             batch.update(jobRef, { history: arrayUnion(newHistoryEntry) });
@@ -690,7 +690,7 @@ export default function JobDetailPage() {
     };
 
     const handleReviewBid = (bid: Bid) => {
-        const provider = allCompanies?.find(p => p.id === bid.providerId);
+        const provider = allCompanies?.find(p => p.id === bid.providerCompanyId);
         if (provider) {
             setReviewingBid({ ...bid, provider: provider as NDTServiceProvider });
         }
@@ -767,14 +767,14 @@ export default function JobDetailPage() {
             return;
         }
     
-        if (!firestore || !authUser || !jobDetails?.providerId) {
+        if (!firestore || !authUser || !jobDetails?.providerCompanyId) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not submit review. Please try again.' });
             return;
         }
     
         const reviewData = {
             jobId: jobDetails.id,
-            providerId: jobDetails.providerId,
+            providerId: jobDetails.providerCompanyId,
             clientId: authUser.uid,
             rating: rating,
             comment: reviewComment,
@@ -825,7 +825,7 @@ export default function JobDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {bids.map(bid => {
-                        const provider = allCompanies?.find(p => p.id === bid.providerId);
+                        const provider = allCompanies?.find(p => p.id === bid.providerCompanyId);
                         if (!provider) return null;
                         const isAwarded = bid.status === 'Awarded';
                         const submittedDate = safeParseDate(bid.submittedDate);
@@ -912,9 +912,9 @@ export default function JobDetailPage() {
                 id: bidRef.id,
                 jobId: jobDetails.id,
                 inspectorId: authUser.uid,
-                providerId: currentUserProfile.companyId,
+                providerCompanyId: currentUserProfile.companyId,
                 providerName: currentUserProfile.company,
-                clientId: jobDetails.clientId!,
+                userId: jobDetails.userId!,
                 amount: values.amount,
                 status: 'Submitted',
                 submittedDate: new Date().toISOString(),
@@ -1315,7 +1315,7 @@ export default function JobDetailPage() {
                         </div>
                         <DialogFooter>
                             <Button variant="ghost" onClick={() => setReviewingBid(null)}>Cancel</Button>
-                            <Button onClick={() => handleAwardBid(reviewingBid!.id, reviewingBid!.providerId)}>
+                            <Button onClick={() => handleAwardBid(reviewingBid!.id, reviewingBid!.providerCompanyId)}>
                                 <Award className="mr-2 h-4 w-4" /> Award Job to {reviewingBid?.provider.name}
                             </Button>
                         </DialogFooter>

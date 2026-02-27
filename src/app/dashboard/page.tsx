@@ -1,5 +1,6 @@
 
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -337,7 +338,7 @@ const ClientDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{serviceProviders?.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                        <TableCell>{serviceProviders?.find(p => p.id === job.providerCompanyId)?.name || 'N/A'}</TableCell>
                                         <TableCell>{getNextStep(job.status)}</TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
@@ -412,7 +413,7 @@ const ClientDashboard = () => {
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                         <TableCell>{job.title}</TableCell>
-                                        <TableCell>{serviceProviders?.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                        <TableCell>{serviceProviders?.find(p => p.id === job.providerCompanyId)?.name || 'N/A'}</TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
                                                 <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>View Job</Link>
@@ -447,7 +448,7 @@ const InspectorDashboard = () => {
         }
     }, [authUser, firestore]);
     
-    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const myBidsQuery = useMemoFirebase(() => authUser ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', authUser.uid)) : null, [firestore, authUser]);
 
@@ -649,7 +650,7 @@ const AuditorDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
                                     <TableCell className="font-medium">{job.title}</TableCell>
-                                    <TableCell>{serviceProviders?.find(p => p.id === job.providerId)?.name || 'N/A'}</TableCell>
+                                    <TableCell>{serviceProviders?.find(p => p.id === job.providerCompanyId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
                                     <TableCell>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell className="text-right">

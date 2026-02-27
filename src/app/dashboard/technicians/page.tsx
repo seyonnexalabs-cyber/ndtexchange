@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -345,7 +346,7 @@ export default function TechniciansPage() {
     
     const companyJobsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUserProfile?.companyId) return null;
-        return query(collection(firestore, 'jobs'), where('providerId', '==', currentUserProfile.companyId));
+        return query(collection(firestore, 'jobs'), where('providerCompanyId', '==', currentUserProfile.companyId));
     }, [firestore, currentUserProfile]);
 
     const { data: companyJobs, isLoading: isLoadingJobs } = useCollection<Job>(companyJobsQuery);

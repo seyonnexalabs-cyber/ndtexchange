@@ -65,9 +65,25 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-       allow get, update: if isSignedIn() && (get(/databases/$(database)/documents/$(path)).data.userId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
-       allow list: if isSignedIn() && request.auth.uid == request.query.where[0][2];
-       allow create: if isSignedIn() && (request.resource.data.inspectorId == request.auth.uid || isAdmin());
+        function isBidOwner() {
+            return request.auth.uid == resource.data.inspectorId;
+        }
+        function isJobOwner() {
+            return request.auth.uid == resource.data.userId;
+        }
+
+        // Inspector can list their own bids across all jobs.
+        // Client list is disabled for now to fix inspector view.
+        allow list: if isSignedIn() && request.auth.uid == resource.data.inspectorId;
+        
+        // Anyone involved can get a single bid document directly.
+        allow get: if isSignedIn() && (isBidOwner() || isJobOwner() || isAdmin());
+
+        // Inspector can create a bid.
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.inspectorId;
+
+        // Client can update status; Inspector can update their own submitted bid.
+        allow update: if isSignedIn() && (isJobOwner() || (isBidOwner() && resource.data.status == 'Submitted') || isAdmin());
     }
 
 
@@ -118,7 +134,7 @@ service cloud.firestore {
         allow read, write: if isAdmin();
     }
 
-    match /subscriptions/{subscriptionId} {
+     match /subscriptions/{subscriptionId} {
         allow read, write: if isAdmin();
     }
     

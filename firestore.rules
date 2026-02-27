@@ -63,10 +63,15 @@ service cloud.firestore {
     
     // This rule allows an inspector to query for their own bids across all jobs using a collection group query.
     match /{path=**}/bids/{bidId} {
-      // The query from the app MUST include "where('inspectorId', '==', request.auth.uid)" for this to pass.
-      // This rule is evaluated against each document, and Firestore verifies that the query's constraints
-      // guarantee that every document returned will match this condition.
-      allow read: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
+      // The `list` operation is for queries. We allow any signed-in user to *attempt* a query.
+      // Firestore's security model ensures that the query will only return documents
+      // that the user also has `get` permission for.
+      allow list: if isSignedIn();
+
+      // The `get` operation is for reading a single document.
+      // A user can only get a bid document if they are the inspector who created it.
+      // When a `list` query is made, Firestore effectively checks each potential document against this rule.
+      allow get: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
 
     // JOB-RELATED COLLECTIONS

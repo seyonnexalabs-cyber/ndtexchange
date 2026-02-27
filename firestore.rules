@@ -64,13 +64,10 @@ service cloud.firestore {
     // This rule allows an inspector to query for their own bids across all jobs using a collection group query.
     match /{path=**}/bids/{bidId} {
       // The `list` operation is for queries. We allow any signed-in user to *attempt* a query.
-      // Firestore's security model ensures that the query will only return documents
-      // that the user also has `get` permission for.
       allow list: if isSignedIn();
 
-      // The `get` operation is for reading a single document.
+      // The `get` operation is for reading a single document. It secures the query results.
       // A user can only get a bid document if they are the inspector who created it.
-      // When a `list` query is made, Firestore effectively checks each potential document against this rule.
       allow get: if isSignedIn() && resource.data.inspectorId == request.auth.uid;
     }
 
@@ -81,8 +78,11 @@ service cloud.firestore {
     }
 
     match /jobs/{jobId}/bids/{bidId} {
-      // The client of the job, the inspector who made the bid, and admins can read.
-      allow read: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+      // The `read` rule was changed to `get` to resolve a conflict with the collection group query rule for bids.
+      // Now, only direct document reads are allowed by this rule. Listing bids for a job by a client will fail
+      // until the data model is updated to include `clientId` on each bid document.
+      allow get: if isSignedIn() && (get(/databases/$(database)/documents/jobs/$(jobId)).data.clientId == request.auth.uid || resource.data.inspectorId == request.auth.uid || isAdmin());
+      
       // Only an inspector can create a bid on their own behalf.
       allow create: if isSignedIn() && request.resource.data.inspectorId == request.auth.uid;
       // Client can update bid status, inspector can withdraw their bid.

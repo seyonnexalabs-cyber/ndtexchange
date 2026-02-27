@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, CreditCard, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -285,12 +285,13 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
-        <Button asChild variant="outline" size="sm">
-            <Link href={constructUrl("/dashboard/settings")}>
-                <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                Back to Settings
-            </Link>
-        </Button>
+        <Link
+            href={constructUrl('/dashboard/settings')}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+        >
+            <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+            Back to Settings
+        </Link>
       <div className="flex items-center gap-4">
         <CreditCard className="w-8 h-8 text-primary" />
         <div>

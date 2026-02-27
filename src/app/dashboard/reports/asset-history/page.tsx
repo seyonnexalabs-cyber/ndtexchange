@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -7,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { jobs, clientAssets } from '@/lib/seed-data';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +18,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn, GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { Calendar } from "@/components/ui/calendar";
+import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
 import { useMobile } from '@/hooks/use-mobile';
 
 
@@ -65,12 +66,10 @@ export default function AssetHistoryReportPage() {
     
     return (
         <div className="space-y-6">
-            <Button asChild variant="outline" size="sm">
-                <Link href={constructUrl("/dashboard/reports")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to Reports
-                </Link>
-            </Button>
+            <Link href={constructUrl("/dashboard/reports")} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back to Reports
+            </Link>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">

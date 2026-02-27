@@ -5,8 +5,8 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
@@ -41,21 +41,33 @@ const StarRating = ({ rating }: { rating: number }) => {
 export default function PublicProviderProfilePage() {
     const params = useParams();
     const { id } = params;
-    const { firestore } = useFirebase();
-
+    const searchParams = useSearchParams();
+    const isMobile = useMobile();
+    const role = searchParams.get('role');
+    const { firestore, user } = useFirebase();
+    
     const providerRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'companies', id as string) : null), [firestore, id]);
     const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(providerRef);
     
-    const equipmentQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, id]);
+    const equipmentQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'equipment'), where('providerId', '==', id), where('isPublic', '==', true)) : null), [firestore, user, id]);
     const { data: publicEquipment, isLoading: isLoadingEquipment } = useCollection<InspectorAsset>(equipmentQuery);
 
-    const reviewsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'reviews'), where('providerId', '==', id), where('status', '==', 'Approved')) : null), [firestore, id]);
+    const subscriptionQuery = useMemoFirebase(() => {
+        if (firestore && user && id && role === 'admin') {
+            return query(collection(firestore, 'subscriptions'), where('companyId', '==', id));
+        }
+        return null;
+    }, [firestore, user, id, role]);
+    const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
+    const subscription = subscriptions?.[0];
+    
+    const reviewsQuery = useMemoFirebase(() => (firestore && user && id ? query(collection(firestore, 'reviews'), where('providerId', '==', id), where('status', '==', 'Approved')) : null), [firestore, user, id]);
     const { data: reviewsData, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
     
-    const allClientsQuery = useMemoFirebase(() => (firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null), [firestore]);
+    const allClientsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null), [firestore, user]);
     const { data: allClients, isLoading: isLoadingClients } = useCollection<any>(allClientsQuery);
 
-    const allNdtTechniquesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]);
+    const allNdtTechniquesQuery = useMemoFirebase(() => (firestore && user ? collection(firestore, 'techniques') : null), [firestore, user]);
     const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(allNdtTechniquesQuery);
 
     const providerReviews = useMemo(() => {
@@ -75,7 +87,7 @@ export default function PublicProviderProfilePage() {
     }, [providerReviews]);
 
 
-    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingReviews || isLoadingClients || isLoadingTechniques || !id;
+    const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques || !id;
 
     if (isLoading) {
         return (
@@ -103,18 +115,24 @@ export default function PublicProviderProfilePage() {
         notFound();
     }
 
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+    
+    const backUrl = role === 'admin' ? "/dashboard/providers" : "/ecosystem?tab=providers";
+    const backText = role === 'admin' ? "Back to Providers" : "Back to Ecosystem";
+
     return (
         <TooltipProvider>
             <div className="bg-background">
                 <PublicHeader />
                 <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                        <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                            <Link href="/ecosystem?tab=providers">
-                                <ChevronLeft className="mr-2 h-4 w-4" />
-                                Back to Ecosystem
-                            </Link>
-                        </Button>
+                        <Link href={backUrl} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mb-4 sm:mb-0")}>
+                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            {backText}
+                        </Link>
                         <div className="flex gap-2">
                             <Button asChild variant="outline"><Link href="/login">Log In to Contact</Link></Button>
                             <Button asChild><Link href="/signup">Post a Job</Link></Button>
@@ -151,6 +169,14 @@ export default function PublicProviderProfilePage() {
                                         <h3 className="font-semibold text-sm mb-1">Rating</h3>
                                         <StarRating rating={avgRating} />
                                     </div>
+                                     {role === 'admin' && subscription && (
+                                        <div>
+                                            <h3 className="font-semibold text-sm mb-1">Member Since</h3>
+                                            <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                                <Calendar className="w-4 h-4" /> {subscription.startDate ? format(safeParseDate(subscription.startDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                            </p>
+                                        </div>
+                                    )}
                                     <div>
                                         <h3 className="font-semibold text-sm mb-1">About</h3>
                                         <p className="text-sm text-muted-foreground">{provider.description}</p>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -5,7 +6,7 @@ import { useMemo } from "react";
 import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ExternalLink, Factory } from "lucide-react";
@@ -16,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
+import { cn } from '@/lib/utils';
 
 const createReferralUrl = (url: string) => {
     try {
@@ -77,12 +79,10 @@ export default function PublicManufacturerProfilePage() {
             <PublicHeader />
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-                    <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                        <Link href="/ecosystem?tab=manufacturers">
-                            <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                            Back to Ecosystem
-                        </Link>
-                    </Button>
+                    <Link href="/ecosystem?tab=manufacturers" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mb-4 sm:mb-0")}>
+                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                        Back to Ecosystem
+                    </Link>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 lg:gap-12">

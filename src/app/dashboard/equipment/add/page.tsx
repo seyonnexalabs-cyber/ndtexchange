@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -142,12 +142,10 @@ export default function AddEquipmentPage() {
 
     return (
         <div className="max-w-2xl mx-auto">
-            <Button asChild variant="outline" size="sm" className="mb-4">
-                <Link href={constructUrl("/dashboard/equipment")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to Equipment
-                </Link>
-            </Button>
+            <Link href={constructUrl("/dashboard/equipment")} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mb-4")}>
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back to Equipment
+            </Link>
             <Card>
                 <CardHeader>
                     <CardTitle>Add New Equipment</CardTitle>

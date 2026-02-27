@@ -5,17 +5,18 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, MapPin, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFirebase, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { PlatformUser, AuditFirm } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 
 export default function AuditorDetailPage() {
@@ -68,12 +69,10 @@ export default function AuditorDetailPage() {
     return (
         <div>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl(backUrl)}>
-                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                        {backText}
-                    </Link>
-                </Button>
+                <Link href={constructUrl(backUrl)} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mb-4 sm:mb-0")}>
+                    <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                    {backText}
+                </Link>
             </div>
             
             <div className="flex items-center gap-4 mb-6">

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useMemo, useEffect } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucid
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Client, Job, Subscription, PlatformUser } from '@/lib/types';
@@ -99,12 +99,10 @@ export default function ClientDetailPage() {
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                    <Link href={constructUrl("/dashboard/clients")}>
-                        <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
-                        Back to Clients
-                    </Link>
-                </Button>
+                <Link href={constructUrl("/dashboard/clients")} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mb-4 sm:mb-0")}>
+                    <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
+                    Back to Clients
+                </Link>
                 <Button>Edit Client</Button>
             </div>
             

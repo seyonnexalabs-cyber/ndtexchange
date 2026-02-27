@@ -5,8 +5,8 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
@@ -31,7 +31,7 @@ const StarRating = ({ rating }: { rating: number }) => {
                     className={`w-4 h-4 ${i < Math.floor(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-300 text-gray-300'}`}
                 />
             ))}
-            <span className="ml-2 text-xs text-muted-foreground">{rating.toFixed(1)}</span>
+            <span className="ml-2 text-xs text-muted-foreground">{rating > 0 ? rating.toFixed(1) : 'No reviews'}</span>
         </div>
     );
 };
@@ -79,6 +79,12 @@ export default function ProviderDetailPage() {
         });
     }, [reviewsData, allClients]);
     
+    const avgRating = useMemo(() => {
+        if (!providerReviews || providerReviews.length === 0) return 0;
+        return providerReviews.reduce((acc, r) => acc + r.rating, 0) / providerReviews.length;
+    }, [providerReviews]);
+
+
     const isLoading = isLoadingProvider || isLoadingEquipment || isLoadingSubs || isLoadingReviews || isLoadingClients || isLoadingTechniques || !id;
 
     if (isLoading) {
@@ -113,12 +119,10 @@ export default function ProviderDetailPage() {
         <TooltipProvider>
             <div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                    <Button asChild variant="outline" size="sm" className="mb-4 sm:mb-0">
-                        <Link href={constructUrl(backUrl)}>
-                            <ChevronLeft className="mr-2 h-4 w-4" />
-                            {backText}
-                        </Link>
-                    </Button>
+                    <Link href={constructUrl(backUrl)} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mb-4 sm:mb-0")}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        {backText}
+                    </Link>
                     {role === 'admin' && <Button>Edit Provider</Button>}
                 </div>
                 
@@ -151,7 +155,7 @@ export default function ProviderDetailPage() {
                             <CardContent className="space-y-6">
                                 <div>
                                     <h3 className="font-semibold text-sm mb-1">Rating</h3>
-                                    <StarRating rating={provider.rating} />
+                                    <StarRating rating={avgRating} />
                                 </div>
                                  {role === 'admin' && subscription && (
                                     <div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -7,17 +8,19 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
+import { jobs, reviews, clientData, serviceProviders, NDTTechniques } from '@/lib/seed-data';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, HardHat, Star } from 'lucide-react';
 import { parseISO, differenceInDays, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
+import { Calendar } from "@/components/ui/calendar";
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useMobile } from '@/hooks/use-mobile';
@@ -165,12 +168,10 @@ export default function ProviderPerformanceReportPage() {
     
     return (
         <div className="space-y-6">
-            <Button asChild variant="outline" size="sm">
-                <Link href={constructUrl("/dashboard/reports")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to Reports
-                </Link>
-            </Button>
+            <Link href={constructUrl("/dashboard/reports")} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back to Reports
+            </Link>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">

@@ -7,17 +7,20 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
+import { jobs, reviews, clientData, serviceProviders, NDTTechniques } from '@/lib/seed-data';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, Settings2 } from 'lucide-react';
+import { parseISO, format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
-import { format } from 'date-fns';
-import { Settings2, Filter, Printer, ChevronLeft, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from "@/components/ui/calendar";
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
+import { useMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, collectionGroup } from 'firebase/firestore';
@@ -122,12 +125,10 @@ export default function CustomReportBuilderPage() {
 
     return (
         <div className="space-y-6">
-            <Button asChild variant="outline" size="sm">
-                <Link href={constructUrl("/dashboard/reports")}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back to Reports
-                </Link>
-            </Button>
+            <Link href={constructUrl("/dashboard/reports")} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back to Reports
+            </Link>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
@@ -233,7 +234,14 @@ export default function CustomReportBuilderPage() {
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-auto p-0" align="start">
-                                                    <CalendarComponent initialFocus mode="range" defaultMonth={field.value?.from} selected={field.value} onSelect={field.onChange} numberOfMonths={2}/>
+                                                    <Calendar
+                                                        initialFocus
+                                                        mode="range"
+                                                        defaultMonth={field.value?.from}
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        numberOfMonths={2}
+                                                    />
                                                 </PopoverContent>
                                             </Popover>
                                             <FormMessage />

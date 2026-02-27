@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -269,12 +269,10 @@ export default function AddProductPage() {
          <div className="max-w-6xl mx-auto">
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
-                    <Button asChild variant="outline" size="sm" className="mb-2">
-                        <Link href={constructUrl('/dashboard/my-products')}>
-                            <ChevronLeft className="mr-2 h-4 w-4" />
-                            Back to My Products
-                        </Link>
-                    </Button>
+                    <Link href={constructUrl('/dashboard/my-products')} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mb-2")}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back to My Products
+                    </Link>
                     <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
                         <PlusCircle className="text-primary" />
                         Add New Product
@@ -297,7 +295,7 @@ export default function AddProductPage() {
                                     
                                     <FormItem>
                                         <FormLabel>Product Images</FormLabel>
-                                        <div {...{ onDragEnter: handleDragEnter, onDragLeave: handleDragLeave, onDragOver: handleDragOver, onDrop: handleDrop }} onClick={() => fileInputRef.current?.click()} className={cn("relative w-full min-h-[12rem] rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50")}>
+                                        <div {...{ onDragEnter: handleDragEnter, onDragLeave: handleDragLeave, onDragOver: handleDragOver, onDrop: handleDrop }} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full min-h-[12rem] rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50")}>
                                             <p>Click or drag &amp; drop to upload images</p>
                                             <FormControl><Input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFilesUpload(e.target.files)} /></FormControl>
                                         </div>

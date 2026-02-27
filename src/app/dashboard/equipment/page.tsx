@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
+import { format, differenceInDays, startOfDay } from "date-fns";
 import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +30,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase
 import { collection, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import type { InspectorAsset, EquipmentHistory, Job, EquipmentType, PlatformUser } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 
 
 const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
@@ -307,6 +308,49 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
     'Under Service': 'secondary',
 };
 
+const CalibrationBar = ({ nextCalibration }: { nextCalibration: string }) => {
+    if (nextCalibration === 'N/A') {
+        return null;
+    }
+
+    const today = startOfDay(new Date());
+    const calDate = safeParseDate(nextCalibration);
+
+    if (!calDate) {
+        return <div className="text-xs text-muted-foreground">Invalid cal. date</div>;
+    }
+
+    const totalPeriod = 365; // Assume a 1-year calibration cycle for visualization
+    const daysRemaining = differenceInDays(calDate, today);
+
+    const percentage = Math.max(0, Math.min(100, (daysRemaining / totalPeriod) * 100));
+
+    let colorClass = 'bg-green-500';
+    let daysText = `${daysRemaining} days`;
+    
+    if (daysRemaining <= 0) {
+        colorClass = 'bg-red-500';
+        daysText = `${Math.abs(daysRemaining)} days overdue`;
+    } else if (daysRemaining <= 30) {
+        colorClass = 'bg-amber-500';
+        daysText = `${daysRemaining} days left`;
+    }
+
+    return (
+        <div className="w-full">
+            <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
+                <span className="font-semibold">Calibration</span>
+                <span className={cn(
+                    "font-semibold",
+                    daysRemaining <= 0 ? "text-red-500" :
+                    daysRemaining <= 30 ? "text-amber-500" : "text-green-500"
+                )}>{daysText}</span>
+            </div>
+            <Progress value={percentage} indicatorClassName={colorClass} />
+        </div>
+    );
+};
+
 
 const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick, isSubscriptionActive }: {
     asset: InspectorAsset,
@@ -341,28 +385,30 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
                     {asset.parentId && <Badge variant="outline" className="text-xs">Kit Component</Badge>}
                 </CardDescription>
             </CardContent>
-            <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-                <span>Cal Due: {asset.nextCalibration === 'N/A' ? 'N/A' : format(new Date(asset.nextCalibration), GLOBAL_DATE_FORMAT)}</span>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {asset.status === 'Available' ? (
-                            <>
-                                <DropdownMenuItem onSelect={() => onCheckOutClick(asset)} disabled={!isSubscriptionActive}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => onServiceOutClick(asset)} disabled={!isSubscriptionActive}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
-                            </>
-                        ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
-                            <DropdownMenuItem onSelect={() => onCheckInClick(asset)} disabled={!isSubscriptionActive}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View Details</Link></DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+             <CardFooter className="p-4 pt-2 flex flex-col items-start gap-3">
+                <CalibrationBar nextCalibration={asset.nextCalibration} />
+                <div className="w-full flex justify-end -mb-2 -mr-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {asset.status === 'Available' ? (
+                                <>
+                                    <DropdownMenuItem onSelect={() => onCheckOutClick(asset)} disabled={!isSubscriptionActive}><LogOut className="mr-2 h-4 w-4"/>Check Out for Job</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onServiceOutClick(asset)} disabled={!isSubscriptionActive}><Send className="mr-2 h-4 w-4"/>Send for Service</DropdownMenuItem>
+                                </>
+                            ) : ( (asset.status === 'In Use' || asset.status === 'Under Service') && 
+                                <DropdownMenuItem onSelect={() => onCheckInClick(asset)} disabled={!isSubscriptionActive}><LogIn className="mr-2 h-4 w-4"/>Check In</DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild><Link href={constructUrl(`/dashboard/equipment/${asset.id}`)}><History className="mr-2 h-4 w-4"/>View Details</Link></DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => onQrClick({ id: asset.id, name: asset.name })}>Show QR Code</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </CardFooter>
         </Card>
     );

@@ -1,6 +1,5 @@
 
 
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -731,18 +730,22 @@ const AdminDashboard = () => {
                 { name: 'users', data: (await import('@/lib/seed-data')).allUsers.map(u => { const { password, ...user } = u; return user; }) },
                 { name: 'assets', data: (await import('@/lib/seed-data')).clientAssets },
                 { name: 'equipment', data: (await import('@/lib/seed-data')).inspectorAssets },
-                { name: 'subscriptions', data: (await import('@/lib/seed-data')).subscriptionsData },
-                { name: 'payments', data: (await import('@/lib/seed-data')).paymentsData },
-                { name: 'jobPayments', data: (await import('@/lib/seed-data')).jobPaymentsData },
-                { name: 'reviews', data: (await import('@/lib/seed-data')).reviewsData },
-                { name: 'userAuditLogs', data: (await import('@/lib/seed-data')).userAuditLogData },
-                { name: 'jobAuditLogs', data: (await import('@/lib/seed-data')).jobAuditLogData },
-                { name: 'billingAuditLogs', data: (await import('@/lib/seed-data')).billingAuditLogData },
+                { name: 'subscriptions', data: (await import('@/lib/seed-data')).subscriptions },
+                { name: 'payments', data: (await import('@/lib/seed-data')).payments },
+                { name: 'jobPayments', data: (await import('@/lib/seed-data')).jobPayments },
+                { name: 'reviews', data: (await import('@/lib/seed-data')).reviews },
+                { name: 'userAuditLogs', data: (await import('@/lib/seed-data')).userAuditLog },
+                { name: 'jobAuditLogs', data: (await import('@/lib/seed-data')).jobAuditLog },
+                { name: 'billingAuditLogs', data: (await import('@/lib/seed-data')).billingAuditLog },
                 { name: 'plans', data: (await import('@/lib/seed-data')).subscriptionPlans },
             ];
 
             for (const { name, data } of collectionsToSeed) {
                 console.log(`[SEED] Preparing: ${name}...`);
+                if (!data) {
+                    console.error(`[SEED] ERROR: Data for collection "${name}" is undefined or not iterable.`);
+                    continue;
+                }
                 for (const item of data) {
                     batch.set(doc(firestore, name, item.id), item);
                 }

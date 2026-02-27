@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMemo } from "react";
 import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
@@ -185,12 +185,10 @@ export default function EditAssetPage() {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                 <Button asChild variant="outline" size="sm">
-                    <Link href={constructUrl('/dashboard/assets')}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back to Assets
-                    </Link>
-                </Button>
+                 <Link href={constructUrl('/dashboard/assets')} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                    <ChevronLeft />
+                    Back to Assets
+                </Link>
             </div>
              <Card>
                 <CardHeader>

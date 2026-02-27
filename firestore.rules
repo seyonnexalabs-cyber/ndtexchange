@@ -60,20 +60,18 @@ service cloud.firestore {
 
     // JOB-RELATED COLLECTIONS
     match /jobs/{jobId} {
-      allow read: if isSignedIn();
+      // Be specific: only allow GET on individual job documents here.
+      // LIST operations on subcollections will be handled by more specific rules.
+      allow get: if isSignedIn();
       allow write: if isSignedIn(); // Simplified for now
     }
     
     // This single block now correctly handles all bid-related security.
     match /{path=**}/bids/{bidId} {
-        // ALLOWS an inspector to query for their own bids across all jobs.
-        // For a 'list' operation, this condition is checked against every document
-        // returned by the query. The client-side query MUST include
-        // `where('inspectorId', '==', request.auth.uid)` to be efficient and secure.
-        allow list: if request.auth.uid == resource.data.inspectorId;
-
-        // ALLOWS the job owner OR the bid owner to get a single bid document.
-        allow get: if request.auth.uid == resource.data.userId || request.auth.uid == resource.data.inspectorId;
+        // ALLOWS an inspector to query for their own bids.
+        // Also allows a client to list bids for a job they own.
+        // This relies on the client-side queries being correctly constrained and the necessary data being on the bid document.
+        allow read: if request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId;
 
         // ALLOWS an inspector to create a bid for themselves.
         allow create: if request.auth.uid == request.resource.data.inspectorId;

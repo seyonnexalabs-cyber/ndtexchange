@@ -1,4 +1,3 @@
-
 'use client';
 
 import PublicHeader from '@/app/components/layout/public-header';
@@ -23,7 +22,7 @@ export default function EventsPage() {
                 
                 <section className="py-8 md:py-12">
                     <div className="container mx-auto px-0 sm:px-6 lg:px-8">
-                        <div className="w-full h-[80vh] bg-background">
+                        <div className="w-full h-[90vh] bg-background">
                             <iframe
                                 src="https://www.icndt.org/Events/International-Event-Calendar"
                                 title="ICNDT International Event Calendar"

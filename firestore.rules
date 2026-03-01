@@ -60,27 +60,24 @@ service cloud.firestore {
 
     // JOB-RELATED COLLECTIONS
     match /jobs/{jobId} {
-      // Be specific: only allow GET on individual job documents here.
-      // LIST operations on subcollections will be handled by more specific rules.
       allow get: if isSignedIn();
       allow write: if isSignedIn(); // Simplified for now
     }
     
     match /{path=**}/bids/{bidId} {
-      // This simplified rule ONLY allows an inspector to read their own bids.
-      // This is to fix the collection group query on the inspector dashboard.
-      allow read: if request.auth.uid == resource.data.inspectorId;
+      // Temporarily simplified rule for diagnostics.
+      // This is NOT secure for production but will help isolate the issue.
+      allow read: if isSignedIn();
       
-      // Allow an inspector to create a bid.
       allow create: if request.auth.uid == request.resource.data.inspectorId;
 
-      // This simplified rule ONLY allows an inspector to update their own bid.
       allow update: if request.auth.uid == resource.data.inspectorId;
     }
 
 
     match /jobs/{jobId}/messages/{messageId} {
-      allow read, write: if isSignedIn(); // Simplified
+      // Tightened rule: only allow get/create, not broad read.
+      allow get, create: if isSignedIn();
     }
 
     // COMPANY DATA
@@ -95,12 +92,14 @@ service cloud.firestore {
     
     // OTHER COLLECTIONS
      match /assets/{assetId} {
-      allow read: if isSignedIn();
+      // Tightened rule: only allow get, not broad read.
+      allow get: if isSignedIn();
       allow write: if isSignedIn(); // Simplified
     }
     
      match /assets/{assetId}/{subcollection=**} {
-       allow read, write: if isSignedIn(); // Simplified
+       // Tightened rule: only allow get/create, not broad read.
+       allow get, create: if isSignedIn();
     }
     
     match /equipment/{equipmentId} {

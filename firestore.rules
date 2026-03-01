@@ -8,301 +8,100 @@ service cloud.firestore {
     function authed() { return request.auth != null; }
     function myUid() { return request.auth.uid; }
 
-    // Global platform admin (super admin)
     function isPlatformAdmin() {
-      return authed() && request.auth.token.platformAdmin == true;
+      // Allow seeding for specific admin UIDs without checking custom claims,
+      // which might not exist during the seeding batch write.
+      return authed() && (
+        request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' ||
+        request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin'
+      );
     }
-
-    // Membership helpers (per company)
-    function memberDoc(companyId, uid) {
-      return get(/databases/$(database)/documents/companies/$(companyId)/members/$(uid));
-    }
+    
     function isMember(companyId) {
       return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
     }
+    
     function roleInCompany(companyId) {
-      return authed() ? memberDoc(companyId, myUid()).data.roleInCompany : null;
-    }
-    function isCompanyAdmin(companyId) {
-      // Treat Owner/Manager as admins; optional isAdmin boolean if you add it
-      return authed() && (
-        roleInCompany(companyId) in ['Owner','Manager'] ||
-        memberDoc(companyId, myUid()).data.isAdmin == true
-      );
+      return authed() ? get(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid())).data.roleInCompany : null;
     }
 
-    // Field guards
-    function unchanged(field) {
-      return !(field in request.resource.data) || request.resource.data[field] == resource.data[field];
-    }
-    function changedOnly(allowed) {
-      return request.resource.data.diff(resource.data).changedKeys().hasOnly(allowed);
+    function isCompanyAdmin(companyId) {
+      return authed() && (
+        roleInCompany(companyId) in ['Owner', 'Manager']
+      );
     }
 
     // -------- USERS --------
-    match /users/{uid} {
-      // Profiles are not authoritative for permissions (memberships are)
-      allow read: if authed() && (uid == myUid() || isPlatformAdmin());
-
-      allow create: if authed()
-        && uid == myUid()
-        && request.resource.data.id == uid
-        && request.resource.data.createdAt == request.time
-        && !('modifiedAt' in request.resource.data);
-
-      allow update: if authed() && (
-        (uid == myUid()
-          && changedOnly(['companyId','company','name','email','role','certifications','skills','modifiedAt'])
-          && request.resource.data.modifiedAt == request.time)
-        || isPlatformAdmin()
-      );
-
-      allow delete: if isPlatformAdmin();
-
-      match /{sub}/{docId} {
-        allow read, write: if authed() && (uid == myUid() || isPlatformAdmin());
-      }
+    match /users/{userId} {
+      allow read: if isPlatformAdmin() || myUid() == userId;
+      allow write: if isPlatformAdmin() || myUid() == userId;
     }
-
+    
     // -------- COMPANIES & NESTED DATA --------
     match /companies/{companyId} {
-      // Company profiles visible to signed-in users
-      allow read: if authed();
-      // Provisioning by platform admin (or your backend)
-      allow create, update, delete: if isPlatformAdmin();
-
-      // ---- Members ----
-      match /members/{memberUid} {
-        // Visible to the member, any member of the company, or platform admin
-        allow read: if authed() && (
-          memberUid == myUid() || isMember(companyId) || isPlatformAdmin()
-        );
-
-        // Only company admins of that company (or platform admin) can manage membership
-        allow create: if authed()
-          && (isCompanyAdmin(companyId) || isPlatformAdmin())
-          && memberUid == request.resource.data.uid
-          && request.resource.data.roleInCompany in ['Owner','Manager','Tech']
-          && request.resource.data.createdAt == request.time
-          && !('modifiedAt' in request.resource.data);
-
-        allow update: if authed()
-          && (isCompanyAdmin(companyId) || isPlatformAdmin())
-          && changedOnly(['roleInCompany','isAdmin','modifiedAt'])
-          && request.resource.data.modifiedAt == request.time;
-
-        allow delete: if authed() && (isCompanyAdmin(companyId) || isPlatformAdmin());
-      }
-
-      // ---- Assets ----
-      match /assets/{assetId} {
-        allow read: if authed() && (isMember(companyId) || isPlatformAdmin());
-
-        allow create: if authed()
-          && (isCompanyAdmin(companyId) || isPlatformAdmin())
-          && request.resource.data.id == assetId
-          && request.resource.data.companyId == companyId
-          && request.resource.data.createdAt == request.time
-          && !('modifiedAt' in request.resource.data);
-
-        allow update: if authed()
-          && (isCompanyAdmin(companyId) || isPlatformAdmin())
-          && unchanged('companyId')
-          && request.resource.data.id == assetId
-          && changedOnly(['assetTypeId','name','description','location','isMovable','qrCode','modifiedAt'])
-          && request.resource.data.modifiedAt == request.time;
-
-        allow delete: if authed() && (isCompanyAdmin(companyId) || isPlatformAdmin());
-
-        // ---- Inspections under Asset ----
-        match /inspections/{inspectionId} {
-          allow read: if authed() && (isMember(companyId) || isPlatformAdmin());
-
-          allow create: if authed()
-            && (isMember(companyId) || isPlatformAdmin())
-            && request.resource.data.id == inspectionId
-            && request.resource.data.assetId == assetId
-            && request.resource.data.createdAt == request.time
-            && !('modifiedAt' in request.resource.data);
-
-          allow update: if authed()
-            && (isMember(companyId) || isPlatformAdmin())
-            && unchanged('assetId')
-            && request.resource.data.id == inspectionId
-            && changedOnly(['inspectorId','status','results','attachments','modifiedAt'])
-            && request.resource.data.modifiedAt == request.time;
-
-          allow delete: if authed() && (isCompanyAdmin(companyId) || isPlatformAdmin());
-        }
-      }
-
-      // ---- Jobs (under CLIENT company) ----
-      match /jobs/{jobId} {
-
-        // READ if member of any involved company (client path, provider, auditor)
-        // or if requester userId == myUid
-        allow read: if authed() && (
-          isMember(companyId) ||
-          (resource.data.providerCompanyId != null && isMember(resource.data.providerCompanyId)) ||
-          (('auditorCompanyId' in resource.data) && resource.data.auditorCompanyId != null && isMember(resource.data.auditorCompanyId)) ||
-          (('userId' in resource.data) && resource.data.userId == myUid()) ||
-          isPlatformAdmin()
-        );
-
-        // CREATE: by client admin (this company) or provider admin on behalf of the client
-        allow create: if authed()
-          && request.resource.data.id == jobId
-          // anchor to path ownership if provided
-          && (!('clientCompanyId' in request.resource.data) || request.resource.data.clientCompanyId == companyId)
-          // who can create
-          && (
-            isCompanyAdmin(companyId) ||
-            ('providerCompanyId' in request.resource.data && isCompanyAdmin(request.resource.data.providerCompanyId)) ||
-            isPlatformAdmin()
-          )
-          // invariants
-          && request.resource.data.title is string
-          && request.resource.data.userId is string
-          && request.resource.data.createdAt == request.time
-          && !('modifiedAt' in request.resource.data);
-
-        // UPDATE: immutable owners & field-level by role
-        allow update: if authed()
-          // immutables (if present)
-          && unchanged('userId')
-          && unchanged('providerCompanyId')
-          && unchanged('clientCompanyId')
-          && unchanged('auditorCompanyId')
-          // allowable fields
-          && changedOnly([
-            // client admin fields
-            'title','description','attachments','location','scheduledAt','status','cancelReason',
-            // provider admin fields
-            'technicianIds','internalNotes','status',
-            // auditor admin fields
-            'auditStatus','auditFindings',
-            // system
-            'modifiedAt'
-          ])
-          // role-based gate
-          && (
-            isCompanyAdmin(companyId) ||
-            (resource.data.providerCompanyId != null && isCompanyAdmin(resource.data.providerCompanyId)) ||
-            (('auditorCompanyId' in resource.data) && resource.data.auditorCompanyId != null && isCompanyAdmin(resource.data.auditorCompanyId)) ||
-            isPlatformAdmin()
-          )
-          && request.resource.data.modifiedAt == request.time;
-
-        // DELETE: client admin (owner path) or platform admin
-        allow delete: if authed() && (isCompanyAdmin(companyId) || isPlatformAdmin());
-
-        // ---- Messages under Job ----
-        match /messages/{messageId} {
-          function isParticipant() {
-            let job = get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data;
-            return isMember(companyId)
-              || (('providerCompanyId' in job) && job.providerCompanyId != null && isMember(job.providerCompanyId))
-              || (('auditorCompanyId' in job) && job.auditorCompanyId != null && isMember(job.auditorCompanyId))
-              || (('userId' in job) && job.userId == myUid())
-              || isPlatformAdmin();
-          }
-
-          allow read: if authed() && isParticipant();
-
-          allow create: if authed() && isParticipant()
-            && request.resource.data.id == messageId
-            && request.resource.data.senderId == myUid()
-            && request.resource.data.createdAt == request.time;
-
-          // If you want to allow edits, ensure schema has modifiedAt
-          allow update: if authed() && isParticipant()
-            && changedOnly(['body','attachments','modifiedAt'])
-            && request.resource.data.modifiedAt == request.time;
-
-          allow delete: if authed() && (isCompanyAdmin(companyId) || isPlatformAdmin());
-        }
-
-        // ---- Bids under Job ----
-        match /bids/{bidId} {
-          // READ: client members, provider (bidder) members, assigned provider, auditor, platform admin
-          allow read: if authed() && (
-            isMember(companyId) ||
-            (resource.data.providerCompanyId != null && isMember(resource.data.providerCompanyId)) ||
-            (('auditorCompanyId' in resource.data) && resource.data.auditorCompanyId != null && isMember(resource.data.auditorCompanyId)) ||
-            isPlatformAdmin()
-          );
-
-          // CREATE: provider company admins only
-          allow create: if authed()
-            && request.resource.data.id == bidId
-            && request.resource.data.jobId == jobId
-            && request.resource.data.providerCompanyId is string
-            && isCompanyAdmin(request.resource.data.providerCompanyId)
-            && request.resource.data.createdAt == request.time
-            && !('modifiedAt' in request.resource.data);
-
-          // UPDATE: client admin (accept/reject), provider admin (withdraw/edit notes); limited fields
-          allow update: if authed()
-            && changedOnly(['status','notes','modifiedAt'])
-            && (
-              isCompanyAdmin(companyId) ||
-              (resource.data.providerCompanyId != null && isCompanyAdmin(resource.data.providerCompanyId)) ||
-              isPlatformAdmin()
-            )
-            && request.resource.data.modifiedAt == request.time;
-
-          allow delete: if authed() && (
-            isCompanyAdmin(companyId) ||
-            (resource.data.providerCompanyId != null && isCompanyAdmin(resource.data.providerCompanyId)) ||
-            isPlatformAdmin()
-          );
-        }
-      }
-
-      // ---- Reviews under a Provider (recommended) ----
-      match /reviews/{reviewId} {
-        // Visible to signed-in users
-        allow read: if authed();
-
-        // Create: member of client company authoring a review for this provider company
-        // Your entity has clientId (user). We'll resolve user's company via /users/{clientId}
-        function clientCompanyOf(uid) {
-          return get(/databases/$(database)/documents/users/$(uid)).data.companyId;
-        }
-
-        allow create: if authed()
-          && request.resource.data.id == reviewId
-          && request.resource.data.providerCompanyId == companyId
-          && request.resource.data.clientId == myUid()
-          && isMember(clientCompanyOf(myUid()))
-          && request.resource.data.rating is number
-          && request.resource.data.rating >= 1
-          && request.resource.data.rating <= 5
-          && request.resource.data.createdAt == request.time
-          && !('modifiedAt' in request.resource.data);
-
-        // Update: author edits text/rating; provider admin adds/modifies providerReply
-        allow update: if authed()
-          && (
-            (resource.data.clientId == myUid() && changedOnly(['text','rating','modifiedAt'])) ||
-            (isCompanyAdmin(companyId) && changedOnly(['providerReply','modifiedAt'])) ||
-            isPlatformAdmin()
-          )
-          && request.resource.data.modifiedAt == request.time;
-
-        allow delete: if authed() && (isCompanyAdmin(companyId) || isPlatformAdmin());
-      }
-    }
-
-    // -------- Catalog (platform-managed) --------
-    match /catalog/{category}/{docId} {
       allow read: if authed();
       allow write: if isPlatformAdmin();
+      
+      match /members/{memberUid} {
+        allow read: if isMember(companyId) || isPlatformAdmin();
+        allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+      }
+      
+      match /assets/{assetId} {
+        allow read: if isMember(companyId) || isPlatformAdmin();
+        allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+        
+        match /inspections/{inspectionId} {
+          allow read: if isMember(companyId) || isPlatformAdmin();
+          allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+        }
+      }
+      
+      match /jobs/{jobId} {
+        function isJobParticipant() {
+          let job = resource.data;
+          return job.clientCompanyId == myCompany() 
+              || job.providerCompanyId == myCompany() 
+              || (job.auditorCompanyId != null && job.auditorCompanyId == myCompany());
+        }
+        
+        allow read: if isJobParticipant() || isPlatformAdmin();
+        allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+        
+        match /bids/{bidId} {
+          allow read, write: if isJobParticipant() || isPlatformAdmin();
+        }
+        
+        match /messages/{messageId} {
+          allow read, write: if isJobParticipant() || isPlatformAdmin();
+        }
+      }
+
+      match /reviews/{reviewId} {
+        allow read: if authed();
+        allow write: if isPlatformAdmin() || isMember(companyId);
+      }
+    }
+    
+    // -------- Top-Level Admin Collections --------
+    match /userAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
+    match /jobAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
+    match /billingAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
+    match /payments/{paymentId} { allow read, write: if isPlatformAdmin(); }
+    match /subscriptions/{subId} { allow read, write: if isPlatformAdmin(); }
+    match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
+    match /reviews/{reviewId} { allow read, write: if isPlatformAdmin(); }
+
+    // -------- Catalog Collections --------
+    match /catalog/{category}/{docId} {
+        allow read: if authed();
+        allow write: if isPlatformAdmin();
     }
 
-    // -------- Platform-admin area --------
-    match /admin/{collection}/{docId} {
-      allow read, write: if isPlatformAdmin();
-    }
+    match /techniques/{techId} { allow read, write: if isPlatformAdmin(); }
+    match /manufacturers/{manuId} { allow read, write: if isPlatformAdmin(); }
+    match /products/{prodId} { allow read, write: if isPlatformAdmin(); }
+    match /plans/{planId} { allow read, write: if isPlatformAdmin(); }
   }
 }

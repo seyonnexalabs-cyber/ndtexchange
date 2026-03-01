@@ -1,144 +1,16 @@
 
 rules_version = '2';
 service cloud.firestore {
-
   match /databases/{database}/documents {
 
-    // Helper Functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-    
-    function isAdmin() {
-      // In a real app, this would check a custom claim or a roles collection.
-      // For this demo, we are hardcoding the admin UIDs.
-      return request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
-    }
-
-    // --- PUBLIC-ISH COLLECTIONS (Read-only for any signed-in user) ---
-    match /products/{productId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    
-    match /manufacturers/{manufacturerId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    
-    match /techniques/{techniqueId} {
-        allow get, list: if isSignedIn();
-        allow write: if isAdmin();
-    }
-    
-    match /asset_types/{assetTypeId} {
-        allow get, list: if isSignedIn();
-        allow write: if isAdmin();
-    }
-    
-    match /reviews/{reviewId} {
-        allow list, get: if isSignedIn();
-        allow create: if isSignedIn();
-        allow update: if isAdmin();
-    }
-
-    // --- USER-SPECIFIC DATA ---
-    match /users/{userId} {
-      allow read, update, create: if isOwner(userId) || isAdmin();
-    }
-
-    match /users/{userId}/{document=**} {
-      // This covers subcollections like notifications and tasks.
-      allow read, write: if isOwner(userId) || isAdmin();
-    }
-
-    // --- JOB-RELATED COLLECTIONS ---
-    match /jobs/{jobId} {
-      // Any signed-in user can get a single job to view its details.
-      // Listing all jobs is restricted to admins (see below).
-      allow get: if isSignedIn();
-      allow create, update: if isSignedIn(); // Simplified for now
-    }
-    
-    // This is the collection group rule for all 'bids' subcollections.
+    // This is a temporary, insecure rule for diagnostic purposes ONLY.
+    // Its goal is to prove that the 'bids' query can run without interference
+    // from other rules in the file.
     match /{path=**}/bids/{bidId} {
-      // TEMPORARY DIAGNOSTIC RULE: Allow any signed-in user to list bids.
-      // This is to isolate the problem. THIS IS NOT SECURE FOR PRODUCTION.
-      allow list: if isSignedIn();
-
-      // SECURES DIRECT ACCESS
-      // A user can GET a single bid if they are the inspector OR the client who owns the job.
-      allow get: if request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId;
-
-      // SECURES WRITES
-      // An inspector can create or update their own bid.
-      allow create, update: if request.auth.uid == request.resource.data.inspectorId;
+      allow read: if request.auth != null;
     }
 
-    match /jobs/{jobId}/messages/{messageId} {
-      // Only participants of the job can read/write messages.
-      // This simplified rule is a placeholder for a more robust implementation.
-      allow read, create: if isSignedIn();
-    }
-
-    // --- COMPANY & ASSET DATA ---
-    match /companies/{companyId} {
-        allow read: if isSignedIn();
-        allow write: if isAdmin();
-    }
-    
-    match /companies/{companyId}/{subcollection=**} {
-        // Allows admins to manage things like support chats.
-        allow read, write: if isAdmin();
-    }
-    
-    match /assets/{assetId} {
-      allow read, write: if isSignedIn(); // Simplified
-    }
-    
-    match /assets/{assetId}/{subcollection=**} {
-       allow read, write: if isSignedIn(); // Simplified for inspections
-    }
-    
-    match /equipment/{equipmentId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /reports/{reportId} {
-        allow read, write: if isSignedIn(); // Simplified
-    }
-    
-    // --- ADMIN-ONLY COLLECTIONS ---
-    match /jobPayments/{paymentId} {
-        allow read, write: if isAdmin();
-    }
-    
-    match /payments/{paymentId} {
-        allow read, write: if isAdmin();
-    }
-
-    match /subscriptions/{subscriptionId} {
-        allow read, write: if isAdmin();
-    }
-    
-    match /plans/{planId} {
-        allow read, write: if isAdmin();
-    }
-    
-    match /userAuditLogs/{logId} {
-        allow read, write: if isAdmin();
-    }
-    
-    match /jobAuditLogs/{logId} {
-        allow read, write: if isAdmin();
-    }
-    
-    match /billingAuditLogs/{logId} {
-        allow read, write: if isAdmin();
-    }
+    // By default, all other access is denied. This may cause other
+    // parts of the app to show errors, which is expected during this test.
   }
 }

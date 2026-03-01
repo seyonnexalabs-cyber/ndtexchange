@@ -1,227 +1,247 @@
 
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
-import { notFound, useSearchParams, useRouter, useParams } from "next/navigation";
-import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { ChevronLeft } from "lucide-react";
-import Image from "next/image";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useToast } from "@/hooks/use-toast";
-import { CustomDateInput } from '@/components/ui/custom-date-input';
-import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { doc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { notFound, useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { ChevronLeft, Edit, Calendar, QrCode, MoreVertical, FileText, Printer } from 'lucide-react';
+import Image from 'next/image';
+import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
-import type { Asset, PlatformUser } from '@/lib/types';
+import { cn, safeParseDate } from '@/lib/utils';
+import type { Asset, PlatformUser, Inspection } from '@/lib/types';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destructive' | 'secondary'> = {
+    'Completed': 'success',
+    'Scheduled': 'secondary',
+    'Requires Review': 'destructive',
+};
+
+const UserAvatar = ({ userId }: { userId: string }) => {
+    const { firestore } = useFirebase();
+    const { data: user, isLoading } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && userId ? doc(firestore, 'users', userId) : null), [firestore, userId]));
+
+    if (isLoading) return <Skeleton className="h-8 w-8 rounded-full" />;
+    if (!user) return <Avatar className="h-8 w-8"><AvatarFallback>?</AvatarFallback></Avatar>;
+    
+    return (
+        <Avatar className="h-8 w-8">
+            <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+        </Avatar>
+    );
+};
 
 
-const assetSchema = z.object({
-    name: z.string().min(3, 'Name must be at least 3 characters.'),
-    type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
-    location: z.string({ required_error: 'Please select a location or add a new one.'}),
-    isMovable: z.boolean().default(false),
-    newLocation: z.string().optional(),
-    nextInspection: z.date({ required_error: 'Please select a valid date.' }),
-    status: z.enum(['Operational', 'Requires Inspection', 'Under Repair', 'Decommissioned']).optional(),
-    manufacturer: z.string().optional(),
-    model: z.string().optional(),
-    serialNumber: z.string().optional(),
-    installationDate: z.date().optional(),
-    notes: z.string().optional(),
-    thumbnail: z.any().optional(),
-}).refine(data => {
-    if (data.location === '__add_new__') {
-        return data.newLocation && data.newLocation.length > 2;
-    }
-    return true;
-}, {
-    message: 'New location name must be at least 3 characters.',
-    path: ['newLocation'],
-});
-
-type AssetFormValues = z.infer<typeof assetSchema>;
-
-export default function EditAssetPage() {
+export default function AssetDetailPage() {
     const params = useParams();
     const id = params.id as string;
-    const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
-    const { firestore, user } = useFirebase();
+    const { firestore } = useFirebase();
+    const [qrCodeData, setQrCodeData] = React.useState<{ id: string, name: string } | null>(null);
 
-    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
-    );
-    const { data: asset, isLoading: isLoadingAsset } = useDoc<Asset>(
-        useMemoFirebase(() => (firestore ? doc(firestore, 'assets', id) : null), [firestore, id])
-    );
-    const { data: existingAssets, isLoading: isLoadingAssets } = useCollection<Asset>(
-        useMemoFirebase(() => (firestore ? collection(firestore, 'assets') : null), [firestore])
-    );
+    const { data: asset, isLoading: isLoadingAsset } = useDoc<Asset>(useMemoFirebase(() => (firestore ? doc(firestore, 'assets', id) : null), [firestore, id]));
     
-    const [showNewLocation, setShowNewLocation] = React.useState(false);
-    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
-    const [isDragging, setIsDragging] = React.useState(false);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-    const form = useForm<AssetFormValues>({
-        resolver: zodResolver(assetSchema),
-    });
-
-    React.useEffect(() => {
-        if (asset) {
-            form.reset({
-                ...asset,
-                nextInspection: asset.nextInspection ? new Date(asset.nextInspection) : new Date(),
-                installationDate: asset.installationDate ? new Date(asset.installationDate) : undefined,
-                thumbnail: asset.thumbnailUrl,
-            });
-            if (asset.thumbnailUrl) {
-                setThumbnailPreview(asset.thumbnailUrl);
-            }
-        }
-    }, [asset, form]);
+    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'assets', id, 'inspections'), orderBy('date', 'desc'), limit(5)) : null), [firestore, id]);
+    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
+    
+    const { data: createdBy, isLoading: isLoadingCreatedBy } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && asset?.createdBy ? doc(firestore, 'users', asset.createdBy) : null), [firestore, asset]));
+    const { data: modifiedBy, isLoading: isLoadingModifiedBy } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && asset?.modifiedBy ? doc(firestore, 'users', asset.modifiedBy) : null), [firestore, asset]));
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     };
 
-    const handleFileChange = (file: File | null) => {
-        form.setValue('thumbnail', file);
-        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) URL.revokeObjectURL(thumbnailPreview);
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                setThumbnailPreview(null);
-                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE_BYTES) {
-                setThumbnailPreview(null);
-                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
-                return;
-            }
-            setThumbnailPreview(URL.createObjectURL(file));
-            form.clearErrors('thumbnail');
-        } else {
-            setThumbnailPreview(typeof asset?.thumbnailUrl === 'string' ? asset.thumbnailUrl : null);
-        }
-    };
-    
-    const dragHandlers = {
-        onDragEnter: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); },
-        onDragLeave: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); },
-        onDragOver: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); },
-        onDrop: (e: React.DragEvent<HTMLDivElement>) => {
-            e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleFileChange(e.dataTransfer.files[0]);
-        },
-    };
+    const isLoading = isLoadingAsset || isLoadingInspections || isLoadingCreatedBy || isLoadingModifiedBy;
 
-    const uniqueLocations = React.useMemo(() => {
-        if (!existingAssets) return [];
-        const allLocations = existingAssets.map(asset => asset.location);
-        return [...new Set(allLocations)];
-    }, [existingAssets]);
+    if (!isLoading && !asset) {
+        notFound();
+    }
 
-
-    const handleFormSubmit = async (values: AssetFormValues) => {
-        if (!firestore || !user || !userProfile) {
-            toast({ variant: "destructive", title: "Error", description: "Not authenticated. Please try again." });
-            return;
-        }
-
-        const location = values.location === '__add_new__' ? values.newLocation! : values.location;
-        const dataToSave: Partial<Asset> = {
-            ...values,
-            companyId: userProfile.companyId,
-            location,
-            nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
-            installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined,
-            modifiedAt: serverTimestamp(),
-            modifiedBy: user.uid,
-        };
-        delete (dataToSave as any).newLocation;
-        delete (dataToSave as any).documents;
-        delete (dataToSave as any).thumbnail;
-
-        try {
-            const assetRef = doc(firestore, 'assets', id);
-            await updateDoc(assetRef, dataToSave);
-            toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
-            router.push(constructUrl('/dashboard/assets'));
-        } catch (error) {
-            console.error("Error saving asset:", error);
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save asset." });
-        }
-    };
-    
-    const isLoading = isLoadingAsset || isLoadingAssets || isLoadingProfile;
-    
-    if(isLoading) {
+    if (isLoading) {
         return (
-            <div className="space-y-6 max-w-4xl mx-auto">
-                <Skeleton className="h-10 w-48" />
-                <Skeleton className="h-screen" />
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <div className="grid lg:grid-cols-3 gap-8 items-start">
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-[450px] w-full" />
+                    </div>
+                    <div className="lg:col-span-1 space-y-6">
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                </div>
             </div>
         )
     }
 
-    if (!asset) {
-        notFound();
-    }
-
     return (
-        <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                 <Link href={constructUrl('/dashboard/assets')} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                    <span>
-                        <ChevronLeft />
-                        Back to Assets
-                    </span>
-                </Link>
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
+                <div>
+                     <nav className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
+                        <Link href={constructUrl("/dashboard/assets")} className="hover:text-primary">Assets</Link>
+                        <ChevronLeft className="h-4 w-4 transform rotate-180" />
+                        <span className="font-medium text-foreground">Asset Detail</span>
+                    </nav>
+                    <h1 className="text-2xl lg:text-3xl font-headline font-bold">Asset Detail: {asset?.name}</h1>
+                </div>
+                <div className="flex gap-2">
+                    <Button asChild variant="outline"><Link href={constructUrl(`/dashboard/assets/${id}/edit`)}><Edit className="mr-2"/>Edit Asset</Link></Button>
+                    <Button>Schedule Inspection</Button>
+                    <Button variant="ghost" size="icon"><MoreVertical/></Button>
+                </div>
             </div>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Editing: {asset.name}</CardTitle>
-                    <CardDescription>Make changes to the asset details below.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-                            <FormField control={form.control} name="name" render={({ field }) => ( <FormItem> <FormLabel>Asset Name <span className="text-destructive">*</span></FormLabel> <FormControl> <Input placeholder="e.g., Storage Tank T-102" {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="type" render={({ field }) => ( <FormItem> <FormLabel>Asset Type <span className="text-destructive">*</span></FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl> <SelectTrigger><SelectValue placeholder="Select a type" /></SelectTrigger> </FormControl> <SelectContent> <SelectItem value="Tank">Tank</SelectItem> <SelectItem value="Piping">Piping</SelectItem> <SelectItem value="Vessel">Vessel</SelectItem> <SelectItem value="Crane">Crane</SelectItem> <SelectItem value="Weld Joint">Weld Joint</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="location" render={({ field }) => ( <FormItem> <FormLabel>Primary Site / Location <span className="text-destructive">*</span></FormLabel> <Select onValueChange={(value) => { field.onChange(value); setShowNewLocation(value === '__add_new__'); }} defaultValue={field.value}> <FormControl> <SelectTrigger><SelectValue placeholder="Select an existing location" /></SelectTrigger> </FormControl> <SelectContent> {uniqueLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)} <SelectItem value="__add_new__">+ Add a new location</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
-                            {showNewLocation && ( <FormField control={form.control} name="newLocation" render={({ field }) => ( <FormItem> <FormLabel>New Location Name</FormLabel> <FormControl> <Input placeholder="e.g., Warehouse B, Section 3" {...field} autoFocus /> </FormControl> <FormMessage /> </FormItem> )}/> )}
-                            <FormField control={form.control} name="isMovable" render={({ field }) => ( <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"> <div className="space-y-0.5"> <FormLabel>Movable Asset</FormLabel> <FormDescription>Is this a movable asset (e.g., a mobile crane)?</FormDescription> </div> <FormControl> <Switch checked={field.value} onCheckedChange={field.onChange} /> </FormControl> </FormItem> )}/>
-                            <FormField control={form.control} name="nextInspection" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Next Inspection Date <span className="text-destructive">*</span></FormLabel> <FormControl> <CustomDateInput {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={form.control} name="manufacturer" render={({ field }) => (<FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
-                                <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Model</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
-                                <FormField control={form.control} name="serialNumber" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
-                                <FormField control={form.control} name="installationDate" render={({ field }) => (<FormItem className="col-span-2 flex flex-col"><FormLabel>Installation Date</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)}/>
+            
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Asset Information</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <div className="grid md:grid-cols-3 gap-8">
+                                <div className="md:col-span-1">
+                                    <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
+                                        {asset?.thumbnailUrl ? (
+                                            <Image src={asset.thumbnailUrl} alt={asset.name} fill className="object-cover" />
+                                        ) : (
+                                             <div className="flex items-center justify-center h-full">
+                                                <Building className="w-16 h-16 text-muted-foreground/30" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="md:col-span-2 grid grid-cols-2 gap-x-4 gap-y-6 text-sm">
+                                    <div><p className="font-semibold">Asset Type</p><p className="text-muted-foreground">{asset?.type}</p></div>
+                                    <div><p className="font-semibold">Serial Number</p><p className="text-muted-foreground">{asset?.serialNumber || 'N/A'}</p></div>
+                                    <div><p className="font-semibold">Location</p><p className="text-muted-foreground">{asset?.location}</p></div>
+                                    <div><p className="font-semibold">Movable</p><p className="text-muted-foreground">{asset?.isMovable ? 'Yes' : 'No'}</p></div>
+                                    <div className="col-span-2"><p className="font-semibold">Description</p><p className="text-muted-foreground">{asset?.notes || 'No description provided.'}</p></div>
+                                    <div className="col-span-2">
+                                        <Button variant="link" className="p-0 h-auto" onClick={() => setQrCodeData({ id: asset!.id, name: asset!.name })}>
+                                            <QrCode className="mr-2" />
+                                            View QR Code
+                                        </Button>
+                                    </div>
+                                </div>
+                             </div>
+                        </CardContent>
+                         <CardFooter className="bg-muted/50 p-4 border-t flex flex-col sm:flex-row sm:justify-between gap-4">
+                            <div className="flex items-center gap-3 text-sm">
+                                {createdBy ? <UserAvatar userId={asset!.createdBy!} /> : <Skeleton className="h-8 w-8 rounded-full" />}
+                                <div>
+                                    <span className="text-muted-foreground">Created by </span>
+                                    <span className="font-semibold">{createdBy?.name || '...'}</span>
+                                    <span className="text-muted-foreground"> on {asset?.createdAt ? format(safeParseDate(asset.createdAt)!, 'PP') : '...'}</span>
+                                </div>
                             </div>
-                            <FormField control={form.control} name="notes" render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>)}/>
-                            <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag & drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the asset.</FormDescription> <FormMessage /> </FormItem> )}/>
-                            <div className="flex justify-end gap-2 pt-4">
-                                <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/assets'))}>Cancel</Button>
-                                <Button type="submit">Save Changes</Button>
+                            <div className="flex items-center gap-3 text-sm">
+                                {modifiedBy ? <UserAvatar userId={asset!.modifiedBy!} /> : <Skeleton className="h-8 w-8 rounded-full" />}
+                                <div>
+                                    <span className="text-muted-foreground">Last modified by </span>
+                                    <span className="font-semibold">{modifiedBy?.name || '...'}</span>
+                                    <span className="text-muted-foreground"> on {asset?.modifiedAt ? format(safeParseDate(asset.modifiedAt)!, 'PP') : '...'}</span>
+                                </div>
                             </div>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
+                        </CardFooter>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Recent Inspections</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {inspections?.map(inspection => (
+                                    <div key={inspection.id} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className="h-5 w-5 text-muted-foreground"/>
+                                            <div>
+                                                <p className="font-semibold">{format(safeParseDate(inspection.date)!, 'PP')}</p>
+                                                <p className="text-xs text-muted-foreground">Inspector: {inspection.inspector}</p>
+                                            </div>
+                                        </div>
+                                        <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
+                                    </div>
+                                ))}
+                                 {inspections?.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No recent inspections found.</p>}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button variant="secondary" className="w-full">View All Inspections</Button>
+                        </CardFooter>
+                    </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Documents</CardTitle></CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3 rounded-md border p-3 hover:bg-muted cursor-pointer">
+                                    <FileText className="h-5 w-5 text-primary"/>
+                                    <p className="font-medium text-sm">User_Manual.pdf</p>
+                                </div>
+                                <div className="flex items-center gap-3 rounded-md border p-3 hover:bg-muted cursor-pointer">
+                                    <FileText className="h-5 w-5 text-primary"/>
+                                    <p className="font-medium text-sm">Calibration_Cert_2024.pdf</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter><Button variant="secondary" className="w-full">View All Documents</Button></CardFooter>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle>Associated Team</CardTitle></CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground text-center py-4">Team association feature coming soon.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
+                <DialogContent className="sm:max-w-md">
+                    <div className="printable-area">
+                        <DialogHeader>
+                            <DialogTitle>Asset QR Code</DialogTitle>
+                            <DialogDescription>
+                                Print this QR code and attach it to your asset for easy scanning.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center justify-center p-6 gap-4">
+                            {qrCodeData && (
+                                <>
+                                    <Image 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCodeData.id)}`}
+                                        alt={`QR Code for ${qrCodeData.name}`}
+                                        width={250}
+                                        height={250}
+                                    />
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{qrCodeData.name}</p>
+                                        <p className="font-bold text-muted-foreground">{qrCodeData.id}</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
+                            Close
+                        </Button>
+                        <Button type="button" onClick={() => window.print()}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

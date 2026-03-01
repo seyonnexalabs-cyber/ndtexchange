@@ -37,8 +37,14 @@
       "collectionGroup": "reviews",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "providerCompanyId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+     {
+      "collectionGroup": "reviews",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "date", "order": "DESCENDING" }
       ]
     }
   ],

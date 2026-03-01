@@ -105,9 +105,7 @@ service cloud.firestore {
     }
     
     match /equipment/{equipmentId} {
-      // Only admins can manage the global equipment catalog for now.
-      // Provider-specific rules would go on a different path.
-      allow read, write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     match /reports/{reportId} {
@@ -138,7 +136,7 @@ service cloud.firestore {
     match /jobAuditLogs/{logId} {
         allow read, write: if isAdmin();
     }
-
+    
     match /billingAuditLogs/{logId} {
         allow read, write: if isAdmin();
     }

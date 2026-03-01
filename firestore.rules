@@ -21,84 +21,101 @@ service cloud.firestore {
       return getUserData().role == 'Admin';
     }
     
-    // --- Path-based Rules ---
-
-    // USER DATA
+    // --- User Data ---
     match /users/{userId} {
-      // Users can write to their own profile. Admins can also write (e.g. to change roles).
-      allow write: if isOwner(userId) || isAdmin();
-      // Users can read their own profile. Admins can read any profile.
-      allow read: if isOwner(userId) || isAdmin();
+      allow read, write: if isOwner(userId) || isAdmin();
 
-      // Sub-collections like tasks and notifications remain owner-only.
+      // User-owned sub-collections
       match /{documents=**} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
     
-    // PUBLIC DATA: Logged-in users can read these collections.
-    match /companies/{companyId} { allow read: if isSignedIn(); }
-    match /techniques/{techniqueId} { allow read: if isSignedIn(); }
-    match /manufacturers/{manufacturerId} { allow read: if isSignedIn(); }
-    match /products/{productId} { allow read: if isSignedIn(); }
-    match /reviews/{reviewId} { allow read: if isSignedIn(); }
+    // --- Business Logic Collections ---
     
-    // JOB DATA: Access is based on role within the job.
+    // Jobs and nested Bids/Messages
     match /jobs/{jobId} {
       allow get: if isSignedIn() && (
-        isOwner(resource.data.userId) || // Client who created the job
-        getUserData().companyId == resource.data.providerCompanyId // Assigned provider
+        isOwner(resource.data.userId) || 
+        getUserData().companyId == resource.data.providerCompanyId ||
+        isAdmin()
       );
       
-      // Allow any signed-in user to see posted jobs (for the marketplace).
       allow list: if isSignedIn();
 
-      // Client can create/update jobs, assigned provider can update status.
-      allow write: if isSignedIn() && (
+      allow write: if (isSignedIn() && (
         isOwner(request.resource.data.userId) ||
         getUserData().companyId == request.resource.data.providerCompanyId
-      );
+      )) || isAdmin();
       
-      // MESSAGES
+      // Messages are only accessible by participants or admin
       match /messages/{messageId} {
-        allow read, write: if isSignedIn() && (
+        allow read, write: if (isSignedIn() && (
             isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.userId) ||
             getUserData().companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerCompanyId
-        );
+        )) || isAdmin();
       }
     }
 
-    // BIDS: Top-level collection for simple queries
+    // Bids (top-level collection)
     match /bids/{bidId} {
-        // An inspector can read their own bid. A client can read bids on their jobs.
-        allow get: if isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId);
+        // Creation: Inspector creating their own bid, or admin seeding data.
+        allow create: if (isSignedIn() && request.auth.uid == request.resource.data.inspectorId) || isAdmin();
         
-        // Allow a user to list bids they are involved in.
-        allow list: if isSignedIn();
+        // Reading: Inspector reads their own bids, client reads bids on their jobs, admin reads all.
+        allow get: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
         
-        // An inspector can create a bid.
-        allow create: if isSignedIn() && request.auth.uid == request.resource.data.inspectorId;
-        
-        // An inspector can update their own bid. A client can update bids on their jobs (e.g. to change status).
-        allow update: if isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId);
+        // Listing: Securely allow inspectors to list only their own bids. Admin can list all.
+        allow list: if (isSignedIn() && request.query.where.inspectorId == request.auth.uid) || isAdmin();
+
+        // Updating: Client can accept/reject, inspector can withdraw (by updating status), admin can edit anything.
+        allow update: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
     }
     
-    // ASSET DATA: Access based on company ownership.
+    // Assets and nested Inspections
     match /assets/{assetId} {
-      allow read, write: if isSignedIn() && getUserData().companyId == resource.data.companyId;
+      allow read, write: if (isSignedIn() && getUserData().companyId == resource.data.companyId) || isAdmin();
 
       match /inspections/{inspectionId} {
-        allow read, write: if isSignedIn() && getUserData().companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId;
+        allow read, write: if (isSignedIn() && getUserData().companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId) || isAdmin();
       }
     }
 
-    // --- ADMIN-ONLY DATA ---
-    // These collections are locked down and require admin role.
-    match /roles_admin/{userId} { allow read: if isSignedIn(); }
+    // Top-level Public/Semi-public data
+    match /companies/{companyId} { 
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /techniques/{techniqueId} { 
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /manufacturers/{manufacturerId} { 
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /reviews/{reviewId} {
+      allow read: if isSignedIn();
+      allow write: if (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.providerId == getUserData().companyId)) || isAdmin();
+    }
+    match /plans/{planId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // --- Admin-only Data ---
+    // All audit logs, payments, subscriptions are admin-only write.
     match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
     match /payments/{paymentId} { allow read, write: if isAdmin(); }
-    match /billingAuditLogs/{logId} { allow read: if isAdmin(); }
-    match /jobAuditLogs/{logId} { allow read: if isAdmin(); }
-    match /userAuditLogs/{logId} { allow read: if isAdmin(); }
+    match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }
+    match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
+    match /jobAuditLogs/{logId} { allow read, write: if isAdmin(); }
+    match /userAuditLogs/{logId} { allow read, write: if isAdmin(); }
+    match /reports/{reportId} { allow read, write: if isAdmin(); }
+    
   }
 }

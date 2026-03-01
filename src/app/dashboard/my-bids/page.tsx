@@ -25,7 +25,7 @@ import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc, orderBy, collectionGroup } from 'firebase/firestore';
 import type { Job, Bid, NDTTechnique, PlatformUser } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -68,6 +68,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
         return (
             <div className="space-y-4">
                 {bids.map(bid => {
+                    const jobPath = `/dashboard/my-jobs/${bid.jobId}`;
                     return (
                     <Card key={bid.id} className="flex flex-col">
                         <CardHeader>
@@ -90,7 +91,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
                             <Button variant="outline" size="sm" asChild>
-                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Job</Link>
+                                <Link href={constructUrl(jobPath)}>View Job</Link>
                             </Button>
                              {bid.status === 'Submitted' && (
                                 <DropdownMenu>
@@ -128,6 +129,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                 <TableBody>
                     {bids.map(bid => {
                         const submittedDate = safeParseDate(bid.submittedDate);
+                        const jobPath = `/dashboard/my-jobs/${bid.jobId}`;
                         return (
                         <TableRow key={bid.id}>
                             <TableCell>
@@ -158,7 +160,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => onEdit(bid)}><Edit className="mr-2 h-4 w-4" /> Edit Bid</DropdownMenuItem>
                                             <DropdownMenuItem asChild>
-                                                <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>View Job Details</Link>
+                                                <Link href={constructUrl(jobPath)}>View Job Details</Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onWithdraw(bid)}><Trash2 className="mr-2 h-4 w-4" /> Withdraw Bid</DropdownMenuItem>
@@ -166,7 +168,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                                     </DropdownMenu>
                                 ) : (
                                     <Button variant="outline" size="sm" asChild>
-                                        <Link href={constructUrl(`/dashboard/my-jobs/${bid.jobId}`)}>{bid.status === 'Awarded' ? 'View Job' : 'View Details'}</Link>
+                                        <Link href={constructUrl(jobPath)}>{bid.status === 'Awarded' ? 'View Job' : 'View Details'}</Link>
                                     </Button>
                                 )}
                             </TableCell>
@@ -187,7 +189,7 @@ export default function MyBidsPage() {
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
     
-    const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'bids'), where('inspectorId', '==', user.uid)) : null), [firestore, user]);
+    const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid)) : null), [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
@@ -253,15 +255,15 @@ export default function MyBidsPage() {
     };
 
     const handleConfirmWithdraw = async () => {
-        if (!withdrawingBid || !firestore) return;
-        const bidRef = doc(firestore, 'bids', withdrawingBid.id);
+        if (!withdrawingBid || !firestore || !userProfile) return;
+        const bidRef = doc(firestore, `companies/${userProfile.companyId}/jobs/${withdrawingBid.jobId}/bids`, withdrawingBid.id);
         await updateDoc(bidRef, { status: 'Withdrawn' });
         setWithdrawingBid(null);
     };
 
     async function onBidSubmit(values: z.infer<typeof bidSchema>) {
-        if (!editingBid || !firestore) return;
-        const bidRef = doc(firestore, 'bids', editingBid.id);
+        if (!editingBid || !firestore || !userProfile) return;
+        const bidRef = doc(firestore, `companies/${userProfile.companyId}/jobs/${editingBid.jobId}/bids`, editingBid.id);
         await updateDoc(bidRef, values);
         setEditingBid(null);
     }

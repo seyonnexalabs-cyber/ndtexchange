@@ -16,98 +16,53 @@ service cloud.firestore {
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
+
+    function isMember(companyId) {
+        return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
+    }
     
     function isAdmin() {
-      // Check for specific super admin UIDs first. This allows seeding and admin tasks to bypass `get()` calls.
-      let isSuperAdmin = request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1';
-      // Then, for other users, check their role from their document.
-      let isRoleAdmin = exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+      // Super admin UIDs can bypass document reads during seeding.
+      let isSuperAdmin = request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
+      // Check for 'Admin' role in the user's profile for regular operations.
+      let isRoleAdmin = isSignedIn() && getUserData().role == 'Admin';
       return isSuperAdmin || isRoleAdmin;
     }
-    
-    // --- User Data ---
+
+    // --- User Profiles ---
     match /users/{userId} {
+      // Users can read/write their own profile. Admins can read/write any profile.
       allow read, write: if isOwner(userId) || isAdmin();
+      // Admins can list all users.
       allow list: if isAdmin();
-
-      // User-owned sub-collections (notifications, tasks)
-      match /{subcollection}/{docId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
     }
     
-    // --- Business Logic Collections ---
-    
-    // Jobs and nested Bids/Messages
-    match /jobs/{jobId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-
-      allow write: if isAdmin();
-      
-      // Messages are only accessible by participants or admin
-      match /messages/{messageId} {
-        allow read, write: if (isSignedIn() && (
-            isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.userId) ||
-            getUserData().companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerCompanyId
-        )) || isAdmin();
-      }
-    }
-
-    // Bids (top-level collection)
-    match /bids/{bidId} {
-        allow create: if (isSignedIn() && request.auth.uid == request.resource.data.inspectorId) || isAdmin();
-        allow get: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
-        allow list: if (isSignedIn() && request.query.where[0] == 'inspectorId' && request.query.where[2] == request.auth.uid) || isAdmin();
-        allow update: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
+    // --- Company Data ---
+    match /companies/{companyId}/{document=**} {
+        // Members of a company can read its data. Admins can do anything.
+        allow read: if isMember(companyId);
         allow write: if isAdmin();
     }
     
-    // Assets and nested Inspections
-    match /assets/{assetId} {
-      allow read, write: if isAdmin() || (isSignedIn() && getUserData().companyId == resource.data.companyId);
-      match /inspections/{inspectionId} {
-        // This relies on the parent asset's rule for reads, but needs an explicit write rule for batch creation.
-        allow read: if isAdmin() || (isSignedIn() && getUserData().companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId);
-        allow write: if isAdmin();
-      }
+    // Explicit rule for listing companies for logged-in users (e.g., in directories)
+    match /companies/{companyId} {
+        allow list: if isSignedIn();
     }
-
-    // Top-level Public/Semi-public data
-    match /companies/{companyId} { 
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    match /techniques/{techniqueId} { 
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    match /manufacturers/{manufacturerId} { 
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    match /products/{productId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    match /reviews/{reviewId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.providerId == getUserData().companyId));
-    }
-    match /plans/{planId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    // --- Admin-only Data ---
-    // These collections are only accessible by administrators.
-    match /jobPayments/{doc=**} { allow read, write: if isAdmin(); }
-    match /payments/{doc=**} { allow read, write: if isAdmin(); }
-    match /subscriptions/{doc=**} { allow read, write: if isAdmin(); }
-    match /billingAuditLogs/{doc=**} { allow read, write: if isAdmin(); }
-    match /jobAuditLogs/{doc=**} { allow read, write: if isAdmin(); }
-    match /userAuditLogs/{doc=**} { allow read, write: if isAdmin(); }
-    match /reports/{doc=**} { allow read, write: if isAdmin(); }
     
+    // --- Collection Group Queries ---
+    match /{path=**}/bids/{bidId} {
+      // Allow an inspector to query for their own bids across all jobs.
+      allow list: if isSignedIn() && request.query.where[0] == 'inspectorId' && request.query.where[2] == request.auth.uid;
+    }
+    
+    // --- Admin-only & Catalog Collections ---
+    match /admin/{collection}/{docId} {
+        allow read, write: if isAdmin();
+    }
+    
+    match /catalog/{category}/{docId} {
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
+    }
   }
 }

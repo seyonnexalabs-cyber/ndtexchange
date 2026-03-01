@@ -66,9 +66,9 @@ service cloud.firestore {
     
     // This is the collection group rule for all 'bids' subcollections.
     match /{path=**}/bids/{bidId} {
-      // SECURES THE INSPECTOR'S "MY BIDS" QUERY
-      // An inspector can LIST bids only if their query is filtered by their own ID.
-      allow list: if request.auth.uid == resource.data.inspectorId;
+      // TEMPORARY DIAGNOSTIC RULE: Allow any signed-in user to list bids.
+      // This is to isolate the problem. THIS IS NOT SECURE FOR PRODUCTION.
+      allow list: if isSignedIn();
 
       // SECURES DIRECT ACCESS
       // A user can GET a single bid if they are the inspector OR the client who owns the job.

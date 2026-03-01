@@ -7,8 +7,8 @@ service cloud.firestore {
     // -------- Helpers --------
     function authed() { return request.auth != null; }
     function myUid() { return request.auth.uid; }
-    function isSelf(uid) { return authed() && myUid() == uid; }
 
+    // Global platform admin (super admin)
     function isPlatformAdmin() {
       // Allow seeding for specific admin UIDs without checking custom claims,
       // which might not exist during the seeding batch write.
@@ -17,7 +17,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(myUid())).data.role == 'Admin'
       );
     }
-    
+
     function myCompany() {
       let userProfile = get(/databases/$(database)/documents/users/$(myUid()));
       if (userProfile.data.keys().hasAll(['companyId'])) {
@@ -25,7 +25,11 @@ service cloud.firestore {
       }
       return null;
     }
-
+    
+    function isSelf(uid) {
+      return authed() && myUid() == uid;
+    }
+    
     function isMember(companyId) {
       return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
     }
@@ -42,9 +46,25 @@ service cloud.firestore {
 
     // -------- USERS --------
     match /users/{userId} {
-      // Admins can read all users, others can only read their own.
-      allow read: if isPlatformAdmin() || myUid() == userId;
-      allow write: if isPlatformAdmin() || myUid() == userId;
+      // Read own profile; admins can read all.
+      allow read: if isSelf(userId) || isPlatformAdmin();
+      
+      // Anyone can create their own user doc, but not set privileged fields
+      allow create: if isSelf(userId) && !('role' in request.resource.data);
+
+      // User can update their own non-privileged fields; admins can update anything
+      allow update: if (isSelf(userId) && !('role' in request.resource.data)) || isPlatformAdmin();
+      
+      // Admins can delete users
+      allow delete: if isPlatformAdmin();
+
+      // User-owned subcollections for tasks and notifications
+      match /tasks/{taskId} {
+        allow read, write: if isSelf(userId) || isPlatformAdmin();
+      }
+      match /notifications/{notificationId} {
+        allow read, write: if isSelf(userId) || isPlatformAdmin();
+      }
     }
     
     // -------- COMPANIES & NESTED DATA --------
@@ -101,24 +121,12 @@ service cloud.firestore {
     match /payments/{paymentId} { allow read, write: if isPlatformAdmin(); }
     match /subscriptions/{subId} { allow read, write: if isPlatformAdmin(); }
     match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
-    match /techniques/{techId} { allow read, write: if isPlatformAdmin(); }
-    match /manufacturers/{manuId} { allow read, write: if isPlatformAdmin(); }
-    match /products/{prodId} { allow read, write: if isPlatformAdmin(); }
-    match /plans/{planId} { allow read, write: if isPlatformAdmin(); }
-
+    
     // -------- Top-Level PUBLIC Collections --------
-    match /reviews/{reviewId} { 
-      allow read: if authed();
-      allow write: if isPlatformAdmin(); // Or based on ownership
-    }
-    match /bids/{bidId} { 
-      allow read: if authed();
-      allow write: if authed(); 
-    } 
-    match /inspections/{inspectionId} { 
-      allow read: if authed();
-      allow write: if authed();
-    }
+    match /techniques/{techId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
+    match /manufacturers/{manuId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
+    match /products/{prodId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
+    match /plans/{planId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
 
     // -------- Catalog Collections --------
     match /catalog/{category}/{docId} {

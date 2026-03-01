@@ -77,7 +77,7 @@ service cloud.firestore {
     // --- ADMIN-ONLY DATA ---
     // These collections are locked down and require admin role.
     function isAdmin() {
-      return get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data.role == 'Admin';
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
     }
     
     match /roles_admin/{userId} { allow read: if isSignedIn(); }

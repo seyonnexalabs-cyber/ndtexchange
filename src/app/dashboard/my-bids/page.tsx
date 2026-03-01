@@ -24,9 +24,9 @@ import Link from 'next/link';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, collectionGroup, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
-import type { Job, Bid, NDTTechnique } from "@/lib/types";
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, collectionGroup, query, where, doc, updateDoc, orderBy, getDocs } from 'firebase/firestore';
+import type { Job, Bid, NDTTechnique, PlatformUser } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 
 const bidSchema = z.object({
@@ -186,6 +186,13 @@ export default function MyBidsPage() {
     const router = useRouter();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
+
+    const [myBids, setMyBids] = useState<Bid[]>([]);
+    const [isLoadingBids, setIsLoadingBids] = useState(true);
+
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
+    );
     
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -193,14 +200,32 @@ export default function MyBidsPage() {
         }
     }, [role, router, searchParams]);
 
-    const myBidsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid));
+    useEffect(() => {
+        if (!firestore || !user) {
+            setIsLoadingBids(false);
+            return;
+        }
+
+        const fetchBids = async () => {
+            setIsLoadingBids(true);
+            try {
+                const q = query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid));
+                const querySnapshot = await getDocs(q);
+                const bidsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Bid));
+                 setMyBids(bidsData);
+            } catch (error) {
+                console.error("Error fetching bids:", error);
+                // The useCollection hook would handle the contextual error,
+                // but since we are fetching manually, we log it here.
+            } finally {
+                setIsLoadingBids(false);
+            }
+        };
+
+        fetchBids();
     }, [firestore, user]);
-    const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
     
     const sortedBids = useMemo(() => {
-        if (!myBids) return [];
         return [...myBids].sort((a, b) => {
             const dateA = safeParseDate(a.submittedDate);
             const dateB = safeParseDate(b.submittedDate);
@@ -255,6 +280,7 @@ export default function MyBidsPage() {
         if (!withdrawingBid || !firestore) return;
         const bidRef = doc(firestore, 'jobs', withdrawingBid.jobId, 'bids', withdrawingBid.id);
         await updateDoc(bidRef, { status: 'Withdrawn' });
+        setMyBids(prev => prev.map(b => b.id === withdrawingBid.id ? { ...b, status: 'Withdrawn' } : b));
         setWithdrawingBid(null);
     };
 
@@ -262,6 +288,7 @@ export default function MyBidsPage() {
         if (!editingBid || !firestore) return;
         const bidRef = doc(firestore, 'jobs', editingBid.jobId, 'bids', editingBid.id);
         await updateDoc(bidRef, values);
+        setMyBids(prev => prev.map(b => b.id === editingBid.id ? { ...b, ...values } : b));
         setEditingBid(null);
     }
     
@@ -274,7 +301,7 @@ export default function MyBidsPage() {
         return { activeBids, shortlistedBids, awardedBids, revenueYTD };
     }, [myBids]);
 
-    const isLoading = isLoadingBids || isLoadingTechniques;
+    const isLoading = isLoadingBids || isLoadingTechniques || isLoadingProfile;
 
     if (isLoading) {
         return (

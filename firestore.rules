@@ -1,16 +1,98 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // This is a temporary, insecure rule for diagnostic purposes ONLY.
-    // Its goal is to prove that the 'bids' query can run without interference
-    // from other rules in the file.
-    match /{path=**}/bids/{bidId} {
-      allow read: if request.auth != null;
+    
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
     }
 
-    // By default, all other access is denied. This may cause other
-    // parts of the app to show errors, which is expected during this test.
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    // --- Collection Group Rules ---
+    // This rule MUST be simple. It allows an inspector to list ONLY their own bids.
+    // The application query `where('inspectorId', '==', user.uid)` ensures this is secure.
+    match /{path=**}/bids/{bidId} {
+        allow list: if isSignedIn() && request.auth.uid == request.query.where[2];
+    }
+    
+    // --- Path-based Rules ---
+
+    // USER DATA: Users can only access their own data.
+    match /users/{userId}/{documents=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // PUBLIC DATA: Logged-in users can read these collections.
+    match /companies/{companyId} { allow read: if isSignedIn(); }
+    match /techniques/{techniqueId} { allow read: if isSignedIn(); }
+    match /manufacturers/{manufacturerId} { allow read: if isSignedIn(); }
+    match /products/{productId} { allow read: if isSignedIn(); }
+    match /reviews/{reviewId} { allow read: if isSignedIn(); }
+    
+    // JOB DATA: Access is based on role within the job.
+    match /jobs/{jobId} {
+      allow get: if isSignedIn() && (
+        isOwner(resource.data.userId) || // Client who created the job
+        getUserData().companyId == resource.data.providerCompanyId // Assigned provider
+      );
+      
+      // Allow any signed-in user to see posted jobs (for the marketplace).
+      allow list: if isSignedIn();
+
+      // Client can create/update jobs, assigned provider can update status.
+      allow write: if isSignedIn() && (
+        isOwner(request.resource.data.userId) ||
+        getUserData().companyId == request.resource.data.providerCompanyId
+      );
+      
+      // BIDS (Specific Document Access)
+      // This rule handles direct reads of a bid, not the list query.
+      match /bids/{bidId} {
+         allow get: if isSignedIn() && (
+            isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.userId) || // Client owner
+            isOwner(resource.data.inspectorId) // Inspector who made bid
+         );
+         allow write: if isSignedIn() && isOwner(request.resource.data.inspectorId);
+      }
+      
+      // MESSAGES
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn() && (
+            isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.userId) ||
+            getUserData().companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerCompanyId
+        );
+      }
+    }
+    
+    // ASSET DATA: Access based on company ownership.
+    match /assets/{assetId} {
+      allow read, write: if isSignedIn() && getUserData().companyId == resource.data.companyId;
+
+      match /inspections/{inspectionId} {
+        allow read, write: if isSignedIn() && getUserData().companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId;
+      }
+    }
+
+    // --- ADMIN-ONLY DATA ---
+    // These collections are locked down and require admin role.
+    function isAdmin() {
+      return get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data.role == 'Admin';
+    }
+    
+    match /roles_admin/{userId} { allow read: if isSignedIn(); }
+    match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
+    match /payments/{paymentId} { allow read, write: if isAdmin(); }
+    match /billingAuditLogs/{logId} { allow read: if isAdmin(); }
+    match /jobAuditLogs/{logId} { allow read: if isAdmin(); }
+    match /userAuditLogs/{logId} { allow read: if isAdmin(); }
   }
 }

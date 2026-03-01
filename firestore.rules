@@ -3,66 +3,225 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- Helper Functions ---
-    function isSignedIn() {
+
+    // -------- Helpers --------
+    function authed() {
       return request.auth != null;
     }
-    
-    function isOwner(userId) {
-      return request.auth.uid == userId;
+    function myUid() {
+      return request.auth.uid;
     }
-
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    function isMember(companyId) {
-        return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
-    }
-    
     function isAdmin() {
-      // Super admin UIDs can bypass document reads during seeding.
-      let isSuperAdmin = request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
-      // Check for 'Admin' role in the user's profile for regular operations.
-      let isRoleAdmin = isSignedIn() && getUserData().role == 'Admin';
-      return isSuperAdmin || isRoleAdmin;
+      return authed() && request.auth.token.admin == true;
+    }
+    function myCompany() {
+      return authed() ? request.auth.token.companyId : null;
+    }
+    function isSelf(uid) {
+      return authed() && myUid() == uid;
+    }
+    function unchanged(field) {
+      return !(field in request.resource.data) || request.resource.data[field] == resource.data[field];
+    }
+    function changedOnly(allowed) {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(allowed);
     }
 
-    // --- User Profiles ---
+    // -------- USERS --------
     match /users/{userId} {
-      // Users can read/write their own profile. Admins can read/write any profile.
-      allow read, write: if isOwner(userId) || isAdmin();
-      // Admins can list all users.
-      allow list: if isAdmin();
+      // Read own profile; admins can read all. (List queries must be filtered; rules apply per-doc.)
+      allow read: if isSelf(userId) || isAdmin();
+
+      // Create own profile, but cannot set privileged fields
+      allow create: if isSelf(userId)
+        && request.resource.data.uid == myUid()
+        && !('role' in request.resource.data)
+        && !('companyId' in request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && !('updatedAt' in request.resource.data);
+
+      // Update: user can edit benign fields only; admin can edit anything
+      allow update: if
+        (isSelf(userId)
+          && unchanged('role')
+          && unchanged('companyId')
+          && changedOnly(['displayName','photoURL','phone','preferences','notificationSettings','updatedAt'])
+          && request.resource.data.updatedAt == request.time)
+        || isAdmin();
+
+      allow delete: if isAdmin();
+
+      // User-owned subcollections
+      match /{sub}/{docId} {
+        allow read, write: if isSelf(userId) || isAdmin();
+      }
     }
-    
-    // --- Company Data ---
-    match /companies/{companyId}/{document=**} {
-        // Members of a company can read its data. Admins can do anything.
-        allow read: if isMember(companyId);
-        allow write: if isAdmin();
-    }
-    
-    // Explicit rule for listing companies for logged-in users (e.g., in directories)
+
+    // -------- COMPANIES (with nested resources) --------
     match /companies/{companyId} {
-        allow list: if isSignedIn();
+      // Anyone signed-in can read company profile
+      allow read: if authed();
+      // Admins manage company docs
+      allow create, update, delete: if isAdmin();
+
+      // Members
+      match /members/{memberUid} {
+        allow read: if authed() && (isAdmin() || myCompany() == companyId || myUid() == memberUid);
+        allow write: if isAdmin(); // centralize membership changes via backend/admin
+      }
+
+      // Assets
+      match /assets/{assetId} {
+        allow read: if authed() && (myCompany() == companyId || isAdmin());
+        allow create: if authed()
+          && myCompany() == companyId
+          && request.resource.data.companyId == companyId
+          && request.resource.data.createdAt == request.time
+          && !('updatedAt' in request.resource.data);
+        allow update: if authed()
+          && myCompany() == companyId
+          && unchanged('companyId')
+          && changedOnly(['name','serial','location','meta','updatedAt'])
+          && request.resource.data.updatedAt == request.time
+          || isAdmin();
+        allow delete: if isAdmin();
+
+        // Inspections (under asset)
+        match /inspections/{inspectionId} {
+          function assetCompany() {
+            return companyId; // bound by path
+          }
+          allow read: if authed() && (myCompany() == assetCompany() || isAdmin());
+          allow create: if authed()
+            && myCompany() == assetCompany()
+            && request.resource.data.assetId == assetId
+            && request.resource.data.createdAt == request.time
+            && !('updatedAt' in request.resource.data);
+          allow update: if authed()
+            && myCompany() == assetCompany()
+            && unchanged('assetId')
+            && changedOnly(['results','attachments','status','updatedAt'])
+            && request.resource.data.updatedAt == request.time
+            || isAdmin();
+          allow delete: if isAdmin();
+        }
+      }
+
+      // Jobs (under company)
+      match /jobs/{jobId} {
+        // Participants: job owner (client) or provider company or admin
+        allow read: if authed() && (
+          resource.data.userId == myUid() ||
+          companyId == myCompany() ||
+          isAdmin()
+        );
+
+        // Create: client or provider company may create; providerCompanyId must match path
+        allow create: if authed()
+          && request.resource.data.providerCompanyId == companyId
+          && (
+            request.resource.data.userId == myUid() // client creating their job
+            || myCompany() == companyId            // provider creating on behalf
+          )
+          && request.resource.data.createdAt == request.time
+          && !('updatedAt' in request.resource.data);
+
+        // Update with field-level constraints
+        allow update: if authed() && (
+          // Client can edit limited fields on their job
+          (resource.data.userId == myUid()
+            && unchanged('userId')
+            && unchanged('providerCompanyId')
+            && changedOnly(['title','description','attachments','location','scheduledAt','status','cancelReason','updatedAt'])
+          )
+          ||
+          // Provider company can edit operational fields
+          (myCompany() == companyId
+            && unchanged('userId')
+            && unchanged('providerCompanyId')
+            && changedOnly(['status','scheduledAt','technicianIds','internalNotes','updatedAt'])
+          )
+          || isAdmin()
+        )
+        && request.resource.data.updatedAt == request.time;
+
+        allow delete: if isAdmin();
+
+        // Messages
+        match /messages/{messageId} {
+          function isJobParticipant() {
+            let owner = get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.userId;
+            return myUid() == owner || myCompany() == companyId || isAdmin();
+          }
+          allow read: if authed() && isJobParticipant();
+          allow create: if authed() && isJobParticipant()
+            && request.resource.data.senderId == myUid()
+            && request.resource.data.createdAt == request.time
+            && !('updatedAt' in request.resource.data);
+          allow update: if authed() && isJobParticipant()
+            && changedOnly(['body','attachments','updatedAt'])
+            && request.resource.data.updatedAt == request.time;
+          allow delete: if isAdmin();
+        }
+
+        // Bids
+        match /bids/{bidId} {
+          allow read: if authed() && (
+            resource.data.inspectorId == myUid() ||
+            resource.data.userId == myUid() ||
+            myCompany() == companyId ||
+            isAdmin()
+          );
+
+          allow create: if authed()
+            && request.resource.data.jobId == jobId
+            && request.resource.data.providerCompanyId == companyId
+            && request.resource.data.inspectorId == myUid()
+            && request.resource.data.createdAt == request.time
+            && !('updatedAt' in request.resource.data);
+
+          // Client may accept/reject; inspector may withdraw (status-only)
+          allow update: if authed() && (
+            (resource.data.userId == myUid() && changedOnly(['status','updatedAt']))
+            || (resource.data.inspectorId == myUid() && changedOnly(['status','updatedAt']))
+            || isAdmin()
+          )
+          && request.resource.data.updatedAt == request.time;
+
+          allow delete: if isAdmin();
+        }
+      }
+
+      // Reviews under company
+      match /reviews/{reviewId} {
+        allow read: if authed();
+        allow create: if authed()
+          && request.resource.data.providerCompanyId == companyId
+          && request.resource.data.clientId == myUid()
+          && request.resource.data.rating is number
+          && request.resource.data.rating >= 1
+          && request.resource.data.rating <= 5
+          && request.resource.data.createdAt == request.time
+          && !('updatedAt' in request.resource.data);
+        allow update: if authed() && (
+          (resource.data.clientId == myUid() && changedOnly(['text','rating','updatedAt']))
+          || (myCompany() == companyId && changedOnly(['providerReply','updatedAt']))
+          || isAdmin()
+        ) && request.resource.data.updatedAt == request.time;
+        allow delete: if isAdmin();
+      }
     }
-    
-    // --- Collection Group Queries ---
-    match /{path=**}/bids/{bidId} {
-      // Allow an inspector to query for their own bids across all jobs.
-      allow list: if isSignedIn() && request.query.where[0] == 'inspectorId' && request.query.where[2] == request.auth.uid;
-    }
-    
-    // --- Admin-only & Catalog Collections ---
-    match /admin/{collection}/{docId} {
-        allow read, write: if isAdmin();
-    }
-    
+
+    // -------- Catalog (admin-managed, grouped) --------
     match /catalog/{category}/{docId} {
-        allow read: if isSignedIn();
-        allow write: if isAdmin();
+      allow read: if authed();
+      allow write: if isAdmin();
+    }
+
+    // -------- Admin-only area (centralized) --------
+    // Example collections: jobPayments, payments, subscriptions, billingAuditLogs, jobAuditLogs, userAuditLogs, reports
+    match /admin/{collection}/{docId} {
+      allow read, write: if isAdmin();
     }
   }
 }

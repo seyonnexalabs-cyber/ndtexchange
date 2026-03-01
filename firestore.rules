@@ -145,7 +145,7 @@ service cloud.firestore {
       allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
     }
     match /{path=**}/inspections/{inspectionId} {
-      allow read: if isPlatformAdmin();
+      allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
     }
   }
 }

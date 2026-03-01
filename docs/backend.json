@@ -42,6 +42,7 @@
       "description": "Represents a user's membership and role within a company.",
       "properties": {
         "roleInCompany": { "type": "string", "enum": ["Owner", "Manager", "Tech"] },
+        "isAdmin": { "type": "boolean", "description": "Optional: explicit company admin toggle." },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["roleInCompany"]
@@ -92,13 +93,17 @@
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
+        "clientCompanyId": { "type": "string" },
         "providerCompanyId": { "type": "string" },
+        "auditorCompanyId": { "type": ["string", "null"] },
+        "requestedByUid": { "type": ["string", "null"] },
         "title": { "type": "string" },
         "description": { "type": "string" },
         "location": { "type": "string" },
         "status": { "type": "string", "enum": ["draft", "requested", "quoted", "scheduled", "in_progress", "completed", "cancelled"] },
         "scheduledAt": { "type": "string", "format": "date-time" },
         "technicianIds": { "type": "array", "items": { "type": "string" } },
+        "internalNotes": { "type": "string" },
         "attachments": { "type": "array", "items": { "type": "object" } },
         "createdAt": { "type": "string", "format": "date-time" },
         "modifiedAt": { "type": "string", "format": "date-time" }
@@ -115,7 +120,8 @@
         "senderId": { "type": "string" },
         "body": { "type": "string" },
         "attachments": { "type": "array", "items": { "type": "object" } },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "modifiedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "senderId", "body"]
     },

@@ -16,14 +16,7 @@ service cloud.firestore {
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
-    
-    // --- Collection Group Rules ---
-    // This rule MUST be simple. It allows an inspector to list ONLY their own bids.
-    // The application query `where('inspectorId', '==', user.uid)` ensures this is secure.
-    match /{path=**}/bids/{bidId} {
-        allow list: if isSignedIn() && request.auth.uid == request.query.where[2];
-    }
-    
+
     // --- Path-based Rules ---
 
     // USER DATA: Users can only access their own data.
@@ -54,16 +47,6 @@ service cloud.firestore {
         getUserData().companyId == request.resource.data.providerCompanyId
       );
       
-      // BIDS (Specific Document Access)
-      // This rule handles direct reads of a bid, not the list query.
-      match /bids/{bidId} {
-         allow get: if isSignedIn() && (
-            isOwner(get(/databases/$(database)/documents/jobs/$(jobId)).data.userId) || // Client owner
-            isOwner(resource.data.inspectorId) // Inspector who made bid
-         );
-         allow write: if isSignedIn() && isOwner(request.resource.data.inspectorId);
-      }
-      
       // MESSAGES
       match /messages/{messageId} {
         allow read, write: if isSignedIn() && (
@@ -71,6 +54,15 @@ service cloud.firestore {
             getUserData().companyId == get(/databases/$(database)/documents/jobs/$(jobId)).data.providerCompanyId
         );
       }
+    }
+
+    // BIDS: Top-level collection for simple queries
+    match /bids/{bidId} {
+        // An inspector can read/write their own bid. A client can read/update bids on their jobs.
+        allow read, update: if isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId);
+        
+        // An inspector can create a bid.
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.inspectorId;
     }
     
     // ASSET DATA: Access based on company ownership.

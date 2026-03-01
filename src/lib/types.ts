@@ -2,6 +2,7 @@
 
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -85,8 +86,6 @@ export type Job = {
     workflow: 'standard' | 'level3' | 'auto';
     documents?: JobDocument[];
     history?: JobUpdate[];
-    bids: Bid[];
-    inspections: Inspection[];
     isInternal?: boolean;
     jobType?: 'shutdown' | 'project' | 'callout';
     industry?: string;
@@ -489,5 +488,3 @@ export type Certification = {
   certificateNumber?: string;
   validUntil?: string;
 };
-
-

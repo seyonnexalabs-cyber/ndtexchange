@@ -1,5 +1,6 @@
 
 
+
 import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan } from '@/lib/types';
 
 // This file serves as the master data source for seeding the Firestore database.
@@ -899,32 +900,32 @@ const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
 ];
 
 export const bidsData: Omit<Bid, 'providerName'>[] = [
-    { id: 'BID-PERFECT', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 18500, status: 'Awarded', submittedDate: '2024-07-02T14:00:00Z', comments: 'Experienced team ready to deploy for this scope.' },
-    { id: 'BID-PERFECT-2', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 21000, status: 'Not Selected', submittedDate: '2024-07-03T10:00:00Z', comments: 'Full team availability guaranteed.' },
-    { id: 'BID-PERFECT-3', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 19500, status: 'Not Selected', submittedDate: '2024-07-03T11:30:00Z', comments: 'We have local technicians available.' },
-    { id: 'BID-001', userId: 'user-client-04', jobId: 'JOB-001', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.' },
-    { id: 'BID-001A', userId: 'user-client-04', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.' },
-    { id: 'BID-002', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18' },
-    { id: 'BID-003', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-005', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03' },
-    { id: 'BID-004', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-006', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 22000, status: 'Not Selected', submittedDate: '2024-07-04' },
-    { id: 'BID-004A', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-006', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04' },
-    { id: 'BID-005', userId: 'user-client-04', jobId: 'JOB-007', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 15000, status: 'Awarded', submittedDate: '2024-07-06' },
-    { id: 'BID-009', userId: 'user-client-04', jobId: 'JOB-009', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 9500, status: 'Submitted', submittedDate: '2024-07-13' },
-    { id: 'BID-011', userId: 'user-client-02', jobId: 'JOB-011', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 18000, status: 'Awarded', submittedDate: '2024-06-05' },
-    { id: 'BID-012', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-012', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 35000, status: 'Awarded', submittedDate: '2024-05-05' },
-    { id: 'BID-013', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-013', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 18000, status: 'Awarded', submittedDate: '2024-07-22' },
-    { id: 'BID-015', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-015', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 3500, status: 'Awarded', submittedDate: '2024-07-03' },
-    { id: 'BID-016', userId: 'user-client-02', jobId: 'JOB-016', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 14000, status: 'Submitted', submittedDate: '2024-07-24' },
-    { id: 'BID-017', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-017', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 9500, status: 'Awarded', submittedDate: '2024-07-26' },
-    { id: 'BID-018', userId: 'user-client-05', jobId: 'JOB-018', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 25000, status: 'Submitted', submittedDate: '2024-07-29' },
-    { id: 'BID-019', userId: 'user-client-05', jobId: 'JOB-019', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 18000, status: 'Submitted', submittedDate: '2024-07-30' },
-    { id: 'BID-020', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-020', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20' },
-    { id: 'BID-021', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-021', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 7500, status: 'Awarded', submittedDate: '2024-07-16' },
-    { id: 'BID-022', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-022', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12' },
-    { id: 'BID-023', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', jobId: 'JOB-023', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29' },
-    { id: 'BID-024', userId: 'user-client-02', jobId: 'JOB-024', inspectorId: 'user-tech-03', providerCompanyId: 'provider-04', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21' },
-    { id: 'BID-014', userId: 'user-client-03', jobId: 'JOB-014', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18' },
-    { id: 'BID-025', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-025', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26' },
+    { id: 'BID-PERFECT', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 18500, status: 'Awarded', submittedDate: '2024-07-02T14:00:00Z', comments: 'Experienced team ready to deploy for this scope.', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Perfect Lifecycle Demo Job' },
+    { id: 'BID-PERFECT-2', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 21000, status: 'Not Selected', submittedDate: '2024-07-03T10:00:00Z', comments: 'Full team availability guaranteed.', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Perfect Lifecycle Demo Job' },
+    { id: 'BID-PERFECT-3', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 19500, status: 'Not Selected', submittedDate: '2024-07-03T11:30:00Z', comments: 'We have local technicians available.', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Perfect Lifecycle Demo Job' },
+    { id: 'BID-001', userId: 'user-client-04', jobId: 'JOB-001', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.', client: 'Chemical Plant C', location: 'Baton Rouge, LA', jobTitle: 'PAUT on Pressure Vessel Welds' },
+    { id: 'BID-001A', userId: 'user-client-04', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.', client: 'Chemical Plant C', location: 'Baton Rouge, LA', jobTitle: 'PAUT on Pressure Vessel Welds' },
+    { id: 'BID-002', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18', client: 'Global Energy Corp.', location: 'Long Beach, CA', jobTitle: 'MT Inspection on Crane Hooks' },
+    { id: 'BID-003', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-005', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03', client: 'State Department of Transportation', location: 'Sacramento, CA', jobTitle: 'VT of Bridge Structural Welds' },
+    { id: 'BID-004', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-006', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 22000, status: 'Not Selected', submittedDate: '2024-07-04', client: 'Power Generation LLC', location: 'Houston, TX', jobTitle: 'RT on Boiler Tubes' },
+    { id: 'BID-004A', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-006', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04', client: 'Power Generation LLC', location: 'Houston, TX', jobTitle: 'RT on Boiler Tubes' },
+    { id: 'BID-005', userId: 'user-client-04', jobId: 'JOB-007', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 15000, status: 'Awarded', submittedDate: '2024-07-06', client: 'Chemical Plant C', location: 'Baton Rouge, LA', jobTitle: 'Eddy Current on Heat Exchanger Tubes' },
+    { id: 'BID-009', userId: 'user-client-04', jobId: 'JOB-009', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 9500, status: 'Submitted', submittedDate: '2024-07-13', client: 'Chemical Plant C', location: 'Plaquemine, LA', jobTitle: 'APR Inspection of Boiler Tubes' },
+    { id: 'BID-011', userId: 'user-client-02', jobId: 'JOB-011', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 18000, status: 'Awarded', submittedDate: '2024-06-05', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', jobTitle: 'Tank Floor Corrosion Mapping' },
+    { id: 'BID-012', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-012', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 35000, status: 'Awarded', submittedDate: '2024-05-05', client: 'Power Generation LLC', location: 'Houston, TX', jobTitle: 'Advanced RT of Turbine Blades' },
+    { id: 'BID-013', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-013', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 18000, status: 'Awarded', submittedDate: '2024-07-22', client: 'Global Energy Corp.', location: 'Freeport, TX', jobTitle: 'Acoustic Emission Monitoring of Sphere Tank' },
+    { id: 'BID-015', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-015', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 3500, status: 'Awarded', submittedDate: '2024-07-03', client: 'Manufacturing Solutions Inc.', location: 'Detroit, MI', jobTitle: 'Remote Visual Inspection of Gearbox' },
+    { id: 'BID-016', userId: 'user-client-02', jobId: 'JOB-016', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 14000, status: 'Submitted', submittedDate: '2024-07-24', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', jobTitle: 'Tank Floor Corrosion Mapping' },
+    { id: 'BID-017', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-017', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 9500, status: 'Awarded', submittedDate: '2024-07-26', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Shutdown Support - PT' },
+    { id: 'BID-018', userId: 'user-client-05', jobId: 'JOB-018', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 25000, status: 'Submitted', submittedDate: '2024-07-29', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', jobTitle: 'Landing Gear Weld Inspection' },
+    { id: 'BID-019', userId: 'user-client-05', jobId: 'JOB-019', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 18000, status: 'Submitted', submittedDate: '2024-07-30', client: 'Aviation Maintenance Pros', location: 'Wichita, KS', jobTitle: 'Fuselage Skin Eddy Current Scan' },
+    { id: 'BID-020', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-020', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20', client: 'Global Energy Corp.', location: 'Gulf of Mexico', jobTitle: 'Marine Riser Inspection' },
+    { id: 'BID-021', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-021', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 7500, status: 'Awarded', submittedDate: '2024-07-16', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Tank Wall Thickness UT' },
+    { id: 'BID-022', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-022', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12', client: 'Global Energy Corp.', location: 'Freeport, TX', jobTitle: 'Nozzle Weld PAUT' },
+    { id: 'BID-023', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', jobId: 'JOB-023', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29', client: 'TEAM, Inc.', location: 'Midland, TX', jobTitle: 'Internal Job For TEAM' },
+    { id: 'BID-024', userId: 'user-client-02', jobId: 'JOB-024', inspectorId: 'user-tech-03', providerCompanyId: 'provider-04', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', jobTitle: 'Storage Tank Weld RT' },
+    { id: 'BID-014', userId: 'user-client-03', jobId: 'JOB-014', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18', client: 'Energy Transfer', location: 'Permian Basin, TX', jobTitle: 'Internal Corrosion Mapping of Piping' },
+    { id: 'BID-025', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-025', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Shutdown Support - MT' },
 ];
 
 export const inspectionsData: Inspection[] = [
@@ -1176,15 +1177,8 @@ export const jobs: Job[] = jobsData.map(job => {
     return {
         ...job,
         assignedTechnicians: assignedTechniciansData,
-        bids: bidsData.filter(bid => bid.jobId === job.id).map(b => {
-            const inspector = allUsers.find(u => u.id === b.inspectorId);
-            return {
-                ...b,
-                providerName: inspector?.company || 'Unknown Provider',
-            }
-        }) as Bid[],
         inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
-    }
+    } as Job;
 });
 
 export const subscriptionPlans: Plan[] = [

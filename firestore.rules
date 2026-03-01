@@ -18,14 +18,16 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      // Check for the 'Admin' role in the user's own profile document.
-      return getUserData().role == 'Admin';
+      // Check for specific super admin UIDs first. This allows seeding and admin tasks to bypass `get()` calls.
+      let isSuperAdmin = request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1';
+      // Then, for other users, check their role from their document.
+      let isRoleAdmin = exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+      return isSuperAdmin || isRoleAdmin;
     }
     
     // --- User Data ---
     match /users/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
-      // Admins need to be able to list all users.
       allow list: if isAdmin();
 
       // User-owned sub-collections (notifications, tasks)
@@ -38,18 +40,10 @@ service cloud.firestore {
     
     // Jobs and nested Bids/Messages
     match /jobs/{jobId} {
-      allow get: if isSignedIn() && (
-        isOwner(resource.data.userId) || 
-        getUserData().companyId == resource.data.providerCompanyId ||
-        isAdmin()
-      );
-      
+      allow get: if isSignedIn();
       allow list: if isSignedIn();
 
-      allow write: if (isSignedIn() && (
-        isOwner(request.resource.data.userId) ||
-        getUserData().companyId == request.resource.data.providerCompanyId
-      )) || isAdmin();
+      allow write: if isAdmin();
       
       // Messages are only accessible by participants or admin
       match /messages/{messageId} {
@@ -62,25 +56,20 @@ service cloud.firestore {
 
     // Bids (top-level collection)
     match /bids/{bidId} {
-        // Creation: Inspector creating their own bid.
         allow create: if (isSignedIn() && request.auth.uid == request.resource.data.inspectorId) || isAdmin();
-        
-        // Reading: Inspector reads their own bids, client reads bids on their jobs.
         allow get: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
-        
-        // Listing: Securely allow inspectors to list only their own bids.
         allow list: if (isSignedIn() && request.query.where[0] == 'inspectorId' && request.query.where[2] == request.auth.uid) || isAdmin();
-
-        // Updating: Client can accept/reject, inspector can withdraw (by updating status).
         allow update: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
+        allow write: if isAdmin();
     }
     
     // Assets and nested Inspections
     match /assets/{assetId} {
-      allow read, write: if (isSignedIn() && getUserData().companyId == resource.data.companyId) || isAdmin();
-
+      allow read, write: if isAdmin() || (isSignedIn() && getUserData().companyId == resource.data.companyId);
       match /inspections/{inspectionId} {
-        allow read, write: if (isSignedIn() && getUserData().companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId) || isAdmin();
+        // This relies on the parent asset's rule for reads, but needs an explicit write rule for batch creation.
+        allow read: if isAdmin() || (isSignedIn() && getUserData().companyId == get(/databases/$(database)/documents/assets/$(assetId)).data.companyId);
+        allow write: if isAdmin();
       }
     }
 
@@ -103,7 +92,7 @@ service cloud.firestore {
     }
     match /reviews/{reviewId} {
       allow read: if isSignedIn();
-      allow write: if (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.providerId == getUserData().companyId)) || isAdmin();
+      allow write: if isAdmin() || (isSignedIn() && (request.resource.data.clientId == request.auth.uid || request.resource.data.providerId == getUserData().companyId));
     }
     match /plans/{planId} {
       allow read: if isSignedIn();

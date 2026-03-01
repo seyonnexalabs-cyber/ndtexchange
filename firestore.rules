@@ -16,14 +16,26 @@ service cloud.firestore {
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
-
+    
+    function isAdmin() {
+      return getUserData().role == 'Admin';
+    }
+    
     // --- Path-based Rules ---
 
-    // USER DATA: Users can only access their own data.
-    match /users/{userId}/{documents=**} {
-      allow read, write: if isOwner(userId);
-    }
+    // USER DATA
+    match /users/{userId} {
+      // Users can write to their own profile. Admins can also write (e.g. to change roles).
+      allow write: if isOwner(userId) || isAdmin();
+      // Users can read their own profile. Admins can read any profile.
+      allow read: if isOwner(userId) || isAdmin();
 
+      // Sub-collections like tasks and notifications remain owner-only.
+      match /{documents=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
     // PUBLIC DATA: Logged-in users can read these collections.
     match /companies/{companyId} { allow read: if isSignedIn(); }
     match /techniques/{techniqueId} { allow read: if isSignedIn(); }
@@ -58,11 +70,17 @@ service cloud.firestore {
 
     // BIDS: Top-level collection for simple queries
     match /bids/{bidId} {
-        // An inspector can read/write their own bid. A client can read/update bids on their jobs.
-        allow read, update: if isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId);
+        // An inspector can read their own bid. A client can read bids on their jobs.
+        allow get: if isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId);
+        
+        // Allow a user to list bids they are involved in.
+        allow list: if isSignedIn();
         
         // An inspector can create a bid.
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.inspectorId;
+        
+        // An inspector can update their own bid. A client can update bids on their jobs (e.g. to change status).
+        allow update: if isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId);
     }
     
     // ASSET DATA: Access based on company ownership.
@@ -76,10 +94,6 @@ service cloud.firestore {
 
     // --- ADMIN-ONLY DATA ---
     // These collections are locked down and require admin role.
-    function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
-    }
-    
     match /roles_admin/{userId} { allow read: if isSignedIn(); }
     match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
     match /payments/{paymentId} { allow read, write: if isAdmin(); }

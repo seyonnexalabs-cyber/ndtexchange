@@ -16,8 +16,7 @@ service cloud.firestore {
       // which might not exist during the seeding batch write.
       return authed() && (
         request.auth.uid == 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' ||
-        request.auth.uid == '8ulGMzDhV1VgocwqptGCpV6Dkkl1' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin'
+        get(/databases/$(database)/documents/users/$(myUid())).data.role == 'Admin'
       );
     }
     
@@ -87,7 +86,7 @@ service cloud.firestore {
       }
     }
     
-    // -------- Top-Level Collections --------
+    // -------- Top-Level Admin Collections --------
     match /userAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
     match /jobAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
     match /billingAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }

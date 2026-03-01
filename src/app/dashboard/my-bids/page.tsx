@@ -195,10 +195,20 @@ export default function MyBidsPage() {
 
     const myBidsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc'));
+        return query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid));
     }, [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
     
+    const sortedBids = useMemo(() => {
+        if (!myBids) return [];
+        return [...myBids].sort((a, b) => {
+            const dateA = safeParseDate(a.submittedDate);
+            const dateB = safeParseDate(b.submittedDate);
+            if (!dateA || !dateB) return 0;
+            return dateB.getTime() - dateA.getTime();
+        });
+    }, [myBids]);
+
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
         useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore])
     );
@@ -324,7 +334,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={sortedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">

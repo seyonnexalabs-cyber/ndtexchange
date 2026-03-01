@@ -1,196 +1,306 @@
-
 'use client';
 import * as React from 'react';
-import { useMemo } from "react";
-import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Equipment, EquipmentHistory, NDTTechnique, PlatformUser } from "@/lib/types";
-import { ChevronLeft } from "lucide-react";
-import { format } from 'date-fns';
-import { cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from "@/hooks/use-toast";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronsUpDown, Trash } from "lucide-react";
-import { CustomDateInput } from '@/components/ui/custom-date-input';
-import Image from "next/image";
-import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { doc, updateDoc, collection, arrayUnion } from 'firebase/firestore';
+import { notFound, useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
+import { ChevronLeft, Edit, MoreVertical, QrCode, Printer, Wrench, HardHat, Package, SlidersHorizontal, RadioTower, Waves, Cpu, Eye, Cable, History, Calendar } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
+import type { Equipment, EquipmentHistory, Job, PlatformUser, EquipmentType } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { format, differenceInDays, startOfDay } from 'date-fns';
+import { cn, safeParseDate } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import Image from 'next/image';
 
-const equipmentSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  type: z.enum(['Instrument', 'Probe', 'Source', 'Sensor', 'Calibration Standard', 'Accessory', 'Visual Aid']),
-  techniques: z.array(z.string()).min(1, "At least one technique is required."),
-  manufacturer: z.string().optional(),
-  model: z.string().optional(),
-  serialNumber: z.string().optional(),
-  status: z.enum(['Available', 'In Use', 'Calibration Due', 'Out of Service', 'Under Service']),
-  nextCalibration: z.date(),
-  thumbnail: z.any().optional(),
-  parentId: z.string().optional(),
-});
+const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
+    'Instrument': <RadioTower className="w-6 h-6 text-primary" />,
+    'Probe': <SlidersHorizontal className="w-6 h-6 text-primary" />,
+    'Source': <Waves className="w-6 h-6 text-primary" />,
+    'Sensor': <Cpu className="w-6 h-6 text-primary" />,
+    'Calibration Standard': <Wrench className="w-6 h-6 text-primary" />,
+    'Accessory': <Cable className="w-6 h-6 text-primary" />,
+    'Visual Aid': <Eye className="w-6 h-6 text-primary" />,
+};
 
-type EquipmentFormValues = z.infer<typeof equipmentSchema>;
+const statusVariants: { [key in Equipment['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
+    'Available': 'success',
+    'In Use': 'default',
+    'Calibration Due': 'destructive',
+    'Out of Service': 'outline',
+    'Under Service': 'secondary',
+};
 
-export default function EditEquipmentPage() {
+const UserAvatar = ({ userId }: { userId: string }) => {
+    const { firestore } = useFirebase();
+    const { data: user, isLoading } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && userId ? doc(firestore, 'users', userId) : null), [firestore, userId]));
+
+    if (isLoading) return <Skeleton className="h-8 w-8 rounded-full" />;
+    if (!user) return null;
+    
+    return <p className="font-semibold">{user.name}</p>;
+};
+
+const CalibrationCard = ({ nextCalibration }: { nextCalibration: string }) => {
+    if (nextCalibration === 'N/A') {
+        return (
+            <Card>
+                <CardHeader><CardTitle>Calibration</CardTitle></CardHeader>
+                <CardContent><p className="text-muted-foreground">No calibration date set.</p></CardContent>
+            </Card>
+        )
+    }
+
+    const today = startOfDay(new Date());
+    const calDate = safeParseDate(nextCalibration);
+
+    if (!calDate) {
+        return <div className="text-xs text-muted-foreground">Invalid cal. date</div>;
+    }
+    
+    const totalPeriod = 365; // Assume a 1-year calibration cycle for visualization
+    const daysRemaining = differenceInDays(calDate, today);
+    const percentage = Math.max(0, Math.min(100, (daysRemaining / totalPeriod) * 100));
+
+    let colorClass = 'bg-green-500';
+    let daysText = `${daysRemaining} days remaining`;
+    let statusText = "Calibration is up to date.";
+    
+    if (daysRemaining <= 0) {
+        colorClass = 'bg-red-500';
+        daysText = `Overdue by ${Math.abs(daysRemaining)} days`;
+        statusText = "Calibration is overdue. This equipment should not be used.";
+    } else if (daysRemaining <= 30) {
+        colorClass = 'bg-amber-500';
+        daysText = `${daysRemaining} days left`;
+        statusText = "Calibration is due soon. Schedule service to avoid downtime.";
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Calibration Status</CardTitle>
+                <CardDescription>Next calibration due: {format(calDate, 'PPP')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div>
+                    <div className="flex justify-between items-center text-sm text-muted-foreground mb-1">
+                        <span className="font-semibold">Time Remaining</span>
+                        <span className={cn(
+                            "font-semibold",
+                            daysRemaining <= 0 ? "text-red-500" :
+                            daysRemaining <= 30 ? "text-amber-500" : "text-green-500"
+                        )}>{daysText}</span>
+                    </div>
+                    <Progress value={percentage} indicatorClassName={colorClass} />
+                </div>
+                <p className="text-sm text-muted-foreground">{statusText}</p>
+            </CardContent>
+        </Card>
+    );
+}
+
+export default function EquipmentDetailPage() {
     const params = useParams();
     const id = params.id as string;
-    const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
-    const { firestore, user } = useFirebase();
+    const router = useRouter();
+    const { firestore } = useFirebase();
 
-    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
-    );
-    const { data: equipmentToEdit, isLoading: isLoadingEquipmentToEdit } = useDoc<Equipment>(
-        useMemoFirebase(() => (firestore ? doc(firestore, 'equipment', id) : null), [firestore, id])
-    );
-    const { data: allEquipment, isLoading: isLoadingAllEquipment } = useCollection<Equipment>(
-        useMemoFirebase(() => (firestore ? collection(firestore, 'equipment') : null), [firestore])
-    );
-    const { data: allTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(
-        useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore])
-    );
+    const [qrCodeData, setQrCodeData] = React.useState<{ id: string, name: string } | null>(null);
 
-    const form = useForm<EquipmentFormValues>({
-        resolver: zodResolver(equipmentSchema),
-    });
+    const { data: equipment, isLoading: isLoadingEquipment } = useDoc<Equipment>(useMemoFirebase(() => (firestore ? doc(firestore, 'equipment', id) : null), [firestore, id]));
     
-    const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
-    const [isDragging, setIsDragging] = React.useState(false);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const { data: parentEquipment, isLoading: isLoadingParent } = useDoc<Equipment>(useMemoFirebase(() => (firestore && equipment?.parentId ? doc(firestore, 'equipment', equipment.parentId) : null), [firestore, equipment]));
 
-    React.useEffect(() => {
-        if (equipmentToEdit) {
-            form.reset({
-                ...equipmentToEdit,
-                nextCalibration: equipmentToEdit.nextCalibration !== 'N/A' ? new Date(equipmentToEdit.nextCalibration) : new Date(),
-                thumbnail: equipmentToEdit.thumbnailUrl,
-            });
-            if (equipmentToEdit.thumbnailUrl) {
-                setThumbnailPreview(equipmentToEdit.thumbnailUrl);
-            }
-        }
-    }, [equipmentToEdit, form]);
-    
-    const possibleParents = React.useMemo(() => (allEquipment || []).filter(e => e.id !== id && !e.parentId), [id, allEquipment]);
-
-    const handleFileChange = (file: File | null) => {
-        form.setValue('thumbnail', file);
-        if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) URL.revokeObjectURL(thumbnailPreview);
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                setThumbnailPreview(null);
-                form.setError('thumbnail', { type: 'manual', message: 'Only image files are accepted.' });
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE_BYTES) {
-                setThumbnailPreview(null);
-                form.setError('thumbnail', { type: 'manual', message: `File size cannot exceed ${MAX_FILE_SIZE_MB}MB.` });
-                return;
-            }
-            setThumbnailPreview(URL.createObjectURL(file));
-            form.clearErrors('thumbnail');
-        } else {
-            setThumbnailPreview(typeof equipmentToEdit?.thumbnailUrl === 'string' ? equipmentToEdit.thumbnailUrl : null);
-        }
-    };
-
-    const dragHandlers = {
-        onDragEnter: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); },
-        onDragLeave: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); },
-        onDragOver: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); },
-        onDrop: (e: React.DragEvent<HTMLDivElement>) => {
-            e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleFileChange(e.dataTransfer.files[0]);
-        },
-    };
+    const assignedJobsQuery = useMemoFirebase(() => {
+        if (!firestore || !id) return null;
+        return query(
+            collection(firestore, 'jobs'),
+            where('equipmentIds', 'array-contains', id)
+        );
+    }, [firestore, id]);
+    const { data: assignedJobs, isLoading: isLoadingJobs } = useCollection<Job>(assignedJobsQuery);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     };
 
-    const handleFormSubmit = async (values: EquipmentFormValues) => {
-        if (!firestore || !userProfile) return;
-        
-        const { thumbnail, ...equipmentData } = values;
-        const dataToSave = {
-            ...equipmentData,
-            providerId: userProfile.companyId,
-            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
-        };
-        
-        try {
-            const equipmentDocRef = doc(firestore, 'equipment', id);
-            await updateDoc(equipmentDocRef, {
-                ...dataToSave,
-                history: arrayUnion({ event: 'Updated', user: userProfile.name, timestamp: new Date().toISOString() })
-            });
-            toast({ title: "Equipment Updated", description: `${values.name} has been updated.` });
-            router.push(constructUrl('/dashboard/equipment'));
-        } catch (error) {
-            console.error("Error saving equipment:", error);
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save equipment." });
-        }
-    };
-    
-    const isLoading = isLoadingProfile || isLoadingAllEquipment || isLoadingTechniques || isLoadingEquipmentToEdit;
+    const isLoading = isLoadingEquipment || isLoadingJobs || isLoadingParent;
 
-    if (isLoading) {
-        return <div className="max-w-2xl mx-auto"><Skeleton className="h-screen" /></div>;
-    }
-
-    if (!equipmentToEdit) {
+    if (!isLoading && !equipment) {
         notFound();
+    }
+    
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/4" />
+                <div className="grid lg:grid-cols-3 gap-8 items-start">
+                    <div className="lg:col-span-1 space-y-6">
+                        <Skeleton className="h-[450px] w-full" />
+                    </div>
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
-            <Link href={constructUrl("/dashboard/equipment")} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mb-4")}>
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Back to Equipment
-            </Link>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Edit: {equipmentToEdit.name}</CardTitle>
-                    <CardDescription>Update the details for this piece of equipment.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-                            <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
-                            <FormField control={form.control} name="type" render={({ field }) => ( <FormItem> <FormLabel>Type</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Instrument">Instrument</SelectItem> <SelectItem value="Probe">Probe/Transducer</SelectItem> <SelectItem value="Source">Source</SelectItem> <SelectItem value="Sensor">Sensor/Detector</SelectItem> <SelectItem value="Calibration Standard">Calibration Standard</SelectItem> <SelectItem value="Accessory">Accessory</SelectItem> <SelectItem value="Visual Aid">Visual Aid</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="parentId" render={({ field }) => ( <FormItem> <FormLabel>Parent Equipment (Optional)</FormLabel> <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Assign to a kit or system" /> </SelectTrigger> </FormControl> <SelectContent> <SelectItem value="none">None (Standalone Equipment)</SelectItem> {possibleParents.map(parent => ( <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem> ))} </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField control={form.control} name="manufacturer" render={({ field }) => ( <FormItem> <FormLabel>Manufacturer (Optional)</FormLabel> <FormControl><Input placeholder="e.g., Olympus" {...field} value={field.value || ''} /></FormControl> <FormMessage /> </FormItem> )}/>
-                                <FormField control={form.control} name="model" render={({ field }) => ( <FormItem> <FormLabel>Model (Optional)</FormLabel> <FormControl><Input placeholder="e.g., 45MG" {...field} value={field.value || ''} /></FormControl> <FormMessage /> </FormItem> )}/>
+         <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
+                 <div>
+                    <nav className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
+                        <Link href={constructUrl("/dashboard/equipment")} className="hover:text-primary">Equipment</Link>
+                        <ChevronLeft className="h-4 w-4 transform rotate-180" />
+                        <span className="font-medium text-foreground">Equipment Detail</span>
+                    </nav>
+                    <h1 className="text-2xl lg:text-3xl font-headline font-bold">{equipment?.name}</h1>
+                </div>
+                <div className="flex gap-2">
+                    <Button asChild variant="outline"><Link href={constructUrl(`/dashboard/equipment/${id}/edit`)}><Edit className="mr-2"/>Edit Equipment</Link></Button>
+                    <Button>Check Out/In</Button>
+                    <Button variant="ghost" size="icon"><MoreVertical/></Button>
+                </div>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+                 <div className="lg:col-span-1 space-y-6">
+                     <Card>
+                        <CardHeader className="p-0">
+                            <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                {equipment?.thumbnailUrl ? (
+                                    <Image src={equipment.thumbnailUrl} alt={equipment.name} fill className="object-contain p-4" />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full">
+                                        {React.cloneElement(equipmentTypeIcons[equipment!.type] || <Wrench />, { className: 'w-24 h-24 text-primary/30' })}
+                                    </div>
+                                )}
                             </div>
-                            <FormField control={form.control} name="serialNumber" render={({ field }) => ( <FormItem> <FormLabel>Serial Number (Optional)</FormLabel> <FormControl><Input placeholder="e.g., SN-12345" {...field} value={field.value || ''} /></FormControl> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="techniques" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Technique(s)</FormLabel> <Popover> <PopoverTrigger asChild> <FormControl> <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}> {field.value?.length > 0 ? `${field.value.length} selected` : "Select techniques"} <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /> </Button> </FormControl> </PopoverTrigger> <PopoverContent className="w-[--radix-popover-trigger-width] p-0"> <ScrollArea className="h-48"><div className="p-2"> {(allTechniques || []).map((tech) => ( <div key={tech.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"> <Checkbox id={`tech-${tech.id}`} checked={field.value?.includes(tech.acronym)} onCheckedChange={(checked) => { return checked ? field.onChange([...(field.value || []), tech.acronym]) : field.onChange(field.value?.filter((value) => value !== tech.acronym)); }}/> <label htmlFor={`tech-${tech.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 w-full">{tech.title} ({tech.acronym})</label> </div> ))} </div></ScrollArea> </PopoverContent> </Popover> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="status" render={({ field }) => ( <FormItem> <FormLabel>Status</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Available">Available</SelectItem> <SelectItem value="In Use">In Use</SelectItem> <SelectItem value="Calibration Due">Calibration Due</SelectItem> <SelectItem value="Out of Service">Out of Service</SelectItem> <SelectItem value="Under Service">Under Service</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="nextCalibration" render={({ field }) => ( <FormItem className="flex flex-col"> <FormLabel>Next Calibration Date</FormLabel> <FormControl><CustomDateInput {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
-                            <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag &amp; drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the equipment.</FormDescription> <FormMessage /> </FormItem> )}/>
-                            <CardFooter className="px-0 pt-4 flex justify-end gap-2">
-                                <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/equipment'))}>Cancel</Button>
-                                <Button type="submit">Save Changes</Button>
-                            </CardFooter>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-        </div>
-    )
+                        </CardHeader>
+                        <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <Badge variant="outline">{equipment?.type}</Badge>
+                                    <h3 className="text-xl font-bold mt-1">{equipment?.name}</h3>
+                                    <p className="font-bold text-muted-foreground text-sm">{equipment?.id}</p>
+                                </div>
+                                <Badge variant={statusVariants[equipment!.status]}>{equipment?.status}</Badge>
+                            </div>
+                             <div className="mt-4 space-y-2 text-sm">
+                                <p><strong className="w-24 inline-block">Manufacturer:</strong> <span className="text-muted-foreground">{equipment?.manufacturer || 'N/A'}</span></p>
+                                <p><strong className="w-24 inline-block">Model:</strong> <span className="text-muted-foreground">{equipment?.model || 'N/A'}</span></p>
+                                <p><strong className="w-24 inline-block">Serial #:</strong> <span className="text-muted-foreground">{equipment?.serialNumber || 'N/A'}</span></p>
+                            </div>
+                            {parentEquipment && (
+                                <Link href={constructUrl(`/dashboard/equipment/${parentEquipment.id}`)} className="text-sm">
+                                    <Card className="mt-4 p-3 bg-muted/50 hover:bg-muted">
+                                        <p className="text-xs text-muted-foreground">Part of kit:</p>
+                                        <p className="font-semibold flex items-center gap-2"><Package className="h-4 w-4"/> {parentEquipment.name}</p>
+                                    </Card>
+                                </Link>
+                            )}
+                             <div className="mt-4">
+                                <h4 className="text-sm font-semibold mb-2">Techniques</h4>
+                                <div className="flex flex-wrap gap-1">
+                                    {equipment?.techniques.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                </div>
+                            </div>
+                        </CardContent>
+                         <CardFooter>
+                            <Button variant="link" className="p-0 h-auto" onClick={() => setQrCodeData({ id: equipment!.id, name: equipment!.name })}>
+                                <QrCode className="mr-2" />
+                                View QR Code
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                     <CalibrationCard nextCalibration={equipment!.nextCalibration} />
+                 </div>
+                 <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><History className="text-primary"/> History Log</CardTitle></CardHeader>
+                        <CardContent>
+                            <div className="relative pl-6">
+                                <div className="absolute left-3 top-0 h-full w-px bg-border" />
+                                {(equipment?.history || []).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((item, index) => (
+                                    <div key={index} className="relative flex items-start space-x-4 mb-6">
+                                        <div className="absolute left-0 top-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-primary" />
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-sm">{item.event}</p>
+                                            <p className="text-xs text-muted-foreground">by <UserAvatar userId={item.user} /> on {format(safeParseDate(item.timestamp)!, 'dd-MMM-yyyy @ p')}</p>
+                                            {item.notes && <p className="text-xs text-muted-foreground italic mt-1">"{item.notes}"</p>}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><Briefcase className="text-primary"/> Assigned Jobs</CardTitle></CardHeader>
+                        <CardContent>
+                             <Table>
+                                <TableHeader><TableRow><TableHead>Job Title</TableHead><TableHead>Client</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                                <TableBody>
+                                    {(assignedJobs || []).map(job => (
+                                        <TableRow key={job.id}>
+                                            <TableCell className="font-medium"><Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className="hover:underline">{job.title}</Link></TableCell>
+                                            <TableCell>{job.client}</TableCell>
+                                            <TableCell><Badge variant="default">{job.status}</Badge></TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {(assignedJobs || []).length === 0 && <TableRow><TableCell colSpan={3} className="text-center h-24">Not currently assigned to any jobs.</TableCell></TableRow>}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                 </div>
+            </div>
+             <Dialog open={!!qrCodeData} onOpenChange={(open) => {if (!open) {setQrCodeData(null)}}}>
+                <DialogContent className="sm:max-w-md">
+                    <div className="printable-area">
+                        <DialogHeader>
+                            <DialogTitle>Equipment QR Code</DialogTitle>
+                            <DialogDescription>
+                                Print this QR code and attach it to your equipment for easy scanning.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center justify-center p-6 gap-4">
+                            {qrCodeData && (
+                                <>
+                                    <Image 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCodeData.id)}`}
+                                        alt={`QR Code for ${qrCodeData.name}`}
+                                        width={250}
+                                        height={250}
+                                    />
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{qrCodeData.name}</p>
+                                        <p className="font-bold text-muted-foreground">{qrCodeData.id}</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" onClick={() => setQrCodeData(null)}>
+                            Close
+                        </Button>
+                        <Button type="button" onClick={() => window.print()}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+         </div>
+    );
 }

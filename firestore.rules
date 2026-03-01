@@ -67,17 +67,15 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-      // Allow an inspector to read their own bids.
-      // This is now simplified to unblock the collection group query.
+      // This simplified rule ONLY allows an inspector to read their own bids.
+      // This is to fix the collection group query on the inspector dashboard.
       allow read: if request.auth.uid == resource.data.inspectorId;
       
       // Allow an inspector to create a bid.
       allow create: if request.auth.uid == request.resource.data.inspectorId;
 
-      // Allow the client to update a bid (e.g., award it).
-      // This will be handled by a separate, more specific rule in a subsequent step.
-      // For now, we simplify to fix the inspector query.
-      allow update: if request.auth.uid == resource.data.userId || (request.auth.uid == resource.data.inspectorId && resource.data.status == 'Submitted');
+      // This simplified rule ONLY allows an inspector to update their own bid.
+      allow update: if request.auth.uid == resource.data.inspectorId;
     }
 
 

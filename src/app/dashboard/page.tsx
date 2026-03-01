@@ -738,6 +738,7 @@ const AdminDashboard = () => {
                 { name: 'jobAuditLogs', data: (await import('@/lib/seed-data')).jobAuditLog },
                 { name: 'billingAuditLogs', data: (await import('@/lib/seed-data')).billingAuditLog },
                 { name: 'plans', data: (await import('@/lib/seed-data')).subscriptionPlans },
+                { name: 'bids', data: (await import('@/lib/seed-data')).bidsData },
             ];
 
             for (const { name, data } of collectionsToSeed) {
@@ -756,9 +757,8 @@ const AdminDashboard = () => {
             
             console.log(`[SEED] Preparing: jobs and subcollections...`);
             seedData.jobs.forEach(job => {
-                const { bids, inspections, ...jobData } = job;
+                const { inspections, ...jobData } = job;
                 batch.set(doc(firestore, 'jobs', job.id), jobData);
-                bids.forEach(bid => batch.set(doc(firestore, 'jobs', bid.jobId, 'bids', bid.id), bid));
                 seedData.jobChats.filter(c => c.jobId === job.id).forEach(chat => {
                     chat.messages.forEach(msg => batch.set(doc(firestore, 'jobs', chat.jobId, 'messages', msg.id), msg));
                 });

@@ -105,7 +105,7 @@ export const productsData: Product[] = [
     { id: 'PROD-045', name: '15MHz Shear Wave Probe', manufacturerId: 'manu-01', manufacturerName: 'Evident Scientific', type: 'Probe', techniques: ['UT'], description: 'A high-frequency shear wave transducer for detecting very small flaws near the surface.', imageUrls: [] }
 ];
 
-export const clientData: Client[] = [
+export const allCompanies: (Client | NDTServiceProvider | AuditFirm)[] = [
     { id: 'client-01', type: 'Client', name: 'Global Energy Corp.', contactPerson: 'John Doe', contactEmail: 'john.d@globalenergy.corp', activeJobs: 3, totalSpend: 250000, logoUrl: 'https://placehold.co/200x80/0033A0/FFFFFF/png?text=Global+Energy', brandColor: '#0033A0' },
     { id: 'client-02', type: 'Client', name: 'Marine Tankers Ltd.', contactPerson: 'Sarah Johnson', contactEmail: 's.johnson@marinetankers.com', activeJobs: 1, totalSpend: 93000 },
     { id: 'client-03', type: 'Client', name: 'Energy Transfer', contactPerson: 'Mike Williams', contactEmail: 'm.williams@energytransfer.com', activeJobs: 1, totalSpend: 120000 },
@@ -115,9 +115,6 @@ export const clientData: Client[] = [
     { id: 'client-07', type: 'Client', name: 'Port Authority', contactPerson: 'Port Manager', contactEmail: 'manager@portauthority.com', activeJobs: 1, totalSpend: 0 },
     { id: 'client-08', type: 'Client', name: 'Manufacturing Solutions Inc.', contactPerson: 'Factory Manager', contactEmail: 'fm@mansol.com', activeJobs: 1, totalSpend: 3500 },
     { id: 'client-09', type: 'Client', name: 'Aviation Maintenance Pros', contactPerson: 'Chuck Yeager', contactEmail: 'chuck@avpros.com', activeJobs: 2, totalSpend: 45000 },
-];
-
-export const serviceProviders: NDTServiceProvider[] = [
     {
         id: 'provider-01',
         name: 'MISTRAS Group',
@@ -327,10 +324,7 @@ export const serviceProviders: NDTServiceProvider[] = [
         techniques: ['ALL'],
         industries: ['Software'],
         description: 'The platform provider.'
-    }
-];
-
-export const auditFirms: AuditFirm[] = [
+    },
     {
         id: 'auditor-firm-01',
         name: 'NDT Auditors LLC',

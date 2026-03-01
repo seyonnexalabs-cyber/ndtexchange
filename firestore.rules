@@ -18,15 +18,18 @@ service cloud.firestore {
     }
     
     function isAdmin() {
+      // Check for the 'Admin' role in the user's own profile document.
       return getUserData().role == 'Admin';
     }
     
     // --- User Data ---
     match /users/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
+      // Admins need to be able to list all users.
+      allow list: if isAdmin();
 
-      // User-owned sub-collections
-      match /{documents=**} {
+      // User-owned sub-collections (notifications, tasks)
+      match /{subcollection}/{docId} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
@@ -59,16 +62,16 @@ service cloud.firestore {
 
     // Bids (top-level collection)
     match /bids/{bidId} {
-        // Creation: Inspector creating their own bid, or admin seeding data.
+        // Creation: Inspector creating their own bid.
         allow create: if (isSignedIn() && request.auth.uid == request.resource.data.inspectorId) || isAdmin();
         
-        // Reading: Inspector reads their own bids, client reads bids on their jobs, admin reads all.
+        // Reading: Inspector reads their own bids, client reads bids on their jobs.
         allow get: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
         
-        // Listing: Securely allow inspectors to list only their own bids. Admin can list all.
-        allow list: if (isSignedIn() && request.query.where.inspectorId == request.auth.uid) || isAdmin();
+        // Listing: Securely allow inspectors to list only their own bids.
+        allow list: if (isSignedIn() && request.query.where[0] == 'inspectorId' && request.query.where[2] == request.auth.uid) || isAdmin();
 
-        // Updating: Client can accept/reject, inspector can withdraw (by updating status), admin can edit anything.
+        // Updating: Client can accept/reject, inspector can withdraw (by updating status).
         allow update: if (isSignedIn() && (request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId)) || isAdmin();
     }
     
@@ -108,14 +111,14 @@ service cloud.firestore {
     }
 
     // --- Admin-only Data ---
-    // All audit logs, payments, subscriptions are admin-only write.
-    match /jobPayments/{paymentId} { allow read, write: if isAdmin(); }
-    match /payments/{paymentId} { allow read, write: if isAdmin(); }
-    match /subscriptions/{subscriptionId} { allow read, write: if isAdmin(); }
-    match /billingAuditLogs/{logId} { allow read, write: if isAdmin(); }
-    match /jobAuditLogs/{logId} { allow read, write: if isAdmin(); }
-    match /userAuditLogs/{logId} { allow read, write: if isAdmin(); }
-    match /reports/{reportId} { allow read, write: if isAdmin(); }
+    // These collections are only accessible by administrators.
+    match /jobPayments/{doc=**} { allow read, write: if isAdmin(); }
+    match /payments/{doc=**} { allow read, write: if isAdmin(); }
+    match /subscriptions/{doc=**} { allow read, write: if isAdmin(); }
+    match /billingAuditLogs/{doc=**} { allow read, write: if isAdmin(); }
+    match /jobAuditLogs/{doc=**} { allow read, write: if isAdmin(); }
+    match /userAuditLogs/{doc=**} { allow read, write: if isAdmin(); }
+    match /reports/{doc=**} { allow read, write: if isAdmin(); }
     
   }
 }

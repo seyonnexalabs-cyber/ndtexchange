@@ -23,7 +23,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, collectionGroup } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -62,7 +62,7 @@ export default function AllJobsPage() {
     const { firestore, user } = useFirebase();
     const isReady = !!firestore && !!user && role === 'admin';
 
-    const jobsQuery = useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady]);
+    const jobsQuery = useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'jobs')) : null, [isReady]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
     const companiesQuery = useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady]);

@@ -7,6 +7,9 @@ service cloud.firestore {
     // -------- Helpers --------
     function authed() { return request.auth != null; }
     function myUid() { return request.auth.uid; }
+    function myCompany() {
+      return get(/databases/$(database)/documents/users/$(myUid())).data.companyId;
+    }
 
     function isPlatformAdmin() {
       // Allow seeding for specific admin UIDs without checking custom claims,
@@ -34,6 +37,7 @@ service cloud.firestore {
 
     // -------- USERS --------
     match /users/{userId} {
+      // Admins can read all users, others can only read their own.
       allow read: if isPlatformAdmin() || myUid() == userId;
       allow write: if isPlatformAdmin() || myUid() == userId;
     }
@@ -53,8 +57,7 @@ service cloud.firestore {
         allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read: if isMember(companyId) || isPlatformAdmin();
-          allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+          allow read, write: if isMember(companyId) || isPlatformAdmin();
         }
       }
       
@@ -84,7 +87,7 @@ service cloud.firestore {
       }
     }
     
-    // -------- Top-Level Admin Collections --------
+    // -------- Top-Level Collections --------
     match /userAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
     match /jobAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
     match /billingAuditLogs/{logId} { allow read, write: if isPlatformAdmin(); }
@@ -92,16 +95,17 @@ service cloud.firestore {
     match /subscriptions/{subId} { allow read, write: if isPlatformAdmin(); }
     match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
     match /reviews/{reviewId} { allow read, write: if isPlatformAdmin(); }
+    match /bids/{bidId} { allow read, write: if authed(); } 
+    match /inspections/{inspectionId} { allow read, write: if authed(); }
+    match /techniques/{techId} { allow read, write: if isPlatformAdmin(); }
+    match /manufacturers/{manuId} { allow read, write: if isPlatformAdmin(); }
+    match /products/{prodId} { allow read, write: if isPlatformAdmin(); }
+    match /plans/{planId} { allow read, write: if isPlatformAdmin(); }
 
     // -------- Catalog Collections --------
     match /catalog/{category}/{docId} {
         allow read: if authed();
         allow write: if isPlatformAdmin();
     }
-
-    match /techniques/{techId} { allow read, write: if isPlatformAdmin(); }
-    match /manufacturers/{manuId} { allow read, write: if isPlatformAdmin(); }
-    match /products/{prodId} { allow read, write: if isPlatformAdmin(); }
-    match /plans/{planId} { allow read, write: if isPlatformAdmin(); }
   }
 }

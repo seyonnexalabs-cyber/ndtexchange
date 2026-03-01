@@ -703,7 +703,7 @@ const AdminDashboard = () => {
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'jobs')) : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
     const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? collection(firestore, 'reviews') : null, [isReady, firestore]));
@@ -723,22 +723,8 @@ const AdminDashboard = () => {
             const batch = writeBatch(firestore);
             const seedData = await import('@/lib/seed-data');
 
-            // 1. Seed Catalog Collections
-            console.log("[SEED] Preparing: catalog items...");
-            const catalogItems = [
-                { category: 'techniques', data: seedData.NDTTechniques },
-                { category: 'manufacturers', data: seedData.manufacturersData },
-                { category: 'products', data: seedData.productsData },
-                { category: 'plans', data: seedData.subscriptionPlans },
-            ];
-            catalogItems.forEach(({ category, data }) => {
-                data.forEach((item: any) => batch.set(doc(firestore, 'catalog', category, item.id), item));
-                console.log(`  - ✅ Prepared ${data.length} documents for catalog/${category}.`);
-            });
-
-            // 2. Seed Admin-Only Collections (Top-level)
-            console.log("[SEED] Preparing: admin-only collections...");
-            const adminCollections = [
+            const allCollections = [
+                { name: 'companies', data: seedData.allCompanies },
                 { name: 'userAuditLogs', data: seedData.userAuditLog },
                 { name: 'jobAuditLogs', data: seedData.jobAuditLog },
                 { name: 'billingAuditLogs', data: seedData.billingAuditLog },
@@ -746,48 +732,31 @@ const AdminDashboard = () => {
                 { name: 'subscriptions', data: seedData.subscriptions },
                 { name: 'jobPayments', data: seedData.jobPayments },
                 { name: 'reviews', data: seedData.reviews },
+                { name: 'bids', data: seedData.bidsData },
+                { name: 'techniques', data: seedData.NDTTechniques },
+                { name: 'manufacturers', data: seedData.manufacturersData },
+                { name: 'products', data: seedData.productsData },
+                { name: 'plans', data: seedData.subscriptionPlans },
             ];
-            adminCollections.forEach(({ name, data }) => {
-                data.forEach((item: any) => batch.set(doc(firestore, name, item.id), item));
-                console.log(`  - ✅ Prepared ${data.length} documents for ${name} collection.`);
-            });
 
-            // 3. Seed Users and their subcollections
-            console.log("[SEED] Preparing: users and user subcollections...");
+            console.log("[SEED] Preparing top-level collections...");
+            allCollections.forEach(({ name, data }) => {
+                data.forEach((item: any) => batch.set(doc(firestore, name, item.id), item));
+                console.log(`  - ✅ Prepared ${data.length} documents for ${name}.`);
+            });
+            
+            console.log("[SEED] Preparing nested subcollections...");
             seedData.allUsers.forEach(user => {
                 const { password, ...userData } = user;
                 batch.set(doc(firestore, 'users', user.id), userData);
-
-                const userTasks = seedData.tasks.filter(t => t.userId === user.id);
-                userTasks.forEach(task => batch.set(doc(firestore, `users/${user.id}/tasks/${task.id}`), task));
-
-                const userNotifications = seedData.notifications.filter(n => n.userId === user.id);
-                userNotifications.forEach(notif => batch.set(doc(firestore, `users/${user.id}/notifications/${notif.id}`), notif));
             });
-            console.log(`  - ✅ Prepared ${seedData.allUsers.length} users with their tasks and notifications.`);
+            console.log(`  - ✅ Prepared ${seedData.allUsers.length} users.`);
 
-            // 4. Seed Companies and their nested subcollections
-            console.log("[SEED] Preparing: companies and nested subcollections...");
-            seedData.allCompanies.forEach(company => {
-                batch.set(doc(firestore, 'companies', company.id), company);
-
-                const companyMembers = seedData.allUsers.filter(u => u.companyId === company.id);
-                companyMembers.forEach(member => {
-                    const memberData = {
-                        roleInCompany: member.role === 'Client' ? 'Owner' : member.role === 'Inspector' ? 'Tech' : 'Member',
-                        createdAt: member.createdAt || serverTimestamp(),
-                        uid: member.id,
-                    };
-                    batch.set(doc(firestore, `companies/${company.id}/members/${member.id}`), memberData);
-                });
-            });
-            console.log(`  - ✅ Prepared ${seedData.allCompanies.length} companies and their members.`);
-
-            // 5. Seed Jobs & Assets under their respective companies
-            console.log("[SEED] Preparing: jobs and assets under companies...");
             seedData.clientAssets.forEach(asset => {
                 batch.set(doc(firestore, `companies/${asset.companyId}/assets/${asset.id}`), asset);
             });
+             console.log(`  - ✅ Prepared ${seedData.clientAssets.length} assets.`);
+
             seedData.jobsData.forEach(job => {
                 const { clientCompanyId, assignedTechnicians, inspections, ...jobData } = job;
                 if (clientCompanyId) {
@@ -796,32 +765,26 @@ const AdminDashboard = () => {
                     console.warn(`[SEED] Skipping job ${job.id} - missing clientCompanyId.`);
                 }
             });
-            console.log(`  - ✅ Prepared ${seedData.clientAssets.length} assets and ${seedData.jobsData.length} jobs.`);
+            console.log(`  - ✅ Prepared ${seedData.jobsData.length} jobs.`);
+            
+            const subCollectionData = [
+                { path: 'users/{userId}/tasks', data: seedData.tasks },
+                { path: 'users/{userId}/notifications', data: seedData.notifications },
+                { path: 'companies/{companyId}/assets/{assetId}/inspections', data: seedData.inspectionsData }
+            ];
 
-            // 6. Seed nested Bids, Messages, and Inspections
-            console.log("[SEED] Preparing: bids, messages, and inspections...");
-            seedData.bidsData.forEach(bid => {
-                const job = seedData.jobsData.find(j => j.id === bid.jobId);
-                if (job?.clientCompanyId) {
-                    batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs/${bid.jobId}/bids/${bid.id}`), bid);
-                }
+            subCollectionData.forEach(({ path, data }) => {
+                data.forEach((item: any) => {
+                    const idParts = path.split('/');
+                    let finalPath = '';
+                    if (path.includes('users')) finalPath = `users/${item.userId}/tasks/${item.id}`;
+                    else if (path.includes('notifications')) finalPath = `users/${item.userId}/notifications/${item.id}`;
+                    else if (path.includes('inspections')) finalPath = `companies/${item.job.clientCompanyId}/assets/${item.assetId}/inspections/${item.id}`;
+                    
+                    if(finalPath) batch.set(doc(firestore, finalPath), item);
+                });
             });
-            seedData.jobChats.forEach(chat => {
-                const job = seedData.jobsData.find(j => j.id === chat.jobId);
-                if (job?.clientCompanyId) {
-                    chat.messages.forEach(message => {
-                        batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs/${chat.jobId}/messages/${message.id}`), message);
-                    });
-                }
-            });
-            seedData.inspectionsData.forEach(inspection => {
-                const job = seedData.jobsData.find(j => j.id === inspection.jobId);
-                const asset = seedData.clientAssets.find(a => a.id === inspection.assetId);
-                if (job?.clientCompanyId && asset) {
-                    batch.set(doc(firestore, `companies/${asset.companyId}/assets/${asset.id}/inspections/${inspection.id}`), inspection);
-                }
-            });
-            console.log(`  - ✅ Prepared bids, messages, and inspections.`);
+            console.log('  - ✅ Prepared tasks, notifications, and inspections.');
 
             await batch.commit();
             toast({

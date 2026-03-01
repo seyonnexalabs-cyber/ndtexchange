@@ -7,9 +7,7 @@ service cloud.firestore {
     // -------- Helpers --------
     function authed() { return request.auth != null; }
     function myUid() { return request.auth.uid; }
-    function myCompany() {
-      return get(/databases/$(database)/documents/users/$(myUid())).data.companyId;
-    }
+    function isSelf(uid) { return authed() && myUid() == uid; }
 
     function isPlatformAdmin() {
       // Allow seeding for specific admin UIDs without checking custom claims,
@@ -20,6 +18,14 @@ service cloud.firestore {
       );
     }
     
+    function myCompany() {
+      let userProfile = get(/databases/$(database)/documents/users/$(myUid()));
+      if (userProfile.data.keys().hasAll(['companyId'])) {
+        return userProfile.data.companyId;
+      }
+      return null;
+    }
+
     function isMember(companyId) {
       return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
     }
@@ -52,8 +58,7 @@ service cloud.firestore {
       }
       
       match /assets/{assetId} {
-        allow read: if isMember(companyId) || isPlatformAdmin();
-        allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+        allow read, write: if isMember(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
           allow read, write: if isMember(companyId) || isPlatformAdmin();
@@ -63,13 +68,16 @@ service cloud.firestore {
       match /jobs/{jobId} {
         function isJobParticipant() {
           let job = resource.data;
-          return job.clientCompanyId == myCompany() 
-              || job.providerCompanyId == myCompany() 
-              || (job.auditorCompanyId != null && job.auditorCompanyId == myCompany());
+          let providerCompanyId = job.keys().hasAll(['providerCompanyId']) ? job.providerCompanyId : null;
+          let auditorCompanyId = job.keys().hasAll(['auditorCompanyId']) ? job.auditorCompanyId : null;
+          let myCompanyId = myCompany();
+
+          return myCompanyId == companyId // Client company
+              || (providerCompanyId != null && myCompanyId == providerCompanyId)
+              || (auditorCompanyId != null && myCompanyId == auditorCompanyId);
         }
         
-        allow read: if isJobParticipant() || isPlatformAdmin();
-        allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+        allow read, write: if isJobParticipant() || isPlatformAdmin();
         
         match /bids/{bidId} {
           allow read, write: if isJobParticipant() || isPlatformAdmin();
@@ -93,18 +101,43 @@ service cloud.firestore {
     match /payments/{paymentId} { allow read, write: if isPlatformAdmin(); }
     match /subscriptions/{subId} { allow read, write: if isPlatformAdmin(); }
     match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
-    match /reviews/{reviewId} { allow read, write: if isPlatformAdmin(); }
-    match /bids/{bidId} { allow read, write: if authed(); } 
-    match /inspections/{inspectionId} { allow read, write: if authed(); }
     match /techniques/{techId} { allow read, write: if isPlatformAdmin(); }
     match /manufacturers/{manuId} { allow read, write: if isPlatformAdmin(); }
     match /products/{prodId} { allow read, write: if isPlatformAdmin(); }
     match /plans/{planId} { allow read, write: if isPlatformAdmin(); }
 
+    // -------- Top-Level PUBLIC Collections --------
+    match /reviews/{reviewId} { 
+      allow read: if authed();
+      allow write: if isPlatformAdmin(); // Or based on ownership
+    }
+    match /bids/{bidId} { 
+      allow read: if authed();
+      allow write: if authed(); 
+    } 
+    match /inspections/{inspectionId} { 
+      allow read: if authed();
+      allow write: if authed();
+    }
+
     // -------- Catalog Collections --------
     match /catalog/{category}/{docId} {
         allow read: if authed();
         allow write: if isPlatformAdmin();
+    }
+
+    // -------- Collection Group Queries --------
+    match /{path=**}/jobs/{jobId} {
+      allow read: if isPlatformAdmin();
+    }
+    match /{path=**}/reviews/{reviewId} {
+      allow read: if isPlatformAdmin() || authed();
+    }
+    match /{path=**}/bids/{bidId} {
+      allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
+    }
+    match /{path=**}/inspections/{inspectionId} {
+      allow read: if isPlatformAdmin();
     }
   }
 }

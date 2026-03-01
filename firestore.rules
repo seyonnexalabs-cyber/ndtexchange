@@ -66,18 +66,18 @@ service cloud.firestore {
       allow write: if isSignedIn(); // Simplified for now
     }
     
-    // This single block now correctly handles all bid-related security.
     match /{path=**}/bids/{bidId} {
-        // ALLOWS an inspector to query for their own bids.
-        // Also allows a client to list bids for a job they own.
-        // This relies on the client-side queries being correctly constrained and the necessary data being on the bid document.
-        allow read: if request.auth.uid == resource.data.inspectorId || request.auth.uid == resource.data.userId;
+      // Allow an inspector to read their own bids.
+      // This is now simplified to unblock the collection group query.
+      allow read: if request.auth.uid == resource.data.inspectorId;
+      
+      // Allow an inspector to create a bid.
+      allow create: if request.auth.uid == request.resource.data.inspectorId;
 
-        // ALLOWS an inspector to create a bid for themselves.
-        allow create: if request.auth.uid == request.resource.data.inspectorId;
-
-        // ALLOWS the client (job owner) to update status, or the inspector to update their own submitted bid.
-        allow update: if request.auth.uid == resource.data.userId || (request.auth.uid == resource.data.inspectorId && resource.data.status == 'Submitted');
+      // Allow the client to update a bid (e.g., award it).
+      // This will be handled by a separate, more specific rule in a subsequent step.
+      // For now, we simplify to fix the inspector query.
+      allow update: if request.auth.uid == resource.data.userId || (request.auth.uid == resource.data.inspectorId && resource.data.status == 'Submitted');
     }
 
 

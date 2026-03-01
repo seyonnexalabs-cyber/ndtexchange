@@ -1,7 +1,5 @@
 
-
-
-import type { Asset, Job, InspectorAsset, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan } from '@/lib/types';
+import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan } from '@/lib/types';
 
 // This file serves as the master data source for seeding the Firestore database.
 // The application itself should NOT import data from this file for rendering.
@@ -100,10 +98,10 @@ export const productsData: Product[] = [
     { id: 'PROD-038', 'name': 'HD-130 Videoscope', 'manufacturerId': 'manu-16', 'manufacturerName': 'Mitcorp', 'type': 'Instrument', 'techniques': ['VT', 'RVI'], 'description': 'A high-definition videoscope with interchangeable probes and a large touch-screen display.', 'imageUrls': [] },
     { id: 'PROD-039', 'name': 'VEO3 Phased Array', 'manufacturerId': 'manu-04', 'manufacturerName': 'Sonatest', 'type': 'Instrument', 'techniques': ['PAUT'], 'description': 'An advanced phased array flaw detector with a rugged design and superior performance for challenging inspection environments.', 'imageUrls': [] },
     { id: 'PROD-040', 'name': 'X-RAY CT Metrology', 'manufacturerId': 'manu-24', 'manufacturerName': 'Nikon Metrology', 'type': 'Instrument', 'techniques': ['RT'], 'description': 'High-precision X-ray computed tomography systems for detailed internal and external measurements of complex parts.', 'imageUrls': [] },
-    { id: 'PROD-041', name: 'EchoTREK', manufacturerId: 'manu-15', manufacturerName: 'Ether NDE', type: 'Instrument', techniques: ['UT'], description: 'A robust ultrasonic thickness gauge with a color display and A-scan capabilities.', 'imageUrls': [] },
-    { id: 'PROD-042', name: 'Rotoscan', manufacturerId: 'manu-14', manufacturerName: 'Rosen Group', type: 'Sensor', techniques: ['UT'], description: 'An automated ultrasonic pipeline inspection system for detecting corrosion and cracks.', 'imageUrls': [] },
-    { id: 'PROD-043', name: 'Zetec Topaz64', manufacturerId: 'manu-03', manufacturerName: 'Zetec', type: 'Instrument', techniques: ['PAUT', 'TOFD'], description: 'A fully integrated, portable 64-channel phased array ultrasonic instrument with real-time TFM.', 'imageUrls': [] },
-    { id: 'PROD-044', name: '300kV X-Ray Source', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Source', techniques: ['RT'], description: 'A powerful and stable 300kV microfocus X-ray source for high-resolution industrial inspection.', 'imageUrls': [] },
+    { id: 'PROD-041', name: 'EchoTREK', manufacturerId: 'manu-15', manufacturerName: 'Ether NDE', type: 'Instrument', techniques: ['UT'], description: 'A robust ultrasonic thickness gauge with a color display and A-scan capabilities.', imageUrls: [] },
+    { id: 'PROD-042', name: 'Rotoscan', manufacturerId: 'manu-14', manufacturerName: 'Rosen Group', type: 'Sensor', techniques: ['UT'], description: 'An automated ultrasonic pipeline inspection system for detecting corrosion and cracks.', imageUrls: [] },
+    { id: 'PROD-043', name: 'Zetec Topaz64', manufacturerId: 'manu-03', manufacturerName: 'Zetec', type: 'Instrument', techniques: ['PAUT', 'TOFD'], description: 'A fully integrated, portable 64-channel phased array ultrasonic instrument with real-time TFM.', imageUrls: [] },
+    { id: 'PROD-044', name: '300kV X-Ray Source', manufacturerId: 'manu-02', manufacturerName: 'Waygate Technologies', type: 'Source', techniques: ['RT'], description: 'A powerful and stable 300kV microfocus X-ray source for high-resolution industrial inspection.', imageUrls: [] },
     { id: 'PROD-045', name: '15MHz Shear Wave Probe', manufacturerId: 'manu-01', manufacturerName: 'Evident Scientific', type: 'Probe', techniques: ['UT'], description: 'A high-frequency shear wave transducer for detecting very small flaws near the surface.', imageUrls: [] }
 ];
 
@@ -385,118 +383,6 @@ export const clientAssets: Asset[] = [
     { id: 'ASSET-PEND-01', companyId: 'client-01', name: 'New Pipeline Segment', type: 'Piping', location: 'Refinery A', status: 'Requires Inspection', approvalStatus: 'Pending Approval', nextInspection: '2025-06-01', notes: 'Newly created asset awaiting admin approval.' },
 ];
 
-export const inspectorAssets: InspectorAsset[] = [
-    { 
-        id: 'EQUIP-1000', 
-        name: 'Olympus 45MG', 
-        type: 'Instrument',
-        manufacturer: 'Evident Scientific',
-        model: '45MG',
-        serialNumber: 'SN-45MG-12345',
-        techniques: ['UT'], 
-        providerId: 'provider-03',
-        status: 'Available', 
-        approvalStatus: 'Approved',
-        nextCalibration: '2025-01-05',
-        isPublic: true,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        history: [
-            { event: 'Created', user: 'Admin User', timestamp: '2023-01-05T10:00:00Z', notes: 'Item created in inventory.' },
-            { event: 'Checked In', user: 'Maria Garcia', timestamp: '2024-06-25T14:00:00Z', notes: 'Condition: Good. Job: Annual UT Thickness Survey.' },
-            { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-06-10T08:00:00Z', notes: 'Job: Annual UT Thickness Survey' },
-        ]
-    },
-    { 
-        id: 'EQUIP-1001', 
-        name: '5MHz Phased Array Probe', 
-        type: 'Probe',
-        manufacturer: 'Evident Scientific',
-        model: '5L64-A2',
-        serialNumber: 'SN-PROBE-67890',
-        techniques: ['PAUT', 'UT'], 
-        providerId: 'provider-03',
-        status: 'In Use', 
-        approvalStatus: 'Approved',
-        nextCalibration: '2024-12-11',
-        isPublic: true,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1732881112419-ca9ce3b852d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bHRyYXNvbmljJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        parentId: 'EQUIP-1000',
-        history: [
-             { event: 'Assigned to Kit', user: 'Admin User', timestamp: '2023-02-10T11:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
-             { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-07-01T09:30:00Z', notes: 'Job: Pipeline Weld Inspections' },
-             { event: 'Created', user: 'Admin User', timestamp: '2023-02-10T11:00:00Z', notes: 'Item created in inventory.' }
-        ]
-    },
-    { 
-        id: 'EQUIP-1002', 
-        name: 'IIW Type 1 Block',
-        type: 'Calibration Standard',
-        manufacturer: 'Generic',
-        techniques: ['UT', 'PAUT'], 
-        providerId: 'provider-03',
-        status: 'Available', 
-        approvalStatus: 'Approved',
-        nextCalibration: 'N/A',
-        isPublic: false,
-        parentId: 'EQUIP-1000',
-        history: [
-            { event: 'Assigned to Kit', user: 'Admin User', timestamp: '2023-01-15T16:05:00Z', notes: 'Assigned to Olympus 45MG kit.' },
-            { event: 'Created', user: 'Admin User', timestamp: '2023-01-15T16:00:00Z', notes: 'Item created in inventory.' }
-        ]
-    },
-    { 
-        id: 'EQUIP-1003', 
-        name: 'Parker B-300S Yoke', 
-        type: 'Visual Aid',
-        manufacturer: 'Parker Research Corp',
-        model: 'B-300S',
-        serialNumber: 'SN-YOKE-ABCDE',
-        techniques: ['MT'], 
-        providerId: 'provider-03',
-        status: 'Calibration Due', 
-        approvalStatus: 'Approved',
-        nextCalibration: '2024-07-30',
-        isPublic: false,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1729119578948-5c36e632fca6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFnbmV0aWMlMjBwYXJ0aWNsZXxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        history: [
-            { event: 'Set to Calibration Due', user: 'System', timestamp: '2024-07-15T00:00:00Z', notes: 'Automatic status change based on calibration date.' },
-            { event: 'Checked In', user: 'Maria Garcia', timestamp: '2024-06-22T17:00:00Z', notes: 'Condition: Good. Job: MT Inspection on Crane Hooks' },
-            { event: 'Checked Out', user: 'Maria Garcia', timestamp: '2024-06-21T09:00:00Z', notes: 'Job: MT Inspection on Crane Hooks' },
-            { event: 'Created', user: 'Admin User', timestamp: '2023-03-01T12:00:00Z', notes: 'Item created in inventory.' }
-        ]
-    },
-    {
-        id: 'EQUIP-1004',
-        name: 'Dolphin G3',
-        type: 'Instrument',
-        manufacturer: 'Talcyon',
-        model: 'Dolphin G3',
-        serialNumber: 'SN-G3-XYZ',
-        techniques: ['APR'],
-        providerId: 'provider-03',
-        status: 'Available',
-        approvalStatus: 'Approved',
-        nextCalibration: '2025-03-01',
-        isPublic: true,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8fDE3Njg5Mjk0Mzh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        history: [
-             { event: 'Created', user: 'Admin User', timestamp: '2024-05-20T10:00:00Z', notes: 'New advanced equipment added.' }
-        ]
-    },
-    {
-        id: 'EQUIP-PEND-01',
-        name: 'New Eddy Current Probe',
-        type: 'Probe',
-        techniques: ['ET'],
-        providerId: 'provider-03',
-        status: 'Available',
-        approvalStatus: 'Pending Approval',
-        nextCalibration: '2025-07-01',
-        isPublic: false,
-        notes: 'Awaiting admin approval'
-    }
-];
-
 export const allUsers: PlatformUser[] = [
     { id: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', name: 'John Doe', email: 'john.d@globalenergy.corp', role: 'Client', companyId: 'client-01', company: 'Global Energy Corp.', status: 'Active', password: 'password123', createdAt: '2024-01-15T10:00:00Z' },
     { id: 'user-client-02', name: 'Sarah Johnson', email: 's.johnson@marinetankers.com', role: 'Client', companyId: 'client-02', company: 'Marine Tankers Ltd.', status: 'Active', password: 'password123', createdAt: '2024-02-10T10:00:00Z' },
@@ -552,7 +438,7 @@ const nextMonth = new Date(today);
 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
 
-const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
+export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
     {
         id: 'JOB-PERFECT',
         title: 'Perfect Lifecycle Demo Job',
@@ -1163,24 +1049,6 @@ export const notifications: Notification[] = [
     },
 ];
 
-export const jobs: Job[] = jobsData.map(job => {
-    const technicians = job.technicianIds
-        ? allUsers.filter(u => job.technicianIds!.includes(u.id))
-        : [];
-    
-    const assignedTechniciansData = technicians.map(t => ({
-        id: t.id,
-        name: t.name,
-        level: t.level || 'N/A'
-    }));
-    
-    return {
-        ...job,
-        assignedTechnicians: assignedTechniciansData,
-        inspections: inspectionsData.filter(inspection => inspection.jobId === job.id),
-    } as Job;
-});
-
 export const subscriptionPlans: Plan[] = [
     // Client Plans
     {
@@ -1363,5 +1231,3 @@ export const subscriptionPlanDetails = subscriptionPlans.reduce((acc, plan) => {
     acc[plan.name] = plan;
     return acc;
 }, {} as Record<string, Plan>);
-
-    

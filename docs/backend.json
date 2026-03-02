@@ -400,6 +400,23 @@
             "features": { "type": "array", "items": { "type": "string" } }
         },
         "required": ["id", "name", "audience", "price"]
+    },
+    "Event": {
+      "title": "Event",
+      "type": "object",
+      "description": "An industry event, conference, or exhibition.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "location": { "type": "string" },
+        "region": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "imageHint": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "title", "date", "location", "region", "url", "imageUrl"]
     }
   },
   "auth": {
@@ -531,7 +548,8 @@
       { "path": "/techniques/{techniqueId}", "definition": { "entityName": "NDTTechnique", "schema": { "$ref": "#/entities/NDTTechnique" }, "description": "Public directory of NDT techniques." } },
       { "path": "/manufacturers/{manufacturerId}", "definition": { "entityName": "Manufacturer", "schema": { "$ref": "#/entities/Manufacturer" }, "description": "Public directory of NDT equipment manufacturers." } },
       { "path": "/products/{productId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
-      { "path": "/plans/{planId}", "definition": { "entityName": "Plan", "schema": { "$ref": "#/entities/Plan" }, "description": "Public directory of subscription plans." } }
+      { "path": "/plans/{planId}", "definition": { "entityName": "Plan", "schema": { "$ref": "#/entities/Plan" }, "description": "Public directory of subscription plans." } },
+      { "path": "/events/{eventId}", "definition": { "entityName": "Event", "schema": { "$ref": "#/entities/Event" }, "description": "Public directory of industry events." } }
     ]
   }
 }

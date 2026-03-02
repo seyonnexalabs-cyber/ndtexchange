@@ -3,6 +3,7 @@
 
 
 
+
 export type AssetUpdate = {
     user: string;
     timestamp: string;
@@ -487,4 +488,16 @@ export type Certification = {
   level: 'Level I' | 'Level II' | 'Level III';
   certificateNumber?: string;
   validUntil?: string;
+};
+
+export type NDTEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  region: 'North America' | 'Europe' | 'Asia' | 'South America' | 'Africa' | 'Oceania';
+  imageUrl: string;
+  imageHint: string;
+  url: string;
 };

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -10,26 +11,35 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ndtEvents, NDTEvent } from '@/lib/events-data';
-import { format } from 'date-fns';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import type { NDTEvent } from '@/lib/types';
+import { format, isAfter } from 'date-fns';
 import { MapPin, Calendar } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EventsPage() {
+    const { firestore } = useFirebase();
     const [regionFilter, setRegionFilter] = React.useState('All');
     const [monthFilter, setMonthFilter] = React.useState('All');
     const [isMounted, setIsMounted] = React.useState(false);
+
+    const eventsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'events'), orderBy('date', 'asc'));
+    }, [firestore]);
+
+    const { data: ndtEvents, isLoading } = useCollection<NDTEvent>(eventsQuery);
 
     React.useEffect(() => {
         setIsMounted(true);
     }, []);
     
     const upcomingEvents = React.useMemo(() => {
-        if (!isMounted) return []; // Prevent server/client mismatch on initial render
+        if (!isMounted || !ndtEvents) return [];
         const now = new Date();
-        return ndtEvents
-            .filter(event => new Date(event.date) >= now)
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }, [isMounted]);
+        return ndtEvents.filter(event => isAfter(new Date(event.date), now));
+    }, [isMounted, ndtEvents]);
 
     const filteredEvents = React.useMemo(() => {
         return upcomingEvents.filter(event => {
@@ -83,7 +93,9 @@ export default function EventsPage() {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredEvents.map(event => (
+                            {isLoading ? (
+                                [...Array(6)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)
+                            ) : filteredEvents.map(event => (
                                 <Card key={event.id} className="flex flex-col group overflow-hidden">
                                     <Link href={event.url} target="_blank" rel="noopener noreferrer" className="flex flex-col flex-grow">
                                         <CardHeader className="p-0">
@@ -110,7 +122,7 @@ export default function EventsPage() {
                                 </Card>
                             ))}
                         </div>
-                         {filteredEvents.length === 0 && (
+                         {filteredEvents.length === 0 && !isLoading && (
                             <div className="text-center py-16">
                                 <h3 className="text-xl font-semibold">No Upcoming Events</h3>
                                 <p className="text-muted-foreground mt-2">There are no upcoming events matching your selected filters.</p>

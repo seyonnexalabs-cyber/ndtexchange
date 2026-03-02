@@ -123,6 +123,7 @@ service cloud.firestore {
     match /manufacturers/{manuId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
 
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {

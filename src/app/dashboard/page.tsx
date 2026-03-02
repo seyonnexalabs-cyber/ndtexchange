@@ -736,6 +736,7 @@ const AdminDashboard = () => {
                 { name: 'plans', data: seedData.subscriptionPlans },
                 { name: 'techniques', data: seedData.NDTTechniques },
                 { name: 'manufacturers', data: seedData.manufacturersData },
+                { name: 'events', data: seedData.ndtEvents },
             ];
 
             console.log("[SEED] Preparing top-level collections...");

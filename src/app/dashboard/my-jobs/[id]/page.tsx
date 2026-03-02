@@ -179,10 +179,38 @@ export default function JobDetailPage() {
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser]));
 
-    const jobRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id) : null), [firestore, id]);
-    const { data: job, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(jobRef);
+    const [job, setJob] = React.useState<Job | null>(null);
+    const [isLoadingJob, setIsLoadingJob] = React.useState(true);
+    const [jobError, setJobError] = React.useState<Error | null>(null);
 
-    const bidsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, 'jobs', id, 'bids'), orderBy('submittedDate', 'desc')) : null), [firestore, id]);
+    React.useEffect(() => {
+        if (!firestore || !id || !authUser) return;
+        const findJob = async () => {
+            setIsLoadingJob(true);
+            setJobError(null);
+            try {
+                const jobsRef = collectionGroup(firestore, 'jobs');
+                const q = query(jobsRef, where('id', '==', id), limit(1));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    setJob(querySnapshot.docs[0].data() as Job);
+                } else {
+                    setJob(null);
+                }
+            } catch (e) {
+                setJobError(e as Error);
+            } finally {
+                setIsLoadingJob(false);
+            }
+        };
+        findJob();
+    }, [firestore, id, authUser]);
+
+    const bidsQuery = useMemoFirebase(() => {
+        if (!firestore || !job?.clientCompanyId || !id) return null;
+        return query(collection(firestore, `companies/${job.clientCompanyId}/jobs/${id}/bids`), orderBy('submittedDate', 'desc'));
+    }, [firestore, job, id]);
+
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => (firestore ? collection(firestore, 'companies') : null), [firestore]));

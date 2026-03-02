@@ -52,13 +52,14 @@ export default function MyJobsPage() {
 
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
+        const basePath = `companies/${userProfile.companyId}/jobs`;
         if (role === 'client') {
-            return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
+            return query(collection(firestore, basePath));
         }
         if (role === 'inspector') {
-            return query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId));
+            return query(collection(firestore, basePath));
         }
-        return collection(firestore, 'jobs');
+        return collection(firestore, basePath);
     }, [firestore, userProfile, role]);
 
 

@@ -71,7 +71,8 @@ service cloud.firestore {
       }
       
       match /assets/{assetId} {
-        allow read, write: if isMemberByProfile(companyId) || isPlatformAdmin();
+        allow get, write: if isMemberByProfile(companyId) || isPlatformAdmin();
+        allow list: if isMemberByProfile(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
           allow read, write: if isMemberByProfile(companyId) || isPlatformAdmin();
@@ -90,7 +91,8 @@ service cloud.firestore {
               || (auditorCompanyId != null && myCompanyId == auditorCompanyId);
         }
         
-        allow read, write: if isJobParticipant() || isPlatformAdmin();
+        allow get, write: if isJobParticipant() || isPlatformAdmin();
+        allow list: if isMemberByProfile(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           allow read, write: if isJobParticipant() || isPlatformAdmin();

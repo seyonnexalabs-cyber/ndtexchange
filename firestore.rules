@@ -63,7 +63,7 @@ service cloud.firestore {
     
     // -------- COMPANIES & NESTED DATA --------
     match /companies/{companyId} {
-      allow read: if authed();
+      allow read: if true;
       allow write: if isPlatformAdmin();
       
       match /members/{memberUid} {
@@ -129,7 +129,7 @@ service cloud.firestore {
       allow read: if isPlatformAdmin();
     }
     match /{path=**}/reviews/{reviewId} {
-      allow read: if authed();
+      allow read: if isPlatformAdmin() || (authed() && resource.data.status == 'Approved');
     }
     match /{path=**}/bids/{bidId} {
       allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
@@ -139,5 +139,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

@@ -17,14 +17,6 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(myUid())).data.role == 'Admin'
       );
     }
-
-    function myCompany() {
-      let userProfile = get(/databases/$(database)/documents/users/$(myUid()));
-      if (userProfile.data.keys().hasAll(['companyId'])) {
-        return userProfile.data.companyId;
-      }
-      return null;
-    }
     
     function isSelf(uid) {
       return authed() && myUid() == uid;
@@ -90,7 +82,7 @@ service cloud.firestore {
           let job = resource.data;
           let providerCompanyId = job.keys().hasAll(['providerCompanyId']) ? job.providerCompanyId : null;
           let auditorCompanyId = job.keys().hasAll(['auditorCompanyId']) ? job.auditorCompanyId : null;
-          let myCompanyId = myCompany();
+          let myCompanyId = get(/databases/$(database)/documents/users/$(myUid())).data.companyId;
 
           return myCompanyId == companyId // Client company
               || (providerCompanyId != null && myCompanyId == providerCompanyId)
@@ -123,16 +115,10 @@ service cloud.firestore {
     match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
     
     // -------- Top-Level PUBLIC Collections --------
-    match /techniques/{techId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
-    match /manufacturers/{manuId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
-    match /products/{prodId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
-    match /plans/{planId} { allow read: if authed(); allow write: if isPlatformAdmin(); }
-
-    // -------- Catalog Collections --------
-    match /catalog/{category}/{docId} {
-        allow read: if authed();
-        allow write: if isPlatformAdmin();
-    }
+    match /techniques/{techId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /manufacturers/{manuId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
 
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {
@@ -144,7 +130,7 @@ service cloud.firestore {
     match /{path=**}/bids/{bidId} {
       allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
     }
-    match /{path=**}/inspections/{inspectionId} {
+     match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
     }
   }

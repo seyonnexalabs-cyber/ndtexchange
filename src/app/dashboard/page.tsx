@@ -735,23 +735,14 @@ const AdminDashboard = () => {
                 { name: 'jobPayments', data: seedData.jobPayments },
                 { name: 'products', data: seedData.productsData },
                 { name: 'plans', data: seedData.subscriptionPlans },
+                { name: 'techniques', data: seedData.NDTTechniques },
+                { name: 'manufacturers', data: seedData.manufacturersData },
             ];
 
             console.log("[SEED] Preparing top-level collections...");
             topLevelCollections.forEach(({ name, data }) => {
                 data.forEach((item: any) => batch.set(doc(firestore, name, item.id), item));
                 console.log(`  - ✅ Prepared ${data.length} documents for ${name}.`);
-            });
-            
-            // Catalog items
-            const catalogData = [
-                { category: 'techniques', data: seedData.NDTTechniques },
-                { category: 'manufacturers', data: seedData.manufacturersData },
-            ];
-            console.log("[SEED] Preparing catalog...");
-            catalogData.forEach(({ category, data }) => {
-                data.forEach((item: any) => batch.set(doc(firestore, `catalog/${category}`, item.id), item));
-                console.log(`  - ✅ Prepared ${data.length} documents for catalog/${category}.`);
             });
 
             console.log("[SEED] Preparing nested subcollections...");

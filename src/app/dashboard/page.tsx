@@ -722,7 +722,7 @@ const AdminDashboard = () => {
             const batch = writeBatch(firestore);
             const seedData = await import('@/lib/seed-data');
 
-            // Top-level collections
+            // 1. Top-level collections
             const topLevelCollections = [
                 { name: 'companies', data: seedData.allCompanies },
                 { name: 'users', data: seedData.allUsers.map(({ password, ...user }) => user) },
@@ -744,7 +744,10 @@ const AdminDashboard = () => {
                 console.log(`  - ✅ Prepared ${data.length} documents for ${name}.`);
             });
 
-            console.log("[SEED] Preparing company members...");
+            // 2. Nested Subcollections
+            console.log("[SEED] Preparing nested subcollections...");
+
+            // Company Members
             seedData.allUsers.forEach(user => {
                 if (user.companyId && user.id) {
                     const company = seedData.allCompanies.find(c => c.id === user.companyId);
@@ -760,29 +763,30 @@ const AdminDashboard = () => {
             });
             console.log(`  - ✅ Prepared ${seedData.allUsers.length} company members.`);
 
-            console.log("[SEED] Preparing nested subcollections...");
+            // Jobs (nested under companies)
             seedData.jobsData.forEach(job => {
                  if (job.clientCompanyId) {
                     batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs`, job.id), job);
-                } else if (job.isInternal && job.providerCompanyId) {
-                    batch.set(doc(firestore, `companies/${job.providerCompanyId}/jobs`, job.id), job);
                 }
             });
             console.log(`  - ✅ Prepared ${seedData.jobsData.length} jobs.`);
             
+            // Assets (nested under companies)
             seedData.clientAssets.forEach(asset => {
                 batch.set(doc(firestore, `companies/${asset.companyId}/assets`, asset.id), asset);
             });
             console.log(`  - ✅ Prepared ${seedData.clientAssets.length} assets.`);
 
+            // Bids (nested under jobs)
             seedData.bidsData.forEach(bid => {
                 const job = seedData.jobsData.find(j => j.id === bid.jobId);
-                if (job?.clientCompanyId) {
+                if (job?.clientCompanyId) { // Ensure job belongs to a client
                     batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs/${bid.jobId}/bids`, bid.id), bid);
                 }
             });
             console.log(`  - ✅ Prepared ${seedData.bidsData.length} bids.`);
             
+            // Reviews (nested under provider companies)
             seedData.reviews.forEach(review => {
                 if (review.providerId) {
                     batch.set(doc(firestore, `companies/${review.providerId}/reviews`, review.id), review);
@@ -790,15 +794,17 @@ const AdminDashboard = () => {
             });
             console.log(`  - ✅ Prepared ${seedData.reviews.length} reviews.`);
 
+            // Inspections (nested under assets)
             seedData.inspectionsData.forEach(inspection => {
-                const job = seedData.jobsData.find(j => j.id === inspection.jobId);
-                 if (job?.clientCompanyId) {
-                    batch.set(doc(firestore, `companies/${job.clientCompanyId}/assets/${inspection.assetId}/inspections`, inspection.id), inspection);
+                const asset = seedData.clientAssets.find(a => a.id === inspection.assetId);
+                 if (asset?.companyId) {
+                    batch.set(doc(firestore, `companies/${asset.companyId}/assets/${inspection.assetId}/inspections`, inspection.id), inspection);
                 }
             });
             console.log(`  - ✅ Prepared ${seedData.inspectionsData.length} inspections.`);
             
-             seedData.tasks.forEach(task => {
+            // User-specific tasks & notifications
+            seedData.tasks.forEach(task => {
                 batch.set(doc(firestore, `users/${task.userId}/tasks`, task.id), task);
             });
             console.log(`  - ✅ Prepared ${seedData.tasks.length} tasks.`);
@@ -808,6 +814,7 @@ const AdminDashboard = () => {
             });
             console.log(`  - ✅ Prepared ${seedData.notifications.length} notifications.`);
 
+            // 3. Commit the batch
             await batch.commit();
             toast({
                 title: "Database Seeded Successfully!",
@@ -1051,3 +1058,5 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    

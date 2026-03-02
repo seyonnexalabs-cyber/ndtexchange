@@ -39,6 +39,7 @@ service cloud.firestore {
 
     // -------- USERS --------
     match /users/{userId} {
+      allow list: if isPlatformAdmin();
       // Read own profile; admins can read all.
       allow read: if isSelf(userId) || isPlatformAdmin();
       
@@ -138,3 +139,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

@@ -227,7 +227,7 @@ export default function AssetsPage() {
     
     const assetsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
-        return query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId));
+        return query(collection(firestore, `companies/${userProfile.companyId}/assets`));
     }, [firestore, userProfile]);
     
     const { data: assetsFromDb, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
@@ -239,8 +239,8 @@ export default function AssetsPage() {
     }
 
     const handleApproveAsset = async (assetId: string) => {
-        if (!firestore) return;
-        const assetRef = doc(firestore, 'assets', assetId);
+        if (!firestore || !userProfile?.companyId) return;
+        const assetRef = doc(firestore, `companies/${userProfile.companyId}/assets`, assetId);
         try {
             await setDoc(assetRef, { approvalStatus: 'Approved' }, { merge: true });
             toast({ title: 'Asset Approved', description: 'The asset is now active.' });
@@ -251,8 +251,8 @@ export default function AssetsPage() {
     };
 
     const handleRejectAsset = async (assetId: string) => {
-        if (!firestore) return;
-        const assetRef = doc(firestore, 'assets', assetId);
+        if (!firestore || !userProfile?.companyId) return;
+        const assetRef = doc(firestore, `companies/${userProfile.companyId}/assets`, assetId);
         try {
             await deleteDoc(assetRef);
             toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });

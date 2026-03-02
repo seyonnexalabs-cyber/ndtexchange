@@ -59,7 +59,7 @@ export default function AddAssetPage() {
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
     );
     const { data: existingAssets, isLoading: isLoadingAssets } = useCollection<Asset>(
-        useMemoFirebase(() => (firestore ? collection(firestore, 'assets') : null), [firestore])
+        useMemoFirebase(() => (firestore && userProfile?.companyId ? collection(firestore, `companies/${userProfile.companyId}/assets`) : null), [firestore, userProfile])
     );
 
     const form = useForm<AssetFormValues>({
@@ -122,7 +122,7 @@ export default function AddAssetPage() {
 
         const location = values.location === '__add_new__' ? values.newLocation! : values.location;
         
-        const assetRef = doc(collection(firestore, 'assets'));
+        const assetRef = doc(collection(firestore, `companies/${userProfile.companyId}/assets`));
         const dataToSave: Omit<Asset, 'id'> = {
             companyId: userProfile.companyId,
             name: values.name,

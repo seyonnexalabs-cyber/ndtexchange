@@ -1,5 +1,4 @@
 
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -745,9 +744,39 @@ const AdminDashboard = () => {
                 console.log(`  - ✅ Prepared ${data.length} documents for ${name}.`);
             });
 
+            console.log("[SEED] Preparing company members...");
+            seedData.allUsers.forEach(user => {
+                if (user.companyId && user.id) {
+                    const company = seedData.allCompanies.find(c => c.id === user.companyId);
+                    let roleInCompany: 'Owner' | 'Manager' | 'Tech' = 'Tech'; // Default role
+                    
+                    // The main contact person for a company is considered the 'Owner'
+                    if (company && company.contactPerson === user.name) {
+                        roleInCompany = 'Owner';
+                    } else if (user.role === 'Client' || user.role === 'Auditor' || user.role === 'Manufacturer' || user.role === 'Admin') {
+                        // Other members of non-provider companies can be 'Manager'
+                        roleInCompany = 'Manager';
+                    } else if (user.role === 'Inspector') {
+                        // Members of provider companies are 'Techs'
+                        roleInCompany = 'Tech';
+                    }
+                    
+                    const memberData = {
+                        roleInCompany,
+                        createdAt: serverTimestamp()
+                    };
+                    batch.set(doc(firestore, `companies/${user.companyId}/members`, user.id), memberData);
+                }
+            });
+            console.log(`  - ✅ Prepared ${seedData.allUsers.length} company members.`);
+
             console.log("[SEED] Preparing nested subcollections...");
             seedData.jobsData.forEach(job => {
-                batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs`, job.id), job);
+                 if (job.clientCompanyId) {
+                    batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs`, job.id), job);
+                } else if (job.isInternal && job.providerCompanyId) {
+                    batch.set(doc(firestore, `companies/${job.providerCompanyId}/jobs`, job.id), job);
+                }
             });
             console.log(`  - ✅ Prepared ${seedData.jobsData.length} jobs.`);
             

@@ -22,8 +22,9 @@ service cloud.firestore {
       return authed() && myUid() == uid;
     }
     
-    function isMember(companyId) {
-      return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
+    // NEW helper function using the user's profile
+    function isMemberByProfile(companyId) {
+      return authed() && get(/databases/$(database)/documents/users/$(myUid())).data.companyId == companyId;
     }
     
     function roleInCompany(companyId) {
@@ -65,15 +66,15 @@ service cloud.firestore {
       allow write: if isPlatformAdmin();
       
       match /members/{memberUid} {
-        allow read: if isMember(companyId) || isPlatformAdmin();
+        allow read: if isMemberByProfile(companyId) || isPlatformAdmin();
         allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow read, write: if isMember(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberByProfile(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read, write: if isMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberByProfile(companyId) || isPlatformAdmin();
         }
       }
       
@@ -102,7 +103,7 @@ service cloud.firestore {
 
       match /reviews/{reviewId} {
         allow read: if authed();
-        allow write: if isPlatformAdmin() || isMember(companyId);
+        allow write: if isPlatformAdmin() || isMemberByProfile(companyId);
       }
     }
     
@@ -125,7 +126,7 @@ service cloud.firestore {
       allow read: if isPlatformAdmin();
     }
     match /{path=**}/reviews/{reviewId} {
-      allow read: if isPlatformAdmin() || authed();
+      allow read: if authed();
     }
     match /{path=**}/bids/{bidId} {
       allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());

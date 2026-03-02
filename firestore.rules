@@ -8,7 +8,6 @@ service cloud.firestore {
     function authed() { return request.auth != null; }
     function myUid() { return request.auth.uid; }
 
-    // Global platform admin (super admin)
     function isPlatformAdmin() {
       // Allow seeding for specific admin UIDs without checking custom claims,
       // which might not exist during the seeding batch write.
@@ -18,41 +17,25 @@ service cloud.firestore {
       );
     }
     
-    function isSelf(uid) {
-      return authed() && myUid() == uid;
+    function isSelf(userId) {
+      return authed() && myUid() == userId;
     }
     
-    // Use exists() for more reliable checks on list queries.
-    function isMember(companyId) {
-      return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
-    }
-    
-    function roleInCompany(companyId) {
-      return authed() ? get(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid())).data.roleInCompany : null;
-    }
-
-    function isCompanyAdmin(companyId) {
-      return authed() && (
-        roleInCompany(companyId) in ['Owner', 'Manager']
-      );
+    function isMemberOf(companyId) {
+        return authed() && get(/databases/$(database)/documents/users/$(myUid())).data.companyId == companyId;
     }
 
     // -------- USERS --------
     match /users/{userId} {
       allow list: if isPlatformAdmin();
-      // Read own profile; admins can read all.
       allow read: if isSelf(userId) || isPlatformAdmin();
       
-      // Anyone can create their own user doc, but not set privileged fields
       allow create: if isSelf(userId) && !('role' in request.resource.data);
 
-      // User can update their own non-privileged fields; admins can update anything
       allow update: if (isSelf(userId) && !('role' in request.resource.data)) || isPlatformAdmin();
       
-      // Admins can delete users
       allow delete: if isPlatformAdmin();
 
-      // User-owned subcollections for tasks and notifications
       match /tasks/{taskId} {
         allow read, write: if isSelf(userId) || isPlatformAdmin();
       }
@@ -67,16 +50,14 @@ service cloud.firestore {
       allow write: if isPlatformAdmin();
       
       match /members/{memberUid} {
-        allow read: if isMember(companyId) || isPlatformAdmin();
-        allow write: if isCompanyAdmin(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow get, list: if isMember(companyId) || isPlatformAdmin();
-        allow write: if isMember(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read, write: if isMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
       
@@ -85,14 +66,13 @@ service cloud.firestore {
           let job = resource.data;
           let providerCompanyId = job.keys().hasAll(['providerCompanyId']) ? job.providerCompanyId : null;
           let auditorCompanyId = job.keys().hasAll(['auditorCompanyId']) ? job.auditorCompanyId : null;
-          let myCompanyId = get(/databases/$(database)/documents/users/$(myUid())).data.companyId;
-
-          return myCompanyId == companyId // Client company
-              || (providerCompanyId != null && myCompanyId == providerCompanyId)
-              || (auditorCompanyId != null && myCompanyId == auditorCompanyId);
+          
+          return isMemberOf(companyId) // Client company
+              || (providerCompanyId != null && isMemberOf(providerCompanyId))
+              || (auditorCompanyId != null && isMemberOf(auditorCompanyId));
         }
         
-        allow list: if isMember(companyId) || isPlatformAdmin();
+        allow list: if isMemberOf(companyId) || isPlatformAdmin();
         allow get, write: if isJobParticipant() || isPlatformAdmin();
         
         match /bids/{bidId} {
@@ -106,12 +86,12 @@ service cloud.firestore {
 
       match /reviews/{reviewId} {
         allow read: if authed();
-        allow write: if isPlatformAdmin() || isMember(companyId);
+        allow write: if isPlatformAdmin() || isMemberOf(companyId);
       }
        match /supportChats/{supportChatId} {
-          allow read, write: if isMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
           match /supportMessages/{messageId} {
-              allow read, write: if isMember(companyId) || isPlatformAdmin();
+              allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
           }
       }
     }
@@ -133,21 +113,16 @@ service cloud.firestore {
 
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {
-      // Allow admins to see all jobs, and authenticated users to see jobs that are 'Posted' or assigned to their company.
-      allow read: if isPlatformAdmin() || 
-                    (authed() && (
-                      (resource.data.providerCompanyId != null && resource.data.providerCompanyId == get(/databases/$(database)/documents/users/$(myUid())).data.companyId) || 
-                      resource.data.status == 'Posted'
-                    ));
+      allow read: if authed() || isPlatformAdmin();
     }
     match /{path=**}/reviews/{reviewId} {
-      allow read: if isPlatformAdmin() || (authed() && resource.data.status == 'Approved');
+      allow read: if authed() || isPlatformAdmin();
     }
     match /{path=**}/bids/{bidId} {
-      allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
+      allow read: if authed() || isPlatformAdmin();
     }
      match /{path=**}/inspections/{inspectionId} {
-      allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == myUid());
+      allow read: if authed() || isPlatformAdmin();
     }
   }
 }

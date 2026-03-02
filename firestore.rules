@@ -22,7 +22,7 @@ service cloud.firestore {
     }
     
     function isMemberOf(companyId) {
-        return authed() && get(/databases/$(database)/documents/users/$(myUid())).data.companyId == companyId;
+        return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
     }
 
     // -------- USERS --------
@@ -54,7 +54,7 @@ service cloud.firestore {
       }
       
       match /assets/{assetId} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow list, get, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
           allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
@@ -63,15 +63,16 @@ service cloud.firestore {
       
       match /jobs/{jobId} {
         function isJobParticipant() {
-          let job = resource.data;
-          let providerCompanyId = job.keys().hasAll(['providerCompanyId']) ? job.providerCompanyId : null;
-          let auditorCompanyId = job.keys().hasAll(['auditorCompanyId']) ? job.auditorCompanyId : null;
+          let jobData = get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data;
+          
+          let providerCompanyId = jobData.keys().hasAll(['providerCompanyId']) ? jobData.providerCompanyId : null;
+          let auditorCompanyId = jobData.keys().hasAll(['auditorCompanyId']) ? jobData.auditorCompanyId : null;
           
           return isMemberOf(companyId) // Client company
               || (providerCompanyId != null && isMemberOf(providerCompanyId))
               || (auditorCompanyId != null && isMemberOf(auditorCompanyId));
         }
-        
+
         allow list: if isMemberOf(companyId) || isPlatformAdmin();
         allow get, write: if isJobParticipant() || isPlatformAdmin();
         

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -14,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -218,9 +219,14 @@ const PaymentsPage = () => {
     const { firestore, user } = useFirebase();
 
     const { data: jobPayments } = useCollection<JobPayment>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobPayments') : null, [firestore, user]));
-    const { data: jobs } = useCollection<Job>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]));
     const { data: currentUser } = useDoc<PlatformUser>(useMemoFirebase(() => firestore && user ? doc(firestore, 'users', user.uid) : null, [firestore, user]));
     const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'companies') : null, [firestore, user]));
+    
+    const jobsQuery = useMemoFirebase(() => {
+        if (!firestore || !currentUser?.companyId) return null;
+        return query(collection(firestore, `companies/${currentUser.companyId}/jobs`));
+    }, [firestore, currentUser]);
+    const { data: jobs } = useCollection<Job>(jobsQuery);
     
     const { filteredPayments, title, canRecordPayment } = useMemo(() => {
         if (!jobPayments || !currentUser) return { filteredPayments: [], title: 'Payment Tracking', canRecordPayment: false };
@@ -259,7 +265,7 @@ const PaymentsPage = () => {
         const currentUserCompany = currentUser.company;
         const paymentEligibleStatuses = ['Client Approved', 'Completed', 'Audit Approved'];
         if (role === 'client') {
-            return jobs.filter(j => j.client === currentUserCompany && paymentEligibleStatuses.includes(j.status));
+            return jobs.filter(j => paymentEligibleStatuses.includes(j.status));
         }
         return [];
     }, [role, jobs, currentUser]);
@@ -305,7 +311,8 @@ const PaymentsPage = () => {
 
             // If paying the provider, and not an auditor, update the job status.
             if (payeeType === 'Provider' && job.status !== 'Paid') {
-                await updateDoc(doc(firestore, 'jobs', job.id), { status: 'Paid' });
+                const jobDocRef = doc(firestore, `companies/${currentUser.companyId}/jobs`, job.id);
+                await updateDoc(jobDocRef, { status: 'Paid' });
             }
 
             toast({

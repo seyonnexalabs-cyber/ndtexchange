@@ -748,23 +748,13 @@ const AdminDashboard = () => {
             seedData.allUsers.forEach(user => {
                 if (user.companyId && user.id) {
                     const company = seedData.allCompanies.find(c => c.id === user.companyId);
-                    let roleInCompany: 'Owner' | 'Manager' | 'Tech' = 'Tech'; // Default role
-                    
-                    // The main contact person for a company is considered the 'Owner'
+                    let roleInCompany: 'Owner' | 'Manager' | 'Tech' = 'Tech';
                     if (company && company.contactPerson === user.name) {
                         roleInCompany = 'Owner';
-                    } else if (user.role === 'Client' || user.role === 'Auditor' || user.role === 'Manufacturer' || user.role === 'Admin') {
-                        // Other members of non-provider companies can be 'Manager'
+                    } else if (user.role !== 'Inspector') {
                         roleInCompany = 'Manager';
-                    } else if (user.role === 'Inspector') {
-                        // Members of provider companies are 'Techs'
-                        roleInCompany = 'Tech';
                     }
-                    
-                    const memberData = {
-                        roleInCompany,
-                        createdAt: serverTimestamp()
-                    };
+                    const memberData = { roleInCompany, createdAt: serverTimestamp() };
                     batch.set(doc(firestore, `companies/${user.companyId}/members`, user.id), memberData);
                 }
             });
@@ -835,7 +825,6 @@ const AdminDashboard = () => {
             console.log("%c--- Database Seed Finished ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
         }
     };
-
     
     const stats = {
         totalUsers: users?.length || 0,

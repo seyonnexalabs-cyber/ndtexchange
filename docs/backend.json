@@ -289,6 +289,117 @@
             "payee": { "type": "string" },
             "status": { "type": "string" }
         }
+    },
+    "NDTTechnique": {
+        "title": "NDT Technique",
+        "type": "object",
+        "description": "A non-destructive testing technique.",
+        "properties": {
+            "id": { "type": "string" },
+            "acronym": { "type": "string" },
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "isHighlighted": { "type": "boolean" },
+            "imageId": { "type": "string" }
+        },
+        "required": ["id", "acronym", "title", "description"]
+    },
+    "Manufacturer": {
+        "title": "Manufacturer",
+        "type": "object",
+        "description": "An OEM of NDT equipment.",
+        "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "url": { "type": "string", "format": "uri" },
+            "description": { "type": "string" },
+            "logoUrl": { "type": "string", "format": "uri" },
+            "techniqueIds": { "type": "array", "items": { "type": "string" } },
+            "contactEmail": { "type": "string", "format": "email" }
+        },
+        "required": ["id", "name", "url", "techniqueIds"]
+    },
+    "Product": {
+        "title": "Product",
+        "type": "object",
+        "description": "An NDT product or piece of equipment.",
+        "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "manufacturerId": { "type": "string" },
+            "manufacturerName": { "type": "string" },
+            "type": { "type": "string", "enum": ["Instrument", "Probe", "Source", "Sensor", "Calibration Standard", "Accessory", "Visual Aid"] },
+            "techniques": { "type": "array", "items": { "type": "string" } },
+            "description": { "type": "string" },
+            "imageUrls": { "type": "array", "items": { "type": "string", "format": "uri" } },
+            "isAwardWinning": { "type": "boolean" },
+            "awards": { 
+                "type": "array", 
+                "items": { 
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "year": { "type": "number" },
+                        "imageUrl": { "type": "string", "format": "uri" }
+                    }
+                } 
+            },
+            "specifications": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                    }
+                }
+            },
+            "certifications": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "authority": { "type": "string" },
+                        "logoUrl": { "type": "string", "format": "uri" }
+                    }
+                }
+            }
+        },
+        "required": ["id", "name", "manufacturerId", "manufacturerName", "type", "techniques"]
+    },
+    "Plan": {
+        "title": "Subscription Plan",
+        "type": "object",
+        "description": "A subscription plan for the platform.",
+        "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "audience": { "type": "string", "enum": ["Client", "Provider", "Auditor"] },
+            "price": {
+                "type": "object",
+                "properties": {
+                    "monthlyUSD": { "type": "number" },
+                    "yearlyUSD": { "type": "number" }
+                }
+            },
+            "description": { "type": "string" },
+            "userLimit": { "type": ["number", "string"] },
+            "dataLimitGB": { "type": ["number", "string"] },
+            "assetLimit": { "type": ["number", "string"] },
+            "biddingLimit": { "type": ["number", "string"] },
+            "equipmentLimit": { "type": ["number", "string"] },
+            "marketplaceAccess": { "type": "boolean" },
+            "reportingLevel": { "type": "string", "enum": ["Basic", "Advanced"] },
+            "apiAccess": { "type": "boolean" },
+            "customBranding": { "type": "boolean" },
+            "isPublic": { "type": "boolean" },
+            "isActive": { "type": "boolean" },
+            "isFeatured": { "type": "boolean" },
+            "isPopular": { "type": "boolean" },
+            "features": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["id", "name", "audience", "price"]
     }
   },
   "auth": {
@@ -416,7 +527,11 @@
       { "path": "/billingAuditLogs/{logId}", "definition": { "entityName": "BillingAuditLog", "schema": { "$ref": "#/entities/BillingAuditLog" }, "description": "Audit logs for billing and subscription events." } },
       { "path": "/payments/{paymentId}", "definition": { "entityName": "Payment", "schema": { "$ref": "#/entities/Payment" }, "description": "Records of subscription payments." } },
       { "path": "/subscriptions/{subId}", "definition": { "entityName": "Subscription", "schema": { "$ref": "#/entities/Subscription" }, "description": "Company subscription plans." } },
-      { "path": "/jobPayments/{jobPaymentId}", "definition": { "entityName": "JobPayment", "schema": { "$ref": "#/entities/JobPayment" }, "description": "Records of payments for specific jobs." } }
+      { "path": "/jobPayments/{jobPaymentId}", "definition": { "entityName": "JobPayment", "schema": { "$ref": "#/entities/JobPayment" }, "description": "Records of payments for specific jobs." } },
+      { "path": "/techniques/{techniqueId}", "definition": { "entityName": "NDTTechnique", "schema": { "$ref": "#/entities/NDTTechnique" }, "description": "Public directory of NDT techniques." } },
+      { "path": "/manufacturers/{manufacturerId}", "definition": { "entityName": "Manufacturer", "schema": { "$ref": "#/entities/Manufacturer" }, "description": "Public directory of NDT equipment manufacturers." } },
+      { "path": "/products/{productId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
+      { "path": "/plans/{planId}", "definition": { "entityName": "Plan", "schema": { "$ref": "#/entities/Plan" }, "description": "Public directory of subscription plans." } }
     ]
   }
 }

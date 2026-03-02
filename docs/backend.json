@@ -125,6 +125,37 @@
       },
       "required": ["id", "senderId", "body"]
     },
+    "SupportThread": {
+      "title": "Support Thread",
+      "type": "object",
+      "description": "Represents a single support conversation thread.",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "subject": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Closed"] },
+        "lastMessage": { "type": "string" },
+        "lastMessageTimestamp": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "companyId", "subject", "status"]
+    },
+    "SupportMessage": {
+      "title": "Support Message",
+      "type": "object",
+      "description": "A single message within a support thread.",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "text": { "type": "string" }
+      },
+      "required": ["id", "senderId", "senderName", "timestamp", "text"]
+    },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Bid",
@@ -240,12 +271,20 @@
         }
       },
       {
-        "path": "/catalog/{category}/{docId}",
+        "path": "/companies/{companyId}/supportChats/{supportChatId}",
         "definition": {
-          "entityName": "CatalogItem",
-          "schema": { "type": "object" },
-          "description": "Publicly readable catalog for techniques, manufacturers, etc."
+            "entityName": "SupportThread",
+            "schema": { "$ref": "#/entities/SupportThread" },
+            "description": "Subcollection for support conversation threads within a company."
         }
+      },
+      {
+          "path": "/companies/{companyId}/supportChats/{supportChatId}/supportMessages/{messageId}",
+          "definition": {
+              "entityName": "SupportMessage",
+              "schema": { "$ref": "#/entities/SupportMessage" },
+              "description": "Individual messages within a support thread."
+          }
       },
       {
         "path": "/admin/{collection}/{docId}",

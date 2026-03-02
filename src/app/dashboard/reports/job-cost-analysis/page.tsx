@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -75,10 +73,10 @@ export default function JobCostAnalysisReportPage() {
             })
             .filter((job): job is NonNullable<typeof job> => job !== null)
             .filter(job => {
-                const jobDate = parseISO(job.scheduledStartDate || job.postedDate);
+                const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                 const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerId!);
                 const techniqueMatch = techniqueIds.length === 0 || job.techniques.some(t => values.techniqueIds?.includes(t));
-                const dateMatch = !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
+                const dateMatch = !jobDate || !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
 
                 return providerMatch && techniqueMatch && dateMatch;
             });
@@ -376,4 +374,3 @@ export default function JobCostAnalysisReportPage() {
         </div>
     );
 }
-    

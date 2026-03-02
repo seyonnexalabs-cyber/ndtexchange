@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -13,13 +12,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft } from 'lucide-react';
-import { parseISO, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from "@/components/ui/calendar";
-import { cn, GLOBAL_DATE_FORMAT } from "@/lib/utils";
+import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { useMobile } from '@/hooks/use-mobile';
 
 
@@ -57,7 +56,8 @@ export default function AssetHistoryReportPage() {
         const allInspections = jobs.flatMap(j => j.inspections || []);
 
         return allInspections.filter(inspection => {
-            const inspectionDate = parseISO(inspection.date);
+            const inspectionDate = safeParseDate(inspection.date);
+            if (!inspectionDate) return false;
             const assetMatch = assetIds.length === 0 || assetIds.includes(inspection.assetId);
             const dateMatch = dateRange?.from && dateRange?.to ? (inspectionDate >= dateRange.from && inspectionDate <= dateRange.to) : true;
             return assetMatch && dateMatch;
@@ -204,7 +204,9 @@ export default function AssetHistoryReportPage() {
                 <CardContent>
                     {isMobile ? (
                         <div className="space-y-4">
-                            {filteredInspections.map(inspection => (
+                            {filteredInspections.map(inspection => {
+                                const inspectionDate = safeParseDate(inspection.date)!;
+                                return (
                                 <Card key={inspection.id} className="p-4">
                                     <div className="flex justify-between items-start">
                                         <p className="font-semibold">{inspection.assetName}</p>
@@ -213,10 +215,10 @@ export default function AssetHistoryReportPage() {
                                     <div className="text-sm text-muted-foreground mt-2">
                                         <p>Technique: <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></p>
                                         <p>Inspector: {inspection.inspector}</p>
-                                        <p>Date: {format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</p>
+                                        <p>Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}</p>
                                     </div>
                                 </Card>
-                            ))}
+                            )})}
                             {filteredInspections.length === 0 && (
                                 <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
                                     No inspections found matching your criteria.
@@ -235,7 +237,9 @@ export default function AssetHistoryReportPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredInspections.map(inspection => (
+                                {filteredInspections.map(inspection => {
+                                     const inspectionDate = safeParseDate(inspection.date)!;
+                                    return (
                                     <TableRow key={inspection.id}>
                                         <TableCell className="font-medium">{inspection.assetName}</TableCell>
                                         <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
@@ -243,9 +247,9 @@ export default function AssetHistoryReportPage() {
                                         <TableCell>
                                             <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
                                         </TableCell>
-                                        <TableCell>{format(new Date(inspection.date), GLOBAL_DATE_FORMAT)}</TableCell>
+                                        <TableCell>{format(inspectionDate, GLOBAL_DATE_FORMAT)}</TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                                 {filteredInspections.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center h-24">

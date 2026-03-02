@@ -2,8 +2,8 @@
 import { Job, JobUpdate } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO, isValid } from 'date-fns';
-import { GLOBAL_DATETIME_FORMAT } from '@/lib/utils';
+import { format } from 'date-fns';
+import { GLOBAL_DATETIME_FORMAT, safeParseDate } from '@/lib/utils';
 import * as React from 'react';
 import { FileText, PlusCircle, Gavel, Award, History, Users, Calendar } from 'lucide-react';
 
@@ -23,22 +23,6 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Paid': 'success',
     'Revisions Requested': 'destructive',
 };
-
-const safeParseDate = (dateInput: any): Date | null => {
-    if (!dateInput) return null;
-    if (dateInput.toDate) { // Firestore Timestamp
-        return dateInput.toDate();
-    }
-    if (dateInput instanceof Date && isValid(dateInput)) {
-         return dateInput;
-    }
-    if (typeof dateInput === 'string') { // ISO String
-        const d = parseISO(dateInput);
-        return isValid(d) ? d : null;
-    }
-    return null;
-};
-
 
 const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
@@ -86,7 +70,7 @@ export default function JobActivityLog({ history }: { history?: JobUpdate[] }) {
         <ScrollArea className="max-h-96">
              <div className="relative pl-6">
                 {/* Vertical line */}
-                <div className="absolute left-6 top-2 h-[calc(100%_-_1rem)] w-0.5 bg-border -translate-x-1/2" />
+                <div className="absolute left-6 top-2 h-[calc(100%_-_1rem)] w-0.5 bg-border -translate-x-1/2 border-l-2 border-dashed border-muted-foreground/30 -z-10" />
                 
                 {sortedHistory.map((entry, index) => {
                     const icon = getEventIcon(entry.action);

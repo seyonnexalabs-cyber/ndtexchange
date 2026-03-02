@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File, Edit, MoreVertical, ChevronRight } from 'lucide-react';
 import { format, parseISO, differenceInDays, addDays, isValid } from 'date-fns';
 import Image from 'next/image';
-import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
@@ -186,7 +186,7 @@ export default function JobDetailPage() {
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => (firestore ? collection(firestore, 'companies') : null), [firestore]));
     
-    const { provider, auditor, client } = useMemo(() => {
+    const { provider, auditor, client } = React.useMemo(() => {
         if (!allCompanies || !job) return { provider: null, auditor: null, client: null };
         return {
             provider: allCompanies.find(c => c.id === job.providerCompanyId),

@@ -188,6 +188,107 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "clientId", "providerCompanyId", "rating", "text"]
+    },
+    "Task": {
+        "title": "Task",
+        "type": "object",
+        "description": "A user-specific to-do item.",
+        "properties": {
+            "id": { "type": "string" },
+            "userId": { "type": "string" },
+            "title": { "type": "string" },
+            "status": { "type": "string", "enum": ["todo", "in progress", "done", "canceled"] },
+            "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+            "label": { "type": "string" }
+        },
+        "required": ["id", "userId", "title", "status", "priority", "label"]
+    },
+    "Notification": {
+        "title": "Notification",
+        "type": "object",
+        "description": "A notification sent to a user.",
+        "properties": {
+            "id": { "type": "string" },
+            "userId": { "type": "string" },
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "read": { "type": "boolean" },
+            "href": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "title", "read", "href"]
+    },
+    "UserAuditLog": {
+        "title": "User Audit Log",
+        "type": "object",
+        "description": "Logs user-related administrative actions.",
+        "properties": {
+            "id": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "actorName": { "type": "string" },
+            "action": { "type": "string" },
+            "targetUserName": { "type": "string" }
+        }
+    },
+    "JobAuditLog": {
+        "title": "Job Audit Log",
+        "type": "object",
+        "description": "Logs job-related activities.",
+        "properties": {
+            "id": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "jobId": { "type": "string" },
+            "actorName": { "type": "string" },
+            "action": { "type": "string" }
+        }
+    },
+    "BillingAuditLog": {
+        "title": "Billing Audit Log",
+        "type": "object",
+        "description": "Logs billing and subscription events.",
+        "properties": {
+            "id": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "companyName": { "type": "string" },
+            "action": { "type": "string" }
+        }
+    },
+    "Payment": {
+        "title": "Payment",
+        "type": "object",
+        "description": "Represents a subscription payment.",
+        "properties": {
+            "id": { "type": "string" },
+            "subscriptionId": { "type": "string" },
+            "amount": { "type": "number" },
+            "date": { "type": "string", "format": "date-time" },
+            "status": { "type": "string" }
+        }
+    },
+    "Subscription": {
+        "title": "Subscription",
+        "type": "object",
+        "description": "Represents a company's subscription plan.",
+        "properties": {
+            "id": { "type": "string" },
+            "companyId": { "type": "string" },
+            "plan": { "type": "string" },
+            "status": { "type": "string" },
+            "startDate": { "type": "string", "format": "date-time" }
+        }
+    },
+    "JobPayment": {
+        "title": "Job Payment",
+        "type": "object",
+        "description": "Represents a payment for a specific job.",
+        "properties": {
+            "id": { "type": "string" },
+            "jobId": { "type": "string" },
+            "amount": { "type": "number" },
+            "payer": { "type": "string" },
+            "payee": { "type": "string" },
+            "status": { "type": "string" }
+        }
     }
   },
   "auth": {
@@ -204,6 +305,22 @@
           "entityName": "User",
           "schema": { "$ref": "#/entities/User" },
           "description": "Stores user profiles."
+        }
+      },
+      {
+        "path": "/users/{uid}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": { "$ref": "#/entities/Task" },
+          "description": "Subcollection for user-specific tasks."
+        }
+      },
+      {
+        "path": "/users/{uid}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": { "$ref": "#/entities/Notification" },
+          "description": "Subcollection for user-specific notifications."
         }
       },
       {
@@ -293,7 +410,13 @@
           "schema": { "type": "object" },
           "description": "Collection for documents only accessible by admins."
         }
-      }
+      },
+      { "path": "/userAuditLogs/{logId}", "definition": { "entityName": "UserAuditLog", "schema": { "$ref": "#/entities/UserAuditLog" }, "description": "Audit logs for user management actions." } },
+      { "path": "/jobAuditLogs/{logId}", "definition": { "entityName": "JobAuditLog", "schema": { "$ref": "#/entities/JobAuditLog" }, "description": "Audit logs for job-related activities." } },
+      { "path": "/billingAuditLogs/{logId}", "definition": { "entityName": "BillingAuditLog", "schema": { "$ref": "#/entities/BillingAuditLog" }, "description": "Audit logs for billing and subscription events." } },
+      { "path": "/payments/{paymentId}", "definition": { "entityName": "Payment", "schema": { "$ref": "#/entities/Payment" }, "description": "Records of subscription payments." } },
+      { "path": "/subscriptions/{subId}", "definition": { "entityName": "Subscription", "schema": { "$ref": "#/entities/Subscription" }, "description": "Company subscription plans." } },
+      { "path": "/jobPayments/{jobPaymentId}", "definition": { "entityName": "JobPayment", "schema": { "$ref": "#/entities/JobPayment" }, "description": "Records of payments for specific jobs." } }
     ]
   }
 }

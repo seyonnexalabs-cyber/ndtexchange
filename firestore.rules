@@ -17,8 +17,9 @@ service cloud.firestore {
       return authed() && myUid() == userId;
     }
 
-    function isMemberOf(companyId) {
-      return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
+    // NEW, more robust helper function for list queries
+    function isCompanyMember(companyId) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
 
     // -------- USERS --------
@@ -51,37 +52,37 @@ service cloud.firestore {
       
       // A user's membership and role in a company
       match /members/{memberUid} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
         }
       }
 
       match /reviews/{reviewId} {
         allow read: if authed(); // Any authenticated user can read reviews
-        allow write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow write: if isCompanyMember(companyId) || isPlatformAdmin();
       }
        match /supportChats/{supportChatId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
           match /supportMessages/{messageId} {
-              allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+              allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
           }
       }
     }

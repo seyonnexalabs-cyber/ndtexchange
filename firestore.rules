@@ -99,9 +99,9 @@ service cloud.firestore {
     
     // Top-level collection for all reviews
     match /reviews/{reviewId} {
-      allow read: if true; // Anyone can read an approved review
+      allow get: if true; // Anyone can read an approved review
+      allow list: if isPlatformAdmin(); // Admins can list reviews (e.g., for moderation)
       allow write: if authed(); // Only authenticated users can submit a review
-      // Note: list is handled by the collection group rule below for admins
       allow update, delete: if isPlatformAdmin(); // Only admins can moderate
     }
 
@@ -119,9 +119,6 @@ service cloud.firestore {
     }
      match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin();
-    }
-    match /{path=**}/reviews/{reviewId} {
-      allow list: if isPlatformAdmin();
     }
   }
 }

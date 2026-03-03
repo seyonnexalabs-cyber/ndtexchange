@@ -97,14 +97,14 @@ service cloud.firestore {
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
     
-    // Top-level collection for all reviews
+    // This top-level collection for reviews was incorrect for collection group queries.
+    // It is being replaced by the collection group rule below.
     match /reviews/{reviewId} {
-      allow get: if true; // Anyone can read an approved review
-      allow list: if isPlatformAdmin(); // Admins can list reviews (e.g., for moderation)
-      allow write: if authed(); // Only authenticated users can submit a review
-      allow update, delete: if isPlatformAdmin(); // Only admins can moderate
+        allow read: if true;
+        allow write: if authed();
+        allow update, delete: if isPlatformAdmin();
     }
-
+    
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {
       allow list: if isPlatformAdmin();
@@ -114,9 +114,11 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.auditorCompanyId
       ));
     }
+    
     match /{path=**}/bids/{bidId} {
       allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
     }
+
      match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin();
     }

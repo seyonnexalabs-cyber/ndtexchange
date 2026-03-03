@@ -16,11 +16,6 @@ service cloud.firestore {
     function isSelf(userId) {
       return authed() && myUid() == userId;
     }
-    
-    // This is the correct way to check membership for list queries.
-    function isMemberOf(companyId) {
-      return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(myUid()));
-    }
 
     // -------- USERS --------
     match /users/{userId} {
@@ -49,42 +44,39 @@ service cloud.firestore {
       allow read: if true; // Public company profiles
       allow write: if isPlatformAdmin(); // Only admins can create/update companies directly
       
+      // A user's membership and role in a company
       match /members/{memberUid} {
-        // Members of the company or platform admins can manage the members list.
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        // Members of the company or platform admins can manage assets.
-        allow list, get, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow list, get, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        // This rule allows members of the client company or platform admins to list, read, and write jobs.
-        // This is a simplification to fix a query issue and will be expanded later.
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
         
         match /bids/{bidId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
         }
       }
 
       match /reviews/{reviewId} {
         allow read: if authed(); // Any authenticated user can read reviews
-        allow write: if isPlatformAdmin() || isMemberOf(companyId); // Only admins or company members can write/update
+        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
       }
        match /supportChats/{supportChatId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
           match /supportMessages/{messageId} {
-              allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+              allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId || isPlatformAdmin();
           }
       }
     }
@@ -106,12 +98,9 @@ service cloud.firestore {
 
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {
-      // Allow admins to list all jobs. Other users are covered by specific path rules.
-      // This rule allows the targeted `get` in the job detail page to work.
-      allow get: if isPlatformAdmin();
+      allow get: if isPlatformAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.clientCompanyId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.providerCompanyId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.auditorCompanyId;
     }
     match /{path=**}/reviews/{reviewId} {
-      // Allow admins to list all reviews for moderation.
       allow read: if isPlatformAdmin();
     }
     match /{path=**}/bids/{bidId} {

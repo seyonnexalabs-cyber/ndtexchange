@@ -13,10 +13,6 @@ service cloud.firestore {
       return authed() && (request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1']);
     }
     
-    function isSelf(userId) {
-      return authed() && myUid() == userId;
-    }
-
     function isCompanyMember(companyId) {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
@@ -74,10 +70,6 @@ service cloud.firestore {
         }
       }
 
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow write: if authed();
-      }
        match /supportChats/{supportChatId} {
           allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
           match /supportMessages/{messageId} {
@@ -116,8 +108,13 @@ service cloud.firestore {
      match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin();
     }
+    
+     // This rule allows admins to query across all reviews for moderation,
+     // while still allowing public reads of individual reviews.
      match /{path=**}/reviews/{reviewId} {
-      allow read: if isPlatformAdmin();
+      allow get: if true;
+      allow list: if isPlatformAdmin();
+      allow write: if authed();
     }
   }
 }

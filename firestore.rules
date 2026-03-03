@@ -16,6 +16,10 @@ service cloud.firestore {
     function isCompanyMember(companyId) {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
+    
+    function isSelf(userId) {
+      return authed() && request.auth.uid == userId;
+    }
 
     // -------- USERS --------
     match /users/{userId} {
@@ -97,7 +101,8 @@ service cloud.firestore {
     match /reviews/{reviewId} {
       allow read: if true; // Anyone can read an approved review
       allow write: if authed(); // Only authenticated users can submit a review
-      allow list, update, delete: if isPlatformAdmin(); // Only admins can moderate
+      // Note: list is handled by the collection group rule below for admins
+      allow update, delete: if isPlatformAdmin(); // Only admins can moderate
     }
 
     // -------- Collection Group Queries --------
@@ -110,12 +115,13 @@ service cloud.firestore {
       ));
     }
     match /{path=**}/bids/{bidId} {
-      allow read: if isPlatformAdmin();
+      allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
     }
      match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin();
     }
+    match /{path=**}/reviews/{reviewId} {
+      allow list: if isPlatformAdmin();
+    }
   }
 }
-
-    

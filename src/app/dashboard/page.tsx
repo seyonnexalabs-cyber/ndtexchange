@@ -758,7 +758,7 @@ const AdminDashboard = () => {
                     } else if (user.role !== 'Inspector') {
                         roleInCompany = 'Manager';
                     }
-                    const memberData = { roleInCompany, createdAt: serverTimestamp() };
+                    const memberData = { roleInCompany: roleInCompany, createdAt: serverTimestamp() };
                     batch.set(doc(firestore, `companies/${user.companyId}/members`, user.id), memberData);
                 }
             });

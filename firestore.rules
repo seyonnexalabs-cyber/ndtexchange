@@ -17,7 +17,6 @@ service cloud.firestore {
       return authed() && myUid() == userId;
     }
 
-    // NEW, more robust helper function for list queries
     function isCompanyMember(companyId) {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
@@ -76,8 +75,8 @@ service cloud.firestore {
       }
 
       match /reviews/{reviewId} {
-        allow read: if authed(); // Any authenticated user can read reviews
-        allow write: if isCompanyMember(companyId) || isPlatformAdmin();
+        allow read: if true;
+        allow write: if authed();
       }
        match /supportChats/{supportChatId} {
           allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
@@ -110,9 +109,6 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.providerCompanyId || 
         get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.auditorCompanyId
       ));
-    }
-    match /{path=**}/reviews/{reviewId} {
-      allow read: if isPlatformAdmin();
     }
     match /{path=**}/bids/{bidId} {
       allow read: if isPlatformAdmin();

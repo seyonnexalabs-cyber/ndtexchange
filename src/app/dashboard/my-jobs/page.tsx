@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, doc, getDoc, collectionGroup } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -52,14 +52,15 @@ export default function MyJobsPage() {
 
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
-        const basePath = `companies/${userProfile.companyId}/jobs`;
+        let q;
         if (role === 'client') {
-            return query(collection(firestore, basePath));
+            q = query(collectionGroup(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
+        } else if (role === 'inspector') {
+            q = query(collectionGroup(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId));
+        } else {
+             q = collectionGroup(firestore, 'jobs');
         }
-        if (role === 'inspector') {
-            return query(collection(firestore, basePath));
-        }
-        return collection(firestore, basePath);
+        return q;
     }, [firestore, userProfile, role]);
 
 
@@ -105,12 +106,12 @@ export default function MyJobsPage() {
         }
 
         const filtered = jobsToShow.filter(job => {
-            const providerMatch = selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
+            const providerMatch = selectedProviders.length === 0 || (job.providerCompanyId && selectedProviders.includes(job.providerCompanyId));
             const clientMatch = selectedClients.length === 0 || selectedClients.includes(job.client);
             const auditMatch = !auditFilter || (job.workflow === 'level3' || job.workflow === 'auto');
             
             const searchLower = searchQuery.toLowerCase();
-            const provider = allCompanies?.find(c => c.id === job.providerId);
+            const provider = allCompanies?.find(c => c.id === job.providerCompanyId);
             const searchMatch = !searchQuery ||
                 job.title.toLowerCase().includes(searchLower) ||
                 job.id.toLowerCase().includes(searchLower) ||
@@ -188,7 +189,7 @@ export default function MyJobsPage() {
 
     const uniqueProviders = useMemo(() => {
         if (role !== 'client' || !jobsFromDb || !allCompanies) return [];
-        const providerIds = new Set(jobsFromDb.filter(j => j.providerId).map(j => j.providerId!));
+        const providerIds = new Set(jobsFromDb.filter(j => j.providerCompanyId).map(j => j.providerCompanyId!));
         return allCompanies.filter(p => p.type === 'Provider' && providerIds.has(p.id));
     }, [role, jobsFromDb, allCompanies]);
 
@@ -334,7 +335,7 @@ export default function MyJobsPage() {
                                 {jobs.map(job => {
                                     const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                                     if (!jobDate) return null;
-                                    const provider = allCompanies?.find(p => p.id === job.providerId);
+                                    const provider = allCompanies?.find(p => p.id === job.providerCompanyId);
                                     return (
                                         <Card key={job.id} className="mx-auto w-full transition-shadow hover:shadow-md">
                                             <div className="flex items-stretch">

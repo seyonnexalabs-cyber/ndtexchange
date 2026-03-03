@@ -705,8 +705,9 @@ const AdminDashboard = () => {
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'jobs')) : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
-    const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'reviews'), where('status', '==', 'Pending')) : null, [isReady, firestore]));
-    const pendingReviews = allReviews?.length || 0;
+    // This query was causing issues and has been temporarily removed to unblock dashboard access.
+    // const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'reviews'), where('status', '==', 'Pending')) : null, [isReady, firestore]));
+    // const pendingReviews = allReviews?.length || 0;
     
     const handleSeedDatabase = async () => {
         if (!firestore) {
@@ -830,7 +831,7 @@ const AdminDashboard = () => {
     const stats = {
         totalUsers: users?.length || 0,
         totalProviders: companies?.filter(c => c.type === 'Provider').length || 0,
-        pendingReviews: pendingReviews,
+        // pendingReviews: pendingReviews, // Temporarily disabled due to permission issues
         activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
 
@@ -865,7 +866,7 @@ const AdminDashboard = () => {
         }));
     }, [users]);
     
-    if (isLoadingUsers || isLoadingCompanies || isLoadingJobs || isLoadingReviews || isLoadingAuditLog) {
+    if (isLoadingUsers || isLoadingCompanies || isLoadingJobs /*|| isLoadingReviews*/ || isLoadingAuditLog) {
         return <DashboardSkeleton />;
     }
 
@@ -910,14 +911,19 @@ const AdminDashboard = () => {
                     color="bg-card-color-3"
                     iconBg="bg-card-color-3"
                 />
-                 <StatCard 
-                    title="Pending Reviews" 
-                    value={stats.pendingReviews} 
-                    icon={Eye} 
-                    footer="Awaiting moderation"
-                    color="bg-card-color-4"
-                    iconBg="bg-card-color-4"
-                />
+                 <Card className="relative overflow-hidden">
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", "bg-card-color-4")} />
+                    <CardContent className="p-4 flex items-center justify-between ml-1.5">
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Pending Reviews</p>
+                        <p className="text-3xl font-bold">N/A</p>
+                        <p className="text-xs text-muted-foreground mt-1">Feature temporarily disabled</p>
+                    </div>
+                    <div className={cn("p-3 rounded-full text-white", "bg-card-color-4")}>
+                        <Eye className="h-6 w-6" />
+                    </div>
+                    </CardContent>
+                </Card>
             </div>
              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
                 <Card className="lg:col-span-3">
@@ -1052,5 +1058,3 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
-    

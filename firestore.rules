@@ -116,5 +116,8 @@ service cloud.firestore {
      match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin();
     }
+     match /{path=**}/reviews/{reviewId} {
+      allow read: if isPlatformAdmin();
+    }
   }
 }

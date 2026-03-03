@@ -737,6 +737,7 @@ const AdminDashboard = () => {
                 { name: 'techniques', data: seedData.NDTTechniques },
                 { name: 'manufacturers', data: seedData.manufacturersData },
                 { name: 'events', data: seedData.ndtEvents },
+                { name: 'reviews', data: seedData.reviews },
             ];
 
             console.log("[SEED] Preparing top-level collections...");
@@ -787,14 +788,6 @@ const AdminDashboard = () => {
             });
             console.log(`  - ✅ Prepared ${seedData.bidsData.length} bids.`);
             
-            // Reviews (nested under provider companies)
-            seedData.reviews.forEach(review => {
-                if (review.providerId) {
-                    batch.set(doc(firestore, `companies/${review.providerId}/reviews`, review.id), review);
-                }
-            });
-            console.log(`  - ✅ Prepared ${seedData.reviews.length} reviews.`);
-
             // Inspections (nested under assets)
             seedData.inspectionsData.forEach(inspection => {
                 const asset = seedData.clientAssets.find(a => a.id === inspection.assetId);

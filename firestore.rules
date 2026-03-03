@@ -92,6 +92,13 @@ service cloud.firestore {
     match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    
+    // Top-level collection for all reviews
+    match /reviews/{reviewId} {
+      allow read: if true; // Anyone can read an approved review
+      allow write: if authed(); // Only authenticated users can submit a review
+      allow list, update, delete: if isPlatformAdmin(); // Only admins can moderate
+    }
 
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {
@@ -108,13 +115,7 @@ service cloud.firestore {
      match /{path=**}/inspections/{inspectionId} {
       allow read: if isPlatformAdmin();
     }
-    
-     // This rule allows admins to query across all reviews for moderation,
-     // while still allowing public reads of individual reviews.
-     match /{path=**}/reviews/{reviewId} {
-      allow get: if true;
-      allow list: if isPlatformAdmin();
-      allow write: if authed();
-    }
   }
 }
+
+    

@@ -508,20 +508,12 @@
         }
       },
       {
-        "path": "/companies/{companyId}/reviews/{reviewId}",
-        "definition": {
-          "entityName": "Review",
-          "schema": { "$ref": "#/entities/Review" },
-          "description": "Subcollection for reviews of a service provider company."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/supportChats/{supportChatId}",
-        "definition": {
-            "entityName": "SupportThread",
-            "schema": { "$ref": "#/entities/SupportThread" },
-            "description": "Subcollection for support conversation threads within a company."
-        }
+          "path": "/companies/{companyId}/supportChats/{supportChatId}",
+          "definition": {
+              "entityName": "SupportThread",
+              "schema": { "$ref": "#/entities/SupportThread" },
+              "description": "Subcollection for support conversation threads within a company."
+          }
       },
       {
           "path": "/companies/{companyId}/supportChats/{supportChatId}/supportMessages/{messageId}",
@@ -545,6 +537,7 @@
       { "path": "/payments/{paymentId}", "definition": { "entityName": "Payment", "schema": { "$ref": "#/entities/Payment" }, "description": "Records of subscription payments." } },
       { "path": "/subscriptions/{subId}", "definition": { "entityName": "Subscription", "schema": { "$ref": "#/entities/Subscription" }, "description": "Company subscription plans." } },
       { "path": "/jobPayments/{jobPaymentId}", "definition": { "entityName": "JobPayment", "schema": { "$ref": "#/entities/JobPayment" }, "description": "Records of payments for specific jobs." } },
+      { "path": "/reviews/{reviewId}", "definition": { "entityName": "Review", "schema": { "$ref": "#/entities/Review" }, "description": "All product and provider reviews." } },
       { "path": "/techniques/{techniqueId}", "definition": { "entityName": "NDTTechnique", "schema": { "$ref": "#/entities/NDTTechnique" }, "description": "Public directory of NDT techniques." } },
       { "path": "/manufacturers/{manufacturerId}", "definition": { "entityName": "Manufacturer", "schema": { "$ref": "#/entities/Manufacturer" }, "description": "Public directory of NDT equipment manufacturers." } },
       { "path": "/products/{productId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
@@ -553,3 +546,5 @@
     ]
   }
 }
+
+    

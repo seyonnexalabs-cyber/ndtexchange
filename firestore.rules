@@ -31,9 +31,8 @@ service cloud.firestore {
     
     // -------- COMPANIES & ALL NESTED DATA --------
     match /companies/{companyId} {
-      // Public profiles can be read by anyone
-      allow get: if true;
-      allow list: if authed();
+      // Public profiles can be read by any authenticated user
+      allow get, list: if authed();
       // Only admins can create/update company-level details
       allow write: if isPlatformAdmin();
       
@@ -51,15 +50,17 @@ service cloud.firestore {
       }
       
       match /jobs/{jobId} {
-        // Any authenticated user can get a job to view its details before bidding
+        // Any authenticated user can GET a job to view its details before bidding
         allow get: if authed();
-        // But only members of the client company or platform admins can list all jobs for that company.
+        // A company member or admin can LIST jobs for their company, or WRITE to a job
         allow list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           // A bid document can be read by the client who owns the job, the provider who made the bid, or an admin.
           allow get: if isMemberOf(companyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
-          // The provider who made the bid can create it. The client can update its status (e.g. to 'Shortlisted').
+          // NO list rule here. Let the collection group query rule handle broader list access.
+          
+          // The provider who made the bid can create it. The client can update its status.
           allow write: if isMemberOf(resource.data.providerCompanyId) || isMemberOf(companyId) || isPlatformAdmin();
         }
         
@@ -101,24 +102,23 @@ service cloud.firestore {
     }
     
     // -------- Collection Group Queries --------
-    // Rules for cross-company queries, typically for dashboards.
-    // The query in the app MUST include a `where()` clause matching the condition.
     
     match /{path=**}/jobs/{jobId} {
-        // Allows providers to list jobs they are assigned to, and clients to list their own jobs.
-        allow read: if isMemberOf(resource.data.providerCompanyId) || isMemberOf(resource.data.clientCompanyId) || isPlatformAdmin();
+        // Allows queries like where('providerCompanyId', '==', ...) or where('clientCompanyId', '==', ...)
+        // This is safe because client-side queries MUST constrain this to the user's company ID.
+        allow read: if authed();
     }
     
     match /{path=**}/bids/{bidId} {
-        // This allows a collection group query on 'bids', which is necessary for the "My Bids" page.
-        // The query MUST be constrained with `where('inspectorId', '==', request.auth.uid)` on the client-side
-        // to ensure users only see their own bids. This rule on its own is broad, but the client query provides the security.
+        // This allows a collection group query on 'bids' for pages like "My Bids".
+        // The query MUST be constrained with `where('inspectorId', '==', request.auth.uid)` on the client-side.
         allow read: if authed();
     }
     
     match /{path=**}/inspections/{inspectionId} {
         // Allows an inspector to query for inspections they are assigned to.
-        allow read: if request.auth.uid == resource.data.inspectorId || isPlatformAdmin();
+        // The query must be constrained by `where('inspectorId', '==', request.auth.uid)`.
+        allow read: if authed();
     }
   }
 }

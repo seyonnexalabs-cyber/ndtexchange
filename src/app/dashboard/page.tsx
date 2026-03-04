@@ -95,6 +95,22 @@ const StatCard = ({
   </Card>
 );
 
+const DashboardSkeleton = () => (
+    <div className="grid gap-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-28" />
+            ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-80" />
+            <Skeleton className="h-80" />
+        </div>
+        <Skeleton className="h-64" />
+    </div>
+);
+
+
 // --- CLIENT DASHBOARD ---
 const assetStatusChartConfig = {
   operational: { label: "Operational", color: "hsl(var(--chart-2))" },
@@ -207,7 +223,8 @@ const ClientDashboard = () => {
         }
     };
     
-    if (isLoadingJobs || isLoadingAssets || !userProfile || isLoadingProviders) {
+    const isLoading = isLoadingJobs || isLoadingAssets || isLoadingProviders || !userProfile;
+    if (isLoading) {
         return <DashboardSkeleton />;
     }
 
@@ -479,7 +496,9 @@ const InspectorDashboard = () => {
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
     }, [providerJobs, today]);
 
-    if (isLoadingJobs || isLoadingEquip || isLoadingBids || !userProfile) {
+    const isLoading = isLoadingJobs || isLoadingEquip || isLoadingBids || !userProfile;
+
+    if (isLoading) {
         return <DashboardSkeleton />;
     }
 
@@ -705,10 +724,6 @@ const AdminDashboard = () => {
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'jobs')) : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
-    // This query was causing issues and has been temporarily removed to unblock dashboard access.
-    // const { data: allReviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'reviews'), where('status', '==', 'Pending')) : null, [isReady, firestore]));
-    // const pendingReviews = allReviews?.length || 0;
-    
     const handleSeedDatabase = async () => {
         if (!firestore) {
             toast({ variant: "destructive", title: "Error", description: "Firestore is not available." });
@@ -831,7 +846,6 @@ const AdminDashboard = () => {
     const stats = {
         totalUsers: users?.length || 0,
         totalProviders: companies?.filter(c => c.type === 'Provider').length || 0,
-        // pendingReviews: pendingReviews, // Temporarily disabled due to permission issues
         activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
 
@@ -866,7 +880,9 @@ const AdminDashboard = () => {
         }));
     }, [users]);
     
-    if (isLoadingUsers || isLoadingCompanies || isLoadingJobs /*|| isLoadingReviews*/ || isLoadingAuditLog) {
+    const isLoading = isLoadingUsers || isLoadingCompanies || isLoadingJobs || isLoadingAuditLog;
+
+    if (isLoading) {
         return <DashboardSkeleton />;
     }
 
@@ -1017,28 +1033,6 @@ const ManufacturerDashboard = () => {
         </div>
     )
 }
-
-const DashboardSkeleton = () => (
-    <div className="grid gap-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-28" />
-            ))}
-        </div>
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-            </CardContent>
-        </Card>
-    </div>
-);
 
 
 // --- MAIN DASHBOARD COMPONENT ---

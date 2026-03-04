@@ -63,7 +63,7 @@ service cloud.firestore {
       }
       
       match /jobs/{jobId} {
-        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();

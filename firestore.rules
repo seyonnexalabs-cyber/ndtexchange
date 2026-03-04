@@ -32,7 +32,8 @@ service cloud.firestore {
     // -------- COMPANIES & ALL NESTED DATA --------
     match /companies/{companyId} {
       // Public profiles can be read by anyone
-      allow get, list: if true;
+      allow get: if true;
+      allow list: if authed();
       // Only admins can create/update company-level details
       allow write: if isPlatformAdmin();
       
@@ -51,12 +52,10 @@ service cloud.firestore {
       
       match /jobs/{jobId} {
         allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
-        allow list: if authed(); // Allow any authenticated user to list jobs
         
         match /bids/{bidId} {
           // Bids are sensitive, only readable by client, provider, or admin
           allow get: if isMemberOf(companyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
-          allow list: if authed();
           allow write: if isMemberOf(companyId) || isPlatformAdmin(); // Client can update status, provider can create
         }
         
@@ -104,7 +103,8 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-        allow list: if authed();
+        // A user can only list the bids they have made.
+        allow list: if request.auth.uid == resource.data.inspectorId;
     }
     
     match /{path=**}/inspections/{inspectionId} {

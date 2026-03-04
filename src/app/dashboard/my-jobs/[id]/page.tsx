@@ -207,9 +207,9 @@ export default function JobDetailPage() {
     }, [firestore, id, authUser]);
 
     const bidsQuery = useMemoFirebase(() => {
-        if (!firestore || !job?.clientCompanyId || !id) return null;
-        return query(collection(firestore, `companies/${job.clientCompanyId}/jobs/${id}/bids`), orderBy('submittedDate', 'desc'));
-    }, [firestore, job, id]);
+        if (!firestore || !job?.id) return null;
+        return query(collectionGroup(firestore, 'bids'), where('jobId', '==', job.id));
+    }, [firestore, job]);
 
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     

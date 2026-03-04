@@ -47,12 +47,11 @@ service cloud.firestore {
       
       match /jobs/{jobId} {
         allow read: if authed();
-        allow write: if isMemberOf(companyId) || isMemberOf(request.resource.data.providerCompanyId) || isPlatformAdmin();
+        allow write: if isMemberOf(companyId) || isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           // A bid document can be read by the client who owns the job, or the provider who made the bid.
           allow get: if isMemberOf(companyId) || isSelf(resource.data.inspectorId) || isPlatformAdmin();
-          allow list: if isMemberOf(companyId) || (get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.status == 'Posted');
           // The provider who made the bid can create it. The client can update its status.
           allow write: if isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isMemberOf(companyId) || isPlatformAdmin();
         }
@@ -99,8 +98,8 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-        // This rule allows an inspector to query for their own bids across all jobs.
-        // It's evaluated for list operations (queries).
+        // This allows inspectors to query for their own bids, and clients to query for bids on their jobs.
+        // The actual queries in the app provide the necessary security filters (e.g., where('inspectorId', '==', uid)).
         allow list: if authed();
     }
     

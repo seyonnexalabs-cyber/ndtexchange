@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -44,7 +45,7 @@ service cloud.firestore {
     
     // -------- COMPANIES & NESTED DATA --------
     match /companies/{companyId} {
-      allow list: if isPlatformAdmin();
+      allow list: if true; // Public company profiles can be read by anyone
       allow get: if true; // Public company profiles can be read by anyone
       allow write: if isPlatformAdmin(); // Only admins can create/update companies directly
       

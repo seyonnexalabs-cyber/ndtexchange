@@ -45,8 +45,7 @@ service cloud.firestore {
     
     // -------- COMPANIES & NESTED DATA --------
     match /companies/{companyId} {
-      allow list: if true; // Public company profiles can be read by anyone
-      allow get: if true; // Public company profiles can be read by anyone
+      allow list, get: if true; // Public company profiles can be read by anyone
       allow write: if isPlatformAdmin(); // Only admins can create/update companies directly
       
       // A user's membership and role in a company
@@ -63,7 +62,7 @@ service cloud.firestore {
       }
       
       match /jobs/{jobId} {
-        allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();

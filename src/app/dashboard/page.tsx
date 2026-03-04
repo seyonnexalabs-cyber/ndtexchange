@@ -21,7 +21,7 @@ import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid }
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -132,16 +132,14 @@ const ClientDashboard = () => {
     const isMobile = useMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
     const { user: authUser, firestore } = useFirebase();
-    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
+
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
 
     useEffect(() => {
         setToday(new Date());
-        if (authUser && firestore) {
-            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
-                if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
-            });
-        }
-    }, [authUser, firestore]);
+    }, []);
 
     const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'companies', userProfile.companyId, 'jobs')) : null, [firestore, userProfile]);
     const assetsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'companies', userProfile.companyId, 'assets')) : null, [firestore, userProfile]);
@@ -223,7 +221,7 @@ const ClientDashboard = () => {
         }
     };
     
-    const isLoading = isLoadingJobs || isLoadingAssets || isLoadingProviders || !userProfile;
+    const isLoading = isLoadingJobs || isLoadingAssets || isLoadingProviders || isLoadingProfile;
     if (isLoading) {
         return <DashboardSkeleton />;
     }
@@ -452,19 +450,17 @@ const InspectorDashboard = () => {
     const searchParams = useSearchParams();
     const [today, setToday] = useState<Date | undefined>(undefined);
     const { user: authUser, firestore } = useFirebase();
-    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
 
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
+    
     useEffect(() => {
         setToday(new Date());
-        if (authUser && firestore) {
-            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
-                if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
-            });
-        }
-    }, [authUser, firestore]);
+    }, []);
     
     const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collectionGroup(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'companies', userProfile.companyId, 'equipment')) : null, [firestore, userProfile]);
+    const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const myBidsQuery = useMemoFirebase(() => authUser ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', authUser.uid)) : null, [firestore, authUser]);
 
     const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
@@ -496,7 +492,7 @@ const InspectorDashboard = () => {
             .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
     }, [providerJobs, today]);
 
-    const isLoading = isLoadingJobs || isLoadingEquip || isLoadingBids || !userProfile;
+    const isLoading = isLoadingJobs || isLoadingEquip || isLoadingBids || isLoadingProfile;
 
     if (isLoading) {
         return <DashboardSkeleton />;

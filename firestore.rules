@@ -11,7 +11,7 @@ service cloud.firestore {
       return authed() && (request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1']);
     }
     function isMemberOf(companyId) {
-      return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
+      return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
     function isSelf(userId) {
       return authed() && request.auth.uid == userId;
@@ -53,18 +53,20 @@ service cloud.firestore {
       match /jobs/{jobId} {
         // Any authenticated user can get a job to view its details before bidding
         allow get: if authed();
-        // But only members or admins can list or write
+        // But only members of the client company or platform admins can list all jobs for that company.
         allow list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           // A bid document can be read by the client who owns the job, the provider who made the bid, or an admin.
           allow get: if isMemberOf(companyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
+          // Bids on a specific job can be listed if the job is still posted, or by the client/admin.
+          allow list: if get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.status == 'Posted' || isMemberOf(companyId) || isPlatformAdmin();
           // The provider who made the bid can create it. The client can update its status (e.g. to 'Shortlisted').
-          allow write: if isMemberOf(resource.data.providerCompanyId) || isMemberOf(companyId);
+          allow write: if isMemberOf(resource.data.providerCompanyId) || isMemberOf(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isPlatformAdmin();
         }
       }
 
@@ -101,27 +103,23 @@ service cloud.firestore {
     }
     
     // -------- Collection Group Queries --------
-    // These are the broad queries needed for dashboard pages
+    // Rules for cross-company queries, typically for dashboards.
+    // The query in the app MUST include a `where()` clause matching the condition.
+    // `read` is used instead of `list` because these rules depend on `resource.data`.
+    
     match /{path=**}/jobs/{jobId} {
-        allow list: if authed();
+        // Allows providers to list jobs they are assigned to, and clients to list their own jobs.
+        allow read: if isMemberOf(resource.data.providerCompanyId) || isMemberOf(resource.data.clientCompanyId) || isPlatformAdmin();
     }
     
     match /{path=**}/bids/{bidId} {
-        // Allows an inspector to query for bids they have made across all jobs (`where('inspectorId', '==', request.auth.uid)`).
-        // The client-side query MUST be secure.
-        allow list: if authed();
+        // Allows an inspector to query for bids they have made across all jobs.
+        allow read: if request.auth.uid == resource.data.inspectorId || isPlatformAdmin();
     }
     
     match /{path=**}/inspections/{inspectionId} {
-        allow list: if authed();
-    }
-
-     match /{path=**}/reviews/{reviewId} {
-        allow list: if true;
-    }
-
-     match /{path=**}/supportChats/{supportChatId} {
-        allow list: if authed();
+        // Allows an inspector to query for inspections they are assigned to.
+        allow read: if request.auth.uid == resource.data.inspectorId || isPlatformAdmin();
     }
   }
 }

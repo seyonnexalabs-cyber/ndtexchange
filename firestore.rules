@@ -6,77 +6,68 @@ service cloud.firestore {
 
     // -------- Helpers --------
     function authed() { return request.auth != null; }
-    function myUid() { return request.auth.uid; }
-
     function isPlatformAdmin() {
-      // Hardcoded admin UIDs to avoid using get() in list queries, which can cause permission errors.
+      // Hardcoded admin UIDs
       return authed() && (request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1']);
     }
-    
     function isMemberOf(companyId) {
       return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
-
     function isSelf(userId) {
       return authed() && request.auth.uid == userId;
     }
 
     // -------- USERS --------
     match /users/{userId} {
-      allow list: if isPlatformAdmin();
-      allow get, read: if isSelf(userId) || isPlatformAdmin();
-      
-      // Allow user creation for self, but prevent role escalation.
-      allow create: if isSelf(userId) && !('role' in request.resource.data);
+      allow read, update: if isSelf(userId) || isPlatformAdmin();
+      allow create: if isSelf(userId);
+      allow list, delete: if isPlatformAdmin();
 
-      // Allow self-updates (preventing role change), or admin updates.
-      allow update: if (isSelf(userId) && !('role' in request.resource.data)) || isPlatformAdmin();
-      
-      allow delete: if isPlatformAdmin();
-
-      // User-specific subcollections
-      match /tasks/{taskId} {
-        allow read, write: if isSelf(userId) || isPlatformAdmin();
-      }
-      match /notifications/{notificationId} {
-        allow read, write: if isSelf(userId) || isPlatformAdmin();
+      // User-specific subcollections are private
+      match /{subcollection}/{docId} {
+        allow read, write: if isSelf(userId);
       }
     }
     
-    // -------- COMPANIES & NESTED DATA --------
+    // -------- COMPANIES & ALL NESTED DATA --------
     match /companies/{companyId} {
-      allow list, get: if true; // Public company profiles can be read by anyone
-      allow write: if isPlatformAdmin(); // Only admins can create/update companies directly
+      // Public profiles can be read by anyone
+      allow get, list: if true;
+      // Only admins can create/update company-level details
+      allow write: if isPlatformAdmin();
       
-      // A user's membership and role in a company
+      // --- Subcollections ---
       match /members/{memberUid} {
-        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        allow list, get, write: if isMemberOf(companyId) || isPlatformAdmin();
+        // Read/write for company members/admins
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
+          // Bids are sensitive, only readable by client, provider, or admin
+          allow read: if isMemberOf(companyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
+          allow write: if isMemberOf(companyId) || isPlatformAdmin(); // Client can update status, provider can create
         }
         
         match /messages/{messageId} {
-          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
 
-       match /supportChats/{supportChatId} {
-          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+      match /supportChats/{supportChatId} {
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
           match /supportMessages/{messageId} {
-              allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+              allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
           }
       }
     }
@@ -90,19 +81,22 @@ service cloud.firestore {
     match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
     
     // -------- Top-Level PUBLIC Collections --------
+    // Anyone can read, only admins can write
     match /techniques/{techId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /manufacturers/{manuId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    
+    // Reviews have special rules
     match /reviews/{reviewId} {
-      allow get: if true;
-      allow list: if isPlatformAdmin();
-      allow write: if authed();
+      allow get, list: if true;
+      allow create: if authed();
       allow update, delete: if isPlatformAdmin();
     }
     
     // -------- Collection Group Queries --------
+    // These are the broad queries needed for dashboard pages
     match /{path=**}/jobs/{jobId} {
         allow list: if authed();
     }
@@ -112,6 +106,14 @@ service cloud.firestore {
     }
     
     match /{path=**}/inspections/{inspectionId} {
+        allow list: if authed();
+    }
+
+     match /{path=**}/reviews/{reviewId} {
+        allow list: if true;
+    }
+
+     match /{path=**}/supportChats/{supportChatId} {
         allow list: if authed();
     }
   }

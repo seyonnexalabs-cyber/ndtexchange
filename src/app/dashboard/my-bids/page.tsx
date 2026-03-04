@@ -25,7 +25,7 @@ import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, query, where, doc, updateDoc, orderBy, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 import type { Job, Bid, NDTTechnique, PlatformUser } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -189,17 +189,8 @@ export default function MyBidsPage() {
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
     
-    const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid)) : null), [firestore, user]);
+    const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc')) : null), [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
-
-    const sortedBids = useMemo(() => {
-        if (!myBids) return [];
-        return [...myBids].sort((a, b) => {
-            const dateA = safeParseDate(a.submittedDate)?.getTime() || 0;
-            const dateB = safeParseDate(b.submittedDate)?.getTime() || 0;
-            return dateB - dateA;
-        });
-    }, [myBids]);
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
@@ -254,15 +245,15 @@ export default function MyBidsPage() {
     };
 
     const handleConfirmWithdraw = async () => {
-        if (!withdrawingBid || !firestore || !userProfile) return;
-        const bidRef = doc(firestore, `companies/${userProfile.companyId}/jobs/${withdrawingBid.jobId}/bids`, withdrawingBid.id);
+        if (!withdrawingBid || !firestore) return;
+        const bidRef = doc(firestore, 'bids', withdrawingBid.id);
         await updateDoc(bidRef, { status: 'Withdrawn' });
         setWithdrawingBid(null);
     };
 
     async function onBidSubmit(values: z.infer<typeof bidSchema>) {
-        if (!editingBid || !firestore || !userProfile) return;
-        const bidRef = doc(firestore, `companies/${userProfile.companyId}/jobs/${editingBid.jobId}/bids`, editingBid.id);
+        if (!editingBid || !firestore) return;
+        const bidRef = doc(firestore, 'bids', editingBid.id);
         await updateDoc(bidRef, values);
         setEditingBid(null);
     }
@@ -336,7 +327,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={sortedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">
@@ -406,3 +397,5 @@ export default function MyBidsPage() {
         </div>
     );
 }
+
+    

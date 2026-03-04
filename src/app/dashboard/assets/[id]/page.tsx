@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { notFound, useParams, useSearchParams } from 'next/navigation';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { ChevronLeft, Edit, Calendar, QrCode, MoreVertical, FileText, Printer, Building } from 'lucide-react';
 import Image from 'next/image';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { doc, collection, collectionGroup, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { cn, safeParseDate } from '@/lib/utils';
@@ -46,15 +47,11 @@ export default function AssetDetailPage() {
     const { firestore, user: authUser } = useFirebase();
     const [qrCodeData, setQrCodeData] = React.useState<{ id: string, name: string } | null>(null);
 
-    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
-    );
-
     const { data: asset, isLoading: isLoadingAsset, error: assetError } = useDoc<Asset>(
-        useMemoFirebase(() => (firestore && userProfile?.companyId && id ? doc(firestore, `companies/${userProfile.companyId}/assets`, id) : null), [firestore, id, userProfile])
+        useMemoFirebase(() => (firestore && id ? doc(firestore, `assets`, id) : null), [firestore, id])
     );
     
-    const inspectionsQuery = useMemoFirebase(() => (firestore && asset?.companyId && id ? query(collection(firestore, `companies/${asset.companyId}/assets`, id, 'inspections'), orderBy('date', 'desc'), limit(5)) : null), [firestore, id, asset]);
+    const inspectionsQuery = useMemoFirebase(() => (firestore && id ? query(collection(firestore, `inspections`), where('assetId', '==', id), orderBy('date', 'desc'), limit(5)) : null), [firestore, id]);
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
     const { data: createdBy, isLoading: isLoadingCreatedBy } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && asset?.createdBy ? doc(firestore, 'users', asset.createdBy) : null), [firestore, asset]));
@@ -65,7 +62,7 @@ export default function AssetDetailPage() {
         return `${base}?${params.toString()}`;
     };
 
-    const isLoading = isLoadingAsset || isLoadingInspections || isLoadingCreatedBy || isLoadingModifiedBy || isLoadingProfile;
+    const isLoading = isLoadingAsset || isLoadingInspections || isLoadingCreatedBy || isLoadingModifiedBy;
 
     if ((!isLoadingAsset && !asset) || assetError) {
         notFound();
@@ -251,3 +248,5 @@ export default function AssetDetailPage() {
         </div>
     );
 }
+
+    

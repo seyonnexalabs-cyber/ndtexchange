@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, collectionGroup, Query } from 'firebase/firestore';
+import { collection, query, where, Query } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -71,7 +72,7 @@ export default function AllJobsPage() {
     const jobsQuery = useMemoFirebase(() => {
         if (!isReady) return null;
         
-        let q: Query = collectionGroup(firestore, 'jobs');
+        let q: Query = collection(firestore, 'jobs');
 
         if (selectedProviders.length > 0) {
             q = query(q, where('providerCompanyId', 'in', selectedProviders.slice(0, 10)));
@@ -471,3 +472,5 @@ export default function AllJobsPage() {
         </div>
     );
 }
+
+    

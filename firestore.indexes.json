@@ -3,7 +3,7 @@
   "indexes": [
     {
       "collectionGroup": "jobs",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "providerCompanyId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
@@ -11,71 +11,64 @@
     },
     {
       "collectionGroup": "jobs",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "auditorCompanyId", "order": "ASCENDING" },
+        { "fieldPath": "clientCompanyId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "jobs",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "clientCompanyId", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "jobs",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "bids",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "inspectorId", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "bids",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "jobId", "order": "ASCENDING" },
+        { "fieldPath": "inspectorId", "order": "ASCENDING" },
         { "fieldPath": "submittedDate", "order": "DESCENDING" }
       ]
     },
     {
       "collectionGroup": "bids",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "providerCompanyId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        { "fieldPath": "jobId", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "inspections",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "inspectorId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        { "fieldPath": "jobId", "order": "ASCENDING" }
       ]
     },
     {
-      "collectionGroup": "reviews",
-      "queryScope": "COLLECTION_GROUP",
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" }
+        { "fieldPath": "companyId", "order": "ASCENDING" }
       ]
     },
-     {
-      "collectionGroup": "reviews",
-      "queryScope": "COLLECTION_GROUP",
+    {
+      "collectionGroup": "equipment",
+      "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "date", "order": "DESCENDING" }
+        { "fieldPath": "providerId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "supportChats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "companyId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "supportMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "supportChatId", "order": "ASCENDING" }
       ]
     }
   ],
   "fieldOverrides": []
 }
+
+    

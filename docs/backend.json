@@ -36,17 +36,6 @@
       },
       "required": ["id", "name", "type"]
     },
-    "CompanyMember": {
-      "title": "Company Member",
-      "type": "object",
-      "description": "Represents a user's membership and role within a company.",
-      "properties": {
-        "roleInCompany": { "type": "string", "enum": ["Owner", "Manager", "Tech"] },
-        "isAdmin": { "type": "boolean", "description": "Optional: explicit company admin toggle." },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["roleInCompany"]
-    },
     "Asset": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Asset",
@@ -91,6 +80,7 @@
       "properties": {
         "id": { "type": "string" },
         "assetId": { "type": "string" },
+        "jobId": { "type": "string" },
         "inspectorId": { "type": "string" },
         "status": { "type": "string", "enum": ["scheduled", "done", "failed"] },
         "results": { "type": "object" },
@@ -98,7 +88,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "modifiedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "assetId", "inspectorId", "status"]
+      "required": ["id", "assetId", "jobId", "inspectorId", "status"]
     },
     "Job": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -132,13 +122,14 @@
       "description": "Represents a message sent between users within a job.",
       "properties": {
         "id": { "type": "string" },
+        "jobId": { "type": "string" },
         "senderId": { "type": "string" },
         "body": { "type": "string" },
         "attachments": { "type": "array", "items": { "type": "object" } },
         "createdAt": { "type": "string", "format": "date-time" },
         "modifiedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "senderId", "body"]
+      "required": ["id", "jobId", "senderId", "body"]
     },
     "SupportThread": {
       "title": "Support Thread",
@@ -163,13 +154,14 @@
       "description": "A single message within a support thread.",
       "properties": {
         "id": { "type": "string" },
+        "supportChatId": { "type": "string" },
         "senderId": { "type": "string" },
         "senderName": { "type": "string" },
         "isAdmin": { "type": "boolean" },
         "timestamp": { "type": "string", "format": "date-time" },
         "text": { "type": "string" }
       },
-      "required": ["id", "senderId", "senderName", "timestamp", "text"]
+      "required": ["id", "supportChatId", "senderId", "senderName", "timestamp", "text"]
     },
     "Bid": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -442,118 +434,18 @@
   },
   "firestore": {
     "structure": [
-      {
-        "path": "/users/{uid}",
-        "definition": {
-          "entityName": "User",
-          "schema": { "$ref": "#/entities/User" },
-          "description": "Stores user profiles."
-        }
-      },
-      {
-        "path": "/users/{uid}/tasks/{taskId}",
-        "definition": {
-          "entityName": "Task",
-          "schema": { "$ref": "#/entities/Task" },
-          "description": "Subcollection for user-specific tasks."
-        }
-      },
-      {
-        "path": "/users/{uid}/notifications/{notificationId}",
-        "definition": {
-          "entityName": "Notification",
-          "schema": { "$ref": "#/entities/Notification" },
-          "description": "Subcollection for user-specific notifications."
-        }
-      },
-      {
-        "path": "/companies/{companyId}",
-        "definition": {
-          "entityName": "Company",
-          "schema": { "$ref": "#/entities/Company" },
-          "description": "Top-level collection for all companies."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/members/{uid}",
-        "definition": {
-          "entityName": "CompanyMember",
-          "schema": { "$ref": "#/entities/CompanyMember" },
-          "description": "Subcollection mapping users to their role in a company."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/assets/{assetId}",
-        "definition": {
-          "entityName": "Asset",
-          "schema": { "$ref": "#/entities/Asset" },
-          "description": "Subcollection for assets owned by a company."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/assets/{assetId}/inspections/{inspectionId}",
-        "definition": {
-          "entityName": "Inspection",
-          "schema": { "$ref": "#/entities/Inspection" },
-          "description": "Subcollection for inspections performed on a specific asset."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/jobs/{jobId}",
-        "definition": {
-          "entityName": "Job",
-          "schema": { "$ref": "#/entities/Job" },
-          "description": "Subcollection for jobs associated with a company."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/jobs/{jobId}/messages/{messageId}",
-        "definition": {
-          "entityName": "Message",
-          "schema": { "$ref": "#/entities/Message" },
-          "description": "Subcollection for messages within a specific job."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/jobs/{jobId}/bids/{bidId}",
-        "definition": {
-          "entityName": "Bid",
-          "schema": { "$ref": "#/entities/Bid" },
-          "description": "Subcollection for bids on a specific job."
-        }
-      },
-      {
-          "path": "/companies/{companyId}/supportChats/{supportChatId}",
-          "definition": {
-              "entityName": "SupportThread",
-              "schema": { "$ref": "#/entities/SupportThread" },
-              "description": "Subcollection for support conversation threads within a company."
-          }
-      },
-      {
-          "path": "/companies/{companyId}/supportChats/{supportChatId}/supportMessages/{messageId}",
-          "definition": {
-              "entityName": "SupportMessage",
-              "schema": { "$ref": "#/entities/SupportMessage" },
-              "description": "Individual messages within a support thread."
-          }
-      },
-      {
-        "path": "/equipment/{equipmentId}",
-        "definition": {
-          "entityName": "Equipment",
-          "schema": { "$ref": "#/entities/Equipment" },
-          "description": "Top-level collection for all NDT equipment."
-        }
-      },
-      {
-        "path": "/admin/{collection}/{docId}",
-        "definition": {
-          "entityName": "AdminDoc",
-          "schema": { "type": "object" },
-          "description": "Collection for documents only accessible by admins."
-        }
-      },
+      { "path": "/users/{uid}", "definition": { "entityName": "User", "schema": { "$ref": "#/entities/User" }, "description": "Stores user profiles." } },
+      { "path": "/tasks/{taskId}", "definition": { "entityName": "Task", "schema": { "$ref": "#/entities/Task" }, "description": "User-specific tasks." } },
+      { "path": "/notifications/{notificationId}", "definition": { "entityName": "Notification", "schema": { "$ref": "#/entities/Notification" }, "description": "User-specific notifications." } },
+      { "path": "/companies/{companyId}", "definition": { "entityName": "Company", "schema": { "$ref": "#/entities/Company" }, "description": "Top-level collection for all companies." } },
+      { "path": "/assets/{assetId}", "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Assets owned by a company." } },
+      { "path": "/inspections/{inspectionId}", "definition": { "entityName": "Inspection", "schema": { "$ref": "#/entities/Inspection" }, "description": "Inspections performed on assets." } },
+      { "path": "/jobs/{jobId}", "definition": { "entityName": "Job", "schema": { "$ref": "#/entities/Job" }, "description": "Job requests from clients." } },
+      { "path": "/messages/{messageId}", "definition": { "entityName": "Message", "schema": { "$ref": "#/entities/Message" }, "description": "Messages within a job." } },
+      { "path": "/bids/{bidId}", "definition": { "entityName": "Bid", "schema": { "$ref": "#/entities/Bid" }, "description": "Bids on jobs." } },
+      { "path": "/supportChats/{supportChatId}", "definition": { "entityName": "SupportThread", "schema": { "$ref": "#/entities/SupportThread" }, "description": "Support conversation threads." } },
+      { "path": "/supportMessages/{messageId}", "definition": { "entityName": "SupportMessage", "schema": { "$ref": "#/entities/SupportMessage" }, "description": "Individual messages within a support thread." } },
+      { "path": "/equipment/{equipmentId}", "definition": { "entityName": "Equipment", "schema": { "$ref": "#/entities/Equipment" }, "description": "Top-level collection for all NDT equipment." } },
       { "path": "/userAuditLogs/{logId}", "definition": { "entityName": "UserAuditLog", "schema": { "$ref": "#/entities/UserAuditLog" }, "description": "Audit logs for user management actions." } },
       { "path": "/jobAuditLogs/{logId}", "definition": { "entityName": "JobAuditLog", "schema": { "$ref": "#/entities/JobAuditLog" }, "description": "Audit logs for job-related activities." } },
       { "path": "/billingAuditLogs/{logId}", "definition": { "entityName": "BillingAuditLog", "schema": { "$ref": "#/entities/BillingAuditLog" }, "description": "Audit logs for billing and subscription events." } },
@@ -561,11 +453,13 @@
       { "path": "/subscriptions/{subId}", "definition": { "entityName": "Subscription", "schema": { "$ref": "#/entities/Subscription" }, "description": "Company subscription plans." } },
       { "path": "/jobPayments/{jobPaymentId}", "definition": { "entityName": "JobPayment", "schema": { "$ref": "#/entities/JobPayment" }, "description": "Records of payments for specific jobs." } },
       { "path": "/reviews/{reviewId}", "definition": { "entityName": "Review", "schema": { "$ref": "#/entities/Review" }, "description": "All product and provider reviews." } },
-      { "path": "/techniques/{techniqueId}", "definition": { "entityName": "NDTTechnique", "schema": { "$ref": "#/entities/NDTTechnique" }, "description": "Public directory of NDT techniques." } },
-      { "path": "/manufacturers/{manufacturerId}", "definition": { "entityName": "Manufacturer", "schema": { "$ref": "#/entities/Manufacturer" }, "description": "Public directory of NDT equipment manufacturers." } },
-      { "path": "/products/{productId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
+      { "path": "/techniques/{techId}", "definition": { "entityName": "NDTTechnique", "schema": { "$ref": "#/entities/NDTTechnique" }, "description": "Public directory of NDT techniques." } },
+      { "path": "/manufacturers/{manuId}", "definition": { "entityName": "Manufacturer", "schema": { "$ref": "#/entities/Manufacturer" }, "description": "Public directory of NDT equipment manufacturers." } },
+      { "path": "/products/{prodId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
       { "path": "/plans/{planId}", "definition": { "entityName": "Plan", "schema": { "$ref": "#/entities/Plan" }, "description": "Public directory of subscription plans." } },
       { "path": "/events/{eventId}", "definition": { "entityName": "Event", "schema": { "$ref": "#/entities/Event" }, "description": "Public directory of industry events." } }
     ]
   }
 }
+
+    

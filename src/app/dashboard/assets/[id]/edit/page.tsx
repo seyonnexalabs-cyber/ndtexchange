@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -59,15 +60,13 @@ export default function EditAssetPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
+    const [showNewLocation, setShowNewLocation] = React.useState(false);
 
-    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
-    );
     const { data: asset, isLoading: isLoadingAsset } = useDoc<Asset>(
-        useMemoFirebase(() => (firestore && userProfile?.companyId ? doc(firestore, `companies/${userProfile.companyId}/assets`, id) : null), [firestore, id, userProfile])
+        useMemoFirebase(() => (firestore && id ? doc(firestore, `assets`, id) : null), [firestore, id])
     );
     const { data: existingAssets, isLoading: isLoadingAssets } = useCollection<Asset>(
-        useMemoFirebase(() => (firestore && userProfile?.companyId ? collection(firestore, `companies/${userProfile.companyId}/assets`) : null), [firestore, userProfile])
+        useMemoFirebase(() => (firestore ? collection(firestore, `assets`) : null), [firestore])
     );
 
     const form = useForm<AssetFormValues>({
@@ -131,12 +130,11 @@ export default function EditAssetPage() {
     };
 
     const handleFormSubmit = async (values: AssetFormValues) => {
-        if (!firestore || !user || !userProfile) return;
+        if (!firestore || !user || !asset) return;
         
         const location = values.location === '__add_new__' ? values.newLocation! : values.location;
         const dataToSave: Partial<Asset> = {
             ...values,
-            companyId: userProfile.companyId,
             location,
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
             installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined,
@@ -148,7 +146,7 @@ export default function EditAssetPage() {
         delete (dataToSave as any).thumbnail;
         
         try {
-            const assetRef = doc(firestore, `companies/${userProfile.companyId}/assets`, id);
+            const assetRef = doc(firestore, `assets`, id);
             await updateDoc(assetRef, dataToSave);
             toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
             router.push(constructUrl(`/dashboard/assets/${id}`)); // Go back to the detail page
@@ -164,7 +162,7 @@ export default function EditAssetPage() {
         return [...new Set(allLocations)];
     }, [existingAssets]);
 
-    const isLoading = isLoadingProfile || isLoadingAsset || isLoadingAssets;
+    const isLoading = isLoadingAsset || isLoadingAssets;
 
     if (isLoading) {
         return <div className="max-w-2xl mx-auto"><Skeleton className="h-screen" /></div>;
@@ -213,3 +211,5 @@ export default function EditAssetPage() {
         </div>
     )
 }
+
+    

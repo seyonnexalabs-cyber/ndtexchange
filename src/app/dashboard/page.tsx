@@ -22,7 +22,7 @@ import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from "@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, collectionGroup, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -141,8 +141,8 @@ const ClientDashboard = () => {
         setToday(new Date());
     }, []);
 
-    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'companies', userProfile.companyId, 'jobs')) : null, [firestore, userProfile]);
-    const assetsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'companies', userProfile.companyId, 'assets')) : null, [firestore, userProfile]);
+    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const assetsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const providersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]);
     
     const { data: clientJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
@@ -459,9 +459,9 @@ const InspectorDashboard = () => {
         setToday(new Date());
     }, []);
     
-    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collectionGroup(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
+    const jobsQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
     const equipmentQuery = useMemoFirebase(() => userProfile?.companyId ? query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId)) : null, [firestore, userProfile]);
-    const myBidsQuery = useMemoFirebase(() => authUser ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', authUser.uid)) : null, [firestore, authUser]);
+    const myBidsQuery = useMemoFirebase(() => authUser ? query(collection(firestore, 'bids'), where('inspectorId', '==', authUser.uid)) : null, [firestore, authUser]);
 
     const { data: providerJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: providerEquipment, isLoading: isLoadingEquip } = useCollection<any>(equipmentQuery);
@@ -589,7 +589,7 @@ const AuditorDashboard = () => {
 
     const jobsQuery = useMemoFirebase(() => {
       if (!firestore || !user) return null;
-      return query(collectionGroup(firestore, 'jobs'), where('workflow', 'in', ['level3', 'auto']));
+      return query(collection(firestore, 'jobs'), where('workflow', 'in', ['level3', 'auto']));
     }, [firestore, user]);
 
     const { data: jobs, isLoading } = useCollection<Job>(jobsQuery);
@@ -717,7 +717,7 @@ const AdminDashboard = () => {
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'jobs')) : null, [isReady, firestore]));
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? query(collection(firestore, 'jobs')) : null, [isReady, firestore]));
     const { data: userAuditLog, isLoading: isLoadingAuditLog } = useCollection<UserAuditLog>(useMemoFirebase(() => isReady ? query(collection(firestore, 'userAuditLogs'), orderBy('timestamp', 'desc'), limit(4)) : null, [isReady, firestore]));
     
     const handleSeedDatabase = async () => {
@@ -750,6 +750,12 @@ const AdminDashboard = () => {
                 { name: 'manufacturers', data: seedData.manufacturersData },
                 { name: 'events', data: seedData.ndtEvents },
                 { name: 'reviews', data: seedData.reviews },
+                { name: 'jobs', data: seedData.jobsData },
+                { name: 'assets', data: seedData.clientAssets },
+                { name: 'bids', data: seedData.bidsData },
+                { name: 'inspections', data: seedData.inspectionsData },
+                { name: 'tasks', data: seedData.tasks },
+                { name: 'notifications', data: seedData.notifications },
             ];
 
             console.log("[SEED] Preparing top-level collections...");
@@ -757,70 +763,7 @@ const AdminDashboard = () => {
                 data.forEach((item: any) => batch.set(doc(firestore, name, item.id), item));
                 console.log(`  - ✅ Prepared ${data.length} documents for ${name}.`);
             });
-
-            // 2. Nested Subcollections
-            console.log("[SEED] Preparing nested subcollections...");
-
-            // Company Members
-            seedData.allUsers.forEach(user => {
-                if (user.companyId && user.id) {
-                    const company = seedData.allCompanies.find(c => c.id === user.companyId);
-                    let roleInCompany: 'Owner' | 'Manager' | 'Tech' = 'Tech';
-                    if (company && company.contactPerson === user.name) {
-                        roleInCompany = 'Owner';
-                    } else if (user.role !== 'Inspector') {
-                        roleInCompany = 'Manager';
-                    }
-                    const memberData = { roleInCompany: roleInCompany, createdAt: serverTimestamp() };
-                    batch.set(doc(firestore, `companies/${user.companyId}/members`, user.id), memberData);
-                }
-            });
-            console.log(`  - ✅ Prepared ${seedData.allUsers.length} company members.`);
-
-            // Jobs (nested under companies)
-            seedData.jobsData.forEach(job => {
-                 if (job.clientCompanyId) {
-                    batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs`, job.id), job);
-                }
-            });
-            console.log(`  - ✅ Prepared ${seedData.jobsData.length} jobs.`);
             
-            // Assets (nested under companies)
-            seedData.clientAssets.forEach(asset => {
-                batch.set(doc(firestore, `companies/${asset.companyId}/assets`, asset.id), asset);
-            });
-            console.log(`  - ✅ Prepared ${seedData.clientAssets.length} assets.`);
-
-            // Bids (nested under jobs)
-            seedData.bidsData.forEach(bid => {
-                const job = seedData.jobsData.find(j => j.id === bid.jobId);
-                if (job?.clientCompanyId) { // Ensure job belongs to a client
-                    batch.set(doc(firestore, `companies/${job.clientCompanyId}/jobs/${bid.jobId}/bids`, bid.id), bid);
-                }
-            });
-            console.log(`  - ✅ Prepared ${seedData.bidsData.length} bids.`);
-            
-            // Inspections (nested under assets)
-            seedData.inspectionsData.forEach(inspection => {
-                const asset = seedData.clientAssets.find(a => a.id === inspection.assetId);
-                 if (asset?.companyId) {
-                    batch.set(doc(firestore, `companies/${asset.companyId}/assets/${inspection.assetId}/inspections`, inspection.id), inspection);
-                }
-            });
-            console.log(`  - ✅ Prepared ${seedData.inspectionsData.length} inspections.`);
-            
-            // User-specific tasks & notifications
-            seedData.tasks.forEach(task => {
-                batch.set(doc(firestore, `users/${task.userId}/tasks`, task.id), task);
-            });
-            console.log(`  - ✅ Prepared ${seedData.tasks.length} tasks.`);
-            
-            seedData.notifications.forEach(notif => {
-                batch.set(doc(firestore, `users/${notif.userId}/notifications`, notif.id), notif);
-            });
-            console.log(`  - ✅ Prepared ${seedData.notifications.length} notifications.`);
-
-            // 3. Commit the batch
             await batch.commit();
             toast({
                 title: "Database Seeded Successfully!",

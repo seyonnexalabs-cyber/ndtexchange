@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -19,7 +20,7 @@ import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, serverTimestamp, query, where, limit, getDocs, doc, collectionGroup, updateDoc, writeBatch, documentId, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, limit, getDocs, doc, updateDoc, writeBatch, documentId, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
 import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -179,36 +180,11 @@ export default function JobDetailPage() {
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser]));
 
-    const [job, setJob] = React.useState<Job | null>(null);
-    const [isLoadingJob, setIsLoadingJob] = React.useState(true);
-    const [jobError, setJobError] = React.useState<Error | null>(null);
-
-    React.useEffect(() => {
-        if (!firestore || !id || !authUser) return;
-        const findJob = async () => {
-            setIsLoadingJob(true);
-            setJobError(null);
-            try {
-                const jobsRef = collectionGroup(firestore, 'jobs');
-                const q = query(jobsRef, where('id', '==', id), limit(1));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    setJob(querySnapshot.docs[0].data() as Job);
-                } else {
-                    setJob(null);
-                }
-            } catch (e) {
-                setJobError(e as Error);
-            } finally {
-                setIsLoadingJob(false);
-            }
-        };
-        findJob();
-    }, [firestore, id, authUser]);
-
+    const { data: job, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id as string) : null), [firestore, id]));
+    
     const bidsQuery = useMemoFirebase(() => {
         if (!firestore || !job?.id) return null;
-        return query(collectionGroup(firestore, 'bids'), where('jobId', '==', job.id));
+        return query(collection(firestore, 'bids'), where('jobId', '==', job.id));
     }, [firestore, job]);
 
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
@@ -239,7 +215,7 @@ export default function JobDetailPage() {
         try {
             const batch = writeBatch(firestore);
             bids.forEach(bid => {
-                const bidRef = doc(firestore, 'jobs', job.id, 'bids', bid.id);
+                const bidRef = doc(firestore, 'bids', bid.id);
                 batch.update(bidRef, { status: bid.id === awardedBidId ? 'Awarded' : 'Not Selected' });
             });
             

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -11,7 +12,7 @@ import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, query, orderBy, setDoc, collectionGroup } from 'firebase/firestore';
+import { collection, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Review, Job, Client, NDTServiceProvider } from '@/lib/types';
 
@@ -92,11 +93,11 @@ export default function ReviewsPage() {
 
     const reviewsQuery = useMemoFirebase(() => {
         if (!isReady) return null;
-        return query(collectionGroup(firestore, 'reviews'), orderBy('date', 'desc'));
+        return query(collection(firestore, 'reviews'), orderBy('date', 'desc'));
     }, [isReady, firestore]);
     const { data: reviewList } = useCollection<Review>(reviewsQuery);
     
-    const { data: allJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collectionGroup(firestore, 'jobs') : null, [isReady, firestore]));
+    const { data: allJobs } = useCollection<Job>(useMemoFirebase(() => isReady ? collection(firestore, 'jobs') : null, [isReady, firestore]));
     const { data: allCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
 
     const handleApprove = async (id: string) => {

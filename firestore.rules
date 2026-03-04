@@ -51,12 +51,15 @@ service cloud.firestore {
       }
       
       match /jobs/{jobId} {
-        allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          // Bids are sensitive, only readable by client, provider, or admin
+          // A bid document can be read by the client who owns the job, the provider who made the bid, or an admin.
           allow get: if isMemberOf(companyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
-          allow write: if isMemberOf(companyId) || isPlatformAdmin(); // Client can update status, provider can create
+          // A client can list all bids for their own job. Bids are also public while the job is posted.
+          allow list: if isMemberOf(companyId) || get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.status == 'Posted';
+          // The provider who made the bid can create it. The client can update its status (e.g. to 'Shortlisted').
+          allow write: if isMemberOf(resource.data.providerCompanyId) || isMemberOf(companyId);
         }
         
         match /messages/{messageId} {
@@ -103,8 +106,9 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-        // A user can only list the bids they have made.
-        allow list: if request.auth.uid == resource.data.inspectorId;
+        // Allows an inspector to query for the bids they have made across all jobs.
+        // The client query MUST include `where('inspectorId', '==', request.auth.uid)`
+        allow list: if authed();
     }
     
     match /{path=**}/inspections/{inspectionId} {

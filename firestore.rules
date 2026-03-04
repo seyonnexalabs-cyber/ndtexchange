@@ -13,8 +13,8 @@ service cloud.firestore {
       return authed() && (request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1']);
     }
     
-    function isCompanyMember(companyId) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+    function isMemberOf(companyId) {
+      return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
     
     function isSelf(userId) {
@@ -51,33 +51,33 @@ service cloud.firestore {
       
       // A user's membership and role in a company
       match /members/{memberUid} {
-        allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
-          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
 
        match /supportChats/{supportChatId} {
-          allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
           match /supportMessages/{messageId} {
-              allow read, write: if isCompanyMember(companyId) || isPlatformAdmin();
+              allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
           }
       }
     }
@@ -97,12 +97,14 @@ service cloud.firestore {
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
     
-    // This top-level collection for reviews was incorrect for collection group queries.
-    // It is being replaced by the collection group rule below.
     match /reviews/{reviewId} {
-        allow read: if true;
-        allow write: if authed();
-        allow update, delete: if isPlatformAdmin();
+      // Any authenticated user can create a review.
+      // Admins can read, update, or delete any review (for moderation).
+      // Anyone can read a single review.
+      allow get: if true;
+      allow list: if isPlatformAdmin();
+      allow write: if authed();
+      allow update, delete: if isPlatformAdmin();
     }
     
     // -------- Collection Group Queries --------
@@ -116,11 +118,13 @@ service cloud.firestore {
     }
     
     match /{path=**}/bids/{bidId} {
-      allow read: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
+      allow list: if isPlatformAdmin() || (authed() && get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.providerCompanyId);
+      allow get: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
     }
 
      match /{path=**}/inspections/{inspectionId} {
-      allow read: if isPlatformAdmin();
+      allow list: if isPlatformAdmin() || (authed() && get(/databases/$(database)/documents/users/$(myUid())).data.id == resource.data.inspectorId);
+      allow get: if isPlatformAdmin();
     }
   }
 }

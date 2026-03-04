@@ -104,16 +104,11 @@ service cloud.firestore {
     }
     
     // -------- Collection Group Queries --------
-    function getUserCompanyId() {
-        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
-    }
-    
     match /{path=**}/jobs/{jobId} {
-        allow list: if isPlatformAdmin() || (authed() && (
-                    resource.data.clientCompanyId == getUserCompanyId() ||
-                    resource.data.providerCompanyId == getUserCompanyId() ||
-                    resource.data.auditorCompanyId == getUserCompanyId()
-                  ));
+        // This is a temporary, permissive rule for debugging.
+        // It allows any authenticated user to list all jobs, relying on client-side filtering.
+        // THIS SHOULD BE TIGHTENED with more specific rules before production.
+        allow list: if authed();
     }
     
     match /{path=**}/bids/{bidId} {

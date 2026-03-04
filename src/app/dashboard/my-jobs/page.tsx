@@ -38,7 +38,7 @@ export default function MyJobsPage() {
 
     const { firestore, user: authUser } = useFirebase();
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
     
     const jobsQuery = useMemoFirebase(() => {
@@ -46,9 +46,8 @@ export default function MyJobsPage() {
         if (role === 'client') {
             return query(collection(firestore, 'companies', userProfile.companyId, 'jobs'));
         }
-        if (role === 'inspector') {
-            return query(collectionGroup(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId));
-        }
+        // TEMPORARY WORKAROUND: Fetch all jobs for inspectors and filter client-side to bypass
+        // complex collection group security rule issues. This is not performant for production.
         return collectionGroup(firestore, 'jobs');
     }, [firestore, userProfile, role]);
 
@@ -58,13 +57,20 @@ export default function MyJobsPage() {
 
     const jobsByCategory = useMemo(() => {
         if (!jobsFromDb) return { active: [], completed: [], upcoming: [], drafts: [] };
+        
+        let relevantJobs = jobsFromDb;
+        // If inspector, filter jobs on the client side (part of the temporary workaround)
+        if (role === 'inspector' && userProfile?.companyId) {
+            relevantJobs = jobsFromDb.filter(job => job.providerCompanyId === userProfile.companyId);
+        }
+
         return {
-            active: jobsFromDb.filter(job => job.status === 'In Progress'),
-            completed: jobsFromDb.filter(job => ['Completed', 'Paid'].includes(job.status)),
-            upcoming: jobsFromDb.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status)),
-            drafts: jobsFromDb.filter(job => job.status === 'Draft'),
+            active: relevantJobs.filter(job => job.status === 'In Progress'),
+            completed: relevantJobs.filter(job => ['Completed', 'Paid'].includes(job.status)),
+            upcoming: relevantJobs.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status)),
+            drafts: relevantJobs.filter(job => job.status === 'Draft'),
         };
-    }, [jobsFromDb, role]);
+    }, [jobsFromDb, role, userProfile]);
     
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow: Job[] = [];

@@ -62,7 +62,9 @@ service cloud.firestore {
       }
       
       match /jobs/{jobId} {
-        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+        // This rule allows direct document access, but not listing the collection directly.
+        // Listing is handled by the collection group rule below.
+        allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
           allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();

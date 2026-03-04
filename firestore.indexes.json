@@ -35,15 +35,16 @@
       "collectionGroup": "bids",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "providerCompanyId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        { "fieldPath": "inspectorId", "order": "ASCENDING" },
+        { "fieldPath": "submittedDate", "order": "DESCENDING" }
       ]
     },
     {
       "collectionGroup": "bids",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "inspectorId", "order": "ASCENDING" }
+        { "fieldPath": "providerCompanyId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {

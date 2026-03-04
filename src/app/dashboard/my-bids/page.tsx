@@ -189,8 +189,17 @@ export default function MyBidsPage() {
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
     
-    const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc')) : null), [firestore, user]);
+    const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collectionGroup(firestore, 'bids'), where('inspectorId', '==', user.uid)) : null), [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
+
+    const sortedBids = useMemo(() => {
+        if (!myBids) return [];
+        return [...myBids].sort((a, b) => {
+            const dateA = safeParseDate(a.submittedDate)?.getTime() || 0;
+            const dateB = safeParseDate(b.submittedDate)?.getTime() || 0;
+            return dateB - dateA;
+        });
+    }, [myBids]);
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
@@ -327,7 +336,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={sortedBids} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">

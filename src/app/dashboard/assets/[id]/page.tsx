@@ -43,37 +43,16 @@ export default function AssetDetailPage() {
     const params = useParams();
     const id = params.id as string;
     const searchParams = useSearchParams();
-    const { firestore } = useFirebase();
+    const { firestore, user: authUser } = useFirebase();
     const [qrCodeData, setQrCodeData] = React.useState<{ id: string, name: string } | null>(null);
 
-    const [asset, setAsset] = React.useState<Asset | null>(null);
-    const [isLoadingAsset, setIsLoadingAsset] = React.useState(true);
-    const [assetError, setAssetError] = React.useState<Error | null>(null);
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
 
-    React.useEffect(() => {
-        if (!firestore || !id) return;
-        const findAsset = async () => {
-            setIsLoadingAsset(true);
-            setAssetError(null);
-            try {
-                const assetsRef = collectionGroup(firestore, 'assets');
-                const q = query(assetsRef, where('id', '==', id), limit(1));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    setAsset(querySnapshot.docs[0].data() as Asset);
-                } else {
-                    setAsset(null);
-                    setAssetError(new Error("Asset not found.")); // Explicitly set error for notFound case
-                }
-            } catch (e) {
-                console.error("Error fetching asset:", e);
-                setAssetError(e as Error);
-            } finally {
-                setIsLoadingAsset(false);
-            }
-        };
-        findAsset();
-    }, [firestore, id]);
+    const { data: asset, isLoading: isLoadingAsset, error: assetError } = useDoc<Asset>(
+        useMemoFirebase(() => (firestore && userProfile?.companyId && id ? doc(firestore, `companies/${userProfile.companyId}/assets`, id) : null), [firestore, id, userProfile])
+    );
     
     const inspectionsQuery = useMemoFirebase(() => (firestore && asset?.companyId && id ? query(collection(firestore, `companies/${asset.companyId}/assets`, id, 'inspections'), orderBy('date', 'desc'), limit(5)) : null), [firestore, id, asset]);
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
@@ -86,7 +65,7 @@ export default function AssetDetailPage() {
         return `${base}?${params.toString()}`;
     };
 
-    const isLoading = isLoadingAsset || isLoadingInspections || isLoadingCreatedBy || isLoadingModifiedBy;
+    const isLoading = isLoadingAsset || isLoadingInspections || isLoadingCreatedBy || isLoadingModifiedBy || isLoadingProfile;
 
     if ((!isLoadingAsset && !asset) || assetError) {
         notFound();

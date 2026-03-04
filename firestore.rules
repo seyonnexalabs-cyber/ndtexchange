@@ -16,10 +16,6 @@ service cloud.firestore {
     function isMemberOf(companyId) {
       return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
-    
-    function isCompanyMember(companyId) {
-        return authed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
-    }
 
     function isSelf(userId) {
       return authed() && request.auth.uid == userId;
@@ -100,7 +96,6 @@ service cloud.firestore {
     match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
-    
     match /reviews/{reviewId} {
       allow get: if true;
       allow list: if isPlatformAdmin();
@@ -109,27 +104,24 @@ service cloud.firestore {
     }
     
     // -------- Collection Group Queries --------
-    match /{path=**}/assets/{assetId} {
-        allow list: if isCompanyMember(resource.data.companyId) || isPlatformAdmin();
+    function getUserCompanyId() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
     }
     
     match /{path=**}/jobs/{jobId} {
-      allow list: if isPlatformAdmin() || isCompanyMember(resource.data.clientCompanyId) || isCompanyMember(resource.data.providerCompanyId) || isCompanyMember(resource.data.auditorCompanyId);
-      allow get: if isPlatformAdmin() || (authed() && (
-        get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.clientCompanyId || 
-        get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.providerCompanyId || 
-        get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.auditorCompanyId
-      ));
+        allow list: if isPlatformAdmin() || (authed() && (
+                    resource.data.clientCompanyId == getUserCompanyId() ||
+                    resource.data.providerCompanyId == getUserCompanyId() ||
+                    resource.data.auditorCompanyId == getUserCompanyId()
+                  ));
     }
     
     match /{path=**}/bids/{bidId} {
-      allow list: if isPlatformAdmin() || (authed() && get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.providerCompanyId);
-      allow get: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
+        allow list: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
     }
-
-     match /{path=**}/inspections/{inspectionId} {
-      allow list: if isPlatformAdmin() || (authed() && get(/databases/$(database)/documents/users/$(myUid())).data.id == resource.data.inspectorId);
-      allow get: if isPlatformAdmin();
+    
+    match /{path=**}/inspections/{inspectionId} {
+        allow list: if isPlatformAdmin() || (authed() && resource.data.inspectorId == request.auth.uid);
     }
   }
 }

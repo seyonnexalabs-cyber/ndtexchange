@@ -51,33 +51,33 @@ service cloud.firestore {
       
       // A user's membership and role in a company
       match /members/{memberUid} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
 
        match /supportChats/{supportChatId} {
-          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
           match /supportMessages/{messageId} {
-              allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
+              allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
           }
       }
     }

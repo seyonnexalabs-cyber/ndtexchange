@@ -57,17 +57,15 @@ service cloud.firestore {
         allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        // This rule allows direct document access, but not listing the collection directly.
-        // Listing is handled by the collection group rule below.
-        allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow list, get, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          allow get, list, write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
@@ -106,9 +104,6 @@ service cloud.firestore {
     
     // -------- Collection Group Queries --------
     match /{path=**}/jobs/{jobId} {
-        // This is a temporary, permissive rule for debugging.
-        // It allows any authenticated user to list all jobs, relying on client-side filtering.
-        // THIS SHOULD BE TIGHTENED with more specific rules before production.
         allow list: if authed();
     }
     

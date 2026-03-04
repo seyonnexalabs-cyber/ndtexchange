@@ -224,8 +224,11 @@ const PaymentsPage = () => {
     
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUser?.companyId) return null;
-        return query(collection(firestore, `companies/${currentUser.companyId}/jobs`));
-    }, [firestore, currentUser]);
+        if (role === 'client') {
+            return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', currentUser.companyId));
+        }
+        return null;
+    }, [firestore, currentUser, role]);
     const { data: jobs } = useCollection<Job>(jobsQuery);
     
     const { filteredPayments, title, canRecordPayment } = useMemo(() => {
@@ -275,7 +278,7 @@ const PaymentsPage = () => {
         const job = jobs.find(j => j.id === values.jobId);
         if (!job) return;
 
-        const provider = allCompanies.find(c => c.id === job.providerId);
+        const provider = allCompanies.find(c => c.id === job.providerCompanyId);
         // This is a simplification. A real app would have a dedicated auditor assignment.
         const auditor = allCompanies.find(c => c.type === 'Auditor'); 
 
@@ -311,7 +314,7 @@ const PaymentsPage = () => {
 
             // If paying the provider, and not an auditor, update the job status.
             if (payeeType === 'Provider' && job.status !== 'Paid') {
-                const jobDocRef = doc(firestore, `companies/${currentUser.companyId}/jobs`, job.id);
+                const jobDocRef = doc(firestore, 'jobs', job.id);
                 await updateDoc(jobDocRef, { status: 'Paid' });
             }
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -9,14 +10,15 @@ import { useMobile } from '@/hooks/use-mobile';
 import ConversationList from './components/ConversationList';
 import ChatView from './components/ChatView';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, query, where, orderBy, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, doc, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { serviceProviders } from '@/lib/seed-data';
 
 type Message = {
     id: string;
+    jobId: string;
     text: string;
     senderId: string;
+    senderName: string;
     timestamp: any;
 };
 
@@ -34,12 +36,12 @@ export default function MessagesPage() {
     );
 
     const jobsQuery = useMemoFirebase(() => {
-        if (!firestore || !currentUser) return null;
+        if (!firestore || !currentUser?.companyId) return null;
         if (role === 'client') {
-            return query(collection(firestore, 'jobs'), where('clientId', '==', currentUser.id));
+            return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', currentUser.companyId));
         }
-        if (role === 'inspector' && currentUser.providerId) {
-            return query(collection(firestore, 'jobs'), where('providerId', '==', currentUser.providerId));
+        if (role === 'inspector') {
+            return query(collection(firestore, 'jobs'), where('providerCompanyId', '==', currentUser.companyId));
         }
         return null;
     }, [firestore, currentUser, role]);
@@ -51,7 +53,7 @@ export default function MessagesPage() {
 
     const messagesQuery = useMemoFirebase(() => {
         if (!firestore || !selectedJob) return null;
-        return query(collection(firestore, 'jobs', selectedJob.id, 'messages'), orderBy('timestamp', 'asc'));
+        return query(collection(firestore, 'messages'), where('jobId', '==', selectedJob.id), orderBy('timestamp', 'asc'));
     }, [firestore, selectedJob]);
     
     const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
@@ -66,22 +68,25 @@ export default function MessagesPage() {
         if (!newMessage.trim() || !currentUser || !selectedJob || !firestore) return;
 
         const messageData = {
+            jobId: selectedJob.id,
             senderId: currentUser.id,
+            senderName: currentUser.name,
             text: newMessage.trim(),
             timestamp: serverTimestamp(),
         };
         
-        await addDoc(collection(firestore, 'jobs', selectedJob.id, 'messages'), messageData);
+        const messageRef = doc(collection(firestore, 'messages'));
+        await setDoc(messageRef, { id: messageRef.id, ...messageData });
         setNewMessage('');
     };
 
     const getUserDetails = (senderId: string) => {
-        // In a real app, you might fetch this from a user context or another query
-        const providerUser = serviceProviders.find(p => p.id === senderId);
-        if (providerUser) {
-            return { id: providerUser.id, name: providerUser.name, role: 'Provider' };
+        // This is a placeholder. In a real app, you'd fetch this from a user context
+        // or a dedicated query that fetches all participants in the chat.
+        if(currentUser && senderId === currentUser.id) {
+            return { id: currentUser.id, name: currentUser.name, role: currentUser.role };
         }
-        return { id: senderId, name: 'Unknown User', role: 'User' };
+        return { id: senderId, name: 'Other Party', role: 'User' };
     };
 
     return (

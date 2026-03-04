@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -55,7 +56,7 @@ export default function CompliancePage() {
 
     const assetsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
-        return query(collection(firestore, `companies/${userProfile.companyId}/assets`));
+        return query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId));
     }, [firestore, userProfile]);
 
     const { data: assets, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);

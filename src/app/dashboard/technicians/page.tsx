@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -20,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, doc, query, where, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import { CustomDateInput } from "@/components/ui/custom-date-input";
@@ -334,7 +332,7 @@ export default function TechniciansPage() {
     const [editingUser, setEditingUser] = useState<PlatformUser | null>(null);
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
     
     const companyTechniciansQuery = useMemoFirebase(() => {
@@ -358,7 +356,7 @@ export default function TechniciansPage() {
     
     useEffect(() => {
         if (role && role !== 'inspector') {
-            router.replace(`/dashboard/technicians?${searchParams.toString()}`);
+            router.replace(`/dashboard?${searchParams.toString()}`);
         }
     }, [role, router, searchParams]);
 

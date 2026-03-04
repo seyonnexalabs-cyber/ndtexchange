@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,8 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Calendar, Filter, X } from "lucide-react";
 import Link from "next/link";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, doc, getDoc } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
 import type { Asset, PlatformUser } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, differenceInDays, startOfDay } from 'date-fns';
@@ -47,22 +46,16 @@ export default function CompliancePage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { firestore, user: authUser } = useFirebase();
-    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
+    );
     const [today, setToday] = useState(startOfDay(new Date()));
     const isMobile = useMobile();
     const [statusFilter, setStatusFilter] = useState('all');
 
-    useEffect(() => {
-        if (authUser && firestore) {
-            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
-                if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
-            });
-        }
-    }, [authUser, firestore]);
-    
     const assetsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
-        return query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId));
+        return query(collection(firestore, `companies/${userProfile.companyId}/assets`));
     }, [firestore, userProfile]);
 
     const { data: assets, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
@@ -96,7 +89,7 @@ export default function CompliancePage() {
         return `${base}?${params.toString()}`;
     };
     
-    if (isLoadingAssets || !userProfile) {
+    if (isLoadingAssets || isLoadingProfile) {
         return (
             <div className="space-y-6">
                 <Skeleton className="h-8 w-1/3" />

@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +11,8 @@ import { format, isToday } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, doc, getDoc, collectionGroup } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, getDoc, collectionGroup } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -36,19 +35,10 @@ export default function MyJobsPage() {
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [auditFilter, setAuditFilter] = useState(false);
 
-    const { firestore, user } = useFirebase();
-    const [userProfile, setUserProfile] = useState<PlatformUser | null>(null);
-
-    useEffect(() => {
-        if (user && firestore) {
-            const userDocRef = doc(firestore, 'users', user.uid);
-            getDoc(userDocRef).then(docSnap => {
-                if (docSnap.exists()) {
-                    setUserProfile(docSnap.data() as PlatformUser);
-                }
-            });
-        }
-    }, [user, firestore]);
+    const { firestore, user: authUser } = useFirebase();
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
+    );
 
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
@@ -65,7 +55,7 @@ export default function MyJobsPage() {
 
 
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'companies') : null, [firestore, user]));
+    const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore) ? collection(firestore, 'companies') : null, [firestore]));
 
     const jobsByCategory = useMemo(() => {
         if (!jobsFromDb) return { active: [], completed: [], upcoming: [], drafts: [] };
@@ -193,7 +183,7 @@ export default function MyJobsPage() {
         return allCompanies.filter(p => p.type === 'Provider' && providerIds.has(p.id));
     }, [role, jobsFromDb, allCompanies]);
 
-    if (isLoadingJobs || !userProfile || isLoadingCompanies) {
+    if (isLoadingJobs || isLoadingProfile || isLoadingCompanies) {
         return (
             <div>
                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">

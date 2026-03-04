@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -9,8 +8,8 @@ import { Card } from '@/components/ui/card';
 import { useMobile } from '@/hooks/use-mobile';
 import ConversationList from './components/ConversationList';
 import ChatView from './components/ChatView';
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, orderBy, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, orderBy, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { serviceProviders } from '@/lib/seed-data';
 
@@ -27,26 +26,19 @@ export default function MessagesPage() {
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     
-    const { firestore, auth } = useFirebase();
+    const { firestore } = useFirebase();
     const { user: authUser } = useUser();
-    const [currentUser, setCurrentUser] = useState<PlatformUser | null>(null);
-
-    useEffect(() => {
-        if (authUser && firestore) {
-            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
-                if (docSnap.exists()) {
-                    setCurrentUser(docSnap.data() as PlatformUser);
-                }
-            });
-        }
-    }, [authUser, firestore]);
+    
+    const { data: currentUser, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
+    );
 
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUser) return null;
         if (role === 'client') {
             return query(collection(firestore, 'jobs'), where('clientId', '==', currentUser.id));
         }
-        if (role === 'inspector') {
+        if (role === 'inspector' && currentUser.providerId) {
             return query(collection(firestore, 'jobs'), where('providerId', '==', currentUser.providerId));
         }
         return null;
@@ -100,7 +92,7 @@ export default function MessagesPage() {
                 onSelectJob={setSelectedJob}
                 currentUser={currentUser}
                 role={role}
-                isLoading={isLoadingJobs}
+                isLoading={isLoadingJobs || isLoadingProfile}
             />
             <ChatView
                 isMobile={isMobile}

@@ -15,13 +15,11 @@ service cloud.firestore {
       return authed() && request.auth.uid == userId;
     }
     function isMemberOf(companyId) {
+      // Use exists() instead of get() for better performance and to avoid read costs in rules.
       return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
-    function getJob(jobId) {
-      // This function is tricky because jobs are nested. This is a placeholder for a more complex access pattern.
-      // For this ruleset, we will rely on collection group queries and direct path access checks.
-      // A direct get() like this won't work easily across all companies.
-      return null;
+    function getJobData(jobPath) {
+      return get(jobPath).data;
     }
 
     // -------- USERS --------
@@ -55,15 +53,20 @@ service cloud.firestore {
       
       match /jobs/{jobId} {
         allow get: if authed();
-        allow write: if isMemberOf(companyId) || isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isPlatformAdmin();
+        allow list: if isMemberOf(companyId);
+        allow write: if isMemberOf(companyId) || isMemberOf(getJobData(path(request.path)).providerCompanyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
+          // This rule allows a client to see the bids on their job, or an inspector to see their own bid.
           allow get: if isMemberOf(companyId) || isSelf(resource.data.inspectorId) || isPlatformAdmin();
+          // This rule allows a client to list all bids for a specific job.
+          allow list: if isMemberOf(companyId);
+          // This rule allows an inspector to create their own bid, or a client to update a bid (e.g., to award it).
           allow write: if isSelf(request.resource.data.inspectorId) || isMemberOf(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
-          allow read, write: if isMemberOf(companyId) || isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isMemberOf(getJobData(path(request.path)).providerCompanyId) || isPlatformAdmin();
         }
       }
 
@@ -99,21 +102,25 @@ service cloud.firestore {
     }
     
     // -------- COLLECTION GROUP QUERIES --------
+    // These rules allow broad queries across all companies, which are then
+    // filtered on the client-side by a `where()` clause. The security of these
+    // queries relies on the client-side code ALWAYS including that filter.
+
     match /{path=**}/jobs/{jobId} {
-        // Allows querying for jobs. Client-side queries MUST enforce security.
-        // e.g., where('clientCompanyId', '==', user.companyId) or where('providerCompanyId', '==', user.companyId)
+        // Allows listing jobs for marketplaces (e.g., where('status', '==', 'Posted'))
         allow list: if authed();
     }
     
     match /{path=**}/bids/{bidId} {
-        // This is the key fix. It allows an authenticated user to perform a LIST operation (a query)
-        // against the 'bids' collection group. The client-side code is responsible for adding
-        // the `where('inspectorId', '==', auth.uid)` clause to securely filter the results.
+        // This rule is CRITICAL. It allows an inspector to perform a `list` operation
+        // (a query) across the entire 'bids' collection group.
+        // The application query `where('inspectorId', '==', auth.uid)` ensures they
+        // only get their own bids. This rule authorizes the *action* of querying.
         allow list: if authed();
     }
     
     match /{path=**}/inspections/{inspectionId} {
-        // Allows querying for inspections. Client-side queries must enforce security.
+        // Allows inspectors/clients to query for all their inspections across different assets.
         allow list: if authed();
     }
   }

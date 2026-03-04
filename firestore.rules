@@ -17,6 +17,10 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
     
+    function isCompanyMember(companyId) {
+        return authed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+    }
+
     function isSelf(userId) {
       return authed() && request.auth.uid == userId;
     }
@@ -98,9 +102,6 @@ service cloud.firestore {
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
     
     match /reviews/{reviewId} {
-      // Any authenticated user can create a review.
-      // Admins can read, update, or delete any review (for moderation).
-      // Anyone can read a single review.
       allow get: if true;
       allow list: if isPlatformAdmin();
       allow write: if authed();
@@ -108,8 +109,12 @@ service cloud.firestore {
     }
     
     // -------- Collection Group Queries --------
+    match /{path=**}/assets/{assetId} {
+        allow list: if isCompanyMember(resource.data.companyId) || isPlatformAdmin();
+    }
+    
     match /{path=**}/jobs/{jobId} {
-      allow list: if isPlatformAdmin();
+      allow list: if isPlatformAdmin() || isCompanyMember(resource.data.clientCompanyId) || isCompanyMember(resource.data.providerCompanyId) || isCompanyMember(resource.data.auditorCompanyId);
       allow get: if isPlatformAdmin() || (authed() && (
         get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.clientCompanyId || 
         get(/databases/$(database)/documents/users/$(myUid())).data.companyId == resource.data.providerCompanyId || 

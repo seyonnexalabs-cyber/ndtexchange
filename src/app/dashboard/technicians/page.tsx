@@ -22,7 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, doc, query, where, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format, differenceInDays } from 'date-fns';
 import { useRouter, useSearchParams } from "next/navigation";
 import { safeParseDate } from "@/lib/utils";
@@ -345,7 +345,7 @@ export default function TechniciansPage() {
     
     const companyJobsQuery = useMemoFirebase(() => {
         if (!firestore || !currentUserProfile?.companyId) return null;
-        return query(collection(firestore, 'companies', currentUserProfile.companyId, 'jobs'));
+        return query(collection(firestore, 'jobs'), where('providerCompanyId', '==', currentUserProfile.companyId));
     }, [firestore, currentUserProfile]);
 
     const { data: companyJobs, isLoading: isLoadingJobs } = useCollection<Job>(companyJobsQuery);

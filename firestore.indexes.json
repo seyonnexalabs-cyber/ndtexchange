@@ -26,6 +26,13 @@
       ]
     },
     {
+      "collectionGroup": "bids",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "inspectorId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "inspections",
       "queryScope": "COLLECTION_GROUP",
       "fields": [

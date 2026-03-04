@@ -5,15 +5,23 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // -------- Helpers --------
-    function authed() { return request.auth != null; }
+    function authed() {
+      return request.auth != null;
+    }
     function isPlatformAdmin() {
       return authed() && (request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1']);
+    }
+    function isSelf(userId) {
+      return authed() && request.auth.uid == userId;
     }
     function isMemberOf(companyId) {
       return authed() && exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
     }
-    function isSelf(userId) {
-      return authed() && request.auth.uid == userId;
+    function getJob(jobId) {
+      // This function is tricky because jobs are nested. This is a placeholder for a more complex access pattern.
+      // For this ruleset, we will rely on collection group queries and direct path access checks.
+      // A direct get() like this won't work easily across all companies.
+      return null;
     }
 
     // -------- USERS --------
@@ -46,14 +54,12 @@ service cloud.firestore {
       }
       
       match /jobs/{jobId} {
-        allow read: if authed();
+        allow get: if authed();
         allow write: if isMemberOf(companyId) || isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          // A bid document can be read by the client who owns the job, or the provider who made the bid.
           allow get: if isMemberOf(companyId) || isSelf(resource.data.inspectorId) || isPlatformAdmin();
-          // The provider who made the bid can create it. The client can update its status.
-          allow write: if isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)).data.providerCompanyId) || isMemberOf(companyId) || isPlatformAdmin();
+          allow write: if isSelf(request.resource.data.inspectorId) || isMemberOf(companyId) || isPlatformAdmin();
         }
         
         match /messages/{messageId} {
@@ -94,16 +100,20 @@ service cloud.firestore {
     
     // -------- COLLECTION GROUP QUERIES --------
     match /{path=**}/jobs/{jobId} {
+        // Allows querying for jobs. Client-side queries MUST enforce security.
+        // e.g., where('clientCompanyId', '==', user.companyId) or where('providerCompanyId', '==', user.companyId)
         allow list: if authed();
     }
     
     match /{path=**}/bids/{bidId} {
-        // This allows inspectors to query for their own bids, and clients to query for bids on their jobs.
-        // The actual queries in the app provide the necessary security filters (e.g., where('inspectorId', '==', uid)).
+        // This is the key fix. It allows an authenticated user to perform a LIST operation (a query)
+        // against the 'bids' collection group. The client-side code is responsible for adding
+        // the `where('inspectorId', '==', auth.uid)` clause to securely filter the results.
         allow list: if authed();
     }
     
     match /{path=**}/inspections/{inspectionId} {
+        // Allows querying for inspections. Client-side queries must enforce security.
         allow list: if authed();
     }
   }

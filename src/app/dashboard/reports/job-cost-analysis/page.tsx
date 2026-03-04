@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, reviews, clientData, serviceProviders, NDTTechniques } from '@/lib/seed-data';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -22,7 +22,10 @@ import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useMobile } from '@/hooks/use-mobile';
-
+import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Job, Bid, NDTServiceProvider, NDTTechnique } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const reportSchema = z.object({
   providerIds: z.array(z.string()),
@@ -48,6 +51,14 @@ export default function JobCostAnalysisReportPage() {
     
     const searchParams = useSearchParams();
     const isMobile = useMobile();
+    const { firestore, user } = useFirebase();
+    const { data: userProfile } = useDoc(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
+
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => firestore ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile?.companyId)) : null, [firestore, userProfile]));
+    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => firestore ? query(collection(firestore, 'bids'), where('status', '==', 'Awarded')) : null, [firestore]));
+    const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]));
+    const { data: NDTTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -57,16 +68,15 @@ export default function JobCostAnalysisReportPage() {
 
     const filteredJobs = React.useMemo(() => {
         const { providerIds, techniqueIds, dateRange } = filters;
-        // For demo purposes, assume we are logged in as the primary client company
-        const currentClient = clientData.find(c => c.id === 'client-01');
+
+        if (!jobs) return [];
 
         return jobs
-            .filter(job => job.client === currentClient?.name) // Filter for current client's jobs
             .map(job => {
-                const awardedBid = job.bids?.find(bid => bid.status === 'Awarded');
+                const awardedBid = bids?.find(bid => bid.jobId === job.id);
                 if (!awardedBid) return null;
                 const duration = (job.scheduledStartDate && job.scheduledEndDate)
-                    ? differenceInDays(parseISO(job.scheduledEndDate), parseISO(job.scheduledStartDate)) + 1
+                    ? differenceInDays(safeParseDate(job.scheduledEndDate)!, safeParseDate(job.scheduledStartDate)!) + 1
                     : 1;
 
                 return { ...job, awardedBid, duration };
@@ -74,13 +84,13 @@ export default function JobCostAnalysisReportPage() {
             .filter((job): job is NonNullable<typeof job> => job !== null)
             .filter(job => {
                 const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
-                const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerId!);
-                const techniqueMatch = techniqueIds.length === 0 || job.techniques.some(t => values.techniqueIds?.includes(t));
+                const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerCompanyId!);
+                const techniqueMatch = techniqueIds.length === 0 || job.techniques.some(t => filters.techniqueIds?.includes(t));
                 const dateMatch = !jobDate || !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
 
                 return providerMatch && techniqueMatch && dateMatch;
             });
-    }, [filters]);
+    }, [filters, jobs, bids]);
 
     const { totalCost, avgCost, avgDuration } = React.useMemo(() => {
         if (filteredJobs.length === 0) {
@@ -130,7 +140,7 @@ export default function JobCostAnalysisReportPage() {
                                 <FormItem>
                                     <FormLabel>Filter by Provider(s)</FormLabel>
                                     <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                        {serviceProviders.map((provider) => (
+                                        {(serviceProviders || []).map((provider) => (
                                         <FormField
                                             key={provider.id}
                                             control={form.control}
@@ -174,7 +184,7 @@ export default function JobCostAnalysisReportPage() {
                                 <FormItem>
                                     <FormLabel>Filter by Technique(s)</FormLabel>
                                     <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                        {NDTTechniques.map((tech) => (
+                                        {(NDTTechniques || []).map((tech) => (
                                         <FormField
                                             key={tech.id}
                                             control={form.control}
@@ -200,7 +210,7 @@ export default function JobCostAnalysisReportPage() {
                                                     />
                                                 </FormControl>
                                                 <FormLabel className="font-normal text-sm">
-                                                    {tech.name}
+                                                    {tech.title}
                                                 </FormLabel>
                                                 </FormItem>
                                             )
@@ -320,11 +330,11 @@ export default function JobCostAnalysisReportPage() {
                                     <p className="font-semibold">{job.title}</p>
                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
                                     <div className="text-sm text-muted-foreground mt-2 space-y-1">
-                                        <p>Provider: {serviceProviders.find(p => p.id === job.providerId)?.name}</p>
-                                        <p>Technique: <Badge variant="secondary" shape="rounded">{job.technique}</Badge></p>
+                                        <p>Provider: {serviceProviders?.find(p => p.id === job.providerCompanyId)?.name}</p>
+                                        <p>Technique: <Badge variant="secondary" shape="rounded">{job.techniques[0]}</Badge></p>
                                         <p>Cost: ${job.awardedBid.amount.toLocaleString()}</p>
                                         <p>Duration: {job.duration} Day(s)</p>
-                                        <p>Completed: {job.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                        <p>Completed: {job.scheduledEndDate ? format(safeParseDate(job.scheduledEndDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                     </div>
                                 </Card>
                             ))}
@@ -352,11 +362,11 @@ export default function JobCostAnalysisReportPage() {
                                     <TableRow key={job!.id}>
                                         <TableCell className="font-extrabold text-xs">{job!.id}</TableCell>
                                         <TableCell className="font-medium">{job!.title}</TableCell>
-                                        <TableCell>{serviceProviders.find(p => p.id === job!.providerId)?.name}</TableCell>
-                                        <TableCell><Badge variant="secondary" shape="rounded">{job!.technique}</Badge></TableCell>
+                                        <TableCell>{serviceProviders?.find(p => p.id === job!.providerCompanyId)?.name}</TableCell>
+                                        <TableCell><Badge variant="secondary" shape="rounded">{job!.techniques[0]}</Badge></TableCell>
                                         <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
                                         <TableCell>{job!.duration}</TableCell>
-                                        <TableCell>{job!.scheduledEndDate ? format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT): ''}</TableCell>
+                                        <TableCell>{job!.scheduledEndDate ? format(safeParseDate(job.scheduledEndDate)!, GLOBAL_DATE_FORMAT): ''}</TableCell>
                                     </TableRow>
                                 ))}
                                 {filteredJobs.length === 0 && (
@@ -374,3 +384,5 @@ export default function JobCostAnalysisReportPage() {
         </div>
     );
 }
+
+    

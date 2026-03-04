@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, query, where, doc, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, doc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -44,10 +44,10 @@ export default function MyJobsPage() {
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
         if (role === 'client') {
-            return query(collection(firestore, 'companies', userProfile.companyId, 'jobs'));
+            return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
         }
         if (role === 'inspector') {
-            return query(collectionGroup(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId));
+            return query(collection(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId));
         }
         return null;
     }, [firestore, userProfile, role]);
@@ -382,4 +382,7 @@ export default function MyJobsPage() {
     );
 }
     
+    
+
+
     

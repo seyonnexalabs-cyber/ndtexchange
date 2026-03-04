@@ -14,10 +14,10 @@ import { useMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useSearch } from '@/app/components/layout/search-provider';
+import { useSearch } from '@/components/layout/search-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, collectionGroup } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -208,7 +208,7 @@ export default function ReportsPage() {
     
     const inspectionsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collectionGroup(firestore, 'inspections');
+        return collection(firestore, 'inspections');
     }, [firestore]);
 
     const usersQuery = useMemoFirebase(() => {
@@ -232,7 +232,7 @@ export default function ReportsPage() {
         if (role === 'client') {
             relevantJobs = jobs.filter(j => j.clientCompanyId === 'client-01');
         } else if (role === 'inspector') {
-            relevantJobs = jobs.filter(j => j.providerId === 'provider-03');
+            relevantJobs = jobs.filter(j => j.providerCompanyId === 'provider-03');
         }
         const relevantJobIds = new Set(relevantJobs.map(j => j.id));
 
@@ -346,3 +346,5 @@ export default function ReportsPage() {
         </div>
     );
 }
+
+    

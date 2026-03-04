@@ -404,7 +404,7 @@ export default function PostJobPage() {
                     if (!asset) continue;
 
                     for (const technique of scopeItem.techniques) {
-                        const inspectionRef = doc(collection(firestore, `assets/${scopeItem.assetId}/inspections`));
+                        const inspectionRef = doc(collection(firestore, 'inspections'));
                         const inspectionData: Omit<Inspection, 'id' | 'report'> = {
                             jobId: jobRef.id,
                             assetId: scopeItem.assetId,
@@ -704,3 +704,5 @@ export default function PostJobPage() {
         </div>
     );
 }
+
+    

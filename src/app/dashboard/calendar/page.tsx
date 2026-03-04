@@ -62,7 +62,7 @@ export default function CalendarPage() {
             return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', userProfile.companyId));
         }
         if (role === 'inspector') {
-            return query(collection(firestore, 'jobs'), where('providerId', '==', userProfile.companyId));
+            return query(collection(firestore, 'jobs'), where('providerCompanyId', '==', userProfile.companyId));
         }
         return null;
     }, [firestore, userProfile, role]);
@@ -418,3 +418,5 @@ export default function CalendarPage() {
         </div>
     );
 }
+
+    

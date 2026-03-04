@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -8,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, reviews, clientData, serviceProviders, NDTTechniques } from '@/lib/seed-data';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -25,8 +23,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, collectionGroup, query, where, doc } from 'firebase/firestore';
-import type { Job, Bid, PlatformUser, NDTServiceProvider, Review } from '@/lib/types';
+import { collection, query, where } from 'firebase/firestore';
+import type { Job, Bid, PlatformUser, NDTServiceProvider, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const reportSchema = z.object({
@@ -70,7 +68,7 @@ export default function ProviderPerformanceReportPage() {
 
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
-    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => (firestore ? query(collectionGroup(firestore, 'bids'), where('status', '==', 'Awarded')) : null), [firestore]));
+    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => (firestore ? query(collection(firestore, 'bids'), where('status', '==', 'Awarded')) : null), [firestore]));
     const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(useMemoFirebase(() => (firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'Approved')) : null), [firestore]));
 
     const constructUrl = (base: string) => {
@@ -86,7 +84,7 @@ export default function ProviderPerformanceReportPage() {
         const { providerIds, dateRange } = filters;
 
         let relevantProviders = serviceProviders.filter(provider => {
-            const hasJobs = jobs.some(job => job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status));
+            const hasJobs = jobs.some(job => job.providerCompanyId === provider.id && ['Completed', 'Paid'].includes(job.status));
             return hasJobs;
         });
 
@@ -96,7 +94,7 @@ export default function ProviderPerformanceReportPage() {
 
         const data: ProviderPerformanceData[] = relevantProviders.map(provider => {
             const providerJobs = jobs.filter(job => {
-                const jobIsForProvider = job.providerId === provider.id && ['Completed', 'Paid'].includes(job.status);
+                const jobIsForProvider = job.providerCompanyId === provider.id && ['Completed', 'Paid'].includes(job.status);
                 if (!jobIsForProvider) return false;
 
                 const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
@@ -442,3 +440,5 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
+
+    

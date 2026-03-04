@@ -51,7 +51,7 @@ service cloud.firestore {
       
       match /jobs/{jobId} {
         allow get, write: if isMemberOf(companyId) || isPlatformAdmin();
-        allow list: if authed();
+        allow list: if authed(); // Allow any authenticated user to list jobs
         
         match /bids/{bidId} {
           // Bids are sensitive, only readable by client, provider, or admin
@@ -88,6 +88,7 @@ service cloud.firestore {
     match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /equipment/{equipmentId} { allow read: if true; allow write: if isPlatformAdmin() || isMemberOf(resource.data.providerId); }
     
     // Reviews have special rules
     match /reviews/{reviewId} {

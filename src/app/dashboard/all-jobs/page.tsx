@@ -23,7 +23,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, collectionGroup, Query } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -62,14 +62,29 @@ export default function AllJobsPage() {
     const { firestore, user } = useFirebase();
     const isReady = !!firestore && !!user && role === 'admin';
 
-    const jobsQuery = useMemoFirebase(() => isReady ? query(collectionGroup(firestore, 'jobs')) : null, [isReady]);
-    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
-    
     const companiesQuery = useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady]);
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
 
     const clientData = useMemo(() => companies?.filter(c => c.type === 'Client') || [], [companies]);
     const serviceProviders = useMemo(() => companies?.filter(c => c.type === 'Provider') || [], [companies]);
+
+    const jobsQuery = useMemoFirebase(() => {
+        if (!isReady) return null;
+        
+        let q: Query = collectionGroup(firestore, 'jobs');
+
+        if (selectedProviders.length > 0) {
+            q = query(q, where('providerCompanyId', 'in', selectedProviders.slice(0, 10)));
+        } else if (selectedClients.length > 0) {
+            q = query(q, where('clientCompanyId', 'in', selectedClients.slice(0, 10)));
+        } else if (selectedStatuses.length > 0) {
+            q = query(q, where('status', 'in', selectedStatuses.slice(0, 10)));
+        }
+        
+        return q;
+    }, [isReady, firestore, selectedProviders, selectedClients, selectedStatuses]);
+    
+    const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
     useEffect(() => {
         setToday(new Date());
@@ -96,6 +111,10 @@ export default function AllJobsPage() {
 
     const filteredJobs = useMemo(() => {
         if (!isReady || !jobs) return [];
+
+        const providersFilteredInQuery = selectedProviders.length > 0;
+        const clientsFilteredInQuery = !providersFilteredInQuery && selectedClients.length > 0;
+        const statusesFilteredInQuery = !providersFilteredInQuery && !clientsFilteredInQuery && selectedStatuses.length > 0;
         
         return jobs.filter(job => {
             const searchMatch = !searchQuery ||
@@ -103,9 +122,9 @@ export default function AllJobsPage() {
                 job.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.id.toLowerCase().includes(searchQuery.toLowerCase());
             
-            const providerMatch = selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
-            const clientMatch = selectedClients.length === 0 || selectedClients.includes(job.client);
-            const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
+            const providerMatch = providersFilteredInQuery || selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
+            const clientMatch = clientsFilteredInQuery || selectedClients.length === 0 || (job.clientCompanyId && selectedClients.includes(job.clientCompanyId));
+            const statusMatch = statusesFilteredInQuery || selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
 
             return searchMatch && providerMatch && statusMatch && clientMatch;
         });
@@ -123,8 +142,8 @@ export default function AllJobsPage() {
         setSelectedProviders(prev => prev.includes(providerId) ? prev.filter(id => id !== providerId) : [...prev, providerId]);
     };
 
-    const handleClientChange = (clientName: string) => {
-        setSelectedClients(prev => prev.includes(clientName) ? prev.filter(name => name !== clientName) : [...prev, clientName]);
+    const handleClientChange = (clientId: string) => {
+        setSelectedClients(prev => prev.includes(clientId) ? prev.filter(id => id !== clientId) : [...prev, clientId]);
     };
     
     const handleStatusChange = (status: string) => {
@@ -242,8 +261,8 @@ export default function AllJobsPage() {
                                         <div key={client.id} className="flex items-center space-x-2">
                                             <Checkbox
                                                 id={`client-${client.id}`}
-                                                checked={selectedClients.includes(client.name)}
-                                                onCheckedChange={() => handleClientChange(client.name)}
+                                                checked={selectedClients.includes(client.id)}
+                                                onCheckedChange={() => handleClientChange(client.id)}
                                             />
                                             <Label htmlFor={`client-${client.id}`}>{client.name}</Label>
                                         </div>
@@ -312,10 +331,10 @@ export default function AllJobsPage() {
             {hasActiveFilters && (
                 <div className="mb-4 flex items-center flex-wrap gap-2">
                     <span className="text-sm font-medium">Active Filters:</span>
-                     {selectedClients.map(clientName => (
-                        <Badge key={clientName} variant="secondary">
-                            {clientName}
-                            <button onClick={() => handleClientChange(clientName)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                     {selectedClients.map(clientId => (
+                        <Badge key={clientId} variant="secondary">
+                            {clientData.find(c => c.id === clientId)?.name}
+                            <button onClick={() => handleClientChange(clientId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                 <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>

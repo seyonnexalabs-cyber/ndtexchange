@@ -28,7 +28,7 @@ import { useSearch } from "@/app/components/layout/search-provider";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where, Query } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -310,12 +310,9 @@ const EditUserForm = ({ user, onCancel, onSubmit, allCompanies }: { user: Platfo
     );
 }
 
-const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser, allCompanies }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void, allCompanies: any[] }) => {
+const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser, allCompanies, selectedRoles, handleRoleChange, statusFilter, setStatusFilter, selectedCompanies, handleCompanyChange }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void, allCompanies: any[], selectedRoles: string[], handleRoleChange: (role: string) => void, statusFilter: string, setStatusFilter: (status: string) => void, selectedCompanies: string[], handleCompanyChange: (company: string) => void }) => {
     const isMobile = useMobile();
     const { searchQuery } = useSearch();
-    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
 
     const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);
 
@@ -324,40 +321,18 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser,
         return Array.from(companies).sort();
     }, [users]);
 
-    const filteredUsers = useMemo(() => {
-        return users.filter(user => {
-            const searchMatch = !searchQuery ||
-                user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                user.company.toLowerCase().includes(searchQuery.toLowerCase());
-            
-            const roleMatch = selectedRoles.length === 0 || selectedRoles.includes(user.role);
-            const companyMatch = selectedCompanies.length === 0 || selectedCompanies.includes(user.company);
-            const statusMatch = statusFilter === 'all' || user.status === statusFilter;
-
-            return searchMatch && roleMatch && companyMatch && statusMatch;
-        });
-    }, [users, searchQuery, selectedRoles, statusFilter, selectedCompanies]);
-
     const uniqueRoles = useMemo(() => {
         const roles = new Set(users.filter(u => u.company !== 'NDT EXCHANGE').map(u => u.role));
         return Array.from(roles);
     }, [users]);
 
-    const handleRoleChange = (role: string) => {
-        setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
-    };
-
-    const handleCompanyChange = (company: string) => {
-        setSelectedCompanies(prev => prev.includes(company) ? prev.filter(c => c !== company) : [...prev, company]);
-    };
 
     const hasActiveFilters = selectedRoles.length > 0 || statusFilter !== 'all' || selectedCompanies.length > 0;
     
     if (isMobile) {
         return (
             <div className="space-y-4">
-                {filteredUsers.map(user => (
+                {users.map(user => (
                     <Card key={user.id} className={cn(isCompanyAdmin(user) && 'bg-accent/10 border-accent')}>
                         <CardHeader>
                             <div className="flex items-center gap-3">
@@ -519,7 +494,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser,
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredUsers.map(user => (
+                        {users.map(user => (
                             <TableRow key={user.id} className={cn(isCompanyAdmin(user) && 'bg-accent/10')}>
                                 <TableCell className="font-medium flex items-center gap-3">
                                     <Avatar>
@@ -562,7 +537,7 @@ const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser,
                                 </TableCell>
                             </TableRow>
                         ))}
-                         {filteredUsers.length === 0 && (
+                         {users.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                                     No users found matching your filters.
@@ -583,12 +558,30 @@ export default function UsersPage() {
     const role = searchParams.get('role');
     const { toast } = useToast();
     const { firestore, user } = useFirebase();
+    const { searchQuery } = useSearch();
 
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     
+    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+
     const isReady = firestore && user && role === 'admin';
     
-    const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
+    const usersQuery = useMemoFirebase(() => {
+        if (!isReady) return null;
+        let q: Query = collection(firestore, 'users');
+        if (selectedRoles.length > 0) {
+            q = query(q, where('role', 'in', selectedRoles.slice(0, 10)));
+        } else if (selectedCompanies.length > 0) {
+            q = query(q, where('company', 'in', selectedCompanies.slice(0, 10)));
+        } else if (statusFilter !== 'all') {
+            q = query(q, where('status', '==', statusFilter));
+        }
+        return q;
+    }, [isReady, firestore, selectedRoles, selectedCompanies, statusFilter]);
+
+    const { data: usersFromDb, isLoading: isLoadingUsers } = useCollection<PlatformUser>(usersQuery);
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
 
     const [companyAdmins, setCompanyAdmins] = useState<Set<string>>(() => new Set());
@@ -600,6 +593,27 @@ export default function UsersPage() {
             setCompanyAdmins(admins);
         }
     }, [allCompanies]);
+
+    const filteredUsers = useMemo(() => {
+        if (!usersFromDb) return [];
+        return usersFromDb.filter(user => {
+            const searchMatch = !searchQuery ||
+                user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.company.toLowerCase().includes(searchQuery.toLowerCase());
+
+            const roleMatch = selectedRoles.length === 0 || selectedRoles.includes(user.role);
+            const companyMatch = selectedCompanies.length === 0 || selectedCompanies.includes(user.company);
+            const statusMatch = statusFilter === 'all' || user.status === statusFilter;
+
+            // Only apply client-side filtering for filters *not* used in the query
+            if (selectedRoles.length > 0) return searchMatch && companyMatch && statusMatch;
+            if (selectedCompanies.length > 0) return searchMatch && roleMatch && statusMatch;
+            if (statusFilter !== 'all') return searchMatch && roleMatch && companyMatch;
+            
+            return searchMatch && roleMatch && companyMatch && statusMatch;
+        });
+    }, [usersFromDb, searchQuery, selectedRoles, statusFilter, selectedCompanies]);
 
 
     const [userToPromote, setUserToPromote] = useState<PlatformUser | null>(null);
@@ -614,7 +628,6 @@ export default function UsersPage() {
     }, [role, router, searchParams]);
 
     const handleAddUser = (values: z.infer<typeof userSchema>) => {
-        // This will be handled by Firebase Functions in a real app to send an invite
         console.log("Invite User:", values);
         setIsAddUserOpen(false);
         toast({
@@ -641,7 +654,6 @@ export default function UsersPage() {
         if (!userToPromote) return;
         setCompanyAdmins(prevAdmins => {
             const newAdmins = new Set(prevAdmins);
-            // This is simplified. A real implementation would need to find the old admin to remove them.
             newAdmins.add(userToPromote.name);
             return newAdmins;
         });
@@ -663,13 +675,15 @@ export default function UsersPage() {
     
     const confirmDisableUser = () => {
         if (!userToDisable) return;
-        // This would update the user's status in the database.
         toast({
             title: "User Disabled",
             description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
         });
         setUserToDisable(null);
     };
+    
+    const handleRoleChange = (role: string) => setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
+    const handleCompanyChange = (company: string) => setSelectedCompanies(prev => prev.includes(company) ? prev.filter(c => c !== company) : [...prev, company]);
 
     if (role !== 'admin') {
         return null;
@@ -700,12 +714,18 @@ export default function UsersPage() {
             </div>
             
             <PlatformUsersView
-                users={users || []}
+                users={filteredUsers}
                 companyAdmins={companyAdmins}
                 onPromoteUser={handleSetCompanyAdmin}
                 onDisableUser={handleDisableClick}
                 onEditUser={handleEditClick}
                 allCompanies={allCompanies || []}
+                selectedRoles={selectedRoles}
+                handleRoleChange={handleRoleChange}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                selectedCompanies={selectedCompanies}
+                handleCompanyChange={handleCompanyChange}
             />
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
@@ -787,5 +807,3 @@ export default function UsersPage() {
         </div>
     );
 }
-
-    

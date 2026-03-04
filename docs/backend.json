@@ -68,6 +68,21 @@
       },
       "required": ["id", "companyId", "name", "isMovable"]
     },
+    "Equipment": {
+      "title": "Equipment",
+      "type": "object",
+      "description": "A piece of NDT equipment owned by a service provider.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "providerId": { "type": "string" },
+        "type": { "type": "string", "enum": ["Instrument", "Probe", "Source", "Sensor", "Calibration Standard", "Accessory", "Visual Aid"] },
+        "techniques": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Available", "In Use", "Calibration Due", "Out of Service", "Under Service"] },
+        "nextCalibration": { "type": "string", "format": "date" }
+      },
+      "required": ["id", "name", "providerId", "type", "status", "nextCalibration"]
+    },
     "Inspection": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Inspection",
@@ -524,6 +539,14 @@
           }
       },
       {
+        "path": "/equipment/{equipmentId}",
+        "definition": {
+          "entityName": "Equipment",
+          "schema": { "$ref": "#/entities/Equipment" },
+          "description": "Top-level collection for all NDT equipment."
+        }
+      },
+      {
         "path": "/admin/{collection}/{docId}",
         "definition": {
           "entityName": "AdminDoc",
@@ -546,5 +569,3 @@
     ]
   }
 }
-
-    

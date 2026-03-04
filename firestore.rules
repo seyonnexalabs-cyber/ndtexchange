@@ -30,35 +30,28 @@ service cloud.firestore {
     
     // -------- COMPANIES & ALL NESTED DATA --------
     match /companies/{companyId} {
-      // Public profiles can be read by any authenticated user
-      allow get, list: if authed();
-      // Only admins can create/update company-level details
+      allow read: if authed();
       allow write: if isPlatformAdmin();
       
-      // --- Subcollections ---
       match /members/{memberUid} {
         allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
       }
       
       match /assets/{assetId} {
-        allow get: if isMemberOf(companyId) || isPlatformAdmin();
-        allow write: if isMemberOf(companyId) || isPlatformAdmin();
+        allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         
         match /inspections/{inspectionId} {
-          allow get: if isMemberOf(companyId) || isPlatformAdmin();
-          allow write: if isMemberOf(companyId) || isPlatformAdmin();
+          allow read, write: if isMemberOf(companyId) || isPlatformAdmin();
         }
       }
       
       match /jobs/{jobId} {
-        // Any authenticated user can GET a job to view its details before bidding
-        allow get: if authed();
-        // A company member (client) or assigned provider can write to a job. Admins always can.
+        allow read: if authed();
         allow write: if isMemberOf(companyId) || isMemberOf(request.resource.data.providerCompanyId) || isPlatformAdmin();
         
         match /bids/{bidId} {
-          // A bid document can be read by the client who owns the job, the provider who made the bid, or an admin.
-          allow get: if isMemberOf(companyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
+          // A bid document can be read by the client who owns the job, or the provider who made the bid.
+          allow get: if isMemberOf(companyId) || isSelf(resource.data.inspectorId) || isPlatformAdmin();
           // The provider who made the bid can create it. The client can update its status.
           allow write: if isMemberOf(get(/databases/$(database)/documents/companies/$(companyId)/jobs/$(jobId)/bids/$(bidId)).data.providerCompanyId) || isMemberOf(companyId) || isPlatformAdmin();
         }
@@ -85,7 +78,6 @@ service cloud.firestore {
     match /jobPayments/{jobPaymentId} { allow read, write: if isPlatformAdmin(); }
     
     // -------- Top-Level PUBLIC Collections --------
-    // Anyone can read, only admins can write
     match /techniques/{techId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /manufacturers/{manuId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /products/{prodId} { allow read: if true; allow write: if isPlatformAdmin(); }
@@ -93,7 +85,7 @@ service cloud.firestore {
     match /events/{eventId} { allow read: if true; allow write: if isPlatformAdmin(); }
     match /equipment/{equipmentId} { allow read: if true; allow write: if isPlatformAdmin() || isMemberOf(resource.data.providerId); }
     
-    // Reviews have special rules
+    // -------- Reviews --------
     match /reviews/{reviewId} {
       allow get, list: if true;
       allow create: if authed();
@@ -101,22 +93,18 @@ service cloud.firestore {
     }
     
     // -------- COLLECTION GROUP QUERIES --------
-    
     match /{path=**}/jobs/{jobId} {
-        // Allows queries like where('providerCompanyId', '==', ...) or where('clientCompanyId', '==', ...)
-        // The client-side query MUST be trusted to apply the correct filter.
         allow read: if authed();
     }
     
     match /{path=**}/bids/{bidId} {
-        // This allows a collection group query on 'bids' for pages like "My Bids".
-        // The query MUST be constrained with `where('inspectorId', '==', request.auth.uid)` on the client-side.
+        // This rule allows an inspector to query for their own bids across all jobs.
+        // It's evaluated for list operations (queries) and get operations (reading a single doc).
+        // The client-side query MUST be trusted to apply the correct 'where' clause for security.
         allow read: if authed();
     }
     
     match /{path=**}/inspections/{inspectionId} {
-        // Allows an inspector to query for inspections they are assigned to.
-        // The query must be constrained by `where('inspectorId', '==', request.auth.uid)`.
         allow read: if authed();
     }
   }

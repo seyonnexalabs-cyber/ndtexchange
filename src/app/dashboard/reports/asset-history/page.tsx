@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, clientAssets } from '@/lib/seed-data';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -20,7 +20,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { useMobile } from '@/hooks/use-mobile';
-
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
+import type { Asset, PlatformUser, Inspection } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const reportSchema = z.object({
   assetIds: z.array(z.string()),
@@ -44,25 +47,50 @@ export default function AssetHistoryReportPage() {
     
     const searchParams = useSearchParams();
     const isMobile = useMobile();
+    const { firestore, user: authUser } = useFirebase();
+    const [filteredInspections, setFilteredInspections] = React.useState<Inspection[]>([]);
+
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
+    );
+    
+    const assetsQuery = useMemoFirebase(() => (firestore && userProfile?.companyId ? query(collection(firestore, 'assets'), where('companyId', '==', userProfile.companyId)) : null), [firestore, userProfile]);
+    const { data: clientAssets, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
+    
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
+    const inspectionsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'inspections');
+    }, [firestore]);
+    const { data: allInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
+    
+    const isLoading = isLoadingAssets || isLoadingProfile || isLoadingInspections;
+
     const filters = form.watch();
 
-    const filteredInspections = React.useMemo(() => {
-        const { assetIds, dateRange } = filters;
-        const allInspections = jobs.flatMap(j => j.inspections || []);
+    React.useEffect(() => {
+        if (!allInspections || !clientAssets) return;
+        
+        const userAssetIds = new Set(clientAssets.map(a => a.id));
 
-        return allInspections.filter(inspection => {
+        const { assetIds, dateRange } = filters;
+        const results = allInspections.filter(inspection => {
+            if (!userAssetIds.has(inspection.assetId)) return false;
+
             const inspectionDate = safeParseDate(inspection.date);
             if (!inspectionDate) return false;
+            
             const assetMatch = assetIds.length === 0 || assetIds.includes(inspection.assetId);
-            const dateMatch = dateRange?.from && dateRange?.to ? (inspectionDate >= dateRange.from && inspectionDate <= dateRange.to) : true;
+            const dateMatch = !dateRange?.from || !dateRange?.to || (inspectionDate >= dateRange.from && inspectionDate <= dateRange.to);
+
             return assetMatch && dateMatch;
         });
-    }, [filters]);
+        setFilteredInspections(results);
+    }, [filters, allInspections, clientAssets]);
     
     return (
         <div className="space-y-6">
@@ -97,41 +125,43 @@ export default function AssetHistoryReportPage() {
                                 render={() => (
                                 <FormItem>
                                     <FormLabel>Select Asset(s)</FormLabel>
-                                    <ScrollArea className="h-40 w-full rounded-md border p-4">
-                                        {clientAssets.map((asset) => (
-                                        <FormField
-                                            key={asset.id}
-                                            control={form.control}
-                                            name="assetIds"
-                                            render={({ field }) => {
-                                            return (
-                                                <FormItem
+                                    {isLoadingAssets ? <Skeleton className="h-40 w-full" /> : (
+                                        <ScrollArea className="h-40 w-full rounded-md border p-4">
+                                            {(clientAssets || []).map((asset) => (
+                                            <FormField
                                                 key={asset.id}
-                                                className="flex flex-row items-start space-x-3 space-y-0 mb-2"
-                                                >
-                                                <FormControl>
-                                                    <Checkbox
-                                                    checked={field.value?.includes(asset.id)}
-                                                    onCheckedChange={(checked) => {
-                                                        return checked
-                                                        ? field.onChange([...(field.value || []), asset.id])
-                                                        : field.onChange(
-                                                            field.value?.filter(
-                                                                (value) => value !== asset.id
-                                                            )
-                                                            )
-                                                    }}
-                                                    />
-                                                </FormControl>
-                                                <FormLabel className="font-normal text-sm">
-                                                    {asset.name} ({asset.location})
-                                                </FormLabel>
-                                                </FormItem>
-                                            )
-                                            }}
-                                        />
-                                        ))}
-                                    </ScrollArea>
+                                                control={form.control}
+                                                name="assetIds"
+                                                render={({ field }) => {
+                                                return (
+                                                    <FormItem
+                                                    key={asset.id}
+                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                    >
+                                                    <FormControl>
+                                                        <Checkbox
+                                                        checked={field.value?.includes(asset.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), asset.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== asset.id
+                                                                )
+                                                                )
+                                                        }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal text-sm">
+                                                        {asset.name} ({asset.location})
+                                                    </FormLabel>
+                                                    </FormItem>
+                                                )
+                                                }}
+                                            />
+                                            ))}
+                                        </ScrollArea>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                                 )}
@@ -265,3 +295,5 @@ export default function AssetHistoryReportPage() {
         </div>
     );
 }
+
+    

@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -188,6 +187,16 @@ export default function JobDetailPage() {
     }, [firestore, job]);
 
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
+
+    const inspectionsQuery = useMemoFirebase(() => {
+        if (!firestore || !job?.id) return null;
+        return query(
+            collection(firestore, 'inspections'),
+            where('jobId', '==', job.id)
+        );
+    }, [firestore, job]);
+    
+    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => (firestore ? collection(firestore, 'companies') : null), [firestore]));
     
@@ -245,7 +254,7 @@ export default function JobDetailPage() {
         if (provider) setReviewingBid({ ...bid, provider });
     };
 
-    const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies;
+    const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections;
 
     if (isLoading) {
         return (
@@ -381,3 +390,5 @@ export default function JobDetailPage() {
         </div>
     );
 }
+
+    

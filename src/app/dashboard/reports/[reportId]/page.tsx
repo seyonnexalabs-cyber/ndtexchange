@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, AlertTriangle, Check, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -23,7 +23,6 @@ import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/
 import { collection, serverTimestamp, doc, writeBatch, arrayUnion } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider, PlatformUser, Inspection, Equipment, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { JobLifecycle } from '../../my-jobs/components/job-lifecycle';
 
 // --- Report Viewer Component ---
 const ReportViewerPage = ({ reportId }: { reportId: string }) => {
@@ -96,16 +95,15 @@ const ReportGeneratorPage = () => {
 
     const jobId = searchParams.get('jobId');
     const inspectionId = searchParams.get('inspectionId');
-    const assetId = searchParams.get('assetId');
     
     const [step, setStep] = React.useState(1);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
 
     const { data: job, isLoading: isLoadingJob } = useDoc<Job>(useMemoFirebase(() => (firestore && jobId ? doc(firestore, 'jobs', jobId) : null), [firestore, jobId]));
-    const { data: inspection, isLoading: isLoadingInspection } = useDoc<Inspection>(useMemoFirebase(() => (firestore && assetId && inspectionId ? doc(firestore, 'assets', assetId, 'inspections', inspectionId) : null), [firestore, assetId, inspectionId]));
+    const { data: inspection, isLoading: isLoadingInspection } = useDoc<Inspection>(useMemoFirebase(() => (firestore && inspectionId ? doc(firestore, 'inspections', inspectionId) : null), [firestore, inspectionId]));
     const { data: client, isLoading: isLoadingClient } = useDoc<Client>(useMemoFirebase(() => (firestore && job?.clientCompanyId ? doc(firestore, 'companies', job.clientCompanyId) : null), [firestore, job]));
-    const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(useMemoFirebase(() => (firestore && job?.providerId ? doc(firestore, 'companies', job.providerId) : null), [firestore, job]));
+    const { data: provider, isLoading: isLoadingProvider } = useDoc<NDTServiceProvider>(useMemoFirebase(() => (firestore && job?.providerCompanyId ? doc(firestore, 'companies', job.providerCompanyId) : null), [firestore, job]));
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser]));
     const { data: ndtTechnique, isLoading: isLoadingTechnique } = useDoc<NDTTechnique>(useMemoFirebase(() => (firestore && inspection?.technique ? doc(firestore, 'techniques', inspection.technique) : null), [firestore, inspection]));
     
@@ -125,7 +123,7 @@ const ReportGeneratorPage = () => {
     }
 
     const onSubmit = async (values: z.infer<typeof reportSchema>) => {
-        if (!firestore || !job || !inspection || !assetId || !authUser || !currentUserProfile) {
+        if (!firestore || !job || !inspection || !authUser || !currentUserProfile) {
             toast({ variant: "destructive", title: "Error", description: "Missing critical data to submit report." });
             return;
         }
@@ -152,7 +150,7 @@ const ReportGeneratorPage = () => {
     
     const handleBack = () => setStep(s => s - 1);
     
-    const isLoading = isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile || isLoadingTechnique || isLoadingEquipment || !jobId || !inspectionId || !assetId;
+    const isLoading = isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile || isLoadingTechnique || isLoadingEquipment || !jobId || !inspectionId;
 
     if (isLoading) {
         return (
@@ -331,3 +329,5 @@ export default function UnifiedReportPage() {
         return <ReportViewerPage reportId={reportId} />;
     }
 }
+
+    

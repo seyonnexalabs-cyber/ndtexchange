@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlatformUser, Job, Certification, NDTServiceProvider, NDTTechnique } from "@/lib/types";
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle, Trash } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
-import { format, isToday } from 'date-fns';
+import { format, isToday, differenceInDays } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -210,6 +210,7 @@ export default function TechnicianDetailPage() {
     const { toast } = useToast();
     const router = useRouter();
     const { firestore } = useFirebase();
+    const [hasExpiringCert, setHasExpiringCert] = useState(false);
 
     const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
     const { data: technician, isLoading: isLoadingTechnician } = useDoc<PlatformUser>(technicianRef);
@@ -223,6 +224,20 @@ export default function TechnicianDetailPage() {
         useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore])
     );
     
+    useEffect(() => {
+        if (technician?.certifications) {
+            const today = new Date();
+            const expiring = technician.certifications.some((cert: Certification) => {
+                if (!cert.validUntil) return false;
+                const validUntilDate = safeParseDate(cert.validUntil);
+                if (!validUntilDate) return false;
+                const diff = differenceInDays(validUntilDate, today);
+                return diff >= 0 && diff <= 30;
+            });
+            setHasExpiringCert(expiring);
+        }
+    }, [technician]);
+
     const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
     
     const highestLevel = technician?.certifications?.reduce((highest, cert) => {
@@ -377,6 +392,12 @@ export default function TechnicianDetailPage() {
                                     })}
                                 </TableBody>
                             </Table>
+                            {hasExpiringCert && (
+                                <Alert variant="destructive" className="mt-4 p-2 text-xs flex items-center gap-2">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <span>Certification expiring soon</span>
+                                </Alert>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

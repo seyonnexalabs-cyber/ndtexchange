@@ -716,6 +716,7 @@ const AdminDashboard = () => {
     const { user, firestore } = useFirebase();
     const { toast } = useToast();
     const role = searchParams.get('role');
+    const [userGrowthData, setUserGrowthData] = useState<any[]>([]);
     
     const isAdminUser = user && (user.uid === 'i947NWP5Hfb3Tpe5P6XcrjODRIJ2' || user.uid === '8ulGMzDhV1VgocwqptGCpV6Dkkl1');
     const isReady = firestore && user && role === 'admin' && isAdminUser;
@@ -804,8 +805,8 @@ const AdminDashboard = () => {
         activeJobs: jobs?.filter(j => j.status === 'Posted' || j.status === 'Assigned' || j.status === 'In Progress').length || 0,
     };
 
-    const userGrowthData = useMemo(() => {
-        if (!users) return [];
+    useEffect(() => {
+        if (!users) return;
         
         const usersByMonth: { [key: string]: number } = {};
         const monthOrder: { key: string; label: string }[] = [];
@@ -832,10 +833,11 @@ const AdminDashboard = () => {
             }
         });
 
-        return monthOrder.map(month => ({
+        const data = monthOrder.map(month => ({
             name: month.label,
             users: usersByMonth[month.key],
         }));
+        setUserGrowthData(data);
     }, [users]);
     
     const isLoading = isLoadingUsers || isLoadingCompanies || isLoadingJobs || isLoadingAuditLog;

@@ -309,44 +309,66 @@ const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default'
 };
 
 const CalibrationBar = ({ nextCalibration }: { nextCalibration: string }) => {
-    if (nextCalibration === 'N/A') {
-        return null;
+    const [calibrationStatus, setCalibrationStatus] = useState<{
+        percentage: number;
+        colorClass: string;
+        daysText: string;
+    } | null>(null);
+
+    useEffect(() => {
+        if (nextCalibration === 'N/A') {
+            setCalibrationStatus(null);
+            return;
+        }
+
+        const calDate = safeParseDate(nextCalibration);
+        if (!calDate) {
+            setCalibrationStatus(null); 
+            return;
+        }
+
+        const today = startOfDay(new Date());
+        const totalPeriod = 365;
+        const daysRemaining = differenceInDays(calDate, today);
+        const percentage = Math.max(0, Math.min(100, (daysRemaining / totalPeriod) * 100));
+
+        let colorClass = 'bg-green-500';
+        let daysText = `${daysRemaining} days`;
+        
+        if (daysRemaining <= 0) {
+            colorClass = 'bg-red-500';
+            daysText = `${Math.abs(daysRemaining)} days overdue`;
+        } else if (daysRemaining <= 30) {
+            colorClass = 'bg-amber-500';
+            daysText = `${daysRemaining} days left`;
+        }
+
+        setCalibrationStatus({ percentage, colorClass, daysText });
+
+    }, [nextCalibration]);
+
+    if (nextCalibration === 'N/A' || calibrationStatus === null) {
+        return (
+             <div className="w-full">
+                 <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
+                    <span className="font-semibold">Calibration</span>
+                 </div>
+                <Skeleton className="h-2 w-full" />
+            </div>
+        );
     }
-
-    const today = startOfDay(new Date());
-    const calDate = safeParseDate(nextCalibration);
-
-    if (!calDate) {
-        return <div className="text-xs text-muted-foreground">Invalid cal. date</div>;
-    }
-
-    const totalPeriod = 365; // Assume a 1-year calibration cycle for visualization
-    const daysRemaining = differenceInDays(calDate, today);
-
-    const percentage = Math.max(0, Math.min(100, (daysRemaining / totalPeriod) * 100));
-
-    let colorClass = 'bg-green-500';
-    let daysText = `${daysRemaining} days`;
     
-    if (daysRemaining <= 0) {
-        colorClass = 'bg-red-500';
-        daysText = `${Math.abs(daysRemaining)} days overdue`;
-    } else if (daysRemaining <= 30) {
-        colorClass = 'bg-amber-500';
-        daysText = `${daysRemaining} days left`;
-    }
-
     return (
         <div className="w-full">
             <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                 <span className="font-semibold">Calibration</span>
                 <span className={cn(
                     "font-semibold",
-                    daysRemaining <= 0 ? "text-red-500" :
-                    daysRemaining <= 30 ? "text-amber-500" : "text-green-500"
-                )}>{daysText}</span>
+                    calibrationStatus.colorClass === 'bg-red-500' ? "text-red-500" :
+                    calibrationStatus.colorClass === 'bg-amber-500' ? "text-amber-500" : "text-green-500"
+                )}>{calibrationStatus.daysText}</span>
             </div>
-            <Progress value={percentage} indicatorClassName={colorClass} />
+            <Progress value={calibrationStatus.percentage} indicatorClassName={calibrationStatus.colorClass} />
         </div>
     );
 };

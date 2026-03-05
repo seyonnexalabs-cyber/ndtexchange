@@ -48,45 +48,81 @@ const UserAvatar = ({ userId }: { userId: string }) => {
 };
 
 const CalibrationCard = ({ nextCalibration }: { nextCalibration: string }) => {
-    if (nextCalibration === 'N/A') {
+    const [status, setStatus] = React.useState<{
+        daysRemaining: number;
+        percentage: number;
+        colorClass: string;
+        daysText: string;
+        statusText: string;
+        calDate: Date;
+    } | null | 'N/A' | 'Invalid'>('N/A');
+
+    React.useEffect(() => {
+        if (nextCalibration === 'N/A') {
+            setStatus('N/A');
+            return;
+        }
+
+        const calDate = safeParseDate(nextCalibration);
+        if (!calDate) {
+            setStatus('Invalid');
+            return;
+        }
+
+        const today = startOfDay(new Date());
+        const totalPeriod = 365;
+        const daysRemaining = differenceInDays(calDate, today);
+        const percentage = Math.max(0, Math.min(100, (daysRemaining / totalPeriod) * 100));
+
+        let colorClass = 'bg-green-500';
+        let daysText = `${daysRemaining} days remaining`;
+        let statusText = "Calibration is up to date.";
+        
+        if (daysRemaining <= 0) {
+            colorClass = 'bg-red-500';
+            daysText = `Overdue by ${Math.abs(daysRemaining)} days`;
+            statusText = "Calibration is overdue. This equipment should not be used.";
+        } else if (daysRemaining <= 30) {
+            colorClass = 'bg-amber-500';
+            daysText = `${daysRemaining} days left`;
+            statusText = "Calibration is due soon. Schedule service to avoid downtime.";
+        }
+        
+        setStatus({ daysRemaining, percentage, colorClass, daysText, statusText, calDate });
+    }, [nextCalibration]);
+
+    if (status === 'N/A') {
         return (
             <Card>
                 <CardHeader><CardTitle>Calibration</CardTitle></CardHeader>
                 <CardContent><p className="text-muted-foreground">No calibration date set.</p></CardContent>
             </Card>
-        )
-    }
-
-    const today = startOfDay(new Date());
-    const calDate = safeParseDate(nextCalibration);
-
-    if (!calDate) {
-        return <div className="text-xs text-muted-foreground">Invalid cal. date</div>;
+        );
     }
     
-    const totalPeriod = 365; // Assume a 1-year calibration cycle for visualization
-    const daysRemaining = differenceInDays(calDate, today);
-    const percentage = Math.max(0, Math.min(100, (daysRemaining / totalPeriod) * 100));
-
-    let colorClass = 'bg-green-500';
-    let daysText = `${daysRemaining} days remaining`;
-    let statusText = "Calibration is up to date.";
+    if (status === 'Invalid') {
+         return (
+            <Card>
+                <CardHeader><CardTitle>Calibration</CardTitle></CardHeader>
+                <CardContent><p className="text-destructive">Invalid calibration date.</p></CardContent>
+            </Card>
+        );
+    }
     
-    if (daysRemaining <= 0) {
-        colorClass = 'bg-red-500';
-        daysText = `Overdue by ${Math.abs(daysRemaining)} days`;
-        statusText = "Calibration is overdue. This equipment should not be used.";
-    } else if (daysRemaining <= 30) {
-        colorClass = 'bg-amber-500';
-        daysText = `${daysRemaining} days left`;
-        statusText = "Calibration is due soon. Schedule service to avoid downtime.";
+    if (!status) {
+         return (
+            <Card>
+                <CardHeader><CardTitle>Calibration Status</CardTitle></CardHeader>
+                <CardContent><Skeleton className="h-24" /></CardContent>
+            </Card>
+        );
     }
     
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Calibration Status</CardTitle>
-                <CardDescription>Next calibration due: {format(calDate, 'PPP')}</CardDescription>
+                <CardDescription>Next calibration due: {format(status.calDate, 'PPP')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                  <div>
@@ -94,13 +130,13 @@ const CalibrationCard = ({ nextCalibration }: { nextCalibration: string }) => {
                         <span className="font-semibold">Time Remaining</span>
                         <span className={cn(
                             "font-semibold",
-                            daysRemaining <= 0 ? "text-red-500" :
-                            daysRemaining <= 30 ? "text-amber-500" : "text-green-500"
-                        )}>{daysText}</span>
+                            status.daysRemaining <= 0 ? "text-red-500" :
+                            status.daysRemaining <= 30 ? "text-amber-500" : "text-green-500"
+                        )}>{status.daysText}</span>
                     </div>
-                    <Progress value={percentage} indicatorClassName={colorClass} />
+                    <Progress value={status.percentage} indicatorClassName={status.colorClass} />
                 </div>
-                <p className="text-sm text-muted-foreground">{statusText}</p>
+                <p className="text-sm text-muted-foreground">{status.statusText}</p>
             </CardContent>
         </Card>
     );

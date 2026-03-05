@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
@@ -10,9 +8,10 @@ import { BarChart3, Users, ShieldCheck, FileCheck, DollarSign } from 'lucide-rea
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
+import type { Job, PlatformUser, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeParseDate } from '@/lib/utils';
+import { format } from 'date-fns';
 
 const jobsByMonthChartConfig = {
   count: { label: "Jobs", color: "hsl(var(--accent))" },
@@ -76,7 +75,7 @@ export default function AnalyticsPage() {
             const postedDate = safeParseDate(job.postedDate);
             if (!postedDate) return;
 
-            const month = postedDate.toLocaleString('default', { month: 'short', year: '2-digit' });
+            const month = format(postedDate, 'MMM yy');
             jobsByMonth[month] = (jobsByMonth[month] || 0) + 1;
             
             job.techniques.forEach(technique => {

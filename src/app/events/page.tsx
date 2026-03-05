@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -25,6 +24,7 @@ export default function EventsPage() {
     const [regionFilter, setRegionFilter] = React.useState('All');
     const [monthFilter, setMonthFilter] = React.useState('All');
     const [isMounted, setIsMounted] = React.useState(false);
+    const [upcomingEvents, setUpcomingEvents] = React.useState<NDTEvent[]>([]);
 
     const eventsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -37,14 +37,19 @@ export default function EventsPage() {
         setIsMounted(true);
     }, []);
     
-    const upcomingEvents = React.useMemo(() => {
-        if (!isMounted || !ndtEvents) return [];
+    React.useEffect(() => {
+        if (!isMounted || !ndtEvents) {
+            setUpcomingEvents([]);
+            return;
+        }
         const now = new Date();
-        return ndtEvents.filter(event => {
+        const filtered = ndtEvents.filter(event => {
             const eventDate = safeParseDate(event.date);
             return eventDate && isAfter(eventDate, now);
         });
+        setUpcomingEvents(filtered);
     }, [isMounted, ndtEvents]);
+
 
     const filteredEvents = React.useMemo(() => {
         return upcomingEvents.filter(event => {

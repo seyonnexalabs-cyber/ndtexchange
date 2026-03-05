@@ -48,7 +48,7 @@ const statusConfig: { [key in Bid['status']]: { variant: 'success' | 'default' |
 };
 
 
-const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, today }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string, today: Date | undefined }) => {
+const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, isClient }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string, isClient: boolean }) => {
     const isMobile = useMobile();
 
     if (bids.length === 0) {
@@ -69,6 +69,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, today }: { bids: Bid
             <div className="space-y-4">
                 {bids.map(bid => {
                     const jobPath = `/dashboard/my-jobs/${bid.jobId}`;
+                    const jobDate = safeParseDate(bid.jobDate);
                     return (
                     <Card key={bid.id} className="flex flex-col">
                         <CardHeader>
@@ -87,6 +88,13 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, today }: { bids: Bid
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-2"/>Your Bid</span>
                                 <span className="font-medium">${bid.amount.toLocaleString()}</span>
+                            </div>
+                             <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Job Date</span>
+                                <span className="font-medium flex items-center gap-2">
+                                  {jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                  {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
+                                </span>
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2">
@@ -146,7 +154,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, today }: { bids: Bid
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                   <span>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                  {submittedDate && today && isToday(submittedDate) && <Badge>Today</Badge>}
+                                  {submittedDate && isClient && isToday(submittedDate) && <Badge>Today</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -188,10 +196,10 @@ export default function MyBidsPage() {
     const router = useRouter();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
-    const [today, setToday] = useState<Date | undefined>(undefined);
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        setToday(new Date());
+        setIsClient(true);
     }, []);
     
     const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc')) : null), [firestore, user]);
@@ -332,7 +340,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} today={today} />
+            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} isClient={isClient} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">

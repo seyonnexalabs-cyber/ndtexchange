@@ -24,6 +24,7 @@ import HoneycombHero from '@/components/ui/honeycomb-hero';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Currency = 'USD' | 'EUR' | 'INR' | 'GBP' | 'CAD';
 type BillingCycle = 'monthly' | 'yearly';
@@ -173,8 +174,14 @@ const ContactForm = () => {
 export default function ContactPage() {
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>('monthly');
     const [currency, setCurrency] = React.useState<Currency>('USD');
+    const [isMounted, setIsMounted] = React.useState(false);
     
-    useEffect(() => {
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    React.useEffect(() => {
+        if (!isMounted) return;
         // This effect runs only on the client side, after hydration
         const userLocale = navigator.language.toLowerCase();
         if (userLocale.includes('in')) setCurrency('INR');
@@ -182,7 +189,7 @@ export default function ContactPage() {
         else if (userLocale.includes('gb')) setCurrency('GBP');
         else if (userLocale.includes('ca')) setCurrency('CAD');
         else setCurrency('USD');
-    }, []);
+    }, [isMounted]);
 
     const allPlans = useMemo(() => {
       const activePlans = subscriptionPlans.filter(p => p.isActive && p.isPublic);
@@ -310,8 +317,17 @@ export default function ContactPage() {
                                          isNewAudience && "border-l-4 border-border",
                                          plan.isFeatured && "border-y-2 border-primary"
                                         )}>
-                                        <p className="text-3xl font-bold">{formatPrice(plan.price.monthlyUSD)}</p>
-                                        <p className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'month' : 'year'}</p>
+                                        {isMounted ? (
+                                            <>
+                                                <p className="text-3xl font-bold">{formatPrice(plan.price.monthlyUSD)}</p>
+                                                <p className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'month' : 'year'}</p>
+                                            </>
+                                        ) : (
+                                            <div className="h-12 w-24 mx-auto flex flex-col items-center justify-center gap-1">
+                                                <Skeleton className="h-8 w-full" />
+                                                <Skeleton className="h-4 w-1/2" />
+                                            </div>
+                                        )}
                                     </td>
                                 )})}
                             </tr>

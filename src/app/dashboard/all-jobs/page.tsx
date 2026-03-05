@@ -57,7 +57,7 @@ export default function AllJobsPage() {
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useMobile();
-    const [today, setToday] = useState<Date | undefined>(undefined);
+    const [isClient, setIsClient] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
 
     const { firestore, user } = useFirebase();
@@ -88,7 +88,7 @@ export default function AllJobsPage() {
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
 
     useEffect(() => {
-        setToday(new Date());
+        setIsClient(true);
     }, []);
 
     useEffect(() => {
@@ -390,13 +390,13 @@ export default function AllJobsPage() {
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
                                         <span>Posted: {postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                        {postedDate && isToday(postedDate) && <Badge className="ml-2">Today</Badge>}
+                                        {postedDate && isClient && isToday(postedDate) && <Badge className="ml-2">Today</Badge>}
                                     </div>
                                     {expiryDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <AlarmClock className="w-4 h-4 mr-2 text-primary" />
                                             <span>Bids Expire: {format(expiryDate, GLOBAL_DATE_FORMAT)}</span>
-                                            {isToday(expiryDate) && <Badge className="ml-2">Today</Badge>}
+                                            {expiryDate && isClient && isToday(expiryDate) && <Badge className="ml-2">Today</Badge>}
                                         </div>
                                     )}
                                 </CardContent>
@@ -441,7 +441,7 @@ export default function AllJobsPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <span>{postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                {postedDate && isToday(postedDate) && <Badge>Today</Badge>}
+                                                {postedDate && isClient && isToday(postedDate) && <Badge>Today</Badge>}
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -472,5 +472,3 @@ export default function AllJobsPage() {
         </div>
     );
 }
-
-    

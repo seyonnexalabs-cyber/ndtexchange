@@ -220,11 +220,10 @@ export default function TechnicianDetailPage() {
     const router = useRouter();
     const { firestore } = useFirebase();
     const [hasExpiringCert, setHasExpiringCert] = useState(false);
-    const [today, setToday] = useState<Date | null>(null);
-
+    const [isClient, setIsClient] = useState(false);
+    
     useEffect(() => {
-        // Set today's date on the client side
-        setToday(new Date());
+        setIsClient(true);
     }, []);
 
     const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
@@ -240,7 +239,8 @@ export default function TechnicianDetailPage() {
     );
     
     useEffect(() => {
-        if (technician?.certifications && today) {
+        if (technician?.certifications && isClient) {
+            const today = new Date();
             const expiring = technician.certifications.some((cert: Certification) => {
                 if (!cert.validUntil) return false;
                 const validUntilDate = safeParseDate(cert.validUntil);
@@ -250,7 +250,7 @@ export default function TechnicianDetailPage() {
             });
             setHasExpiringCert(expiring);
         }
-    }, [technician, today]);
+    }, [technician, isClient]);
 
     const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
     
@@ -299,7 +299,7 @@ export default function TechnicianDetailPage() {
         setIsFormOpen(false);
     };
 
-    const isLoading = isLoadingTechnician || isLoadingJobs || isLoadingTechniques || !id || !today;
+    const isLoading = isLoadingTechnician || isLoadingJobs || isLoadingTechniques || !id;
 
     if (isLoading) {
         return (
@@ -363,7 +363,7 @@ export default function TechnicianDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="text-center">
-                             <Badge variant={technician.workStatus ? technicianStatusVariants[technician.workStatus] : 'outline'}>{technician.workStatus || 'N/A'}</Badge>
+                             <Badge variant={technician.workStatus ? workStatusStyles[technician.workStatus] : 'outline'}>{technician.workStatus || 'N/A'}</Badge>
                              <div className="mt-4 text-sm border-t pt-4">
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Jobs Completed</span>
@@ -435,7 +435,7 @@ export default function TechnicianDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {job.client} &bull; 
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && today && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
@@ -472,7 +472,7 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && today && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -505,6 +505,7 @@ export default function TechnicianDetailPage() {
                         onSubmit={handleFormSubmit}
                         onCancel={() => setIsFormOpen(false)}
                         allTechniques={allTechniques || []}
+                        isEditing={true}
                         defaultValues={{
                             name: technician.name,
                             workStatus: technician.workStatus,

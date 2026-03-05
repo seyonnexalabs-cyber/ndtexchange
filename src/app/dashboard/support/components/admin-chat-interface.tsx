@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import { Card } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ChevronLeft, Send, MessageSquare } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { format } from 'date-fns';
 
 // Define types locally for this component
@@ -29,12 +30,18 @@ type SupportMessage = {
     text: string;
 };
 
-const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
+const ClientFormattedTime = ({ timestamp }: { timestamp: any }) => {
   const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
   React.useEffect(() => {
-    setFormattedTime(format(new Date(dateString), 'p'));
-  }, [dateString]);
-  return <>{formattedTime || ''}</>;
+    const date = safeParseDate(timestamp);
+    if(date) {
+        setFormattedTime(format(date, 'p'));
+    }
+  }, [timestamp]);
+  
+  if(formattedTime === null) return null;
+
+  return <>{formattedTime}</>;
 };
 
 const getAvatarFallback = (userName: string) => {
@@ -88,7 +95,7 @@ const AdminChatInterface = ({
                             >
                                  <div className="flex justify-between items-start gap-2">
                                     <p className="font-semibold text-sm truncate">{thread.companyName}</p>
-                                    <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
+                                    <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime timestamp={thread.lastMessageTimestamp} /></span>
                                 </div>
                                 <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
                                 <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>
@@ -125,7 +132,7 @@ const AdminChatInterface = ({
                                                 {!myMessage && <p className="text-xs font-semibold text-primary mb-1">{message.senderName}</p>}
                                                 <p className="text-sm">{message.text}</p>
                                                 <p className="text-xs mt-2 opacity-80 text-right">
-                                                    {message.timestamp?.toDate ? format(message.timestamp.toDate(), 'p') : 'sending...'}
+                                                    <ClientFormattedTime timestamp={message.timestamp} />
                                                 </p>
                                             </div>
                                         </div>
@@ -153,5 +160,3 @@ const AdminChatInterface = ({
 };
 
 export default AdminChatInterface;
-
-  

@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Send, MessageSquare } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import type { Job, PlatformUser } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,12 +18,18 @@ const ClientFormattedTime = ({ timestamp }: { timestamp: any }) => {
 
   React.useEffect(() => {
     if (!timestamp) return;
-    // Handle both Firebase Timestamp and JS Date objects
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    setFormattedTime(format(date, 'p'));
+    const date = safeParseDate(timestamp);
+    if (date) {
+        setFormattedTime(format(date, 'p'));
+    }
   }, [timestamp]);
 
-  return <>{formattedTime || '...'}</>;
+  // Render nothing on the server to prevent mismatch
+  if (formattedTime === null) {
+      return null;
+  }
+
+  return <>{formattedTime}</>;
 };
 
 type Message = {

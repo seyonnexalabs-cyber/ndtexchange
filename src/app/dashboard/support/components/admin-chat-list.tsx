@@ -1,9 +1,10 @@
+
 'use client';
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -19,12 +20,18 @@ type SupportThread = {
     lastMessageTimestamp?: any;
 };
 
-const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
+const ClientFormattedTime = ({ timestamp }: { timestamp: any }) => {
   const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
   React.useEffect(() => {
-    setFormattedTime(format(new Date(dateString), 'p'));
-  }, [dateString]);
-  return <>{formattedTime || ''}</>;
+    const date = safeParseDate(timestamp);
+    if(date) {
+        setFormattedTime(format(date, 'p'));
+    }
+  }, [timestamp]);
+  
+  if(formattedTime === null) return null;
+
+  return <>{formattedTime}</>;
 };
 
 interface AdminChatListProps {
@@ -72,7 +79,7 @@ const AdminChatList = ({
                         >
                             <div className="flex justify-between items-start gap-2">
                                 <p className="font-semibold text-sm truncate">{thread.companyName}</p>
-                                <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
+                                <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime timestamp={thread.lastMessageTimestamp} /></span>
                             </div>
                             <p className="text-xs text-muted-foreground truncate">{thread.subject}</p>
                             <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>

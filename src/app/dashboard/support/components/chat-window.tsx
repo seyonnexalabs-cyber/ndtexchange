@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -5,7 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft, Send, MessageSquare } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -31,11 +32,16 @@ const ClientFormattedTime = ({ timestamp }: { timestamp: any }) => {
   const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
   React.useEffect(() => {
     if (timestamp) {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      setFormattedTime(format(date, 'p'));
+      const date = safeParseDate(timestamp);
+      if (date) {
+        setFormattedTime(format(date, 'p'));
+      }
     }
   }, [timestamp]);
-  return <>{formattedTime || ''}</>;
+  
+  if (formattedTime === null) return null;
+
+  return <>{formattedTime}</>;
 };
 
 const getAvatarFallback = (userName: string) => {

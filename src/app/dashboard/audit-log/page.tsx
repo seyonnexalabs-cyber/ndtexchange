@@ -29,7 +29,9 @@ const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
         }
     }, [timestamp]);
 
-    return <span className="text-xs text-muted-foreground/80 shrink-0">{formattedDate || '...'}</span>;
+    if(formattedDate === null) return null;
+
+    return <span className="text-xs text-muted-foreground/80 shrink-0">{formattedDate}</span>;
 };
 
 

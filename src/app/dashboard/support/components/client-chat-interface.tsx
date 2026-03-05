@@ -1,12 +1,16 @@
+
 'use client';
 import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn, safeParseDate } from '@/lib/utils';
+import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PlusCircle } from 'lucide-react';
 
+
+// Define types locally for this component
 type SupportThread = {
     id: string;
     companyId: string;
@@ -17,15 +21,18 @@ type SupportThread = {
     lastMessageTimestamp?: any;
 };
 
-const ClientFormattedTime = ({ dateString }: { dateString: string }) => {
+const ClientFormattedTime = ({ timestamp }: { timestamp: any }) => {
   const [formattedTime, setFormattedTime] = React.useState<string | null>(null);
   React.useEffect(() => {
-    if (dateString) {
-        const date = new Date(dateString);
+    const date = safeParseDate(timestamp);
+    if(date) {
         setFormattedTime(format(date, 'p'));
     }
-  }, [dateString]);
-  return <>{formattedTime || ''}</>;
+  }, [timestamp]);
+
+  if(formattedTime === null) return null;
+
+  return <>{formattedTime}</>;
 };
 
 interface ClientChatListProps {
@@ -79,7 +86,7 @@ const ClientChatList = ({
                         >
                             <div className="flex justify-between items-start gap-2">
                                 <p className="font-semibold text-sm truncate">{thread.subject}</p>
-                                <span className="text-xs text-muted-foreground shrink-0">{thread.lastMessageTimestamp?.toDate ? <ClientFormattedTime dateString={thread.lastMessageTimestamp.toDate().toISOString()} /> : ''}</span>
+                                <span className="text-xs text-muted-foreground shrink-0"><ClientFormattedTime timestamp={thread.lastMessageTimestamp} /></span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1 truncate">{thread.lastMessage}</p>
                         </button>

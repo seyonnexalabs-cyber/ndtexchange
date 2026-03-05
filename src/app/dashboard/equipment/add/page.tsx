@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -33,7 +33,7 @@ const equipmentSchema = z.object({
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   serialNumber: z.string().optional(),
-  nextCalibration: z.date(),
+  nextCalibration: z.date({ required_error: "Please select a date." }),
   thumbnail: z.any().optional(),
   parentId: z.string().optional(),
 });
@@ -59,9 +59,15 @@ export default function AddEquipmentPage() {
 
     const form = useForm<EquipmentFormValues>({
         resolver: zodResolver(equipmentSchema),
-        defaultValues: { name: "", type: 'Instrument', techniques: [], nextCalibration: new Date() },
+        defaultValues: { name: "", type: 'Instrument', techniques: [] },
     });
     
+    React.useEffect(() => {
+        if (!form.getValues('nextCalibration')) {
+            form.setValue('nextCalibration', new Date());
+        }
+    }, [form]);
+
     const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);

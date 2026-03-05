@@ -1,8 +1,17 @@
 
+'use client';
 import Link from 'next/link';
 import { LogoIcon } from '@/app/components/icons';
+import { useState, useEffect } from 'react';
 
 export default function PublicFooter() {
+    const [currentYear, setCurrentYear] = useState<number | null>(null);
+
+    useEffect(() => {
+        // This now runs only on the client, after hydration
+        setCurrentYear(new Date().getFullYear());
+    }, []);
+
     const platformLinks = [
         { href: '/login', label: 'Dashboard' },
         { href: '/platform-workflow', label: 'How It Works' },
@@ -96,7 +105,7 @@ export default function PublicFooter() {
 
                 <div className="mt-12 border-t border-primary-foreground/20 pt-8">
                     <p className="text-sm text-center text-primary-foreground/80">
-                        &copy; {new Date().getFullYear()} NDT EXCHANGE. All Rights Reserved.
+                        &copy; {currentYear || new Date().getFullYear()} NDT EXCHANGE. All Rights Reserved.
                     </p>
                 </div>
             </div>

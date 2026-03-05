@@ -58,11 +58,17 @@ const ClientFormattedDate = ({ timestamp, formatString = 'dd-MMM p' }: { timesta
 
     useEffect(() => {
         if (!timestamp) return;
-        const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
-        setFormattedDate(format(date, formatString));
+        const date = safeParseDate(timestamp);
+        if (date) {
+            setFormattedDate(format(date, formatString));
+        }
     }, [timestamp, formatString]);
 
-    return <>{formattedDate || '...'}</>;
+    if (formattedDate === null) {
+        return null;
+    }
+
+    return <>{formattedDate}</>;
 };
 
 const StatCard = ({
@@ -808,10 +814,10 @@ const AdminDashboard = () => {
     useEffect(() => {
         if (!users) return;
         
+        const now = new Date();
         const usersByMonth: { [key: string]: number } = {};
         const monthOrder: { key: string; label: string }[] = [];
-        const now = new Date();
-
+        
         for (let i = 5; i >= 0; i--) {
             const d = subMonths(now, i);
             const monthKey = format(d, 'yyyy-MM');

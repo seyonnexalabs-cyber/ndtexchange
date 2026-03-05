@@ -239,7 +239,9 @@ const TechnicianCard = ({ technician, allTechniques, onEditClick }: {
 
     const hasExpiringCert = technician.certifications?.some((cert: Certification) => {
         if (!cert.validUntil) return false;
-        const diff = differenceInDays(safeParseDate(cert.validUntil)!, new Date());
+        const validUntilDate = safeParseDate(cert.validUntil);
+        if (!validUntilDate) return false;
+        const diff = differenceInDays(validUntilDate, new Date());
         return diff >= 0 && diff <= 30;
     });
 

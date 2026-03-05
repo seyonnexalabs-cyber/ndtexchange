@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -14,7 +13,7 @@ import { PlatformUser, Job, Certification, NDTServiceProvider, NDTTechnique } fr
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle, Trash } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -359,20 +358,23 @@ export default function TechnicianDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {technician.certifications?.map((cert, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                <Badge variant="outline" shape="rounded">{cert.method}</Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge shape="rounded" variant={cert.level === 'Level III' ? 'default' : cert.level === 'Level II' ? 'success' : 'secondary'}>
-                                                    {cert.level}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{cert.certificateNumber || 'N/A'}</TableCell>
-                                            <TableCell>{cert.validUntil ? format(new Date(cert.validUntil), GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {technician.certifications?.map((cert, index) => {
+                                        const validUntilDate = cert.validUntil ? safeParseDate(cert.validUntil) : null;
+                                        return (
+                                            <TableRow key={index}>
+                                                <TableCell>
+                                                    <Badge variant="outline" shape="rounded">{cert.method}</Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge shape="rounded" variant={cert.level === 'Level III' ? 'default' : cert.level === 'Level II' ? 'success' : 'secondary'}>
+                                                        {cert.level}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{cert.certificateNumber || 'N/A'}</TableCell>
+                                                <TableCell>{validUntilDate ? format(validUntilDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                            </TableRow>
+                                        )
+                                    })}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -476,6 +478,7 @@ export default function TechnicianDetailPage() {
                                 validUntil: c.validUntil ? new Date(c.validUntil) : undefined,
                             })) || [],
                         }}
+                        isEditing={true}
                     />
                 </DialogContent>
             </Dialog>

@@ -14,10 +14,10 @@ import { useMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useSearch } from '@/components/layout/search-provider';
+import { useSearch } from '@/app/components/layout/search-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
 
 
 const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -198,13 +198,27 @@ export default function ReportsPage() {
     const role = searchParams.get('role') || 'client';
     const tabParam = searchParams.get('tab');
     const { searchQuery } = useSearch();
-    const { firestore, user } = useFirebase();
+    const { firestore, user: authUser } = useFirebase();
+    const { data: currentUserProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    );
 
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        // Simplified query for demo purposes. A real app would filter by user's company.
-        return collection(firestore, 'jobs');
-    }, [firestore, role]);
+        // Fetch all jobs for admin, otherwise filter by company
+        if (role === 'admin') {
+            return collection(firestore, 'jobs');
+        }
+        if (currentUserProfile?.companyId) {
+            if (role === 'client') {
+                return query(collection(firestore, 'jobs'), where('clientCompanyId', '==', currentUserProfile.companyId));
+            }
+            if (role === 'inspector') {
+                return query(collection(firestore, 'jobs'), where('providerCompanyId', '==', currentUserProfile.companyId));
+            }
+        }
+        return null;
+    }, [firestore, role, currentUserProfile]);
     
     const inspectionsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -227,14 +241,7 @@ export default function ReportsPage() {
 
     const allInspections = useMemo(() => {
         if (!allInspectionsData || !jobs) return [];
-        let relevantJobs = jobs;
-        // In a real app, you would get companyId from the logged in user's profile
-        if (role === 'client') {
-            relevantJobs = jobs.filter(j => j.clientCompanyId === 'client-01');
-        } else if (role === 'inspector') {
-            relevantJobs = jobs.filter(j => j.providerCompanyId === 'provider-03');
-        }
-        const relevantJobIds = new Set(relevantJobs.map(j => j.id));
+        const relevantJobIds = new Set(jobs.map(j => j.id));
 
         return allInspectionsData
             .filter(inspection => relevantJobIds.has(inspection.jobId))
@@ -243,13 +250,13 @@ export default function ReportsPage() {
                 job: jobs.find(j => j.id === inspection.jobId)
             }))
             .filter(inspection => inspection.job && inspection.report);
-    }, [role, allInspectionsData, jobs]);
+    }, [allInspectionsData, jobs]);
 
     const augmentedAndFilteredInspections = useMemo(() => {
-        if (!allUsers) return allInspections;
+        if (!allUsers && role === 'admin') return allInspections;
         const augmented = allInspections.map(inspection => {
             const assignedTechnicians = inspection.job?.technicianIds
-                ?.map(techId => allUsers.find(t => t.id === techId))
+                ?.map(techId => allUsers?.find(t => t.id === techId))
                 .filter((t): t is PlatformUser => !!t) ?? [];
             return { ...inspection, assignedTechnicians };
         });
@@ -265,7 +272,7 @@ export default function ReportsPage() {
             
             return searchMatch;
         });
-    }, [allInspections, allUsers, searchQuery]);
+    }, [allInspections, allUsers, searchQuery, role]);
     
     const reportsForAuditorQueue = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job.status === 'Report Submitted' && ['level3', 'auto'].includes(i.job.workflow)), [augmentedAndFilteredInspections]);
     const auditorHistory = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job.status === 'Audit Approved'), [augmentedAndFilteredInspections]);
@@ -346,5 +353,3 @@ export default function ReportsPage() {
         </div>
     );
 }
-
-    

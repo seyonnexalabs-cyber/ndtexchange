@@ -10,7 +10,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, AlertTriangle, Check, ArrowRight, ArrowLeft } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
@@ -20,9 +20,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider, PlatformUser, Inspection, Equipment, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+
 
 // --- Report Viewer Component ---
 const ReportViewerPage = ({ reportId }: { reportId: string }) => {
@@ -91,7 +93,7 @@ const ReportGeneratorPage = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const { firestore, authUser } = useFirebase();
+    const { firestore, user: authUser } = useFirebase();
 
     const jobId = searchParams.get('jobId');
     const inspectionId = searchParams.get('inspectionId');
@@ -128,8 +130,55 @@ const ReportGeneratorPage = () => {
             return;
         }
         setIsSubmitting(true);
-        // ... (submission logic remains the same)
-        setIsSubmitting(false);
+        
+        try {
+            const batch = writeBatch(firestore);
+
+            const newReportRef = doc(collection(firestore, 'reports'));
+            const reportData = {
+                id: newReportRef.id,
+                jobId: job.id,
+                inspectionId: inspection.id,
+                assetId: inspection.assetId,
+                ...values,
+                createdAt: serverTimestamp(),
+                createdBy: currentUserProfile.id,
+                companyId: currentUserProfile.companyId,
+            };
+            batch.set(newReportRef, reportData);
+            
+            const inspectionRef = doc(firestore, 'inspections', inspection.id);
+            batch.update(inspectionRef, {
+                status: 'Completed',
+                report: {
+                    id: newReportRef.id,
+                    submittedOn: serverTimestamp(),
+                    submittedBy: currentUserProfile.name,
+                }
+            });
+            
+            const jobRef = doc(firestore, 'jobs', job.id);
+            const nextStatus: Job['status'] = job.workflow === 'standard' ? 'Client Review' : 'Under Audit';
+            batch.update(jobRef, { 
+                status: nextStatus,
+                history: arrayUnion({
+                    user: currentUserProfile.name,
+                    timestamp: serverTimestamp(),
+                    action: `Submitted inspection report for ${inspection.assetName} (${inspection.technique}).`,
+                    statusChange: nextStatus
+                })
+            });
+
+            await batch.commit();
+
+            toast({ title: 'Report Submitted!', description: 'The inspection report has been sent for review.' });
+            router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
+        } catch (error) {
+            console.error('Error submitting report:', error);
+            toast({ variant: 'destructive', title: 'Submission Failed', description: 'Could not submit the report.' });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const steps = [
@@ -270,9 +319,7 @@ const ReportGeneratorPage = () => {
                                 <FormField control={form.control} name="includeSummary" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Summary</FormLabel></FormItem>} />
                                 <FormField control={form.control} name="includeMeasurements" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Measurements</FormLabel></FormItem>} />
                                 <FormField control={form.control} name="includePhotos" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Photos</FormLabel></FormItem>} />
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField control={form.control} name="dateRange" render={({ field }) => <FormItem><FormLabel>Date Range</FormLabel><FormControl><Input placeholder="e.g. 03/01/2024 - 03/08/2024" {...field} /></FormControl></FormItem>} />
-                                </div>
+                                
                                 <div className="grid grid-cols-3 gap-2">
                                   <Image src="https://picsum.photos/seed/report1/200/150" alt="report photo 1" width={200} height={150} className="rounded-md" />
                                   <Image src="https://picsum.photos/seed/report2/200/150" alt="report photo 2" width={200} height={150} className="rounded-md" />
@@ -329,5 +376,3 @@ export default function UnifiedReportPage() {
         return <ReportViewerPage reportId={reportId} />;
     }
 }
-
-    

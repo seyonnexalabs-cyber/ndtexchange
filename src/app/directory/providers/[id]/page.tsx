@@ -225,21 +225,24 @@ export default function PublicProviderProfilePage() {
                                 <CardContent>
                                     {providerReviews.length > 0 ? (
                                         <div className="space-y-6">
-                                            {providerReviews.map(review => (
-                                                <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar><AvatarFallback>{review.clientName.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar>
-                                                            <div>
-                                                                <p className="font-semibold">{review.clientName}</p>
-                                                                <StarRating rating={review.rating} />
+                                            {providerReviews.map(review => {
+                                                const reviewDate = safeParseDate(review.date);
+                                                return (
+                                                    <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <Avatar><AvatarFallback>{review.clientName.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar>
+                                                                <div>
+                                                                    <p className="font-semibold">{review.clientName}</p>
+                                                                    <StarRating rating={review.rating} />
+                                                                </div>
                                                             </div>
+                                                            <p className="text-sm text-muted-foreground">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : ''}</p>
                                                         </div>
-                                                        <p className="text-sm text-muted-foreground">{review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : ''}</p>
+                                                        <p className="mt-4 text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md">"{review.comment}"</p>
                                                     </div>
-                                                    <p className="mt-4 text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md">"{review.comment}"</p>
-                                                </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="text-center text-muted-foreground py-10">No approved reviews found for this provider yet.</div>

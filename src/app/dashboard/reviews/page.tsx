@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Check, X } from "lucide-react";
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -44,24 +44,26 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
     
     return (
         <div className="grid md:grid-cols-2 gap-6">
-            {reviews.map(review => (
+            {reviews.map(review => {
+                const reviewDate = safeParseDate(review.date);
+                return (
                 <Card key={review.id}>
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <div>
-                                <CardTitle className="text-base">{review.job?.title}</CardTitle>
-                                <p className="text-xs font-extrabold text-muted-foreground">{review.job?.id}</p>
+                                <CardTitle className="text-base">{review.job?.title || review.productName}</CardTitle>
+                                <p className="text-xs font-extrabold text-muted-foreground">{review.job?.id || review.productId}</p>
                             </div>
                             <Badge variant={statusStyles[review.status]}>{review.status}</Badge>
                         </div>
                         <CardDescription>
-                            For {review.provider?.name} by {review.client?.name}
+                            For {review.provider?.name || review.productName} by {review.client?.name || review.userName}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <StarRating rating={review.rating} />
                         <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-3 rounded-md border">{review.comment}</p>
-                        <p className="text-xs text-muted-foreground mt-2">{review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'Just now'}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : 'Just now'}</p>
                     </CardContent>
                     {review.status === 'Pending' && (
                         <CardFooter className="flex justify-end gap-2">
@@ -70,7 +72,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                         </CardFooter>
                     )}
                 </Card>
-            ))}
+            )})}
         </div>
     )
 };

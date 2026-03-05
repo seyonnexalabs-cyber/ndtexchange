@@ -96,6 +96,8 @@ export default function ClientDetailPage() {
         return `${base}?${params.toString()}`;
     }
 
+    const memberSinceDate = safeParseDate(subscription?.startDate);
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -152,7 +154,7 @@ export default function ClientDetailPage() {
                                     <div className="flex items-center gap-3">
                                         <Calendar className="w-4 h-4 text-primary" />
                                         <span>
-                                            Member Since: {subscription.startDate ? format(safeParseDate(subscription.startDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                            Member Since: {memberSinceDate ? format(memberSinceDate, GLOBAL_DATE_FORMAT) : 'N/A'}
                                         </span>
                                     </div>
                                 )}
@@ -174,7 +176,7 @@ export default function ClientDetailPage() {
                         {isMobile ? (
                                 <div className="space-y-4">
                                     {(clientJobs || []).map(job => {
-                                      const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                      const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                                       return (
                                         <Card key={job.id} className="p-4">
                                             <div className="flex items-start justify-between">
@@ -183,8 +185,8 @@ export default function ClientDetailPage() {
                                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {(job.techniques || []).join(', ')} &bull; 
-                                                        <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
-                                                        {isToday(jobDate) && <Badge>Today</Badge>}
+                                                        <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                        {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
                                                 </div>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
@@ -210,7 +212,7 @@ export default function ClientDetailPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {(clientJobs || []).map(job => {
-                                      const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                      const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                                       return (
                                         <TableRow key={job.id}>
                                             <TableCell className="font-extrabold text-sm">{job.id}</TableCell>
@@ -221,8 +223,8 @@ export default function ClientDetailPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
-                                                    {isToday(jobDate) && <Badge>Today</Badge>}
+                                                    <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                    {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

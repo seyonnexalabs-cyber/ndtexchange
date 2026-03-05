@@ -65,22 +65,20 @@ service cloud.firestore {
     }
     
     match /tasks/{taskId} {
-      allow read, delete: if isOwner(resource.data.userId);
+      allow read, write, delete: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId);
     }
     
     match /notifications/{notificationId} {
-      allow read, delete: if isOwner(resource.data.userId);
+      allow read, write, delete: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId);
     }
 
     // ---------------------------
     //  Company & Asset Collections
     // ---------------------------
     match /companies/{companyId} {
-        allow read: if authed();
+        allow read: if true; // Publicly readable for directories
         allow write: if isPlatformAdmin(); // Only admins can create/edit company profiles directly
     }
 
@@ -91,7 +89,7 @@ service cloud.firestore {
     }
 
     match /equipment/{equipmentId} {
-        allow read: if authed();
+        allow read: if true; // Publicly readable for provider profiles
         // providerId is used here instead of companyId
         allow create: if isCompanyMember(request.resource.data.providerId);
         allow update, delete: if isCompanyMember(resource.data.providerId);

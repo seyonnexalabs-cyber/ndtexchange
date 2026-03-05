@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -13,7 +14,7 @@ import { FileText, Filter, X, Settings2, BarChart2, DollarSign, Star, History } 
 import { useMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearch } from '@/app/components/layout/search-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -104,7 +105,7 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
     return isMobile ? (
         <div className="space-y-4">
             {inspections.map(inspection => {
-                const inspectionDate = new Date(inspection.date);
+                const inspectionDate = safeParseDate(inspection.date);
                 return (
                     <Card key={inspection.id}>
                         <CardHeader>
@@ -126,8 +127,8 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                Report Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}
-                                {isToday(inspectionDate) && <Badge>Today</Badge>}
+                                Report Date: {inspectionDate ? format(inspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                {inspectionDate && isToday(inspectionDate) && <Badge>Today</Badge>}
                             </p>
                         </CardContent>
                         <CardFooter>
@@ -155,7 +156,7 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
                 </TableHeader>
                 <TableBody>
                     {inspections.map(inspection => {
-                        const inspectionDate = new Date(inspection.date);
+                        const inspectionDate = safeParseDate(inspection.date);
                         return (
                         <TableRow key={inspection.id}>
                             <TableCell className="font-extrabold text-xs">{inspection.jobId}</TableCell>
@@ -171,8 +172,8 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <span>{format(inspectionDate, GLOBAL_DATE_FORMAT)}</span>
-                                    {isToday(inspectionDate) && <Badge>Today</Badge>}
+                                    <span>{inspectionDate ? format(inspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                    {inspectionDate && isToday(inspectionDate) && <Badge>Today</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell>

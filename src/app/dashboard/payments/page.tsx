@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -259,7 +260,12 @@ const PaymentsPage = () => {
                 break;
         }
         
-        return { filteredPayments: payments.sort((a, b) => new Date(b.paidOn).getTime() - new Date(a.paidOn).getTime()), title: pageTitle, canRecordPayment: showRecordButton };
+        return { filteredPayments: payments.sort((a, b) => {
+            const dateA = safeParseDate(a.paidOn);
+            const dateB = safeParseDate(b.paidOn);
+            if (!dateA || !dateB) return 0;
+            return dateB.getTime() - dateA.getTime();
+        }), title: pageTitle, canRecordPayment: showRecordButton };
     }, [role, jobPayments, currentUser]);
 
     const jobsForPayment = useMemo(() => {
@@ -356,29 +362,32 @@ const PaymentsPage = () => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredPayments.map(payment => (
-                        <TableRow key={payment.id}>
-                            <TableCell className="font-extrabold text-xs">{payment.jobId}</TableCell>
-                            <TableCell className="font-medium">{payment.jobTitle}</TableCell>
-                            {role === 'admin' && <TableCell>{payment.payer}</TableCell>}
-                            {role === 'admin' && (
-                                <TableCell className="flex items-center gap-2">
-                                    {payment.payeeType === 'Provider' ? <HardHat className="w-4 h-4 text-muted-foreground" /> : <ShieldCheck className="w-4 h-4 text-muted-foreground" />}
-                                    {payment.payee}
+                    {filteredPayments.map(payment => {
+                        const paymentDate = safeParseDate(payment.paidOn);
+                        return (
+                            <TableRow key={payment.id}>
+                                <TableCell className="font-extrabold text-xs">{payment.jobId}</TableCell>
+                                <TableCell className="font-medium">{payment.jobTitle}</TableCell>
+                                {role === 'admin' && <TableCell>{payment.payer}</TableCell>}
+                                {role === 'admin' && (
+                                    <TableCell className="flex items-center gap-2">
+                                        {payment.payeeType === 'Provider' ? <HardHat className="w-4 h-4 text-muted-foreground" /> : <ShieldCheck className="w-4 h-4 text-muted-foreground" />}
+                                        {payment.payee}
+                                    </TableCell>
+                                )}
+                                {role === 'client' && <TableCell>{payment.payee}</TableCell>}
+                                {(role === 'inspector' || role === 'auditor') && <TableCell>{payment.payer}</TableCell>}
+                                <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                                <TableCell>{paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                <TableCell><Badge variant={paymentStatusVariants[payment.status]}>{payment.status}</Badge></TableCell>
+                                <TableCell className="text-right">
+                                    <Button asChild variant="outline" size="sm">
+                                        <Link href={constructUrl(`/dashboard/my-jobs/${payment.jobId}`)}>View Job</Link>
+                                    </Button>
                                 </TableCell>
-                            )}
-                            {role === 'client' && <TableCell>{payment.payee}</TableCell>}
-                            {(role === 'inspector' || role === 'auditor') && <TableCell>{payment.payer}</TableCell>}
-                            <TableCell>${payment.amount.toLocaleString()}</TableCell>
-                            <TableCell>{format(new Date(payment.paidOn), GLOBAL_DATE_FORMAT)}</TableCell>
-                            <TableCell><Badge variant={paymentStatusVariants[payment.status]}>{payment.status}</Badge></TableCell>
-                            <TableCell className="text-right">
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={constructUrl(`/dashboard/my-jobs/${payment.jobId}`)}>View Job</Link>
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
         </Card>
@@ -386,7 +395,9 @@ const PaymentsPage = () => {
 
     const MobileView = () => (
         <div className="space-y-4">
-            {filteredPayments.map(payment => (
+            {filteredPayments.map(payment => {
+                 const paymentDate = safeParseDate(payment.paidOn);
+                 return (
                  <Card key={payment.id}>
                     <CardHeader>
                         <div className="flex justify-between items-start">
@@ -403,7 +414,7 @@ const PaymentsPage = () => {
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">Paid on {format(new Date(payment.paidOn), GLOBAL_DATE_FORMAT)}</p>
+                        <p className="text-sm text-muted-foreground">Paid on {paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                     </CardContent>
                     <CardFooter>
                          <Button asChild variant="outline" size="sm" className="w-full">
@@ -411,7 +422,7 @@ const PaymentsPage = () => {
                         </Button>
                     </CardFooter>
                  </Card>
-            ))}
+            )})}
         </div>
     );
     

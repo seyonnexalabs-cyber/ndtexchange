@@ -31,6 +31,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Job, PlatformUser, Equipment } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 type CalendarEvent = {
@@ -46,7 +47,7 @@ export default function CalendarPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role') || 'client';
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState<Date | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [activeTab, setActiveTab] = useState('jobs');
     const [today, setToday] = useState<Date | undefined>(undefined);
@@ -55,6 +56,11 @@ export default function CalendarPage() {
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
+
+    useEffect(() => {
+        setCurrentDate(new Date());
+        setToday(new Date());
+    }, []);
 
     const jobsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile) return null;
@@ -79,10 +85,6 @@ export default function CalendarPage() {
         return query(collection(firestore, 'equipment'), where('providerId', '==', userProfile.companyId));
     }, [firestore, userProfile, role]);
     const { data: inspectorAssets, isLoading: isLoadingEquipment } = useCollection<Equipment>(equipmentQuery);
-
-    useEffect(() => {
-        setToday(new Date());
-    }, []);
 
     const getSafeDate = (dateInput: any): Date | null => {
         if (!dateInput) return null;
@@ -169,11 +171,15 @@ export default function CalendarPage() {
         return [];
     }, [role, activeTab, jobs, companyUsers, inspectorAssets]);
 
-    const firstDayOfMonth = startOfMonth(currentDate);
-    const lastDayOfMonth = endOfMonth(currentDate);
-    const firstDayOfGrid = startOfWeek(firstDayOfMonth);
-    const lastDayOfGrid = endOfWeek(lastDayOfMonth);
-    const daysInGrid = useMemo(() => eachDayOfInterval({ start: firstDayOfGrid, end: lastDayOfGrid }), [firstDayOfGrid, lastDayOfGrid]);
+    const firstDayOfMonth = useMemo(() => currentDate ? startOfMonth(currentDate) : null, [currentDate]);
+    const lastDayOfMonth = useMemo(() => currentDate ? endOfMonth(currentDate) : null, [currentDate]);
+    const firstDayOfGrid = useMemo(() => firstDayOfMonth ? startOfWeek(firstDayOfMonth) : null, [firstDayOfMonth]);
+    const lastDayOfGrid = useMemo(() => lastDayOfMonth ? endOfWeek(lastDayOfMonth) : null, [lastDayOfMonth]);
+    const daysInGrid = useMemo(() => {
+        if (!firstDayOfGrid || !lastDayOfGrid) return [];
+        return eachDayOfInterval({ start: firstDayOfGrid, end: lastDayOfGrid });
+    }, [firstDayOfGrid, lastDayOfGrid]);
+
 
     const eventsByDate = useMemo(() => {
         return events.reduce((acc, event) => {
@@ -314,7 +320,7 @@ export default function CalendarPage() {
         }
     };
 
-    const calendarGrid = (
+    const calendarGrid = (!currentDate || daysInGrid.length === 0) ? <Skeleton className="h-96 w-full" /> : (
         <div className="grid grid-cols-7 border-t border-l">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
                 <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
@@ -322,7 +328,7 @@ export default function CalendarPage() {
             {daysInGrid.map(day => (
                  <div key={day.toString()} className={cn(
                     "border-b border-r p-2 flex flex-col min-h-[120px]",
-                    !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
+                    currentDate && !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
                  )}>
                     <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
                         {format(day, 'd')}
@@ -344,10 +350,10 @@ export default function CalendarPage() {
                 </h1>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+                        <Button variant="outline" size="icon" onClick={() => currentDate && setCurrentDate(subMonths(currentDate, 1))} disabled={!currentDate}>
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
-                         <Button variant="outline" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+                         <Button variant="outline" size="icon" onClick={() => currentDate && setCurrentDate(addMonths(currentDate, 1))} disabled={!currentDate}>
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
@@ -418,5 +424,3 @@ export default function CalendarPage() {
         </div>
     );
 }
-
-    

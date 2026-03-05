@@ -50,9 +50,13 @@ export default function CompliancePage() {
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
-    const [today, setToday] = useState(startOfDay(new Date()));
+    const [today, setToday] = useState<Date | null>(null);
     const isMobile = useMobile();
     const [statusFilter, setStatusFilter] = useState('all');
+
+    useEffect(() => {
+        setToday(startOfDay(new Date()));
+    }, []);
 
     const assetsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
@@ -62,7 +66,7 @@ export default function CompliancePage() {
     const { data: assets, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
 
     const assetComplianceData = useMemo(() => {
-        if (!assets) return [];
+        if (!assets || !today) return [];
         return assets.map(asset => {
             const compliance = getComplianceStatus(asset.nextInspection, today);
             return {
@@ -90,7 +94,7 @@ export default function CompliancePage() {
         return `${base}?${params.toString()}`;
     };
     
-    if (isLoadingAssets || isLoadingProfile) {
+    if (isLoadingAssets || isLoadingProfile || !today) {
         return (
             <div className="space-y-6">
                 <Skeleton className="h-8 w-1/3" />

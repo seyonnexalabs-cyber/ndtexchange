@@ -17,7 +17,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
 import React, { useState, useEffect, useMemo } from "react";
-import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid } from "date-fns";
+import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid, subMonths } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -808,21 +808,24 @@ const AdminDashboard = () => {
         if (!users) return [];
         
         const usersByMonth: { [key: string]: number } = {};
-        const monthOrder: string[] = [];
+        const monthOrder: { key: string; label: string }[] = [];
+        const now = new Date();
 
         for (let i = 5; i >= 0; i--) {
-            const d = new Date();
-            d.setMonth(d.getMonth() - i);
-            const monthKey = d.toLocaleString('default', { month: 'short', year: '2-digit' });
-            usersByMonth[monthKey] = 0;
-            monthOrder.push(monthKey);
+            const d = subMonths(now, i);
+            const monthKey = format(d, 'yyyy-MM');
+            const monthLabel = format(d, 'MMM yy');
+            if (!usersByMonth.hasOwnProperty(monthKey)) {
+                usersByMonth[monthKey] = 0;
+                monthOrder.push({ key: monthKey, label: monthLabel });
+            }
         }
         
         users.forEach(user => {
             if (!user.createdAt) return;
             const date = safeParseDate(user.createdAt);
             if (date && isValid(date)) {
-                const monthKey = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+                const monthKey = format(date, 'yyyy-MM');
                 if (monthKey in usersByMonth) {
                     usersByMonth[monthKey]++;
                 }
@@ -830,8 +833,8 @@ const AdminDashboard = () => {
         });
 
         return monthOrder.map(month => ({
-            name: month,
-            users: usersByMonth[month],
+            name: month.label,
+            users: usersByMonth[month.key],
         }));
     }, [users]);
     

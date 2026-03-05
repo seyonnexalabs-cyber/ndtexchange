@@ -3,7 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -------- Helpers --------
+    // ---------------------------
+    //  Helper Functions
+    // ---------------------------
     function authed() {
       return request.auth != null;
     }
@@ -11,11 +13,193 @@ service cloud.firestore {
     function isPlatformAdmin() {
       return authed() && request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
     }
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function getRequestingUserData() {
+      return getUserData(request.auth.uid);
+    }
     
-    // TEMPORARILY SIMPLIFIED FOR DEBUGGING AND DEMO PURPOSES
-    // NOT FOR PRODUCTION
-    match /{document=**} {
-      allow read, write: if authed();
+    function isCompanyMember(companyId) {
+        return authed() && getRequestingUserData().companyId == companyId;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // ---------------------------
+    //  Public Directories (Read-Only for non-admins)
+    // ---------------------------
+    match /techniques/{docId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+    match /manufacturers/{docId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+    match /products/{docId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+    match /plans/{docId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+     match /events/{docId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+
+    // ---------------------------
+    //  User-Specific Collections
+    // ---------------------------
+    match /users/{userId} {
+      allow read: if authed(); // Any logged-in user can read profiles (for names, etc)
+      allow create: if isOwner(userId); // A user can create their own profile
+      allow update: if isOwner(userId) || isPlatformAdmin(); // Only user or admin can update
+      allow delete: if isPlatformAdmin();
+    }
+    
+    match /tasks/{taskId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId);
+    }
+    
+    match /notifications/{notificationId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId);
+    }
+
+    // ---------------------------
+    //  Company & Asset Collections
+    // ---------------------------
+    match /companies/{companyId} {
+        allow read: if authed();
+        allow write: if isPlatformAdmin(); // Only admins can create/edit company profiles directly
+    }
+
+    match /assets/{assetId} {
+        allow read: if authed(); // Allow any auth'd user to read, access is controlled by pages
+        allow create: if isCompanyMember(request.resource.data.companyId);
+        allow update, delete: if isCompanyMember(resource.data.companyId);
+    }
+
+    match /equipment/{equipmentId} {
+        allow read: if authed();
+        // providerId is used here instead of companyId
+        allow create: if isCompanyMember(request.resource.data.providerId);
+        allow update, delete: if isCompanyMember(resource.data.providerId);
+    }
+    
+    // ---------------------------
+    //  Job Marketplace Collections
+    // ---------------------------
+    
+    match /jobs/{jobId} {
+      // Marketplace jobs are readable by any authenticated user
+      allow read: if resource.data.status == 'Posted' || 
+                  isCompanyMember(resource.data.clientCompanyId) || 
+                  (resource.data.providerCompanyId != null && isCompanyMember(resource.data.providerCompanyId)) ||
+                  (resource.data.auditorCompanyId != null && isCompanyMember(resource.data.auditorCompanyId)) ||
+                  isPlatformAdmin();
+
+      allow create: if isCompanyMember(request.resource.data.clientCompanyId) || isCompanyMember(request.resource.data.providerCompanyId);
+      
+      // Updates are complex:
+      // - Client can award (change status, add providerId)
+      // - Provider can accept/decline (change status)
+      // - Both can update notes, status etc.
+      allow update: if isCompanyMember(resource.data.clientCompanyId) || 
+                      (resource.data.providerCompanyId != null && isCompanyMember(resource.data.providerCompanyId)) ||
+                      isPlatformAdmin();
+                      
+      allow delete: if isPlatformAdmin();
+    }
+    
+    match /bids/{bidId} {
+        // A provider can create a bid.
+        allow create: if isCompanyMember(request.resource.data.providerCompanyId);
+
+        // Client on the job can read all bids.
+        // Provider can only read their own bid.
+        allow read: if isOwner(resource.data.userId) || 
+                    isCompanyMember(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId) || 
+                    isPlatformAdmin();
+
+        // Provider can update/withdraw their own bid before awarded.
+        // Client can update status to accept/reject.
+        allow update: if isOwner(resource.data.userId) || 
+                      isCompanyMember(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId) ||
+                      isPlatformAdmin();
+    }
+    
+    match /inspections/{inspectionId} {
+        function isJobParticipant(jobId) {
+            let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
+            return isCompanyMember(job.clientCompanyId) || 
+                   (job.providerCompanyId != null && isCompanyMember(job.providerCompanyId)) ||
+                   (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
+        }
+
+        allow read, write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
+    }
+
+    match /messages/{messageId} {
+        function isJobParticipant(jobId) {
+            let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
+            return isCompanyMember(job.clientCompanyId) || 
+                   (job.providerCompanyId != null && isCompanyMember(job.providerCompanyId)) ||
+                   (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
+        }
+
+        allow read, delete: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow create: if isOwner(request.resource.data.senderId) && isJobParticipant(request.resource.data.jobId);
+    }
+    
+    match /reviews/{reviewId} {
+        allow read: if resource.data.status == 'Approved' || isPlatformAdmin();
+        allow create: if authed();
+        allow update, delete: if isPlatformAdmin(); // Only admin can approve/reject/delete
+    }
+
+    // ---------------------------
+    //  Admin-Only Collections
+    // ---------------------------
+    match /userAuditLogs/{logId} {
+      allow read, write: if isPlatformAdmin();
+    }
+    match /jobAuditLogs/{logId} {
+      allow read, write: if isPlatformAdmin();
+    }
+    match /billingAuditLogs/{logId} {
+      allow read, write: if isPlatformAdmin();
+    }
+    match /payments/{paymentId} {
+      allow read, write: if isPlatformAdmin();
+    }
+    match /subscriptions/{subId} {
+      allow read, write: if isPlatformAdmin();
+    }
+     match /jobPayments/{paymentId} {
+      allow read, write: if authed(); // Client and Provider can see payments
+    }
+    
+    // Support chat - accessible by the company who created it, or an admin
+    match /supportChats/{chatId} {
+      allow read, write: if isCompanyMember(resource.data.companyId) || isPlatformAdmin();
+      allow create: if isCompanyMember(request.resource.data.companyId);
+    }
+    match /supportMessages/{messageId} {
+      // Need to read the thread to see who is a member
+      allow read: if isCompanyMember(get(/databases/$(database)/documents/supportChats/$(resource.data.supportChatId)).data.companyId) || isPlatformAdmin();
+      allow create: if isCompanyMember(get(/databases/$(database)/documents/supportChats/$(request.resource.data.supportChatId)).data.companyId) || isPlatformAdmin();
     }
   }
 }

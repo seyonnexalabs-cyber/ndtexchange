@@ -1,7 +1,8 @@
 
+
 'use client';
 import * as React from 'react';
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { notFound, useSearchParams, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";

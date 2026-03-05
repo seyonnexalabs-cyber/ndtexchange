@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -224,7 +225,22 @@ const TechnicianCard = ({ technician, allTechniques, onEditClick }: {
 }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const [hasExpiringCert, setHasExpiringCert] = useState(false);
     
+    useEffect(() => {
+        if (technician.certifications) {
+            const today = new Date();
+            const expiring = technician.certifications.some((cert: Certification) => {
+                if (!cert.validUntil) return false;
+                const validUntilDate = safeParseDate(cert.validUntil);
+                if (!validUntilDate) return false;
+                const diff = differenceInDays(validUntilDate, today);
+                return diff >= 0 && diff <= 30;
+            });
+            setHasExpiringCert(expiring);
+        }
+    }, [technician.certifications]);
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -236,14 +252,6 @@ const TechnicianCard = ({ technician, allTechniques, onEditClick }: {
         if (cert.level === 'Level I' && highest !== 'Level III' && highest !== 'Level II') return 'Level I';
         return highest;
     }, 'Level I' as 'Level I' | 'Level II' | 'Level III');
-
-    const hasExpiringCert = technician.certifications?.some((cert: Certification) => {
-        if (!cert.validUntil) return false;
-        const validUntilDate = safeParseDate(cert.validUntil);
-        if (!validUntilDate) return false;
-        const diff = differenceInDays(validUntilDate, new Date());
-        return diff >= 0 && diff <= 30;
-    });
 
     return (
          <Card className="flex flex-col">

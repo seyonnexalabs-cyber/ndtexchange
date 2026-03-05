@@ -48,7 +48,7 @@ const statusConfig: { [key in Bid['status']]: { variant: 'success' | 'default' |
 };
 
 
-const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string }) => {
+const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, today }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string, today: Date | undefined }) => {
     const isMobile = useMobile();
 
     if (bids.length === 0) {
@@ -146,7 +146,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                   <span>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                  {submittedDate && isToday(submittedDate) && <Badge>Today</Badge>}
+                                  {submittedDate && today && isToday(submittedDate) && <Badge>Today</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -188,6 +188,11 @@ export default function MyBidsPage() {
     const router = useRouter();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
     
     const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc')) : null), [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
@@ -327,7 +332,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} today={today} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">
@@ -397,4 +402,3 @@ export default function MyBidsPage() {
         </div>
     );
 }
-

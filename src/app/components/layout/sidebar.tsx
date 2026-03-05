@@ -43,9 +43,9 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { LogoIcon } from '@/app/components/icons';
 import { useUser } from '@/firebase';
 
@@ -242,6 +242,8 @@ const AppSidebar = () => {
   const validRoles = ['client', 'inspector', 'admin', 'auditor', 'manufacturer'];
   const roleParam = searchParams.get('role');
   const planParam = searchParams.get('plan');
+  
+  const [expiryDate, setExpiryDate] = useState('');
 
   useEffect(() => {
     if (isUserLoading) {
@@ -360,6 +362,15 @@ const AppSidebar = () => {
   };
 
   const planDetails = getPlanDetails();
+  
+  useEffect(() => {
+    if (planDetails?.expiry && planDetails.expiry !== 'N/A') {
+      const date = safeParseDate(planDetails.expiry);
+      if (date) {
+        setExpiryDate(format(date, GLOBAL_DATE_FORMAT));
+      }
+    }
+  }, [planDetails]);
 
   if (!role || isUserLoading) {
     return (
@@ -425,7 +436,7 @@ const AppSidebar = () => {
             <p className="font-semibold text-sm">{planDetails.name}</p>
             {planDetails.expiry !== 'N/A' && (
               <p className="text-xs text-card-foreground/70 mt-1">
-                Expires on {format(new Date(planDetails.expiry), GLOBAL_DATE_FORMAT)}
+                Expires on {expiryDate}
               </p>
             )}
              <Link href={constructUrl('/dashboard/billing')} onClick={handleLinkClick} className="text-xs text-primary hover:underline font-medium mt-2 block">

@@ -76,16 +76,7 @@ export default function TasksPage() {
     }
   }
 
-  const formattedTasks = tasks?.map(task => ({
-      id: task.id.substring(0, 7), // Shorten ID for display
-      title: task.title,
-      status: task.status,
-      label: task.label,
-      priority: task.priority,
-      type: task.type,
-      // Add the original full task object for actions if needed
-      original: task, 
-  })) || [];
+  const tasksData = tasks || [];
 
   return (
     <div className="space-y-4">
@@ -109,7 +100,7 @@ export default function TasksPage() {
           </div>
       ) : isMobile ? (
          <div className="space-y-4">
-            {formattedTasks.map((task) => {
+            {tasksData.map((task) => {
                  const status = statuses.find((s) => s.value === task.status);
                  const priority = priorities.find((p) => p.value === task.priority);
                  const label = labels.find((l) => l.value === task.label);
@@ -118,9 +109,9 @@ export default function TasksPage() {
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <CardTitle className="pr-4">{task.title}</CardTitle>
-                                <DataTableRowActions row={{ original: task.original } as any} />
+                                <DataTableRowActions row={{ original: task } as any} />
                             </div>
-                            <CardDescription>TASK-{task.id}</CardDescription>
+                            <CardDescription>TASK-{task.id.substring(0, 7)}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex items-center justify-between text-sm">
                             {status && (
@@ -142,7 +133,7 @@ export default function TasksPage() {
                     </Card>
                  )
             })}
-             {formattedTasks.length === 0 && (
+             {tasksData.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
                     <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h2 className="mt-4 text-xl font-headline">No tasks yet</h2>
@@ -151,7 +142,7 @@ export default function TasksPage() {
             )}
          </div>
       ) : (
-        <DataTable data={formattedTasks} columns={columns} onNewTaskClick={() => setIsNewTaskOpen(true)} />
+        <DataTable data={tasksData} columns={columns} onNewTaskClick={() => setIsNewTaskOpen(true)} />
       )}
       
        <Dialog open={isNewTaskOpen} onOpenChange={setIsNewTaskOpen}>

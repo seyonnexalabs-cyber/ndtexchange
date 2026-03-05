@@ -12,6 +12,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase
 import { collection } from 'firebase/firestore';
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { safeParseDate } from '@/lib/utils';
 
 const jobsByMonthChartConfig = {
   count: { label: "Jobs", color: "hsl(var(--accent))" },
@@ -72,7 +73,10 @@ export default function AnalyticsPage() {
         const jobsByTechnique: { [key: string]: number } = {};
 
         jobs.forEach(job => {
-            const month = new Date(job.postedDate).toLocaleString('default', { month: 'short', year: '2-digit' });
+            const postedDate = safeParseDate(job.postedDate);
+            if (!postedDate) return;
+
+            const month = postedDate.toLocaleString('default', { month: 'short', year: '2-digit' });
             jobsByMonth[month] = (jobsByMonth[month] || 0) + 1;
             
             job.techniques.forEach(technique => {

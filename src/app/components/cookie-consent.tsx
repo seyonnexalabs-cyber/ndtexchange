@@ -6,22 +6,40 @@ import Link from 'next/link';
 import { Cookie } from 'lucide-react';
 
 export default function CookieConsent() {
-  const [showConsent, setShowConsent] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // This effect runs only on the client
-    const consent = localStorage.getItem('cookie_consent');
-    if (consent !== 'true') {
-      setShowConsent(true);
-    }
+    // This effect runs once on the client to indicate the component has mounted.
+    setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    // This effect runs only after the component has mounted on the client.
+    if (isMounted) {
+      try {
+        const consent = localStorage.getItem('cookie_consent');
+        if (consent !== 'true') {
+          setShowBanner(true);
+        }
+      } catch (e) {
+        console.error("Could not access localStorage:", e);
+      }
+    }
+  }, [isMounted]);
+
   const acceptConsent = () => {
-    setShowConsent(false);
-    localStorage.setItem('cookie_consent', 'true');
+    try {
+      localStorage.setItem('cookie_consent', 'true');
+      setShowBanner(false);
+    } catch (e) {
+      console.error("Could not set localStorage:", e);
+    }
   };
 
-  if (!showConsent) {
+  // By checking for isMounted, we ensure this component renders nothing on the server
+  // and on the initial client render, preventing any hydration mismatch.
+  if (!isMounted || !showBanner) {
     return null;
   }
 

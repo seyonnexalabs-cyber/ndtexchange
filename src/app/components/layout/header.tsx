@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Search, Bell, Globe, QrCode, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearch } from '@/app/components/layout/search-provider';
 import { useQRScanner } from '@/app/components/layout/qr-scanner-provider';
@@ -28,6 +28,32 @@ const userDetails = {
     admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT EXCHANGE', location: 'Palo Alto, CA', address: '123 Main St' },
     auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC', location: 'Washington, D.C.', address: '456 Gov Ave' },
     manufacturer: { name: 'OEM User', role: 'Product Manager', fallback: 'OM', company: 'Evident Scientific', location: 'Waltham, MA', address: '48 Woerd Ave' },
+};
+
+const ClientRelativeTime = ({ date }: { date: Date | null }) => {
+  const [text, setText] = useState<string>('');
+
+  useEffect(() => {
+    if (date) {
+      setText(formatDistanceToNow(date, { addSuffix: true }));
+
+      // Optional: update time periodically if needed for long-lived pages
+      const interval = setInterval(() => {
+        setText(formatDistanceToNow(date, { addSuffix: true }));
+      }, 60000); // every minute
+
+      return () => clearInterval(interval);
+    }
+  }, [date]);
+
+  // Render nothing on the server and initial client render to avoid mismatch
+  if (!text) return null; 
+
+  return (
+      <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">
+          {text}
+      </p>
+  );
 };
 
 const AppHeader = () => {
@@ -171,9 +197,7 @@ const AppHeader = () => {
                                                     <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
                                                         <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
                                                         <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
-                                                        <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">
-                                                            {notificationDate ? formatDistanceToNow(notificationDate, { addSuffix: true }) : null}
-                                                        </p>
+                                                        <ClientRelativeTime date={notificationDate} />
                                                     </div>
                                                 </div>
                                             </Link>

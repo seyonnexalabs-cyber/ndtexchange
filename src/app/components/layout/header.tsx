@@ -14,7 +14,7 @@ import { useSearch } from '@/app/components/layout/search-provider';
 import { useQRScanner } from '@/app/components/layout/qr-scanner-provider';
 import type { Notification } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useFirebase, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -154,29 +154,32 @@ const AppHeader = () => {
                             {isLoadingNotifications ? (
                                 <p className="p-4 text-center text-sm text-muted-foreground">Loading...</p>
                             ) : notifications && notifications.length > 0 ? (
-                                notifications.map((notification, index) => (
-                                <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0">
-                                    <Link 
-                                        href={constructUrl(notification.href)} 
-                                        onClick={() => handleNotificationClick(notification.id)}
-                                        className={cn(
-                                            "block p-3 group",
-                                            index < (notifications?.length ?? 0) - 1 && "border-b"
-                                        )}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
-                                            <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
-                                                <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">
-                                                    {notification.timestamp && formatDistanceToNow(notification.timestamp.toDate ? notification.timestamp.toDate() : new Date(notification.timestamp), { addSuffix: true })}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </DropdownMenuItem>
-                            ))
+                                notifications.map((notification, index) => {
+                                    const notificationDate = safeParseDate(notification.timestamp);
+                                    return (
+                                        <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0">
+                                            <Link 
+                                                href={constructUrl(notification.href)} 
+                                                onClick={() => handleNotificationClick(notification.id)}
+                                                className={cn(
+                                                    "block p-3 group",
+                                                    index < (notifications?.length ?? 0) - 1 && "border-b"
+                                                )}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
+                                                    <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
+                                                        <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
+                                                        <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
+                                                        <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">
+                                                            {notificationDate ? formatDistanceToNow(notificationDate, { addSuffix: true }) : null}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )
+                                })
                            ) : (
                                 <p className="p-4 text-center text-sm text-muted-foreground">No new notifications</p>
                             )}
@@ -230,5 +233,3 @@ const AppHeader = () => {
         </header>
     );
 }
-
-    

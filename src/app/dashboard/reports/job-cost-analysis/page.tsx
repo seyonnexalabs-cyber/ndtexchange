@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -89,8 +90,8 @@ export default function JobCostAnalysisReportPage() {
             .filter((job): job is NonNullable<typeof job> => job !== null)
             .filter(job => {
                 const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
-                const providerMatch = providerIds.length === 0 || (job.providerCompanyId && providerIds.includes(job.providerCompanyId));
-                const techniqueMatch = techniqueIds.length === 0 || job.techniques.some(t => filters.techniqueIds?.includes(t));
+                const providerMatch = !providerIds || providerIds.length === 0 || (job.providerCompanyId && providerIds.includes(job.providerCompanyId));
+                const techniqueMatch = !techniqueIds || techniqueIds.length === 0 || job.techniques.some(t => filters.techniqueIds?.includes(t));
                 const dateMatch = !jobDate || !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
 
                 return providerMatch && techniqueMatch && dateMatch;
@@ -330,7 +331,9 @@ export default function JobCostAnalysisReportPage() {
                 <CardContent>
                     {isMobile ? (
                         <div className="space-y-4">
-                            {filteredJobs.map(job => (
+                            {filteredJobs.map(job => {
+                                const completionDate = safeParseDate(job.scheduledEndDate);
+                                return (
                                 <Card key={job.id} className="p-4">
                                     <p className="font-semibold">{job.title}</p>
                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
@@ -339,10 +342,10 @@ export default function JobCostAnalysisReportPage() {
                                         <p>Technique: <Badge variant="secondary" shape="rounded">{job.techniques[0]}</Badge></p>
                                         <p>Cost: ${job.awardedBid.amount.toLocaleString()}</p>
                                         <p>Duration: {job.duration} Day(s)</p>
-                                        <p>Completed: {job.scheduledEndDate ? format(safeParseDate(job.scheduledEndDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                        <p>Completed: {completionDate ? format(completionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                     </div>
                                 </Card>
-                            ))}
+                            )})}
                             {filteredJobs.length === 0 && (
                                 <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
                                     No jobs found matching your criteria.
@@ -363,7 +366,9 @@ export default function JobCostAnalysisReportPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredJobs.map(job => (
+                                {filteredJobs.map(job => {
+                                    const completionDate = safeParseDate(job.scheduledEndDate);
+                                    return (
                                     <TableRow key={job!.id}>
                                         <TableCell className="font-extrabold text-xs">{job!.id}</TableCell>
                                         <TableCell className="font-medium">{job!.title}</TableCell>
@@ -371,9 +376,9 @@ export default function JobCostAnalysisReportPage() {
                                         <TableCell><Badge variant="secondary" shape="rounded">{job!.techniques[0]}</Badge></TableCell>
                                         <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
                                         <TableCell>{job!.duration}</TableCell>
-                                        <TableCell>{job!.scheduledEndDate ? format(safeParseDate(job.scheduledEndDate)!, GLOBAL_DATE_FORMAT): ''}</TableCell>
+                                        <TableCell>{completionDate ? format(completionDate, GLOBAL_DATE_FORMAT): 'N/A'}</TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                                 {filteredJobs.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center h-24">

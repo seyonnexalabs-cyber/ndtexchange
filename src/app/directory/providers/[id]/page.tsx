@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronLeft, MapPin, Star, Users, Wrench } from "lucide-react";
+import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
@@ -121,7 +121,9 @@ export default function PublicProviderProfilePage() {
     }
     
     const backUrl = role === 'admin' ? "/dashboard/providers" : "/ecosystem?tab=providers";
-    const backText = role === 'admin' ? "Back to Providers" : "Back to Ecosystem";
+    const backText = role === 'admin' ? "Back to Providers" : "Back to Find Providers";
+
+    const startDate = subscription ? safeParseDate(subscription.startDate) : null;
 
     return (
         <TooltipProvider>
@@ -173,7 +175,7 @@ export default function PublicProviderProfilePage() {
                                         <div>
                                             <h3 className="font-semibold text-sm mb-1">Member Since</h3>
                                             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                                                <Calendar className="w-4 h-4" /> {subscription.startDate ? format(safeParseDate(subscription.startDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                                <Calendar className="w-4 h-4" /> {startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}
                                             </p>
                                         </div>
                                     )}

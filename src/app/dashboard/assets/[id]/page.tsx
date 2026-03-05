@@ -67,6 +67,9 @@ export default function AssetDetailPage() {
     if ((!isLoadingAsset && !asset) || assetError) {
         notFound();
     }
+    
+    const createdAtDate = asset?.createdAt ? safeParseDate(asset.createdAt) : null;
+    const modifiedAtDate = asset?.modifiedAt ? safeParseDate(asset.modifiedAt) : null;
 
     if (isLoading) {
         return (
@@ -143,7 +146,7 @@ export default function AssetDetailPage() {
                                 <div>
                                     <span className="text-muted-foreground">Created by </span>
                                     <span className="font-semibold">{createdBy?.name || '...'}</span>
-                                    <span className="text-muted-foreground"> on {asset?.createdAt ? format(safeParseDate(asset.createdAt)!, 'PP') : '...'}</span>
+                                    <span className="text-muted-foreground"> on {createdAtDate ? format(createdAtDate, 'PP') : '...'}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 text-sm">
@@ -151,7 +154,7 @@ export default function AssetDetailPage() {
                                 <div>
                                     <span className="text-muted-foreground">Last modified by </span>
                                     <span className="font-semibold">{modifiedBy?.name || '...'}</span>
-                                    <span className="text-muted-foreground"> on {asset?.modifiedAt ? format(safeParseDate(asset.modifiedAt)!, 'PP') : '...'}</span>
+                                    <span className="text-muted-foreground"> on {modifiedAtDate ? format(modifiedAtDate, 'PP') : '...'}</span>
                                 </div>
                             </div>
                         </CardFooter>
@@ -248,5 +251,3 @@ export default function AssetDetailPage() {
         </div>
     );
 }
-
-    

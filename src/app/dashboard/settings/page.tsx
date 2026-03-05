@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -23,7 +24,7 @@ import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
-import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -463,6 +464,8 @@ const SubscriptionSettings = ({ subscription }: { subscription?: Subscription })
         return `${base}?${params.toString()}`;
     }
 
+    const endDate = subscription?.endDate ? safeParseDate(subscription.endDate) : null;
+
     if (!subscription) {
         return (
             <Card>
@@ -485,12 +488,12 @@ const SubscriptionSettings = ({ subscription }: { subscription?: Subscription })
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                 {subscription.status === 'Trialing' && subscription.endDate && (
+                 {subscription.status === 'Trialing' && endDate && (
                     <Alert className="border-amber-500/50 text-amber-900 bg-amber-500/10 [&>svg]:text-amber-600">
                         <AlertTriangle className="h-4 w-4" />
                         <AlertTitle>Your free trial is ending soon!</AlertTitle>
                         <AlertDescription>
-                            You have {Math.max(0, new Date(subscription.endDate).getDate() - new Date().getDate())} days left. Please contact us to upgrade to a paid plan and avoid any interruption in service.
+                            You have {Math.max(0, differenceInDays(endDate, new Date()))} days left. Please contact us to upgrade to a paid plan and avoid any interruption in service.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -503,10 +506,10 @@ const SubscriptionSettings = ({ subscription }: { subscription?: Subscription })
                         </div>
                         <Badge variant={subscription.status === 'Active' ? 'success' : 'default'}>{subscription.status}</Badge>
                     </div>
-                    {subscription.endDate && (
+                    {endDate && (
                         <div>
                             <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                                <span>{subscription.status === 'Trialing' ? 'Trial ends' : 'Plan renews'} on {format(new Date(subscription.endDate), GLOBAL_DATE_FORMAT)}</span>
+                                <span>{subscription.status === 'Trialing' ? 'Trial ends' : 'Plan renews'} on {format(endDate, GLOBAL_DATE_FORMAT)}</span>
                             </div>
                             <Progress value={50} />
                         </div>
@@ -1046,4 +1049,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from "next/navigation";
@@ -231,16 +232,19 @@ export default function EquipmentDetailPage() {
                         <CardContent>
                             <div className="relative pl-6">
                                 <div className="absolute left-3 top-0 h-full w-px bg-border" />
-                                {(equipment?.history || []).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((item, index) => (
-                                    <div key={index} className="relative flex items-start space-x-4 mb-6">
-                                        <div className="absolute left-0 top-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-primary" />
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-sm">{item.event}</p>
-                                            <p className="text-xs text-muted-foreground">by <UserAvatar userId={item.user} /> on {format(safeParseDate(item.timestamp)!, 'dd-MMM-yyyy @ p')}</p>
-                                            {item.notes && <p className="text-xs text-muted-foreground italic mt-1">"{item.notes}"</p>}
+                                {(equipment?.history || []).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((item, index) => {
+                                    const itemDate = safeParseDate(item.timestamp);
+                                    return (
+                                        <div key={index} className="relative flex items-start space-x-4 mb-6">
+                                            <div className="absolute left-0 top-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-primary" />
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-sm">{item.event}</p>
+                                                <p className="text-xs text-muted-foreground">by <UserAvatar userId={item.user} /> on {itemDate ? format(itemDate, 'dd-MMM-yyyy @ p') : 'Invalid Date'}</p>
+                                                {item.notes && <p className="text-xs text-muted-foreground italic mt-1">"{item.notes}"</p>}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </CardContent>
                     </Card>

@@ -19,7 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -390,21 +390,21 @@ export default function TechnicianDetailPage() {
                             {isMobile ? (
                                 <div className="space-y-4">
                                     {assignedJobs?.map(job => {
-                                        const jobDate = new Date(job.scheduledStartDate || job.postedDate);
-                                        return (
+                                      const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
+                                      return (
                                         <Card key={job.id} className="p-4">
-                                            <div className="flex justify-between items-start">
+                                            <div className="flex items-start justify-between">
                                                 <div>
                                                     <p className="font-semibold">{job.title}</p>
-                                                    <p className="font-bold text-xs text-muted-foreground">{job.id}</p>
+                                                    <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
+                                                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                                        {job.client} &bull; 
+                                                        <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                        {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                    </p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
                                             </div>
-                                            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                                                {job.client} &bull; 
-                                                <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
-                                                {isToday(jobDate) && <Badge>Today</Badge>}
-                                            </p>
                                             <div className="flex justify-end mt-3">
                                                  <Button asChild size="sm" variant="ghost">
                                                     <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)}>View Job</Link>
@@ -426,7 +426,7 @@ export default function TechnicianDetailPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {assignedJobs?.map(job => {
-                                          const jobDate = new Date(job.scheduledStartDate || job.postedDate);
+                                          const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
                                           return (
                                             <TableRow key={job.id}>
                                                 <TableCell className="font-bold text-xs">{job.id}</TableCell>
@@ -436,8 +436,8 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>{job.client}</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
-                                                        <span>{format(jobDate, GLOBAL_DATE_FORMAT)}</span>
-                                                        {isToday(jobDate) && <Badge>Today</Badge>}
+                                                        <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                        {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -475,7 +475,7 @@ export default function TechnicianDetailPage() {
                             workStatus: technician.workStatus,
                             certifications: technician.certifications?.map(c => ({
                                 ...c,
-                                validUntil: c.validUntil ? new Date(c.validUntil) : undefined,
+                                validUntil: c.validUntil ? safeParseDate(c.validUntil) : undefined,
                             })) || [],
                         }}
                         isEditing={true}

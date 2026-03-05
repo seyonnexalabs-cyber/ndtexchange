@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -435,7 +434,7 @@ export default function TechnicianDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {job.client} &bull; 
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {isClient && jobDate && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
@@ -472,7 +471,7 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {isClient && jobDate && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>

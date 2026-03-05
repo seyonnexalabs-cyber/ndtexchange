@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { LogoIcon } from '@/app/components/icons';
@@ -105,7 +104,7 @@ export default function PublicFooter() {
 
                 <div className="mt-12 border-t border-primary-foreground/20 pt-8">
                     <p className="text-sm text-center text-primary-foreground/80">
-                        &copy; {currentYear || new Date().getFullYear()} NDT EXCHANGE. All Rights Reserved.
+                        &copy; {currentYear} NDT EXCHANGE. All Rights Reserved.
                     </p>
                 </div>
             </div>

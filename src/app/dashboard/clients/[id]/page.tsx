@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useEffect } from "react";
@@ -35,6 +34,11 @@ export default function ClientDetailPage() {
     const role = searchParams.get('role');
     const isMobile = useMobile();
     const { firestore, user } = useFirebase();
+    const [isClient, setIsClient] = React.useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -186,7 +190,7 @@ export default function ClientDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {(job.techniques || []).join(', ')} &bull; 
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
                                                 </div>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
@@ -224,7 +228,7 @@ export default function ClientDetailPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                    {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                    {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

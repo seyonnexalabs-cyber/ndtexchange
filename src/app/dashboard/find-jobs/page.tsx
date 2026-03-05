@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -26,6 +27,11 @@ export default function FindJobsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const jobsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'jobs'), where('status', 'in', ['Posted'])) : null, [firestore, user]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
@@ -165,20 +171,20 @@ export default function FindJobsPage() {
                             <div className="flex items-center text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4 mr-2 text-primary" />
                                 <span>Posted: {postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                {postedDate && isToday(postedDate) && <Badge className="ml-2">Today</Badge>}
+                                {isClient && postedDate && isToday(postedDate) && <Badge className="ml-2">Today</Badge>}
                             </div>
                             {scheduledStartDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <Calendar className="w-4 h-4 mr-2 text-primary" />
                                     <span>Target: {format(scheduledStartDate, GLOBAL_DATE_FORMAT)}{scheduledEndDate && scheduledEndDate.getTime() !== scheduledStartDate.getTime() ? ` to ${format(scheduledEndDate, GLOBAL_DATE_FORMAT)}` : ''}</span>
-                                    {isToday(scheduledStartDate) && <Badge className="ml-2">Today</Badge>}
+                                    {isClient && isToday(scheduledStartDate) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                             )}
                             {bidExpiryDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <AlarmClock className="w-4 h-4 mr-2 text-primary" />
                                     <span>Bids Expire: {format(bidExpiryDate, GLOBAL_DATE_FORMAT)}</span>
-                                    {isToday(bidExpiryDate) && <Badge className="ml-2">Today</Badge>}
+                                    {isClient && isToday(bidExpiryDate) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                             )}
                         </CardContent>

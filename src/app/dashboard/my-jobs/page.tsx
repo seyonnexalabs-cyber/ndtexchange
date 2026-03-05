@@ -31,6 +31,11 @@ export default function MyJobsPage() {
     const role = searchParams.get('role') || 'client';
     const [view, setView] = useState<JobView>(role === 'client' ? 'upcoming' : 'active');
     const { searchQuery } = useSearch();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);

@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
 import { ModeProvider } from '@/app/components/layout/mode-provider';
 import { Plus_Jakarta_Sans, Fraunces } from 'next/font/google';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 const plus_jakarta_sans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -56,6 +57,7 @@ export default function RootLayout({
                 {children}
               </ThemeProvider>
             </ModeProvider>
+            <FirebaseErrorListener />
           </FirebaseClientProvider>
         </Suspense>
         <Toaster />

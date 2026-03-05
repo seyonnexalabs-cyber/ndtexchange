@@ -26,7 +26,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -503,37 +503,41 @@ export default function PublicProductProfilePage() {
                         <div className="space-y-6">
                             <h3 className="font-semibold text-lg">What others are saying</h3>
                             {productReviews.length > 0 ? (
-                                productReviews.map(review => (
-                                    <Card key={review.id}>
-                                        <CardHeader>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar>
-                                                        <AvatarFallback>{review.userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold">{review.userName}</p>
-                                                        <StarRating rating={review.rating} size="sm" />
+                                productReviews.map(review => {
+                                    const reviewDate = safeParseDate(review.date);
+                                    const replyDate = review.reply ? safeParseDate(review.reply.timestamp) : null;
+                                    return (
+                                        <Card key={review.id}>
+                                            <CardHeader>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarFallback>{review.userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold">{review.userName}</p>
+                                                            <StarRating rating={review.rating} size="sm" />
+                                                        </div>
                                                     </div>
+                                                    <p className="text-xs text-muted-foreground">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                                 </div>
-                                                <p className="text-xs text-muted-foreground">{review.date?.toDate ? format(review.date.toDate(), GLOBAL_DATE_FORMAT) : 'N/A'}</p>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="mt-2 text-sm text-muted-foreground italic">"{review.comment}"</p>
-                                            {review.reply && (
-                                                <div className="mt-4 ml-8 p-4 bg-muted/50 rounded-lg border">
-                                                    <p className="text-sm font-semibold flex items-center gap-2">
-                                                        <Avatar className="h-6 w-6"><AvatarFallback className="text-xs">{review.reply.authorName.split(' ').map(n=>n[0]).join('')}</AvatarFallback></Avatar>
-                                                        Reply from {review.reply.authorName}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground pl-8">{review.reply.timestamp?.toDate ? format(review.reply.timestamp.toDate(), GLOBAL_DATETIME_FORMAT) : ''}</p>
-                                                    <p className="mt-2 text-sm text-muted-foreground italic pl-8">"{review.reply.text}"</p>
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                ))
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="mt-2 text-sm text-muted-foreground italic">"{review.comment}"</p>
+                                                {review.reply && (
+                                                    <div className="mt-4 ml-8 p-4 bg-muted/50 rounded-lg border">
+                                                        <p className="text-sm font-semibold flex items-center gap-2">
+                                                            <Avatar className="h-6 w-6"><AvatarFallback className="text-xs">{review.reply.authorName.split(' ').map(n=>n[0]).join('')}</AvatarFallback></Avatar>
+                                                            Reply from {review.reply.authorName}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground pl-8">{replyDate ? format(replyDate, GLOBAL_DATETIME_FORMAT) : ''}</p>
+                                                        <p className="mt-2 text-sm text-muted-foreground italic pl-8">"{review.reply.text}"</p>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    )
+                                })
                             ) : (
                                 <p className="text-muted-foreground">No reviews for this product yet. Be the first!</p>
                             )}

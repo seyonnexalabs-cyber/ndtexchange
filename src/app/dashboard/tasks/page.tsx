@@ -11,7 +11,7 @@ import { DataTable } from "./components/data-table"
 import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase"
 import { collection, query, serverTimestamp, addDoc, updateDoc, where } from "firebase/firestore"
 import { Task, createTaskSchema } from "./data/schema"
-import { labels, priorities, statuses } from "@/lib/tasks-data"
+import { labels, priorities, statuses } from "@/lib/seed-data"
 
 import { useMobile } from "@/hooks/use-mobile"
 import { useToast } from "@/hooks/use-toast"
@@ -222,5 +222,3 @@ export default function TasksPage() {
     </div>
   )
 }
-
-    

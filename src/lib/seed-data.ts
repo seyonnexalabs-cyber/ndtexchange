@@ -1,5 +1,6 @@
 
 import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan, NDTEvent } from '@/lib/types';
+import { CheckCircle2, Circle, HelpCircle, XCircle, ArrowDown, ArrowRight, ArrowUp, Repeat, Square } from 'lucide-react';
 
 // This file serves as the master data source for seeding the Firestore database.
 // The application itself should NOT import data from this file for rendering.
@@ -1294,3 +1295,27 @@ export const subscriptionPlanDetails = subscriptionPlans.reduce((acc, plan) => {
     acc[plan.name] = plan;
     return acc;
 }, {} as Record<string, Plan>);
+
+export const labels = [
+  { value: "bug", label: "Bug" },
+  { value: "feature", label: "Feature" },
+  { value: "documentation", label: "Documentation" },
+];
+
+export const statuses = [
+  { value: "todo", label: "Todo", icon: HelpCircle },
+  { value: "in progress", label: "In Progress", icon: Circle },
+  { value: "done", label: "Done", icon: CheckCircle2 },
+  { value: "canceled", label: "Canceled", icon: XCircle },
+];
+
+export const priorities = [
+  { label: "Low", value: "low", icon: ArrowDown },
+  { label: "Medium", value: "medium", icon: ArrowRight },
+  { label: "High", value: "high", icon: ArrowUp },
+];
+
+export const types = [
+    { label: "One-Time", value: "One-Time", icon: Square },
+    { label: "Recurring", value: "Recurring", icon: Repeat },
+];

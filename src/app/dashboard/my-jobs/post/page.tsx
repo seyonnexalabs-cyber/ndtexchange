@@ -253,10 +253,18 @@ export default function PostJobPage() {
             title: '', jobType: 'project', industry: undefined, location: '',
             scheduledStartDate: undefined, durationDays: undefined, 
             estimatedBudget: '', certificationsRequired: [], description: '',
-            bidExpiryDate: undefined, workflow: 'standard', isMarketplaceJob: true,
+            bidExpiryDate: undefined,
+            workflow: 'standard', isMarketplaceJob: true,
             ...(isClient ? { assetIds: [], scope: [] } : { techniques: [] })
         },
     });
+    
+    React.useEffect(() => {
+        // Set the default bid expiry date on the client to avoid hydration mismatch
+        if (!form.getValues('bidExpiryDate') && form.formState.isPristine) {
+            form.setValue('bidExpiryDate', addDays(new Date(), 7));
+        }
+    }, [form, isClient]);
 
     const isMarketplaceJob = form.watch('isMarketplaceJob');
     const techniqueOptions = React.useMemo(() => (NDTTechniques || []).map(t => ({ value: t.acronym, label: `${t.title} (${t.acronym})` })), [NDTTechniques]);
@@ -704,5 +712,3 @@ export default function PostJobPage() {
         </div>
     );
 }
-
-    

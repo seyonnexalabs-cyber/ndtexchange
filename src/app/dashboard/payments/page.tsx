@@ -70,9 +70,17 @@ const RecordPaymentForm = ({
     const form = useForm<PaymentFormValues>({
         resolver: zodResolver(paymentSchema),
         defaultValues: {
-            paymentDate: new Date(),
+            paymentDate: undefined,
         },
     });
+
+    React.useEffect(() => {
+        // Set default date on client to avoid hydration mismatch
+        if (!form.getValues('paymentDate')) {
+            form.setValue('paymentDate', new Date());
+        }
+    }, [form]);
+
 
     const selectedJobId = form.watch('jobId');
     const selectedJob = allJobs.find(j => j.id === selectedJobId);

@@ -1,8 +1,7 @@
-
 'use client';
 import * as React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import type { Job, PlatformUser } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -18,9 +17,18 @@ interface ConversationListProps {
 const ConversationList = ({ jobs, selectedJob, onSelectJob, currentUser, role, isLoading }: ConversationListProps) => {
     
     // Sort jobs to show most recent activity first (based on a real last message timestamp if available)
-    // For now, we sort by posted date as a proxy.
     const sortedJobs = React.useMemo(() => {
-        return [...jobs].sort((a,b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime());
+        return [...jobs].sort((a, b) => {
+            // Use safeParseDate to handle different date formats and invalid dates gracefully
+            const dateA = safeParseDate(a.postedDate);
+            const dateB = safeParseDate(b.postedDate);
+
+            // If dates are invalid, they should not cause a crash. We can sort them to the end.
+            if (!dateB) return -1;
+            if (!dateA) return 1;
+
+            return dateB.getTime() - dateA.getTime();
+        });
     }, [jobs]);
 
     if (isLoading) {

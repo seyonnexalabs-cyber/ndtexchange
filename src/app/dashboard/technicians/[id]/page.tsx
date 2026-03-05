@@ -14,14 +14,14 @@ import { PlatformUser, Job, Certification, NDTServiceProvider, NDTTechnique } fr
 import { ChevronLeft, User, Briefcase, Star, HardHat, Edit, AlertTriangle, Trash } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { format, isToday, differenceInDays } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -63,11 +63,19 @@ type TechnicianFormValues = z.infer<typeof technicianSchema>;
 const TechnicianForm = ({ onCancel, onSubmit, defaultValues, allTechniques }: { onCancel: () => void; onSubmit: (values: TechnicianFormValues) => void; defaultValues?: Partial<TechnicianFormValues>; allTechniques: NDTTechnique[] }) => {
     const form = useForm<TechnicianFormValues>({
         resolver: zodResolver(technicianSchema),
-        defaultValues: defaultValues || {
-            name: '',
-            certifications: [],
-        },
     });
+
+    useEffect(() => {
+        if (defaultValues) {
+            form.reset({
+                ...defaultValues,
+                certifications: defaultValues.certifications?.map(c => ({
+                    ...c,
+                    validUntil: c.validUntil ? safeParseDate(c.validUntil) : undefined,
+                }))
+            });
+        }
+    }, [defaultValues, form]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -212,6 +220,12 @@ export default function TechnicianDetailPage() {
     const router = useRouter();
     const { firestore } = useFirebase();
     const [hasExpiringCert, setHasExpiringCert] = useState(false);
+    const [today, setToday] = useState<Date | null>(null);
+
+    useEffect(() => {
+        // Set today's date on the client side
+        setToday(new Date());
+    }, []);
 
     const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
     const { data: technician, isLoading: isLoadingTechnician } = useDoc<PlatformUser>(technicianRef);
@@ -226,8 +240,7 @@ export default function TechnicianDetailPage() {
     );
     
     useEffect(() => {
-        if (technician?.certifications) {
-            const today = new Date();
+        if (technician?.certifications && today) {
             const expiring = technician.certifications.some((cert: Certification) => {
                 if (!cert.validUntil) return false;
                 const validUntilDate = safeParseDate(cert.validUntil);
@@ -237,7 +250,7 @@ export default function TechnicianDetailPage() {
             });
             setHasExpiringCert(expiring);
         }
-    }, [technician]);
+    }, [technician, today]);
 
     const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
     
@@ -286,7 +299,7 @@ export default function TechnicianDetailPage() {
         setIsFormOpen(false);
     };
 
-    const isLoading = isLoadingTechnician || isLoadingJobs || isLoadingTechniques || !id;
+    const isLoading = isLoadingTechnician || isLoadingJobs || isLoadingTechniques || !id || !today;
 
     if (isLoading) {
         return (
@@ -422,7 +435,7 @@ export default function TechnicianDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {job.client} &bull; 
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {jobDate && today && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
@@ -459,7 +472,7 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        {jobDate && today && isToday(jobDate) && <Badge>Today</Badge>}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -495,12 +508,8 @@ export default function TechnicianDetailPage() {
                         defaultValues={{
                             name: technician.name,
                             workStatus: technician.workStatus,
-                            certifications: technician.certifications?.map(c => ({
-                                ...c,
-                                validUntil: c.validUntil ? safeParseDate(c.validUntil) : undefined,
-                            })) || [],
+                            certifications: technician.certifications
                         }}
-                        isEditing={true}
                     />
                 </DialogContent>
             </Dialog>

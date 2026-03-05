@@ -43,7 +43,7 @@ const subscriptionSchema = z.object({
   companyId: z.string({ required_error: "Please select a company." }),
   plan: z.string(),
   status: z.enum(['Active', 'Trialing', 'Past Due', 'Canceled', 'Payment Failed']),
-  startDate: z.date(),
+  startDate: z.date({ required_error: "Start date is required." }),
   endDate: z.date().optional(),
   userLimit: z.coerce.number().min(1, "User limit must be at least 1."),
   dataLimitGB: z.coerce.number().min(1, "Data limit must be at least 1 GB."),
@@ -54,23 +54,39 @@ type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
 const SubscriptionForm = ({ 
     formId,
     onSubmit, 
-    defaultValues,
-    isEditing,
+    subscriptionToEdit,
     allCompanies,
     subscriptionPlans
 }: { 
     formId: string, 
     onSubmit: (values: SubscriptionFormValues) => void,
-    defaultValues?: Partial<SubscriptionFormValues>,
-    isEditing: boolean,
+    subscriptionToEdit?: Subscription | null,
     allCompanies: any[],
     subscriptionPlans: Plan[],
 }) => {
+    const isEditing = !!subscriptionToEdit;
     const form = useForm<SubscriptionFormValues>({
         resolver: zodResolver(subscriptionSchema),
-        defaultValues: defaultValues,
     });
     
+    useEffect(() => {
+        if (subscriptionToEdit) {
+            form.reset({
+                ...subscriptionToEdit,
+                startDate: safeParseDate(subscriptionToEdit.startDate) || new Date(),
+                endDate: subscriptionToEdit.endDate ? safeParseDate(subscriptionToEdit.endDate) : undefined,
+            });
+        } else {
+            form.reset({
+                startDate: new Date(),
+                userLimit: 5,
+                dataLimitGB: 5,
+                plan: 'Client Access',
+                status: 'Trialing'
+            });
+        }
+    }, [subscriptionToEdit, form]);
+
     const planName = form.watch('plan');
     const userLimit = form.watch('userLimit');
     const dataLimitGB = form.watch('dataLimitGB');
@@ -704,7 +720,7 @@ export default function SubscriptionsPage() {
     const handleBulkEmailSend = () => {
         if (selectedSubscriptions.length === 0) {
             toast({
-                variant: 'destructive',
+                variant: "destructive",
                 title: "No subscriptions selected",
                 description: "Please select one or more subscriptions to send a bulk email."
             });
@@ -802,12 +818,7 @@ export default function SubscriptionsPage() {
                         <SubscriptionForm
                             formId="subscription-form"
                             onSubmit={handleFormSubmit}
-                            defaultValues={editingSubscription ? {
-                                ...editingSubscription,
-                                startDate: safeParseDate(editingSubscription.startDate) || new Date(),
-                                endDate: editingSubscription.endDate ? safeParseDate(editingSubscription.endDate) : undefined,
-                            } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5, plan: 'Client Access', status: 'Trialing' }}
-                            isEditing={!!editingSubscription}
+                            subscriptionToEdit={editingSubscription}
                             allCompanies={allCompanies || []}
                             subscriptionPlans={allPlans || []}
                         />

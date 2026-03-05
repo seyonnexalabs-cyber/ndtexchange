@@ -56,6 +56,7 @@ const BidsSection = ({ job, bids, allCompanies, onReviewBid, isClient, isAdmin }
                     const provider = allCompanies?.find(p => p.id === bid.providerCompanyId);
                     if (!provider) return null;
                     const isAwarded = bid.status === 'Awarded';
+                    const submittedDate = safeParseDate(bid.submittedDate);
                     return (
                         <div key={bid.id} className={cn("flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4", isAwarded && "bg-green-500/10 border-green-500")}>
                             <div className="flex items-center gap-4">
@@ -68,7 +69,7 @@ const BidsSection = ({ job, bids, allCompanies, onReviewBid, isClient, isAdmin }
                             <div className="flex items-center gap-6 w-full sm:w-auto">
                                 <div className="text-left sm:text-right flex-grow">
                                     <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
-                                    <p className="text-xs text-muted-foreground">Submitted on {format(safeParseDate(bid.submittedDate)!, GLOBAL_DATE_FORMAT)}</p>
+                                    <p className="text-xs text-muted-foreground">Submitted on {submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                 </div>
                                 {isAwarded ? (
                                     <Badge variant="success" className="gap-2"><Award className="h-4 w-4" />Awarded</Badge>
@@ -278,6 +279,7 @@ export default function JobDetailPage() {
     
     const isClient = role === 'client';
     const isAdmin = role === 'admin';
+    const scheduledDate = job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) : null;
 
     return (
         <div className="space-y-6">
@@ -319,7 +321,7 @@ export default function JobDetailPage() {
                                 <ul className="space-y-3 text-sm">
                                     <li className="flex"><strong className="w-32">Job Information:</strong> <span className="text-muted-foreground">{job.description}</span></li>
                                     <li className="flex"><strong className="w-32">Location:</strong> <span className="text-muted-foreground">{job.location}</span></li>
-                                    <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{job.scheduledStartDate ? format(safeParseDate(job.scheduledStartDate)!, 'PPP') : 'Not Scheduled'}</span></li>
+                                    <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? format(scheduledDate, 'PPP') : 'Not Scheduled'}</span></li>
                                     <li className="flex items-start"><strong className="w-32 shrink-0">Attachments:</strong> 
                                         <div className="flex flex-wrap gap-2">
                                             {job.documents?.map(doc => (
@@ -390,5 +392,3 @@ export default function JobDetailPage() {
         </div>
     );
 }
-
-    

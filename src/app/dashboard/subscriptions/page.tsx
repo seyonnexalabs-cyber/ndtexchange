@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, cn } from "@/lib/utils";
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -438,15 +438,18 @@ const PaymentHistoryDesktopView = ({ allPayments }: { allPayments: Payment[] }) 
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {allPayments.map(payment => (
-                    <TableRow key={payment.id}>
-                        <TableCell>{format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</TableCell>
-                        <TableCell className="font-medium">{payment.companyName}</TableCell>
-                        <TableCell>${payment.amount.toLocaleString()}</TableCell>
-                        <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
-                        <TableCell className="font-extrabold text-xs">{payment.subscriptionId}</TableCell>
-                    </TableRow>
-                ))}
+                {allPayments.map(payment => {
+                    const paymentDate = safeParseDate(payment.date);
+                    return (
+                        <TableRow key={payment.id}>
+                            <TableCell>{paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                            <TableCell className="font-medium">{payment.companyName}</TableCell>
+                            <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                            <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
+                            <TableCell className="font-extrabold text-xs">{payment.subscriptionId}</TableCell>
+                        </TableRow>
+                    );
+                })}
                  {allPayments.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center">
@@ -461,20 +464,23 @@ const PaymentHistoryDesktopView = ({ allPayments }: { allPayments: Payment[] }) 
 
 const PaymentHistoryMobileView = ({ allPayments }: { allPayments: Payment[] }) => (
     <div className="space-y-4">
-        {allPayments.map(payment => (
-            <Card key={payment.id}>
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <CardTitle>{payment.companyName}</CardTitle>
-                        <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
-                    </div>
-                    <CardDescription>Subscription: <span className="font-extrabold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>
-                </CardContent>
-            </Card>
-        ))}
+        {allPayments.map(payment => {
+            const paymentDate = safeParseDate(payment.date);
+            return (
+                <Card key={payment.id}>
+                    <CardHeader>
+                        <div className="flex justify-between items-start">
+                            <CardTitle>{payment.companyName}</CardTitle>
+                            <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
+                        </div>
+                        <CardDescription>Subscription: <span className="font-extrabold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>
+                    </CardContent>
+                </Card>
+            );
+        })}
          {allPayments.length === 0 && (
             <div className="text-center p-10 text-muted-foreground">
                 No payment history found.
@@ -639,11 +645,13 @@ export default function SubscriptionsPage() {
         let body = '';
         let text = 'Contact User';
         let variant: MailtoDetails['variant'] = 'secondary';
+        const subEndDate = sub.endDate ? safeParseDate(sub.endDate) : null;
+        const endDateFormatted = subEndDate ? format(subEndDate, GLOBAL_DATE_FORMAT) : '';
 
         switch (sub.status) {
             case 'Trialing':
                 subject = `Your NDT EXCHANGE Trial is Ending Soon`;
-                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT EXCHANGE. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${sub.endDate ? format(new Date(sub.endDate), GLOBAL_DATE_FORMAT): ''}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT EXCHANGE Team`;
+                body = `Dear ${sub.companyName} team,\n\nWe hope you're enjoying your trial of NDT EXCHANGE. To ensure uninterrupted access to your account and data, please contact us to upgrade to a full plan before your trial ends on ${endDateFormatted}.\n\nWe're here to help you choose the best plan for your needs.\n\nThank you,\nThe NDT EXCHANGE Team`;
                 text = 'Encourage Upgrade';
                 variant = 'default';
                 break;
@@ -796,8 +804,8 @@ export default function SubscriptionsPage() {
                             onSubmit={handleFormSubmit}
                             defaultValues={editingSubscription ? {
                                 ...editingSubscription,
-                                startDate: new Date(editingSubscription.startDate),
-                                endDate: editingSubscription.endDate ? new Date(editingSubscription.endDate) : undefined,
+                                startDate: safeParseDate(editingSubscription.startDate) || new Date(),
+                                endDate: editingSubscription.endDate ? safeParseDate(editingSubscription.endDate) : undefined,
                             } : { startDate: new Date(), userLimit: 5, dataLimitGB: 5, plan: 'Client Access', status: 'Trialing' }}
                             isEditing={!!editingSubscription}
                             allCompanies={allCompanies || []}

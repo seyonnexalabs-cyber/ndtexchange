@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CheckCircle, CreditCard, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -171,9 +171,10 @@ const PaymentHistory = ({ companyName }: { companyName: string }) => {
                     <TableBody>
                         {companyPayments && companyPayments.length > 0 ? companyPayments.map(payment => {
                             const sub = companySubscriptions?.find(s => s.id === payment.subscriptionId);
+                            const paymentDate = safeParseDate(payment.date);
                             return (
                                 <TableRow key={payment.id}>
-                                    <TableCell>{format(new Date(payment.date), GLOBAL_DATE_FORMAT)}</TableCell>
+                                    <TableCell>{paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     <TableCell>${payment.amount.toLocaleString()}</TableCell>
                                     <TableCell>{sub?.plan || 'N/A'}</TableCell>
                                     <TableCell><Badge variant={payment.status === 'Succeeded' ? 'success' : 'destructive'}>{payment.status}</Badge></TableCell>

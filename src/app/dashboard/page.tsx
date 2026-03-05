@@ -207,7 +207,12 @@ const ClientDashboard = () => {
                 const startDate = safeParseDate(j.scheduledStartDate);
                 return startDate && isWithinInterval(startDate, { start: today, end: nextSevenDays });
             })
-            .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
+            .sort((a, b) => {
+                const dateA = safeParseDate(a.scheduledStartDate);
+                const dateB = safeParseDate(b.scheduledStartDate);
+                if (!dateA || !dateB) return 0;
+                return dateA.getTime() - dateB.getTime();
+            });
     }, [clientJobs, today]);
     
     const getNextStep = (status: Job['status']) => {
@@ -379,14 +384,16 @@ const ClientDashboard = () => {
                 <CardContent>
                     {isMobile ? (
                         <div className="space-y-4">
-                            {schedule.map(job => (
+                            {schedule.map(job => {
+                                const startDate = safeParseDate(job.scheduledStartDate);
+                                return (
                                 <Card key={job.id}>
                                     <CardHeader>
                                         <CardTitle className="text-base">{job.title}</CardTitle>
                                         <CardDescription>
                                             <div className="flex items-center gap-2">
-                                                <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                {job.scheduledStartDate && getRelativeDateBadge(new Date(job.scheduledStartDate), today)}
+                                                <span>{startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                {startDate && getRelativeDateBadge(startDate, today)}
                                             </div>
                                         </CardDescription>
                                     </CardHeader>
@@ -399,7 +406,7 @@ const ClientDashboard = () => {
                                         </Button>
                                     </CardFooter>
                                 </Card>
-                            ))}
+                            )})}
                             {schedule.length === 0 && (
                                 <div className="h-24 text-center text-muted-foreground flex items-center justify-center">No jobs scheduled in the next 7 days.</div>
                             )}
@@ -416,12 +423,14 @@ const ClientDashboard = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {schedule.map(job => (
+                                {schedule.map(job => {
+                                    const startDate = safeParseDate(job.scheduledStartDate);
+                                    return (
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
-                                                <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                                <span>{startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                {startDate && getRelativeDateBadge(startDate, today)}
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -433,7 +442,7 @@ const ClientDashboard = () => {
                                             </Button>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                                 {schedule.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
                             </TableBody>
                         </Table>
@@ -489,7 +498,12 @@ const InspectorDashboard = () => {
                 const startDate = safeParseDate(j.scheduledStartDate);
                 return startDate && isWithinInterval(startDate, { start: today, end: nextSevenDays });
             })
-            .sort((a, b) => new Date(a.scheduledStartDate!).getTime() - new Date(b.scheduledStartDate!).getTime());
+            .sort((a, b) => {
+                const dateA = safeParseDate(a.scheduledStartDate);
+                const dateB = safeParseDate(b.scheduledStartDate);
+                if (!dateA || !dateB) return 0;
+                return dateA.getTime() - dateB.getTime();
+            });
     }, [providerJobs, today]);
 
     const isLoading = isLoadingJobs || isLoadingEquip || isLoadingBids || isLoadingProfile;
@@ -553,12 +567,14 @@ const InspectorDashboard = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {schedule.map(job => (
+                            {schedule.map(job => {
+                                const startDate = safeParseDate(job.scheduledStartDate);
+                                return (
                                 <TableRow key={job.id}>
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
-                                            <span>{job.scheduledStartDate ? format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                            {job.scheduledStartDate && today && isToday(new Date(job.scheduledStartDate)) && <Badge>Today</Badge>}
+                                            <span>{startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                            {startDate && isToday(startDate) && <Badge>Today</Badge>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -571,7 +587,7 @@ const InspectorDashboard = () => {
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                             {schedule.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No jobs scheduled in the next 7 days.</TableCell></TableRow>}
                         </TableBody>
                     </Table>

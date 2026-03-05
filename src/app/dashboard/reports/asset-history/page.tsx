@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -235,7 +236,7 @@ export default function AssetHistoryReportPage() {
                     {isMobile ? (
                         <div className="space-y-4">
                             {filteredInspections.map(inspection => {
-                                const inspectionDate = safeParseDate(inspection.date)!;
+                                const inspectionDate = safeParseDate(inspection.date);
                                 return (
                                 <Card key={inspection.id} className="p-4">
                                     <div className="flex justify-between items-start">
@@ -245,7 +246,7 @@ export default function AssetHistoryReportPage() {
                                     <div className="text-sm text-muted-foreground mt-2">
                                         <p>Technique: <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></p>
                                         <p>Inspector: {inspection.inspector}</p>
-                                        <p>Date: {format(inspectionDate, GLOBAL_DATE_FORMAT)}</p>
+                                        <p>Date: {inspectionDate ? format(inspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
                                     </div>
                                 </Card>
                             )})}
@@ -268,7 +269,7 @@ export default function AssetHistoryReportPage() {
                             </TableHeader>
                             <TableBody>
                                 {filteredInspections.map(inspection => {
-                                     const inspectionDate = safeParseDate(inspection.date)!;
+                                     const inspectionDate = safeParseDate(inspection.date);
                                     return (
                                     <TableRow key={inspection.id}>
                                         <TableCell className="font-medium">{inspection.assetName}</TableCell>
@@ -277,7 +278,7 @@ export default function AssetHistoryReportPage() {
                                         <TableCell>
                                             <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
                                         </TableCell>
-                                        <TableCell>{format(inspectionDate, GLOBAL_DATE_FORMAT)}</TableCell>
+                                        <TableCell>{inspectionDate ? format(inspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
                                     </TableRow>
                                 )})}
                                 {filteredInspections.length === 0 && (
@@ -295,5 +296,3 @@ export default function AssetHistoryReportPage() {
         </div>
     );
 }
-
-    

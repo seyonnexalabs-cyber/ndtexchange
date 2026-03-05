@@ -167,18 +167,21 @@ export default function AssetDetailPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {inspections?.map(inspection => (
-                                    <div key={inspection.id} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <Calendar className="h-5 w-5 text-muted-foreground"/>
-                                            <div>
-                                                <p className="font-semibold">{format(safeParseDate(inspection.date)!, 'PP')}</p>
-                                                <p className="text-xs text-muted-foreground">Inspector: {inspection.inspector}</p>
+                                {inspections?.map(inspection => {
+                                    const inspectionDate = safeParseDate(inspection.date);
+                                    return (
+                                        <div key={inspection.id} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <Calendar className="h-5 w-5 text-muted-foreground"/>
+                                                <div>
+                                                    <p className="font-semibold">{inspectionDate ? format(inspectionDate, 'PP') : 'Invalid Date'}</p>
+                                                    <p className="text-xs text-muted-foreground">Inspector: {inspection.inspector}</p>
+                                                </div>
                                             </div>
+                                            <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                         </div>
-                                        <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                                  {inspections?.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No recent inspections found.</p>}
                             </div>
                         </CardContent>

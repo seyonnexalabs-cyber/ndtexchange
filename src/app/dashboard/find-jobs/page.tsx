@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSearch } from '@/app/components/layout/search-provider';
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,10 @@ export default function FindJobsPage() {
 
     const filteredJobs = useMemo(() => {
         if (!jobs) return [];
-        const openJobs = jobs.filter(j => j.status === 'Posted' || (j.status === 'Posted' && j.bidExpiryDate && new Date(j.bidExpiryDate) < new Date()));
+        const openJobs = jobs.filter(j => {
+            const bidExpiry = safeParseDate(j.bidExpiryDate);
+            return j.status === 'Posted' && (!bidExpiry || bidExpiry >= new Date());
+        });
         
         return openJobs.filter(job => {
             const searchMatch = !searchQuery || 
@@ -131,7 +134,11 @@ export default function FindJobsPage() {
             
             <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                 {filteredJobs.map(job => {
-                    const isExpired = job.bidExpiryDate && new Date(job.bidExpiryDate) < new Date();
+                    const postedDate = safeParseDate(job.postedDate);
+                    const bidExpiryDate = safeParseDate(job.bidExpiryDate);
+                    const scheduledStartDate = safeParseDate(job.scheduledStartDate);
+                    const scheduledEndDate = safeParseDate(job.scheduledEndDate);
+                    const isExpired = bidExpiryDate && bidExpiryDate < new Date();
                     return (
                     <Card key={job.id} className={isExpired ? 'bg-muted/50' : ''}>
                         <CardHeader>
@@ -157,21 +164,21 @@ export default function FindJobsPage() {
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                <span>Posted: {format(new Date(job.postedDate), GLOBAL_DATE_FORMAT)}</span>
-                                {isToday(new Date(job.postedDate)) && <Badge className="ml-2">Today</Badge>}
+                                <span>Posted: {postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                {postedDate && isToday(postedDate) && <Badge className="ml-2">Today</Badge>}
                             </div>
-                            {job.scheduledStartDate && (
+                            {scheduledStartDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                    <span>Target: {format(new Date(job.scheduledStartDate), GLOBAL_DATE_FORMAT)}{job.scheduledEndDate && job.scheduledEndDate !== job.scheduledStartDate ? ` to ${format(new Date(job.scheduledEndDate), GLOBAL_DATE_FORMAT)}` : ''}</span>
-                                    {isToday(new Date(job.scheduledStartDate)) && <Badge className="ml-2">Today</Badge>}
+                                    <span>Target: {format(scheduledStartDate, GLOBAL_DATE_FORMAT)}{scheduledEndDate && scheduledEndDate.getTime() !== scheduledStartDate.getTime() ? ` to ${format(scheduledEndDate, GLOBAL_DATE_FORMAT)}` : ''}</span>
+                                    {isToday(scheduledStartDate) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                             )}
-                            {job.bidExpiryDate && (
+                            {bidExpiryDate && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                     <AlarmClock className="w-4 h-4 mr-2 text-primary" />
-                                    <span>Bids Expire: {format(new Date(job.bidExpiryDate), GLOBAL_DATE_FORMAT)}</span>
-                                    {isToday(new Date(job.bidExpiryDate)) && <Badge className="ml-2">Today</Badge>}
+                                    <span>Bids Expire: {format(bidExpiryDate, GLOBAL_DATE_FORMAT)}</span>
+                                    {isToday(bidExpiryDate) && <Badge className="ml-2">Today</Badge>}
                                 </div>
                             )}
                         </CardContent>
@@ -197,4 +204,3 @@ export default function FindJobsPage() {
         </div>
     );
 }
-    

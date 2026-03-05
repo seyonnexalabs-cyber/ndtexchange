@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, DollarSign, Clock, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft } from 'lucide-react';
-import { parseISO, differenceInDays, format } from 'date-fns';
+import { parseISO, differenceInDays, format, isAfter } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -75,16 +75,21 @@ export default function JobCostAnalysisReportPage() {
             .map(job => {
                 const awardedBid = bids?.find(bid => bid.jobId === job.id);
                 if (!awardedBid) return null;
-                const duration = (job.scheduledStartDate && job.scheduledEndDate)
-                    ? differenceInDays(safeParseDate(job.scheduledEndDate)!, safeParseDate(job.scheduledStartDate)!) + 1
-                    : 1;
+                
+                let duration = 1;
+                const startDate = safeParseDate(job.scheduledStartDate);
+                const endDate = safeParseDate(job.scheduledEndDate);
+                if (startDate && endDate) {
+                    const diff = differenceInDays(endDate, startDate);
+                    duration = diff >= 0 ? diff + 1 : 1;
+                }
 
                 return { ...job, awardedBid, duration };
             })
             .filter((job): job is NonNullable<typeof job> => job !== null)
             .filter(job => {
                 const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
-                const providerMatch = providerIds.length === 0 || providerIds.includes(job.providerCompanyId!);
+                const providerMatch = providerIds.length === 0 || (job.providerCompanyId && providerIds.includes(job.providerCompanyId));
                 const techniqueMatch = techniqueIds.length === 0 || job.techniques.some(t => filters.techniqueIds?.includes(t));
                 const dateMatch = !jobDate || !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
 
@@ -384,5 +389,3 @@ export default function JobCostAnalysisReportPage() {
         </div>
     );
 }
-
-    

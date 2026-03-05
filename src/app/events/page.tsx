@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -17,6 +18,7 @@ import type { NDTEvent } from '@/lib/types';
 import { format, isAfter } from 'date-fns';
 import { MapPin, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { safeParseDate } from '@/lib/utils';
 
 export default function EventsPage() {
     const { firestore } = useFirebase();
@@ -38,19 +40,24 @@ export default function EventsPage() {
     const upcomingEvents = React.useMemo(() => {
         if (!isMounted || !ndtEvents) return [];
         const now = new Date();
-        return ndtEvents.filter(event => isAfter(new Date(event.date), now));
+        return ndtEvents.filter(event => {
+            const eventDate = safeParseDate(event.date);
+            return eventDate && isAfter(eventDate, now);
+        });
     }, [isMounted, ndtEvents]);
 
     const filteredEvents = React.useMemo(() => {
         return upcomingEvents.filter(event => {
+            const eventDate = safeParseDate(event.date);
+            if (!eventDate) return false;
             const regionMatch = regionFilter === 'All' || event.region === regionFilter;
-            const monthMatch = monthFilter === 'All' || format(new Date(event.date), 'MMMM') === monthFilter;
+            const monthMatch = monthFilter === 'All' || format(eventDate, 'MMMM') === monthFilter;
             return regionMatch && monthMatch;
         });
     }, [upcomingEvents, regionFilter, monthFilter]);
 
     const uniqueRegions = ['All', ...Array.from(new Set(upcomingEvents.map(e => e.region)))];
-    const uniqueMonths = ['All', ...Array.from(new Set(upcomingEvents.map(e => format(new Date(e.date), 'MMMM'))))];
+    const uniqueMonths = ['All', ...Array.from(new Set(upcomingEvents.map(e => format(safeParseDate(e.date)!, 'MMMM'))))];
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -95,7 +102,9 @@ export default function EventsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {isLoading ? (
                                 [...Array(6)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)
-                            ) : filteredEvents.map(event => (
+                            ) : filteredEvents.map(event => {
+                                const eventDate = safeParseDate(event.date);
+                                return (
                                 <Card key={event.id} className="flex flex-col group overflow-hidden">
                                     <Link href={event.url} target="_blank" rel="noopener noreferrer" className="flex flex-col flex-grow">
                                         <CardHeader className="p-0">
@@ -111,7 +120,7 @@ export default function EventsPage() {
                                         <CardFooter className="p-4 pt-0 text-sm font-semibold text-muted-foreground flex flex-col items-start gap-2">
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="w-4 h-4 text-primary" />
-                                                <span>{format(new Date(event.date), 'PPP')}</span>
+                                                <span>{eventDate ? format(eventDate, 'PPP') : 'Invalid Date'}</span>
                                             </div>
                                              <div className="flex items-center gap-2">
                                                 <MapPin className="w-4 h-4 text-primary" />
@@ -120,7 +129,7 @@ export default function EventsPage() {
                                         </CardFooter>
                                     </Link>
                                 </Card>
-                            ))}
+                            )})}
                         </div>
                          {filteredEvents.length === 0 && !isLoading && (
                             <div className="text-center py-16">

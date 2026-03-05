@@ -14,7 +14,7 @@ import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucid
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isToday } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Client, Job, Subscription, PlatformUser } from '@/lib/types';
@@ -151,7 +151,9 @@ export default function ClientDetailPage() {
                                 {subscription && (
                                     <div className="flex items-center gap-3">
                                         <Calendar className="w-4 h-4 text-primary" />
-                                        <span>Member Since: {format(new Date(subscription.startDate), GLOBAL_DATE_FORMAT)}</span>
+                                        <span>
+                                            Member Since: {subscription.startDate ? format(safeParseDate(subscription.startDate)!, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                        </span>
                                     </div>
                                 )}
                             </div>

@@ -1,3 +1,4 @@
+
 'use client'
 
 import * as React from "react"
@@ -8,7 +9,7 @@ import { z } from "zod"
 import { columns } from "./components/columns"
 import { DataTable } from "./components/data-table"
 import { useFirebase, useCollection, useMemoFirebase, useUser } from "@/firebase"
-import { collection, query, serverTimestamp, addDoc, updateDoc } from "firebase/firestore"
+import { collection, query, serverTimestamp, addDoc, updateDoc, where } from "firebase/firestore"
 import { Task, createTaskSchema } from "./data/schema"
 import { labels, priorities, statuses } from "@/lib/tasks-data"
 
@@ -34,7 +35,7 @@ export default function TasksPage() {
   const [isNewTaskOpen, setIsNewTaskOpen] = React.useState(false);
 
   const tasksQuery = useMemoFirebase(
-    () => (firestore && user ? query(collection(firestore, `users/${user.uid}/tasks`)) : null),
+    () => (firestore && user ? query(collection(firestore, `tasks`), where('userId', '==', user.uid)) : null),
     [firestore, user]
   );
   const { data: tasks, isLoading } = useCollection<Task>(tasksQuery);
@@ -54,7 +55,7 @@ export default function TasksPage() {
         return;
     }
     try {
-        const tasksCollection = collection(firestore, `users/${user.uid}/tasks`);
+        const tasksCollection = collection(firestore, `tasks`);
         const docRef = await addDoc(tasksCollection, {
             ...values,
             status: "todo",
@@ -221,3 +222,5 @@ export default function TasksPage() {
     </div>
   )
 }
+
+    

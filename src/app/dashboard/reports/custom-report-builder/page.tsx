@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Printer, BarChart2, Calendar as CalendarIcon, Filter, ChevronLeft, Settings2 } from 'lucide-react';
-import { parseISO, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,7 +23,7 @@ import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { useMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, collectionGroup } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { Job, Bid, NDTServiceProvider, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -62,7 +62,7 @@ export default function CustomReportBuilderPage() {
     const { firestore } = useFirebase();
 
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(useMemoFirebase(() => firestore ? collection(firestore, 'jobs') : null, [firestore]));
-    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => firestore ? query(collectionGroup(firestore, 'bids'), where('status', '==', 'Awarded')) : null, [firestore]));
+    const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(useMemoFirebase(() => firestore ? query(collection(firestore, 'bids'), where('status', '==', 'Awarded')) : null, [firestore]));
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]));
     const { data: techniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]));
     
@@ -318,3 +318,5 @@ export default function CustomReportBuilderPage() {
         </div>
     );
 }
+
+    

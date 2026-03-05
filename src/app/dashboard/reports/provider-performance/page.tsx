@@ -57,7 +57,7 @@ export default function ProviderPerformanceReportPage() {
     const searchParams = useSearchParams();
     const isMobile = useMobile();
     const { firestore, user } = useFirebase();
-    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
+    const { data: userProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
 
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null), [firestore]));
     
@@ -77,6 +77,32 @@ export default function ProviderPerformanceReportPage() {
     }
 
     const filters = form.watch();
+
+    const filteredJobs = React.useMemo(() => {
+        const { providerIds, techniqueIds, dateRange } = filters;
+
+        if (!jobs) return [];
+
+        return jobs
+            .map(job => {
+                const awardedBid = bids?.find(bid => bid.jobId === job.id);
+                if (!awardedBid) return null;
+                const duration = (job.scheduledStartDate && job.scheduledEndDate)
+                    ? differenceInDays(safeParseDate(job.scheduledEndDate)!, safeParseDate(job.scheduledStartDate)!) + 1
+                    : 1;
+
+                return { ...job, awardedBid, duration };
+            })
+            .filter((job): job is NonNullable<typeof job> => job !== null)
+            .filter(job => {
+                const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
+                const providerMatch = !providerIds || providerIds.length === 0 || (job.providerCompanyId && providerIds.includes(job.providerCompanyId));
+                const techniqueMatch = !techniqueIds || techniqueIds.length === 0 || job.techniques.some(t => filters.techniqueIds?.includes(t));
+                const dateMatch = !jobDate || !dateRange?.from || !dateRange?.to || (jobDate >= dateRange.from && jobDate <= dateRange.to);
+
+                return providerMatch && techniqueMatch && dateMatch;
+            });
+    }, [filters, jobs, bids]);
 
     const performanceData = React.useMemo(() => {
         if (!jobs || !reviews || !serviceProviders || !bids) return [];
@@ -440,5 +466,3 @@ export default function ProviderPerformanceReportPage() {
         </div>
     );
 }
-
-    

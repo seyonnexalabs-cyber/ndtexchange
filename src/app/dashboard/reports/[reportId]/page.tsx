@@ -344,24 +344,8 @@ const ReportGeneratorPage = () => {
                         )}
                     </div>
                 </form>
-            </FormProvider>
-
-            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Generate PDF</DialogTitle>
-                        <DialogDescription>This will open your browser's print dialog. For best results, ensure "Background graphics" is enabled and margins are set to default. You can then save the document as a PDF.</DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsPreviewOpen(false)}>Cancel</Button>
-                        <Button onClick={() => { window.print(); setIsPreviewOpen(false); }}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Proceed to Print
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+            </div>
+        </FormProvider>
     );
 }
 

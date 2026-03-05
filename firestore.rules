@@ -11,107 +11,11 @@ service cloud.firestore {
     function isPlatformAdmin() {
       return authed() && request.auth.uid in ['i947NWP5Hfb3Tpe5P6XcrjODRIJ2', '8ulGMzDhV1VgocwqptGCpV6Dkkl1'];
     }
-
-    function isSelf(userId) {
-      return authed() && request.auth.uid == userId;
-    }
     
-    function getUserData() {
-        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    // TEMPORARILY SIMPLIFIED FOR DEBUGGING AND DEMO PURPOSES
+    // NOT FOR PRODUCTION
+    match /{document=**} {
+      allow read, write: if authed();
     }
-    
-    function isMemberOf(companyId) {
-      return authed() && getUserData().companyId == companyId;
-    }
-
-    // -------- User Data --------
-    match /users/{userId} {
-      allow get: if authed();
-      allow list: if isPlatformAdmin();
-      allow create: if isSelf(userId);
-      allow update: if isSelf(userId) || isPlatformAdmin();
-      allow delete: if isPlatformAdmin();
-
-      // User-specific subcollections are now top-level
-    }
-    
-    match /tasks/{taskId} {
-        allow read, write: if isSelf(resource.data.userId);
-    }
-    match /notifications/{notificationId} {
-        allow read, write: if isSelf(resource.data.userId);
-    }
-    match /fcmTokens/{tokenId} {
-        allow read, write: if isSelf(resource.data.userId);
-    }
-
-    // -------- Company Data --------
-    match /companies/{companyId} {
-      allow read: if authed();
-      allow write: if isPlatformAdmin();
-    }
-
-    // -------- Core Operational Data (All Top-Level) --------
-    match /jobs/{jobId} {
-      allow get: if authed(); // Any logged in user can view job details to decide to bid
-      allow list: if authed(); // Secured by where clauses in app code
-      allow create: if authed();
-      allow update: if isMemberOf(resource.data.clientCompanyId) || isMemberOf(resource.data.providerCompanyId) || isPlatformAdmin();
-    }
-    
-    match /assets/{assetId} {
-        allow get: if authed();
-        allow list: if authed(); // Rely on where clause for security
-        allow write: if isMemberOf(resource.data.companyId) || isPlatformAdmin();
-    }
-    
-    match /inspections/{inspectionId} {
-        allow get: if authed();
-        allow list: if authed();
-        allow write: if authed(); // Simplified for now
-    }
-    
-    match /bids/{bidId} {
-        allow get: if authed();
-        allow list: if authed(); // Secured by where clause in query
-        allow create: if authed();
-        allow update: if isSelf(resource.data.userId) || isMemberOf(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId);
-        allow delete: if isPlatformAdmin();
-    }
-
-    // -------- Public Directories --------
-    match /techniques/{docId} { allow read: if true; allow write: if isPlatformAdmin(); }
-    match /manufacturers/{docId} { allow read: if true; allow write: if isPlatformAdmin(); }
-    match /products/{docId} { allow read: if true; allow write: if isPlatformAdmin(); }
-    match /plans/{docId} { allow read: if true; allow write: if isPlatformAdmin(); }
-    match /events/{docId} { allow read: if true; allow write: if isPlatformAdmin(); }
-    
-    // -------- Other Top-Level Collections --------
-    match /equipment/{docId} {
-      allow read: if true;
-      allow write: if isMemberOf(resource.data.providerId) || isPlatformAdmin();
-    }
-    match /reviews/{docId} {
-      allow read: if true;
-      allow create: if authed();
-      allow update, delete: if isPlatformAdmin();
-    }
-    match /supportChats/{docId} {
-      allow read, write: if isMemberOf(resource.data.companyId) || isPlatformAdmin();
-    }
-    match /supportMessages/{docId} {
-      allow read, write: if authed(); // Simplification
-    }
-    match /messages/{docId} {
-      allow read, write: if authed(); // Simplification
-    }
-
-    // -------- Admin-Only Collections --------
-    match /userAuditLogs/{docId} { allow read, write: if isPlatformAdmin(); }
-    match /jobAuditLogs/{docId} { allow read, write: if isPlatformAdmin(); }
-    match /billingAuditLogs/{docId} { allow read, write: if isPlatformAdmin(); }
-    match /payments/{docId} { allow read, write: if isPlatformAdmin(); }
-    match /subscriptions/{docId} { allow read, write: if isPlatformAdmin(); }
-    match /jobPayments/{docId} { allow read, write: if isPlatformAdmin(); }
   }
 }

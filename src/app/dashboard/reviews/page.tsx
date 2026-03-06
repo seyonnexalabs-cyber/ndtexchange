@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -29,7 +30,7 @@ const StarRating = ({ rating }: { rating: number }) => {
 };
 
 const ClientFormattedDate = ({ date }: { date: Date | null }) => {
-    const [formatted, setFormatted] = useState('');
+    const [formatted, setFormatted] = useState<string | null>(null);
     useEffect(() => {
         if (date) {
             setFormatted(format(date, GLOBAL_DATE_FORMAT));

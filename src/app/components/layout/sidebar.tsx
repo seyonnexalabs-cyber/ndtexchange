@@ -50,6 +50,19 @@ import { LogoIcon } from '@/app/components/icons';
 import { useUser } from '@/firebase';
 
 
+type MenuItem = {
+  id: string;
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  badge?: string | number;
+};
+
+type MenuItemGroup = {
+  title: string;
+  items: MenuItem[];
+};
+
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
   inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.' },
@@ -59,7 +72,7 @@ const userDetails = {
   common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
-const clientMenu = [
+const clientMenu: MenuItemGroup[] = [
   {
     title: 'Workspace',
     items: [
@@ -106,7 +119,7 @@ const clientMenu = [
   }
 ];
 
-const inspectorMenu = [
+const inspectorMenu: MenuItemGroup[] = [
     {
     title: 'Workspace',
     items: [
@@ -148,7 +161,7 @@ const inspectorMenu = [
   }
 ];
 
-const adminMenu = [
+const adminMenu: MenuItemGroup[] = [
   {
     title: 'Platform',
     items: [
@@ -183,7 +196,7 @@ const adminMenu = [
   }
 ];
 
-const auditorMenu = [
+const auditorMenu: MenuItemGroup[] = [
    {
     title: 'Workspace',
     items: [
@@ -208,7 +221,7 @@ const auditorMenu = [
   }
 ];
 
-const manufacturerMenu = [
+const manufacturerMenu: MenuItemGroup[] = [
     {
     title: 'Workspace',
     items: [
@@ -231,6 +244,29 @@ const manufacturerMenu = [
   }
 ];
 
+const ClientExpiryDate = ({ expiry }: { expiry: string }) => {
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const date = safeParseDate(expiry);
+
+    if (!isMounted || !date) {
+        return (
+            <p className="text-xs text-card-foreground/70 mt-1">
+                Expires on ...
+            </p>
+        );
+    }
+    
+    return (
+        <p className="text-xs text-card-foreground/70 mt-1">
+            Expires on {format(date, GLOBAL_DATE_FORMAT)}
+        </p>
+    );
+};
+
 
 const AppSidebar = () => {
   const pathname = usePathname();
@@ -243,8 +279,6 @@ const AppSidebar = () => {
   const roleParam = searchParams.get('role');
   const planParam = searchParams.get('plan');
   
-  const [expiryDate, setExpiryDate] = useState('');
-
   useEffect(() => {
     if (isUserLoading) {
         return; // Wait until the auth state is determined
@@ -273,7 +307,7 @@ const AppSidebar = () => {
   const menuItems = useMemo(() => {
     if (!role) return [];
     
-    let menu;
+    let menu: MenuItemGroup[];
     switch (role) {
       case 'client':
         menu = clientMenu;
@@ -363,15 +397,6 @@ const AppSidebar = () => {
 
   const planDetails = getPlanDetails();
   
-  useEffect(() => {
-    if (planDetails?.expiry && planDetails.expiry !== 'N/A') {
-      const date = safeParseDate(planDetails.expiry);
-      if (date) {
-        setExpiryDate(format(date, GLOBAL_DATE_FORMAT));
-      }
-    }
-  }, [planDetails]);
-
   if (!role || isUserLoading) {
     return (
         <Sidebar collapsible="icon">
@@ -405,7 +430,7 @@ const AppSidebar = () => {
                 <span className="group-data-[state=expanded]:inline">{group.title}</span>
                 <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
               </h3>
-              {group.items.map((item: any) => {
+              {group.items.map((item) => {
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
@@ -434,11 +459,7 @@ const AppSidebar = () => {
           <div>
             <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
             <p className="font-semibold text-sm">{planDetails.name}</p>
-            {planDetails.expiry !== 'N/A' && (
-              <p className="text-xs text-card-foreground/70 mt-1">
-                Expires on {expiryDate}
-              </p>
-            )}
+            {planDetails.expiry !== 'N/A' && <ClientExpiryDate expiry={planDetails.expiry} />}
              <Link href={constructUrl('/dashboard/billing')} onClick={handleLinkClick} className="text-xs text-primary hover:underline font-medium mt-2 block">
                 Manage Subscription
             </Link>

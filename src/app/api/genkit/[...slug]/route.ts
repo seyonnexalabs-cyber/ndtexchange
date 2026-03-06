@@ -1,4 +1,4 @@
-import {createNextApiHandler} from '@genkit-ai/next';
+import createNextApiHandler from '@genkit-ai/next';
 import {ai} from '@/ai/genkit';
 import '@/ai/dev'; // Import flows for side effects.
 

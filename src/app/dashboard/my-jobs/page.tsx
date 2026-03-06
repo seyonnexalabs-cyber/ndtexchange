@@ -16,7 +16,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
-import { useSearch } from "@/components/layout/search-provider";
+import { useSearch } from "@/app/components/layout/search-provider";
 import React from "react";
 
 type JobView = 'active' | 'completed' | 'upcoming' | 'drafts';

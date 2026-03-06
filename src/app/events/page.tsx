@@ -19,6 +19,24 @@ import { MapPin, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeParseDate } from '@/lib/utils';
 
+const ClientFormattedDate = ({ date }: { date: Date | null }) => {
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!date) {
+        return <span>Invalid Date</span>;
+    }
+
+    if (!isMounted) {
+        return <Skeleton className="h-4 w-24" />;
+    }
+
+    return <span>{format(date, 'PPP')}</span>;
+};
+
+
 export default function EventsPage() {
     const { firestore } = useFirebase();
     const [regionFilter, setRegionFilter] = React.useState('All');
@@ -125,7 +143,7 @@ export default function EventsPage() {
                                         <CardFooter className="p-4 pt-0 text-sm font-semibold text-muted-foreground flex flex-col items-start gap-2">
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="w-4 h-4 text-primary" />
-                                                <span>{eventDate ? format(eventDate, 'PPP') : 'Invalid Date'}</span>
+                                                <ClientFormattedDate date={eventDate} />
                                             </div>
                                              <div className="flex items-center gap-2">
                                                 <MapPin className="w-4 h-4 text-primary" />

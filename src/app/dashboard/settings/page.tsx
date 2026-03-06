@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
@@ -36,6 +36,17 @@ import type { PlatformUser, Subscription, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTheme } from '@/app/components/layout/mode-provider';
 import { countries } from '@/lib/countries';
+
+const ClientCurrentDate = ({ formatString }: { formatString: string }) => {
+    const [date, setDate] = useState<string | null>(null);
+    useEffect(() => {
+        setDate(format(new Date(), formatString));
+    }, [formatString]);
+
+    if (!date) return null;
+
+    return <>{date}</>;
+};
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -554,6 +565,11 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
     const [isThumbnailDragging, setIsThumbnailDragging] = useState(false);
     const logoFileInputRef = useRef<HTMLInputElement>(null);
     const thumbnailFileInputRef = useRef<HTMLInputElement>(null);
+    const [currentDate, setCurrentDate] = useState<string | null>(null);
+
+    useEffect(() => {
+        setCurrentDate(format(new Date(), 'dd-MMM-yyyy'));
+    }, []);
 
     const handleFileUpload = (
         file: File | null,
@@ -697,7 +713,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
                         <div className="pt-4 text-sm text-muted-foreground space-y-2">
                             <div className="grid grid-cols-2 gap-4">
                                 <p><strong>Asset:</strong> Storage Tank T-101</p>
-                                <p><strong>Date:</strong> {format(new Date(), 'dd-MMM-yyyy')}</p>
+                                <p><strong>Date:</strong> {currentDate || '...'}</p>
                                 <p><strong>Job ID:</strong> JOB-001</p>
                                 <p><strong>Technique:</strong> UT</p>
                             </div>
@@ -1049,3 +1065,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

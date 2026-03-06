@@ -32,6 +32,18 @@ const assetIcons = {
     'Weld Joint': <WeldIcon className="w-6 h-6 text-primary" />,
 };
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = useState<string | null>(null);
+    useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
+
 const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscriptionActive }: { assets: Asset[], isLoading: boolean, onApprove: (id: string) => void, onReject: (id: string) => void, isSubscriptionActive: boolean }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -147,7 +159,7 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
                                             <CardDescription className="font-bold">{asset.id}</CardDescription>
                                         </CardContent>
                                         <CardFooter className="p-4 pt-0 text-sm text-muted-foreground">
-                                           <span>Next: {nextInspectionDate ? format(nextInspectionDate, 'dd-MMM-yyyy') : 'N/A'}</span>
+                                           <span>Next: {nextInspectionDate ? <ClientFormattedDate date={nextInspectionDate} formatString='dd-MMM-yyyy' /> : 'N/A'}</span>
                                         </CardFooter>
                                     </Link>
                                     {isCompanyAdmin && asset.approvalStatus === 'Pending Approval' && (

@@ -47,8 +47,21 @@ const statusConfig: { [key in Bid['status']]: { variant: 'success' | 'default' |
     'Not Selected': { variant: 'destructive', label: 'Not Selected' },
 };
 
+const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
+    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
 
-const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, isClient }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string, isClient: boolean }) => {
+    React.useEffect(() => {
+        if (date) {
+            setIsTodayFlag(isToday(date));
+        }
+    }, [date]);
+
+    if (!isTodayFlag) return null;
+
+    return <Badge>Today</Badge>;
+};
+
+const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string }) => {
     const isMobile = useMobile();
 
     if (bids.length === 0) {
@@ -93,7 +106,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, isClient }: { bids: 
                                 <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Job Date</span>
                                 <span className="font-medium flex items-center gap-2">
                                   {jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}
-                                  {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
+                                  <ClientRelativeDateBadge date={jobDate} />
                                 </span>
                             </div>
                         </CardContent>
@@ -154,7 +167,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, isClient }: { bids: 
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                   <span>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                  {submittedDate && isClient && isToday(submittedDate) && <Badge>Today</Badge>}
+                                  <ClientRelativeDateBadge date={submittedDate} />
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -196,11 +209,6 @@ export default function MyBidsPage() {
     const router = useRouter();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
     
     const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc')) : null), [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
@@ -340,7 +348,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} isClient={isClient} />
+            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">

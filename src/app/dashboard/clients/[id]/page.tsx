@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useEffect } from "react";
@@ -26,6 +27,20 @@ const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | '
     Disabled: 'destructive',
 };
 
+const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
+    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+
+    React.useEffect(() => {
+        if (date) {
+            setIsTodayFlag(isToday(date));
+        }
+    }, [date]);
+
+    if (!isTodayFlag) return null;
+
+    return <Badge>Today</Badge>;
+};
+
 export default function ClientDetailPage() {
     const params = useParams();
     const { id } = params;
@@ -34,12 +49,7 @@ export default function ClientDetailPage() {
     const role = searchParams.get('role');
     const isMobile = useMobile();
     const { firestore, user } = useFirebase();
-    const [isClient, setIsClient] = React.useState(false);
 
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-    
     useEffect(() => {
         if (role && role !== 'admin') {
             router.replace(`/dashboard?${searchParams.toString()}`);
@@ -190,7 +200,7 @@ export default function ClientDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {(job.techniques || []).join(', ')} &bull; 
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        <ClientRelativeDateBadge date={jobDate} />
                                                     </p>
                                                 </div>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
@@ -228,7 +238,7 @@ export default function ClientDetailPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                    {jobDate && isClient && isToday(jobDate) && <Badge>Today</Badge>}
+                                                    <ClientRelativeDateBadge date={jobDate} />
                                                 </div>
                                             </TableCell>
                                         </TableRow>

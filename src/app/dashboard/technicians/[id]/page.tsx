@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -208,6 +209,22 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, allTechniques }: { 
     );
 };
 
+const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
+    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+
+    React.useEffect(() => {
+        if (date) {
+            setIsTodayFlag(isToday(date));
+        } else {
+            setIsTodayFlag(false);
+        }
+    }, [date]);
+
+    if (!isTodayFlag) return null;
+
+    return <Badge>Today</Badge>;
+};
+
 
 export default function TechnicianDetailPage() {
     const params = useParams();
@@ -219,12 +236,7 @@ export default function TechnicianDetailPage() {
     const router = useRouter();
     const { firestore } = useFirebase();
     const [hasExpiringCert, setHasExpiringCert] = useState(false);
-    const [isClient, setIsClient] = useState(false);
     
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
     const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
     const { data: technician, isLoading: isLoadingTechnician } = useDoc<PlatformUser>(technicianRef);
 
@@ -238,7 +250,7 @@ export default function TechnicianDetailPage() {
     );
     
     useEffect(() => {
-        if (technician?.certifications && isClient) {
+        if (technician?.certifications) {
             const today = new Date();
             const expiring = technician.certifications.some((cert: Certification) => {
                 if (!cert.validUntil) return false;
@@ -249,7 +261,7 @@ export default function TechnicianDetailPage() {
             });
             setHasExpiringCert(expiring);
         }
-    }, [technician, isClient]);
+    }, [technician]);
 
     const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
     
@@ -434,7 +446,7 @@ export default function TechnicianDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {job.client} &bull; 
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {isClient && jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        <ClientRelativeDateBadge date={jobDate} />
                                                     </p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
@@ -471,7 +483,7 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                                        {isClient && jobDate && isToday(jobDate) && <Badge>Today</Badge>}
+                                                        <ClientRelativeDateBadge date={jobDate} />
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -493,7 +505,7 @@ export default function TechnicianDetailPage() {
             </div>
 
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>Edit Technician: {technician.name}</DialogTitle>
                         <DialogDescription>

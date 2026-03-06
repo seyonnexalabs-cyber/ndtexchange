@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useEffect } from 'react';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 // IMPORTANT: Generate a VAPID key in your Firebase console under Project Settings > Cloud Messaging > Web configuration
@@ -38,7 +39,7 @@ export const FCMInitializer = () => {
               // Save the token to a subcollection for the user
               await setDoc(doc(firestore, `users/${user.uid}/fcmTokens/${currentToken}`), { 
                 token: currentToken, 
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
                 userAgent: navigator.userAgent,
               }, { merge: true });
             } else {

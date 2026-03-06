@@ -1,7 +1,10 @@
-import createNextApiHandler from '@genkit-ai/next';
-import {ai} from '@/ai/genkit';
-import '@/ai/dev'; // Import flows for side effects.
+import {NextResponse} from 'next/server';
 
-const handler = createNextApiHandler({ai});
+// The Genkit API handler has been temporarily disabled to resolve build issues.
+export async function GET() {
+  return NextResponse.json({message: 'Genkit API route temporarily disabled.'});
+}
 
-export { handler as GET, handler as POST };
+export async function POST() {
+  return NextResponse.json({message: 'Genkit API route temporarily disabled.'});
+}

@@ -337,7 +337,7 @@ const AppSidebar = () => {
     if(exactMatch) return exactMatch;
 
     const matchingItems = allItems.filter(
-      (item) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
+      (item: any) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
     );
 
     if (matchingItems.length === 0) {
@@ -411,7 +411,7 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((group, groupIndex) => (
+          {menuItems.map((group: any, groupIndex) => (
             <div key={group.title}>
               <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
                 <span className="group-data-[state=expanded]:inline">{group.title}</span>

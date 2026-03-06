@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -23,7 +24,7 @@ import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
 
 const ClientFormattedDate = ({ date }: { date: Date | null }) => {
-    const [formatted, setFormatted] = React.useState('');
+    const [formatted, setFormatted] = React.useState<string | null>(null);
     React.useEffect(() => {
         if (date) {
             setFormatted(format(date, GLOBAL_DATE_FORMAT));

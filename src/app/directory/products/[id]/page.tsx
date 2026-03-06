@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -36,7 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null; formatString: string }) => {
-    const [formatted, setFormatted] = useState('');
+    const [formatted, setFormatted] = useState<string | null>(null);
     useEffect(() => {
         if (date) {
             setFormatted(format(date, formatString));

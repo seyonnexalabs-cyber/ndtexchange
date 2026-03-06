@@ -84,7 +84,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
             }
             
             const scanFrame = () => {
-                if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA && canvasRef.current) {
+                if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
                     const canvas = canvasRef.current;
                     const context = canvas.getContext('2d');
                     

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,15 +48,19 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
 };
 
 const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-  const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+  const [isTodayFlag, setIsTodayFlag] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
     if (date) {
       setIsTodayFlag(isToday(date));
+    } else {
+      setIsTodayFlag(false);
     }
   }, [date]);
 
-  if (!isTodayFlag) return null;
+  if (isTodayFlag === null || !isTodayFlag) {
+      return null;
+  }
 
   return <Badge>Today</Badge>;
 };

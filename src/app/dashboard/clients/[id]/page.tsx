@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useEffect } from "react";
@@ -28,17 +27,21 @@ const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | '
 };
 
 const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+  const [isTodayFlag, setIsTodayFlag] = React.useState<boolean | null>(null);
 
-    React.useEffect(() => {
-        if (date) {
-            setIsTodayFlag(isToday(date));
-        }
-    }, [date]);
+  React.useEffect(() => {
+    if (date) {
+      setIsTodayFlag(isToday(date));
+    } else {
+      setIsTodayFlag(false);
+    }
+  }, [date]);
 
-    if (!isTodayFlag) return null;
+  if (isTodayFlag === null || !isTodayFlag) {
+      return null;
+  }
 
-    return <Badge>Today</Badge>;
+  return <Badge>Today</Badge>;
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {

@@ -19,7 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -209,17 +209,21 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, allTechniques }: { 
 };
 
 const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+  const [isTodayFlag, setIsTodayFlag] = React.useState<boolean | null>(null);
 
-    React.useEffect(() => {
-        if (date) {
-            setIsTodayFlag(isToday(date));
-        }
-    }, [date]);
+  React.useEffect(() => {
+    if (date) {
+      setIsTodayFlag(isToday(date));
+    } else {
+      setIsTodayFlag(false);
+    }
+  }, [date]);
 
-    if (!isTodayFlag) return null;
+  if (isTodayFlag === null || !isTodayFlag) {
+      return null;
+  }
 
-    return <Badge>Today</Badge>;
+  return <Badge>Today</Badge>;
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
@@ -538,4 +542,3 @@ export default function TechnicianDetailPage() {
     );
 }
 
-    

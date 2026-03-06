@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -28,9 +27,22 @@ import { collection, query, where } from 'firebase/firestore';
 import type { Job, Bid, NDTServiceProvider, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted || !date) {
+        return null; // Don't render on server or if date is invalid
+    }
+
+    return <>{format(date, formatString)}</>;
+};
+
 const reportSchema = z.object({
-  providerIds: z.array(z.string()),
-  techniqueIds: z.array(z.string()),
+  providerIds: z.array(z.string()).optional(),
+  techniqueIds: z.array(z.string()).optional(),
   dateRange: z.object({
     from: z.date().optional(),
     to: z.date().optional(),
@@ -248,11 +260,11 @@ export default function JobCostAnalysisReportPage() {
                                                 {field.value.from ? (
                                                     field.value.to ? (
                                                     <>
-                                                        {format(field.value.from, GLOBAL_DATE_FORMAT)} -{" "}
-                                                        {format(field.value.to, GLOBAL_DATE_FORMAT)}
+                                                        <ClientFormattedDate date={field.value.from} formatString="LLL dd, y" /> -{" "}
+                                                        <ClientFormattedDate date={field.value.to} formatString="LLL dd, y" />
                                                     </>
                                                     ) : (
-                                                    format(field.value.from, GLOBAL_DATE_FORMAT)
+                                                    <ClientFormattedDate date={field.value.from} formatString="LLL dd, y" />
                                                     )
                                                 ) : (
                                                     <span>Pick a date range</span>
@@ -275,7 +287,7 @@ export default function JobCostAnalysisReportPage() {
                                         </FormItem>
                                     )}
                                 />
-                                <div className="flex items-end">
+                                <div className="flex items-end md:col-span-3">
                                     <Button type="button" variant="outline" onClick={() => form.reset({ providerIds: [], techniqueIds: [], dateRange: { from: undefined, to: undefined }})}>
                                         Clear Filters
                                     </Button>
@@ -342,7 +354,7 @@ export default function JobCostAnalysisReportPage() {
                                         <p>Technique: <Badge variant="secondary" shape="rounded">{job.techniques[0]}</Badge></p>
                                         <p>Cost: ${job.awardedBid.amount.toLocaleString()}</p>
                                         <p>Duration: {job.duration} Day(s)</p>
-                                        <p>Completed: {completionDate ? format(completionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                        <p>Completed: <ClientFormattedDate date={completionDate} formatString={GLOBAL_DATE_FORMAT} /></p>
                                     </div>
                                 </Card>
                             )})}
@@ -376,7 +388,7 @@ export default function JobCostAnalysisReportPage() {
                                         <TableCell><Badge variant="secondary" shape="rounded">{job!.techniques[0]}</Badge></TableCell>
                                         <TableCell>${job!.awardedBid!.amount.toLocaleString()}</TableCell>
                                         <TableCell>{job!.duration}</TableCell>
-                                        <TableCell>{completionDate ? format(completionDate, GLOBAL_DATE_FORMAT): 'N/A'}</TableCell>
+                                        <TableCell><ClientFormattedDate date={completionDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                     </TableRow>
                                 )})}
                                 {filteredJobs.length === 0 && (

@@ -47,6 +47,19 @@ const UserAvatar = ({ userId }: { userId: string }) => {
     return <p className="font-semibold">{user.name}</p>;
 };
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted || !date) {
+        return null;
+    }
+
+    return <>{format(date, formatString)}</>;
+};
+
 const CalibrationCard = ({ nextCalibration }: { nextCalibration: string }) => {
     const [status, setStatus] = React.useState<{
         daysRemaining: number;
@@ -100,16 +113,7 @@ const CalibrationCard = ({ nextCalibration }: { nextCalibration: string }) => {
         );
     }
     
-    if (status === 'Invalid') {
-         return (
-            <Card>
-                <CardHeader><CardTitle>Calibration</CardTitle></CardHeader>
-                <CardContent><p className="text-destructive">Invalid calibration date.</p></CardContent>
-            </Card>
-        );
-    }
-    
-    if (!status) {
+    if (status === 'Invalid' || status === null) {
          return (
             <Card>
                 <CardHeader><CardTitle>Calibration Status</CardTitle></CardHeader>
@@ -122,7 +126,7 @@ const CalibrationCard = ({ nextCalibration }: { nextCalibration: string }) => {
         <Card>
             <CardHeader>
                 <CardTitle>Calibration Status</CardTitle>
-                <CardDescription>Next calibration due: {format(status.calDate, 'PPP')}</CardDescription>
+                <CardDescription>Next calibration due: <ClientFormattedDate date={status.calDate} formatString='PPP' /></CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                  <div>
@@ -275,7 +279,7 @@ export default function EquipmentDetailPage() {
                                             <div className="absolute left-0 top-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-primary" />
                                             <div className="flex-1">
                                                 <p className="font-semibold text-sm">{item.event}</p>
-                                                <p className="text-xs text-muted-foreground">by <UserAvatar userId={item.user} /> on {itemDate ? format(itemDate, 'dd-MMM-yyyy @ p') : 'Invalid Date'}</p>
+                                                <p className="text-xs text-muted-foreground">by <UserAvatar userId={item.user} /> on <ClientFormattedDate date={itemDate} formatString='dd-MMM-yyyy @ p' /></p>
                                                 {item.notes && <p className="text-xs text-muted-foreground italic mt-1">"{item.notes}"</p>}
                                             </div>
                                         </div>

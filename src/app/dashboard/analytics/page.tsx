@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { BarChart3, Users, ShieldCheck, FileCheck, DollarSign } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -44,6 +44,11 @@ export default function AnalyticsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
+
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const isReady = firestore && user && role === 'admin';
 
@@ -186,7 +191,7 @@ export default function AnalyticsPage() {
                          <ChartContainer config={jobsByMonthChartConfig} className="h-[300px] w-full">
                             <BarChart data={analyticsData.jobsByMonthData}>
                                 <CartesianGrid vertical={false} />
-                                <XAxis dataKey="name" tickFormatter={(value) => format(parseISO(value), 'MMM yy')} tickLine={false} tickMargin={10} axisLine={false} />
+                                <XAxis dataKey="name" tickFormatter={(value) => isClient ? format(parseISO(value), 'MMM yy') : ''} tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis />
                                 <ChartTooltip content={<ChartTooltipContent />} />
                                 <ChartLegend content={<ChartLegendContent />} />
@@ -205,7 +210,7 @@ export default function AnalyticsPage() {
                          <ChartContainer config={revenueByMonthChartConfig} className="h-[300px] w-full">
                             <BarChart data={analyticsData.revenueByMonthData}>
                                 <CartesianGrid vertical={false} />
-                                <XAxis dataKey="name" tickFormatter={(value) => format(parseISO(value), 'MMM yy')} tickLine={false} tickMargin={10} axisLine={false} />
+                                <XAxis dataKey="name" tickFormatter={(value) => isClient ? format(parseISO(value), 'MMM yy') : ''} tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis tickFormatter={(value) => `$${value/1000}k`}/>
                                 <ChartTooltip content={<ChartTooltipContent />} />
                                 <ChartLegend content={<ChartLegendContent />} />

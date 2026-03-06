@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -8,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { jobs, reviews, clientData, serviceProviders, NDTTechniques } from '@/lib/seed-data';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -25,6 +25,19 @@ import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Asset, PlatformUser, Inspection } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted || !date) {
+        return null; // Don't render on server or if date is invalid
+    }
+
+    return <>{format(date, formatString)}</>;
+};
 
 const reportSchema = z.object({
   assetIds: z.array(z.string()),
@@ -188,11 +201,11 @@ export default function AssetHistoryReportPage() {
                                                 {field.value.from ? (
                                                     field.value.to ? (
                                                     <>
-                                                        {format(field.value.from, GLOBAL_DATE_FORMAT)} -{" "}
-                                                        {format(field.value.to, GLOBAL_DATE_FORMAT)}
+                                                        <ClientFormattedDate date={field.value.from} formatString="LLL dd, y" /> -{" "}
+                                                        <ClientFormattedDate date={field.value.to} formatString="LLL dd, y" />
                                                     </>
                                                     ) : (
-                                                    format(field.value.from, GLOBAL_DATE_FORMAT)
+                                                    <ClientFormattedDate date={field.value.from} formatString="LLL dd, y" />
                                                     )
                                                 ) : (
                                                     <span>Pick a date range</span>
@@ -246,7 +259,7 @@ export default function AssetHistoryReportPage() {
                                     <div className="text-sm text-muted-foreground mt-2">
                                         <p>Technique: <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></p>
                                         <p>Inspector: {inspection.inspector}</p>
-                                        <p>Date: {inspectionDate ? format(inspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                        <p>Date: <ClientFormattedDate date={inspectionDate} formatString={GLOBAL_DATE_FORMAT} /></p>
                                     </div>
                                 </Card>
                             )})}
@@ -278,7 +291,7 @@ export default function AssetHistoryReportPage() {
                                         <TableCell>
                                             <Badge variant={inspection.status === 'Completed' ? 'default' : 'secondary'}>{inspection.status}</Badge>
                                         </TableCell>
-                                        <TableCell>{inspectionDate ? format(inspectionDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                        <TableCell><ClientFormattedDate date={inspectionDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                     </TableRow>
                                 )})}
                                 {filteredInspections.length === 0 && (

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -54,6 +55,53 @@ const ClientFormattedMonth = ({ date }: { date: Date | null }) => {
     }
     return <span>{formatted}</span>
 }
+
+const CalendarDay = ({ day, isCurrentMonth, isToday, events, onEventClick }: { day: Date, isCurrentMonth: boolean, isToday: boolean, events: CalendarEvent[], onEventClick: (event: CalendarEvent) => void }) => {
+    return (
+        <div className={cn(
+            "border-b border-r p-2 flex flex-col min-h-[120px]",
+            !isCurrentMonth && "bg-muted/50 text-muted-foreground"
+        )}>
+            <div className={cn('font-semibold mb-2', isToday && 'text-primary font-bold')}>
+                {format(day, 'd')}
+            </div>
+            <div className="flex-grow space-y-2 overflow-y-auto">
+                {events.map(event => {
+                    let title = '';
+                    let details: React.ReactNode = null;
+                    let badgeText = '';
+
+                    if (event.type === 'job') {
+                        const job = event.data as Job;
+                        title = job.title;
+                        details = <p className="text-xs text-muted-foreground">{job.techniques.join(', ')}</p>;
+                        badgeText = job.status;
+                    } else if (event.type === 'technician' || event.type === 'equipment') {
+                        const resourceData = event.data as { resource: PlatformUser | Equipment, jobs: Job[] };
+                        title = resourceData.resource.name;
+                        details = <p className="text-xs text-muted-foreground">{resourceData.jobs.map(j => j.title).join(', ')}</p>
+                        badgeText = `${resourceData.jobs.length} job(s)`;
+                    }
+
+                    return (
+                        <Card 
+                            key={event.id} 
+                            className={cn(
+                                "bg-muted/50 p-2 cursor-pointer hover:bg-muted",
+                                event.isClash && "border-destructive shadow-sm"
+                            )} 
+                            onClick={() => onEventClick(event)}
+                        >
+                            <p className="text-xs font-semibold truncate">{title}</p>
+                            {details}
+                            <Badge variant={event.isClash ? "destructive" : "secondary"} className="mt-1 text-[10px] py-0 px-1 h-auto">{event.isClash ? "CLASH" : badgeText}</Badge>
+                        </Card>
+                    )
+                })}
+            </div>
+        </div>
+    );
+};
 
 export default function CalendarPage() {
     const searchParams = useSearchParams();
@@ -209,39 +257,6 @@ export default function CalendarPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const renderEventCard = (event: CalendarEvent) => {
-        let title = '';
-        let details: React.ReactNode = null;
-        let badgeText = '';
-
-        if (event.type === 'job') {
-            const job = event.data as Job;
-            title = job.title;
-            details = <p className="text-xs text-muted-foreground">{job.techniques.join(', ')}</p>;
-            badgeText = job.status;
-        } else if (event.type === 'technician' || event.type === 'equipment') {
-            const resourceData = event.data as { resource: PlatformUser | Equipment, jobs: Job[] };
-            title = resourceData.resource.name;
-            details = <p className="text-xs text-muted-foreground">{resourceData.jobs.map(j => j.title).join(', ')}</p>
-            badgeText = `${resourceData.jobs.length} job(s)`;
-        }
-
-        return (
-             <Card 
-                key={event.id} 
-                className={cn(
-                    "bg-muted/50 p-2 cursor-pointer hover:bg-muted",
-                    event.isClash && "border-destructive shadow-sm"
-                )} 
-                onClick={() => setSelectedEvent(event)}
-            >
-                <p className="text-xs font-semibold truncate">{title}</p>
-                {details}
-                <Badge variant={event.isClash ? "destructive" : "secondary"} className="mt-1 text-[10px] py-0 px-1 h-auto">{event.isClash ? "CLASH" : badgeText}</Badge>
-            </Card>
-        )
-    };
-
     const renderDialogContent = () => {
         if (!selectedEvent) return null;
 
@@ -338,17 +353,14 @@ export default function CalendarPage() {
                 <div key={day} className="text-center font-semibold p-2 border-b border-r text-muted-foreground text-sm">{day}</div>
             ))}
             {daysInGrid.map(day => (
-                 <div key={day.toString()} className={cn(
-                    "border-b border-r p-2 flex flex-col min-h-[120px]",
-                    currentDate && !isSameMonth(day, currentDate) && "bg-muted/50 text-muted-foreground"
-                 )}>
-                    <div className={cn('font-semibold mb-2', today && isSameDay(day, today) && 'text-primary font-bold')}>
-                        {format(day, 'd')}
-                    </div>
-                    <div className="flex-grow space-y-2 overflow-y-auto">
-                    {eventsByDate[format(day, 'yyyy-MM-dd')]?.map(renderEventCard)}
-                    </div>
-                </div>
+                <CalendarDay
+                    key={day.toString()}
+                    day={day}
+                    isCurrentMonth={currentDate ? isSameMonth(day, currentDate) : false}
+                    isToday={today ? isSameDay(day, today) : false}
+                    events={eventsByDate[format(day, 'yyyy-MM-dd')] || []}
+                    onEventClick={setSelectedEvent}
+                />
             ))}
         </div>
     );

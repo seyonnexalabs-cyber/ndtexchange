@@ -55,6 +55,7 @@ export default function CompliancePage() {
     const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
+        // Set the current date only on the client side
         setToday(startOfDay(new Date()));
     }, []);
 
@@ -246,3 +247,5 @@ export default function CompliancePage() {
         </div>
     );
 }
+
+    

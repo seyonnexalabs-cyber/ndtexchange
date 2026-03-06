@@ -565,12 +565,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
     const [isThumbnailDragging, setIsThumbnailDragging] = useState(false);
     const logoFileInputRef = useRef<HTMLInputElement>(null);
     const thumbnailFileInputRef = useRef<HTMLInputElement>(null);
-    const [currentDate, setCurrentDate] = useState<string | null>(null);
-
-    useEffect(() => {
-        setCurrentDate(format(new Date(), 'dd-MMM-yyyy'));
-    }, []);
-
+    
     const handleFileUpload = (
         file: File | null,
         setPreview: React.Dispatch<React.SetStateAction<string | null>>,
@@ -713,7 +708,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
                         <div className="pt-4 text-sm text-muted-foreground space-y-2">
                             <div className="grid grid-cols-2 gap-4">
                                 <p><strong>Asset:</strong> Storage Tank T-101</p>
-                                <p><strong>Date:</strong> {currentDate || '...'}</p>
+                                <p><strong>Date:</strong> <ClientCurrentDate formatString="dd-MMM-yyyy" /></p>
                                 <p><strong>Job ID:</strong> JOB-001</p>
                                 <p><strong>Technique:</strong> UT</p>
                             </div>
@@ -1066,4 +1061,3 @@ export default function SettingsPage() {
   );
 }
 
-    

@@ -31,7 +31,7 @@ const userDetails = {
 };
 
 const ClientRelativeTime = ({ date }: { date: Date | null }) => {
-  const [text, setText] = useState<string>('');
+  const [text, setText] = useState<string | null>(null);
 
   useEffect(() => {
     if (date) {
@@ -47,7 +47,7 @@ const ClientRelativeTime = ({ date }: { date: Date | null }) => {
   }, [date]);
 
   // Render nothing on the server and initial client render to avoid mismatch
-  if (!text) return null; 
+  if (text === null) return null; 
 
   return (
       <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">

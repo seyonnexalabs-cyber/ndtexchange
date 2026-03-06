@@ -45,6 +45,8 @@ export default function FindJobsPage() {
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
 
+    const [clientSideFilteredJobs, setClientSideFilteredJobs] = useState<Job[]>([]);
+
     const jobsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'jobs'), where('status', 'in', ['Posted'])) : null, [firestore, user]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
@@ -57,19 +59,19 @@ export default function FindJobsPage() {
         }
     }, [role, router, searchParams]);
 
-    const constructUrl = (base: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        return `${base}?${params.toString()}`;
-    }
+    useEffect(() => {
+        if (!jobs) {
+            setClientSideFilteredJobs([]);
+            return;
+        }
 
-    const filteredJobs = useMemo(() => {
-        if (!jobs) return [];
         const openJobs = jobs.filter(j => {
             const bidExpiry = safeParseDate(j.bidExpiryDate);
+            // This check now only runs on the client-side
             return j.status === 'Posted' && (!bidExpiry || bidExpiry >= new Date());
         });
         
-        return openJobs.filter(job => {
+        const fullyFiltered = openJobs.filter(job => {
             const searchMatch = !searchQuery || 
                 job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.client.toLowerCase().includes(searchQuery.toLowerCase());
@@ -79,8 +81,16 @@ export default function FindJobsPage() {
 
             return searchMatch && techniqueMatch && locationMatch;
         });
-    }, [searchQuery, selectedTechniques, locationFilter, jobs]);
 
+        setClientSideFilteredJobs(fullyFiltered);
+
+    }, [jobs, searchQuery, selectedTechniques, locationFilter]);
+
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
 
     if (role && role !== 'inspector') {
         return null;
@@ -151,7 +161,7 @@ export default function FindJobsPage() {
             )}
             
             <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                {filteredJobs.map(job => {
+                {clientSideFilteredJobs.map(job => {
                     const postedDate = safeParseDate(job.postedDate);
                     const bidExpiryDate = safeParseDate(job.bidExpiryDate);
                     const scheduledStartDate = safeParseDate(job.scheduledStartDate);
@@ -212,7 +222,7 @@ export default function FindJobsPage() {
                 )})}
             </div>
 
-            {filteredJobs.length === 0 && (
+            {clientSideFilteredJobs.length === 0 && (
                 <div className="text-center p-10 border rounded-lg">
                     <Briefcase className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">No Open Projects</h2>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useFirebase } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import type { Asset, InspectorAsset } from '@/lib/types';
+import type { Asset, Equipment } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 
@@ -237,7 +238,7 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
           const equipmentSnap = await getDoc(equipmentRef);
           
           if (equipmentSnap.exists()) {
-              const equipment = equipmentSnap.data() as InspectorAsset;
+              const equipment = equipmentSnap.data() as Equipment;
               setConfirmationState({ id, type: 'equipment', name: equipment.name });
               return;
           }

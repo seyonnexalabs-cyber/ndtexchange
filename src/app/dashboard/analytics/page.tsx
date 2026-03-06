@@ -11,7 +11,7 @@ import { collection } from 'firebase/firestore';
 import type { Job, PlatformUser, NDTServiceProvider } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeParseDate } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const jobsByMonthChartConfig = {
   count: { label: "Jobs", color: "hsl(var(--accent))" },
@@ -75,8 +75,8 @@ export default function AnalyticsPage() {
             const postedDate = safeParseDate(job.postedDate);
             if (!postedDate) return;
 
-            const month = format(postedDate, 'MMM yy');
-            jobsByMonth[month] = (jobsByMonth[month] || 0) + 1;
+            const monthKey = format(postedDate, 'yyyy-MM');
+            jobsByMonth[monthKey] = (jobsByMonth[monthKey] || 0) + 1;
             
             job.techniques.forEach(technique => {
               jobsByTechnique[technique] = (jobsByTechnique[technique] || 0) + 1;
@@ -85,13 +85,15 @@ export default function AnalyticsPage() {
             if (job.status === 'Paid' || job.status === 'Completed') {
                  const awardedBid = job.bids?.find(b => b.status === 'Awarded');
                  if (awardedBid) {
-                     revenueByMonth[month] = (revenueByMonth[month] || 0) + awardedBid.amount;
+                     revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + awardedBid.amount;
                  }
             }
         });
 
-        const jobsByMonthData = Object.entries(jobsByMonth).map(([name, count]) => ({ name, count })).reverse();
-        const revenueByMonthData = Object.entries(revenueByMonth).map(([name, revenue]) => ({ name, revenue })).reverse();
+        const sortedMonthKeys = Object.keys(jobsByMonth).sort().reverse();
+        
+        const jobsByMonthData = sortedMonthKeys.map(key => ({ name: key, count: jobsByMonth[key] }));
+        const revenueByMonthData = sortedMonthKeys.map(key => ({ name: key, revenue: revenueByMonth[key] || 0 }));
         const jobsByTechniqueData = Object.entries(jobsByTechnique).map(([name, count]) => ({ name, count, fill: `var(--color-${name})` }));
 
         const totalRevenue = Object.values(revenueByMonth).reduce((acc, val) => acc + val, 0);
@@ -184,7 +186,7 @@ export default function AnalyticsPage() {
                          <ChartContainer config={jobsByMonthChartConfig} className="h-[300px] w-full">
                             <BarChart data={analyticsData.jobsByMonthData}>
                                 <CartesianGrid vertical={false} />
-                                <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+                                <XAxis dataKey="name" tickFormatter={(value) => format(parseISO(value), 'MMM yy')} tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis />
                                 <ChartTooltip content={<ChartTooltipContent />} />
                                 <ChartLegend content={<ChartLegendContent />} />
@@ -203,7 +205,7 @@ export default function AnalyticsPage() {
                          <ChartContainer config={revenueByMonthChartConfig} className="h-[300px] w-full">
                             <BarChart data={analyticsData.revenueByMonthData}>
                                 <CartesianGrid vertical={false} />
-                                <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+                                <XAxis dataKey="name" tickFormatter={(value) => format(parseISO(value), 'MMM yy')} tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis tickFormatter={(value) => `$${value/1000}k`}/>
                                 <ChartTooltip content={<ChartTooltipContent />} />
                                 <ChartLegend content={<ChartLegendContent />} />

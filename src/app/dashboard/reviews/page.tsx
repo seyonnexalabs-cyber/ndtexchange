@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -28,6 +26,17 @@ const StarRating = ({ rating }: { rating: number }) => {
             ))}
         </div>
     );
+};
+
+const ClientFormattedDate = ({ date }: { date: Date | null }) => {
+    const [formatted, setFormatted] = useState('');
+    useEffect(() => {
+        if (date) {
+            setFormatted(format(date, GLOBAL_DATE_FORMAT));
+        }
+    }, [date]);
+    if (!formatted) return null;
+    return <p className="text-xs text-muted-foreground mt-2">{formatted}</p>;
 };
 
 const statusStyles: { [key in Review['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -63,7 +72,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                     <CardContent>
                         <StarRating rating={review.rating} />
                         <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-3 rounded-md border">{review.comment}</p>
-                        <p className="text-xs text-muted-foreground mt-2">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : 'Just now'}</p>
+                        <ClientFormattedDate date={reviewDate} />
                     </CardContent>
                     {review.status === 'Pending' && (
                         <CardFooter className="flex justify-end gap-2">

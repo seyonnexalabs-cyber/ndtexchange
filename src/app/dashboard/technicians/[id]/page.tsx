@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -538,3 +537,5 @@ export default function TechnicianDetailPage() {
         </div>
     );
 }
+
+    

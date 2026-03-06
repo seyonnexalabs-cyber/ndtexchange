@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -22,6 +21,17 @@ import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Re
 import { Skeleton } from '@/components/ui/skeleton';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
+
+const ClientFormattedDate = ({ date }: { date: Date | null }) => {
+    const [formatted, setFormatted] = React.useState('');
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, GLOBAL_DATE_FORMAT));
+        }
+    }, [date]);
+    if (!formatted) return null;
+    return <p className="text-sm text-muted-foreground">{formatted}</p>;
+};
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -174,7 +184,8 @@ export default function PublicProviderProfilePage() {
                                         <div>
                                             <h3 className="font-semibold text-sm mb-1">Member Since</h3>
                                             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                                                <Calendar className="w-4 h-4" /> {startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                                <Calendar className="w-4 h-4" />
+                                                <ClientFormattedDate date={startDate} />
                                             </p>
                                         </div>
                                     )}
@@ -236,7 +247,7 @@ export default function PublicProviderProfilePage() {
                                                                     <StarRating rating={review.rating} />
                                                                 </div>
                                                             </div>
-                                                            <p className="text-sm text-muted-foreground">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : ''}</p>
+                                                            <ClientFormattedDate date={reviewDate} />
                                                         </div>
                                                         <p className="mt-4 text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md">"{review.comment}"</p>
                                                     </div>

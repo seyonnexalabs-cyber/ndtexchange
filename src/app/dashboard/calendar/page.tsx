@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -33,7 +32,6 @@ import { collection, query, where, doc } from 'firebase/firestore';
 import type { Job, PlatformUser, Equipment } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-
 type CalendarEvent = {
   id: string;
   title: string;
@@ -42,6 +40,20 @@ type CalendarEvent = {
   isClash: boolean;
   data: Job | { resource: PlatformUser | Equipment; jobs: Job[] };
 };
+
+const ClientFormattedMonth = ({ date }: { date: Date | null }) => {
+    const [formatted, setFormatted] = useState('');
+    useEffect(() => {
+        if (date) {
+            setFormatted(format(date, 'MMMM yyyy'));
+        }
+    }, [date]);
+
+    if (!formatted) {
+        return <span>Loading...</span>;
+    }
+    return <span>{formatted}</span>
+}
 
 export default function CalendarPage() {
     const searchParams = useSearchParams();
@@ -368,7 +380,7 @@ export default function CalendarPage() {
                                 )}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {currentDate ? format(currentDate, "MMMM yyyy") : <span>Pick a date</span>}
+                                <ClientFormattedMonth date={currentDate} />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">

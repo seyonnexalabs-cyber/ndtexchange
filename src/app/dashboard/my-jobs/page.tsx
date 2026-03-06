@@ -16,7 +16,8 @@ import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
-import { useSearch } from "@/app/components/layout/search-provider";
+import { useSearch } from "@/components/layout/search-provider";
+import React from "react";
 
 type JobView = 'active' | 'completed' | 'upcoming' | 'drafts';
 
@@ -26,16 +27,40 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success', 'Revisions Requested': 'destructive'
 };
 
+const ClientJobDate = ({ date }: { date: Date | null }) => {
+    const [formatted, setFormatted] = React.useState<{ day: string, dayOfWeek: string} | null>(null);
+
+    React.useEffect(() => {
+        if (date) {
+            setFormatted({
+                day: format(date, 'dd'),
+                dayOfWeek: format(date, 'EEE')
+            });
+        }
+    }, [date]);
+
+    if (!formatted) {
+        return (
+            <>
+                <p className="text-sm font-semibold text-muted-foreground"><Skeleton className="h-4 w-8" /></p>
+                <p className="text-3xl font-bold"><Skeleton className="h-8 w-10" /></p>
+            </>
+        )
+    }
+
+    return (
+        <>
+            <p className="text-sm font-semibold text-muted-foreground">{formatted.dayOfWeek}</p>
+            <p className="text-3xl font-bold">{formatted.day}</p>
+        </>
+    );
+};
+
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [view, setView] = useState<JobView>(role === 'client' ? 'upcoming' : 'active');
     const { searchQuery } = useSearch();
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
 
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
@@ -331,14 +356,12 @@ export default function MyJobsPage() {
                             <div className="space-y-4">
                                 {jobs.map(job => {
                                     const jobDate = safeParseDate(job.scheduledStartDate || job.postedDate);
-                                    if (!jobDate) return null;
                                     const provider = allCompanies?.find(p => p.id === job.providerCompanyId);
                                     return (
                                         <Card key={job.id} className="mx-auto w-full transition-shadow hover:shadow-md">
                                             <div className="flex items-stretch">
                                                 <div className="flex flex-col items-center justify-center p-4 border-r text-center w-24">
-                                                    <p className="text-sm font-semibold text-muted-foreground">{format(jobDate, 'EEE')}</p>
-                                                    <p className="text-3xl font-bold">{format(jobDate, 'dd')}</p>
+                                                    <ClientJobDate date={jobDate} />
                                                 </div>
                                                 <div className="flex-1 p-4">
                                                     <div className="flex justify-between items-start">
@@ -389,5 +412,7 @@ export default function MyJobsPage() {
     
     
 
+
+    
 
     

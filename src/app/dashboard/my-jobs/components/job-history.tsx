@@ -7,6 +7,24 @@ import { GLOBAL_DATETIME_FORMAT, safeParseDate } from '@/lib/utils';
 import * as React from 'react';
 import { FileText, PlusCircle, Gavel, Award, History, Users, Calendar } from 'lucide-react';
 
+const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const date = safeParseDate(timestamp);
+        if (date) {
+            setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
+        }
+    }, [timestamp]);
+    
+    if (formattedDate === null) return null;
+
+    return (
+        <p className="text-xs text-muted-foreground/80 shrink-0">
+            {formattedDate}
+        </p>
+    );
+};
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline',
@@ -22,23 +40,6 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Completed': 'success',
     'Paid': 'success',
     'Revisions Requested': 'destructive',
-};
-
-const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
-    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        const date = safeParseDate(timestamp);
-        if (date) {
-            setFormattedDate(format(date, GLOBAL_DATETIME_FORMAT));
-        }
-    }, [timestamp]);
-
-    return (
-        <p className="text-xs text-muted-foreground/80 shrink-0">
-            {formattedDate || '...'}
-        </p>
-    );
 };
 
 const getEventIcon = (action: string): React.ReactNode => {

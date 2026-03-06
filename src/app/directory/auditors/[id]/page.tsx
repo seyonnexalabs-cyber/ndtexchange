@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -18,6 +17,17 @@ import PublicFooter from '@/app/components/layout/public-footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
+
+const ClientFormattedDate = ({ date }: { date: Date | null }) => {
+    const [formatted, setFormatted] = React.useState('');
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, GLOBAL_DATE_FORMAT));
+        }
+    }, [date]);
+    if (!formatted) return null;
+    return <p className="text-sm text-muted-foreground">{formatted}</p>;
+};
 
 const StarRating = ({ rating }: { rating: number }) => {
     return (
@@ -185,7 +195,7 @@ export default function PublicAuditorProfilePage() {
                                                                 <StarRating rating={review.rating} />
                                                             </div>
                                                         </div>
-                                                        <p className="text-sm text-muted-foreground">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : ''}</p>
+                                                        <ClientFormattedDate date={reviewDate} />
                                                     </div>
                                                     <p className="mt-4 text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md">
                                                         "{review.comment}"

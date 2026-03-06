@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { useMemo, useState } from "react";
@@ -35,6 +34,17 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null; formatString: string }) => {
+    const [formatted, setFormatted] = useState('');
+    useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+    if (!formatted) return null;
+    return <p className="text-xs text-muted-foreground">{formatted}</p>;
+};
 
 const reviewSchema = z.object({
   userName: z.string().min(2, "Please enter your name."),
@@ -519,7 +529,7 @@ export default function PublicProductProfilePage() {
                                                             <StarRating rating={review.rating} size="sm" />
                                                         </div>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground">{reviewDate ? format(reviewDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                                    <ClientFormattedDate date={reviewDate} formatString={GLOBAL_DATE_FORMAT} />
                                                 </div>
                                             </CardHeader>
                                             <CardContent>
@@ -530,7 +540,7 @@ export default function PublicProductProfilePage() {
                                                             <Avatar className="h-6 w-6"><AvatarFallback className="text-xs">{review.reply.authorName.split(' ').map(n=>n[0]).join('')}</AvatarFallback></Avatar>
                                                             Reply from {review.reply.authorName}
                                                         </p>
-                                                        <p className="text-xs text-muted-foreground pl-8">{replyDate ? format(replyDate, GLOBAL_DATETIME_FORMAT) : ''}</p>
+                                                        <ClientFormattedDate date={replyDate} formatString={GLOBAL_DATETIME_FORMAT} />
                                                         <p className="mt-2 text-sm text-muted-foreground italic pl-8">"{review.reply.text}"</p>
                                                     </div>
                                                 )}

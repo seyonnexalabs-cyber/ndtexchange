@@ -43,15 +43,33 @@ const constructUrl = (base: string, searchParams: URLSearchParams) => {
     return `${base}?${params.toString()}`;
 };
 
-const getRelativeDateBadge = (date: Date, today: Date | undefined) => {
-    if (!today) return null;
-    const diff = differenceInDays(date, today);
-    if (diff < 0) return null; // In the past
-    if (diff === 0) return <Badge>Today</Badge>;
-    if (diff === 1) return <Badge variant="secondary">Tomorrow</Badge>;
-    if (diff > 1 && diff <= 7) return <Badge variant="outline">in {diff} days</Badge>;
-    return null;
+const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
+    const [badge, setBadge] = useState<React.ReactNode>(null);
+
+    useEffect(() => {
+        if (!date) {
+            setBadge(null);
+            return;
+        }
+        const today = new Date();
+        const diff = differenceInDays(date, today);
+
+        if (diff < 0) {
+            setBadge(null);
+        } else if (diff === 0) {
+            setBadge(<Badge>Today</Badge>);
+        } else if (diff === 1) {
+            setBadge(<Badge variant="secondary">Tomorrow</Badge>);
+        } else if (diff > 1 && diff <= 7) {
+            setBadge(<Badge variant="outline">in {diff} days</Badge>);
+        } else {
+            setBadge(null);
+        }
+    }, [date]);
+
+    return badge;
 };
+
 
 const ClientFormattedDate = ({ date, formatString = 'dd-MMM p' }: { date: Date | null, formatString?: string }) => {
     const [formattedDate, setFormattedDate] = useState<string | null>(null);
@@ -399,7 +417,7 @@ const ClientDashboard = () => {
                                         <CardDescription>
                                             <div className="flex items-center gap-2">
                                                 <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
-                                                {startDate && getRelativeDateBadge(startDate, today)}
+                                                <ClientRelativeDateBadge date={startDate} />
                                             </div>
                                         </CardDescription>
                                     </CardHeader>
@@ -436,7 +454,7 @@ const ClientDashboard = () => {
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
-                                                {startDate && getRelativeDateBadge(startDate, today)}
+                                                <ClientRelativeDateBadge date={startDate} />
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -580,7 +598,7 @@ const InspectorDashboard = () => {
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
                                             <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
-                                            {startDate && getRelativeDateBadge(startDate, today)}
+                                            <ClientRelativeDateBadge date={startDate} />
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -687,7 +705,7 @@ const AuditorDashboard = () => {
                                     <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{serviceProviders?.find(p => p.id === job.providerCompanyId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
-                                    <TableCell><ClientFormattedDate timestamp={submittedDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
+                                    <TableCell><ClientFormattedDate date={submittedDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild>
                                             <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Audit Report</Link>

@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +28,18 @@ import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/
 import { collection, query, where, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Job, JobPayment, PlatformUser } from '@/lib/types';
 
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
 
 const createPaymentSchema = (isClient: boolean, getJobById: (id: string) => Job | undefined) => {
     return z.object({
@@ -386,7 +397,7 @@ const PaymentsPage = () => {
                                 {role === 'client' && <TableCell>{payment.payee}</TableCell>}
                                 {(role === 'inspector' || role === 'auditor') && <TableCell>{payment.payer}</TableCell>}
                                 <TableCell>${payment.amount.toLocaleString()}</TableCell>
-                                <TableCell>{paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                <TableCell><ClientFormattedDate date={paymentDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                 <TableCell><Badge variant={paymentStatusVariants[payment.status]}>{payment.status}</Badge></TableCell>
                                 <TableCell className="text-right">
                                     <Button asChild variant="outline" size="sm">
@@ -422,7 +433,7 @@ const PaymentsPage = () => {
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">Paid on {paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                        <p className="text-sm text-muted-foreground">Paid on <ClientFormattedDate date={paymentDate} formatString={GLOBAL_DATE_FORMAT} /></p>
                     </CardContent>
                     <CardFooter>
                          <Button asChild variant="outline" size="sm" className="w-full">

@@ -26,7 +26,7 @@ export const FCMInitializer = () => {
         
         const messaging = getMessaging();
 
-        if (!VAPID_KEY || VAPID_KEY === 'YOUR_FCM_VAPID_KEY_FROM_FIREBASE_CONSOLE') {
+        if (!VAPID_KEY) {
           console.warn("FCM VAPID key not set in src/app/components/layout/fcm-initializer.tsx. Push notifications will not work. Please generate a key in your Firebase console and add it.");
           return;
         }

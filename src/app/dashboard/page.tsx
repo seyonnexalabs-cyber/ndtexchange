@@ -53,16 +53,16 @@ const getRelativeDateBadge = (date: Date, today: Date | undefined) => {
     return null;
 };
 
-const ClientFormattedDate = ({ timestamp, formatString = 'dd-MMM p' }: { timestamp: any, formatString?: string }) => {
+const ClientFormattedDate = ({ date, formatString = 'dd-MMM p' }: { date: Date | null, formatString?: string }) => {
     const [formattedDate, setFormattedDate] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!timestamp) return;
-        const date = safeParseDate(timestamp);
-        if (date) {
-            setFormattedDate(format(date, formatString));
+        if (!date) return;
+        const d = safeParseDate(date);
+        if (d) {
+            setFormattedDate(format(d, formatString));
         }
-    }, [timestamp, formatString]);
+    }, [date, formatString]);
 
     if (formattedDate === null) {
         return null;
@@ -398,7 +398,7 @@ const ClientDashboard = () => {
                                         <CardTitle className="text-base">{job.title}</CardTitle>
                                         <CardDescription>
                                             <div className="flex items-center gap-2">
-                                                <span>{startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
                                                 {startDate && getRelativeDateBadge(startDate, today)}
                                             </div>
                                         </CardDescription>
@@ -435,7 +435,7 @@ const ClientDashboard = () => {
                                     <TableRow key={job.id}>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
-                                                <span>{startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
                                                 {startDate && getRelativeDateBadge(startDate, today)}
                                             </div>
                                         </TableCell>
@@ -579,8 +579,8 @@ const InspectorDashboard = () => {
                                 <TableRow key={job.id}>
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
-                                            <span>{startDate ? format(startDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                            {startDate && isToday(startDate) && <Badge>Today</Badge>}
+                                            <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
+                                            {startDate && getRelativeDateBadge(startDate, today)}
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -687,7 +687,7 @@ const AuditorDashboard = () => {
                                     <TableCell className="font-medium">{job.title}</TableCell>
                                     <TableCell>{serviceProviders?.find(p => p.id === job.providerCompanyId)?.name || 'N/A'}</TableCell>
                                     <TableCell><Badge variant="secondary">{job.techniques.join(', ')}</Badge></TableCell>
-                                    <TableCell>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                    <TableCell><ClientFormattedDate timestamp={submittedDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild>
                                             <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`, searchParams)}>Audit Report</Link>

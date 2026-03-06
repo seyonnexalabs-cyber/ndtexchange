@@ -440,6 +440,17 @@ const SubscriptionsMobileView = ({
     </div>
 );
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
 
 const PaymentHistoryDesktopView = ({ allPayments }: { allPayments: Payment[] }) => (
     <Card>
@@ -458,7 +469,7 @@ const PaymentHistoryDesktopView = ({ allPayments }: { allPayments: Payment[] }) 
                     const paymentDate = safeParseDate(payment.date);
                     return (
                         <TableRow key={payment.id}>
-                            <TableCell>{paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                            <TableCell><ClientFormattedDate date={paymentDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                             <TableCell className="font-medium">{payment.companyName}</TableCell>
                             <TableCell>${payment.amount.toLocaleString()}</TableCell>
                             <TableCell><Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge></TableCell>
@@ -489,7 +500,7 @@ const PaymentHistoryMobileView = ({ allPayments }: { allPayments: Payment[] }) =
                             <CardTitle>{payment.companyName}</CardTitle>
                             <Badge variant={paymentStatusStyles[payment.status]}>{payment.status}</Badge>
                         </div>
-                        <CardDescription>Subscription: <span className="font-extrabold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</CardDescription>
+                        <CardDescription>Subscription: <span className="font-extrabold text-foreground">{payment.subscriptionId}</span> &bull; Paid: {paymentDate ? <ClientFormattedDate date={paymentDate} formatString={GLOBAL_DATE_FORMAT} /> : 'N/A'}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">${payment.amount.toLocaleString()}</p>

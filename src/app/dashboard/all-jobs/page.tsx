@@ -48,20 +48,30 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Revisions Requested': 'destructive',
 };
 
-const ClientRelativeDateBadge = ({ date, className }: { date: Date | null, className?: string }) => {
-    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
+  const [isTodayFlag, setIsTodayFlag] = React.useState(false);
 
+  React.useEffect(() => {
+    if (date) {
+      setIsTodayFlag(isToday(date));
+    }
+  }, [date]);
+
+  if (!isTodayFlag) return null;
+
+  return <Badge>Today</Badge>;
+};
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
     React.useEffect(() => {
         if (date) {
-            setIsTodayFlag(isToday(date));
-        } else {
-            setIsTodayFlag(false);
+            setFormatted(format(date, formatString));
         }
-    }, [date]);
+    }, [date, formatString]);
 
-    if (!isTodayFlag) return null;
-
-    return <Badge className={className}>Today</Badge>;
+    if (!formatted) return null;
+    return <>{formatted}</>;
 };
 
 export default function AllJobsPage() {
@@ -400,14 +410,14 @@ export default function AllJobsPage() {
                                     </div>
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                        <span>Posted: {postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
-                                        <ClientRelativeDateBadge date={postedDate} className="ml-2" />
+                                        <span>Posted: <ClientFormattedDate date={postedDate} formatString={GLOBAL_DATE_FORMAT} /></span>
+                                        <ClientRelativeDateBadge date={postedDate} />
                                     </div>
                                     {expiryDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <AlarmClock className="w-4 h-4 mr-2 text-primary" />
-                                            <span>Bids Expire: {format(expiryDate, GLOBAL_DATE_FORMAT)}</span>
-                                            <ClientRelativeDateBadge date={expiryDate} className="ml-2" />
+                                            <span>Bids Expire: <ClientFormattedDate date={expiryDate} formatString={GLOBAL_DATE_FORMAT} /></span>
+                                            <ClientRelativeDateBadge date={expiryDate} />
                                         </div>
                                     )}
                                 </CardContent>
@@ -451,7 +461,7 @@ export default function AllJobsPage() {
                                         <TableCell>{job.location}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <span>{postedDate ? format(postedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                <span><ClientFormattedDate date={postedDate} formatString={GLOBAL_DATE_FORMAT} /></span>
                                                 <ClientRelativeDateBadge date={postedDate} />
                                             </div>
                                         </TableCell>

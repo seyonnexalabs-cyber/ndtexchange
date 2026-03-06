@@ -25,6 +25,18 @@ const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destru
     'Requires Review': 'destructive',
 };
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
+
 const UserAvatar = ({ userId }: { userId: string }) => {
     const { firestore } = useFirebase();
     const { data: user, isLoading } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && userId ? doc(firestore, 'users', userId) : null), [firestore, userId]));
@@ -146,7 +158,7 @@ export default function AssetDetailPage() {
                                 <div>
                                     <span className="text-muted-foreground">Created by </span>
                                     <span className="font-semibold">{createdBy?.name || '...'}</span>
-                                    <span className="text-muted-foreground"> on {createdAtDate ? format(createdAtDate, 'PP') : '...'}</span>
+                                    <span className="text-muted-foreground"> on <ClientFormattedDate date={createdAtDate} formatString='PP' /></span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 text-sm">
@@ -154,7 +166,7 @@ export default function AssetDetailPage() {
                                 <div>
                                     <span className="text-muted-foreground">Last modified by </span>
                                     <span className="font-semibold">{modifiedBy?.name || '...'}</span>
-                                    <span className="text-muted-foreground"> on {modifiedAtDate ? format(modifiedAtDate, 'PP') : '...'}</span>
+                                    <span className="text-muted-foreground"> on <ClientFormattedDate date={modifiedAtDate} formatString='PP' /></span>
                                 </div>
                             </div>
                         </CardFooter>
@@ -174,7 +186,7 @@ export default function AssetDetailPage() {
                                             <div className="flex items-center gap-3">
                                                 <Calendar className="h-5 w-5 text-muted-foreground"/>
                                                 <div>
-                                                    <p className="font-semibold">{inspectionDate ? format(inspectionDate, 'PP') : 'Invalid Date'}</p>
+                                                    <p className="font-semibold"><ClientFormattedDate date={inspectionDate} formatString='PP' /></p>
                                                     <p className="text-xs text-muted-foreground">Inspector: {inspection.inspector}</p>
                                                 </div>
                                             </div>

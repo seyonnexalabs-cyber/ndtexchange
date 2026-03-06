@@ -41,6 +41,18 @@ const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
     return <Badge>Today</Badge>;
 };
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
+
 export default function ClientDetailPage() {
     const params = useParams();
     const { id } = params;
@@ -168,7 +180,7 @@ export default function ClientDetailPage() {
                                     <div className="flex items-center gap-3">
                                         <Calendar className="w-4 h-4 text-primary" />
                                         <span>
-                                            Member Since: {memberSinceDate ? format(memberSinceDate, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                            Member Since: <ClientFormattedDate date={memberSinceDate} formatString={GLOBAL_DATE_FORMAT} />
                                         </span>
                                     </div>
                                 )}
@@ -199,7 +211,7 @@ export default function ClientDetailPage() {
                                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {(job.techniques || []).join(', ')} &bull; 
-                                                        <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                        <span><ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} /></span>
                                                         <ClientRelativeDateBadge date={jobDate} />
                                                     </p>
                                                 </div>
@@ -237,7 +249,7 @@ export default function ClientDetailPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                    <span><ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} /></span>
                                                     <ClientRelativeDateBadge date={jobDate} />
                                                 </div>
                                             </TableCell>

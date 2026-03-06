@@ -32,6 +32,18 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Client Approved': 'success', 'Completed': 'success', 'Paid': 'success', 'Revisions Requested': 'destructive'
 };
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
+
 const BidsSection = ({ job, bids, allCompanies, onReviewBid, isClient, isAdmin }: { job: Job, bids: Bid[], allCompanies: any[], onReviewBid: (bid: Bid) => void, isClient: boolean, isAdmin: boolean }) => {
     if (!job || (!isClient && !isAdmin) || !bids) return null;
 
@@ -69,7 +81,7 @@ const BidsSection = ({ job, bids, allCompanies, onReviewBid, isClient, isAdmin }
                             <div className="flex items-center gap-6 w-full sm:w-auto">
                                 <div className="text-left sm:text-right flex-grow">
                                     <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
-                                    <p className="text-xs text-muted-foreground">Submitted on {submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground">Submitted on <ClientFormattedDate date={submittedDate} formatString={GLOBAL_DATE_FORMAT} /></p>
                                 </div>
                                 {isAwarded ? (
                                     <Badge variant="success" className="gap-2"><Award className="h-4 w-4" />Awarded</Badge>
@@ -321,7 +333,7 @@ export default function JobDetailPage() {
                                 <ul className="space-y-3 text-sm">
                                     <li className="flex"><strong className="w-32">Job Information:</strong> <span className="text-muted-foreground">{job.description}</span></li>
                                     <li className="flex"><strong className="w-32">Location:</strong> <span className="text-muted-foreground">{job.location}</span></li>
-                                    <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? format(scheduledDate, 'PPP') : 'Not Scheduled'}</span></li>
+                                    <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? <ClientFormattedDate date={scheduledDate} formatString='PPP' /> : 'Not Scheduled'}</span></li>
                                     <li className="flex items-start"><strong className="w-32 shrink-0">Attachments:</strong> 
                                         <div className="flex flex-wrap gap-2">
                                             {job.documents?.map(doc => (

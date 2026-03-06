@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -17,6 +18,18 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import type { Payment, Subscription, Plan } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
 
 function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
     plan: string; 
@@ -174,7 +187,7 @@ const PaymentHistory = ({ companyName }: { companyName: string }) => {
                             const paymentDate = safeParseDate(payment.date);
                             return (
                                 <TableRow key={payment.id}>
-                                    <TableCell>{paymentDate ? format(paymentDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                    <TableCell><ClientFormattedDate date={paymentDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                     <TableCell>${payment.amount.toLocaleString()}</TableCell>
                                     <TableCell>{sub?.plan || 'N/A'}</TableCell>
                                     <TableCell><Badge variant={payment.status === 'Succeeded' ? 'success' : 'destructive'}>{payment.status}</Badge></TableCell>

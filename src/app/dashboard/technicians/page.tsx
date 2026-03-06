@@ -58,6 +58,18 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing, allTechn
         },
     });
 
+    useEffect(() => {
+        if (defaultValues) {
+            form.reset({
+                ...defaultValues,
+                certifications: defaultValues.certifications?.map(c => ({
+                    ...c,
+                    validUntil: c.validUntil ? safeParseDate(c.validUntil) : undefined,
+                }))
+            });
+        }
+    }, [defaultValues, form]);
+
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "certifications",
@@ -341,6 +353,11 @@ export default function TechniciansPage() {
 
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<PlatformUser | null>(null);
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
 
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
@@ -406,9 +423,8 @@ export default function TechniciansPage() {
     };
 
     const techniciansWithStats = useMemo(() => {
-        if (!technicians || !companyJobs) return [];
+        if (!technicians || !companyJobs || !today) return [];
 
-        const today = new Date();
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
         return technicians.map(tech => {
@@ -423,7 +439,7 @@ export default function TechniciansPage() {
 
             return { ...tech, jobsThisMonth, currentJob };
         });
-    }, [technicians, companyJobs]);
+    }, [technicians, companyJobs, today]);
     
     const isLoading = isLoadingProfile || isLoadingTechnicians || isLoadingTechniques || isLoadingJobs;
 

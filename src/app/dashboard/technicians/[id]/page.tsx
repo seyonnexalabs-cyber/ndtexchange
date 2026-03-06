@@ -215,14 +215,24 @@ const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
     React.useEffect(() => {
         if (date) {
             setIsTodayFlag(isToday(date));
-        } else {
-            setIsTodayFlag(false);
         }
     }, [date]);
 
     if (!isTodayFlag) return null;
 
     return <Badge>Today</Badge>;
+};
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
 };
 
 
@@ -411,7 +421,7 @@ export default function TechnicianDetailPage() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>{cert.certificateNumber || 'N/A'}</TableCell>
-                                                <TableCell>{validUntilDate ? format(validUntilDate, GLOBAL_DATE_FORMAT) : 'N/A'}</TableCell>
+                                                <TableCell><ClientFormattedDate date={validUntilDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                             </TableRow>
                                         )
                                     })}
@@ -445,7 +455,7 @@ export default function TechnicianDetailPage() {
                                                     <p className="text-xs font-extrabold text-muted-foreground">{job.id}</p>
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {job.client} &bull; 
-                                                        <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                        <ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} />
                                                         <ClientRelativeDateBadge date={jobDate} />
                                                     </p>
                                                 </div>
@@ -482,7 +492,7 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>{job.client}</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
-                                                        <span>{jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                                        <ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} />
                                                         <ClientRelativeDateBadge date={jobDate} />
                                                     </div>
                                                 </TableCell>

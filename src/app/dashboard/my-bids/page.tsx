@@ -61,6 +61,18 @@ const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
     return <Badge>Today</Badge>;
 };
 
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
+
 const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string }) => {
     const isMobile = useMobile();
 
@@ -105,7 +117,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                              <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Job Date</span>
                                 <span className="font-medium flex items-center gap-2">
-                                  {jobDate ? format(jobDate, GLOBAL_DATE_FORMAT) : 'N/A'}
+                                  <ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} />
                                   <ClientRelativeDateBadge date={jobDate} />
                                 </span>
                             </div>
@@ -166,7 +178,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                             <TableCell>${bid.amount.toLocaleString()}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <span>{submittedDate ? format(submittedDate, GLOBAL_DATE_FORMAT) : 'N/A'}</span>
+                                  <span><ClientFormattedDate date={submittedDate} formatString={GLOBAL_DATE_FORMAT} /></span>
                                   <ClientRelativeDateBadge date={submittedDate} />
                                 </div>
                             </TableCell>

@@ -46,12 +46,18 @@ export default function FindJobsPage() {
     const { firestore, user } = useFirebase();
 
     const [clientSideFilteredJobs, setClientSideFilteredJobs] = useState<Job[]>([]);
+    const [isMounted, setIsMounted] = useState(false);
 
     const jobsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'jobs'), where('status', 'in', ['Posted'])) : null, [firestore, user]);
     const { data: jobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
+    
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
 
     useEffect(() => {
         if (role && role !== 'inspector') {
@@ -67,8 +73,11 @@ export default function FindJobsPage() {
 
         const openJobs = jobs.filter(j => {
             const bidExpiry = safeParseDate(j.bidExpiryDate);
-            // This check now only runs on the client-side
-            return j.status === 'Posted' && (!bidExpiry || bidExpiry >= new Date());
+            if(isMounted) {
+                return j.status === 'Posted' && (!bidExpiry || bidExpiry >= new Date());
+            }
+            // During SSR or initial hydration, be optimistic to avoid layout shifts.
+            return j.status === 'Posted';
         });
         
         const fullyFiltered = openJobs.filter(job => {
@@ -84,7 +93,7 @@ export default function FindJobsPage() {
 
         setClientSideFilteredJobs(fullyFiltered);
 
-    }, [jobs, searchQuery, selectedTechniques, locationFilter]);
+    }, [jobs, searchQuery, selectedTechniques, locationFilter, isMounted]);
 
 
     const constructUrl = (base: string) => {
@@ -166,7 +175,7 @@ export default function FindJobsPage() {
                     const bidExpiryDate = safeParseDate(job.bidExpiryDate);
                     const scheduledStartDate = safeParseDate(job.scheduledStartDate);
                     const scheduledEndDate = safeParseDate(job.scheduledEndDate);
-                    const isExpired = bidExpiryDate && bidExpiryDate < new Date();
+                    const isExpired = isMounted && bidExpiryDate && bidExpiryDate < new Date();
                     return (
                     <Card key={job.id} className={isExpired ? 'bg-muted/50' : ''}>
                         <CardHeader>

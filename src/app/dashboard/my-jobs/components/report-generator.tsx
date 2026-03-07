@@ -1,3 +1,4 @@
+
 'use client';
 import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,15 +8,15 @@ import { Separator } from '@/components/ui/separator';
 // Lazy load templates
 import dynamic from 'next/dynamic';
 
-const UTReportTemplate = dynamic(() => import('./report-templates/ut-report').then((mod) => mod.default), { ssr: false });
-const MTReportTemplate = dynamic(() => import('./report-templates/mt-report').then((mod) => mod.default), { ssr: false });
-const PTReportTemplate = dynamic(() => import('./report-templates/pt-report').then((mod) => mod.default), { ssr: false });
-const RTReportTemplate = dynamic(() => import('./report-templates/rt-report').then((mod) => mod.default), { ssr: false });
-const VTReportTemplate = dynamic(() => import('./report-templates/vt-report').then((mod) => mod.default), { ssr: false });
-const ETReportTemplate = dynamic(() => import('./report-templates/et-report').then((mod) => mod.default), { ssr: false });
-const AEReportTemplate = dynamic(() => import('./report-templates/ae-report').then((mod) => mod.default), { ssr: false });
-const GWTReportTemplate = dynamic(() => import('./report-templates/gwt-report').then((mod) => mod.default), { ssr: false });
-const APRReportTemplate = dynamic(() => import('./report-templates/apr-report').then((mod) => mod.default), { ssr: false });
+const UTReportTemplate = dynamic(() => import('./report-templates/ut-report').then(mod => mod.default), { ssr: false });
+const MTReportTemplate = dynamic(() => import('./report-templates/mt-report').then(mod => mod.default), { ssr: false });
+const PTReportTemplate = dynamic(() => import('./report-templates/pt-report').then(mod => mod.default), { ssr: false });
+const RTReportTemplate = dynamic(() => import('./report-templates/rt-report').then(mod => mod.default), { ssr: false });
+const VTReportTemplate = dynamic(() => import('./report-templates/vt-report').then(mod => mod.default), { ssr: false });
+const ETReportTemplate = dynamic(() => import('./report-templates/et-report').then(mod => mod.default), { ssr: false });
+const AEReportTemplate = dynamic(() => import('./report-templates/ae-report').then(mod => mod.default), { ssr: false });
+const GWTReportTemplate = dynamic(() => import('./report-templates/gwt-report').then(mod => mod.default), { ssr: false });
+const APRReportTemplate = dynamic(() => import('./report-templates/apr-report').then(mod => mod.default), { ssr: false });
 
 const reportTemplates: { [key: string]: React.ComponentType } = {
     UT: UTReportTemplate,

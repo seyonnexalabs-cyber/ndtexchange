@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { useMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format, isToday } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
@@ -26,17 +26,11 @@ const statusStyles: { [key in PlatformUser['status']]: 'success' | 'default' | '
     Disabled: 'destructive',
 };
 
-const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-  const [isClient, setIsClient] = React.useState(false);
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient || !date || !isToday(date)) {
-    return null;
-  }
-
-  return <Badge>Today</Badge>;
+const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Date | undefined }) => {
+    if (!today || !date || !isSameDay(date, today)) {
+        return null;
+    }
+    return <Badge>Today</Badge>;
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
@@ -59,6 +53,11 @@ export default function ClientDetailPage() {
     const role = searchParams.get('role');
     const isMobile = useMobile();
     const { firestore, user } = useFirebase();
+    const [today, setToday] = React.useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -210,7 +209,7 @@ export default function ClientDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {(job.techniques || []).join(', ')} &bull; 
                                                         <span><ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} /></span>
-                                                        <ClientRelativeDateBadge date={jobDate} />
+                                                        <ClientRelativeDateBadge date={jobDate} today={today} />
                                                     </p>
                                                 </div>
                                                 <Badge variant={job.status === 'Completed' ? 'default' : 'secondary'}>{job.status}</Badge>
@@ -248,7 +247,7 @@ export default function ClientDetailPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     <span><ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} /></span>
-                                                    <ClientRelativeDateBadge date={jobDate} />
+                                                    <ClientRelativeDateBadge date={jobDate} today={today} />
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -325,3 +324,5 @@ export default function ClientDetailPage() {
         </div>
     );
 }
+
+    

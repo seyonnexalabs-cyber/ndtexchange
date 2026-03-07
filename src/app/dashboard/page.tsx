@@ -17,7 +17,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 import { useMobile } from "@/hooks/use-mobile";
 import React, { useState, useEffect, useMemo } from "react";
-import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid, subMonths } from "date-fns";
+import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid, subMonths, isSameDay } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,22 +44,18 @@ const constructUrl = (base: string, searchParams: URLSearchParams) => {
 };
 
 const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Date | undefined }) => {
-    const [isClient, setIsClient] = React.useState(false);
-    React.useEffect(() => {
-      setIsClient(true);
-    }, []);
-  
-    if (!isClient || !date || !today) {
-      return null;
+    if (!today || !date) {
+        return null;
     }
-  
+
     const diff = differenceInDays(date, today);
+
     if (diff === 0) {
-      return <Badge>Today</Badge>;
+        return <Badge>Today</Badge>;
     } else if (diff === 1) {
-      return <Badge variant="secondary">Tomorrow</Badge>;
+        return <Badge variant="secondary">Tomorrow</Badge>;
     } else if (diff > 1 && diff <= 7) {
-      return <Badge variant="outline">in {diff} days</Badge>;
+        return <Badge variant="outline">in {diff} days</Badge>;
     }
     return null;
 };
@@ -245,7 +241,7 @@ const ClientDashboard = () => {
     };
     
     const isLoading = isLoadingJobs || isLoadingAssets || isLoadingProviders || isLoadingProfile;
-    if (isLoading) {
+    if (isLoading || !today) {
         return <DashboardSkeleton />;
     }
 
@@ -532,7 +528,7 @@ const InspectorDashboard = () => {
 
     const isLoading = isLoadingJobs || isLoadingEquip || isLoadingBids || isLoadingProfile;
 
-    if (isLoading) {
+    if (isLoading || !today) {
         return <DashboardSkeleton />;
     }
 
@@ -1036,3 +1032,5 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
+
+    

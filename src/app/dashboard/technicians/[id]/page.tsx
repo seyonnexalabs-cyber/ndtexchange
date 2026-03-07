@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useMemo, useState, useEffect } from "react";
@@ -244,6 +245,7 @@ export default function TechnicianDetailPage() {
     const router = useRouter();
     const { firestore } = useFirebase();
     const [hasExpiringCert, setHasExpiringCert] = useState(false);
+    const [certCheckComplete, setCertCheckComplete] = useState(false);
     
     const technicianRef = useMemoFirebase(() => (firestore && id ? doc(firestore, 'users', id as string) : null), [firestore, id]);
     const { data: technician, isLoading: isLoadingTechnician } = useDoc<PlatformUser>(technicianRef);
@@ -269,6 +271,7 @@ export default function TechnicianDetailPage() {
             });
             setHasExpiringCert(expiring);
         }
+        setCertCheckComplete(true);
     }, [technician]);
 
     const completedJobsCount = useMemo(() => assignedJobs?.filter(j => ['Completed', 'Paid'].includes(j.status)).length || 0, [assignedJobs]);
@@ -425,7 +428,7 @@ export default function TechnicianDetailPage() {
                                     })}
                                 </TableBody>
                             </Table>
-                            {hasExpiringCert && (
+                            {certCheckComplete && hasExpiringCert && (
                                 <Alert variant="destructive" className="mt-4 p-2 text-xs flex items-center gap-2">
                                     <AlertTriangle className="h-4 w-4" />
                                     <span>Certification expiring soon</span>
@@ -454,7 +457,7 @@ export default function TechnicianDetailPage() {
                                                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                                                         {job.client} &bull; 
                                                         <ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} />
-                                                        <ClientRelativeDateBadge date={jobDate} />
+                                                        {jobDate && <ClientRelativeDateBadge date={jobDate} />}
                                                     </p>
                                                 </div>
                                                 <Badge variant={jobStatusVariants[job.status]}>{job.status}</Badge>
@@ -491,7 +494,7 @@ export default function TechnicianDetailPage() {
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} />
-                                                        <ClientRelativeDateBadge date={jobDate} />
+                                                        {jobDate && <ClientRelativeDateBadge date={jobDate} />}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>

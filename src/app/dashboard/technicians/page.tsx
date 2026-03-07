@@ -441,7 +441,7 @@ export default function TechniciansPage() {
         });
     }, [technicians, companyJobs, today]);
     
-    const isLoading = isLoadingProfile || isLoadingTechnicians || isLoadingTechniques || isLoadingJobs;
+    const isLoading = isLoadingProfile || isLoadingTechnicians || isLoadingTechniques || isLoadingJobs || !today;
 
     if (isLoading) {
         return (

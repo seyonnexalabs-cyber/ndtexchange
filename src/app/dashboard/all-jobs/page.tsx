@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format, isToday } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { useSearch } from "@/app/components/layout/search-provider";
 import {
     Pagination,
@@ -47,18 +47,11 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
     'Revisions Requested': 'destructive',
 };
 
-const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-  const [isClient, setIsClient] = React.useState(false);
-  
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient || !date || !isToday(date)) {
-      return null;
-  }
-
-  return <Badge>Today</Badge>;
+const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Date | undefined }) => {
+    if (!today || !date || !isSameDay(date, today)) {
+        return null;
+    }
+    return <Badge>Today</Badge>;
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
@@ -83,6 +76,11 @@ export default function AllJobsPage() {
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const isMobile = useMobile();
     const [currentPage, setCurrentPage] = useState(1);
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
 
     const { firestore, user } = useFirebase();
     const isReady = !!firestore && !!user && role === 'admin';
@@ -410,13 +408,13 @@ export default function AllJobsPage() {
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Calendar className="w-4 h-4 mr-2 text-primary" />
                                         <span>Posted: <ClientFormattedDate date={postedDate} formatString={GLOBAL_DATE_FORMAT} /></span>
-                                        <ClientRelativeDateBadge date={postedDate} />
+                                        <ClientRelativeDateBadge date={postedDate} today={today} />
                                     </div>
                                     {expiryDate && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <AlarmClock className="w-4 h-4 mr-2 text-primary" />
                                             <span>Bids Expire: <ClientFormattedDate date={expiryDate} formatString={GLOBAL_DATE_FORMAT} /></span>
-                                            <ClientRelativeDateBadge date={expiryDate} />
+                                            <ClientRelativeDateBadge date={expiryDate} today={today} />
                                         </div>
                                     )}
                                 </CardContent>
@@ -461,7 +459,7 @@ export default function AllJobsPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <span><ClientFormattedDate date={postedDate} formatString={GLOBAL_DATE_FORMAT} /></span>
-                                                <ClientRelativeDateBadge date={postedDate} />
+                                                <ClientRelativeDateBadge date={postedDate} today={today} />
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -492,3 +490,5 @@ export default function AllJobsPage() {
         </div>
     );
 }
+
+    

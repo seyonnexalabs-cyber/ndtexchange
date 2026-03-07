@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
-import { format, isToday } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -47,17 +47,11 @@ const statusConfig: { [key in Bid['status']]: { variant: 'success' | 'default' |
     'Not Selected': { variant: 'destructive', label: 'Not Selected' },
 };
 
-const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-  const [isClient, setIsClient] = React.useState(false);
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient || !date || !isToday(date)) {
-    return null;
-  }
-
-  return <Badge>Today</Badge>;
+const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Date | undefined }) => {
+    if (!today || !date || !isSameDay(date, today)) {
+        return null;
+    }
+    return <Badge>Today</Badge>;
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
@@ -72,7 +66,7 @@ const ClientFormattedDate = ({ date, formatString }: { date: Date | null, format
     return <>{formatted}</>;
 };
 
-const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string }) => {
+const BidsList = ({ bids, onEdit, onWithdraw, constructUrl, today }: { bids: Bid[], onEdit: (bid: Bid) => void, onWithdraw: (bid: Bid) => void, constructUrl: (path: string) => string, today: Date | undefined }) => {
     const isMobile = useMobile();
 
     if (bids.length === 0) {
@@ -117,7 +111,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                                 <span className="text-muted-foreground flex items-center"><Calendar className="w-4 h-4 mr-2"/>Job Date</span>
                                 <span className="font-medium flex items-center gap-2">
                                   <ClientFormattedDate date={jobDate} formatString={GLOBAL_DATE_FORMAT} />
-                                  <ClientRelativeDateBadge date={jobDate} />
+                                  <ClientRelativeDateBadge date={jobDate} today={today} />
                                 </span>
                             </div>
                         </CardContent>
@@ -178,7 +172,7 @@ const BidsList = ({ bids, onEdit, onWithdraw, constructUrl }: { bids: Bid[], onE
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                   <span><ClientFormattedDate date={submittedDate} formatString={GLOBAL_DATE_FORMAT} /></span>
-                                  <ClientRelativeDateBadge date={submittedDate} />
+                                  <ClientRelativeDateBadge date={submittedDate} today={today} />
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -220,6 +214,11 @@ export default function MyBidsPage() {
     const router = useRouter();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
+    const [today, setToday] = useState<Date | undefined>(undefined);
+
+    useEffect(() => {
+        setToday(new Date());
+    }, []);
     
     const myBidsQuery = useMemoFirebase(() => (firestore && user ? query(collection(firestore, 'bids'), where('inspectorId', '==', user.uid), orderBy('submittedDate', 'desc')) : null), [firestore, user]);
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
@@ -359,7 +358,7 @@ export default function MyBidsPage() {
                 </div>
             </div>
 
-            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} />
+            <BidsList bids={myBids || []} onEdit={handleEditClick} onWithdraw={handleWithdrawClick} constructUrl={constructUrl} today={today} />
 
             <Dialog open={!!editingBid} onOpenChange={(open) => !open && setEditingBid(null)}>
                 <DialogContent className="sm:max-w-lg">
@@ -429,3 +428,5 @@ export default function MyBidsPage() {
         </div>
     );
 }
+
+    

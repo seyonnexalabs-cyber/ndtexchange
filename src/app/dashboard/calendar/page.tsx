@@ -118,8 +118,9 @@ export default function CalendarPage() {
     );
 
     useEffect(() => {
-        setCurrentDate(new Date());
-        setToday(new Date());
+        const now = new Date();
+        setCurrentDate(now);
+        setToday(startOfWeek(now));
     }, []);
 
     const jobsQuery = useMemoFirebase(() => {
@@ -448,3 +449,5 @@ export default function CalendarPage() {
         </div>
     );
 }
+
+    

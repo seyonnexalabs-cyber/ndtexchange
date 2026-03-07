@@ -48,17 +48,13 @@ const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondar
 };
 
 const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-  const [isTodayFlag, setIsTodayFlag] = React.useState<boolean | null>(null);
-
+  const [isClient, setIsClient] = React.useState(false);
+  
   React.useEffect(() => {
-    if (date) {
-      setIsTodayFlag(isToday(date));
-    } else {
-      setIsTodayFlag(false);
-    }
-  }, [date]);
+    setIsClient(true);
+  }, []);
 
-  if (isTodayFlag === null || !isTodayFlag) {
+  if (!isClient || !date || !isToday(date)) {
       return null;
   }
 
@@ -172,7 +168,7 @@ export default function AllJobsPage() {
     };
     
     const handleStatusChange = (status: string) => {
-        setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
+        setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, s]);
     };
 
     const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0 || selectedClients.length > 0;

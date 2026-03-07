@@ -209,18 +209,13 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, allTechniques }: { 
 };
 
 const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
-  const [isTodayFlag, setIsTodayFlag] = React.useState<boolean | null>(null);
-
+  const [isClient, setIsClient] = React.useState(false);
   React.useEffect(() => {
-    if (date) {
-      setIsTodayFlag(isToday(date));
-    } else {
-      setIsTodayFlag(false);
-    }
-  }, [date]);
+    setIsClient(true);
+  }, []);
 
-  if (isTodayFlag === null || !isTodayFlag) {
-      return null;
+  if (!isClient || !date || !isToday(date)) {
+    return null;
   }
 
   return <Badge>Today</Badge>;
@@ -541,4 +536,3 @@ export default function TechnicianDetailPage() {
         </div>
     );
 }
-

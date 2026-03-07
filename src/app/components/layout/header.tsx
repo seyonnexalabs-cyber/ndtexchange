@@ -34,13 +34,14 @@ const ClientRelativeTime = ({ date }: { date: Date | null }) => {
   const [text, setText] = useState<string | null>(null);
 
   useEffect(() => {
+    // This effect runs only on the client, ensuring `new Date()` is safe
     if (date) {
-      setText(formatDistanceToNow(date, { addSuffix: true }));
-
-      // Optional: update time periodically if needed for long-lived pages
-      const interval = setInterval(() => {
+      const updateText = () => {
         setText(formatDistanceToNow(date, { addSuffix: true }));
-      }, 60000); // every minute
+      };
+      
+      updateText();
+      const interval = setInterval(updateText, 60000); // Update every minute
 
       return () => clearInterval(interval);
     }

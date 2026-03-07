@@ -44,29 +44,24 @@ const constructUrl = (base: string, searchParams: URLSearchParams) => {
 };
 
 const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Date | undefined }) => {
-    const [badge, setBadge] = useState<React.ReactNode>(null);
-
-    useEffect(() => {
-        if (!date || !today) {
-            setBadge(null);
-            return;
-        }
-        const diff = differenceInDays(date, today);
-
-        if (diff < 0) {
-            setBadge(null);
-        } else if (diff === 0) {
-            setBadge(<Badge>Today</Badge>);
-        } else if (diff === 1) {
-            setBadge(<Badge variant="secondary">Tomorrow</Badge>);
-        } else if (diff > 1 && diff <= 7) {
-            setBadge(<Badge variant="outline">in {diff} days</Badge>);
-        } else {
-            setBadge(null);
-        }
-    }, [date, today]);
-
-    return badge;
+    const [isClient, setIsClient] = React.useState(false);
+    React.useEffect(() => {
+      setIsClient(true);
+    }, []);
+  
+    if (!isClient || !date || !today) {
+      return null;
+    }
+  
+    const diff = differenceInDays(date, today);
+    if (diff === 0) {
+      return <Badge>Today</Badge>;
+    } else if (diff === 1) {
+      return <Badge variant="secondary">Tomorrow</Badge>;
+    } else if (diff > 1 && diff <= 7) {
+      return <Badge variant="outline">in {diff} days</Badge>;
+    }
+    return null;
 };
 
 
@@ -506,13 +501,14 @@ const InspectorDashboard = () => {
             };
         }
         const openBids = myBids?.filter(b => ['Submitted', 'Shortlisted'].includes(b.status)) || [];
+        
         return {
             activeAssignments: providerJobs?.filter(j => j.status === 'In Progress').length || 0,
             openBidsCount: openBids.length,
             equipmentAlerts: providerEquipment?.filter(e => e.status === 'Calibration Due' || e.status === 'Out of Service').length || 0,
             reportsToSubmit: providerJobs?.filter(j => {
                 const endDate = safeParseDate(j.scheduledEndDate);
-                return (j.status === 'In Progress' && endDate && isAfter(today, endDate)) || j.status === 'Completed';
+                return (j.status === 'In Progress' && endDate && isAfter(endDate, today)) || j.status === 'Completed';
             }).length || 0,
     }}, [providerJobs, providerEquipment, myBids, today]);
 
@@ -964,7 +960,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <p className="text-sm font-medium">{log.action}</p>
                                     <p className="text-xs text-muted-foreground">{log.targetUserName} ({log.targetCompany})</p>
-                                    <ClientFormattedDate timestamp={log.timestamp} />
+                                    <ClientFormattedDate date={safeParseDate(log.timestamp)} formatString={GLOBAL_DATETIME_FORMAT} />
                                 </div>
                             ))}
                         </div>

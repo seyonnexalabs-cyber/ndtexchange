@@ -43,15 +43,15 @@ type CalendarEvent = {
 };
 
 const ClientFormattedMonth = ({ date }: { date: Date | null }) => {
-    const [formatted, setFormatted] = useState('');
+    const [formatted, setFormatted] = useState<string | null>(null);
     useEffect(() => {
         if (date) {
             setFormatted(format(date, 'MMMM yyyy'));
         }
     }, [date]);
 
-    if (!formatted) {
-        return <span>Loading...</span>;
+    if (formatted === null) {
+        return null;
     }
     return <span>{formatted}</span>
 }

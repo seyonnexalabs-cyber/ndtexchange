@@ -1,5 +1,5 @@
-
 'use client';
+
 import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -8,22 +8,22 @@ import dynamic from 'next/dynamic';
 import * as React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// A map of technique keys to their dynamic import functions
-const templateLoaders: { [key: string]: () => Promise<any> } = {
-    UT: () => import('./report-templates/ut-report'),
-    PAUT: () => import('./report-templates/ut-report'),
-    TOFD: () => import('./report-templates/ut-report'),
-    MT: () => import('./report-templates/mt-report'),
-    PT: () => import('./report-templates/pt-report'),
-    RT: () => import('./report-templates/rt-report'),
-    CR: () => import('./report-templates/rt-report'),
-    DR: () => import('./report-templates/rt-report'),
-    VT: () => import('./report-templates/vt-report'),
-    RVI: () => import('./report-templates/vt-report'),
-    ET: () => import('./report-templates/et-report'),
-    AE: () => import('./report-templates/ae-report'),
-    GWT: () => import('./report-templates/gwt-report'),
-    APR: () => import('./report-templates/apr-report'),
+// Pre-load all templates dynamically at the top level of the module.
+const dynamicTemplates: { [key: string]: React.ComponentType<any> } = {
+    UT: dynamic(() => import('./report-templates/ut-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    PAUT: dynamic(() => import('./report-templates/ut-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    TOFD: dynamic(() => import('./report-templates/ut-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    MT: dynamic(() => import('./report-templates/mt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    PT: dynamic(() => import('./report-templates/pt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    RT: dynamic(() => import('./report-templates/rt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    CR: dynamic(() => import('./report-templates/rt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    DR: dynamic(() => import('./report-templates/rt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    VT: dynamic(() => import('./report-templates/vt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    RVI: dynamic(() => import('./report-templates/vt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    ET: dynamic(() => import('./report-templates/et-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    AE: dynamic(() => import('./report-templates/ae-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    GWT: dynamic(() => import('./report-templates/gwt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    APR: dynamic(() => import('./report-templates/apr-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
 };
 
 const DefaultTemplate = () => (
@@ -37,17 +37,8 @@ const ReportGenerator = ({ technique, devOverrideTechnique }: { technique: strin
     
     const activeTechnique = process.env.NODE_ENV === 'development' && devOverrideTechnique ? devOverrideTechnique : technique;
 
-    // Use useMemo to ensure the component is only created when the technique changes
-    const TemplateComponent = React.useMemo(() => {
-        const loader = templateLoaders[activeTechnique];
-        if (loader) {
-            return dynamic(loader, {
-                ssr: false, // Ensure it's a client component
-                loading: () => <Skeleton className="h-48 w-full" />,
-            });
-        }
-        return DefaultTemplate;
-    }, [activeTechnique]);
+    // Select the correct component from the pre-loaded map.
+    const TemplateComponent = dynamicTemplates[activeTechnique] || DefaultTemplate;
     
     return (
         <div className="space-y-6">

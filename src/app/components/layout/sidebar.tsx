@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import {
@@ -49,6 +47,19 @@ import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
 import { LogoIcon } from '@/app/components/icons';
 import { useUser } from '@/firebase';
 
+type MenuItem = {
+  id: string;
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  badge?: string;
+};
+
+type MenuGroup = {
+  title: string;
+  items: MenuItem[];
+};
+
 
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
@@ -59,7 +70,7 @@ const userDetails = {
   common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
-const clientMenu = [
+const clientMenu: MenuGroup[] = [
   {
     title: 'Workspace',
     items: [
@@ -106,7 +117,7 @@ const clientMenu = [
   }
 ];
 
-const inspectorMenu = [
+const inspectorMenu: MenuGroup[] = [
     {
     title: 'Workspace',
     items: [
@@ -148,7 +159,7 @@ const inspectorMenu = [
   }
 ];
 
-const adminMenu = [
+const adminMenu: MenuGroup[] = [
   {
     title: 'Platform',
     items: [
@@ -183,7 +194,7 @@ const adminMenu = [
   }
 ];
 
-const auditorMenu = [
+const auditorMenu: MenuGroup[] = [
    {
     title: 'Workspace',
     items: [
@@ -208,7 +219,7 @@ const auditorMenu = [
   }
 ];
 
-const manufacturerMenu = [
+const manufacturerMenu: MenuGroup[] = [
     {
     title: 'Workspace',
     items: [
@@ -291,10 +302,10 @@ const AppSidebar = () => {
     return userDetails[role as keyof typeof userDetails] || userDetails.common;
   }, [role]);
 
-  const menuItems = useMemo(() => {
+  const menuItems: MenuGroup[] = useMemo(() => {
     if (!role) return [];
     
-    let menu: any;
+    let menu: MenuGroup[];
     switch (role) {
       case 'client':
         menu = clientMenu;
@@ -302,7 +313,7 @@ const AppSidebar = () => {
       case 'inspector':
         if (planParam === 'operations') {
           // For "Operations Only" plan, filter out the "Marketplace" group
-          menu = inspectorMenu.filter(group => group.title !== 'Marketplace');
+          menu = inspectorMenu.filter((group: MenuGroup) => group.title !== 'Marketplace');
         } else {
           // For "Marketplace" plan (or default), show all items
           menu = inspectorMenu;
@@ -326,7 +337,7 @@ const AppSidebar = () => {
   const activeItem = useMemo(() => {
     if (!pathname || !menuItems.length) return null;
 
-    const allItems = menuItems.flatMap(group => group.items);
+    const allItems: MenuItem[] = menuItems.flatMap((group: MenuGroup) => group.items);
 
     if (pathname === '/dashboard') {
         return allItems.find(item => item.href === '/dashboard');
@@ -337,7 +348,7 @@ const AppSidebar = () => {
     if(exactMatch) return exactMatch;
 
     const matchingItems = allItems.filter(
-      (item: any) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
+      (item: MenuItem) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
     );
 
     if (matchingItems.length === 0) {
@@ -411,13 +422,13 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((group: any, groupIndex) => (
+          {menuItems.map((group: MenuGroup, groupIndex) => (
             <div key={group.title}>
               <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
                 <span className="group-data-[state=expanded]:inline">{group.title}</span>
                 <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
               </h3>
-              {group.items.map((item: any) => {
+              {group.items.map((item: MenuItem) => {
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton

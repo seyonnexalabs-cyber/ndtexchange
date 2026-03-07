@@ -43,15 +43,14 @@ const constructUrl = (base: string, searchParams: URLSearchParams) => {
     return `${base}?${params.toString()}`;
 };
 
-const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
+const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Date | undefined }) => {
     const [badge, setBadge] = useState<React.ReactNode>(null);
 
     useEffect(() => {
-        if (!date) {
+        if (!date || !today) {
             setBadge(null);
             return;
         }
-        const today = new Date();
         const diff = differenceInDays(date, today);
 
         if (diff < 0) {
@@ -65,7 +64,7 @@ const ClientRelativeDateBadge = ({ date }: { date: Date | null }) => {
         } else {
             setBadge(null);
         }
-    }, [date]);
+    }, [date, today]);
 
     return badge;
 };
@@ -417,7 +416,7 @@ const ClientDashboard = () => {
                                         <CardDescription>
                                             <div className="flex items-center gap-2">
                                                 <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
-                                                <ClientRelativeDateBadge date={startDate} />
+                                                <ClientRelativeDateBadge date={startDate} today={today} />
                                             </div>
                                         </CardDescription>
                                     </CardHeader>
@@ -454,7 +453,7 @@ const ClientDashboard = () => {
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
-                                                <ClientRelativeDateBadge date={startDate} />
+                                                <ClientRelativeDateBadge date={startDate} today={today} />
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-extrabold text-xs">{job.id}</TableCell>
@@ -501,6 +500,11 @@ const InspectorDashboard = () => {
     const { data: myBids, isLoading: isLoadingBids } = useCollection<Bid>(myBidsQuery);
 
     const stats = useMemo(() => {
+        if (!providerJobs || !providerEquipment || !myBids || !today) {
+            return {
+                activeAssignments: 0, openBidsCount: 0, equipmentAlerts: 0, reportsToSubmit: 0,
+            };
+        }
         const openBids = myBids?.filter(b => ['Submitted', 'Shortlisted'].includes(b.status)) || [];
         return {
             activeAssignments: providerJobs?.filter(j => j.status === 'In Progress').length || 0,
@@ -508,9 +512,9 @@ const InspectorDashboard = () => {
             equipmentAlerts: providerEquipment?.filter(e => e.status === 'Calibration Due' || e.status === 'Out of Service').length || 0,
             reportsToSubmit: providerJobs?.filter(j => {
                 const endDate = safeParseDate(j.scheduledEndDate);
-                return (j.status === 'In Progress' && endDate && isAfter(new Date(), endDate)) || j.status === 'Completed';
+                return (j.status === 'In Progress' && endDate && isAfter(today, endDate)) || j.status === 'Completed';
             }).length || 0,
-    }}, [providerJobs, providerEquipment, myBids]);
+    }}, [providerJobs, providerEquipment, myBids, today]);
 
     const schedule = useMemo(() => {
         if (!today || !providerJobs) return [];
@@ -598,7 +602,7 @@ const InspectorDashboard = () => {
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
                                             <ClientFormattedDate date={startDate} formatString={GLOBAL_DATE_FORMAT} />
-                                            <ClientRelativeDateBadge date={startDate} />
+                                            <ClientRelativeDateBadge date={startDate} today={today} />
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-extrabold text-xs">{job.id}</TableCell>

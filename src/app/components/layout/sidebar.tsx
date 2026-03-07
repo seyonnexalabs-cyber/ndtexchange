@@ -50,19 +50,6 @@ import { LogoIcon } from '@/app/components/icons';
 import { useUser } from '@/firebase';
 
 
-type MenuItem = {
-  id: string;
-  href: string;
-  label: string;
-  icon: React.ElementType;
-  badge?: string | number;
-};
-
-type MenuItemGroup = {
-  title: string;
-  items: MenuItem[];
-};
-
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
   inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.' },
@@ -72,7 +59,7 @@ const userDetails = {
   common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
-const clientMenu: MenuItemGroup[] = [
+const clientMenu = [
   {
     title: 'Workspace',
     items: [
@@ -119,7 +106,7 @@ const clientMenu: MenuItemGroup[] = [
   }
 ];
 
-const inspectorMenu: MenuItemGroup[] = [
+const inspectorMenu = [
     {
     title: 'Workspace',
     items: [
@@ -161,7 +148,7 @@ const inspectorMenu: MenuItemGroup[] = [
   }
 ];
 
-const adminMenu: MenuItemGroup[] = [
+const adminMenu = [
   {
     title: 'Platform',
     items: [
@@ -196,7 +183,7 @@ const adminMenu: MenuItemGroup[] = [
   }
 ];
 
-const auditorMenu: MenuItemGroup[] = [
+const auditorMenu = [
    {
     title: 'Workspace',
     items: [
@@ -221,7 +208,7 @@ const auditorMenu: MenuItemGroup[] = [
   }
 ];
 
-const manufacturerMenu: MenuItemGroup[] = [
+const manufacturerMenu = [
     {
     title: 'Workspace',
     items: [
@@ -307,7 +294,7 @@ const AppSidebar = () => {
   const menuItems = useMemo(() => {
     if (!role) return [];
     
-    let menu: MenuItemGroup[];
+    let menu: any;
     switch (role) {
       case 'client':
         menu = clientMenu;
@@ -350,7 +337,7 @@ const AppSidebar = () => {
     if(exactMatch) return exactMatch;
 
     const matchingItems = allItems.filter(
-      (item) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
+      (item: any) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
     );
 
     if (matchingItems.length === 0) {
@@ -424,13 +411,13 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((group, groupIndex) => (
+          {menuItems.map((group: any, groupIndex) => (
             <div key={group.title}>
               <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
                 <span className="group-data-[state=expanded]:inline">{group.title}</span>
                 <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
               </h3>
-              {group.items.map((item) => {
+              {group.items.map((item: any) => {
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton

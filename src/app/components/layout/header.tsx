@@ -16,7 +16,7 @@ import type { Notification } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { cn, safeParseDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useFirebase, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useUser, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
@@ -82,16 +82,19 @@ const AppHeader = () => {
 
     const unreadCount = useMemo(() => notifications?.filter(n => !n.read).length ?? 0, [notifications]);
 
-    const handleNotificationClick = async (notificationId: string) => {
+    const handleNotificationClick = (notificationId: string) => {
         if (!firestore || !user) return;
         const notifRef = doc(firestore, 'notifications', notificationId);
-        try {
-            // Non-blocking update. UI will update via useCollection listener.
-            await updateDoc(notifRef, { read: true });
-        } catch (error) {
-            console.error("Error marking notification as read:", error);
-            // Optionally show a toast error
-        }
+        
+        updateDoc(notifRef, { read: true })
+            .catch(async (serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: notifRef.path,
+                    operation: 'update',
+                    requestResourceData: { read: true },
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
     };
     
     const currentUser = useMemo(() => {

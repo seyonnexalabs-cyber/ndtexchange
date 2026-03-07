@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { useToast } from "@/hooks/use-toast";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { doc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -129,7 +129,7 @@ export default function EditAssetPage() {
         return `${base}?${params.toString()}`;
     };
 
-    const handleFormSubmit = async (values: AssetFormValues) => {
+    const handleFormSubmit = (values: AssetFormValues) => {
         if (!firestore || !user || !asset) return;
         
         const location = values.location === '__add_new__' ? values.newLocation! : values.location;
@@ -145,15 +145,18 @@ export default function EditAssetPage() {
         delete (dataToSave as any).documents;
         delete (dataToSave as any).thumbnail;
         
-        try {
-            const assetRef = doc(firestore, `assets`, id);
-            await updateDoc(assetRef, dataToSave);
-            toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
-            router.push(constructUrl(`/dashboard/assets/${id}`)); // Go back to the detail page
-        } catch (error) {
-            console.error("Error saving asset:", error);
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save asset." });
-        }
+        const assetRef = doc(firestore, `assets`, id);
+        updateDoc(assetRef, dataToSave).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: assetRef.path,
+                operation: 'update',
+                requestResourceData: dataToSave,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+
+        toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
+        router.push(constructUrl(`/dashboard/assets/${id}`));
     };
     
     const uniqueLocations = React.useMemo(() => {
@@ -211,5 +214,3 @@ export default function EditAssetPage() {
         </div>
     )
 }
-
-    

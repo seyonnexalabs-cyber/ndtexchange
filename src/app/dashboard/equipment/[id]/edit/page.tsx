@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -21,7 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ChevronsUpDown, Trash } from "lucide-react";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
-import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { doc, updateDoc, collection, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -122,7 +123,7 @@ export default function EditEquipmentPage() {
         return `${base}?${params.toString()}`;
     };
 
-    const handleFormSubmit = async (values: EquipmentFormValues) => {
+    const handleFormSubmit = (values: EquipmentFormValues) => {
         if (!firestore || !userProfile) return;
         
         const { thumbnail, ...equipmentData } = values;
@@ -132,18 +133,24 @@ export default function EditEquipmentPage() {
             nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
         };
         
-        try {
-            const equipmentDocRef = doc(firestore, 'equipment', id);
-            await updateDoc(equipmentDocRef, {
-                ...dataToSave,
-                history: arrayUnion({ event: 'Updated', user: userProfile.name, timestamp: new Date().toISOString() })
+        const equipmentDocRef = doc(firestore, 'equipment', id);
+        
+        const updatedData = {
+            ...dataToSave,
+            history: arrayUnion({ event: 'Updated', user: userProfile.name, timestamp: new Date().toISOString() })
+        };
+
+        updateDoc(equipmentDocRef, updatedData).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: equipmentDocRef.path,
+                operation: 'update',
+                requestResourceData: updatedData,
             });
-            toast({ title: "Equipment Updated", description: `${values.name} has been updated.` });
-            router.push(constructUrl(`/dashboard/equipment/${id}`)); // Go back to the detail page
-        } catch (error) {
-            console.error("Error saving equipment:", error);
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save equipment." });
-        }
+            errorEmitter.emit('permission-error', permissionError);
+        });
+
+        toast({ title: "Equipment Updated", description: `${values.name} has been updated.` });
+        router.push(constructUrl(`/dashboard/equipment/${id}`));
     };
     
     const isLoading = isLoadingProfile || isLoadingAllEquipment || isLoadingTechniques || isLoadingEquipmentToEdit;

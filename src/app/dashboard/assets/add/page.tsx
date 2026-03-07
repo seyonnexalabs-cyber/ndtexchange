@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from "lucide-react";
 import Link from 'next/link';
-import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { doc, collection, serverTimestamp, setDoc } from 'firebase/firestore';
 import type { Asset, PlatformUser } from '@/lib/types';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
@@ -115,7 +115,7 @@ export default function AddAssetPage() {
         return [...new Set(allLocations)];
     }, [existingAssets]);
 
-    const handleFormSubmit = async (values: AssetFormValues) => {
+    const handleFormSubmit = (values: AssetFormValues) => {
         if (!firestore || !user || !userProfile) {
             toast({ variant: "destructive", title: "Error", description: "Not authenticated. Please try again." });
             return;
@@ -149,14 +149,19 @@ export default function AddAssetPage() {
             }],
         };
 
-        try {
-            await setDoc(assetRef, { id: assetRef.id, ...dataToSave });
-            toast({ title: "Asset Submitted for Approval", description: `${values.name} is awaiting approval.` });
-            router.push(constructUrl('/dashboard/assets'));
-        } catch (error) {
-            console.error("Error saving asset:", error);
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save asset." });
-        }
+        const dataToSaveWithId = { id: assetRef.id, ...dataToSave };
+        
+        setDoc(assetRef, dataToSaveWithId).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: assetRef.path,
+                operation: 'create',
+                requestResourceData: dataToSaveWithId
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+
+        toast({ title: "Asset Submitted for Approval", description: `${values.name} is awaiting approval.` });
+        router.push(constructUrl('/dashboard/assets'));
     };
     
     if (isLoadingProfile || isLoadingAssets) {
@@ -209,5 +214,3 @@ export default function AddAssetPage() {
         </div>
     );
 }
-
-    

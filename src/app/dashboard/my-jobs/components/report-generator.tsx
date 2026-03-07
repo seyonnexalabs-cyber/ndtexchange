@@ -4,35 +4,26 @@ import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-
-// Lazy load templates
 import dynamic from 'next/dynamic';
+import * as React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const UTReportTemplate = dynamic(() => import('./report-templates/ut-report').then(mod => mod.default), { ssr: false });
-const MTReportTemplate = dynamic(() => import('./report-templates/mt-report').then(mod => mod.default), { ssr: false });
-const PTReportTemplate = dynamic(() => import('./report-templates/pt-report').then(mod => mod.default), { ssr: false });
-const RTReportTemplate = dynamic(() => import('./report-templates/rt-report').then(mod => mod.default), { ssr: false });
-const VTReportTemplate = dynamic(() => import('./report-templates/vt-report').then(mod => mod.default), { ssr: false });
-const ETReportTemplate = dynamic(() => import('./report-templates/et-report').then(mod => mod.default), { ssr: false });
-const AEReportTemplate = dynamic(() => import('./report-templates/ae-report').then(mod => mod.default), { ssr: false });
-const GWTReportTemplate = dynamic(() => import('./report-templates/gwt-report').then(mod => mod.default), { ssr: false });
-const APRReportTemplate = dynamic(() => import('./report-templates/apr-report').then(mod => mod.default), { ssr: false });
-
-const reportTemplates: { [key: string]: React.ComponentType } = {
-    UT: UTReportTemplate,
-    PAUT: UTReportTemplate,
-    TOFD: UTReportTemplate,
-    MT: MTReportTemplate,
-    PT: PTReportTemplate,
-    RT: RTReportTemplate,
-    CR: RTReportTemplate,
-    DR: RTReportTemplate,
-    VT: VTReportTemplate,
-    RVI: VTReportTemplate,
-    ET: ETReportTemplate,
-    AE: AEReportTemplate,
-    GWT: GWTReportTemplate,
-    APR: APRReportTemplate,
+// A map of technique keys to their dynamic import functions
+const templateLoaders: { [key: string]: () => Promise<any> } = {
+    UT: () => import('./report-templates/ut-report'),
+    PAUT: () => import('./report-templates/ut-report'),
+    TOFD: () => import('./report-templates/ut-report'),
+    MT: () => import('./report-templates/mt-report'),
+    PT: () => import('./report-templates/pt-report'),
+    RT: () => import('./report-templates/rt-report'),
+    CR: () => import('./report-templates/rt-report'),
+    DR: () => import('./report-templates/rt-report'),
+    VT: () => import('./report-templates/vt-report'),
+    RVI: () => import('./report-templates/vt-report'),
+    ET: () => import('./report-templates/et-report'),
+    AE: () => import('./report-templates/ae-report'),
+    GWT: () => import('./report-templates/gwt-report'),
+    APR: () => import('./report-templates/apr-report'),
 };
 
 const DefaultTemplate = () => (
@@ -44,10 +35,19 @@ const DefaultTemplate = () => (
 const ReportGenerator = ({ technique, devOverrideTechnique }: { technique: string, devOverrideTechnique?: string }) => {
     const { control } = useFormContext();
     
-    // In dev mode, allow override. Otherwise, strictly use job's technique.
     const activeTechnique = process.env.NODE_ENV === 'development' && devOverrideTechnique ? devOverrideTechnique : technique;
 
-    const TemplateComponent = reportTemplates[activeTechnique] || DefaultTemplate;
+    // Use useMemo to ensure the component is only created when the technique changes
+    const TemplateComponent = React.useMemo(() => {
+        const loader = templateLoaders[activeTechnique];
+        if (loader) {
+            return dynamic(loader, {
+                ssr: false, // Ensure it's a client component
+                loading: () => <Skeleton className="h-48 w-full" />,
+            });
+        }
+        return DefaultTemplate;
+    }, [activeTechnique]);
     
     return (
         <div className="space-y-6">

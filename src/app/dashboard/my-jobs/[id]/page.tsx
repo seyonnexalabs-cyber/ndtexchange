@@ -337,7 +337,11 @@ export default function JobDetailPage() {
                                     <li className="flex items-start"><strong className="w-32 shrink-0">Attachments:</strong> 
                                         <div className="flex flex-wrap gap-2">
                                             {job.documents?.map(doc => (
-                                                <Button key={doc.name} variant="outline" size="sm" className="h-auto py-1 px-2"><FileText className="mr-2 h-3.5 w-3.5"/>{doc.name}</Button>
+                                                <Button key={doc.name} variant="outline" size="sm" asChild className="h-auto py-1 px-2">
+                                                    <Link href={doc.url} target="_blank" rel="noopener noreferrer">
+                                                        <FileText className="mr-2 h-3.5 w-3.5"/>{doc.name}
+                                                    </Link>
+                                                </Button>
                                             ))}
                                         </div>
                                     </li>
@@ -404,5 +408,3 @@ export default function JobDetailPage() {
         </div>
     );
 }
-
-    

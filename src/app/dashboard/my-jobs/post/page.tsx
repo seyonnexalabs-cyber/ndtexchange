@@ -21,7 +21,8 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format, addDays } from 'date-fns';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useDoc, useStorage } from '@/firebase';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { collection, serverTimestamp, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -213,7 +214,7 @@ export default function PostJobPage() {
     const role = searchParams.get('role') || 'client';
     const router = useRouter();
     const { toast } = useToast();
-    const { firestore, user } = useFirebase();
+    const { firestore, user, storage } = useFirebase();
     const [step, setStep] = React.useState(1);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = React.useState(false);
 
@@ -343,8 +344,26 @@ export default function PostJobPage() {
 
     const handleBack = () => setStep(prev => Math.max(prev - 1, 1));
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            const validatedFiles = files.filter(file => {
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    toast({
+                        variant: "destructive",
+                        title: "File too large",
+                        description: `${file.name} is larger than ${MAX_FILE_SIZE_MB}MB.`
+                    });
+                    return false;
+                }
+                return true;
+            });
+            setDocumentFiles(validatedFiles);
+        }
+    };
+
     const onSubmit = async (values: z.infer<typeof currentSchema>) => {
-        if (!firestore || !user || !userProfile || (isClient && !clientAssets)) {
+        if (!firestore || !user || !userProfile || !storage || (isClient && !clientAssets)) {
             toast({ variant: "destructive", title: "Error", description: "Required data not loaded. Please try again." });
             return;
         }
@@ -357,13 +376,22 @@ export default function PostJobPage() {
             const newJobStatus = (isInternalJob ? 'Assigned' : 'Posted');
             const jobRef = doc(collection(firestore, 'jobs'));
             
+            const documentMetadata: JobDocument[] = [];
+            if (documentFiles.length > 0) {
+                toast({ title: 'Uploading documents...' });
+                for (const file of documentFiles) {
+                    const fileRef = storageRef(storage, `jobs/${jobRef.id}/${file.name}`);
+                    await uploadBytes(fileRef, file);
+                    const downloadURL = await getDownloadURL(fileRef);
+                    documentMetadata.push({ name: file.name, url: downloadURL });
+                }
+            }
+            
             let endDate = values.scheduledEndDate;
             if(values.scheduledStartDate && values.durationDays) {
                 endDate = addDays(values.scheduledStartDate, values.durationDays);
             }
 
-            const documentMetadata: JobDocument[] = documentFiles.map(file => ({ name: file.name, url: '#' }));
-            
             const jobScope = 'scope' in values ? (values.scope as any) : [];
             const flatAssetIds = isClient ? (values as any).assetIds : [];
             const flatTechniques = isClient ? [...new Set(jobScope.flatMap((s: any) => s.techniques))] : (values as any).techniques;
@@ -669,7 +697,25 @@ export default function PostJobPage() {
                                     <FormField name="durationDays" control={form.control} render={({ field }) => (<FormItem><FormLabel>Estimated Duration (Days) {isMarketplaceJob || isInspector ? '*' : ''}</FormLabel><FormControl><Input type="number" placeholder="e.g., 21" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                                 </div>
                                 {isClient && isMarketplaceJob && <FormField name="bidExpiryDate" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Bid Closing Date*</FormLabel><FormControl><CustomDateInput {...field} /></FormControl><FormMessage /></FormItem>)}/>}
-                                <FormField control={form.control} name="documents" render={() => (<FormItem><FormLabel>Attach Scope Documents (Optional)</FormLabel><Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>Select Files</Button><FormControl><Input ref={documentsInputRef} type="file" multiple accept={ACCEPTED_FILE_TYPES} className="hidden" /></FormControl><FormDescription>Attach P&IDs, drawings, etc. Max {MAX_FILE_SIZE_MB}MB each.</FormDescription><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name="documents" render={() => (
+                                    <FormItem>
+                                        <FormLabel>Attach Scope Documents (Optional)</FormLabel>
+                                        <Button type="button" variant="outline" className="w-full" onClick={() => documentsInputRef.current?.click()}>Select Files</Button>
+                                        <FormControl>
+                                            <Input ref={documentsInputRef} type="file" multiple accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={handleFileChange} />
+                                        </FormControl>
+                                        {documentFiles.length > 0 && (
+                                            <div className="space-y-1 pt-2">
+                                                <p className="text-sm font-medium text-muted-foreground">Selected files:</p>
+                                                <ul className="list-disc list-inside text-sm text-muted-foreground pl-4">
+                                                    {documentFiles.map((file, i) => <li key={i}>{file.name} ({Math.round(file.size / 1024)} KB)</li>)}
+                                                </ul>
+                                            </div>
+                                        )}
+                                        <FormDescription>Attach P&IDs, drawings, etc. Max {MAX_FILE_SIZE_MB}MB each.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
                             </CardContent>
                         </Card>
                     ) : null}

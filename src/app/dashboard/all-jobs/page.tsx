@@ -11,7 +11,7 @@ import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, isSameDay } from "date-fns";
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -74,7 +74,7 @@ export default function AllJobsPage() {
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
     const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const [currentPage, setCurrentPage] = useState(1);
     const [today, setToday] = useState<Date | undefined>(undefined);
 

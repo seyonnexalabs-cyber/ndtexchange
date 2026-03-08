@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Briefcase, DollarSign, MoreVertical } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -203,7 +203,7 @@ const MobileView = ({ constructUrl, clients }: { constructUrl: (base: string) =>
 
 
 export default function ClientsPage() {
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');

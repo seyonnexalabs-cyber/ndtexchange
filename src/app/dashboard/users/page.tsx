@@ -6,7 +6,7 @@ import { PlatformUser } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Users, Filter, X, MoreVertical, ChevronsUpDown, Check, Edit } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo, useEffect } from "react";
@@ -311,7 +311,7 @@ const EditUserForm = ({ user, onCancel, onSubmit, allCompanies }: { user: Platfo
 }
 
 const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser, allCompanies, selectedRoles, handleRoleChange, statusFilter, setStatusFilter, selectedCompanies, handleCompanyChange }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void, allCompanies: any[], selectedRoles: string[], handleRoleChange: (role: string) => void, statusFilter: string, setStatusFilter: (status: string) => void, selectedCompanies: string[], handleCompanyChange: (company: string) => void }) => {
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const { searchQuery } = useSearch();
 
     const isCompanyAdmin = (user: PlatformUser) => companyAdmins.has(user.name);

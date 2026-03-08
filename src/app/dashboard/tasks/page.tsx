@@ -13,7 +13,7 @@ import { collection, query, serverTimestamp, addDoc, updateDoc, where } from "fi
 import { Task, createTaskSchema } from "./data/schema"
 import { labels, priorities, statuses } from "@/lib/seed-data"
 
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useToast } from "@/hooks/use-toast"
 
 import { Button } from "@/components/ui/button"
@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function TasksPage() {
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isNewTaskOpen, setIsNewTaskOpen] = React.useState(false);
 
   const tasksQuery = useMemoFirebase(

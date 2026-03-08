@@ -6,7 +6,7 @@ import { NDTServiceProvider, NDTTechnique, Review } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MapPin, Star, MoreVertical, Edit } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -306,7 +306,7 @@ const MobileView = ({ constructUrl, providers }: { constructUrl: (base: string) 
 
 
 export default function ProvidersPage() {
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');

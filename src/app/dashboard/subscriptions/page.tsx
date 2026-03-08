@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Mail, Users, Database, Edit, MoreVertical, Briefcase, Calendar as CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
@@ -573,7 +573,7 @@ const PlanManagementView = ({ plans, onPlanStatusChange }: { plans: Plan[], onPl
 };
 
 export default function SubscriptionsPage() {
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');

@@ -23,7 +23,7 @@ import AuditorWorkflow from './components/auditor-workflow';
 import AdminWorkflow from './components/admin-workflow';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, limit, doc, serverTimestamp, addDoc, updateDoc, orderBy, getDoc, setDoc } from 'firebase/firestore';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AdminChatList from './components/admin-chat-list';
 import ClientChatList from './components/client-chat-interface';
 import ChatWindow from './components/chat-window';
@@ -75,7 +75,7 @@ export default function SupportPage() {
   const [currentUser, setCurrentUser] = useState<PlatformUser | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [isNewThreadOpen, setIsNewThreadOpen] = useState(false);

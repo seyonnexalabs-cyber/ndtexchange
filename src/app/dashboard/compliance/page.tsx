@@ -16,7 +16,7 @@ import type { Asset, PlatformUser } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, differenceInDays, startOfDay } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ComplianceStatus = 'Compliant' | 'Due Soon' | 'Overdue';
@@ -51,7 +51,7 @@ export default function CompliancePage() {
         useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
     const [today, setToday] = useState<Date | null>(null);
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {

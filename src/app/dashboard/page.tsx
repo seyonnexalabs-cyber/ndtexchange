@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import React, { useState, useEffect, useMemo } from "react";
 import { format, differenceInDays, isAfter, isToday, isWithinInterval, isValid, subMonths, isSameDay } from "date-fns";
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from "@/lib/utils";
@@ -143,7 +143,7 @@ const jobStatusChartConfig = {
 
 const ClientDashboard = () => {
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const [today, setToday] = useState<Date | undefined>(undefined);
     const { user: authUser, firestore } = useFirebase();
 

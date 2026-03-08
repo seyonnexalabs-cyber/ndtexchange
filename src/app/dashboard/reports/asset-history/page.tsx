@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from "@/components/ui/calendar";
 import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Asset, PlatformUser, Inspection } from '@/lib/types';
@@ -60,7 +60,7 @@ export default function AssetHistoryReportPage() {
     });
     
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const { firestore, user: authUser } = useFirebase();
     const [filteredInspections, setFilteredInspections] = React.useState<Inspection[]>([]);
 

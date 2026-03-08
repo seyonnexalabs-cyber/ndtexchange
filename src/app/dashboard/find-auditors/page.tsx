@@ -22,7 +22,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
@@ -233,7 +233,7 @@ export default function AuditorsPage() {
     const role = searchParams.get('role');
     const { toast } = useToast();
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
 
     const auditorsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Auditor')) : null, [firestore]);
     const { data: firms, isLoading: isLoadingFirms } = useCollection<AuditFirm>(auditorsQuery);

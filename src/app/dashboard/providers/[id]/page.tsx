@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronLeft, MapPin, Star, Users, Wrench, Calendar } from "lucide-react";
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -40,7 +40,7 @@ export default function ProviderDetailPage() {
     const params = useParams();
     const { id } = params;
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
     

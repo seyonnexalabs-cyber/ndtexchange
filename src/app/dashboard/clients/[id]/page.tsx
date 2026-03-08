@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ChevronLeft, Mail, Users, Briefcase, DollarSign, Calendar } from "lucide-react";
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isSameDay } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
@@ -51,7 +51,7 @@ export default function ClientDetailPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const { firestore, user } = useFirebase();
     const [today, setToday] = React.useState<Date | undefined>(undefined);
 

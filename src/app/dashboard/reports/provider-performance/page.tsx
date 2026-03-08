@@ -21,7 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { Job, Bid, PlatformUser, NDTServiceProvider, Review, NDTTechnique } from '@/lib/types';
@@ -55,7 +55,7 @@ export default function ProviderPerformanceReportPage() {
     });
     
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const { firestore, user } = useFirebase();
     const { data: userProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
 

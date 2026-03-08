@@ -6,7 +6,7 @@ import type { Job, PlatformUser } from '@/lib/types';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import ConversationList from './components/ConversationList';
 import ChatView from './components/ChatView';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -24,7 +24,7 @@ type Message = {
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const role = searchParams.get('role') || 'client';
     const { toast } = useToast();
     

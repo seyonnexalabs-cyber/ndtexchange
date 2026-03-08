@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, HardHat, ShieldCheck, Calendar as CalendarIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
@@ -231,7 +231,7 @@ const paymentStatusVariants: Record<JobPayment['status'], 'success' | 'outline'>
 };
 
 const PaymentsPage = () => {
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);

@@ -57,7 +57,7 @@ export default function TechniquesPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {isLoading ? [...Array(12)].map((_, i) => <Skeleton key={i} className="h-[450px] w-full" />) :
                             sortedNdtTechniques.map(technique => {
-                                const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
+                                const techImage = PlaceHolderImages?.find(p => p.id === technique.imageId);
                                 const relevantManufacturers = manufacturers?.filter(m => m.techniqueIds.includes(technique.acronym)) || [];
                                 return (
                                     <Card key={technique.id} className="flex flex-col">

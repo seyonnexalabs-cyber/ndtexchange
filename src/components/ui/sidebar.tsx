@@ -183,7 +183,7 @@ const Sidebar = React.forwardRef<
       return (
         <div
           className={cn(
-            "flex h-full w-[var(--sidebar-width)] flex-col",
+            "flex h-full w-[--sidebar-width] flex-col",
             className
           )}
           ref={ref}
@@ -321,7 +321,7 @@ const SidebarRail = React.forwardRef<
 SidebarRail.displayName = "SidebarRail"
 
 const SidebarInset = React.forwardRef<
-  React.ElementRef<"main">,
+  HTMLElement,
   React.ComponentPropsWithoutRef<"main">
 >(({ className, ...props }, ref) => {
   return (
@@ -540,7 +540,7 @@ const sidebarMenuButtonVariants = cva(
 )
 
 const SidebarMenuButton = React.forwardRef<
-  HTMLButtonElement,
+  HTMLElement,
   React.ComponentPropsWithoutRef<"button"> & {
     asChild?: boolean
     isActive?: boolean

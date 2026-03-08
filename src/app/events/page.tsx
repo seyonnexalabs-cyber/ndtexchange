@@ -134,7 +134,13 @@ export default function EventsPage() {
                                     <Link href={event.url} target="_blank" rel="noopener noreferrer" className="flex flex-col flex-grow">
                                         <CardHeader className="p-0">
                                             <div className="relative aspect-video bg-muted overflow-hidden">
-                                                <Image src={eventImage?.imageUrl || ''} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={event.imageHint} />
+                                                {eventImage?.imageUrl ? (
+                                                    <Image src={eventImage.imageUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={event.imageHint} />
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-full">
+                                                        <Calendar className="w-16 h-16 text-muted-foreground/30" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </CardHeader>
                                         <CardContent className="p-4 flex-grow">

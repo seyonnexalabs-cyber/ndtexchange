@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { writeBatch, doc, collection, query, where, getDoc, orderBy, limit, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from "lucide-react";
@@ -734,7 +734,6 @@ const AdminDashboard = () => {
     const router = useRouter();
     const [isSeeding, setIsSeeding] = useState(false);
     const { user, firestore } = useFirebase();
-    const { toast } = useToast();
     const role = searchParams.get('role');
     const [userGrowthData, setUserGrowthData] = useState<any[]>([]);
     
@@ -743,14 +742,12 @@ const AdminDashboard = () => {
     
     useEffect(() => {
         if (role === 'admin' && user && !isAdminUser) {
-            toast({
-                variant: 'destructive',
-                title: 'Access Denied',
+            toast.error('Access Denied', {
                 description: 'You do not have permission to view the admin dashboard.',
             });
             router.replace('/dashboard');
         }
-    }, [role, user, isAdminUser, router, toast]);
+    }, [role, user, isAdminUser, router]);
 
     const { data: users, isLoading: isLoadingUsers } = useCollection<PlatformUser>(useMemoFirebase(() => isReady ? collection(firestore, 'users') : null, [isReady, firestore]));
     const { data: companies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]));
@@ -759,11 +756,11 @@ const AdminDashboard = () => {
     
     const handleSeedDatabase = async () => {
         if (!firestore) {
-            toast({ variant: "destructive", title: "Error", description: "Firestore is not available." });
+            toast.error("Error", { description: "Firestore is not available." });
             return;
         }
         setIsSeeding(true);
-        toast({ title: "Database Seeding Started", description: "This may take a minute. Check the browser console for detailed progress." });
+        toast.info("Database Seeding Started", { description: "This may take a minute. Check the browser console for detailed progress." });
         console.clear();
         console.log("%c--- Starting Database Seed ---", "color: #3B82F6; font-size: 16px; font-weight: bold;");
 
@@ -802,15 +799,12 @@ const AdminDashboard = () => {
             });
             
             await batch.commit();
-            toast({
-                title: "Database Seeded Successfully!",
+            toast.success("Database Seeded Successfully!", {
                 description: "All collections have been populated with the correct nested structure.",
             });
         } catch (error: any) {
             console.error("Seeding process stopped due to an error.", error);
-            toast({
-                variant: 'destructive',
-                title: "Seeding Failed",
+            toast.error("Seeding Failed", {
                 description: `An error occurred: ${error.message}`,
             });
         } finally {
@@ -1032,5 +1026,3 @@ export default function DashboardPage() {
 
     return <div>{renderDashboardByRole()}</div>;
 }
-
-    

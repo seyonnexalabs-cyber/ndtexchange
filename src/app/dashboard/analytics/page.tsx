@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts';
@@ -7,8 +8,8 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLe
 import { BarChart3, Users, ShieldCheck, FileCheck, DollarSign } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import type { Job, PlatformUser, NDTServiceProvider } from "@/lib/types";
+import { collection, query } from 'firebase/firestore';
+import type { Job, PlatformUser, NDTServiceProvider, Bid } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeParseDate } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -61,6 +62,9 @@ export default function AnalyticsPage() {
     const companiesQuery = useMemoFirebase(() => isReady ? collection(firestore, 'companies') : null, [isReady, firestore]);
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(companiesQuery);
     
+    const bidsQuery = useMemoFirebase(() => isReady ? collection(firestore, 'bids') : null, [isReady, firestore]);
+    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
+    
     const serviceProviders = useMemo(() => allCompanies?.filter(c => c.type === 'Provider') || [], [allCompanies]);
 
     useEffect(() => {
@@ -70,7 +74,7 @@ export default function AnalyticsPage() {
     }, [role, router, searchParams]);
 
     const analyticsData = useMemo(() => {
-        if (!jobs) return { jobsByMonthData: [], revenueByMonthData: [], jobsByTechniqueData: [], totalRevenue: 0 };
+        if (!jobs || !allBids) return { jobsByMonthData: [], revenueByMonthData: [], jobsByTechniqueData: [], totalRevenue: 0 };
 
         const jobsByMonth: { [key: string]: number } = {};
         const revenueByMonth: { [key: string]: number } = {};
@@ -88,7 +92,7 @@ export default function AnalyticsPage() {
             });
 
             if (job.status === 'Paid' || job.status === 'Completed') {
-                 const awardedBid = job.bids?.find(b => b.status === 'Awarded');
+                 const awardedBid = allBids.find(b => b.jobId === job.id && b.status === 'Awarded');
                  if (awardedBid) {
                      revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + awardedBid.amount;
                  }
@@ -104,9 +108,9 @@ export default function AnalyticsPage() {
         const totalRevenue = Object.values(revenueByMonth).reduce((acc, val) => acc + val, 0);
 
         return { jobsByMonthData, revenueByMonthData, jobsByTechniqueData, totalRevenue };
-    }, [jobs]);
+    }, [jobs, allBids]);
 
-    const isLoading = isLoadingJobs || isLoadingUsers || isLoadingCompanies;
+    const isLoading = isLoadingJobs || isLoadingUsers || isLoadingCompanies || isLoadingBids;
 
     if (isLoading) {
         return (

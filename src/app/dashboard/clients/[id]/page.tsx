@@ -16,7 +16,7 @@ import { format, isSameDay } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
-import type { Client, Job, Subscription, PlatformUser } from '@/lib/types';
+import type { Client, Job, Subscription, PlatformUser, Bid } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
@@ -70,6 +70,10 @@ export default function ClientDetailPage() {
     
     const jobsQuery = useMemoFirebase(() => (firestore && user && id) ? query(collection(firestore, 'jobs'), where('clientCompanyId', '==', id)) : null, [firestore, user, id]);
     const { data: clientJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(
+        useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'bids'), where('status', '==', 'Awarded')) : null, [firestore, user])
+    );
 
     const subscriptionQuery = useMemoFirebase(() => (firestore && user && id) ? query(collection(firestore, 'subscriptions'), where('companyId', '==', id)) : null, [firestore, user, id]);
     const { data: subscriptions, isLoading: isLoadingSubs } = useCollection<Subscription>(subscriptionQuery);
@@ -79,16 +83,18 @@ export default function ClientDetailPage() {
     const { data: clientTeam, isLoading: isLoadingTeam } = useCollection<PlatformUser>(teamQuery);
 
     const clientStats = useMemo(() => {
-        if (!clientJobs) return { activeJobs: 0, totalSpend: 0 };
+        if (!clientJobs || !allBids) return { activeJobs: 0, totalSpend: 0 };
         const activeJobs = clientJobs.filter(j => !['Completed', 'Paid', 'Canceled'].includes(j.status)).length;
-        const totalSpend = clientJobs.reduce((acc, job) => {
-            const awardedBid = job.bids?.find(b => b.status === 'Awarded');
-            return acc + (awardedBid?.amount || 0);
-        }, 0);
-        return { activeJobs, totalSpend };
-    }, [clientJobs]);
+        
+        const clientJobIds = new Set(clientJobs.map(j => j.id));
+        const totalSpend = allBids
+            .filter(bid => clientJobIds.has(bid.jobId))
+            .reduce((acc, bid) => acc + bid.amount, 0);
 
-    const isLoading = isLoadingClient || isLoadingJobs || isLoadingSubs || isLoadingTeam || !id;
+        return { activeJobs, totalSpend };
+    }, [clientJobs, allBids]);
+
+    const isLoading = isLoadingClient || isLoadingJobs || isLoadingSubs || isLoadingTeam || isLoadingBids || !id;
 
     if (isLoading) {
         return (
@@ -324,5 +330,3 @@ export default function ClientDetailPage() {
         </div>
     );
 }
-
-    

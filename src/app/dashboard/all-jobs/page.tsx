@@ -141,7 +141,7 @@ export default function AllJobsPage() {
                 job.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 job.id.toLowerCase().includes(searchQuery.toLowerCase());
             
-            const providerMatch = providersFilteredInQuery || selectedProviders.length === 0 || (job.providerId && selectedProviders.includes(job.providerId));
+            const providerMatch = providersFilteredInQuery || selectedProviders.length === 0 || (job.providerCompanyId && selectedProviders.includes(job.providerCompanyId));
             const clientMatch = clientsFilteredInQuery || selectedClients.length === 0 || (job.clientCompanyId && selectedClients.includes(job.clientCompanyId));
             const statusMatch = statusesFilteredInQuery || selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
 
@@ -490,5 +490,3 @@ export default function AllJobsPage() {
         </div>
     );
 }
-
-    

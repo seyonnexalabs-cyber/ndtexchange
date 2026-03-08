@@ -56,11 +56,11 @@ export default function RootLayout({
               <ThemeProvider>
                 {children}
               </ThemeProvider>
+              <Toaster richColors />
             </ModeProvider>
             <FirebaseErrorListener />
           </FirebaseClientProvider>
         </Suspense>
-        <Toaster richColors />
         <CookieConsent />
       </body>
     </html>

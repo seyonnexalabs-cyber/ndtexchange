@@ -850,7 +850,7 @@ export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>
     },
 ];
 
-export const bidsData: Omit<Bid, 'providerName'>[] = [
+export const bidsData: Bid[] = [
     { id: 'BID-PERFECT', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 18500, status: 'Awarded', submittedDate: '2024-07-02T14:00:00Z', comments: 'Experienced team ready to deploy for this scope.', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Perfect Lifecycle Demo Job' },
     { id: 'BID-PERFECT-2', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 21000, status: 'Not Selected', submittedDate: '2024-07-03T10:00:00Z', comments: 'Full team availability guaranteed.', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Perfect Lifecycle Demo Job' },
     { id: 'BID-PERFECT-3', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-PERFECT', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 19500, status: 'Not Selected', submittedDate: '2024-07-03T11:30:00Z', comments: 'We have local technicians available.', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Perfect Lifecycle Demo Job' },

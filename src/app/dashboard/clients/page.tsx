@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
-import { Client, Job } from "@/lib/types";
+import { Client, Job, Bid } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -216,19 +217,26 @@ export default function ClientsPage() {
     
     const jobsQuery = useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobs') : null, [firestore, user]);
     const { data: allJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const { data: allBids, isLoading: isLoadingBids } = useCollection<Bid>(
+        useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'bids'), where('status', '==', 'Awarded')) : null, [firestore, user])
+    );
 
     const clientsWithStats = useMemo(() => {
-        if (!clientData || !allJobs) return [];
+        if (!clientData || !allJobs || !allBids) return [];
         return clientData.map(client => {
             const clientJobs = allJobs.filter(j => j.clientCompanyId === client.id);
+            const clientJobIds = new Set(clientJobs.map(j => j.id));
+            
             const activeJobs = clientJobs.filter(j => !['Completed', 'Paid', 'Canceled'].includes(j.status)).length;
-            const totalSpend = clientJobs.reduce((acc, job) => {
-                const awardedBid = job.bids?.find(b => b.status === 'Awarded');
-                return acc + (awardedBid?.amount || 0);
-            }, 0);
+            
+            const totalSpend = allBids
+                .filter(bid => clientJobIds.has(bid.jobId))
+                .reduce((acc, bid) => acc + bid.amount, 0);
+
             return { ...client, activeJobs, totalSpend };
         });
-    }, [clientData, allJobs]);
+    }, [clientData, allJobs, allBids]);
 
     useEffect(() => {
         if (role && role !== 'admin') {
@@ -254,7 +262,9 @@ export default function ClientsPage() {
         return null;
     }
 
-    if (isLoadingClients || isLoadingJobs) {
+    const isLoading = isLoadingClients || isLoadingJobs || isLoadingBids;
+
+    if (isLoading) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-1/3" />

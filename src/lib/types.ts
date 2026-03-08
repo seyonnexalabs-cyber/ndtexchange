@@ -467,7 +467,6 @@ export type Bid = {
   jobTitle: string;
   inspectorId: string;
   providerCompanyId: string;
-  providerName: string;
   userId: string; // The client user ID who owns the job
   client: string; // The client company name
   location: string;
@@ -475,7 +474,7 @@ export type Bid = {
   status: 'Submitted' | 'Shortlisted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Not Selected';
   submittedDate: any;
   comments?: string;
-  mobilizationDate: string;
+  mobilizationDate?: string;
   certifications?: string[];
   proposedTechnique?: string;
   proposalJustification?: string;

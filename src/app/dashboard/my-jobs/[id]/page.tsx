@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -25,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
@@ -99,10 +101,11 @@ const BidsSection = ({ job, bids, allCompanies, onReviewBid, isClient, isAdmin }
     );
 };
 
-const BidsSummaryCard = ({ job, bids, onViewAllClick }: { job: Job, bids: Bid[], onViewAllClick: () => void }) => {
+const BidsSummaryCard = ({ job, bids, allCompanies, onViewAllClick }: { job: Job, bids: Bid[], allCompanies: any[], onViewAllClick: () => void }) => {
     const awardedBid = bids.find(b => b.status === 'Awarded');
-    const latestBid = bids[0]; // Assumes bids are sorted by date
+    const latestBid = bids[0]; // Bids will be sorted before being passed
     const bidToShow = awardedBid || latestBid;
+    const provider = bidToShow ? allCompanies.find(c => c.id === bidToShow.providerCompanyId) : null;
 
     return (
         <Card className="flex flex-col">
@@ -117,7 +120,7 @@ const BidsSummaryCard = ({ job, bids, onViewAllClick }: { job: Job, bids: Bid[],
                         </TableHeader>
                         <TableBody>
                             <TableRow>
-                                <TableCell>{bidToShow.providerName}</TableCell>
+                                <TableCell>{provider?.name || 'N/A'}</TableCell>
                                 <TableCell>${bidToShow.amount.toLocaleString()}</TableCell>
                                 <TableCell><Badge variant={bidToShow.status === 'Awarded' ? 'success' : 'secondary'}>{bidToShow.status}</Badge></TableCell>
                             </TableRow>
@@ -200,6 +203,16 @@ export default function JobDetailPage() {
     }, [firestore, job]);
 
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
+    
+    const sortedBids = React.useMemo(() => {
+        if (!bids) return [];
+        return [...bids].sort((a, b) => {
+            const dateA = safeParseDate(a.submittedDate);
+            const dateB = safeParseDate(b.submittedDate);
+            if (!dateA || !dateB) return 0;
+            return dateB.getTime() - dateA.getTime();
+        });
+    }, [bids]);
 
     const inspectionsQuery = useMemoFirebase(() => {
         if (!firestore || !job?.id) return null;
@@ -264,7 +277,7 @@ export default function JobDetailPage() {
     
     const handleReviewBid = (bid: Bid) => {
         const provider = allCompanies?.find(p => p.id === bid.providerCompanyId);
-        if (provider) setReviewingBid({ ...bid, provider });
+        if (provider) setReviewingBid({ ...bid, provider: provider as NDTServiceProvider });
     };
 
     const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections;
@@ -349,14 +362,14 @@ export default function JobDetailPage() {
                             </CardContent>
                         </Card>
                         <div className="grid lg:grid-cols-3 gap-6">
-                           <BidsSummaryCard job={job} bids={bids || []} onViewAllClick={() => setActiveTab('bids')} />
+                           <BidsSummaryCard job={job} bids={sortedBids} allCompanies={allCompanies || []} onViewAllClick={() => setActiveTab('bids')} />
                            <MessagesSummaryCard onOpenMessagesClick={() => setActiveTab('messages')} />
                            <TechniciansSummaryCard job={job} onManageClick={() => setActiveTab('technicians')} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="bids" className="mt-6">
-                    <BidsSection job={job} bids={bids || []} allCompanies={allCompanies || []} onReviewBid={handleReviewBid} isClient={isClient} isAdmin={isAdmin} />
+                    <BidsSection job={job} bids={sortedBids} allCompanies={allCompanies || []} onReviewBid={handleReviewBid} isClient={isClient} isAdmin={isAdmin} />
                 </TabsContent>
                  <TabsContent value="messages" className="mt-6">
                     <Card>

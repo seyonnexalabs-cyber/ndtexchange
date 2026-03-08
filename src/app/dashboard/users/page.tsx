@@ -21,7 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSearch } from "@/app/components/layout/search-provider";
@@ -556,7 +556,6 @@ export default function UsersPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
     const { searchQuery } = useSearch();
 
@@ -630,8 +629,7 @@ export default function UsersPage() {
     const handleAddUser = (values: z.infer<typeof userSchema>) => {
         console.log("Invite User:", values);
         setIsAddUserOpen(false);
-        toast({
-            title: 'User Invited (Simulation)',
+        toast.success('User Invited (Simulation)', {
             description: `An invitation email would be sent to ${values.email}.`,
         });
     };
@@ -642,7 +640,7 @@ export default function UsersPage() {
 
     const handleEditSubmit = (values: z.infer<typeof editUserSchema>) => {
         console.log("Edit User:", values);
-        toast({ title: 'User Updated', description: `${values.name}'s profile has been successfully updated.` });
+        toast.success('User Updated', { description: `${values.name}'s profile has been successfully updated.` });
         setEditingUser(null);
     };
 
@@ -658,8 +656,7 @@ export default function UsersPage() {
             return newAdmins;
         });
 
-        toast({
-            title: "Administrator Changed",
+        toast.success("Administrator Changed", {
             description: `${userToPromote.name} is now the admin for ${userToPromote.company}.`,
         });
         setUserToPromote(null);
@@ -675,8 +672,7 @@ export default function UsersPage() {
     
     const confirmDisableUser = () => {
         if (!userToDisable) return;
-        toast({
-            title: "User Disabled",
+        toast.error("User Disabled", {
             description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
         });
         setUserToDisable(null);

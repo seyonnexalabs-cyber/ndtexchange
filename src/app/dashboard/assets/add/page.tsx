@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useForm } from "react-hook-form";
@@ -11,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from "lucide-react";
 import Link from 'next/link';
@@ -52,7 +51,6 @@ type AssetFormValues = z.infer<typeof assetSchema>;
 
 export default function AddAssetPage() {
     const router = useRouter();
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
     const searchParams = useSearchParams();
 
@@ -117,7 +115,7 @@ export default function AddAssetPage() {
 
     const handleFormSubmit = (values: AssetFormValues) => {
         if (!firestore || !user || !userProfile) {
-            toast({ variant: "destructive", title: "Error", description: "Not authenticated. Please try again." });
+            toast.error("Error", { description: "Not authenticated. Please try again." });
             return;
         }
 
@@ -160,7 +158,7 @@ export default function AddAssetPage() {
             errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: "Asset Submitted for Approval", description: `${values.name} is awaiting approval.` });
+        toast.success("Asset Submitted for Approval", { description: `${values.name} is awaiting approval.` });
         router.push(constructUrl('/dashboard/assets'));
     };
     

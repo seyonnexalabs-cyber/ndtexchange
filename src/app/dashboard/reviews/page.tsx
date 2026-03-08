@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, query, orderBy, setDoc } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { Review, Job, Client, NDTServiceProvider } from '@/lib/types';
 
 
@@ -93,7 +93,6 @@ export default function ReviewsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
-    const { toast } = useToast();
 
     const isReady = firestore && user && role === 'admin';
 
@@ -117,10 +116,10 @@ export default function ReviewsPage() {
         const reviewRef = doc(firestore, 'reviews', id);
         try {
             await setDoc(reviewRef, { status: 'Approved' }, { merge: true });
-            toast({ title: 'Review Approved' });
+            toast.success('Review Approved');
         } catch (error) {
             console.error("Error approving review:", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not approve review.' });
+            toast.error('Error', { description: 'Could not approve review.' });
         }
     };
 
@@ -129,10 +128,10 @@ export default function ReviewsPage() {
         const reviewRef = doc(firestore, 'reviews', id);
         try {
             await setDoc(reviewRef, { status: 'Rejected' }, { merge: true });
-            toast({ title: 'Review Rejected' });
+            toast.success('Review Rejected');
         } catch (error) {
             console.error("Error rejecting review:", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not reject review.' });
+            toast.error('Error', { description: 'Could not reject review.' });
         }
     };
 

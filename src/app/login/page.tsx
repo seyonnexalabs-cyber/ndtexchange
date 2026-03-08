@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFirebase, useUser } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
@@ -56,9 +56,7 @@ export default function LoginPage() {
           userData = userDoc.data();
         } else {
            console.warn("User document not found for logged in user:", user.uid);
-            toast({
-              variant: 'destructive',
-              title: 'Login Error',
+            toast.error('Login Error', {
               description: 'User profile not found. Please contact support.',
             });
             if (auth) auth.signOut();
@@ -77,9 +75,7 @@ export default function LoginPage() {
 
           router.push(`/dashboard?${params.toString()}`);
         } else {
-          toast({
-            variant: 'destructive',
-            title: 'Login Failed',
+          toast.error('Login Failed', {
             description: 'User profile not found. Please contact support.',
           });
           setIsAuthenticating(false);
@@ -87,15 +83,11 @@ export default function LoginPage() {
       } catch (error) {
         console.error("Error fetching user role:", error);
          if (error instanceof Error && 'code' in error && (error as any).code.includes('permission-denied')) {
-           toast({
-              variant: 'destructive',
-              title: 'Permission Denied',
+           toast.error('Permission Denied', {
               description: 'You do not have permission to access user profiles. Check your Firestore rules.',
           });
         } else {
-          toast({
-              variant: 'destructive',
-              title: 'Login Error',
+          toast.error('Login Error', {
               description: 'Could not retrieve user profile.',
           });
         }
@@ -109,7 +101,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     if (!auth) {
-      toast({ variant: 'destructive', title: 'Login Failed', description: 'Authentication service not available.' });
+      toast.error('Login Failed', { description: 'Authentication service not available.' });
       return;
     }
     setIsAuthenticating(true);
@@ -125,9 +117,7 @@ export default function LoginPage() {
       if (error.code === 'auth/too-many-requests') {
         description = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";
       }
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
+      toast.error('Login Failed', {
         description: description,
       });
     } finally {
@@ -270,9 +260,7 @@ export default function LoginPage() {
                         if (devUser?.email && devUser?.password) {
                           onSubmit({ email: devUser.email, password: devUser.password });
                         } else {
-                          toast({
-                            variant: "destructive",
-                            title: "Developer Login Failed",
+                          toast.error("Developer Login Failed", {
                             description: "Could not find credentials for this dev user.",
                           });
                         }

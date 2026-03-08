@@ -15,7 +15,7 @@ import { GLOBAL_DATE_FORMAT, cn, safeParseDate } from "@/lib/utils";
 import { format, differenceInDays, startOfDay } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
@@ -441,7 +441,6 @@ export default function EquipmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
     const { setScanOpen } = useQRScanner();
     const { searchQuery } = useSearch();
@@ -558,10 +557,10 @@ export default function EquipmentPage() {
                 status: newStatus,
                 history: arrayUnion(newHistoryEntry)
             });
-            toast({ title: `Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`, description: `${equipment.name} status has been updated to '${newStatus}'.`});
+            toast.success(`Equipment ${action === 'check-in' ? 'Checked In' : 'Checked Out'}`, { description: `${equipment.name} status has been updated to '${newStatus}'.`});
         } catch(e) {
             console.error(e);
-            toast({ title: 'Update failed', description: 'Could not update equipment status.', variant: 'destructive'});
+            toast.error('Update failed', { description: 'Could not update equipment status.'});
         }
     };
 

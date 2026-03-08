@@ -28,7 +28,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -189,7 +189,6 @@ export default function PublicProductProfilePage() {
     const params = useParams();
     const { id } = params;
     const { firestore } = useFirebase();
-    const { toast } = useToast();
 
     const [api, setApi] = React.useState<CarouselApi>();
     const [current, setCurrent] = React.useState(0);
@@ -255,7 +254,7 @@ export default function PublicProductProfilePage() {
 
     const handleReviewSubmit = async (data: z.infer<typeof reviewSchema>) => {
         if (!firestore || !product) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not submit review. Please try again.' });
+            toast.error('Error', { description: 'Could not submit review. Please try again.' });
             return;
         }
 
@@ -264,9 +263,7 @@ export default function PublicProductProfilePage() {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            toast({
-                variant: "destructive",
-                title: "Already Reviewed",
+            toast.error("Already Reviewed", {
                 description: "This email address has already been used to review this product.",
             });
             return;
@@ -285,13 +282,12 @@ export default function PublicProductProfilePage() {
 
         try {
             await addDoc(collection(firestore, 'reviews'), newReview);
-            toast({
-                title: 'Review Submitted!',
+            toast.success('Review Submitted!', {
                 description: 'Thank you for your feedback. Your review is pending approval.'
             });
         } catch (error) {
             console.error('Error submitting review:', error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit your review.' });
+            toast.error('Error', { description: 'Failed to submit your review.' });
         }
     };
 

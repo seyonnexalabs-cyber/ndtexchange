@@ -1,5 +1,4 @@
 
-
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useSearch } from "@/app/components/layout/search-provider";
 import { format } from 'date-fns';
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { cn, safeParseDate } from "@/lib/utils";
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
@@ -222,7 +221,6 @@ export default function AssetsPage() {
     const role = searchParams.get('role') || 'client';
     const router = useRouter();
     const { setScanOpen } = useQRScanner();
-    const { toast } = useToast();
     
     // In a real app, this would come from a user context or subscription check.
     const isSubscriptionActive = false;
@@ -256,10 +254,10 @@ export default function AssetsPage() {
         const assetRef = doc(firestore, 'assets', assetId);
         try {
             await setDoc(assetRef, { approvalStatus: 'Approved' }, { merge: true });
-            toast({ title: 'Asset Approved', description: 'The asset is now active.' });
+            toast.success('Asset Approved', { description: 'The asset is now active.' });
         } catch (error) {
             console.error('Error approving asset:', error);
-            toast({ variant: 'destructive', title: 'Approval Failed', description: 'Could not approve the asset.' });
+            toast.error('Approval Failed', { description: 'Could not approve the asset.' });
         }
     };
 
@@ -268,10 +266,10 @@ export default function AssetsPage() {
         const assetRef = doc(firestore, 'assets', assetId);
         try {
             await deleteDoc(assetRef);
-            toast({ variant: 'destructive', title: 'Asset Rejected', description: 'The new asset submission has been removed.' });
+            toast.error('Asset Rejected', { description: 'The new asset submission has been removed.' });
         } catch (error) {
             console.error('Error rejecting asset:', error);
-            toast({ variant: 'destructive', title: 'Rejection Failed', description: 'Could not remove the asset.' });
+            toast.error('Rejection Failed', { description: 'Could not remove the asset.' });
         }
     };
     
@@ -310,4 +308,3 @@ export default function AssetsPage() {
     );
 }
 
-    

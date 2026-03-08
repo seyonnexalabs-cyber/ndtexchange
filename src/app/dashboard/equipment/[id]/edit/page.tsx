@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronsUpDown, Trash } from "lucide-react";
@@ -48,7 +48,6 @@ export default function EditEquipmentPage() {
     const id = params.id as string;
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
@@ -149,7 +148,7 @@ export default function EditEquipmentPage() {
             errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: "Equipment Updated", description: `${values.name} has been updated.` });
+        toast.success("Equipment Updated", { description: `${values.name} has been updated.` });
         router.push(constructUrl(`/dashboard/equipment/${id}`));
     };
     

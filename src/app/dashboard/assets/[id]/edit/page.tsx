@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useMemo } from "react";
@@ -16,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Switch } from '@/components/ui/switch';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, FirestorePermissionError, errorEmitter } from '@/firebase';
@@ -58,7 +57,6 @@ export default function EditAssetPage() {
     const id = params.id as string;
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
     const [showNewLocation, setShowNewLocation] = React.useState(false);
 
@@ -155,7 +153,7 @@ export default function EditAssetPage() {
             errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
+        toast.success("Asset Updated", { description: `${values.name} has been updated.` });
         router.push(constructUrl(`/dashboard/assets/${id}`));
     };
     

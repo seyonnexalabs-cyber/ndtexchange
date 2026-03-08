@@ -11,17 +11,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState, useMemo, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState, useMemo, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -310,7 +310,6 @@ export default function ProvidersPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const [isAddProviderOpen, setAddProviderOpen] = useState(false);
     const { firestore } = useFirebase();
 
@@ -347,8 +346,7 @@ export default function ProvidersPage() {
     const handleFormSubmit = (values: z.infer<typeof providerSchema>) => {
         // This would be a firestore call in a real app
         console.log("New Provider Data:", values);
-        toast({
-            title: "Provider Company Created",
+        toast.success("Provider Company Created", {
             description: `${values.name} has been added. You can now invite users to this company.`,
         });
         setAddProviderOpen(false);

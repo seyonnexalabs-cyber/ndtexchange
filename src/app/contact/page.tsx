@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { subscriptionPlans } from '@/lib/seed-data';
 import type { Plan } from '@/lib/types';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
@@ -49,14 +49,13 @@ const contactFormSchema = z.object({
 
 
 const ContactForm = () => {
-    const { toast } = useToast();
     const form = useForm<z.infer<typeof contactFormSchema>>({
         resolver: zodResolver(contactFormSchema),
         defaultValues: { name: '', companyName: '', email: '', message: '' },
     });
 
     function onSubmit(data: z.infer<typeof contactFormSchema>) {
-        toast({ title: "Inquiry Sent", description: "Thank you for contacting us. We will get back to you shortly." });
+        toast("Inquiry Sent", { description: "Thank you for contacting us. We will get back to you shortly." });
         console.log(data);
         form.reset();
     }

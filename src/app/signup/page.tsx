@@ -11,10 +11,7 @@ import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, collection } from 'firebase/firestore';
@@ -22,6 +19,9 @@ import type { PlatformUser, Client, NDTServiceProvider, AuditFirm } from '@/lib/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { countries } from '@/lib/countries';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const companySignupSchema = z.object({
@@ -39,7 +39,6 @@ const companySignupSchema = z.object({
 
 export default function SignupPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const { auth, firestore } = useFirebase();
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,9 +94,7 @@ export default function SignupPage() {
 
   const onSubmit = async (data: z.infer<typeof companySignupSchema>) => {
     if (selectedCompany) {
-      toast({
-          variant: "destructive",
-          title: "Cannot Create Account",
+      toast.error("Cannot Create Account", {
           description: "The selected company is already registered.",
       });
       return;
@@ -105,9 +102,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     if (!auth || !firestore) {
-      toast({
-        variant: "destructive",
-        title: "Signup Error",
+      toast.error("Signup Error", {
         description: "Firebase service is not available. Please try again later.",
       });
       setIsSubmitting(false);
@@ -148,8 +143,7 @@ export default function SignupPage() {
 
         await setDoc(userDocRef, userProfile);
 
-        toast({
-            title: "Account Created!",
+        toast.success("Account Created!", {
             description: "Welcome to NDT EXCHANGE. Your company is onboarded, and you can now log in.",
         });
         router.push(`/login`);
@@ -159,9 +153,7 @@ export default function SignupPage() {
         if (error.code === 'auth/email-already-in-use') {
             description = 'This email address is already in use. Please log in or use a different email.';
         }
-        toast({
-            variant: "destructive",
-            title: "Signup Failed",
+        toast.error("Signup Failed", {
             description,
         });
     } finally {

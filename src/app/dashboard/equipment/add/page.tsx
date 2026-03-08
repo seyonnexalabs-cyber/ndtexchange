@@ -8,8 +8,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, ChevronsUpDown } from "lucide-react";
@@ -44,7 +44,6 @@ type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 export default function AddEquipmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
@@ -132,11 +131,11 @@ export default function AddEquipmentPage() {
         
         try {
             await setDoc(newEquipmentRef, dataToSave);
-            toast({ title: "Equipment Submitted", description: `${values.name} is awaiting approval.` });
+            toast.success("Equipment Submitted", { description: `${values.name} is awaiting approval.` });
             router.push(constructUrl('/dashboard/equipment'));
         } catch (error) {
             console.error("Error saving equipment:", error);
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save equipment." });
+            toast.error("Save Failed", { description: "Could not save equipment." });
         }
     };
 

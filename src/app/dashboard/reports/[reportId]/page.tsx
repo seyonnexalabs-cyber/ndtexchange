@@ -5,8 +5,8 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ChevronLeft, FileText, Printer, AlertTriangle, Check, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -92,7 +92,6 @@ const reportSchema = z.object({
 const ReportGeneratorPage = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     const { firestore, user: authUser } = useFirebase();
 
     const jobId = searchParams.get('jobId');
@@ -126,7 +125,7 @@ const ReportGeneratorPage = () => {
 
     const onSubmit = async (values: z.infer<typeof reportSchema>) => {
         if (!firestore || !job || !inspection || !authUser || !currentUserProfile) {
-            toast({ variant: "destructive", title: "Error", description: "Missing critical data to submit report." });
+            toast.error("Error", { description: "Missing critical data to submit report." });
             return;
         }
         setIsSubmitting(true);
@@ -171,11 +170,11 @@ const ReportGeneratorPage = () => {
 
             await batch.commit();
 
-            toast({ title: 'Report Submitted!', description: 'The inspection report has been sent for review.' });
+            toast.success('Report Submitted!', { description: 'The inspection report has been sent for review.' });
             router.push(constructUrl(`/dashboard/my-jobs/${job.id}`));
         } catch (error) {
             console.error('Error submitting report:', error);
-            toast({ variant: 'destructive', title: 'Submission Failed', description: 'Could not submit the report.' });
+            toast.error('Submission Failed', { description: 'Could not submit the report.' });
         } finally {
             setIsSubmitting(false);
         }

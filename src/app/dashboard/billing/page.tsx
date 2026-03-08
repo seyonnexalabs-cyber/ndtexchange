@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -8,8 +7,8 @@ import { CheckCircle, CreditCard, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn, safeParseDate } from '@/lib/utils';
-import { useMemo, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useMemo, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -222,7 +221,6 @@ const userDetails = {
 export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const { toast } = useToast();
     const { firestore } = useFirebase();
 
     const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
@@ -260,8 +258,7 @@ export default function BillingPage() {
                 "description": `Subscription for ${plan}`,
                 "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",
                 "handler": function (response: any){
-                    toast({
-                        title: "Payment Successful!",
+                    toast.success("Payment Successful!", {
                         description: `Payment ID: ${response.razorpay_payment_id}`,
                     });
                 },

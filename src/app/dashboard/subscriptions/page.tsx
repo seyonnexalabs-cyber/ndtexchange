@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
@@ -578,7 +578,6 @@ export default function SubscriptionsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const { firestore, user } = useFirebase();
-    const { toast } = useToast();
 
     const [activeTab, setActiveTab] = useState("subscriptions");
     const [selectedSubscriptions, setSelectedSubscriptions] = useState<string[]>([]);
@@ -636,11 +635,11 @@ export default function SubscriptionsPage() {
         if (isEditing && editingSubscription) {
             const subRef = doc(firestore, 'subscriptions', editingSubscription.id);
             await updateDoc(subRef, dataToSave);
-            toast({ title: "Subscription Updated", description: `The subscription for ${company?.name} has been updated.` });
+            toast.success("Subscription Updated", { description: `The subscription for ${company?.name} has been updated.` });
         } else {
             const subRef = doc(collection(firestore, "subscriptions"));
             await setDoc(subRef, { id: subRef.id, userCount: 0, dataUsageGB: 0, ...dataToSave });
-            toast({ title: "Subscription Created", description: `A new subscription has been created for ${company?.name}.` });
+            toast.success("Subscription Created", { description: `A new subscription has been created for ${company?.name}.` });
         }
         closeDialog();
     };
@@ -650,12 +649,11 @@ export default function SubscriptionsPage() {
         const planRef = doc(firestore, 'plans', planId);
         try {
             await updateDoc(planRef, { isActive });
-            toast({
-                title: `Plan ${isActive ? 'Enabled' : 'Disabled'}`,
+            toast.success(`Plan ${isActive ? 'Enabled' : 'Disabled'}`, {
                 description: `The plan will now be ${isActive ? 'visible' : 'hidden'} on the public pricing page.`
             });
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not update plan status.' });
+            toast.error('Error', { description: 'Could not update plan status.' });
         }
     };
 
@@ -730,15 +728,12 @@ export default function SubscriptionsPage() {
 
     const handleBulkEmailSend = () => {
         if (selectedSubscriptions.length === 0) {
-            toast({
-                variant: "destructive",
-                title: "No subscriptions selected",
+            toast.error("No subscriptions selected", {
                 description: "Please select one or more subscriptions to send a bulk email."
             });
             return;
         }
-        toast({
-            title: "Mail Merge Initiated",
+        toast.info("Mail Merge Initiated", {
             description: `A mail merge has been initiated for ${selectedSubscriptions.length} companies.`
         });
         setBulkMailOpen(false);

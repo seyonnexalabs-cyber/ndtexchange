@@ -1,12 +1,11 @@
 
-
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -182,7 +181,6 @@ export default function JobDetailPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role') || 'client';
-    const { toast } = useToast();
     const { firestore, user: authUser, isUserLoading: isAuthLoading } = useUser();
     
     const [activeTab, setActiveTab] = React.useState('overview');
@@ -267,11 +265,11 @@ export default function JobDetailPage() {
             batch.update(jobRef, { history: arrayUnion(historyEntry) });
             await batch.commit();
 
-            toast({ title: "Job Awarded!", description: "The job has been awarded. The provider will be notified." });
+            toast.success("Job Awarded!", { description: "The job has been awarded. The provider will be notified." });
             setReviewingBid(null);
         } catch (error) {
             console.error("Error awarding job:", error);
-            toast({ variant: "destructive", title: "Awarding Failed" });
+            toast.error("Awarding Failed");
         }
     };
     

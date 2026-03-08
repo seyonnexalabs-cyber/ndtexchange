@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -241,7 +241,6 @@ export default function TechnicianDetailPage() {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const { toast } = useToast();
     const router = useRouter();
     const { firestore } = useFirebase();
     const [hasExpiringCert, setHasExpiringCert] = useState(false);
@@ -314,8 +313,7 @@ export default function TechnicianDetailPage() {
             certifications: updatedCerts,
         });
 
-        toast({
-            title: "Technician Updated",
+        toast.success("Technician Updated", {
             description: `${technician.name}'s profile has been updated.`,
         });
         setIsFormOpen(false);

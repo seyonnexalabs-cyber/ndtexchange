@@ -15,7 +15,7 @@ import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '
 import { PlusCircle, ChevronLeft, FileText, X, Check, ArrowRight, ArrowLeft } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import * as React from 'react';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { format, addDays } from 'date-fns';
@@ -213,7 +213,6 @@ export default function PostJobPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const router = useRouter();
-    const { toast } = useToast();
     const { firestore, user, storage } = useFirebase();
     const [step, setStep] = React.useState(1);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = React.useState(false);
@@ -349,9 +348,7 @@ export default function PostJobPage() {
             const files = Array.from(e.target.files);
             const validatedFiles = files.filter(file => {
                 if (file.size > MAX_FILE_SIZE_BYTES) {
-                    toast({
-                        variant: "destructive",
-                        title: "File too large",
+                    toast.error("File too large", {
                         description: `${file.name} is larger than ${MAX_FILE_SIZE_MB}MB.`
                     });
                     return false;
@@ -364,7 +361,7 @@ export default function PostJobPage() {
 
     const onSubmit = async (values: z.infer<typeof currentSchema>) => {
         if (!firestore || !user || !userProfile || !storage || (isClient && !clientAssets)) {
-            toast({ variant: "destructive", title: "Error", description: "Required data not loaded. Please try again." });
+            toast.error("Error", { description: "Required data not loaded. Please try again." });
             return;
         }
 
@@ -378,7 +375,7 @@ export default function PostJobPage() {
             
             const documentMetadata: JobDocument[] = [];
             if (documentFiles.length > 0) {
-                toast({ title: 'Uploading documents...' });
+                toast('Uploading documents...');
                 for (const file of documentFiles) {
                     const fileRef = storageRef(storage, `jobs/${jobRef.id}/${file.name}`);
                     await uploadBytes(fileRef, file);
@@ -457,11 +454,11 @@ export default function PostJobPage() {
 
             await batch.commit();
             
-            toast({ title: 'Job Posted Successfully', description: `${values.title} has been created and relevant inspections are scheduled.` });
+            toast.success('Job Posted Successfully', { description: `${values.title} has been created and relevant inspections are scheduled.` });
             router.push(constructUrl('/dashboard/my-jobs'));
         } catch(error) {
             console.error(error);
-            toast({ variant: "destructive", title: "Error", description: "Failed to post job." });
+            toast.error("Error", { description: "Failed to post job." });
         } finally {
             setIsSubmitting(false);
             setIsReviewDialogOpen(false);

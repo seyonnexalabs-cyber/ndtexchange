@@ -23,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, query, where, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Job, JobPayment, PlatformUser } from '@/lib/types';
@@ -235,7 +235,6 @@ const PaymentsPage = () => {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
 
     const { data: jobPayments } = useCollection<JobPayment>(useMemoFirebase(() => (firestore && user) ? collection(firestore, 'jobPayments') : null, [firestore, user]));
@@ -343,16 +342,13 @@ const PaymentsPage = () => {
                 await updateDoc(jobDocRef, { status: 'Paid' });
             }
 
-            toast({
-                title: "Payment Recorded",
+            toast.success("Payment Recorded", {
                 description: `A payment of $${values.amount.toLocaleString()} for job "${job.title}" has been recorded.`,
             });
             setIsRecordPaymentOpen(false);
         } catch (error) {
             console.error("Error recording payment: ", error);
-            toast({
-                variant: "destructive",
-                title: "Failed to record payment",
+            toast.error("Failed to record payment", {
                 description: "An error occurred while saving the payment record."
             });
         }

@@ -11,7 +11,6 @@ import ConversationList from './components/ConversationList';
 import ChatView from './components/ChatView';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, where, orderBy, doc, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
 
 type Message = {
     id: string;
@@ -26,7 +25,6 @@ export default function MessagesPage() {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const role = searchParams.get('role') || 'client';
-    const { toast } = useToast();
     
     const { firestore } = useFirebase();
     const { user: authUser } = useUser();

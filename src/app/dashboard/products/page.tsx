@@ -15,7 +15,7 @@ import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, setDoc, updateDoc, query } from 'firebase/firestore';
 import { Product, Manufacturer, NDTTechnique } from "@/lib/types";
@@ -190,7 +190,6 @@ export default function ProductsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const { firestore } = useFirebase();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -254,11 +253,11 @@ export default function ProductsPage() {
         if (isEditing && editingProduct) {
             const prodRef = doc(firestore, 'products', editingProduct.id);
             await updateDoc(prodRef, dataToSave);
-            toast({ title: "Product Updated", description: `${values.name} has been updated.` });
+            toast.success("Product Updated", { description: `${values.name} has been updated.` });
         } else {
             const newProdRef = doc(collection(firestore, 'products'));
             await setDoc(newProdRef, { id: newProdRef.id, ...dataToSave });
-            toast({ title: "Product Added", description: `${values.name} has been added to the catalog.` });
+            toast.success("Product Added", { description: `${values.name} has been added to the catalog.` });
         }
         closeDialog();
     };

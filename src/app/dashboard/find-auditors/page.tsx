@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -21,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
@@ -142,14 +143,14 @@ const DesktopView = ({ firms, constructUrl }: { firms: AuditFirm[], constructUrl
                             <TableCell>{firm.location}</TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1 w-48">
-                                    {(firm.services || []).slice(0, 3).map(service => <Badge key={service} variant="secondary">{service}</Badge>)}
-                                    {(firm.services || []).length > 3 && <Badge variant="outline">+{firm.services.length - 3}</Badge>}
+                                    {firm.services.slice(0, 3).map(service => <Badge key={service} variant="secondary">{service}</Badge>)}
+                                    {firm.services.length > 3 && <Badge variant="outline">+{firm.services.length - 3}</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap gap-1 w-48">
-                                    {(firm.industries || []).slice(0, 3).map(industry => <Badge key={industry} variant="outline">{industry}</Badge>)}
-                                    {(firm.industries || []).length > 3 && <Badge variant="outline">+{firm.industries.length - 3}</Badge>}
+                                    {firm.industries.slice(0, 3).map(industry => <Badge key={industry} variant="outline">{industry}</Badge>)}
+                                    {firm.industries.length > 3 && <Badge variant="outline">+{firm.industries.length - 3}</Badge>}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -231,7 +232,6 @@ export default function AuditorsPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
     const isMobile = useIsMobile();
 
@@ -292,8 +292,7 @@ export default function AuditorsPage() {
     const handleFormSubmit = (values: z.infer<typeof auditorFirmSchema>) => {
         // This would be a firestore call in a real app
         console.log("New Auditor Firm:", values);
-        toast({
-            title: "Auditor Firm Created",
+        toast.success("Auditor Firm Created", {
             description: `${values.name} has been added to the directory.`,
         });
         setIsAddFirmOpen(false);

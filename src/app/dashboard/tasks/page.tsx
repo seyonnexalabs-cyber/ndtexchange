@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import * as React from "react"
@@ -14,7 +15,7 @@ import { Task, createTaskSchema } from "./data/schema"
 import { labels, priorities, statuses } from "@/lib/seed-data"
 
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -30,7 +31,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TasksPage() {
   const { firestore, user } = useFirebase();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isNewTaskOpen, setIsNewTaskOpen] = React.useState(false);
 
@@ -51,7 +51,7 @@ export default function TasksPage() {
 
   async function onSubmit(values: z.infer<typeof createTaskSchema>) {
     if (!user || !firestore) {
-        toast({ variant: "destructive", title: "Error", description: "Not authenticated. Cannot create task." });
+        toast.error("Error", { description: "Not authenticated. Cannot create task." });
         return;
     }
     try {
@@ -67,12 +67,12 @@ export default function TasksPage() {
         // Add the id to the document after creation
         await updateDoc(docRef, { id: docRef.id });
 
-        toast({ title: "Task created successfully!" });
+        toast.success("Task created successfully!");
         setIsNewTaskOpen(false);
         form.reset();
     } catch (error) {
         console.error("Error creating task:", error);
-        toast({ variant: "destructive", title: "Error", description: "Could not create the task." });
+        toast.error("Error", { description: "Could not create the task." });
     }
   }
 

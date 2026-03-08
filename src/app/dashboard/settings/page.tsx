@@ -14,7 +14,7 @@ import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -574,11 +574,11 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
     ) => {
         if (file) {
             if (!allowedTypes.includes(file.type)) {
-                toast({ variant: 'destructive', title: 'Invalid File Type', description: `Please upload one of: ${allowedTypes.join(', ')}` });
+                toast.error('Invalid File Type', { description: `Please upload one of: ${allowedTypes.join(', ')}` });
                 return;
             }
             if (file.size > maxSizeMB * 1024 * 1024) {
-                toast({ variant: 'destructive', title: 'File Too Large', description: `Image must be smaller than ${maxSizeMB}MB.` });
+                toast.error('File Too Large', { description: `Image must be smaller than ${maxSizeMB}MB.` });
                 return;
             }
 
@@ -609,7 +609,7 @@ const BrandingSettings = ({ companyName, role }: { companyName: string, role: st
     const thumbnailDragHandlers = createDragHandlers(setIsThumbnailDragging, (file) => handleFileUpload(file, setThumbnailPreview, 1, ['image/png', 'image/jpeg']));
 
     const handleSaveBranding = () => {
-        toast({ title: 'Branding Saved', description: 'Your company branding has been updated.' });
+        toast.success('Branding Saved', { description: 'Your company branding has been updated.' });
     };
 
     const isCustomer = role === 'customer';
@@ -846,15 +846,12 @@ export default function SettingsPage() {
                 name: data.name,
                 email: data.email
             });
-            toast({
-                title: 'Profile Updated',
+            toast.success('Profile Updated', {
                 description: 'Your profile information has been saved.',
             });
         } catch (error) {
             console.error("Error updating profile:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Update Failed',
+            toast.error('Update Failed', {
                 description: 'Could not save your profile changes.'
             });
         }
@@ -872,15 +869,12 @@ export default function SettingsPage() {
                 industries: data.industries,
                 currency: data.currency,
             });
-            toast({
-              title: 'Company Profile Updated',
+            toast.success('Company Profile Updated', {
               description: 'Your company information has been saved.',
             });
         } catch (error) {
             console.error("Error updating company profile:", error);
-             toast({
-                variant: 'destructive',
-                title: 'Update Failed',
+             toast.error('Update Failed', {
                 description: 'Could not save company profile changes.'
             });
         }
@@ -892,12 +886,10 @@ export default function SettingsPage() {
             await updateDoc(doc(firestore, 'users', authUser.uid), {
                 notificationSettings: data
             });
-            toast({ title: 'Notification Settings Saved' });
+            toast.success('Notification Settings Saved');
         } catch (error) {
             console.error("Error saving notification settings:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Save Failed',
+            toast.error('Save Failed', {
                 description: 'Could not save your notification preferences.'
             });
         }

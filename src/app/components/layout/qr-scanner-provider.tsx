@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,6 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-    const { toast } = useToast();
 
     useEffect(() => {
         if (!isOpen) return;
@@ -75,9 +74,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
             } catch (error) {
                 console.error('Error accessing camera:', error);
                 setHasCameraPermission(false);
-                toast({
-                  variant: 'destructive',
-                  title: 'Camera Access Denied',
+                toast.error('Camera Access Denied', {
                   description: 'Please enable camera permissions in your browser settings to use this app.',
                 });
                 return;
@@ -117,7 +114,7 @@ const QRScannerDialog = ({ isOpen, onOpenChange, onScan }: { isOpen: boolean; on
         startScan();
 
         return cleanup;
-    }, [isOpen, onScan, toast]);
+    }, [isOpen, onScan]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -206,7 +203,6 @@ const ConfirmationDialog = ({ item, onConfirm, onCancel }: { item: ConfirmationS
 export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
   const [isScanOpen, setScanOpen] = useState(false);
   const [confirmationState, setConfirmationState] = useState<ConfirmationState | null>(null);
-  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
@@ -216,9 +212,7 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
       setScanOpen(false);
       
       if (!firestore) {
-          toast({
-              variant: 'destructive',
-              title: "Database Error",
+          toast.error("Database Error", {
               description: "Could not connect to the database.",
           });
           return;
@@ -243,16 +237,12 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
               return;
           }
           
-          toast({
-              variant: 'destructive',
-              title: "Item Not Found",
+          toast.error("Item Not Found", {
               description: `No asset or equipment with ID "${id}" could be found.`,
           });
           
       } catch (error) {
-           toast({
-              variant: 'destructive',
-              title: "Scan Error",
+           toast.error("Scan Error", {
               description: `An error occurred while fetching item details.`,
           });
           console.error("Error fetching document by QR code:", error);
@@ -278,9 +268,7 @@ export const QRScannerProvider = ({ children }: { children: ReactNode }) => {
           if (role === 'inspector') {
                 router.push(constructUrl(`/dashboard/equipment/${id}`));
           } else {
-              toast({
-                  variant: 'destructive',
-                  title: "Access Denied",
+              toast.error("Access Denied", {
                   description: `Only inspectors can view equipment details.`,
               });
           }

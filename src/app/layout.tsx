@@ -1,7 +1,7 @@
 
 import type {Metadata} from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from 'react';
 import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -60,7 +60,7 @@ export default function RootLayout({
             <FirebaseErrorListener />
           </FirebaseClientProvider>
         </Suspense>
-        <Toaster />
+        <Toaster richColors />
         <CookieConsent />
       </body>
     </html>

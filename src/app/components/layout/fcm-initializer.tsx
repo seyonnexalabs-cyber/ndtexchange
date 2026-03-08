@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // IMPORTANT: Generate a VAPID key in your Firebase console under Project Settings > Cloud Messaging > Web configuration
 // and paste it here.
@@ -13,7 +13,6 @@ const VAPID_KEY = "BN8n-NHW8Y9DVxa6VLAfFwFzzxV3iiNP4rWwWZpGevEAb_e0mQNHdRbFM0BNi
 
 export const FCMInitializer = () => {
   const { firestore, user } = useFirebase();
-  const { toast } = useToast();
 
   useEffect(() => {
     const initializeFcm = async () => {
@@ -61,10 +60,11 @@ export const FCMInitializer = () => {
             const messaging = getMessaging();
             const unsubscribe = onMessage(messaging, (payload) => {
               console.log('Foreground message received.', payload);
-              toast({
-                title: payload.notification?.title,
-                description: payload.notification?.body,
-              });
+              if (payload.notification?.title) {
+                toast(payload.notification.title, {
+                  description: payload.notification.body,
+                });
+              }
             });
       
             return () => unsubscribe();
@@ -72,7 +72,7 @@ export const FCMInitializer = () => {
             console.error('FCM onMessage error:', e);
         }
     }
-  }, [toast]);
+  }, []);
 
   return null;
 };

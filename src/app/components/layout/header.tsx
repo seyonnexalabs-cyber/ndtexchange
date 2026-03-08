@@ -18,14 +18,14 @@ import { cn, safeParseDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useFirebase, useUser, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 
 
 const userDetails = {
     client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.', location: 'Houston, TX', address: '123 Energy Corridor' },
     inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.', location: 'Sugar Land, TX', address: '1 Fluor Daniel Dr' },
-    admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT EXCHANGE', location: 'Palo Alto, CA', address: '123 Main St' },
+    admin: { name: 'Admin User', role: 'Platform Admin', fallback: 'AU', company: 'NDT EXCHANGE' },
     auditor: { name: 'Alex Chen', role: 'Compliance Auditor', fallback: 'AC', company: 'NDT Auditors LLC', location: 'Washington, D.C.', address: '456 Gov Ave' },
     manufacturer: { name: 'OEM User', role: 'Product Manager', fallback: 'OM', company: 'Evident Scientific', location: 'Waltham, MA', address: '48 Woerd Ave' },
 };
@@ -62,7 +62,6 @@ const AppHeader = () => {
     const searchParams = useSearchParams();
     const { auth, firestore } = useFirebase();
     const { user, isUserLoading } = useUser();
-    const { toast } = useToast();
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
@@ -105,16 +104,13 @@ const AppHeader = () => {
         if (!auth) return;
         try {
             await signOut(auth);
-            toast({
-                title: 'Logged Out',
+            toast.success('Logged Out', {
                 description: 'You have been successfully logged out.',
             });
             router.push('/login');
         } catch (error) {
             console.error("Error signing out: ", error);
-            toast({
-                variant: 'destructive',
-                title: 'Logout Failed',
+            toast.error('Logout Failed', {
                 description: 'An error occurred while logging out.',
             });
         }

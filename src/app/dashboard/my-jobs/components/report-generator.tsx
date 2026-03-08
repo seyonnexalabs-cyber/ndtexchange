@@ -10,20 +10,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 // Pre-load all templates dynamically at the top level of the module.
 const dynamicTemplates: { [key: string]: React.ComponentType<any> } = {
-    UT: dynamic(() => import('./report-templates/ut-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    PAUT: dynamic(() => import('./report-templates/ut-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    TOFD: dynamic(() => import('./report-templates/ut-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    MT: dynamic(() => import('./report-templates/mt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    PT: dynamic(() => import('./report-templates/pt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    RT: dynamic(() => import('./report-templates/rt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    CR: dynamic(() => import('./report-templates/rt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    DR: dynamic(() => import('./report-templates/rt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    VT: dynamic(() => import('./report-templates/vt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    RVI: dynamic(() => import('./report-templates/vt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    ET: dynamic(() => import('./report-templates/et-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    AE: dynamic(() => import('./report-templates/ae-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    GWT: dynamic(() => import('./report-templates/gwt-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
-    APR: dynamic(() => import('./report-templates/apr-report'), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    UT: dynamic(() => import('./report-templates/ut-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    PAUT: dynamic(() => import('./report-templates/ut-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    TOFD: dynamic(() => import('./report-templates/ut-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    MT: dynamic(() => import('./report-templates/mt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    PT: dynamic(() => import('./report-templates/pt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    RT: dynamic(() => import('./report-templates/rt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    CR: dynamic(() => import('./report-templates/rt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    DR: dynamic(() => import('./report-templates/rt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    VT: dynamic(() => import('./report-templates/vt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    RVI: dynamic(() => import('./report-templates/vt-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    ET: dynamic(() => import('./report-templates/et-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    AE: dynamic(() => import('./report-templates/ae-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    APR: dynamic(() => import('./report-templates/apr-report').then(mod => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
 };
 
 const DefaultTemplate = () => (

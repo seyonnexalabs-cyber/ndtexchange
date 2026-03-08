@@ -1,9 +1,11 @@
+
 "use client"
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
+
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -20,6 +22,9 @@ import {
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH_MOBILE = "18rem"
+const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {
@@ -63,7 +68,7 @@ const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobile = useMobile()
+    const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
 
     // This is the internal state of the sidebar.
@@ -129,7 +134,14 @@ const SidebarProvider = React.forwardRef<
       <SidebarContext.Provider value={contextValue}>
         <TooltipProvider delayDuration={0}>
           <div
-            style={style}
+            style={
+              {
+                "--sidebar-width": SIDEBAR_WIDTH,
+                "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+                "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
+                ...style,
+              } as React.CSSProperties
+            }
             className={cn(
               "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-card",
               className
@@ -188,7 +200,12 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[var(--sidebar-width-mobile)] bg-card p-0 text-card-foreground"
+            className="w-[var(--sidebar-width)] bg-card p-0 text-card-foreground"
+            style={
+              {
+                "--sidebar-width": "var(--sidebar-width-mobile)",
+              } as React.CSSProperties
+            }
             side={side}
           >
              <SheetHeader className="p-4 border-b border-border sr-only">
@@ -250,7 +267,7 @@ Sidebar.displayName = "Sidebar"
 
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button>
+  React.ComponentPropsWithoutRef<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
   const { toggleSidebar } = useSidebar()
 
@@ -323,7 +340,7 @@ SidebarInset.displayName = "SidebarInset"
 
 const SidebarInput = React.forwardRef<
   React.ElementRef<typeof Input>,
-  React.ComponentProps<typeof Input>
+  React.ComponentPropsWithoutRef<typeof Input>
 >(({ className, ...props }, ref) => {
   return (
     <Input
@@ -371,7 +388,7 @@ SidebarFooter.displayName = "SidebarFooter"
 
 const SidebarSeparator = React.forwardRef<
   React.ElementRef<typeof Separator>,
-  React.ComponentProps<typeof Separator>
+  React.ComponentPropsWithoutRef<typeof Separator>
 >(({ className, ...props }, ref) => {
   return (
     <Separator

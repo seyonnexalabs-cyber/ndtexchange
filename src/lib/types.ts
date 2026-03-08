@@ -301,6 +301,7 @@ export type JobChat = {
 export type Notification = {
   id: string;
   userId: string;
+  type: string;
   title: string;
   description: string;
   timestamp: any;
@@ -496,7 +497,7 @@ export type NDTEvent = {
   date: string;
   location: string;
   region: 'North America' | 'Europe' | 'Asia' | 'South America' | 'Africa' | 'Oceania';
-  imageUrl: string;
+  imageId: string;
   imageHint: string;
   url: string;
 };

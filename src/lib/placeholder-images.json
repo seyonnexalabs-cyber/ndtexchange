@@ -7,190 +7,76 @@
       "imageHint": "white pattern"
     },
     {
-      "id": "hero",
-      "description": "An industrial setting with a focus on metal structures, implying inspection and engineering.",
-      "imageUrl": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxpbmR1c3RyaWFsJTIwZW5naW5lZXJpbmd8ZW58MHx8fHwxNzY5MDE1MzI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial engineering"
-    },
-    {
-      "id": "hero-login",
-      "description": "A team of professionals collaborating on laptops in a modern workspace.",
-      "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3MjE5MzI4MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team collaboration"
-    },
-    {
-      "id": "hero-signup",
-      "description": "An interesting architectural doorway, symbolizing a new beginning.",
-      "imageUrl": "https://images.unsplash.com/photo-1651627827235-f26656c62933?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmUlMjBkb29yd2F5fGVufDB8fHx8fDE3NzA3MzA2ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "architecture doorway"
-    },
-    {
-      "id": "asset1",
-      "description": "A large industrial tank.",
-      "imageUrl": "https://images.unsplash.com/photo-1766560505794-3d3978bf5f89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmR1c3RyaWFsJTIwdGFua3xlbnwwfHx8fDE3NjkwMTUzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial tank"
-    },
-    {
-      "id": "asset2",
-      "description": "A complex network of industrial pipes.",
-      "imageUrl": "https://images.unsplash.com/photo-1578337159840-ec3abc0b0d17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aW5kdXN0cmlhbCUyMHBpcGVzfGVufDB8fHx8fDE3NjkwMDY4MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial pipes"
-    },
-    {
-      "id": "asset3",
-      "description": "A construction crane against a city skyline.",
-      "imageUrl": "https://images.unsplash.com/photo-1575230167650-dce335edc7f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjb25zdHJ1Y3Rpb24lMjBjcmFuZXxlbnwwfHx8fDE3Njg5NTA2MjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "construction crane"
-    },
-    {
-      "id": "asset4",
-      "description": "A close-up of a weld joint on a steel beam.",
-      "imageUrl": "https://images.unsplash.com/photo-1632838961436-26d62b5ffbc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3ZWxkJTIwam9pbnR8ZW58MHx8fHwxNzY5MDE1MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "weld joint"
-    },
-    {
-      "id": "asset5",
-      "description": "A pressure vessel in a factory setting",
-      "imageUrl": "https://images.unsplash.com/photo-1588877981142-0851cb22ad89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcmVzc3VyZSUyMHZlc3NlbHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "pressure vessel"
-    },
-    {
-      "id": "asset6",
-      "description": "Industrial piping inside a cooling tower.",
-      "imageUrl": "https://images.unsplash.com/photo-1729954924953-ff957b3e9edc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb29saW5nJTIwdG93ZXJ8ZW58MHx8fHwxNzY5MDE1MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "cooling tower"
-    },
-    {
-      "id": "asset7",
-      "description": "Condensate storage tank at a power plant.",
-      "imageUrl": "https://images.unsplash.com/photo-1638294834907-d11608bc11d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdG9yYWdlJTIwdGFua3xlbnwwfHx8fDE3NjkwMDIyMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "storage tank"
-    },
-    {
-      "id": "asset8",
-      "description": "Process piping at a chemical facility.",
-      "imageUrl": "https://images.unsplash.com/photo-1578776349090-de61da00ff1a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8fDE3NjODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "chemical plant"
-    },
-    {
-      "id": "asset9",
-      "description": "A large gantry crane at a port.",
-      "imageUrl": "https://images.unsplash.com/photo-1759390304074-dc0bb44b5f4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FudHJ5JTIwY3JhbmV8ZW58MHx8fHwxNzY5MDAyMjE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "gantry crane"
-    },
-    {
-      "id": "industry-oilgas",
-      "description": "An oil refinery at sunset.",
-      "imageUrl": "https://images.unsplash.com/photo-1678984239420-43cdc183bce6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8b2lsJTIwcmVmaW5lcnl8ZW58MHx8fHwxNzY4OTk5NDE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "oil refinery"
-    },
-    {
-      "id": "industry-powergen",
-      "description": "A power plant with cooling towers.",
-      "imageUrl": "https://images.unsplash.com/photo-1613685877679-57222e9e8170?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwb3dlciUyMHBsYW50fGVufDB8fHx8MTc2ODk3NjczMHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "power plant"
-    },
-    {
-      "id": "industry-chemical",
-      "description": "A chemical processing plant with complex piping.",
-      "imageUrl": "https://images.unsplash.com/photo-1629447388369-760612337eff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjaGVtaWNhbCUyMHBsYW50fGVufDB8fHx8fDE3NjODk5OTQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "chemical plant"
-    },
-    {
-      "id": "industry-manufacturing",
-      "description": "The interior of a modern manufacturing facility.",
-      "imageUrl": "https://images.unsplash.com/photo-1646081270721-4588be445e89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZmFjdG9yeSUyMGludGVyaW9yfGVufDB8fHx8MTc2ODk2Mjc3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "factory interior"
-    },
-    {
-      "id": "industry-aerospace",
-      "description": "A close-up of a jet engine turbine.",
-      "imageUrl": "https://images.unsplash.com/photo-1696238628662-e820babaf1e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8amV0JTIwZW5naW5lfGVufDB8fHx8MTc2OTAxNDgyMHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "jet engine"
-    },
-    {
-      "id": "industry-infrastructure",
-      "description": "The structural detail of a large suspension bridge.",
-      "imageUrl": "https://images.unsplash.com/photo-1683669446813-59152d13ae0e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxicmlkZ2UlMjBzdHJ1Y3R1cmV8ZW58MHx8fHwxNzY5MDE0ODIwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "bridge structure"
-    },
-    {
       "id": "tech-ut",
       "description": "An inspector performing ultrasonic testing on a pipe.",
-      "imageUrl": "https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://picsum.photos/seed/techut/800/600",
       "imageHint": "scientist lab"
     },
     {
       "id": "tech-rt",
       "description": "An X-ray film showing a weld inspection.",
-      "imageUrl": "https://images.unsplash.com/photo-1579169187310-815e1a13d745?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://picsum.photos/seed/techrt/800/600",
       "imageHint": "xray circuit"
     },
     {
       "id": "tech-mt",
       "description": "Magnetic particle inspection highlighting a flaw.",
-      "imageUrl": "https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://picsum.photos/seed/techmt/800/600",
       "imageHint": "magnetic field"
     },
     {
       "id": "tech-pt",
       "description": "A component under UV light showing liquid penetrant indications.",
-      "imageUrl": "https://images.unsplash.com/photo-1655182513906-1755106518af?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://picsum.photos/seed/techpt/800/600",
       "imageHint": "uv light"
     },
     {
       "id": "tech-vt",
       "description": "A remote visual inspection borescope inside an engine.",
-      "imageUrl": "https://images.unsplash.com/photo-1581094482459-3f41c3947b68?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://picsum.photos/seed/techvt/800/600",
       "imageHint": "engineer inspection"
     },
     {
       "id": "tech-ae",
       "description": "Acoustic emission sensors on a large pressure vessel.",
-      "imageUrl": "https://images.unsplash.com/photo-1632516643720-e7f5d7d608e4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://picsum.photos/seed/techae/800/600",
       "imageHint": "sound wave"
     },
     {
-      "id": "tech-apr",
-      "description": "A graph showing sound wave reflections from an APR test.",
-      "imageUrl": "https://images.unsplash.com/photo-1704741389627-5991d9953ba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzb3VuZCUyMHdhdmVzfGVufDB8fHx8fDE3NjODkyOTQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "sound waves"
+      "id": "event-01",
+      "description": "Las Vegas for ASNT conference",
+      "imageUrl": "https://picsum.photos/seed/event01/1280/720",
+      "imageHint": "las vegas"
     },
     {
-      "id": "tech-et",
-      "description": "An inspector using an eddy current probe on a metal surface.",
-      "imageUrl": "https://images.unsplash.com/photo-1729271753723-2a1a8579a4ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxlZGR5JTIwY3VycmVudHxlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "eddy current"
+      "id": "event-02",
+      "description": "Lisbon, Portugal for ECNDT conference",
+      "imageUrl": "https://picsum.photos/seed/event02/1280/720",
+      "imageHint": "lisbon"
     },
     {
-      "id": "tech-lt",
-      "description": "Bubbles forming along a seam during a leak test.",
-      "imageUrl": "https://images.unsplash.com/photo-1570615541379-e6b7ab6d4eb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsZWFrJTIwdGVzdGluZ3xlbnwwfHx8fDE3NjkwMTUzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "leak testing"
+      "id": "event-03",
+      "description": "Telford or London for BINDT conference",
+      "imageUrl": "https://picsum.photos/seed/event03/1280/720",
+      "imageHint": "london"
     },
     {
-      "id": "tech-ir",
-      "description": "A thermal image showing heat variations on electrical components.",
-      "imageUrl": "https://images.unsplash.com/photo-1643461214011-a161ac8850cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx0aGVybWFsJTIwaW1hZ2luZ3xlbnwwfHx8fDE3Njg5MjEzNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "thermal imaging"
+      "id": "event-04",
+      "description": "Incheon, South Korea for World Conference on NDT",
+      "imageUrl": "https://picsum.photos/seed/event04/1280/720",
+      "imageHint": "seoul south korea"
     },
     {
-      "id": "tech-other",
-      "description": "An abstract image representing various advanced NDT technologies.",
-      "imageUrl": "https://images.unsplash.com/photo-1649877508777-1554357604eb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuZHQlMjB0ZWNobm9sb2d5fGVufDB8fHx8MTc2OTAxNTMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "ndt technology"
+      "id": "event-05",
+      "description": "Tokyo, Japan for NDT-CE symposium",
+      "imageUrl": "https://picsum.photos/seed/event05/1280/720",
+      "imageHint": "tokyo japan"
     },
     {
-      "id": "hero-manufacturers",
-      "description": "An assembly line of industrial equipment being manufactured.",
-      "imageUrl": "https://images.unsplash.com/photo-1582923055419-8a3c3a93a5c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxlcXVpcG1lbnQlMjBtYW51ZmFjdHVyaW5nfGVufDB8fHx8MTc2OTAxNTMyNnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "equipment manufacturing"
-    },
-    {
-      "id": "hero-providers",
-      "description": "An industrial setting with a focus on metal structures, implying inspection and engineering.",
-      "imageUrl": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxpbmR1c3RyaWFsJTIwZW5naW5lZXJpbmd8ZW58MHx8fHwxNzY5MDE1MzI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial engineering"
+      "id": "event-06",
+      "description": "São Paulo, Brazil for Pan-American Conference",
+      "imageUrl": "https://picsum.photos/seed/event06/1280/720",
+      "imageHint": "sao paulo"
     }
   ]
 }

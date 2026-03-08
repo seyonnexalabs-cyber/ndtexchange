@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const HoneycombHero = ({ children, className }: { children: React.ReactNode, className?: string }) => {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-pattern-bg');
+  const heroImage = PlaceHolderImages?.find(p => p.id === 'hero-pattern-bg');
   
   return (
     <section className={cn("relative w-full overflow-hidden flex items-center justify-center py-20 md:py-24", className)}>
@@ -48,10 +48,10 @@ const HoneycombHero = ({ children, className }: { children: React.ReactNode, cla
                   />
                   <circle cx="28" cy="0" r="3" fill="hsl(var(--primary))" />
                   <circle cx="56" cy="16.16" r="3" fill="hsl(var(--primary))" />
-                  <circle cx="56" cy="48.5" r="5" fill="hsl(var(--primary))" />
+                  <circle cx="56" cy="48.5" r="5" fill="hsl(var(--primary))" /> {/* Larger node */}
                   <circle cx="28" cy="64.66" r="3" fill="hsl(var(--primary))" />
                   <circle cx="0" cy="48.5" r="3" fill="hsl(var(--primary))" />
-                  <circle cx="0" cy="16.16" r="6" fill="hsl(var(--primary))" />
+                  <circle cx="0" cy="16.16" r="6" fill="hsl(var(--primary))" /> {/* Variation in size */}
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#honeycomb)" />

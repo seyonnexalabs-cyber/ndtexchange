@@ -1,4 +1,5 @@
 
+
 import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan, NDTEvent } from '@/lib/types';
 import { CheckCircle2, Circle, HelpCircle, XCircle, ArrowDown, ArrowRight, ArrowUp, Repeat, Square } from 'lucide-react';
 
@@ -36,7 +37,7 @@ export const ndtEvents: NDTEvent[] = [
     date: '2024-10-21',
     location: 'Las Vegas, NV, USA',
     region: 'North America',
-    imageUrl: 'https://images.unsplash.com/photo-1577033521254-8c79213d2894?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxsYXMlMjB2ZWdhc3xlbnwwfHx8fDE3NjkwMTU0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageId: 'event-01',
     imageHint: 'las vegas',
     url: 'https://asnt.org/annual',
   },
@@ -47,7 +48,7 @@ export const ndtEvents: NDTEvent[] = [
     date: '2026-06-08',
     location: 'Lisbon, Portugal',
     region: 'Europe',
-    imageUrl: 'https://images.unsplash.com/photo-1587899912079-2e0081033a36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaXNib258ZW58MHx8fHwxNzY5MDExODI4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageId: 'event-02',
     imageHint: 'lisbon',
     url: 'https://www.ecndt2026.com/',
   },
@@ -58,7 +59,7 @@ export const ndtEvents: NDTEvent[] = [
     date: '2024-09-03',
     location: 'Telford, United Kingdom',
     region: 'Europe',
-    imageUrl: 'https://images.unsplash.com/photo-1533929736458-ca588d08c8be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsb25kb258ZW58MHx8fHwxNzY5MDExODczfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageId: 'event-03',
     imageHint: 'london',
     url: 'https://www.bindt.org/events/ndt-2024/',
   },
@@ -69,7 +70,7 @@ export const ndtEvents: NDTEvent[] = [
     date: '2028-05-22',
     location: 'Incheon, South Korea',
     region: 'Asia',
-    imageUrl: 'https://images.unsplash.com/photo-1577789724645-814138b05f2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzZW91bCUyMHNvdXRoJTIwa29yZWF8ZW58MHx8fHwxNzY5MDExODc0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageId: 'event-04',
     imageHint: 'seoul south korea',
     url: 'https://www.wcndt2028.com/',
   },
@@ -80,7 +81,7 @@ export const ndtEvents: NDTEvent[] = [
     date: '2025-08-25',
     location: 'Tokyo, Japan',
     region: 'Asia',
-    imageUrl: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0b2t5b3xlbnwwfHx8fDE3NjkwMTE4NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageId: 'event-05',
     imageHint: 'tokyo japan',
     url: 'https://www.jsndi.jp/ndt-ce2025/',
   },
@@ -91,7 +92,7 @@ export const ndtEvents: NDTEvent[] = [
     date: '2027-06-14',
     location: 'São Paulo, Brazil',
     region: 'South America',
-    imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzYW8lMjBwYXVsbyUyMGJyYXppbHxlbnwwfHx8fDE3NjkwMTU0ODd8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageId: 'event-06',
     imageHint: 'sao paulo',
     url: 'https://panndt.org/',
   },

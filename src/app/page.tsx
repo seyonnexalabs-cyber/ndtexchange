@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Metadata } from 'next';
@@ -210,7 +211,7 @@ export default function HomePage() {
             <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {isLoading ? [...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />) :
                 (ndtTechniques || []).filter(tech => tech.isHighlighted).map((technique) => {
-                    const techImage = PlaceHolderImages.find(p => p.id === technique.imageId);
+                    const techImage = PlaceHolderImages?.find(p => p.id === technique.imageId);
                     return (
                         <FeatureCard
                             key={technique.id}

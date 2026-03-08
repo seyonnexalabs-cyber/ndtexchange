@@ -18,6 +18,7 @@ import { format, isAfter } from 'date-fns';
 import { MapPin, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { safeParseDate } from '@/lib/utils';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const ClientFormattedDate = ({ date }: { date: Date | null }) => {
     const [isMounted, setIsMounted] = React.useState(false);
@@ -127,12 +128,13 @@ export default function EventsPage() {
                                 [...Array(6)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)
                             ) : filteredEvents.map(event => {
                                 const eventDate = safeParseDate(event.date);
+                                const eventImage = PlaceHolderImages?.find(p => p.id === event.imageId);
                                 return (
                                 <Card key={event.id} className="flex flex-col group overflow-hidden">
                                     <Link href={event.url} target="_blank" rel="noopener noreferrer" className="flex flex-col flex-grow">
                                         <CardHeader className="p-0">
                                             <div className="relative aspect-video bg-muted overflow-hidden">
-                                                <Image src={event.imageUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={event.imageHint} />
+                                                <Image src={eventImage?.imageUrl || ''} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={event.imageHint} />
                                             </div>
                                         </CardHeader>
                                         <CardContent className="p-4 flex-grow">

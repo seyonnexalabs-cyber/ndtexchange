@@ -267,7 +267,7 @@ Sidebar.displayName = "Sidebar"
 
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button>
+  React.ComponentPropsWithoutRef<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
   const { toggleSidebar } = useSidebar()
 
@@ -321,7 +321,7 @@ const SidebarRail = React.forwardRef<
 SidebarRail.displayName = "SidebarRail"
 
 const SidebarInset = React.forwardRef<
-  HTMLDivElement,
+  React.ElementRef<"main">,
   React.ComponentPropsWithoutRef<"main">
 >(({ className, ...props }, ref) => {
   return (
@@ -340,7 +340,7 @@ SidebarInset.displayName = "SidebarInset"
 
 const SidebarInput = React.forwardRef<
   React.ElementRef<typeof Input>,
-  React.ComponentProps<typeof Input>
+  React.ComponentPropsWithoutRef<typeof Input>
 >(({ className, ...props }, ref) => {
   return (
     <Input
@@ -388,7 +388,7 @@ SidebarFooter.displayName = "SidebarFooter"
 
 const SidebarSeparator = React.forwardRef<
   React.ElementRef<typeof Separator>,
-  React.ComponentProps<typeof Separator>
+  React.ComponentPropsWithoutRef<typeof Separator>
 >(({ className, ...props }, ref) => {
   return (
     <Separator
@@ -435,7 +435,7 @@ const SidebarGroup = React.forwardRef<
 SidebarGroup.displayName = "SidebarGroup"
 
 const SidebarGroupLabel = React.forwardRef<
-  HTMLDivElement,
+  HTMLElement,
   React.ComponentPropsWithoutRef<"div"> & { asChild?: boolean }
 >(({ className, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "div"
@@ -456,7 +456,7 @@ const SidebarGroupLabel = React.forwardRef<
 SidebarGroupLabel.displayName = "SidebarGroupLabel"
 
 const SidebarGroupAction = React.forwardRef<
-  HTMLButtonElement,
+  HTMLElement,
   React.ComponentPropsWithoutRef<"button"> & { asChild?: boolean; showOnHover?: boolean }
 >(({ className, asChild = false, showOnHover, ...props }, ref) => {
   const Comp = asChild ? Slot : "button"
@@ -599,7 +599,7 @@ const SidebarMenuButton = React.forwardRef<
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 const SidebarMenuAction = React.forwardRef<
-  HTMLButtonElement,
+  HTMLElement,
   React.ComponentPropsWithoutRef<"button"> & {
     asChild?: boolean
     showOnHover?: boolean
@@ -712,7 +712,7 @@ const SidebarMenuSubItem = React.forwardRef<
 SidebarMenuSubItem.displayName = "SidebarMenuSubItem"
 
 const SidebarMenuSubButton = React.forwardRef<
-  HTMLAnchorElement,
+  HTMLElement,
   React.ComponentPropsWithoutRef<"a"> & {
     asChild?: boolean
     size?: "sm" | "md"

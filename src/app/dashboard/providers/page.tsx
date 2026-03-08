@@ -347,7 +347,7 @@ export default function ProvidersPage() {
         // This would be a firestore call in a real app
         console.log("New Provider Data:", values);
         toast.success("Provider Company Created", {
-            description: `${values.name} has been added. You can now invite users to this company.`,
+            description: `${values.name} has been added.`,
         });
         setAddProviderOpen(false);
     };

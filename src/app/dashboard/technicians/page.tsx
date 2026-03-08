@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, doc, query, where, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -348,7 +347,6 @@ export default function TechniciansPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const { firestore, user: authUser } = useFirebase();
 
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -402,7 +400,7 @@ export default function TechniciansPage() {
                 certifications: certsToSave,
                 workStatus: values.workStatus,
             });
-            toast({ title: 'Technician Updated', description: `${values.name}'s profile has been updated.` });
+            toast.success('Technician Updated', { description: `${values.name}'s profile has been updated.` });
             setEditingUser(null);
         } else { 
             const newUserData: Partial<PlatformUser> = {
@@ -417,7 +415,7 @@ export default function TechniciansPage() {
             };
             const docRef = await addDoc(collection(firestore, 'users'), newUserData);
             await updateDoc(docRef, {id: docRef.id});
-            toast({ title: 'Invitation Sent', description: `An invitation has been sent to ${values.email}.` });
+            toast.success('Invitation Sent', { description: `An invitation has been sent to ${values.email}.` });
             setIsAddUserOpen(false);
         }
     };

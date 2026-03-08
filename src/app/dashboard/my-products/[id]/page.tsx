@@ -15,7 +15,7 @@ import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-selec
 import { ChevronLeft, Wrench, Trash, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, useParams, notFound } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, useStorage } from '@/firebase';
 import { getDownloadURL, ref, uploadBytes, deleteObject } from 'firebase/storage';
 import { collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
@@ -109,8 +109,6 @@ export default function EditProductPage() {
     const productId = params.id as string;
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
-    const { firestore, user } = useFirebase();
     const { user: authUser } = useUser();
     const storage = useStorage();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -122,8 +120,8 @@ export default function EditProductPage() {
     const [imagesToRemove, setImagesToRemove] = React.useState<string[]>([]);
 
 
-    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+    const { data: currentUserProfile, isLoading: isLoadingProfile, firestore } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (useFirebase().firestore && authUser ? doc(useFirebase().firestore, 'users', authUser.uid) : null), [authUser])
     );
     
     const { data: productToEdit, isLoading: isLoadingProduct } = useDoc<Product>(
@@ -195,11 +193,11 @@ export default function EditProductPage() {
         const newFiles = Array.from(files);
         const validFiles = newFiles.filter(file => {
             if (!['image/png', 'image/jpeg', 'image/gif'].includes(file.type)) {
-                toast({ variant: 'destructive', title: 'Invalid File Type', description: `Skipping ${file.name}: Only image files are accepted.` });
+                toast.error('Invalid File Type', { description: `Skipping ${file.name}: Only image files are accepted.` });
                 return false;
             }
             if (file.size > 2 * 1024 * 1024) { // 2MB
-                toast({ variant: 'destructive', title: 'File Too Large', description: `Skipping ${file.name}: Image must be smaller than 2MB.` });
+                toast.error('File Too Large', { description: `Skipping ${file.name}: Image must be smaller than 2MB.` });
                 return false;
             }
             return true;
@@ -242,7 +240,7 @@ export default function EditProductPage() {
         let finalImageUrls = [...existingImageUrls];
 
         if (images && images.length > 0) {
-            toast({ title: "Uploading images...", description: "Please wait while we upload your product images." });
+            toast.info("Uploading images...", { description: "Please wait while we upload your product images." });
             const uploadPromises = images.map(async (file: File) => {
                 const storageRef = ref(storage, `products/${productId}/${file.name}`);
                 const uploadTask = await uploadBytes(storageRef, file);
@@ -253,7 +251,7 @@ export default function EditProductPage() {
                 finalImageUrls.push(...newUrls);
             } catch (error) {
                 console.error("Error uploading images:", error);
-                toast({ variant: 'destructive', title: 'Image Upload Failed', description: 'Could not upload product images. Please try again.' });
+                toast.error('Image Upload Failed', { description: 'Could not upload product images. Please try again.' });
                 setIsSubmitting(false);
                 return;
             }
@@ -283,7 +281,7 @@ export default function EditProductPage() {
         };
         
         await updateDoc(doc(firestore, 'products', productId), dataToSave);
-        toast({ title: "Product Updated", description: `${values.name} has been updated successfully.` });
+        toast.success("Product Updated", { description: `${values.name} has been updated successfully.` });
         
         setIsSubmitting(false);
         router.push(constructUrl('/dashboard/my-products'));

@@ -15,7 +15,7 @@ import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-selec
 import { PlusCircle, ChevronLeft, Wrench, Trash, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, useStorage } from '@/firebase';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -107,7 +107,6 @@ const ProductPreview = ({ productData, manufacturerName, imageUrls }: { productD
 export default function AddProductPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     const { firestore, auth } = useFirebase();
     const { user: authUser } = useUser();
     const storage = useStorage();
@@ -170,11 +169,11 @@ export default function AddProductPage() {
         const newFiles = Array.from(files);
         const validFiles = newFiles.filter(file => {
             if (!['image/png', 'image/jpeg', 'image/gif'].includes(file.type)) {
-                toast({ variant: 'destructive', title: 'Invalid File Type', description: `Skipping ${file.name}: Only image files are accepted.` });
+                toast.error('Invalid File Type', { description: `Skipping ${file.name}: Only image files are accepted.` });
                 return false;
             }
             if (file.size > 2 * 1024 * 1024) { // 2MB
-                toast({ variant: 'destructive', title: 'File Too Large', description: `Skipping ${file.name}: Image must be smaller than 2MB.` });
+                toast.error('File Too Large', { description: `Skipping ${file.name}: Image must be smaller than 2MB.` });
                 return false;
             }
             return true;
@@ -213,7 +212,7 @@ export default function AddProductPage() {
         let finalImageUrls: string[] = [];
 
         if (images && images.length > 0) {
-            toast({ title: "Uploading images...", description: "Please wait while we upload your product images." });
+            toast.info("Uploading images...", { description: "Please wait while we upload your product images." });
             const uploadPromises = images.map(async (file: File) => {
                 const storageRef = ref(storage, `products/${docId}/${file.name}`);
                 const uploadTask = await uploadBytes(storageRef, file);
@@ -224,7 +223,7 @@ export default function AddProductPage() {
                 finalImageUrls.push(...newUrls);
             } catch (error) {
                 console.error("Error uploading images:", error);
-                toast({ variant: 'destructive', title: 'Image Upload Failed', description: 'Could not upload product images. Please try again.' });
+                toast.error('Image Upload Failed', { description: 'Could not upload product images. Please try again.' });
                 setIsSubmitting(false);
                 return;
             }
@@ -240,7 +239,7 @@ export default function AddProductPage() {
         };
         
         await setDoc(docRef, { id: docId, ...dataToSave });
-        toast({ title: "Product Added", description: `${values.name} has been added to your catalog.` });
+        toast.success("Product Added", { description: `${values.name} has been added to your catalog.` });
         
         setIsSubmitting(false);
         router.push(constructUrl('/dashboard/my-products'));

@@ -17,7 +17,7 @@ import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { Manufacturer, NDTTechnique } from "@/lib/types";
@@ -130,7 +130,6 @@ export default function ManufacturersPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const { firestore } = useFirebase();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -178,16 +177,17 @@ export default function ManufacturersPage() {
             logoUrl: values.logoUrl,
             description: values.description,
             techniqueIds: values.techniqueIds,
+            contactEmail: '', // This field needs a value, even if empty
         };
 
         if (isEditing && editingManufacturer) {
             const manuRef = doc(firestore, 'manufacturers', editingManufacturer.id);
             await updateDoc(manuRef, dataToSave);
-            toast({ title: "Manufacturer Updated", description: `${values.name} has been updated.` });
+            toast.success("Manufacturer Updated", { description: `${values.name} has been updated.` });
         } else {
             const newManuRef = doc(collection(firestore, 'manufacturers'));
             await setDoc(newManuRef, { id: newManuRef.id, ...dataToSave });
-            toast({ title: "Manufacturer Added", description: `${values.name} has been added to the directory.` });
+            toast.success("Manufacturer Added", { description: `${values.name} has been added to the directory.` });
         }
         closeDialog();
     };
@@ -296,5 +296,3 @@ export default function ManufacturersPage() {
         </div>
     );
 }
-
-    

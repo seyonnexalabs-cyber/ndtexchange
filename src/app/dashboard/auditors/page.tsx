@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -21,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
@@ -231,7 +232,6 @@ export default function AuditorsPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
-    const { toast } = useToast();
     const [isAddFirmOpen, setIsAddFirmOpen] = useState(false);
     const isMobile = useIsMobile();
 
@@ -257,8 +257,8 @@ export default function AuditorsPage() {
     const filteredAuditors = useMemo(() => {
         if (!firms) return [];
         return firms.filter(firm => {
-            const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => firm.services.includes(s));
-            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => firm.industries.includes(i));
+            const serviceMatch = selectedServices.length === 0 || selectedServices.every(s => (firm.services || []).includes(s));
+            const industryMatch = selectedIndustries.length === 0 || selectedIndustries.every(i => (firm.industries || []).includes(i));
             return serviceMatch && industryMatch;
         });
     }, [selectedServices, selectedIndustries, firms]);
@@ -292,8 +292,7 @@ export default function AuditorsPage() {
     const handleFormSubmit = (values: z.infer<typeof auditorFirmSchema>) => {
         // This would be a firestore call in a real app
         console.log("New Auditor Firm:", values);
-        toast({
-            title: "Auditor Firm Created",
+        toast.success("Auditor Firm Created", {
             description: `${values.name} has been added to the directory.`,
         });
         setIsAddFirmOpen(false);
@@ -429,6 +428,3 @@ export default function AuditorsPage() {
         </div>
     );
 }
-    
-
-    

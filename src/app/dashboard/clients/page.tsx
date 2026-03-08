@@ -17,7 +17,7 @@ import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
 import { Client, Job, Bid } from "@/lib/types";
@@ -209,7 +209,6 @@ export default function ClientsPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const [isAddClientOpen, setAddClientOpen] = useState(false);
-    const { toast } = useToast();
     const { firestore, user } = useFirebase();
 
     const clientsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'companies'), where('type', '==', 'Client')) : null, [firestore, user]);
@@ -251,8 +250,7 @@ export default function ClientsPage() {
 
     const handleFormSubmit = (values: z.infer<typeof clientSchema>) => {
         console.log("New Client Data:", values);
-        toast({
-            title: "Client Company Created",
+        toast.success("Client Company Created", {
             description: `${values.name} has been added. You can now invite users to this company.`,
         });
         setAddClientOpen(false);

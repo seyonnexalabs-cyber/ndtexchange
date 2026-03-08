@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { LifeBuoy, MessageSquare, Send, BookOpen, PlusCircle } from 'lucide-react';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
 import { useState, useMemo, useEffect } from 'react';
@@ -67,7 +67,6 @@ const newThreadSchema = z.object({
 
 
 export default function SupportPage() {
-  const { toast } = useToast();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'client';
   const { firestore } = useFirebase();
@@ -127,7 +126,7 @@ export default function SupportPage() {
         const companyIdForPath = role === 'admin' ? currentThread?.companyId : currentUser.companyId;
 
         if (!companyIdForPath) {
-            toast({ variant: "destructive", title: "Error", description: "Cannot determine company for chat." });
+            toast.error("Error", { description: "Cannot determine company for chat." });
             setIsSubmitting(false);
             return;
         }
@@ -154,11 +153,7 @@ export default function SupportPage() {
         setNewMessage('');
     } catch (e) {
         console.error("Error sending message: ", e);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not send message. Please try again.",
-        });
+        toast.error("Error", { description: "Could not send message. Please try again." });
     } finally {
         setIsSubmitting(false);
     }
@@ -199,13 +194,13 @@ export default function SupportPage() {
         const messageDocRef = await addDoc(messagesColRef, {});
         await setDoc(doc(firestore, 'supportMessages', messageDocRef.id), { id: messageDocRef.id, ...messageData });
 
-        toast({ title: "Support Thread Created", description: "Our team will get back to you shortly." });
+        toast.success("Support Thread Created", { description: "Our team will get back to you shortly." });
         setSelectedThreadId(newThreadRef.id);
         setIsNewThreadOpen(false);
         newThreadForm.reset();
     } catch(e) {
         console.error("Error creating thread:", e);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not create new support thread.' });
+        toast.error('Error', { description: 'Could not create new support thread.' });
     } finally {
         setIsSubmitting(false);
     }
@@ -247,8 +242,7 @@ export default function SupportPage() {
 
   const onSubmit = (values: z.infer<typeof supportSchema>) => {
     console.log('Support Request Submitted:', values);
-    toast({
-      title: 'Support Request Submitted',
+    toast.success('Support Request Submitted', {
       description: "We've received your request and will get back to you shortly.",
     });
     form.reset();

@@ -15,7 +15,7 @@ import {
   toCSV, toJSON, toDXF, passColor, rowColor,
   TEMA_TUBE_ODS, PITCH_RATIOS, PITCH_PATTERNS,
   type TEMAConfig, type TEMALayout, type LayoutTube, type PitchPattern, type ShapeType, type ShellShape,
-} from "@../../lib/tema";
+} from "@/lib/tema";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const C = {

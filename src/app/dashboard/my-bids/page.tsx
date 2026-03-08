@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -28,6 +27,7 @@ import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/
 import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 import type { Job, Bid, NDTTechnique, PlatformUser } from "@/lib/types";
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 const bidSchema = z.object({
   amount: z.coerce.number().positive("Bid amount must be a positive number."),
@@ -279,6 +279,7 @@ export default function MyBidsPage() {
         if (!withdrawingBid || !firestore) return;
         const bidRef = doc(firestore, 'bids', withdrawingBid.id);
         await updateDoc(bidRef, { status: 'Withdrawn' });
+        toast.success("Bid Withdrawn", { description: "Your bid has been successfully withdrawn." });
         setWithdrawingBid(null);
     };
 
@@ -286,6 +287,7 @@ export default function MyBidsPage() {
         if (!editingBid || !firestore) return;
         const bidRef = doc(firestore, 'bids', editingBid.id);
         await updateDoc(bidRef, values);
+        toast.success("Bid Updated", { description: "Your bid has been successfully updated." });
         setEditingBid(null);
     }
     
@@ -428,5 +430,3 @@ export default function MyBidsPage() {
         </div>
     );
 }
-
-    

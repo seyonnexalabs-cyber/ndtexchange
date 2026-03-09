@@ -147,6 +147,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const [hoverId,setHoverId]=useState<number|null>(null);
   const [selBox,setSelBox]=useState<{x1:number;y1:number;x2:number;y2:number}|null>(null);
   const [tool,setTool]=useState<"select"|"pan"|"plug">("select");
+  const [colorMode, setColorMode] = useState<'mono' | 'pass' | 'row'>('mono');
 
   // Display toggles
   const [showLabels,setShowLabels]=useState(true);
@@ -824,3 +825,4 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+

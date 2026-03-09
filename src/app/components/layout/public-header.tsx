@@ -20,7 +20,7 @@ export default function PublicHeader() {
     { href: '/ecosystem', label: 'Ecosystem' },
     { href: '/events', label: 'Events' },
     { href: '/platform-workflow', label: 'Workflow' },
-    { href: '/temadesigner', label: 'Tube Layouts' },
+    { href: '/temadesigner', label: 'Tube Designer' },
     { href: '/request-demo', label: 'Request a Demo' },
     { href: '/help', label: 'Help' },
   ];

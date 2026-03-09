@@ -105,7 +105,7 @@ const clientMenu: MenuGroup[] = [
   {
     title: 'Tools',
     items: [
-      { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'TEMA Designer', icon: Settings2 },
+      { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'Tube Designer', icon: Settings2 },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
@@ -147,7 +147,7 @@ const inspectorMenu: MenuGroup[] = [
   {
     title: 'Tools',
     items: [
-      { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'TEMA Designer', icon: Settings2 },
+      { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'Tube Designer', icon: Settings2 },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },

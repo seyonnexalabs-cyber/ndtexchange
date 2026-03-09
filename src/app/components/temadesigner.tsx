@@ -2,11 +2,11 @@
 
 "use client";
 /**
- * TemaDesigner v8
- * - Save, Save As, Load, Attach to Job functionality
- * - Plug tool for marking tubes
- * - Dialogs for managing designs and jobs
- * - Firebase integration for saving and loading designs
+ * TemaDesigner v9
+ * - Fixes dropdown menu not opening
+ * - Adds font size and fullscreen controls
+ * - Consolidates file actions into a "File" dropdown
+ * - Adds a "Plug" tool for marking tubes
  */
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import {
@@ -43,10 +43,11 @@ const MARGIN_LEFT = 38;
 const MARGIN_TOP  = 38;
 
 // ── Tiny UI helpers ───────────────────────────────────────────────────────────
-const Btn = memo(({ children, onClick, variant="default", size="sm", disabled, title }:{
+const Btn = memo(({ children, onClick, variant="default", size="sm", disabled, title, ...rest }:{
   children:React.ReactNode; onClick?:(e: React.MouseEvent<HTMLButtonElement>) => void;
   variant?:"default"|"primary"|"danger"|"ghost"|"warn"; size?:"xs"|"sm"|"md";
   disabled?:boolean; title?:string;
+  [key: string]: any;
 }) => {
   const szMap:{[k:string]:{fs:number,p:string}}={xs:{fs:10,p:'2px 7px'},sm:{fs:12,p:'4px 10px'},md:{fs:13,p:'6px 14px'}};
   const sz=szMap[size]??szMap.sm;
@@ -60,7 +61,7 @@ const Btn = memo(({ children, onClick, variant="default", size="sm", disabled, t
   return <button onClick={onClick} disabled={disabled} title={title}
     style={{fontFamily:F,fontWeight:600,borderRadius:5,cursor:disabled?"not-allowed":"pointer",
       fontSize:sz.fs,padding:sz.p,opacity:disabled?.45:1,transition:"all 0.1s",
-      whiteSpace:"nowrap",...v[variant]}}>{children}</button>;
+      whiteSpace:"nowrap",...v[variant]}} {...rest}>{children}</button>;
 });
 Btn.displayName="Btn";
 
@@ -94,57 +95,31 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
   shape:{type:"circle",diameterMm:304.8}};
 
 // ── Undo/redo helpers ─────────────────────────────────────────────────────────
-function useHistory<T>(initial: T): {
-    state: T;
-    set: (v: T) => void;
-    undo: () => void;
-    redo: () => void;
-    canUndo: boolean;
-    canRedo: boolean;
-} {
-    const [history, setHistory] = useState<{ stack: T[]; index: number }>({ stack: [initial], index: 0 });
+const useHistory = <T extends any>(initialState: T) => {
+    const [index, setIndex] = useState(0);
+    const [history, setHistory] = useState<T[]>([initialState]);
 
-    const set = useCallback((value: T) => {
-        setHistory(prev => {
-            if (JSON.stringify(prev.stack[prev.index]) === JSON.stringify(value)) {
-                return prev; // No change, don't add to history
-            }
-            const newStack = prev.stack.slice(0, prev.index + 1);
-            newStack.push(value);
-            return {
-                stack: newStack,
-                index: newStack.length - 1
-            };
-        });
-    }, []);
+    const setState = useCallback((action: T | ((prevState: T) => T)) => {
+        const newState = typeof action === 'function' ? (action as (prevState: T) => T)(history[index]) : action;
+        if (JSON.stringify(newState) === JSON.stringify(history[index])) {
+            return;
+        }
+        const newHistory = history.slice(0, index + 1);
+        newHistory.push(newState);
+        setHistory(newHistory);
+        setIndex(newHistory.length - 1);
+    }, [history, index]);
 
     const undo = useCallback(() => {
-        setHistory(prev => {
-            if (prev.index > 0) {
-                return { ...prev, index: prev.index - 1 };
-            }
-            return prev;
-        });
-    }, []);
+        if (index > 0) setIndex(prev => prev - 1);
+    }, [index]);
 
     const redo = useCallback(() => {
-        setHistory(prev => {
-            if (prev.index < prev.stack.length - 1) {
-                return { ...prev, index: prev.index + 1 };
-            }
-            return prev;
-        });
-    }, []);
+        if (index < history.length - 1) setIndex(prev => prev + 1);
+    }, [index, history.length]);
 
-    return {
-        state: history.stack[history.index],
-        set,
-        undo,
-        redo,
-        canUndo: history.index > 0,
-        canRedo: history.index < history.stack.length - 1,
-    };
-}
+    return [history[index], setState, undo, redo, index > 0, index < history.length - 1] as const;
+};
 
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -164,7 +139,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const router = useRouter();
 
   // Tubes with undo/redo
-  const {state:tubes,set:setTubes,undo,redo,canUndo,canRedo}=useHistory<LayoutTube[]>([]);
+  const [tubes, setTubes, undo, redo, canUndo, canRedo]=useHistory<LayoutTube[]>([]);
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -884,6 +859,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

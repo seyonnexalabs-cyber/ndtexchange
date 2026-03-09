@@ -37,6 +37,7 @@ import {
   DollarSign,
   ShieldCheck,
   Factory,
+  Settings2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -103,6 +104,7 @@ const clientMenu: MenuGroup[] = [
   {
     title: 'Tools',
     items: [
+      { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'TEMA Designer', icon: Settings2 },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
@@ -144,6 +146,7 @@ const inspectorMenu: MenuGroup[] = [
   {
     title: 'Tools',
     items: [
+      { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'TEMA Designer', icon: Settings2 },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
@@ -470,5 +473,3 @@ const AppSidebar = () => {
 };
 
 export default AppSidebar;
-
-    

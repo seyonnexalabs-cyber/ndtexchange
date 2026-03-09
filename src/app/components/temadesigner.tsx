@@ -104,7 +104,7 @@ function useHistory<T>(initial:T):{
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function TemaDesigner(){
+export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const [cfg,setCfg]=useState<TEMAConfig>(DEFAULT);
   const [layout,setLayout]=useState<TEMALayout|null>(null);
   const [busy,setBusy]=useState(false);
@@ -782,11 +782,16 @@ export default function TemaDesigner(){
           <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.min(30,zoom*1.2);zoomRef.current=z;setZoom(z);}}>+</Btn>
           <span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(zoom*100).toFixed(0)}%</span>
           <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}}>–</Btn>
+          
+          {!isTrial && (
+            <>
+                <div style={{width:1,height:22,background:C.border}}/>
+                <Btn size="xs" onClick={expCSV}>CSV</Btn>
+                <Btn size="xs" onClick={expJSON}>JSON</Btn>
+                <Btn size="xs" onClick={expDXF}>DXF</Btn>
+            </>
+          )}
 
-          <div style={{width:1,height:22,background:C.border}}/>
-          <Btn size="xs" onClick={expCSV}>CSV</Btn>
-          <Btn size="xs" onClick={expJSON}>JSON</Btn>
-          <Btn size="xs" onClick={expDXF}>DXF</Btn>
         </div>
 
         {/* Canvas */}

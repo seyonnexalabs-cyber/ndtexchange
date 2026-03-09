@@ -15,7 +15,7 @@ import {
   TEMA_TUBE_ODS, PITCH_RATIOS, PITCH_PATTERNS,
   type TEMAConfig, type TEMALayout, type LayoutTube, type PitchPattern, type ShapeType, type ShellShape, type TemaDesign, type Job
 } from "@/lib/tema";
-import { Maximize, Minimize, Save, FolderOpen, Link2, Eraser } from "lucide-react";
+import { Maximize, Minimize, Save, FolderOpen, Link2, Eraser, FileText, FileDown } from "lucide-react";
 import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, where, addDoc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -26,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
+
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const C = {
@@ -93,53 +95,57 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
 
 // ── Undo/redo helpers ─────────────────────────────────────────────────────────
 function useHistory<T>(initial: T): {
-  state: T;
-  set: (v: T) => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
+    state: T;
+    set: (v: T) => void;
+    undo: () => void;
+    redo: () => void;
+    canUndo: boolean;
+    canRedo: boolean;
 } {
-  const [history, setHistory] = useState<{ stack: T[]; index: number }>({ stack: [initial], index: 0 });
+    const [history, setHistory] = useState<{ stack: T[]; index: number }>({ stack: [initial], index: 0 });
 
-  const set = useCallback((value: T) => {
-    setHistory(prev => {
-      const newStack = prev.stack.slice(0, prev.index + 1);
-      newStack.push(value);
-      return {
-        stack: newStack,
-        index: newStack.length - 1
-      };
-    });
-  }, []);
+    const set = useCallback((value: T) => {
+        setHistory(prev => {
+            if (JSON.stringify(prev.stack[prev.index]) === JSON.stringify(value)) {
+                return prev; // No change, don't add to history
+            }
+            const newStack = prev.stack.slice(0, prev.index + 1);
+            newStack.push(value);
+            return {
+                stack: newStack,
+                index: newStack.length - 1
+            };
+        });
+    }, []);
 
-  const undo = useCallback(() => {
-    setHistory(prev => {
-      if (prev.index > 0) {
-        return { ...prev, index: prev.index - 1 };
-      }
-      return prev;
-    });
-  }, []);
+    const undo = useCallback(() => {
+        setHistory(prev => {
+            if (prev.index > 0) {
+                return { ...prev, index: prev.index - 1 };
+            }
+            return prev;
+        });
+    }, []);
 
-  const redo = useCallback(() => {
-    setHistory(prev => {
-      if (prev.index < prev.stack.length - 1) {
-        return { ...prev, index: prev.index + 1 };
-      }
-      return prev;
-    });
-  }, []);
-  
-  return {
-    state: history.stack[history.index],
-    set,
-    undo,
-    redo,
-    canUndo: history.index > 0,
-    canRedo: history.index < history.stack.length - 1,
-  };
+    const redo = useCallback(() => {
+        setHistory(prev => {
+            if (prev.index < prev.stack.length - 1) {
+                return { ...prev, index: prev.index + 1 };
+            }
+            return prev;
+        });
+    }, []);
+
+    return {
+        state: history.stack[history.index],
+        set,
+        undo,
+        redo,
+        canUndo: history.index > 0,
+        canRedo: history.index < history.stack.length - 1,
+    };
 }
+
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
@@ -262,6 +268,17 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   }, [searchParams, firestore, user, applyDesignToCanvas, generate]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
+   const toggleFullscreen = useCallback(() => {
+    if (!designerRef.current) return;
+    if (!document.fullscreenElement) {
+        designerRef.current.requestFullscreen().catch(err => {
+            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+  }, []);
+
   useEffect(()=>{
     const h=(e:KeyboardEvent)=>{
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -278,16 +295,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     return()=>{ window.removeEventListener('keydown',h); document.removeEventListener('fullscreenchange',onFsChange); };
   },[undo,redo,selIds,tubes,setTubes, toggleFullscreen]);
   
-  const toggleFullscreen = useCallback(() => {
-    if (!designerRef.current) return;
-    if (!document.fullscreenElement) {
-        designerRef.current.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-        });
-    } else {
-        document.exitFullscreen();
-    }
-  }, []);
+ 
 
   // ── Coordinate helpers ─────────────────────────────────────────────────────
   const evToCSS=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
@@ -731,13 +739,33 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
           {layout&&(<div style={{display:"flex",gap:10,alignItems:"center",marginRight:4}}>{[{l:"Tubes",v:tubes.length,c:C.accent},{l:"Rows",v:uRows.length,c:C.success},{l:"Cols",v:uCols.length,c:C.ruler},{l:"OD",v:`${cfg.tubeOdIn}"`,c:C.text},{l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`,c:C.text}].map(k=>(<div key={k.l} style={{display:"flex",flexDirection:"column",lineHeight:1}}><span style={{fontSize:9*fontScale,color:C.text3,textTransform:"uppercase",letterSpacing:"0.4px"}}>{k.l}</span><span style={{fontSize:13*fontScale,fontWeight:700,color:k.c,fontFamily:FM}}>{k.v}</span></div>))}</div>)}
           <div style={{width:1,height:22,background:C.border}}/>
-          {!isTrial && (<>
-             <Btn size="xs" onClick={() => handleSave()} disabled={!designId} title="Save current design (Ctrl+S)"><Save size={12}/> Save</Btn>
-             <Btn size="xs" onClick={() => setIsSaveModalOpen(true)}>Save As...</Btn>
-             <Btn size="xs" onClick={() => setIsLoadModalOpen(true)}><FolderOpen size={12}/> Load</Btn>
-             <Btn size="xs" onClick={() => setIsAttachModalOpen(true)} disabled={!designId}><Link2 size={12}/> Attach to Job</Btn>
-             <div style={{width:1,height:22,background:C.border}}/>
-           </>)}
+            {!isTrial && (
+                <>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Btn size="xs"><FileText size={12}/> File</Btn>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onSelect={() => handleSave()} disabled={!designId}><Save size={14} className="mr-2"/> Save</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setIsSaveModalOpen(true)}><Save size={14} className="mr-2"/> Save As...</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setIsLoadModalOpen(true)}><FolderOpen size={14} className="mr-2"/> Load</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setIsAttachModalOpen(true)} disabled={!designId}><Link2 size={14} className="mr-2"/> Attach to Job</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger><FileDown size={14} className="mr-2"/> Export</DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuItem onSelect={expCSV}>CSV (.csv)</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={expJSON}>JSON (.json)</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={expDXF}>DXF (.dxf)</DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <div style={{width:1,height:22,background:C.border}}/>
+                </>
+            )}
           <Btn size="xs" variant="ghost" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">↩ Undo</Btn>
           <Btn size="xs" variant="ghost" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Y)">↪ Redo</Btn>
           <div style={{width:1,height:22,background:C.border}}/>
@@ -758,7 +786,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}}>–</Btn>
           <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.max(0.5, s - 0.1))}>A-</Btn><span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(fontScale*100).toFixed(0)}%</span><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.min(2, s + 0.1))}>A+</Btn>
           <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={toggleFullscreen} title="Fullscreen (F)">{isFullscreen ? <Minimize size={14}/> : <Maximize size={14}/>}</Btn>
-          {!isTrial && (<><div style={{width:1,height:22,background:C.border}}/><Btn size="xs" onClick={expCSV}>CSV</Btn><Btn size="xs" onClick={expJSON}>JSON</Btn><Btn size="xs" onClick={expDXF}>DXF</Btn></>)}
         </div>
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
           {busy&&(<div style={{position:"absolute",inset:0,background:"rgba(241,245,249,0.93)", display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10}}><Spinner/><div style={{fontFamily:F,fontSize:14*fontScale,fontWeight:600,color:C.text,marginTop:14}}>Generating layout…</div><div style={{fontFamily:F,fontSize:12*fontScale,color:C.text2,marginTop:4}}>Placing tubes · checking clearances</div><div style={{marginTop:14,width:160,height:3,background:C.border,borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:C.accent,borderRadius:2, animation:"td-progress 1.2s ease-in-out infinite",width:"45%"}}/></div></div>)}
@@ -857,5 +884,6 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 

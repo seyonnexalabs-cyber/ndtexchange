@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Building, Briefcase, BellRing, Users, ShieldCheck, BarChart3, Eye, FileCheck, CheckCircle, Clock, Calendar, AlarmClock, Wrench, History, Check, X, FileText, Settings2, Award, Database, Gavel } from "lucide-react";
@@ -293,6 +294,9 @@ const ClientDashboard = () => {
                         <PieChart>
                             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                             <Pie data={assetStatusData} dataKey="value" nameKey="name" innerRadius={60}>
+                                {assetStatusData.map((entry) => (
+                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                                ))}
                                 <LabelList
                                     dataKey="value"
                                     className="fill-background"

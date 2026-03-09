@@ -11,14 +11,11 @@ import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearch } from '@/app/components/layout/search-provider';
 import { useQRScanner } from '@/app/components/layout/qr-scanner-provider';
-import type { Notification } from '@/lib/types';
-import { formatDistanceToNow } from 'date-fns';
-import { cn, safeParseDate } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useFirebase, useUser, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
-import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 
 
 const userDetails = {
@@ -29,33 +26,6 @@ const userDetails = {
     manufacturer: { name: 'OEM User', role: 'Product Manager', fallback: 'OM', company: 'Evident Scientific', location: 'Waltham, MA', address: '48 Woerd Ave' },
 };
 
-const ClientRelativeTime = ({ date }: { date: Date | null }) => {
-  const [text, setText] = useState<string | null>(null);
-
-  useEffect(() => {
-    // This effect runs only on the client, ensuring `new Date()` is safe
-    if (date) {
-      const updateText = () => {
-        setText(formatDistanceToNow(date, { addSuffix: true }));
-      };
-      
-      updateText();
-      const interval = setInterval(updateText, 60000); // Update every minute
-
-      return () => clearInterval(interval);
-    }
-  }, [date]);
-
-  // Render nothing on the server and initial client render to avoid mismatch
-  if (text === null) return null; 
-
-  return (
-      <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/70 mt-1.5">
-          {text}
-      </p>
-  );
-};
-
 const AppHeader = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -64,36 +34,6 @@ const AppHeader = () => {
     const role = searchParams.get('role') || 'client';
     const { searchQuery, setSearchQuery } = useSearch();
     const { setScanOpen } = useQRScanner();
-    
-    const notificationsQuery = useMemoFirebase(() => {
-        if (isUserLoading || !user || !firestore || role === 'admin') {
-            return null;
-        }
-        return query(
-            collection(firestore, 'notifications'),
-            where('userId', '==', user.uid),
-            orderBy('timestamp', 'desc')
-        );
-    }, [firestore, user, isUserLoading, role]);
-
-    const { data: notifications, isLoading: isLoadingNotifications } = useCollection<Notification>(notificationsQuery);
-
-    const unreadCount = useMemo(() => notifications?.filter(n => !n.read).length ?? 0, [notifications]);
-
-    const handleNotificationClick = (notificationId: string) => {
-        if (!firestore || !user) return;
-        const notifRef = doc(firestore, 'notifications', notificationId);
-        
-        updateDoc(notifRef, { read: true })
-            .catch(async (serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: notifRef.path,
-                    operation: 'update',
-                    requestResourceData: { read: true },
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-    };
     
     const currentUser = useMemo(() => {
         return userDetails[role as keyof typeof userDetails] || userDetails.client;
@@ -159,56 +99,6 @@ const AppHeader = () => {
                         </>
                     </Link>
                 </Button>
-
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-9 px-2 gap-2">
-                            <Bell className="h-5 w-5 text-primary" />
-                            {unreadCount > 0 && (
-                                <div className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-destructive-foreground">
-                                    {unreadCount}
-                                </div>
-                            )}
-                            <span className="sr-only">Notifications</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-80 p-0">
-                        <DropdownMenuLabel className="p-2">Notifications</DropdownMenuLabel>
-                        <DropdownMenuSeparator className="m-0" />
-                        <div className="max-h-96 overflow-y-auto">
-                            {isLoadingNotifications ? (
-                                <p className="p-4 text-center text-sm text-muted-foreground">Loading...</p>
-                            ) : notifications && notifications.length > 0 ? (
-                                notifications.map((notification, index) => {
-                                    const notificationDate = safeParseDate(notification.timestamp);
-                                    return (
-                                        <DropdownMenuItem key={notification.id} asChild className="cursor-pointer p-0">
-                                            <Link 
-                                                href={constructUrl(notification.href)} 
-                                                onClick={() => handleNotificationClick(notification.id)}
-                                                className={cn(
-                                                    "block p-3 group",
-                                                    index < (notifications?.length ?? 0) - 1 && "border-b"
-                                                )}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    {!notification.read && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
-                                                    <div className={cn("flex-grow", !notification.read && "pl-0", notification.read && "pl-5")}>
-                                                        <p className={cn("text-sm leading-tight", !notification.read && "font-semibold")}>{notification.title}</p>
-                                                        <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 mt-1">{notification.description}</p>
-                                                        <ClientRelativeTime date={notificationDate} />
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )
-                                })
-                           ) : (
-                                <p className="p-4 text-center text-sm text-muted-foreground">No new notifications</p>
-                            )}
-                        </div>
-                    </DropdownMenuContent>
-                </DropdownMenu>
                 
                 <Separator orientation="vertical" className="h-6" />
 

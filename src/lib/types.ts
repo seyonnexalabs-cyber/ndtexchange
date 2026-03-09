@@ -299,19 +299,6 @@ export type JobChat = {
     modifiedBy?: string;
 };
 
-export type Notification = {
-  id: string;
-  userId: string;
-  type: string;
-  title: string;
-  description: string;
-  timestamp: any;
-  read: boolean;
-  href: string;
-  createdAt?: any;
-  createdBy?: string;
-};
-
 export type UserAuditLog = {
   id: string;
   timestamp: any;

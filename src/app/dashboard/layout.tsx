@@ -4,7 +4,6 @@ import AppHeader from '@/app/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SearchProvider } from '@/app/components/layout/search-provider';
 import { QRScannerProvider } from '@/app/components/layout/qr-scanner-provider';
-import { FCMInitializer } from '@/app/components/layout/fcm-initializer';
 
 export default function DashboardLayout({
   children,
@@ -23,7 +22,6 @@ export default function DashboardLayout({
             </main>
           </SidebarInset>
         </SidebarProvider>
-        <FCMInitializer />
       </QRScannerProvider>
     </SearchProvider>
   );

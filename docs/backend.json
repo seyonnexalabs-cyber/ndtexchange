@@ -211,21 +211,6 @@
         },
         "required": ["id", "userId", "title", "status", "priority", "label"]
     },
-    "Notification": {
-        "title": "Notification",
-        "type": "object",
-        "description": "A notification sent to a user.",
-        "properties": {
-            "id": { "type": "string" },
-            "userId": { "type": "string" },
-            "title": { "type": "string" },
-            "description": { "type": "string" },
-            "read": { "type": "boolean" },
-            "href": { "type": "string" },
-            "timestamp": { "type": "string", "format": "date-time" }
-        },
-        "required": ["id", "userId", "title", "read", "href"]
-    },
     "UserAuditLog": {
         "title": "User Audit Log",
         "type": "object",
@@ -453,7 +438,6 @@
     "structure": [
       { "path": "/users/{uid}", "definition": { "entityName": "User", "schema": { "$ref": "#/entities/User" }, "description": "Stores user profiles." } },
       { "path": "/tasks/{taskId}", "definition": { "entityName": "Task", "schema": { "$ref": "#/entities/Task" }, "description": "User-specific tasks." } },
-      { "path": "/notifications/{notificationId}", "definition": { "entityName": "Notification", "schema": { "$ref": "#/entities/Notification" }, "description": "User-specific notifications." } },
       { "path": "/companies/{companyId}", "definition": { "entityName": "Company", "schema": { "$ref": "#/entities/Company" }, "description": "Top-level collection for all companies." } },
       { "path": "/assets/{assetId}", "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Assets owned by a company." } },
       { "path": "/inspections/{inspectionId}", "definition": { "entityName": "Inspection", "schema": { "$ref": "#/entities/Inspection" }, "description": "Inspections performed on assets." } },

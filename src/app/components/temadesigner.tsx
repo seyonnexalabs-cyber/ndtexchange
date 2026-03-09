@@ -636,7 +636,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     <div ref={designerRef} style={{display:"flex",flex:1,height:"100%",overflow:"hidden",fontFamily:F,background:C.bg}}>
 
       <div style={{width:260,flexShrink:0,background:C.panel,borderRight:`1px solid ${C.border}`, display:"flex",flexDirection:"column",overflow:"hidden"}}>
-        <div style={{flex:1,overflowY:"auto",padding:"12px 14px 16px"}}>
+        <div style={{overflowY:"auto",padding:"12px 14px 16px"}}>
           <Label fontScale={fontScale}>Shell Shape</Label>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
             {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
@@ -685,7 +685,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           <button onClick={() => generate(true)} disabled={busy} style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
         </div>
 
-        <div style={{display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, overflow: 'hidden'}}>
+        <div style={{display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, overflow: 'hidden', flex: 1, minHeight: 0}}>
           {layout && (
             <div style={{padding:"8px 14px", borderBottom: `1px solid ${C.border}`}}>
                 <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Layout Summary</div>
@@ -877,4 +877,5 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 

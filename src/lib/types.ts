@@ -27,6 +27,7 @@ export type Asset = {
     notes?: string;
     thumbnailUrl?: string;
     history?: AssetUpdate[];
+    designIds?: string[];
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;
@@ -506,6 +507,7 @@ export type LayoutTube = {
   row: number;
   col: number;
   pass: number;
+  status?: 'ok' | 'plugged' | 'damaged' | string;
 };
 
 export type TemaDesign = {
@@ -519,3 +521,4 @@ export type TemaDesign = {
     modifiedAt: any;
     jobId?: string;
 };
+

@@ -32,7 +32,7 @@ export const TEMA_TUBE_ODS = [
     hexSizeMm?:  number;  // flat-to-flat distance
     polygon?:    {x:number;y:number}[];
   }
-  export interface LayoutTube { id:number; x:number; y:number; r:number; row:number; col:number; pass:number; }
+  export interface LayoutTube { id:number; x:number; y:number; r:number; row:number; col:number; pass:number; status?: 'ok' | 'plugged' | string; }
   export interface TEMAConfig  { tubeOdIn:number; pitchRatio:number; pattern:PitchPattern; numPasses:number; shape:ShellShape; }
   export interface TEMALayout  { tubes:LayoutTube[]; rows:LayoutTube[][]; tubeOdMm:number; pitchMm:number; pattern:PitchPattern; shape:ShellShape; tubeCount:number; bundleDia:number; pitchRatio:number; }
   
@@ -139,7 +139,7 @@ export const TEMA_TUBE_ODS = [
     const tubes:LayoutTube[]=[],rows:LayoutTube[][]=[];
     rowGroups.forEach((grp,ri)=>{
       const row:LayoutTube[]=[];
-      grp.forEach((pt,ci)=>{const t:LayoutTube={id:id++,x:pt.x,y:pt.y,r:tubeR,row:ri,col:ci,pass:1};tubes.push(t);row.push(t);});
+      grp.forEach((pt,ci)=>{const t:LayoutTube={id:id++,x:pt.x,y:pt.y,r:tubeR,row:ri,col:ci,pass:1, status: 'ok'};tubes.push(t);row.push(t);});
       rows.push(row);
     });
     if(cfg.numPasses>1){
@@ -175,9 +175,9 @@ export const TEMA_TUBE_ODS = [
     const hdr=['# TubeMapper TEMA Layout Export',
       `# OD:${cfg.tubeOdIn}" (${tubeOdMm.toFixed(2)}mm) Pitch:${pitchMm.toFixed(2)}mm Pattern:${cfg.pattern} Passes:${cfg.numPasses} Shape:${cfg.shape.type}`,
       `# Tubes:${tubes.length} Generated:${new Date().toISOString()}`,
-      'Tube_ID,Row,Col,Pass,X_mm,Y_mm,X_in,Y_in,OD_mm,OD_in,Pitch_mm'];
+      'Tube_ID,Row,Col,Pass,Status,X_mm,Y_mm,X_in,Y_in,OD_mm,OD_in,Pitch_mm'];
     const rows=tubes.map(t=>[`R${String(t.row+1).padStart(3,'0')}-C${String(t.col+1).padStart(3,'0')}`,
-      t.row+1,t.col+1,t.pass,t.x.toFixed(3),t.y.toFixed(3),(t.x*inv).toFixed(5),(t.y*inv).toFixed(5),
+      t.row+1,t.col+1,t.pass,t.status || 'ok', t.x.toFixed(3),t.y.toFixed(3),(t.x*inv).toFixed(5),(t.y*inv).toFixed(5),
       tubeOdMm.toFixed(3),cfg.tubeOdIn,pitchMm.toFixed(3)].join(','));
     return[...hdr,...rows].join('\n');
   }
@@ -187,7 +187,7 @@ export const TEMA_TUBE_ODS = [
         pattern:cfg.pattern,passes:cfg.numPasses,shape:cfg.shape,totalTubes:tubes.length,
         generatedAt:new Date().toISOString()},
       tubes:tubes.map(t=>({id:`R${String(t.row+1).padStart(3,'0')}-C${String(t.col+1).padStart(3,'0')}`,
-        row:t.row+1,col:t.col+1,pass:t.pass,
+        row:t.row+1,col:t.col+1,pass:t.pass, status: t.status || 'ok',
         x_mm:+t.x.toFixed(3),y_mm:+t.y.toFixed(3),
         x_in:+(t.x/25.4).toFixed(5),y_in:+(t.y/25.4).toFixed(5),
         od_mm:+tubeOdMm.toFixed(3),od_in:cfg.tubeOdIn})),
@@ -196,7 +196,7 @@ export const TEMA_TUBE_ODS = [
   export function toDXF(tubes:LayoutTube[],tubeOdMm:number):string{
     const lines=['0','SECTION','2','ENTITIES'];
     for(const t of tubes)
-      lines.push('0','CIRCLE','8','TUBES','10',t.x.toFixed(4),'20',(-t.y).toFixed(4),'30','0.0','40',(tubeOdMm/2).toFixed(4));
+      lines.push('0','CIRCLE','8', t.status === 'plugged' ? 'PLUGGED_TUBES' : 'TUBES','10',t.x.toFixed(4),'20',(-t.y).toFixed(4),'30','0.0','40',(tubeOdMm/2).toFixed(4));
     lines.push('0','ENDSEC','0','EOF');
     return lines.join('\n');
   }

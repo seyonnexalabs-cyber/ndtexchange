@@ -1,4 +1,5 @@
 
+
 "use client";
 /**
  * TemaDesigner v8
@@ -91,22 +92,53 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
   shape:{type:"circle",diameterMm:304.8}};
 
 // ── Undo/redo helpers ─────────────────────────────────────────────────────────
-function useHistory<T>(initial:T):{
-  state:T; set:(v:T)=>void; undo:()=>void; redo:()=>void; canUndo:boolean; canRedo:boolean;
-}{
-  const [idx,setIdx]=useState(0);
-  const stack=useRef<T[]>([initial]);
-  const [,forceRender]=useState(0);
-  const state=stack.current[idx];
-  const set=(v:T)=>{
-    stack.current=stack.current.slice(0,idx+1);
-    stack.current.push(v);
-    const ni=stack.current.length-1;
-    setIdx(ni); forceRender(n=>n+1);
+function useHistory<T>(initial: T): {
+  state: T;
+  set: (v: T) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+} {
+  const [history, setHistory] = useState<{ stack: T[]; index: number }>({ stack: [initial], index: 0 });
+
+  const set = useCallback((value: T) => {
+    setHistory(prev => {
+      const newStack = prev.stack.slice(0, prev.index + 1);
+      newStack.push(value);
+      return {
+        stack: newStack,
+        index: newStack.length - 1
+      };
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    setHistory(prev => {
+      if (prev.index > 0) {
+        return { ...prev, index: prev.index - 1 };
+      }
+      return prev;
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setHistory(prev => {
+      if (prev.index < prev.stack.length - 1) {
+        return { ...prev, index: prev.index + 1 };
+      }
+      return prev;
+    });
+  }, []);
+  
+  return {
+    state: history.stack[history.index],
+    set,
+    undo,
+    redo,
+    canUndo: history.index > 0,
+    canRedo: history.index < history.stack.length - 1,
   };
-  const undo=()=>{ if(idx>0){setIdx(i=>i-1); forceRender(n=>n+1);} };
-  const redo=()=>{ if(idx<stack.current.length-1){setIdx(i=>i+1); forceRender(n=>n+1);} };
-  return{state,set,undo,redo,canUndo:idx>0,canRedo:idx<stack.current.length-1};
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -227,7 +259,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     } else {
         generate(true);
     }
-  }, [searchParams, firestore, user, applyDesignToCanvas]);// eslint-disable-line
+  }, [searchParams, firestore, user, applyDesignToCanvas, generate]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
   useEffect(()=>{
@@ -244,7 +276,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     window.addEventListener('keydown',h);
     document.addEventListener('fullscreenchange',onFsChange);
     return()=>{ window.removeEventListener('keydown',h); document.removeEventListener('fullscreenchange',onFsChange); };
-  },[undo,redo,selIds,tubes,setTubes]);
+  },[undo,redo,selIds,tubes,setTubes, toggleFullscreen]);
   
   const toggleFullscreen = useCallback(() => {
     if (!designerRef.current) return;
@@ -825,4 +857,5 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 

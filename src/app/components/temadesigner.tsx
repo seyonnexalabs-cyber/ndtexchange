@@ -93,42 +93,57 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
   shape:{type:"circle",diameterMm:304.8}};
 
 // ── Undo/redo helpers ─────────────────────────────────────────────────────────
-const useHistory = <T extends any>(initialState: T) => {
-    const historyRef = useRef<T[]>([initialState]);
-    const [state, _setState] = useState(initialState);
-    const indexRef = useRef(0);
+const useHistory = <T,>(initialState: T) => {
+    const [state, setState] = useState({
+        past: [] as T[],
+        present: initialState,
+        future: [] as T[],
+    });
 
-    const setState = useCallback((action: T | ((prevState: T) => T)) => {
-        const newState = typeof action === 'function' 
-            ? (action as (prevState: T) => T)(historyRef.current[indexRef.current]) 
-            : action;
+    const canUndo = state.past.length > 0;
+    const canRedo = state.future.length > 0;
+
+    const undo = useCallback(() => {
+        if (!canUndo) return;
+        setState(current => {
+            const newPresent = current.past[current.past.length - 1];
+            return {
+                past: current.past.slice(0, current.past.length - 1),
+                present: newPresent,
+                future: [current.present, ...current.future],
+            };
+        });
+    }, [canUndo]);
+
+    const redo = useCallback(() => {
+        if (!canRedo) return;
+        setState(current => {
+            const newPresent = current.future[0];
+            return {
+                past: [...current.past, current.present],
+                present: newPresent,
+                future: current.future.slice(1),
+            };
+        });
+    }, [canRedo]);
+    
+    const set = useCallback((newState: T | ((prevState: T) => T)) => {
+        const resolvedState = typeof newState === 'function' 
+            ? (newState as (prevState: T) => T)(state.present)
+            : newState;
         
-        if (JSON.stringify(newState) === JSON.stringify(historyRef.current[indexRef.current])) {
+        if (JSON.stringify(resolvedState) === JSON.stringify(state.present)) {
             return;
         }
 
-        const newHistory = historyRef.current.slice(0, indexRef.current + 1);
-        newHistory.push(newState);
-        historyRef.current = newHistory;
-        indexRef.current = newHistory.length - 1;
-        _setState(newState);
-    }, []);
+        setState(current => ({
+            past: [...current.past, current.present],
+            present: resolvedState,
+            future: [],
+        }));
+    }, [state.present]);
 
-    const undo = useCallback(() => {
-        if (indexRef.current > 0) {
-            indexRef.current--;
-            _setState(historyRef.current[indexRef.current]);
-        }
-    }, []);
-
-    const redo = useCallback(() => {
-        if (indexRef.current < historyRef.current.length - 1) {
-            indexRef.current++;
-            _setState(historyRef.current[indexRef.current]);
-        }
-    }, []);
-
-    return [state, setState, undo, redo, indexRef.current > 0, indexRef.current < historyRef.current.length - 1] as const;
+    return [state.present, set, undo, redo, canUndo, canRedo] as const;
 };
 
 
@@ -413,8 +428,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       const ht=tubes.find(t=>t.id===hoverId);
       if(ht){
         const tx=p.x+ht.x*z, ty=p.y+ht.y*z;
-        const lines=[`R${ht.row+1}·C${ht.col+1}`,`Pass ${ht.pass}`, `Status: ${ht.status || 'ok'}`];
-        const fw=130,lh=14,pad=6,fh=lines.length*lh*fontScale+pad*2;
+        const lines=[`R${ht.row+1}·C${ht.col+1}`,`Pass ${ht.pass}`, `Status: ${ht.status || 'ok'}`, `x: ${(ht.x/25.4).toFixed(4)}"`, `y: ${(ht.y/25.4).toFixed(4)}"`];
+        const fw=140,lh=14,pad=6,fh=lines.length*lh*fontScale+pad*2;
         let bx=tx+ht.r*z+8, by=ty-fh/2;
         if(bx+fw>CW) bx=tx-ht.r*z-fw-8;
         bx=Math.max(MARGIN_LEFT+4,bx); by=Math.max(MARGIN_TOP+4,Math.min(by,CH-fh-4));
@@ -538,6 +553,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     if(!layout) return;
     const rt=tubes.filter(t=>t.row===row); if(!rt.length) return;
     const nextY=tubes.find(t=>t.row===row+1)?.y;
+    const SQ3H = Math.sqrt(3)/2;
     const pitchY=layout.pattern==='triangular'||layout.pattern==='rotated-triangular' ?layout.pitchMm*SQ3H : layout.pitchMm;
     const dy=nextY!=null?(nextY-rt[0].y):pitchY;
     const maxId=Math.max(...tubes.map(t=>t.id));
@@ -652,7 +668,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             </TabsList>
             <TabsContent value="design" className="flex-grow overflow-y-auto">
                 <div style={{padding:"12px 14px 16px"}}>
-                    <Label fontScale={fontScale}>Shell Shape</Label>
+                    <Label>Shell Shape</Label>
                     <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
                         {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
                         <Chip key={s} label={s==="polygon"?"✏ Polygon":s[0].toUpperCase()+s.slice(1)}
@@ -672,7 +688,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                         </div>)}
 
                     {cfg.shape.type==="circle"&&(<>
-                        <Label fontScale={fontScale}>Shell Diameter</Label>
+                        <Label>Shell Diameter</Label>
                         <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>
                             {[6,8,10,12,15.25,19.25,23.25,25,29,33,37,42,48,60].map(id=>(
                             <button key={id} onClick={()=>updateShape({diameterMm:id*25.4})}
@@ -682,19 +698,19 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                                 border:`1px solid ${Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.border2}`}}>{id}"</button>
                             ))}
                         </div>
-                        <NumIn value={+(cfg.shape.diameterMm??304.8).toFixed(1)} onChange={v=>updateShape({diameterMm:v})} min={30} max={2000} step={25.4} unit="mm" fontScale={fontScale}/>
+                        <NumIn value={+((cfg.shape.diameterMm??304.8)/25.4).toFixed(2)} onChange={v=>updateShape({diameterMm:v*25.4})} min={1.2} max={80} step={1} unit="in" fontScale={fontScale}/>
                         </>)}
-                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label fontScale={fontScale}>Width</Label><NumIn value={+(cfg.shape.widthMm??500).toFixed(1)} onChange={v=>updateShape({widthMm:v})} min={30} unit="mm" fontScale={fontScale}/></div><div><Label fontScale={fontScale}>Height</Label><NumIn value={+(cfg.shape.heightMm??400).toFixed(1)} onChange={v=>updateShape({heightMm:v})} min={30} unit="mm" fontScale={fontScale}/></div></div>)}
-                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label fontScale={fontScale}>Semi-A</Label><NumIn value={+(cfg.shape.axisAMm??500).toFixed(1)} onChange={v=>updateShape({axisAMm:v})} min={30} unit="mm" fontScale={fontScale}/></div><div><Label fontScale={fontScale}>Semi-B</Label><NumIn value={+(cfg.shape.axisBMm??350).toFixed(1)} onChange={v=>updateShape({axisBMm:v})} min={30} unit="mm" fontScale={fontScale}/></div></div>)}
-                    {cfg.shape.type==="hexagon"&&(<div><Label fontScale={fontScale}>Flat-to-flat</Label><NumIn value={+(cfg.shape.hexSizeMm??300).toFixed(1)} onChange={v=>updateShape({hexSizeMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>)}
+                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label>Width</Label><NumIn value={+((cfg.shape.widthMm??500)/25.4).toFixed(2)} onChange={v=>updateShape({widthMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Height</Label><NumIn value={+((cfg.shape.heightMm??400)/25.4).toFixed(2)} onChange={v=>updateShape({heightMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label>Semi-A</Label><NumIn value={+((cfg.shape.axisAMm??500)/25.4).toFixed(2)} onChange={v=>updateShape({axisAMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Semi-B</Label><NumIn value={+((cfg.shape.axisBMm??350)/25.4).toFixed(2)} onChange={v=>updateShape({axisBMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="hexagon"&&(<div><Label>Flat-to-flat</Label><NumIn value={+((cfg.shape.hexSizeMm??300)/25.4).toFixed(2)} onChange={v=>updateShape({hexSizeMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div>)}
 
-                    <Divider/><Label fontScale={fontScale}>Tube OD</Label>
+                    <Divider/><Label>Tube OD</Label>
                     <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>{TEMA_TUBE_ODS.map(t=>( <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val} onClick={()=>setCfg(p=>({...p,tubeOdIn:t.val}))} color={C.accent}/>))}</div>
-                    <Divider/><Label fontScale={fontScale}>Pitch Ratio</Label>
+                    <Divider/><Label>Pitch Ratio</Label>
                     <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_RATIOS.map(pr=>(<div key={pr.val} onClick={()=>setCfg(p=>({...p,pitchRatio:pr.val}))} style={{padding:"4px 8px",borderRadius:4,cursor:"pointer", background:cfg.pitchRatio===pr.val?C.accentL:"transparent", border:`1px solid ${cfg.pitchRatio===pr.val?C.accentM:C.border}`,transition:"all 0.1s"}}><span style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pitchRatio===pr.val?C.accent:C.text2}}>{pr.label}</span></div>))}</div>
-                    <Divider/><Label fontScale={fontScale}>Pitch Pattern</Label>
+                    <Divider/><Label>Pitch Pattern</Label>
                     <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_PATTERNS.map(pp=>(<div key={pp.id} onClick={()=>setCfg(p=>({...p,pattern:pp.id}))} style={{padding:"5px 8px",borderRadius:4,cursor:"pointer", background:cfg.pattern===pp.id?C.accentL:"transparent", border:`1px solid ${cfg.pattern===pp.id?C.accentM:C.border}`,transition:"all 0.1s"}}><div style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div><div style={{fontSize:10*fontScale,color:C.text3,marginTop:1}}>{pp.desc}</div></div>))}</div>
-                    <Divider/><Label fontScale={fontScale}>Tube Passes</Label>
+                    <Divider/><Label>Tube Passes</Label>
                     <div style={{display:"flex",gap:4,marginBottom:8}}>{[1,2,4,6,8].map(n=>(<Chip key={n} label={`${n}P`} active={cfg.numPasses===n} onClick={()=>setCfg(p=>({...p,numPasses:n}))} color={C.accent}/>))}</div>
                     <Divider/>
                     <button onClick={() => generate(true)} disabled={busy} style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
@@ -711,7 +727,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                                 {l:"Cols",v:uCols.length},
                                 {l:"Passes",v:cfg.numPasses},
                                 {l:"OD",v:`${cfg.tubeOdIn}"`},
-                                {l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`},
+                                {l:"Pitch",v:`${(layout.pitchMm/25.4).toFixed(4)}"`},
                             ].map(k=>(
                                 <div key={k.l} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
                                     <span style={{fontSize:11*fontScale,color:C.text3}}>{k.l}</span>
@@ -807,7 +823,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
           <div style={{marginBottom:6}}><div style={{fontSize:11*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Selection</div>
             {!selIds.size&&<div style={{fontSize:11*fontScale,color:C.text3,lineHeight:1.7}}>Click or drag to select.<br/>Shift+click to add.<br/>Del to delete.</div>}
-            {selIds.size===1&&(()=>{const t=selTubes[0];return(<div><div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>{[["Pass",t.pass],["x",`${t.x.toFixed(2)} mm`],["y",`${t.y.toFixed(2)} mm`],["OD",`${(t.r*2/25.4).toFixed(3)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span></div>))}<Btn variant="danger" size="xs" onClick={delSelected}>Remove tube</Btn></div>);})()}
+            {selIds.size===1&&(()=>{const t=selTubes[0];return(<div><div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>{[["Pass",t.pass],["x",`${(t.x/25.4).toFixed(4)}"`],["y",`${(t.y/25.4).toFixed(4)}"`],["OD",`${(t.r*2/25.4).toFixed(3)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span></div>))}<Btn variant="danger" size="xs" onClick={delSelected}>Remove tube</Btn></div>);})()}
             {selIds.size>1&&(<div><div style={{fontFamily:FM,fontSize:13*fontScale,fontWeight:700,color:C.accent,marginBottom:4}}>{selIds.size} selected</div><div style={{fontSize:11*fontScale,color:C.text2,marginBottom:5,lineHeight:1.6}}>Rows: {selRows.slice(0,4).map(r=>`R${r+1}`).join(", ")}{selRows.length>4?`+${selRows.length-4}`:""}<br/>Cols: {selCols.length} unique</div><Btn variant="danger" size="xs" onClick={delSelected}>✕ Delete {selIds.size}</Btn></div>)}
           </div>
           <Divider label="Rows"/><div style={{fontSize:10*fontScale,color:C.text2,marginBottom:4}}>Click=select · Shift=add · +↓ insert · ✕ delete</div>
@@ -873,7 +889,8 @@ function drawShell(ctx:CanvasRenderingContext2D,shape:ShellShape,z:number,p:{x:n
     case"rectangle":{const hw=(shape.widthMm??400)/2,hh=(shape.heightMm??300)/2;ctx.rect(p.x-hw*z,p.y-hh*z,hw*2*z,hh*2*z);break;}
     case"ellipse":{const a=(shape.axisAMm??400)/2,b=(shape.axisBMm??300)/2;ctx.ellipse(p.x,p.y,a*z,b*z,0,0,Math.PI*2);break;}
     case"hexagon":{
-      const apothem=(shape.hexSizeMm??300)/2; const R=apothem/(Math.sqrt(3)/2);
+      const SQ3H = Math.sqrt(3)/2;
+      const apothem=(shape.hexSizeMm??300)/2; const R=apothem/(SQ3H);
       for(let i=0;i<6;i++){ const ang=Math.PI/3*i - Math.PI/6; const x=p.x+R*z*Math.cos(ang), y=p.y+R*z*Math.sin(ang); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
       ctx.closePath();break;
     }
@@ -893,6 +910,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

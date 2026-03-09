@@ -1,9 +1,8 @@
 
-
 "use client";
 /**
- * TemaDesigner v16
- * - Uses tabs in the left panel. File menu moved into Design tab.
+ * TemaDesigner v17
+ * - File menu moved to Design tab. Header dividers cleaned up.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import {
@@ -39,28 +38,24 @@ const F  = "'Noto Sans','Segoe UI',system-ui,sans-serif";
 const FM = "'Noto Sans Mono','JetBrains Mono',monospace";
 const MARGIN_LEFT = 38;
 const MARGIN_TOP  = 38;
+const IN = 1 / 25.4; // Conversion factor from mm to inches
 
 // ── Tiny UI helpers ───────────────────────────────────────────────────────────
-const Btn = memo(({ children, onClick, variant="default", size="sm", disabled, title, ...rest }:{
-  children:React.ReactNode; onClick?:(e: React.MouseEvent<HTMLButtonElement>) => void;
-  variant?:"default"|"primary"|"danger"|"ghost"|"warn"; size?:"xs"|"sm"|"md";
-  disabled?:boolean; title?:string;
-  [key: string]: any;
-}) => {
-  const szMap:{[k:string]:{fs:number,p:string}}={xs:{fs:10,p:'2px 7px'},sm:{fs:12,p:'4px 10px'},md:{fs:13,p:'6px 14px'}};
-  const sz=szMap[size]??szMap.sm;
-  const v:Record<string,React.CSSProperties>={
-    default:{background:C.panel,border:`1px solid ${C.border2}`,color:C.text2},
-    primary:{background:C.accent,border:`1px solid ${C.accent}`,color:"#fff"},
-    danger: {background:"#fff",  border:`1px solid ${C.danger}`, color:C.danger},
-    ghost:  {background:"transparent",border:"1px solid transparent",color:C.text2},
-    warn:   {background:C.warnL, border:`1px solid ${C.warn}`,   color:C.warn},
-  };
-  return <button onClick={onClick} disabled={disabled} title={title}
-    style={{fontFamily:F,fontWeight:600,borderRadius:5,cursor:disabled?"not-allowed":"pointer",
-      fontSize:sz.fs,padding:sz.p,opacity:disabled?.45:1,transition:"all 0.1s",
-      whiteSpace:"nowrap",...v[variant]}} {...rest}>{children}</button>;
-});
+const Btn = memo(React.forwardRef<HTMLButtonElement, { children: React.ReactNode; onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; variant?: "default" | "primary" | "danger" | "ghost" | "warn"; size?: "xs" | "sm" | "md"; disabled?: boolean; title?: string;[key: string]: any; }>(
+    ({ children, onClick, variant = "default", size = "sm", disabled, title, ...rest }, ref) => {
+        const szMap: { [k: string]: { fs: number, p: string } } = { xs: { fs: 10, p: '2px 7px' }, sm: { fs: 12, p: '4px 10px' }, md: { fs: 13, p: '6px 14px' } };
+        const sz = szMap[size] ?? szMap.sm;
+        const v: Record<string, React.CSSProperties> = {
+            default: { background: C.panel, border: `1px solid ${C.border2}`, color: C.text2 },
+            primary: { background: C.accent, border: `1px solid ${C.accent}`, color: "#fff" },
+            danger: { background: "#fff", border: `1px solid ${C.danger}`, color: C.danger },
+            ghost: { background: "transparent", border: "1px solid transparent", color: C.text2 },
+            warn: { background: C.warnL, border: `1px solid ${C.warn}`, color: C.warn },
+        };
+        return <button ref={ref} onClick={onClick} disabled={disabled} title={title}
+            style={{ fontFamily: F, fontWeight: 600, borderRadius: 5, cursor: disabled ? "not-allowed" : "pointer", fontSize: sz.fs, padding: sz.p, opacity: disabled ? .45 : 1, transition: "all 0.1s", whiteSpace: "nowrap", ...v[variant] }} {...rest}>{children}</button>;
+    }
+));
 Btn.displayName="Btn";
 
 const Divider=({label}:{label?:string})=>(
@@ -93,59 +88,42 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
   shape:{type:"circle",diameterMm:304.8}};
 
 const useUndoRedo = <T,>(initialState: T) => {
-    const [state, setState] = useState<{
-        past: T[];
-        present: T;
-        future: T[];
-    }>({
-        past: [],
-        present: initialState,
-        future: [],
+    const [state, setState] = useState<{ past: T[]; present: T; future: T[]; }>({
+        past: [], present: initialState, future: [],
     });
-
     const canUndo = state.past.length > 0;
     const canRedo = state.future.length > 0;
-
     const undo = useCallback(() => {
-        if (!canUndo) return;
-        setState(current => {
-            const newPresent = current.past[current.past.length - 1];
-            return {
+        if (canUndo) {
+            setState(current => ({
                 past: current.past.slice(0, current.past.length - 1),
-                present: newPresent,
+                present: current.past[current.past.length - 1],
                 future: [current.present, ...current.future],
-            };
-        });
+            }));
+        }
     }, [canUndo]);
-
     const redo = useCallback(() => {
-        if (!canRedo) return;
+        if (canRedo) {
+            setState(current => ({
+                past: [...current.past, current.present],
+                present: current.future[0],
+                future: current.future.slice(1),
+            }));
+        }
+    }, [canRedo]);
+    const set = useCallback((newState: T | ((prevState: T) => T)) => {
         setState(current => {
-            const newPresent = current.future[0];
+            const newPresent = typeof newState === 'function' ? (newState as (prevState: T) => T)(current.present) : newState;
+            if (JSON.stringify(newPresent) === JSON.stringify(current.present)) {
+                return current;
+            }
             return {
                 past: [...current.past, current.present],
                 present: newPresent,
-                future: current.future.slice(1),
+                future: [],
             };
         });
-    }, [canRedo]);
-    
-    const set = useCallback((newState: T | ((prevState: T) => T)) => {
-        const resolvedState = typeof newState === 'function' 
-            ? (newState as (prevState: T) => T)(state.present)
-            : newState;
-        
-        if (JSON.stringify(resolvedState) === JSON.stringify(state.present)) {
-            return;
-        }
-
-        setState(current => ({
-            past: [...current.past, current.present],
-            present: resolvedState,
-            future: [],
-        }));
-    }, [state.present]);
-
+    }, []);
     return [state.present, set, undo, redo, canUndo, canRedo] as const;
 };
 
@@ -345,7 +323,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           ctx.beginPath(); ctx.moveTo(x,ay-6); ctx.lineTo(x,ay+6); ctx.stroke();
         }
         ctx.font=`bold ${9 * fontScale}px ${F}`; ctx.textAlign="center"; ctx.textBaseline="top"; ctx.fillStyle="rgba(37,99,235,0.8)";
-        ctx.fillText(`OTL ø${(layout.bundleDia/25.4).toFixed(2)}"`,Math.max(ax1,MARGIN_LEFT+4)+Math.min(ax2,CW-4)>>1,ay+4);
+        ctx.fillText(`OTL ø${(layout.bundleDia*IN).toFixed(2)}"`,Math.max(ax1,MARGIN_LEFT+4)+Math.min(ax2,CW-4)>>1,ay+4);
         ctx.textBaseline="alphabetic"; ctx.restore();
       }
     }
@@ -729,11 +707,11 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                                 border:`1px solid ${Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.border2}`}}>{id}"</button>
                             ))}
                         </div>
-                        <NumIn value={+((cfg.shape.diameterMm??304.8)/25.4).toFixed(2)} onChange={v=>updateShape({diameterMm:v*25.4})} min={1.2} max={80} step={1} unit="in" fontScale={fontScale}/>
+                        <NumIn value={+((cfg.shape.diameterMm??304.8)*IN).toFixed(2)} onChange={v=>updateShape({diameterMm:v/IN})} min={1.2} max={80} step={1} unit="in" fontScale={fontScale}/>
                         </>)}
-                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label>Width</Label><NumIn value={+((cfg.shape.widthMm??500)/25.4).toFixed(2)} onChange={v=>updateShape({widthMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Height</Label><NumIn value={+((cfg.shape.heightMm??400)/25.4).toFixed(2)} onChange={v=>updateShape({heightMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
-                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label>Semi-A</Label><NumIn value={+((cfg.shape.axisAMm??500)/25.4).toFixed(2)} onChange={v=>updateShape({axisAMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Semi-B</Label><NumIn value={+((cfg.shape.axisBMm??350)/25.4).toFixed(2)} onChange={v=>updateShape({axisBMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
-                    {cfg.shape.type==="hexagon"&&(<div><Label>Flat-to-flat</Label><NumIn value={+((cfg.shape.hexSizeMm??300)/25.4).toFixed(2)} onChange={v=>updateShape({hexSizeMm:v*25.4})} min={1.2} unit="in" fontScale={fontScale}/></div>)}
+                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label>Width</Label><NumIn value={+((cfg.shape.widthMm??500)*IN).toFixed(2)} onChange={v=>updateShape({widthMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Height</Label><NumIn value={+((cfg.shape.heightMm??400)*IN).toFixed(2)} onChange={v=>updateShape({heightMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label>Semi-A</Label><NumIn value={+((cfg.shape.axisAMm??500)*IN).toFixed(2)} onChange={v=>updateShape({axisAMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Semi-B</Label><NumIn value={+((cfg.shape.axisBMm??350)*IN).toFixed(2)} onChange={v=>updateShape({axisBMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="hexagon"&&(<div><Label>Flat-to-flat</Label><NumIn value={+((cfg.shape.hexSizeMm??300)*IN).toFixed(2)} onChange={v=>updateShape({hexSizeMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div>)}
 
                     <Divider/><Label>Tube OD</Label>
                     <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>{TEMA_TUBE_ODS.map(t=>( <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val} onClick={()=>setCfg(p=>({...p,tubeOdIn:t.val}))} color={C.accent}/>))}</div>
@@ -756,7 +734,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                                 {l:"Cols",v:uCols.length},
                                 {l:"Passes",v:cfg.numPasses},
                                 {l:"OD",v:`${cfg.tubeOdIn}"`},
-                                {l:"Pitch",v:`${(layout.pitchMm/25.4).toFixed(4)}"`},
+                                {l:"Pitch",v:`${(layout.pitchMm*IN).toFixed(4)}"`},
                             ].map(k=>(
                                 <div key={k.l} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
                                     <span style={{fontSize:11*fontScale,color:C.text3}}>{k.l}</span>
@@ -825,7 +803,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
           <div style={{marginBottom:6}}><div style={{fontSize:11*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Selection</div>
             {!selIds.size&&<div style={{fontSize:11*fontScale,color:C.text3,lineHeight:1.7}}>Click or drag to select.<br/>Shift+click to add.<br/>Del to delete.</div>}
-            {selIds.size===1&&(()=>{const t=selTubes[0];return(<div><div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>{[["Pass",t.pass],["x",`${(t.x/25.4).toFixed(4)}"`],["y",`${(t.y/25.4).toFixed(4)}"`],["OD",`${(t.r*2/25.4).toFixed(3)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span></div>))}<Btn variant="danger" size="xs" onClick={delSelected}>Remove tube</Btn></div>);})()}
+            {selIds.size===1&&(()=>{const t=selTubes[0];return(<div><div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>{[["Pass",t.pass],["x",`${(t.x*IN).toFixed(4)}"`],["y",`${(t.y*IN).toFixed(4)}"`],["OD",`${(t.r*2*IN).toFixed(3)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span></div>))}<Btn variant="danger" size="xs" onClick={delSelected}>Remove tube</Btn></div>);})()}
             {selIds.size>1&&(<div><div style={{fontFamily:FM,fontSize:13*fontScale,fontWeight:700,color:C.accent,marginBottom:4}}>{selIds.size} selected</div><div style={{fontSize:11*fontScale,color:C.text2,marginBottom:5,lineHeight:1.6}}>Rows: {selRows.slice(0,4).map(r=>`R${r+1}`).join(", ")}{selRows.length>4?`+${selRows.length-4}`:""}<br/>Cols: {selCols.length} unique</div><Btn variant="danger" size="xs" onClick={delSelected}>✕ Delete {selIds.size}</Btn></div>)}
           </div>
           <Divider label="Rows"/><div style={{fontSize:10*fontScale,color:C.text2,marginBottom:4}}>Click=select · Shift=add · +↓ insert · ✕ delete</div>
@@ -912,6 +890,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

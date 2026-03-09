@@ -16,7 +16,7 @@ export default function TemaDesignerTrialPage() {
             <Info className="h-4 w-4" />
             <AlertTitle>You're Using the Trial Version</AlertTitle>
             <AlertDescription>
-              This is a feature-limited trial of the TEMA Designer. To save your designs, attach them to jobs, and export to CSV, JSON, or DXF, please <Link href="/signup" className="underline font-semibold hover:text-primary">sign up for a free account</Link>.
+              This trial version is perfect for mapping out tubesheet layouts for **heat exchangers, boilers, condensers, and air coolers**. To save your designs, attach them to jobs, and export to CSV, JSON, or DXF, please <Link href="/signup" className="underline font-semibold hover:text-primary">sign up for a free account</Link>.
             </AlertDescription>
           </Alert>
         </div>

@@ -148,7 +148,8 @@ service cloud.firestore {
                    (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
         }
 
-        allow read, write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow read: if authed();
+        allow write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
     }
 

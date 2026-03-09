@@ -1,6 +1,8 @@
 "use client";
 /**
- * TemaDesigner v6
+ * TemaDesigner v7
+ * - Font size adjustment for accessibility
+ * - Fullscreen mode
  * - Tube list in left panel with selection sync
  * - DPR fix: canvas.width = cssW (no DPR), draw in CSS px directly
  * - Undo/redo (Ctrl+Z / Ctrl+Y)
@@ -17,6 +19,7 @@ import {
   TEMA_TUBE_ODS, PITCH_RATIOS, PITCH_PATTERNS,
   type TEMAConfig, type TEMALayout, type LayoutTube, type PitchPattern, type ShapeType, type ShellShape,
 } from "@/lib/tema";
+import { Maximize, Minimize } from "lucide-react";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const C = {
@@ -53,8 +56,8 @@ const Btn = memo(({ children, onClick, variant="default", size="sm", disabled, t
 });
 Btn.displayName="Btn";
 
-const Label=({children}:{children?:React.ReactNode})=>(
-  <div style={{fontFamily:F,fontSize:11,fontWeight:600,color:C.text2,marginBottom:4}}>{children}</div>
+const Label=({children, fontScale=1}:{children?:React.ReactNode, fontScale?: number})=>(
+  <div style={{fontFamily:F,fontSize:11 * fontScale,fontWeight:600,color:C.text2,marginBottom:4}}>{children}</div>
 );
 const Divider=({label}:{label?:string})=>(
   <div style={{display:"flex",alignItems:"center",gap:6,margin:"8px 0"}}>
@@ -69,13 +72,13 @@ const Chip=({label,active,onClick,color=C.accent}:{label:string;active:boolean;o
     background:active?color:C.panel,color:active?"#fff":C.text2,
     border:`1px solid ${active?color:C.border2}`}}>{label}</button>
 );
-function NumIn({value,onChange,min,max,step,unit}:{value:number;onChange:(n:number)=>void;min?:number;max?:number;step?:number;unit?:string}){
+function NumIn({value,onChange,min,max,step,unit, fontScale=1}:{value:number;onChange:(n:number)=>void;min?:number;max?:number;step?:number;unit?:string, fontScale?: number}){
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     <input type="number" value={value} min={min} max={max} step={step??1}
       onChange={e=>{const v=parseFloat(e.target.value);if(!isNaN(v))onChange(v);}}
-      style={{fontFamily:FM,fontSize:12,padding:"4px 7px",border:`1px solid ${C.border2}`,
+      style={{fontFamily:FM,fontSize:12 * fontScale,padding:"4px 7px",border:`1px solid ${C.border2}`,
         borderRadius:4,width:70,outline:"none",color:C.text,background:C.panel}}/>
-    {unit&&<span style={{fontFamily:F,fontSize:11,color:C.text3}}>{unit}</span>}
+    {unit&&<span style={{fontFamily:F,fontSize:11 * fontScale,color:C.text3}}>{unit}</span>}
   </div>;
 }
 function Spinner(){return <div style={{width:22,height:22,border:`2px solid ${C.border}`,
@@ -114,7 +117,9 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const {state:tubes,set:setTubes,undo,redo,canUndo,canRedo}=useHistory<LayoutTube[]>([]);
 
   // Canvas
+  const designerRef=useRef<HTMLDivElement>(null);
   const canvasRef=useRef<HTMLCanvasElement>(null);
+  const [isFullscreen, setIsFullscreen]=useState(false);
 
   // pan/zoom stored in refs to avoid stale closures
   const zoomRef=useRef(1); const panRef=useRef({x:0,y:0});
@@ -139,6 +144,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const [showGrid,setShowGrid]=useState(true);
   const [showShell,setShowShell]=useState(true);
   const [needRecalc,setNeedRecalc]=useState(false);
+  const [fontScale, setFontScale] = useState(1);
 
   // Polygon drawing mode for custom shape
   const [polyMode,setPolyMode]=useState(false);
@@ -167,7 +173,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   useEffect(()=>{generate();},[]);// eslint-disable-line
 
-  // ── Keyboard shortcuts ─────────────────────────────────────────────────────
+  // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
   useEffect(()=>{
     const h=(e:KeyboardEvent)=>{
       if(e.target instanceof HTMLInputElement) return;
@@ -179,10 +185,27 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           setSelIds(new Set()); setNeedRecalc(true);
         }
       }
+      if(e.key==='f'){e.preventDefault();toggleFullscreen();}
     };
+    const onFsChange=()=>setIsFullscreen(!!document.fullscreenElement);
     window.addEventListener('keydown',h);
-    return()=>window.removeEventListener('keydown',h);
+    document.addEventListener('fullscreenchange',onFsChange);
+    return()=>{
+      window.removeEventListener('keydown',h);
+      document.removeEventListener('fullscreenchange',onFsChange);
+    };
   },[undo,redo,selIds,tubes,setTubes]);
+  
+  const toggleFullscreen = useCallback(() => {
+    if (!designerRef.current) return;
+    if (!document.fullscreenElement) {
+        designerRef.current.requestFullscreen().catch(err => {
+            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+  }, []);
 
   // ── Coordinate helpers ─────────────────────────────────────────────────────
   // DPR-free: canvas.width == CSS px (set by ResizeObserver)
@@ -252,7 +275,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           ctx.beginPath(); ctx.moveTo(x,ay); ctx.lineTo(x+5*d,ay-4); ctx.lineTo(x+5*d,ay+4); ctx.closePath(); ctx.fill();
           ctx.beginPath(); ctx.moveTo(x,ay-6); ctx.lineTo(x,ay+6); ctx.stroke();
         }
-        ctx.font=`bold 9px ${F}`; ctx.textAlign="center"; ctx.textBaseline="top"; ctx.fillStyle="rgba(37,99,235,0.8)";
+        ctx.font=`bold ${9 * fontScale}px ${F}`; ctx.textAlign="center"; ctx.textBaseline="top"; ctx.fillStyle="rgba(37,99,235,0.8)";
         ctx.fillText(`OTL ø${(layout.bundleDia/25.4).toFixed(2)}"`,Math.max(ax1,MARGIN_LEFT+4)+Math.min(ax2,CW-4)>>1,ay+4);
         ctx.textBaseline="alphabetic"; ctx.restore();
       }
@@ -281,7 +304,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     if(showLabels&&layout){
       const uRows=Array.from(new Set(tubes.map(t=>t.row))).sort((a,b)=>a-b);
       ctx.save();
-      ctx.font=`bold 9px ${FM}`;
+      ctx.font=`bold ${9 * fontScale}px ${FM}`;
       for(const r of uRows){
         const rowTubes=tubes.filter(t=>t.row===r);
         if(!rowTubes.length) continue;
@@ -309,7 +332,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       // Throttle: only show label if previous visible label was >18px away
       let lastLabelX=-999;
       ctx.save();
-      ctx.font=`bold 9px ${FM}`;
+      ctx.font=`bold ${9 * fontScale}px ${FM}`;
       for(const c of uCols){
         const colTubes=tubes.filter(t=>t.col===c);
         if(!colTubes.length) continue;
@@ -352,7 +375,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       });
       // instruction
       const txt=polyWip.length<3?"Click to add points — double-click to close":`${polyWip.length} pts — double-click to close`;
-      ctx.font=`bold 10px ${F}`; const tw=ctx.measureText(txt).width+14;
+      ctx.font=`bold ${10 * fontScale}px ${F}`; const tw=ctx.measureText(txt).width+14;
       ctx.fillStyle="rgba(37,99,235,0.9)";
       ctx.fillRect((CW-tw)/2,CH-28,tw,20);
       ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle";
@@ -376,19 +399,19 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       if(ht){
         const tx=p.x+ht.x*z, ty=p.y+ht.y*z;
         const lines=[`R${ht.row+1} · C${ht.col+1}`,`Pass ${ht.pass}`,`x ${ht.x.toFixed(1)}mm`,`y ${ht.y.toFixed(1)}mm`,`OD ${(ht.r*2/25.4).toFixed(3)}"`];
-        const fw=130,lh=14,pad=6,fh=lines.length*lh+pad*2;
+        const fw=130,lh=14,pad=6,fh=lines.length*lh*fontScale+pad*2;
         let bx=tx+ht.r*z+8, by=ty-fh/2;
         if(bx+fw>CW) bx=tx-ht.r*z-fw-8;
         bx=Math.max(MARGIN_LEFT+4,bx); by=Math.max(MARGIN_TOP+4,Math.min(by,CH-fh-4));
         ctx.fillStyle="rgba(255,255,255,0.97)"; ctx.strokeStyle=C.border2; ctx.lineWidth=1;
         rRect(ctx,bx,by,fw,fh,4); ctx.fill(); ctx.stroke();
-        ctx.font=`12px ${F}`; ctx.textAlign="left"; ctx.textBaseline="top";
-        lines.forEach((l,i)=>{ctx.fillStyle=i===0?C.accent:C.text2;ctx.fillText(l,bx+pad,by+pad+i*lh);});
+        ctx.font=`${12 * fontScale}px ${F}`; ctx.textAlign="left"; ctx.textBaseline="top";
+        lines.forEach((l,i)=>{ctx.fillStyle=i===0?C.accent:C.text2;ctx.fillText(l,bx+pad,by+pad+i*lh*fontScale);});
         ctx.textBaseline="alphabetic";
       }
     }
   },[layout,tubes,zoom,pan,colorMode,showLabels,showDims,showGrid,showShell,
-     selIds,hoverId,selBox,cfg.shape,polyMode,polyWip,w2css]);
+     selIds,hoverId,selBox,cfg.shape,polyMode,polyWip,w2css,fontScale]);
 
   // ── Resize observer (DPR-free: canvas.width = CSS px) ────────────────────
   useEffect(()=>{
@@ -580,7 +603,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return(
-    <div style={{display:"flex",flex:1,height:"100%",overflow:"hidden",fontFamily:F,background:C.bg}}>
+    <div ref={designerRef} style={{display:"flex",flex:1,height:"100%",overflow:"hidden",fontFamily:F,background:C.bg}}>
 
       {/* ── LEFT CONFIG ───────────────────────────────────────────────── */}
       <div style={{width:260,flexShrink:0,background:C.panel,borderRight:`1px solid ${C.border}`,
@@ -588,7 +611,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         <div style={{flex:1,overflowY:"auto",padding:"12px 14px 16px"}}>
 
           {/* Shape */}
-          <Label>Shell Shape</Label>
+          <Label fontScale={fontScale}>Shell Shape</Label>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
             {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
               <Chip key={s} label={s==="polygon"?"✏ Polygon":s[0].toUpperCase()+s.slice(1)}
@@ -603,10 +626,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             <div style={{marginBottom:6}}>
               <div style={{background:polyMode?"#ede9fe":"#f5f3ff",border:`1px solid ${polyMode?"#7c3aed":"#ddd6fe"}`,
                 borderRadius:4,padding:"6px 8px",marginBottom:4}}>
-                <div style={{fontSize:11,color:"#7c3aed",fontWeight:600,marginBottom:2}}>
+                <div style={{fontSize:11*fontScale,color:"#7c3aed",fontWeight:600,marginBottom:2}}>
                   {polyMode?"Drawing polygon on canvas…":"Custom polygon shape"}
                 </div>
-                <div style={{fontSize:10,color:"#6d28d9",lineHeight:1.5}}>
+                <div style={{fontSize:10*fontScale,color:"#6d28d9",lineHeight:1.5}}>
                   {polyMode
                     ?"Click to add vertices. Double-click to close."
                     :`${(cfg.shape.polygon?.length??0)} vertices defined.`}
@@ -625,37 +648,37 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           {/* Dimensions */}
           {cfg.shape.type==="circle"&&(
             <>
-              <Label>Shell Diameter</Label>
+              <Label fontScale={fontScale}>Shell Diameter</Label>
               <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>
                 {[6,8,10,12,15.25,19.25,23.25,25,29,33,37,42,48,60].map(id=>(
                   <button key={id} onClick={()=>updateShape({diameterMm:id*25.4})}
-                    style={{fontFamily:FM,fontSize:10,padding:"2px 6px",borderRadius:3,cursor:"pointer",
+                    style={{fontFamily:FM,fontSize:10*fontScale,padding:"2px 6px",borderRadius:3,cursor:"pointer",
                       background:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.panel,
                       color:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?"#fff":C.text2,
                       border:`1px solid ${Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.border2}`}}>{id}"</button>
                 ))}
               </div>
-              <NumIn value={+(cfg.shape.diameterMm??304.8).toFixed(1)} onChange={v=>updateShape({diameterMm:v})} min={30} max={2000} step={25.4} unit="mm"/>
+              <NumIn value={+(cfg.shape.diameterMm??304.8).toFixed(1)} onChange={v=>updateShape({diameterMm:v})} min={30} max={2000} step={25.4} unit="mm" fontScale={fontScale}/>
             </>
           )}
           {cfg.shape.type==="rectangle"&&(
             <div style={{display:"flex",gap:8}}>
-              <div><Label>Width</Label><NumIn value={+(cfg.shape.widthMm??500).toFixed(1)} onChange={v=>updateShape({widthMm:v})} min={30} unit="mm"/></div>
-              <div><Label>Height</Label><NumIn value={+(cfg.shape.heightMm??400).toFixed(1)} onChange={v=>updateShape({heightMm:v})} min={30} unit="mm"/></div>
+              <div><Label fontScale={fontScale}>Width</Label><NumIn value={+(cfg.shape.widthMm??500).toFixed(1)} onChange={v=>updateShape({widthMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>
+              <div><Label fontScale={fontScale}>Height</Label><NumIn value={+(cfg.shape.heightMm??400).toFixed(1)} onChange={v=>updateShape({heightMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>
             </div>
           )}
           {cfg.shape.type==="ellipse"&&(
             <div style={{display:"flex",gap:8}}>
-              <div><Label>Semi-A</Label><NumIn value={+(cfg.shape.axisAMm??500).toFixed(1)} onChange={v=>updateShape({axisAMm:v})} min={30} unit="mm"/></div>
-              <div><Label>Semi-B</Label><NumIn value={+(cfg.shape.axisBMm??350).toFixed(1)} onChange={v=>updateShape({axisBMm:v})} min={30} unit="mm"/></div>
+              <div><Label fontScale={fontScale}>Semi-A</Label><NumIn value={+(cfg.shape.axisAMm??500).toFixed(1)} onChange={v=>updateShape({axisAMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>
+              <div><Label fontScale={fontScale}>Semi-B</Label><NumIn value={+(cfg.shape.axisBMm??350).toFixed(1)} onChange={v=>updateShape({axisBMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>
             </div>
           )}
           {cfg.shape.type==="hexagon"&&(
-            <div><Label>Flat-to-flat</Label><NumIn value={+(cfg.shape.hexSizeMm??300).toFixed(1)} onChange={v=>updateShape({hexSizeMm:v})} min={30} unit="mm"/></div>
+            <div><Label fontScale={fontScale}>Flat-to-flat</Label><NumIn value={+(cfg.shape.hexSizeMm??300).toFixed(1)} onChange={v=>updateShape({hexSizeMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>
           )}
 
           <Divider/>
-          <Label>Tube OD</Label>
+          <Label fontScale={fontScale}>Tube OD</Label>
           <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>
             {TEMA_TUBE_ODS.map(t=>(
               <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val}
@@ -664,34 +687,34 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           </div>
 
           <Divider/>
-          <Label>Pitch Ratio</Label>
+          <Label fontScale={fontScale}>Pitch Ratio</Label>
           <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>
             {PITCH_RATIOS.map(pr=>(
               <div key={pr.val} onClick={()=>setCfg(p=>({...p,pitchRatio:pr.val}))}
                 style={{padding:"4px 8px",borderRadius:4,cursor:"pointer",
                   background:cfg.pitchRatio===pr.val?C.accentL:"transparent",
                   border:`1px solid ${cfg.pitchRatio===pr.val?C.accentM:C.border}`,transition:"all 0.1s"}}>
-                <span style={{fontSize:12,fontWeight:600,color:cfg.pitchRatio===pr.val?C.accent:C.text2}}>{pr.label}</span>
+                <span style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pitchRatio===pr.val?C.accent:C.text2}}>{pr.label}</span>
               </div>
             ))}
           </div>
 
           <Divider/>
-          <Label>Pitch Pattern</Label>
+          <Label fontScale={fontScale}>Pitch Pattern</Label>
           <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>
             {PITCH_PATTERNS.map(pp=>(
               <div key={pp.id} onClick={()=>setCfg(p=>({...p,pattern:pp.id}))}
                 style={{padding:"5px 8px",borderRadius:4,cursor:"pointer",
                   background:cfg.pattern===pp.id?C.accentL:"transparent",
                   border:`1px solid ${cfg.pattern===pp.id?C.accentM:C.border}`,transition:"all 0.1s"}}>
-                <div style={{fontSize:12,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div>
-                <div style={{fontSize:10,color:C.text3,marginTop:1}}>{pp.desc}</div>
+                <div style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div>
+                <div style={{fontSize:10*fontScale,color:C.text3,marginTop:1}}>{pp.desc}</div>
               </div>
             ))}
           </div>
 
           <Divider/>
-          <Label>Tube Passes</Label>
+          <Label fontScale={fontScale}>Tube Passes</Label>
           <div style={{display:"flex",gap:4,marginBottom:8}}>
             {[1,2,4,6,8].map(n=>(
               <Chip key={n} label={`${n}P`} active={cfg.numPasses===n}
@@ -702,7 +725,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           <Divider/>
           <button onClick={generate} disabled={busy}
             style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer",
-              fontFamily:F,fontSize:13,fontWeight:700,
+              fontFamily:F,fontSize:13*fontScale,fontWeight:700,
               background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff",
               border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)",
               display:"flex",alignItems:"center",justifyContent:"center",gap:8,
@@ -714,7 +737,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         <div style={{height: "45%", display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`}}>
           {/* Display options */}
           <div style={{padding:"8px 14px"}}>
-            <div style={{fontSize:10,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
+            <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
             <div style={{display:"flex",gap:3,marginBottom:5}}>
               {(["mono","pass","row"] as const).map(m=>(
                 <Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m}
@@ -724,7 +747,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
               {[["Labels",showLabels,setShowLabels],["Dims",showDims,setShowDims],["Grid",showGrid,setShowGrid],["Shell",showShell,setShowShell]].map(([l,v,fn])=>(
                 <button key={l as string} onClick={()=>(fn as any)(!(v as boolean))}
-                  style={{fontFamily:F,fontSize:10,padding:"2px 7px",borderRadius:3,cursor:"pointer",
+                  style={{fontFamily:F,fontSize:10*fontScale,padding:"2px 7px",borderRadius:3,cursor:"pointer",
                     background:(v as boolean)?C.accent:C.panel,color:(v as boolean)?"#fff":C.text2,
                     border:`1px solid ${(v as boolean)?C.accent:C.border2}`,transition:"all 0.1s"}}>{l as string}
                 </button>
@@ -734,7 +757,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           
           {/* Tube List */}
           <div style={{padding:"8px 14px 12px", flex: 1, display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, minHeight: 0}}>
-            <div style={{fontSize:10,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Tube List ({tubes.length})</div>
+            <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Tube List ({tubes.length})</div>
             <div style={{flex: 1, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 4, background: C.bg}}>
               {sortedTubes.map(t => {
                 const isSel = selIds.has(t.id);
@@ -755,10 +778,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                       textAlign: 'left'
                     }}
                   >
-                    <span style={{ fontFamily: FM, fontSize: 11, color: isSel ? C.accent : C.text }}>
+                    <span style={{ fontFamily: FM, fontSize: 11 * fontScale, color: isSel ? C.accent : C.text }}>
                       R{String(t.row + 1).padStart(2, '0')}-C{String(t.col + 1).padStart(2, '0')}
                     </span>
-                    <span style={{ fontFamily: F, fontSize: 10, color: C.text3, background: C.border, padding: '1px 4px', borderRadius: 3 }}>
+                    <span style={{ fontFamily: F, fontSize: 10 * fontScale, color: C.text3, background: C.border, padding: '1px 4px', borderRadius: 3 }}>
                       P{t.pass}
                     </span>
                   </button>
@@ -782,8 +805,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                 {l:"Cols",v:uCols.length,c:C.ruler},{l:"OD",v:`${cfg.tubeOdIn}"`,c:C.text},
                 {l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`,c:C.text}].map(k=>(
                 <div key={k.l} style={{display:"flex",flexDirection:"column",lineHeight:1}}>
-                  <span style={{fontSize:9,color:C.text3,textTransform:"uppercase",letterSpacing:"0.4px"}}>{k.l}</span>
-                  <span style={{fontSize:13,fontWeight:700,color:k.c,fontFamily:FM}}>{k.v}</span>
+                  <span style={{fontSize:9*fontScale,color:C.text3,textTransform:"uppercase",letterSpacing:"0.4px"}}>{k.l}</span>
+                  <span style={{fontSize:13*fontScale,fontWeight:700,color:k.c,fontFamily:FM}}>{k.v}</span>
                 </div>
               ))}
             </div>
@@ -812,15 +835,25 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           {needRecalc&&(
             <div style={{display:"flex",alignItems:"center",gap:5,background:C.warnL,
               border:"1px solid #fbbf24",borderRadius:4,padding:"3px 8px"}}>
-              <span style={{fontSize:10,color:"#92400e",fontWeight:500}}>⚠ Numbering stale</span>
+              <span style={{fontSize:10*fontScale,color:"#92400e",fontWeight:500}}>⚠ Numbering stale</span>
               <Btn size="xs" variant="warn" onClick={recalc}>↺ Recalculate</Btn>
             </div>
           )}
 
           <Btn size="xs" variant="ghost" onClick={fitView} title="Fit view">⊙ Fit</Btn>
           <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.min(30,zoom*1.2);zoomRef.current=z;setZoom(z);}}>+</Btn>
-          <span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(zoom*100).toFixed(0)}%</span>
+          <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3,minWidth:36,textAlign:"center"}}>{(zoom*100).toFixed(0)}%</span>
           <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}}>–</Btn>
+          
+          <div style={{width:1,height:22,background:C.border}}/>
+          <Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.max(0.5, s - 0.1))}>A-</Btn>
+          <span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(fontScale*100).toFixed(0)}%</span>
+          <Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.min(2, s + 0.1))}>A+</Btn>
+
+          <div style={{width:1,height:22,background:C.border}}/>
+          <Btn size="xs" variant="ghost" onClick={toggleFullscreen} title="Fullscreen (F)">
+            {isFullscreen ? <Minimize size={14}/> : <Maximize size={14}/>}
+          </Btn>
           
           {!isTrial && (
             <>
@@ -839,8 +872,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             <div style={{position:"absolute",inset:0,background:"rgba(241,245,249,0.93)",
               display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10}}>
               <Spinner/>
-              <div style={{fontFamily:F,fontSize:14,fontWeight:600,color:C.text,marginTop:14}}>Generating layout…</div>
-              <div style={{fontFamily:F,fontSize:12,color:C.text2,marginTop:4}}>Placing tubes · checking clearances</div>
+              <div style={{fontFamily:F,fontSize:14*fontScale,fontWeight:600,color:C.text,marginTop:14}}>Generating layout…</div>
+              <div style={{fontFamily:F,fontSize:12*fontScale,color:C.text2,marginTop:4}}>Placing tubes · checking clearances</div>
               <div style={{marginTop:14,width:160,height:3,background:C.border,borderRadius:2,overflow:"hidden"}}>
                 <div style={{height:"100%",background:C.accent,borderRadius:2,
                   animation:"td-progress 1.2s ease-in-out infinite",width:"45%"}}/>
@@ -854,16 +887,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             onDoubleClick={onDblClick}
             onMouseLeave={()=>{setHoverId(null);panDrag.current=null;selStart.current=null;setSelBox(null);}}
             onWheel={onWheel} onContextMenu={e=>e.preventDefault()}/>
-          <div style={{position:"absolute",bottom:16,right:16,display:"flex",flexDirection:"column",gap:4}}>
-            {([["+",()=>{const z=Math.min(30,zoom*1.25);zoomRef.current=z;setZoom(z);}],
-               ["–",()=>{const z=Math.max(0.03,zoom/1.25);zoomRef.current=z;setZoom(z);}],
-               ["⊙",fitView]] as [string,()=>void][]).map(([l,fn])=>(
-              <button key={l} onClick={fn} style={{width:28,height:28,borderRadius:4,cursor:"pointer",
-                fontFamily:FM,fontSize:l==="⊙"?13:16,fontWeight:700,display:"flex",alignItems:"center",
-                justifyContent:"center",background:"rgba(255,255,255,0.9)",
-                border:`1px solid ${C.border2}`,color:C.text2,boxShadow:"0 1px 4px rgba(0,0,0,0.08)"}}>{l}</button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -874,15 +897,15 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
           {/* Selection info */}
           <div style={{marginBottom:6}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Selection</div>
-            {!selIds.size&&<div style={{fontSize:11,color:C.text3,lineHeight:1.7}}>Click or drag to select.<br/>Shift+click to add.<br/>Del to delete.</div>}
+            <div style={{fontSize:11*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Selection</div>
+            {!selIds.size&&<div style={{fontSize:11*fontScale,color:C.text3,lineHeight:1.7}}>Click or drag to select.<br/>Shift+click to add.<br/>Del to delete.</div>}
             {selIds.size===1&&(()=>{const t=selTubes[0];return(
               <div>
-                <div style={{fontFamily:FM,fontSize:16,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>
+                <div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>
                 {[["Pass",t.pass],["x",`${t.x.toFixed(2)} mm`],["y",`${t.y.toFixed(2)} mm`],["OD",`${(t.r*2/25.4).toFixed(3)}"`]].map(([k,v])=>(
                   <div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-                    <span style={{fontSize:11,color:C.text3}}>{k}</span>
-                    <span style={{fontFamily:FM,fontSize:11,color:C.text}}>{v}</span>
+                    <span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span>
+                    <span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span>
                   </div>
                 ))}
                 <Btn variant="danger" size="xs" onClick={delSelected}>Remove tube</Btn>
@@ -890,8 +913,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             );})()}
             {selIds.size>1&&(
               <div>
-                <div style={{fontFamily:FM,fontSize:13,fontWeight:700,color:C.accent,marginBottom:4}}>{selIds.size} selected</div>
-                <div style={{fontSize:11,color:C.text2,marginBottom:5,lineHeight:1.6}}>
+                <div style={{fontFamily:FM,fontSize:13*fontScale,fontWeight:700,color:C.accent,marginBottom:4}}>{selIds.size} selected</div>
+                <div style={{fontSize:11*fontScale,color:C.text2,marginBottom:5,lineHeight:1.6}}>
                   Rows: {selRows.slice(0,4).map(r=>`R${r+1}`).join(", ")}{selRows.length>4?`+${selRows.length-4}`:""}<br/>
                   Cols: {selCols.length} unique
                 </div>
@@ -901,7 +924,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           </div>
 
           <Divider label="Rows"/>
-          <div style={{fontSize:10,color:C.text2,marginBottom:4}}>Click=select · Shift=add · +↓ insert · ✕ delete</div>
+          <div style={{fontSize:10*fontScale,color:C.text2,marginBottom:4}}>Click=select · Shift=add · +↓ insert · ✕ delete</div>
           <div style={{maxHeight:160,overflowY:"auto",border:`1px solid ${C.border}`,borderRadius:4}}>
             {uRows.map(r=>{
               const cnt=tubes.filter(t=>t.row===r).length;
@@ -910,13 +933,13 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                 style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px",
                   borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:isSel?C.accentL:"transparent"}}>
                 <div style={{width:8,height:8,borderRadius:"50%",background:rowColor(r),flexShrink:0}}/>
-                <span style={{fontFamily:FM,fontSize:10,color:isSel?C.accent:C.text,flex:1}}>R{r+1}</span>
-                <span style={{fontFamily:FM,fontSize:10,color:C.text3}}>{cnt}t</span>
+                <span style={{fontFamily:FM,fontSize:10*fontScale,color:isSel?C.accent:C.text,flex:1}}>R{r+1}</span>
+                <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{cnt}t</span>
                 <button onClick={e=>{e.stopPropagation();insertRowAfter(r);}} title="Insert row below"
-                  style={{fontFamily:F,fontSize:9,padding:"1px 4px",borderRadius:2,cursor:"pointer",
+                  style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer",
                     background:"transparent",border:`1px solid ${C.border2}`,color:C.text3}}>+↓</button>
                 <button onClick={e=>{e.stopPropagation();delRow(r);}} title="Delete row"
-                  style={{fontFamily:F,fontSize:9,padding:"1px 4px",borderRadius:2,cursor:"pointer",
+                  style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer",
                     background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button>
               </div>);
             })}
@@ -930,17 +953,17 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
               return(<div key={c} onClick={e=>e.shiftKey?addSelCol(c):selCol(c)}
                 style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px",
                   borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:isSel?C.accentL:"transparent"}}>
-                <span style={{fontFamily:FM,fontSize:10,color:isSel?C.accent:C.text,flex:1}}>C{c+1}</span>
-                <span style={{fontFamily:FM,fontSize:10,color:C.text3}}>{cnt}t</span>
+                <span style={{fontFamily:FM,fontSize:10*fontScale,color:isSel?C.accent:C.text,flex:1}}>C{c+1}</span>
+                <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{cnt}t</span>
                 <button onClick={e=>{e.stopPropagation();insertColAfter(c);}} title="Insert col after"
-                  style={{fontFamily:F,fontSize:9,padding:"1px 4px",borderRadius:2,cursor:"pointer",
+                  style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer",
                     background:"transparent",border:`1px solid ${C.border2}`,color:C.text3}}>+→</button>
                 <button onClick={e=>{e.stopPropagation();delCol(c);}} title="Delete column"
-                  style={{fontFamily:F,fontSize:9,padding:"1px 4px",borderRadius:2,cursor:"pointer",
+                  style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer",
                     background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button>
               </div>);
             })}
-            {uCols.length>60&&<div style={{padding:"3px 6px",fontSize:10,color:C.text3}}>…{uCols.length-60} more</div>}
+            {uCols.length>60&&<div style={{padding:"3px 6px",fontSize:10*fontScale,color:C.text3}}>…{uCols.length-60} more</div>}
           </div>
 
           {cfg.numPasses>1&&(
@@ -952,10 +975,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                     style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px",
                       borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}>
                     <div style={{width:8,height:8,borderRadius:"50%",background:passColor(pp),flexShrink:0}}/>
-                    <span style={{fontFamily:FM,fontSize:10,color:C.text,flex:1}}>Pass {pp}</span>
-                    <span style={{fontFamily:FM,fontSize:10,color:C.text3}}>{tubes.filter(t=>t.pass===pp).length}t</span>
+                    <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text,flex:1}}>Pass {pp}</span>
+                    <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{tubes.filter(t=>t.pass===pp).length}t</span>
                     <button onClick={e=>{e.stopPropagation();delPass(pp);}}
-                      style={{fontFamily:F,fontSize:9,padding:"1px 4px",borderRadius:2,cursor:"pointer",
+                      style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer",
                         background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button>
                   </div>
                 ))}
@@ -966,13 +989,13 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           <Divider label="Recalculate"/>
           <button onClick={recalc}
             style={{width:"100%",padding:"7px 0",borderRadius:4,cursor:"pointer",fontFamily:F,
-              fontSize:12,fontWeight:600,
+              fontSize:12*fontScale,fontWeight:600,
               background:needRecalc?C.warn:"transparent",
               color:needRecalc?"#fff":C.text2,
               border:`1px solid ${needRecalc?C.warn:C.border2}`,transition:"all 0.15s"}}>
             ↺ Recalculate Rows & Cols
           </button>
-          <div style={{fontSize:10,color:C.text3,marginTop:3,lineHeight:1.5}}>Keyboard: Ctrl+Z undo · Ctrl+Y redo · Del to delete</div>
+          <div style={{fontSize:10*fontScale,color:C.text3,marginTop:3,lineHeight:1.5}}>Keyboard: Ctrl+Z undo · Ctrl+Y redo · Del to delete</div>
 
           {layout&&(
             <>
@@ -984,8 +1007,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                   ["Rows",uRows.length],["Passes",cfg.numPasses],
                   ["OTL",`ø${(layout.bundleDia/25.4).toFixed(2)}"`]].map(([k,v])=>(
                   <div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-                    <span style={{fontSize:10,color:C.text3}}>{k}</span>
-                    <span style={{fontFamily:FM,fontSize:10,color:C.text,textAlign:"right"}}>{v}</span>
+                    <span style={{fontSize:10*fontScale,color:C.text3}}>{k}</span>
+                    <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text,textAlign:"right"}}>{v}</span>
                   </div>
                 ))}
               </div>

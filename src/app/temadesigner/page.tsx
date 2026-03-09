@@ -11,15 +11,12 @@ export default function TemaDesignerTrialPage() {
     <div className={cn("flex flex-col h-screen", 'screenshot-protection')}>
       <PublicHeader />
       <main className="flex-grow flex flex-col relative">
-         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-            <p className="text-9xl font-black text-foreground/5 -rotate-45 opacity-50">Trial Version</p>
-        </div>
         <div className="p-4 bg-background border-b z-10">
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Trial Mode</AlertTitle>
+            <AlertTitle>You're Using the Trial Version</AlertTitle>
             <AlertDescription>
-              This is a trial version of the TEMA Designer. Exporting data is restricted. <Link href="/signup" className="underline font-semibold">Sign up</Link> for a full account to unlock all features.
+              This is a feature-limited trial of the TEMA Designer. To save your designs, attach them to jobs, and export to CSV, JSON, or DXF, please <Link href="/signup" className="underline font-semibold hover:text-primary">sign up for a free account</Link>.
             </AlertDescription>
           </Alert>
         </div>

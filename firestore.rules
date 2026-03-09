@@ -1,4 +1,5 @@
 
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -71,7 +72,14 @@ service cloud.firestore {
     }
     
     match /notifications/{notificationId} {
-      allow read, write, delete: if isOwner(resource.data.userId);
+      // Allow users to query for their own notifications.
+      // The query in the app MUST include a `where('userId', '==', request.auth.uid)` clause.
+      allow list: if request.auth.uid == resource.data.userId;
+      
+      // Allow users to get, update, or delete their own specific notification.
+      allow get, update, delete: if isOwner(resource.data.userId);
+
+      // Allow users to create notifications for themselves.
       allow create: if isOwner(request.resource.data.userId);
     }
 

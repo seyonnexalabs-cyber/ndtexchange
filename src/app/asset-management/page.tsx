@@ -154,6 +154,7 @@ export default function AssetManagementPage() {
                           <div>
                             <h4 className="font-semibold">Design & Construction (New)</h4>
                             <p className="text-muted-foreground"><span className="font-bold text-foreground">API 650:</span> For welded steel tanks operating at low pressures.</p>
+                            <p className="text-muted-foreground mt-2"><span className="font-bold text-foreground">API 620:</span> For large, low-pressure storage tanks, including refrigerated and heated tanks.</p>
                           </div>
                           <div>
                             <h4 className="font-semibold">In-Service Inspection</h4>

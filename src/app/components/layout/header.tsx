@@ -1,4 +1,3 @@
-
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -257,3 +256,5 @@ const AppHeader = () => {
         </header>
     );
 }
+
+export default AppHeader;

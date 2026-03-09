@@ -157,8 +157,8 @@ export default function AssetManagementPage() {
                             <p className="text-muted-foreground mt-2"><span className="font-bold text-foreground">API 620:</span> For large, low-pressure storage tanks, including refrigerated and heated tanks.</p>
                           </div>
                           <div>
-                            <h4 className="font-semibold">In-Service Inspection</h4>
-                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 653:</span> Covers inspection, repair, alteration, and reconstruction.</p>
+                            <h4 className="font-semibold">In-Service Inspection & Design</h4>
+                            <p className="text-muted-foreground"><span className="font-bold text-foreground">API 653:</span> Tank Inspection, Repair, Alteration, and Reconstruction. This standard covers the maintenance inspection, repair, alteration, relocation, and reconstruction of steel aboveground storage tanks used in the petroleum and chemical industries.</p>
                           </div>
                         </CardContent>
                       </Card>

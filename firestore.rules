@@ -103,7 +103,8 @@ service cloud.firestore {
     
     match /jobs/{jobId} {
       // Marketplace jobs are readable by any authenticated user
-      allow read: if resource.data.status == 'Posted' || 
+      allow read: if isOwner(resource.data.userId) ||
+                  resource.data.status == 'Posted' || 
                   isCompanyMember(resource.data.clientCompanyId) || 
                   (resource.data.providerCompanyId != null && isCompanyMember(resource.data.providerCompanyId)) ||
                   (resource.data.auditorCompanyId != null && isCompanyMember(resource.data.auditorCompanyId)) ||

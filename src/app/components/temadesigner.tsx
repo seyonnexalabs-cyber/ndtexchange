@@ -2,8 +2,8 @@
 
 "use client";
 /**
- * TemaDesigner v15
- * - Uses tabs in the left panel to separate Design controls from Layout Details.
+ * TemaDesigner v16
+ * - Uses tabs in the left panel. File menu moved into Design tab.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import {
@@ -431,7 +431,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       const ht=tubes.find(t=>t.id===hoverId);
       if(ht){
         const tx=p.x+ht.x*z, ty=p.y+ht.y*z;
-        const lines=[`R${ht.row+1}·C${ht.col+1}`,`Pass ${ht.pass}`, `Status: ${ht.status || 'ok'}`, `x: ${(ht.x/25.4).toFixed(4)}"`, `y: ${(ht.y/25.4).toFixed(4)}"`];
+        const lines=[`R${ht.row+1}·C${ht.col+1}`,`Pass ${ht.pass}`, `Status: ${ht.status || 'ok'}`, `x: ${(ht.x*IN).toFixed(4)}"`, `y: ${(ht.y*IN).toFixed(4)}"`];
         const fw=140,lh=14,pad=6,fh=lines.length*lh*fontScale+pad*2;
         let bx=tx+ht.r*z+8, by=ty-fh/2;
         if(bx+fw>CW) bx=tx-ht.r*z-fw-8;
@@ -671,6 +671,34 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             </TabsList>
             <TabsContent value="design" className="flex-grow overflow-y-auto">
                 <div style={{padding:"12px 14px 16px"}}>
+                    <div style={{display:"flex", gap: 6, marginBottom: 12, alignItems: 'center'}}>
+                        {!isTrial && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Btn size="sm"><FileText size={14}/> File</Btn>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onSelect={() => handleSave()} disabled={!designId}><Save size={14} className="mr-2"/> Save</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setIsSaveModalOpen(true)}><Save size={14} className="mr-2"/> Save As...</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setIsLoadModalOpen(true)}><FolderOpen size={14} className="mr-2"/> Load</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setIsAttachModalOpen(true)} disabled={!designId}><Link2 size={14} className="mr-2"/> Attach to Job</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuSub>
+                                        <DropdownMenuSubTrigger><FileDown size={14} className="mr-2"/> Export</DropdownMenuSubTrigger>
+                                        <DropdownMenuPortal>
+                                            <DropdownMenuSubContent>
+                                                <DropdownMenuItem onSelect={expCSV}>CSV (.csv)</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={expJSON}>JSON (.json)</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={expDXF}>DXF (.dxf)</DropdownMenuItem>
+                                            </DropdownMenuSubContent>
+                                        </DropdownMenuPortal>
+                                    </DropdownMenuSub>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                        <button onClick={() => generate(true)} disabled={busy} style={{flex: 1, padding:"7px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
+                    </div>
+                    <Divider />
                     <Label>Shell Shape</Label>
                     <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
                         {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
@@ -715,8 +743,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                     <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_PATTERNS.map(pp=>(<div key={pp.id} onClick={()=>setCfg(p=>({...p,pattern:pp.id}))} style={{padding:"5px 8px",borderRadius:4,cursor:"pointer", background:cfg.pattern===pp.id?C.accentL:"transparent", border:`1px solid ${cfg.pattern===pp.id?C.accentM:C.border}`,transition:"all 0.1s"}}><div style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div><div style={{fontSize:10*fontScale,color:C.text3,marginTop:1}}>{pp.desc}</div></div>))}</div>
                     <Divider/><Label>Tube Passes</Label>
                     <div style={{display:"flex",gap:4,marginBottom:8}}>{[1,2,4,6,8].map(n=>(<Chip key={n} label={`${n}P`} active={cfg.numPasses===n} onClick={()=>setCfg(p=>({...p,numPasses:n}))} color={C.accent}/>))}</div>
-                    <Divider/>
-                    <button onClick={() => generate(true)} disabled={busy} style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
                 </div>
             </TabsContent>
             <TabsContent value="details" className="flex-grow flex flex-col min-h-0">
@@ -768,53 +794,26 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
         <div style={{height:42,flexShrink:0,display:"flex",alignItems:"center",padding:"0 10px", gap:5,background:C.panel,borderBottom:`1px solid ${C.border}`,flexWrap:"nowrap",overflowX:"auto"}}>
-            {!isTrial && (
-                <>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Btn size="xs"><FileText size={12}/> File</Btn>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem onSelect={() => handleSave()} disabled={!designId}><Save size={14} className="mr-2"/> Save</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setIsSaveModalOpen(true)}><Save size={14} className="mr-2"/> Save As...</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setIsLoadModalOpen(true)}><FolderOpen size={14} className="mr-2"/> Load</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setIsAttachModalOpen(true)} disabled={!designId}><Link2 size={14} className="mr-2"/> Attach to Job</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger><FileDown size={14} className="mr-2"/> Export</DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                                <DropdownMenuSubContent>
-                                    <DropdownMenuItem onSelect={expCSV}>CSV (.csv)</DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={expJSON}>JSON (.json)</DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={expDXF}>DXF (.dxf)</DropdownMenuItem>
-                                </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <div style={{width:1,height:22,background:C.border}}/>
-                </>
-            )}
-          <Btn size="xs" variant="ghost" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">↩ Undo</Btn>
-          <Btn size="xs" variant="ghost" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Y)">↪ Redo</Btn>
-          <div style={{width:1,height:22,background:C.border}}/>
-          <div style={{display:"flex",gap:3}}>
-            <Chip label="⬚ Select" active={tool==="select"} onClick={()=>{setTool("select");}}/>
-            <Chip label="✥ Pan" active={tool==="pan"} onClick={()=>{setTool("pan");}}/>
-            <Chip label="● Plug" active={tool==="plug"} onClick={()=>{setTool("plug");}} color="#334155"/>
-          </div>
-          <div style={{width:1,height:22,background:C.border}}/>
-          <Btn size="xs" onClick={selAll}>All</Btn>
-          <Btn size="xs" onClick={clearSel} disabled={!selIds.size}>Clear</Btn>
-          {selIds.size>0&&<Btn size="xs" variant="danger" onClick={delSelected}>✕ Delete {selIds.size}</Btn>}
-          <div style={{flex:1}}/>
-          {needRecalc&&(<div style={{display:"flex",alignItems:"center",gap:5,background:C.warnL, border:"1px solid #fbbf24",borderRadius:4,padding:"3px 8px"}}><span style={{fontSize:10*fontScale,color:"#92400e",fontWeight:500}}>⚠ Numbering stale</span><Btn size="xs" variant="warn" onClick={recalc}>↺ Recalculate</Btn></div>)}
-          <Btn size="xs" variant="ghost" onClick={fitView} title="Fit view">⊙ Fit</Btn>
-          <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.min(30,zoom*1.2);zoomRef.current=z;setZoom(z);}}>+</Btn>
-          <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3,minWidth:36,textAlign:"center"}}>{(zoom*100).toFixed(0)}%</span>
-          <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}}>–</Btn>
-          <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.max(0.5, s - 0.1))}>A-</Btn><span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(fontScale*100).toFixed(0)}%</span><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.min(2, s + 0.1))}>A+</Btn>
-          <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={toggleFullscreen} title="Fullscreen (F)">{isFullscreen ? <Minimize size={14}/> : <Maximize size={14}/>}</Btn>
+            <Btn size="xs" variant="ghost" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">↩ Undo</Btn>
+            <Btn size="xs" variant="ghost" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Y)">↪ Redo</Btn>
+            <div style={{width:1,height:22,background:C.border}}/>
+            <div style={{display:"flex",gap:3}}>
+                <Chip label="⬚ Select" active={tool==="select"} onClick={()=>{setTool("select");}}/>
+                <Chip label="✥ Pan" active={tool==="pan"} onClick={()=>{setTool("pan");}}/>
+                <Chip label="● Plug" active={tool==="plug"} onClick={()=>{setTool("plug");}} color="#334155"/>
+            </div>
+            <div style={{width:1,height:22,background:C.border}}/>
+            <Btn size="xs" onClick={selAll}>All</Btn>
+            <Btn size="xs" onClick={clearSel} disabled={!selIds.size}>Clear</Btn>
+            {selIds.size>0&&<Btn size="xs" variant="danger" onClick={delSelected}>✕ Delete {selIds.size}</Btn>}
+            <div style={{flex:1}}/>
+            {needRecalc&&(<div style={{display:"flex",alignItems:"center",gap:5,background:C.warnL, border:"1px solid #fbbf24",borderRadius:4,padding:"3px 8px"}}><span style={{fontSize:10*fontScale,color:"#92400e",fontWeight:500}}>⚠ Numbering stale</span><Btn size="xs" variant="warn" onClick={recalc}>↺ Recalculate</Btn></div>)}
+            <Btn size="xs" variant="ghost" onClick={fitView} title="Fit view">⊙ Fit</Btn>
+            <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.min(30,zoom*1.2);zoomRef.current=z;setZoom(z);}}>+</Btn>
+            <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3,minWidth:36,textAlign:"center"}}>{(zoom*100).toFixed(0)}%</span>
+            <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}}>–</Btn>
+            <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.max(0.5, s - 0.1))}>A-</Btn><span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(fontScale*100).toFixed(0)}%</span><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.min(2, s + 0.1))}>A+</Btn>
+            <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={toggleFullscreen} title="Fullscreen (F)">{isFullscreen ? <Minimize size={14}/> : <Maximize size={14}/>}</Btn>
         </div>
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
           {busy&&(<div style={{position:"absolute",inset:0,background:"rgba(241,245,249,0.93)", display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10}}><Spinner/><div style={{fontFamily:F,fontSize:14*fontScale,fontWeight:600,color:C.text,marginTop:14}}>Generating layout…</div><div style={{fontFamily:F,fontSize:12*fontScale,color:C.text2,marginTop:4}}>Placing tubes · checking clearances</div><div style={{marginTop:14,width:160,height:3,background:C.border,borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:C.accent,borderRadius:2, animation:"td-progress 1.2s ease-in-out infinite",width:"45%"}}/></div></div>)}
@@ -913,6 +912,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

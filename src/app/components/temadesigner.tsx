@@ -2,7 +2,8 @@
 
 "use client";
 /**
- * TemaDesigner v9
+ * TemaDesigner v13
+ * - Moves layout stats from header to a new section in the left panel.
  * - Fixes dropdown menu not opening
  * - Adds font size and fullscreen controls
  * - Consolidates file actions into a "File" dropdown
@@ -240,7 +241,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     } else {
         generate(true);
     }
-  }, [searchParams, firestore, user, applyDesignToCanvas, generate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, firestore, user]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
    const toggleFullscreen = useCallback(() => {
@@ -683,7 +685,27 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           <button onClick={() => generate(true)} disabled={busy} style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
         </div>
 
-        <div style={{height: "45%", display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`}}>
+        <div style={{display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, overflow: 'hidden'}}>
+          {layout && (
+            <div style={{padding:"8px 14px", borderBottom: `1px solid ${C.border}`}}>
+                <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Layout Summary</div>
+                <div style={{display:'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap:'2px 10px'}}>
+                    {[
+                        {l:"Tubes",v:tubes.length},
+                        {l:"Rows",v:uRows.length},
+                        {l:"Cols",v:uCols.length},
+                        {l:"Passes",v:cfg.numPasses},
+                        {l:"OD",v:`${cfg.tubeOdIn}"`},
+                        {l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`},
+                    ].map(k=>(
+                        <div key={k.l} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+                            <span style={{fontSize:11*fontScale,color:C.text3}}>{k.l}</span>
+                            <span style={{fontSize:12*fontScale,fontWeight:600,color:C.text,fontFamily:FM}}>{k.v}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          )}
           <div style={{padding:"8px 14px"}}>
             <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
             <div style={{display:"flex",gap:3,marginBottom:5}}>{(["mono","pass","row"] as const).map(m=>(<Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m} onClick={()=>setColorMode(m)} color="#475569"/>))}</div>
@@ -711,9 +733,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
         <div style={{height:42,flexShrink:0,display:"flex",alignItems:"center",padding:"0 10px", gap:5,background:C.panel,borderBottom:`1px solid ${C.border}`,flexWrap:"nowrap",overflowX:"auto"}}>
-
-          {layout&&(<div style={{display:"flex",gap:10,alignItems:"center",marginRight:4}}>{[{l:"Tubes",v:tubes.length,c:C.accent},{l:"Rows",v:uRows.length,c:C.success},{l:"Cols",v:uCols.length,c:C.ruler},{l:"OD",v:`${cfg.tubeOdIn}"`,c:C.text},{l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`,c:C.text}].map(k=>(<div key={k.l} style={{display:"flex",flexDirection:"column",lineHeight:1}}><span style={{fontSize:9*fontScale,color:C.text3,textTransform:"uppercase",letterSpacing:"0.4px"}}>{k.l}</span><span style={{fontSize:13*fontScale,fontWeight:700,color:k.c,fontFamily:FM}}>{k.v}</span></div>))}</div>)}
-          <div style={{width:1,height:22,background:C.border}}/>
             {!isTrial && (
                 <>
                 <DropdownMenu>
@@ -781,7 +800,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           {cfg.numPasses>1&&(<><Divider label="Passes"/><div style={{border:`1px solid ${C.border}`,borderRadius:4}}>{uPasses.map(pp=>(<div key={pp} onClick={()=>selPass(pp)} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px", borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}><div style={{width:8,height:8,borderRadius:"50%",background:passColor(pp),flexShrink:0}}/><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text,flex:1}}>Pass {pp}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{tubes.filter(t=>t.pass===pp).length}t</span><button onClick={e=>{e.stopPropagation();delPass(pp);}} style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button></div>))}</div></>)}
           <Divider label="Recalculate"/><button onClick={recalc} style={{width:"100%",padding:"7px 0",borderRadius:4,cursor:"pointer",fontFamily:F, fontSize:12*fontScale,fontWeight:600, background:needRecalc?C.warn:"transparent", color:needRecalc?"#fff":C.text2, border:`1px solid ${needRecalc?C.warn:C.border2}`,transition:"all 0.15s"}}>↺ Recalculate Rows & Cols</button>
           <div style={{fontSize:10*fontScale,color:C.text3,marginTop:3,lineHeight:1.5}}>Keyboard: Ctrl+Z undo · Ctrl+Y redo · Del to delete</div>
-          {layout&&(<><Divider label="Layout Info"/><div style={{background:C.bg,borderRadius:4,padding:"8px",border:`1px solid ${C.border}`}}>{[["OD",`${cfg.tubeOdIn}" / ${layout.tubeOdMm.toFixed(1)}mm`],["Pitch",`${layout.pitchMm.toFixed(2)}mm`],["Ratio",`${cfg.pitchRatio}×OD`],["Pattern",cfg.pattern],["Shape",cfg.shape.type],["Total",`${tubes.length} tubes`],["Rows",uRows.length],["Passes",cfg.numPasses],["OTL",`ø${(layout.bundleDia/25.4).toFixed(2)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:10*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text,textAlign:"right"}}>{v}</span></div>))}</div></>)}
         </div>
       </div>
 
@@ -859,7 +877,4 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
-
-
-
 

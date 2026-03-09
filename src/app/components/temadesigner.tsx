@@ -92,12 +92,15 @@ function Spinner(){return <div style={{width:22,height:22,border:`2px solid ${C.
 const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",numPasses:1,
   shape:{type:"circle",diameterMm:304.8}};
 
-// ── Undo/redo helpers ─────────────────────────────────────────────────────────
-const useHistory = <T,>(initialState: T) => {
-    const [state, setState] = useState({
-        past: [] as T[],
+const useUndoRedo = <T,>(initialState: T) => {
+    const [state, setState] = useState<{
+        past: T[];
+        present: T;
+        future: T[];
+    }>({
+        past: [],
         present: initialState,
-        future: [] as T[],
+        future: [],
     });
 
     const canUndo = state.past.length > 0;
@@ -164,7 +167,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const router = useRouter();
 
   // Tubes with undo/redo
-  const [tubes, setTubes, undo, redo, canUndo, canRedo]=useHistory<LayoutTube[]>([]);
+  const [tubes, setTubes, undo, redo, canUndo, canRedo]=useUndoRedo<LayoutTube[]>([]);
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -910,6 +913,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

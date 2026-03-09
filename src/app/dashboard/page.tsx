@@ -479,7 +479,7 @@ const InspectorDashboard = () => {
     const { user: authUser, firestore } = useFirebase();
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
     
     useEffect(() => {
@@ -634,6 +634,7 @@ const AuditorDashboard = () => {
 
     const { data: jobs, isLoading } = useCollection<Job>(jobsQuery);
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<any>(useMemoFirebase(() => firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null, [firestore]));
+    const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(useMemoFirebase(() => firestore ? collection(firestore, 'inspections') : null, [firestore]));
 
     const auditQueue = useMemo(() => jobs?.filter(j => j.status === 'Report Submitted') || [], [jobs]);
     const auditsCompleted = useMemo(() => jobs?.filter(j => j.status === 'Audit Approved').length || 0, [jobs]);
@@ -645,7 +646,7 @@ const AuditorDashboard = () => {
         return date ? date.getTime() : 0;
     };
     
-     if (isLoading || isLoadingProviders) {
+     if (isLoading || isLoadingProviders || isLoadingInspections) {
         return <DashboardSkeleton />;
     }
 
@@ -696,7 +697,8 @@ const AuditorDashboard = () => {
                         </TableHeader>
                         <TableBody>
                             {auditQueue.sort((a,b) => getSortableTimestamp(a) - getSortableTimestamp(b)).map(job => {
-                                const reportId = job.inspections?.find(insp => insp.report)?.report?.id;
+                                const inspectionWithReport = inspections?.find(insp => insp.jobId === job.id && insp.report);
+                                const reportId = inspectionWithReport?.report?.id;
                                 const submittedDate = safeParseDate(job.history?.find(h => h.statusChange === 'Report Submitted')?.timestamp);
 
                                 return (

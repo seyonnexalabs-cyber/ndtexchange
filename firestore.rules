@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -74,6 +75,11 @@ service cloud.firestore {
       allow create: if isOwner(request.resource.data.userId);
     }
 
+    match /designs/{designId} {
+      allow read, update, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId);
+    }
+
     // ---------------------------
     //  Company & Asset Collections
     // ---------------------------
@@ -112,7 +118,7 @@ service cloud.firestore {
       // Updates are complex:
       // - Client can award (change status, add providerId)
       // - Provider can accept/decline (change status)
-      // - Both can update notes, status etc.
+      // - Both can update notes, status, attachments, TEMA designs, etc.
       allow update: if isCompanyMember(resource.data.clientCompanyId) || 
                       (resource.data.providerCompanyId != null && isCompanyMember(resource.data.providerCompanyId)) ||
                       isPlatformAdmin();

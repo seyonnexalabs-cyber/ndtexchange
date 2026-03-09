@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -11,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File, Edit, MoreVertical, ChevronRight } from 'lucide-react';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File, Edit, MoreVertical, ChevronRight, Settings2 } from 'lucide-react';
 import { format, parseISO, differenceInDays, addDays, isValid } from 'date-fns';
 import Image from 'next/image';
 import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn, safeParseDate } from '@/lib/utils';
@@ -20,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, serverTimestamp, query, where, limit, getDocs, doc, updateDoc, writeBatch, documentId, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
-import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection } from '@/lib/types';
+import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection, TemaDesign } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -223,6 +224,27 @@ export default function JobDetailPage() {
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => (firestore ? collection(firestore, 'companies') : null), [firestore]));
+
+    const [attachedDesigns, setAttachedDesigns] = React.useState<TemaDesign[]>([]);
+    const [isLoadingDesigns, setIsLoadingDesigns] = React.useState(false);
+
+    React.useEffect(() => {
+        if (firestore && job?.temaDesignIds && job.temaDesignIds.length > 0) {
+            setIsLoadingDesigns(true);
+            const designsRef = collection(firestore, 'designs');
+            const q = query(designsRef, where(documentId(), 'in', job.temaDesignIds.slice(0, 10)));
+            getDocs(q).then(snapshot => {
+                const designs = snapshot.docs.map(doc => doc.data() as TemaDesign);
+                setAttachedDesigns(designs);
+                setIsLoadingDesigns(false);
+            }).catch(err => {
+                console.error("Error fetching attached designs:", err);
+                setIsLoadingDesigns(false);
+            });
+        } else {
+            setAttachedDesigns([]);
+        }
+    }, [firestore, job?.temaDesignIds]);
     
     const { provider, auditor, client } = React.useMemo(() => {
         if (!allCompanies || !job) return { provider: null, auditor: null, client: null };
@@ -278,7 +300,7 @@ export default function JobDetailPage() {
         if (provider) setReviewingBid({ ...bid, provider: provider as NDTServiceProvider });
     };
 
-    const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections;
+    const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections || isLoadingDesigns;
 
     if (isLoading) {
         return (
@@ -332,6 +354,7 @@ export default function JobDetailPage() {
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="bids">Bids</TabsTrigger>
+                    <TabsTrigger value="designs">Designs</TabsTrigger>
                     <TabsTrigger value="messages">Messages</TabsTrigger>
                     <TabsTrigger value="technicians">Technicians</TabsTrigger>
                     <TabsTrigger value="audit">Audit</TabsTrigger>
@@ -368,6 +391,30 @@ export default function JobDetailPage() {
                 </TabsContent>
                 <TabsContent value="bids" className="mt-6">
                     <BidsSection job={job} bids={sortedBids} allCompanies={allCompanies || []} onReviewBid={handleReviewBid} isClient={isClient} isAdmin={isAdmin} />
+                </TabsContent>
+                <TabsContent value="designs" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Settings2 className="h-5 w-5 text-primary" />Attached Designs</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             {attachedDesigns.length > 0 ? (
+                                <div className="space-y-2">
+                                    {attachedDesigns.map(design => (
+                                        <div key={design.id} className="flex justify-between items-center rounded-md border p-3">
+                                            <div>
+                                                <p className="font-semibold">{design.name}</p>
+                                                <p className="text-xs text-muted-foreground">ID: {design.id}</p>
+                                            </div>
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={constructUrl(`/dashboard/temadesigner?designId=${design.id}`)}>View Design</Link>
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : <p className="text-muted-foreground text-sm">No TEMA designs have been attached to this job.</p>}
+                        </CardContent>
+                    </Card>
                 </TabsContent>
                  <TabsContent value="messages" className="mt-6">
                     <Card>

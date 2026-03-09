@@ -94,6 +94,7 @@ export type Job = {
     certificationsRequired?: string[];
     clientCompanyId?: string;
     userId?: string; // The user ID of the creator of the job
+    temaDesignIds?: string[];
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;
@@ -499,4 +500,35 @@ export type NDTEvent = {
   imageId: string;
   imageHint: string;
   url: string;
+};
+
+// Types from TEMA lib
+export type TEMAConfig = {
+  tubeOdIn: number;
+  pitchRatio: number;
+  pattern: 'triangular' | 'rotated-triangular' | 'square' | 'rotated-square';
+  numPasses: number;
+  shape: any; // Simplified for now
+};
+
+export type LayoutTube = {
+  id: number;
+  x: number;
+  y: number;
+  r: number;
+  row: number;
+  col: number;
+  pass: number;
+};
+
+export type TemaDesign = {
+    id: string;
+    userId: string;
+    name: string;
+    description?: string;
+    config: TEMAConfig;
+    tubes: LayoutTube[];
+    createdAt: any;
+    modifiedAt: any;
+    jobId?: string;
 };

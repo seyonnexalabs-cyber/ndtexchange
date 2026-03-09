@@ -110,6 +110,7 @@
         "technicianIds": { "type": "array", "items": { "type": "string" } },
         "internalNotes": { "type": "string" },
         "attachments": { "type": "array", "items": { "type": "object" } },
+        "temaDesignIds": { "type": "array", "items": { "type": "string" }, "description": "A list of IDs of TEMA designs attached to this job." },
         "createdAt": { "type": "string", "format": "date-time" },
         "modifiedAt": { "type": "string", "format": "date-time" }
       },
@@ -424,6 +425,22 @@
         "url": { "type": "string", "format": "uri" }
       },
       "required": ["id", "title", "date", "location", "region", "url", "imageUrl"]
+    },
+    "TemaDesign": {
+        "title": "TEMA Design",
+        "type": "object",
+        "description": "Represents a saved TEMA tubesheet layout design.",
+        "properties": {
+            "id": { "type": "string" },
+            "userId": { "type": "string" },
+            "name": { "type": "string" },
+            "description": { "type": "string" },
+            "config": { "type": "object" },
+            "tubes": { "type": "array", "items": { "type": "object" } },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "modifiedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "name", "config", "tubes"]
     }
   },
   "auth": {
@@ -457,9 +474,8 @@
       { "path": "/manufacturers/{manuId}", "definition": { "entityName": "Manufacturer", "schema": { "$ref": "#/entities/Manufacturer" }, "description": "Public directory of NDT equipment manufacturers." } },
       { "path": "/products/{prodId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
       { "path": "/plans/{planId}", "definition": { "entityName": "Plan", "schema": { "$ref": "#/entities/Plan" }, "description": "Public directory of subscription plans." } },
-      { "path": "/events/{eventId}", "definition": { "entityName": "Event", "schema": { "$ref": "#/entities/Event" }, "description": "Public directory of industry events." } }
+      { "path": "/events/{eventId}", "definition": { "entityName": "Event", "schema": { "$ref": "#/entities/Event" }, "description": "Public directory of industry events." } },
+      { "path": "/designs/{designId}", "definition": { "entityName": "TemaDesign", "schema": { "$ref": "#/entities/TemaDesign" }, "description": "Saved TEMA tubesheet designs." } }
     ]
   }
 }
-
-    

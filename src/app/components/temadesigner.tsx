@@ -2,14 +2,10 @@
 
 "use client";
 /**
- * TemaDesigner v13
- * - Moves layout stats from header to a new section in the left panel.
- * - Fixes dropdown menu not opening
- * - Adds font size and fullscreen controls
- * - Consolidates file actions into a "File" dropdown
- * - Adds a "Plug" tool for marking tubes
+ * TemaDesigner v15
+ * - Uses tabs in the left panel to separate Design controls from Layout Details.
  */
-import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import {
   generateTEMALayout, recalcRowsCols,
   toCSV, toJSON, toDXF, passColor, rowColor,
@@ -28,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -97,29 +94,41 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
 
 // ── Undo/redo helpers ─────────────────────────────────────────────────────────
 const useHistory = <T extends any>(initialState: T) => {
-    const [index, setIndex] = useState(0);
-    const [history, setHistory] = useState<T[]>([initialState]);
+    const historyRef = useRef<T[]>([initialState]);
+    const [state, _setState] = useState(initialState);
+    const indexRef = useRef(0);
 
     const setState = useCallback((action: T | ((prevState: T) => T)) => {
-        const newState = typeof action === 'function' ? (action as (prevState: T) => T)(history[index]) : action;
-        if (JSON.stringify(newState) === JSON.stringify(history[index])) {
+        const newState = typeof action === 'function' 
+            ? (action as (prevState: T) => T)(historyRef.current[indexRef.current]) 
+            : action;
+        
+        if (JSON.stringify(newState) === JSON.stringify(historyRef.current[indexRef.current])) {
             return;
         }
-        const newHistory = history.slice(0, index + 1);
+
+        const newHistory = historyRef.current.slice(0, indexRef.current + 1);
         newHistory.push(newState);
-        setHistory(newHistory);
-        setIndex(newHistory.length - 1);
-    }, [history, index]);
+        historyRef.current = newHistory;
+        indexRef.current = newHistory.length - 1;
+        _setState(newState);
+    }, []);
 
     const undo = useCallback(() => {
-        if (index > 0) setIndex(prev => prev - 1);
-    }, [index]);
+        if (indexRef.current > 0) {
+            indexRef.current--;
+            _setState(historyRef.current[indexRef.current]);
+        }
+    }, []);
 
     const redo = useCallback(() => {
-        if (index < history.length - 1) setIndex(prev => prev + 1);
-    }, [index, history.length]);
+        if (indexRef.current < historyRef.current.length - 1) {
+            indexRef.current++;
+            _setState(historyRef.current[indexRef.current]);
+        }
+    }, []);
 
-    return [history[index], setState, undo, redo, index > 0, index < history.length - 1] as const;
+    return [state, setState, undo, redo, indexRef.current > 0, indexRef.current < historyRef.current.length - 1] as const;
 };
 
 
@@ -636,99 +645,106 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     <div ref={designerRef} style={{display:"flex",flex:1,height:"100%",overflow:"hidden",fontFamily:F,background:C.bg}}>
 
       <div style={{width:260,flexShrink:0,background:C.panel,borderRight:`1px solid ${C.border}`, display:"flex",flexDirection:"column",overflow:"hidden"}}>
-        <div style={{overflowY:"auto",padding:"12px 14px 16px"}}>
-          <Label fontScale={fontScale}>Shell Shape</Label>
-          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
-            {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
-              <Chip key={s} label={s==="polygon"?"✏ Polygon":s[0].toUpperCase()+s.slice(1)}
-                active={cfg.shape.type===s} onClick={()=>{
-                  if(s==="polygon"){setPolyWip([]);setPolyMode(true);}
-                  else{setPolyMode(false);}
-                  updateShape({type:s});
-                }} color={s==="polygon"?"#7c3aed":C.accent}/>
-            ))}
-          </div>
-          {cfg.shape.type==="polygon"&&(<div style={{marginBottom:6}}>
-              <div style={{background:polyMode?"#ede9fe":"#f5f3ff",border:`1px solid ${polyMode?"#7c3aed":"#ddd6fe"}`, borderRadius:4,padding:"6px 8px",marginBottom:4}}>
-                <div style={{fontSize:11*fontScale,color:"#7c3aed",fontWeight:600,marginBottom:2}}>{polyMode?"Drawing polygon on canvas…":"Custom polygon shape"}</div>
-                <div style={{fontSize:10*fontScale,color:"#6d28d9",lineHeight:1.5}}>{polyMode?"Click to add vertices. Double-click to close.":`${(cfg.shape.polygon?.length??0)} vertices defined.`}</div>
-              </div>
-              <div style={{display:"flex",gap:4}}><Btn size="xs" variant={polyMode?"primary":"default"} onClick={()=>{setPolyMode(true);setPolyWip([]);}}>{polyMode?"Drawing…":"✏ Draw"}</Btn>{polyMode&&<Btn size="xs" onClick={()=>{setPolyMode(false);setPolyWip([]);}}>Cancel</Btn>}{cfg.shape.polygon&&cfg.shape.polygon.length>2&&<Btn size="xs" variant="danger" onClick={()=>updateShape({polygon:[]})}>Clear</Btn>}</div>
-            </div>)}
-
-          {cfg.shape.type==="circle"&&(<>
-              <Label fontScale={fontScale}>Shell Diameter</Label>
-              <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>
-                {[6,8,10,12,15.25,19.25,23.25,25,29,33,37,42,48,60].map(id=>(
-                  <button key={id} onClick={()=>updateShape({diameterMm:id*25.4})}
-                    style={{fontFamily:FM,fontSize:10*fontScale,padding:"2px 6px",borderRadius:3,cursor:"pointer",
-                      background:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.panel,
-                      color:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?"#fff":C.text2,
-                      border:`1px solid ${Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.border2}`}}>{id}"</button>
-                ))}
-              </div>
-              <NumIn value={+(cfg.shape.diameterMm??304.8).toFixed(1)} onChange={v=>updateShape({diameterMm:v})} min={30} max={2000} step={25.4} unit="mm" fontScale={fontScale}/>
-            </>)}
-          {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label fontScale={fontScale}>Width</Label><NumIn value={+(cfg.shape.widthMm??500).toFixed(1)} onChange={v=>updateShape({widthMm:v})} min={30} unit="mm" fontScale={fontScale}/></div><div><Label fontScale={fontScale}>Height</Label><NumIn value={+(cfg.shape.heightMm??400).toFixed(1)} onChange={v=>updateShape({heightMm:v})} min={30} unit="mm" fontScale={fontScale}/></div></div>)}
-          {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label fontScale={fontScale}>Semi-A</Label><NumIn value={+(cfg.shape.axisAMm??500).toFixed(1)} onChange={v=>updateShape({axisAMm:v})} min={30} unit="mm" fontScale={fontScale}/></div><div><Label fontScale={fontScale}>Semi-B</Label><NumIn value={+(cfg.shape.axisBMm??350).toFixed(1)} onChange={v=>updateShape({axisBMm:v})} min={30} unit="mm" fontScale={fontScale}/></div></div>)}
-          {cfg.shape.type==="hexagon"&&(<div><Label fontScale={fontScale}>Flat-to-flat</Label><NumIn value={+(cfg.shape.hexSizeMm??300).toFixed(1)} onChange={v=>updateShape({hexSizeMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>)}
-
-          <Divider/><Label fontScale={fontScale}>Tube OD</Label>
-          <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>{TEMA_TUBE_ODS.map(t=>( <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val} onClick={()=>setCfg(p=>({...p,tubeOdIn:t.val}))} color={C.accent}/>))}</div>
-          <Divider/><Label fontScale={fontScale}>Pitch Ratio</Label>
-          <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_RATIOS.map(pr=>(<div key={pr.val} onClick={()=>setCfg(p=>({...p,pitchRatio:pr.val}))} style={{padding:"4px 8px",borderRadius:4,cursor:"pointer", background:cfg.pitchRatio===pr.val?C.accentL:"transparent", border:`1px solid ${cfg.pitchRatio===pr.val?C.accentM:C.border}`,transition:"all 0.1s"}}><span style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pitchRatio===pr.val?C.accent:C.text2}}>{pr.label}</span></div>))}</div>
-          <Divider/><Label fontScale={fontScale}>Pitch Pattern</Label>
-          <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_PATTERNS.map(pp=>(<div key={pp.id} onClick={()=>setCfg(p=>({...p,pattern:pp.id}))} style={{padding:"5px 8px",borderRadius:4,cursor:"pointer", background:cfg.pattern===pp.id?C.accentL:"transparent", border:`1px solid ${cfg.pattern===pp.id?C.accentM:C.border}`,transition:"all 0.1s"}}><div style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div><div style={{fontSize:10*fontScale,color:C.text3,marginTop:1}}>{pp.desc}</div></div>))}</div>
-          <Divider/><Label fontScale={fontScale}>Tube Passes</Label>
-          <div style={{display:"flex",gap:4,marginBottom:8}}>{[1,2,4,6,8].map(n=>(<Chip key={n} label={`${n}P`} active={cfg.numPasses===n} onClick={()=>setCfg(p=>({...p,numPasses:n}))} color={C.accent}/>))}</div>
-          <Divider/>
-          <button onClick={() => generate(true)} disabled={busy} style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
-        </div>
-
-        <div style={{display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, overflow: 'hidden', flex: 1, minHeight: 0}}>
-          {layout && (
-            <div style={{padding:"8px 14px", borderBottom: `1px solid ${C.border}`}}>
-                <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Layout Summary</div>
-                <div style={{display:'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap:'2px 10px'}}>
-                    {[
-                        {l:"Tubes",v:tubes.length},
-                        {l:"Rows",v:uRows.length},
-                        {l:"Cols",v:uCols.length},
-                        {l:"Passes",v:cfg.numPasses},
-                        {l:"OD",v:`${cfg.tubeOdIn}"`},
-                        {l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`},
-                    ].map(k=>(
-                        <div key={k.l} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
-                            <span style={{fontSize:11*fontScale,color:C.text3}}>{k.l}</span>
-                            <span style={{fontSize:12*fontScale,fontWeight:600,color:C.text,fontFamily:FM}}>{k.v}</span>
+        <Tabs defaultValue="design" className="flex flex-col h-full">
+            <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
+                <TabsTrigger value="design">Design</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
+            </TabsList>
+            <TabsContent value="design" className="flex-grow overflow-y-auto">
+                <div style={{padding:"12px 14px 16px"}}>
+                    <Label fontScale={fontScale}>Shell Shape</Label>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
+                        {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
+                        <Chip key={s} label={s==="polygon"?"✏ Polygon":s[0].toUpperCase()+s.slice(1)}
+                            active={cfg.shape.type===s} onClick={()=>{
+                            if(s==="polygon"){setPolyWip([]);setPolyMode(true);}
+                            else{setPolyMode(false);}
+                            updateShape({type:s});
+                            }} color={s==="polygon"?"#7c3aed":C.accent}/>
+                        ))}
+                    </div>
+                    {cfg.shape.type==="polygon"&&(<div style={{marginBottom:6}}>
+                        <div style={{background:polyMode?"#ede9fe":"#f5f3ff",border:`1px solid ${polyMode?"#7c3aed":"#ddd6fe"}`, borderRadius:4,padding:"6px 8px",marginBottom:4}}>
+                            <div style={{fontSize:11*fontScale,color:"#7c3aed",fontWeight:600,marginBottom:2}}>{polyMode?"Drawing polygon on canvas…":"Custom polygon shape"}</div>
+                            <div style={{fontSize:10*fontScale,color:"#6d28d9",lineHeight:1.5}}>{polyMode?"Click to add vertices. Double-click to close.":`${(cfg.shape.polygon?.length??0)} vertices defined.`}</div>
                         </div>
-                    ))}
+                        <div style={{display:"flex",gap:4}}><Btn size="xs" variant={polyMode?"primary":"default"} onClick={()=>{setPolyMode(true);setPolyWip([]);}}>{polyMode?"Drawing…":"✏ Draw"}</Btn>{polyMode&&<Btn size="xs" onClick={()=>{setPolyMode(false);setPolyWip([]);}}>Cancel</Btn>}{cfg.shape.polygon&&cfg.shape.polygon.length>2&&<Btn size="xs" variant="danger" onClick={()=>updateShape({polygon:[]})}>Clear</Btn>}</div>
+                        </div>)}
+
+                    {cfg.shape.type==="circle"&&(<>
+                        <Label fontScale={fontScale}>Shell Diameter</Label>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>
+                            {[6,8,10,12,15.25,19.25,23.25,25,29,33,37,42,48,60].map(id=>(
+                            <button key={id} onClick={()=>updateShape({diameterMm:id*25.4})}
+                                style={{fontFamily:FM,fontSize:10*fontScale,padding:"2px 6px",borderRadius:3,cursor:"pointer",
+                                background:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.panel,
+                                color:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?"#fff":C.text2,
+                                border:`1px solid ${Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.border2}`}}>{id}"</button>
+                            ))}
+                        </div>
+                        <NumIn value={+(cfg.shape.diameterMm??304.8).toFixed(1)} onChange={v=>updateShape({diameterMm:v})} min={30} max={2000} step={25.4} unit="mm" fontScale={fontScale}/>
+                        </>)}
+                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label fontScale={fontScale}>Width</Label><NumIn value={+(cfg.shape.widthMm??500).toFixed(1)} onChange={v=>updateShape({widthMm:v})} min={30} unit="mm" fontScale={fontScale}/></div><div><Label fontScale={fontScale}>Height</Label><NumIn value={+(cfg.shape.heightMm??400).toFixed(1)} onChange={v=>updateShape({heightMm:v})} min={30} unit="mm" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label fontScale={fontScale}>Semi-A</Label><NumIn value={+(cfg.shape.axisAMm??500).toFixed(1)} onChange={v=>updateShape({axisAMm:v})} min={30} unit="mm" fontScale={fontScale}/></div><div><Label fontScale={fontScale}>Semi-B</Label><NumIn value={+(cfg.shape.axisBMm??350).toFixed(1)} onChange={v=>updateShape({axisBMm:v})} min={30} unit="mm" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="hexagon"&&(<div><Label fontScale={fontScale}>Flat-to-flat</Label><NumIn value={+(cfg.shape.hexSizeMm??300).toFixed(1)} onChange={v=>updateShape({hexSizeMm:v})} min={30} unit="mm" fontScale={fontScale}/></div>)}
+
+                    <Divider/><Label fontScale={fontScale}>Tube OD</Label>
+                    <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>{TEMA_TUBE_ODS.map(t=>( <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val} onClick={()=>setCfg(p=>({...p,tubeOdIn:t.val}))} color={C.accent}/>))}</div>
+                    <Divider/><Label fontScale={fontScale}>Pitch Ratio</Label>
+                    <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_RATIOS.map(pr=>(<div key={pr.val} onClick={()=>setCfg(p=>({...p,pitchRatio:pr.val}))} style={{padding:"4px 8px",borderRadius:4,cursor:"pointer", background:cfg.pitchRatio===pr.val?C.accentL:"transparent", border:`1px solid ${cfg.pitchRatio===pr.val?C.accentM:C.border}`,transition:"all 0.1s"}}><span style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pitchRatio===pr.val?C.accent:C.text2}}>{pr.label}</span></div>))}</div>
+                    <Divider/><Label fontScale={fontScale}>Pitch Pattern</Label>
+                    <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_PATTERNS.map(pp=>(<div key={pp.id} onClick={()=>setCfg(p=>({...p,pattern:pp.id}))} style={{padding:"5px 8px",borderRadius:4,cursor:"pointer", background:cfg.pattern===pp.id?C.accentL:"transparent", border:`1px solid ${cfg.pattern===pp.id?C.accentM:C.border}`,transition:"all 0.1s"}}><div style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div><div style={{fontSize:10*fontScale,color:C.text3,marginTop:1}}>{pp.desc}</div></div>))}</div>
+                    <Divider/><Label fontScale={fontScale}>Tube Passes</Label>
+                    <div style={{display:"flex",gap:4,marginBottom:8}}>{[1,2,4,6,8].map(n=>(<Chip key={n} label={`${n}P`} active={cfg.numPasses===n} onClick={()=>setCfg(p=>({...p,numPasses:n}))} color={C.accent}/>))}</div>
+                    <Divider/>
+                    <button onClick={() => generate(true)} disabled={busy} style={{width:"100%",padding:"9px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
                 </div>
-            </div>
-          )}
-          <div style={{padding:"8px 14px"}}>
-            <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
-            <div style={{display:"flex",gap:3,marginBottom:5}}>{(["mono","pass","row"] as const).map(m=>(<Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m} onClick={()=>setColorMode(m)} color="#475569"/>))}</div>
-            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>{[["Labels",showLabels,setShowLabels],["Dims",showDims,setShowDims],["Grid",showGrid,setShowGrid],["Shell",showShell,setShowShell]].map(([l,v,fn])=>( <button key={l as string} onClick={()=>(fn as any)(!(v as boolean))} style={{fontFamily:F,fontSize:10*fontScale,padding:"2px 7px",borderRadius:3,cursor:"pointer", background:(v as boolean)?C.accent:C.panel,color:(v as boolean)?"#fff":C.text2, border:`1px solid ${(v as boolean)?C.accent:C.border2}`,transition:"all 0.1s"}}>{l as string}</button>))}</div>
-          </div>
-          <div style={{padding:"8px 14px 12px", flex: 1, display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, minHeight: 0}}>
-            <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Tube List ({tubes.length})</div>
-            <div style={{flex: 1, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 4, background: C.bg}}>
-              {sortedTubes.map(t => {
-                const isSel = selIds.has(t.id);
-                return (
-                  <button key={t.id} onClick={(e) => {
-                    const next = new Set<number>();
-                    if (e.shiftKey) { setSelIds(p => new Set(p).add(t.id)); } else { setSelIds(new Set([t.id])); }
-                  }} style={{ width: '100%', display: "flex", justifyContent: "space-between", alignItems: "center", padding: '3px 8px', cursor: 'pointer', background: isSel ? C.accentL : 'transparent', border: 'none', borderBottom: `1px solid ${C.border}`, textAlign: 'left' }} >
-                    <span style={{ fontFamily: FM, fontSize: 11 * fontScale, color: isSel ? C.accent : C.text }}> R{String(t.row + 1).padStart(2, '0')}-C{String(t.col + 1).padStart(2, '0')} </span>
-                    <span style={{ fontFamily: F, fontSize: 10 * fontScale, color: C.text3, background: C.border, padding: '1px 4px', borderRadius: 3 }}> P{t.pass} </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
+            </TabsContent>
+            <TabsContent value="details" className="flex-grow flex flex-col min-h-0">
+                {layout && (
+                    <div style={{padding:"8px 14px", borderBottom: `1px solid ${C.border}`}}>
+                        <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Layout Summary</div>
+                        <div style={{display:'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap:'2px 10px'}}>
+                            {[
+                                {l:"Tubes",v:tubes.length},
+                                {l:"Rows",v:uRows.length},
+                                {l:"Cols",v:uCols.length},
+                                {l:"Passes",v:cfg.numPasses},
+                                {l:"OD",v:`${cfg.tubeOdIn}"`},
+                                {l:"Pitch",v:`${layout.pitchMm.toFixed(1)}mm`},
+                            ].map(k=>(
+                                <div key={k.l} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+                                    <span style={{fontSize:11*fontScale,color:C.text3}}>{k.l}</span>
+                                    <span style={{fontSize:12*fontScale,fontWeight:600,color:C.text,fontFamily:FM}}>{k.v}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                <div style={{padding:"8px 14px"}}>
+                    <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
+                    <div style={{display:"flex",gap:3,marginBottom:5}}>{(["mono","pass","row"] as const).map(m=>(<Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m} onClick={()=>setColorMode(m)} color="#475569"/>))}</div>
+                    <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>{[["Labels",showLabels,setShowLabels],["Dims",showDims,setShowDims],["Grid",showGrid,setShowGrid],["Shell",showShell,setShowShell]].map(([l,v,fn])=>( <button key={l as string} onClick={()=>(fn as any)(!(v as boolean))} style={{fontFamily:F,fontSize:10*fontScale,padding:"2px 7px",borderRadius:3,cursor:"pointer", background:(v as boolean)?C.accent:C.panel,color:(v as boolean)?"#fff":C.text2, border:`1px solid ${(v as boolean)?C.accent:C.border2}`,transition:"all 0.1s"}}>{l as string}</button>))}</div>
+                </div>
+                <div style={{padding:"8px 14px 12px", flex: 1, display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, minHeight: 0}}>
+                    <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Tube List ({tubes.length})</div>
+                    <div style={{flex: 1, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 4, background: C.bg}}>
+                    {sortedTubes.map(t => {
+                        const isSel = selIds.has(t.id);
+                        return (
+                        <button key={t.id} onClick={(e) => {
+                            const next = new Set<number>();
+                            if (e.shiftKey) { setSelIds(p => new Set(p).add(t.id)); } else { setSelIds(new Set([t.id])); }
+                        }} style={{ width: '100%', display: "flex", justifyContent: "space-between", alignItems: "center", padding: '3px 8px', cursor: 'pointer', background: isSel ? C.accentL : 'transparent', border: 'none', borderBottom: `1px solid ${C.border}`, textAlign: 'left' }} >
+                            <span style={{ fontFamily: FM, fontSize: 11 * fontScale, color: isSel ? C.accent : C.text }}> R{String(t.row + 1).padStart(2, '0')}-C{String(t.col + 1).padStart(2, '0')} </span>
+                            <span style={{ fontFamily: F, fontSize: 10 * fontScale, color: C.text3, background: C.border, padding: '1px 4px', borderRadius: 3 }}> P{t.pass} </span>
+                        </button>
+                        )
+                    })}
+                    </div>
+                </div>
+            </TabsContent>
+        </Tabs>
       </div>
 
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -877,5 +893,6 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 

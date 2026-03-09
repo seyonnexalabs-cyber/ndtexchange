@@ -1,6 +1,7 @@
 "use client";
 /**
- * TemaDesigner v5
+ * TemaDesigner v6
+ * - Tube list in left panel with selection sync
  * - DPR fix: canvas.width = cssW (no DPR), draw in CSS px directly
  * - Undo/redo (Ctrl+Z / Ctrl+Y)
  * - Row labels (left, horizontal leader line to leftmost tube in row)
@@ -569,6 +570,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   // Derived
   const selTubes=useMemo(()=>tubes.filter(t=>selIds.has(t.id)),[tubes,selIds]);
+  const sortedTubes = useMemo(()=>[...tubes].sort((a,b)=>a.row-b.row||a.col-b.col),[tubes]);
   const uRows=useMemo(()=>Array.from(new Set(tubes.map(t=>t.row))).sort((a,b)=>a-b),[tubes]);
   const uCols=useMemo(()=>Array.from(new Set(tubes.map(t=>t.col))).sort((a,b)=>a-b),[tubes]);
   const uPasses=useMemo(()=>Array.from(new Set(tubes.map(t=>t.pass))).sort((a,b)=>a-b),[tubes]);
@@ -709,23 +711,60 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           </button>
         </div>
 
-        {/* Display options */}
-        <div style={{borderTop:`1px solid ${C.border}`,padding:"8px 14px"}}>
-          <div style={{fontSize:10,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
-          <div style={{display:"flex",gap:3,marginBottom:5}}>
-            {(["mono","pass","row"] as const).map(m=>(
-              <Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m}
-                onClick={()=>setColorMode(m)} color="#475569"/>
-            ))}
+        <div style={{height: "45%", display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`}}>
+          {/* Display options */}
+          <div style={{padding:"8px 14px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
+            <div style={{display:"flex",gap:3,marginBottom:5}}>
+              {(["mono","pass","row"] as const).map(m=>(
+                <Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m}
+                  onClick={()=>setColorMode(m)} color="#475569"/>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+              {[["Labels",showLabels,setShowLabels],["Dims",showDims,setShowDims],["Grid",showGrid,setShowGrid],["Shell",showShell,setShowShell]].map(([l,v,fn])=>(
+                <button key={l as string} onClick={()=>(fn as any)(!(v as boolean))}
+                  style={{fontFamily:F,fontSize:10,padding:"2px 7px",borderRadius:3,cursor:"pointer",
+                    background:(v as boolean)?C.accent:C.panel,color:(v as boolean)?"#fff":C.text2,
+                    border:`1px solid ${(v as boolean)?C.accent:C.border2}`,transition:"all 0.1s"}}>{l as string}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-            {[["Labels",showLabels,setShowLabels],["Dims",showDims,setShowDims],["Grid",showGrid,setShowGrid],["Shell",showShell,setShowShell]].map(([l,v,fn])=>(
-              <button key={l as string} onClick={()=>(fn as any)(!(v as boolean))}
-                style={{fontFamily:F,fontSize:10,padding:"2px 7px",borderRadius:3,cursor:"pointer",
-                  background:(v as boolean)?C.accent:C.panel,color:(v as boolean)?"#fff":C.text2,
-                  border:`1px solid ${(v as boolean)?C.accent:C.border2}`,transition:"all 0.1s"}}>{l as string}
-              </button>
-            ))}
+          
+          {/* Tube List */}
+          <div style={{padding:"8px 14px 12px", flex: 1, display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, minHeight: 0}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Tube List ({tubes.length})</div>
+            <div style={{flex: 1, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 4, background: C.bg}}>
+              {sortedTubes.map(t => {
+                const isSel = selIds.has(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelIds(new Set([t.id]))}
+                    style={{
+                      width: '100%',
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      background: isSel ? C.accentL : 'transparent',
+                      border: 'none',
+                      borderBottom: `1px solid ${C.border}`,
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span style={{ fontFamily: FM, fontSize: 11, color: isSel ? C.accent : C.text }}>
+                      R{String(t.row + 1).padStart(2, '0')}-C{String(t.col + 1).padStart(2, '0')}
+                    </span>
+                    <span style={{ fontFamily: F, fontSize: 10, color: C.text3, background: C.border, padding: '1px 4px', borderRadius: 3 }}>
+                      P{t.pass}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

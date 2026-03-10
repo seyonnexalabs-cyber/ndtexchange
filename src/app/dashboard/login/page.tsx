@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -15,10 +14,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFirebase, useUser } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { allUsers } from '@/lib/seed-data';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin' | 'manufacturer';
 
@@ -50,7 +50,24 @@ export default function LoginPage() {
       let userData;
       try {
         const userDocRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+        let userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists() && process.env.NODE_ENV === 'development') {
+          console.warn(`User document for ${user.email} not found. Attempting to create one from seed data.`);
+          const seedUser = allUsers.find(u => u.email === user.email);
+
+          if (seedUser) {
+              const { password, ...userDataToSave } = seedUser; // Exclude password from DB
+              const userProfileData = {
+                  ...userDataToSave,
+                  id: user.uid, // Use the actual UID from auth
+                  createdAt: serverTimestamp(),
+              };
+              await setDoc(userDocRef, userProfileData);
+              userDoc = await getDoc(userDocRef); // Re-fetch the document
+              toast.info("Dev Profile Created", { description: `A profile for ${user.email} was created automatically.`});
+          }
+        }
 
         if (userDoc.exists()) {
           userData = userDoc.data();
@@ -109,9 +126,8 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       // On success, the onAuthStateChanged listener in the FirebaseProvider
       // will update the user state, and the useEffect hook in this component
-      // will handle the redirection.
+      // will handle the redirection and profile creation if needed.
     } catch (error: any) {
-      // Provide a clear error message for failed login attempts.
       let description = "Invalid email or password. Please try again.";
       if (error.code === 'auth/too-many-requests') {
         description = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";

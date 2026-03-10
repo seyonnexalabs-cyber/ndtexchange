@@ -212,6 +212,11 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   // Selection & Tools
   const [selIds,setSelIds]=useState<Set<number>>(new Set());
+  const selIdsRef = useRef(selIds);
+  useEffect(() => {
+    selIdsRef.current = selIds;
+  }, [selIds]);
+
   const [hoverId,setHoverId]=useState<number|null>(null);
   const [selBox,setSelBox]=useState<{x1:number;y1:number;x2:number;y2:number}|null>(null);
   const [tool,setTool]=useState<"select"|"pan"|"plug">("select");
@@ -299,7 +304,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, firestore, user, layout]);
+  }, [searchParams, firestore, user]); // Only run on mount and when key params change
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
    const toggleFullscreen = useCallback(() => {
@@ -319,7 +324,11 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}
       if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}
       if(e.key==='Delete'||e.key==='Backspace'){
-        if(selIds.size>0){ setTubes(tubes.filter(t=>!selIds.has(t.id))); setSelIds(new Set()); setNeedRecalc(true); }
+        if(selIdsRef.current.size > 0){
+          setTubes(prev => prev.filter(t => !selIdsRef.current.has(t.id)));
+          setSelIds(new Set());
+          setNeedRecalc(true);
+        }
       }
       if(e.key==='f'){e.preventDefault();toggleFullscreen();}
     };
@@ -327,7 +336,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     window.addEventListener('keydown',h);
     document.addEventListener('fullscreenchange',onFsChange);
     return()=>{ window.removeEventListener('keydown',h); document.removeEventListener('fullscreenchange',onFsChange); };
-  },[undo,redo,selIds,tubes,setTubes, toggleFullscreen]);
+  },[undo, redo, setTubes, toggleFullscreen]);
   
  
 
@@ -578,33 +587,39 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   },[tubes]);
 
   // ── Edit operations ───────────────────────────────────────────────────────
-  const delSelected=()=>{ if(!selIds.size) return; setTubes(tubes.filter(t=>!selIds.has(t.id))); setSelIds(new Set()); setNeedRecalc(true); };
-  const delRow=(r:number)=>{setTubes(tubes.filter(t=>t.row!==r));setNeedRecalc(true);};
-  const delCol=(c:number)=>{setTubes(tubes.filter(t=>t.col!==c));setNeedRecalc(true);};
-  const delPass=(pp:number)=>{setTubes(tubes.filter(t=>t.pass!==pp));setNeedRecalc(true);};
+  const delSelected=useCallback(()=>{ if(!selIds.size) return; setTubes(prev => prev.filter(t=>!selIds.has(t.id))); setSelIds(new Set()); setNeedRecalc(true); }, [selIds.size, setTubes]);
+  const delRow=useCallback((r:number)=>{setTubes(prev => prev.filter(t=>t.row!==r));setNeedRecalc(true);}, [setTubes]);
+  const delCol=useCallback((c:number)=>{setTubes(prev => prev.filter(t=>t.col!==c));setNeedRecalc(true);}, [setTubes]);
+  const delPass=useCallback((pp:number)=>{setTubes(prev => prev.filter(t=>t.pass!==pp));setNeedRecalc(true);}, [setTubes]);
   const insertRowAfter=useCallback((row:number)=>{
     if(!layout) return;
-    const rt=tubes.filter(t=>t.row===row); if(!rt.length) return;
-    const nextY=tubes.find(t=>t.row===row+1)?.y;
-    const SQ3H = Math.sqrt(3)/2;
-    const pitchY=layout.pattern==='triangular'||layout.pattern==='rotated-triangular' ?layout.pitchMm*SQ3H : layout.pitchMm;
-    const dy=nextY!=null?(nextY-rt[0].y):pitchY;
-    const maxId=Math.max(...tubes.map(t=>t.id));
-    const newT:LayoutTube[]=rt.map((t,i)=>({...t,id:maxId+1+i,y:t.y+dy/2,row:row+1}));
-    const shifted=tubes.map(t=>t.row>row?{...t,row:t.row+1}:t);
-    setTubes([...shifted,...newT]); setNeedRecalc(true);
-  },[layout,tubes,setTubes]);
+    setTubes(prevTubes => {
+        const rt=prevTubes.filter(t=>t.row===row); if(!rt.length) return prevTubes;
+        const nextY=prevTubes.find(t=>t.row===row+1)?.y;
+        const SQ3H = Math.sqrt(3)/2;
+        const pitchY=layout.pattern==='triangular'||layout.pattern==='rotated-triangular' ?layout.pitchMm*SQ3H : layout.pitchMm;
+        const dy=nextY!=null?(nextY-rt[0].y):pitchY;
+        const maxId=prevTubes.length > 0 ? Math.max(...prevTubes.map(t=>t.id)) : 0;
+        const newT:LayoutTube[]=rt.map((t,i)=>({...t,id:maxId+1+i,y:t.y+dy/2,row:row+1}));
+        const shifted=prevTubes.map(t=>t.row>row?{...t,row:t.row+1}:t);
+        return [...shifted,...newT];
+    });
+    setNeedRecalc(true);
+  },[layout,setTubes]);
   const insertColAfter=useCallback((col:number)=>{
     if(!layout) return;
-    const ct=tubes.filter(t=>t.col===col); if(!ct.length) return;
-    const nextX=tubes.find(t=>t.col===col+1)?.x;
-    const dx=nextX!=null?(nextX-ct[0].x):layout.pitchMm;
-    const maxId=Math.max(...tubes.map(t=>t.id));
-    const newT:LayoutTube[]=ct.map((t,i)=>({...t,id:maxId+1+i,x:t.x+dx/2,col:col+1}));
-    const shifted=tubes.map(t=>t.col>col?{...t,col:t.col+1}:t);
-    setTubes([...shifted,...newT]); setNeedRecalc(true);
-  },[layout,tubes,setTubes]);
-  const recalc=()=>{ if(!layout) return; setTubes(recalcRowsCols(tubes,layout.pitchMm)); setNeedRecalc(false); };
+    setTubes(prevTubes => {
+        const ct=prevTubes.filter(t=>t.col===col); if(!ct.length) return prevTubes;
+        const nextX=prevTubes.find(t=>t.col===col+1)?.x;
+        const dx=nextX!=null?(nextX-ct[0].x):layout.pitchMm;
+        const maxId=prevTubes.length > 0 ? Math.max(...prevTubes.map(t=>t.id)) : 0;
+        const newT:LayoutTube[]=ct.map((t,i)=>({...t,id:maxId+1+i,x:t.x+dx/2,col:col+1}));
+        const shifted=prevTubes.map(t=>t.col>col?{...t,col:t.col+1}:t);
+        return [...shifted,...newT];
+    });
+    setNeedRecalc(true);
+  },[layout,setTubes]);
+  const recalc=()=>{ if(!layout) return; setTubes(prev => recalcRowsCols(prev,layout.pitchMm)); setNeedRecalc(false); };
 
   // ── Selection helpers ────────────────────────────────────────────────────
   const selAll=()=>setSelIds(new Set(tubes.map(t=>t.id)));
@@ -942,3 +957,4 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+

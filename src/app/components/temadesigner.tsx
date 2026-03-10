@@ -43,7 +43,7 @@ const FM = "'Noto Sans Mono','JetBrains Mono',monospace";
 const MARGIN_LEFT = 38;
 const MARGIN_TOP  = 38;
 
-// ── Tiny UI helpers ───────────────────────────────────────────────────────────
+// ── Tiny UI helpers ──────────────────────────────────────────────────────────
 const Btn = memo(React.forwardRef<HTMLButtonElement, { children: React.ReactNode; onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; variant?: "default" | "primary" | "danger" | "ghost" | "warn"; size?: "xs" | "sm" | "md"; disabled?: boolean; title?: string;[key: string]: any; }>(
     ({ children, onClick, variant = "default", size = "sm", disabled, title, ...rest }, ref) => {
         const szMap: { [k: string]: { fs: number, p: string } } = { xs: { fs: 10, p: '2px 7px' }, sm: { fs: 12, p: '4px 10px' }, md: { fs: 13, p: '6px 14px' } };
@@ -257,34 +257,38 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     }finally{setBusy(false);}
   },[cfg, resetTubes]);
   
+  // Effect for initial generation
+  useEffect(() => {
+    const hasDesignId = searchParams.get('designId');
+    if (!layout && !hasDesignId) {
+      generate(true);
+    }
+  }, [layout, generate, searchParams]);
+
+  // Effect for loading from URL
   useEffect(() => {
     const designIdFromUrl = searchParams.get('designId');
     if (designIdFromUrl && firestore && user) {
-        getDoc(doc(firestore, 'designs', designIdFromUrl)).then(docSnap => {
-            if (docSnap.exists()) {
-                const designData = docSnap.data() as TemaDesign;
-                if (designData.userId === user.uid) {
-                    applyDesignToCanvas(designData);
-                    toast.success(`Loaded design: ${designData.name}`);
-                } else {
-                    toast.error("Permission Denied", { description: "You do not have permission to view this design." });
-                    if (!layout) generate(true);
-                }
-            } else {
-                 toast.error("Design not found.");
-                 if (!layout) generate(true);
-            }
-        }).catch(() => {
-            toast.error("Error loading design.");
-            if (!layout) generate(true);
-        });
-    } else {
-        if (!layout) {
-            generate(true);
+      getDoc(doc(firestore, 'designs', designIdFromUrl)).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().userId === user.uid) {
+          applyDesignToCanvas(docSnap.data() as TemaDesign);
+          toast.success(`Loaded design: ${docSnap.data().name}`);
+        } else {
+          toast.error("Design not found or permission denied.", {
+            description: "You are being redirected to the main designer.",
+          });
+          // Redirect to clear the URL param and trigger default layout generation
+          router.replace('/dashboard/temadesigner'); 
         }
+      }).catch((err) => {
+        console.error("Error loading design:", err);
+        toast.error("Error loading design.", {
+          description: "There was a problem fetching the design from the database.",
+        });
+        router.replace('/dashboard/temadesigner');
+      });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, firestore, user]);
+  }, [searchParams, firestore, user, applyDesignToCanvas, router]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
@@ -939,4 +943,5 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 

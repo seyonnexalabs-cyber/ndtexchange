@@ -17,6 +17,18 @@ import { LogoIcon } from '@/app/components/icons';
 import { useUser } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
+type MenuItem = {
+  id: string;
+  href: string;
+  label: string;
+  icon: React.ElementType;
+};
+
+type MenuGroup = {
+  title: string;
+  items: MenuItem[];
+};
+
 const userDetails = {
   client: { name: 'John Doe', role: 'Project Manager', fallback: 'JD', company: 'Global Energy Corp.' },
   inspector: { name: 'Maria Garcia', role: 'Level II Inspector', fallback: 'MG', company: 'TEAM, Inc.' },
@@ -26,7 +38,7 @@ const userDetails = {
   common: { name: 'User', role: 'Not specified', fallback: 'U', company: 'NDT EXCHANGE' },
 };
 
-const clientMenu = [
+const clientMenu: MenuGroup[] = [
   {
     title: 'Workspace',
     items: [
@@ -75,7 +87,7 @@ const clientMenu = [
   }
 ];
 
-const inspectorMenu = [
+const inspectorMenu: MenuGroup[] = [
     {
     title: 'Workspace',
     items: [
@@ -118,7 +130,7 @@ const inspectorMenu = [
   }
 ];
 
-const adminMenu = [
+const adminMenu: MenuGroup[] = [
   {
     title: 'Platform',
     items: [
@@ -153,7 +165,7 @@ const adminMenu = [
   }
 ];
 
-const auditorMenu = [
+const auditorMenu: MenuGroup[] = [
    {
     title: 'Workspace',
     items: [
@@ -178,7 +190,7 @@ const auditorMenu = [
   }
 ];
 
-const manufacturerMenu = [
+const manufacturerMenu: MenuGroup[] = [
     {
     title: 'Workspace',
     items: [
@@ -250,7 +262,7 @@ const AppSidebar = () => {
 
   const menuItems = useMemo(() => {
     if (!role) return [];
-    let menu;
+    let menu: MenuGroup[] = [];
     switch (role) {
       case 'client': menu = clientMenu; break;
       case 'inspector':

@@ -38,7 +38,6 @@ const F  = "'Noto Sans','Segoe UI',system-ui,sans-serif";
 const FM = "'Noto Sans Mono','JetBrains Mono',monospace";
 const MARGIN_LEFT = 38;
 const MARGIN_TOP  = 38;
-const IN = 1 / 25.4; // Conversion factor from mm to inches
 
 // ── Tiny UI helpers ───────────────────────────────────────────────────────────
 const Btn = memo(React.forwardRef<HTMLButtonElement, { children: React.ReactNode; onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; variant?: "default" | "primary" | "danger" | "ghost" | "warn"; size?: "xs" | "sm" | "md"; disabled?: boolean; title?: string;[key: string]: any; }>(
@@ -141,6 +140,8 @@ const useUndoRedo = <T,>(initialState: T) => {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
+  const IN = 1 / 25.4; // Conversion factor from mm to inches
+
   const [cfg,setCfg]=useState<TEMAConfig>(DEFAULT);
   const [layout,setLayout]=useState<TEMALayout|null>(null);
   const [busy,setBusy]=useState(false);
@@ -434,7 +435,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         ctx.textBaseline="alphabetic";
       }
     }
-  },[layout,tubes,zoom,pan,colorMode,showLabels,showDims,showGrid,showShell, selIds,hoverId,selBox,cfg.shape,polyMode,polyWip,w2css,fontScale]);
+  },[layout,tubes,zoom,pan,colorMode,showLabels,showDims,showGrid,showShell, selIds,hoverId,selBox,cfg.shape,polyMode,polyWip,w2css,fontScale, IN]);
 
   useEffect(()=>{ const canvas=canvasRef.current; if(!canvas) return;
     const ro=new ResizeObserver(()=>{

@@ -167,6 +167,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   // Tubes state with Undo/Redo
   const { state: tubesState, set: setTubes, reset: resetTubes, undo, redo, canUndo, canRedo } = useUndoRedo<LayoutTube[]>([]);
   const { present: tubes } = tubesState;
+  const tubesRef = React.useRef(tubes); // ref for tubes state
+  useEffect(() => { tubesRef.current = tubes; }, [tubes]); // Keep ref updated
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -477,12 +479,12 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   const hitTest=useCallback((cx:number,cy:number):LayoutTube|null=>{
     const w=css2w(cx,cy); let best:LayoutTube|null=null, bestD=Infinity;
-    for(const t of tubes){
+    for(const t of tubesRef.current){
       const d=Math.hypot(t.x-w.x,t.y-w.y);
       if(d<=t.r*1.6&&d<bestD){bestD=d;best=t;}
     }
     return best;
-  },[tubes,css2w]);
+  },[css2w]);
 
   const onMouseDown=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
     const css=evToCSS(e);
@@ -530,11 +532,11 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       const css=evToCSS(e);
       const w1=css2w(Math.min(selBox.x1,css.x),Math.min(selBox.y1,css.y));
       const w2=css2w(Math.max(selBox.x1,css.x),Math.max(selBox.y1,css.y));
-      const inBox=tubes.filter(t=>t.x>=w1.x&&t.x<=w2.x&&t.y>=w1.y&&t.y<=w2.y);
+      const inBox=tubesRef.current.filter(t=>t.x>=w1.x&&t.x<=w2.x&&t.y>=w1.y&&t.y<=w2.y);
       setSelIds(prev=>{const next=new Set(prev);inBox.forEach(t=>next.add(t.id));return next;});
     }
     selStart.current=null; setSelBox(null);
-  },[evToCSS,css2w,tubes,selBox]);
+  },[evToCSS,css2w,selBox]);
 
   const onDblClick=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
     if(!polyMode||polyWip.length<3) return;
@@ -554,18 +556,18 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   },[evToCSS]);
 
   const fitView=useCallback(()=>{
-    if(!canvasRef.current||!tubes.length) return;
+    if(!canvasRef.current||!tubesRef.current.length) return;
     const rect=canvasRef.current.getBoundingClientRect();
     const cw=rect.width-MARGIN_LEFT, ch=rect.height-MARGIN_TOP;
-    const xs=tubes.map(t=>t.x), ys=tubes.map(t=>t.y);
-    const pad=(tubes[0]?.r??10)*3;
+    const xs=tubesRef.current.map(t=>t.x), ys=tubesRef.current.map(t=>t.y);
+    const pad=(tubesRef.current[0]?.r??10)*3;
     const span=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))+pad*2;
     const nz=Math.min(cw,ch)*0.88/span;
     const cx=(Math.min(...xs)+Math.max(...xs))/2, cy=(Math.min(...ys)+Math.max(...ys))/2;
     const z=Math.max(0.03,Math.min(30,nz));
     zoomRef.current=z; panRef.current={x:MARGIN_LEFT+cw/2-cx*z,y:MARGIN_TOP+ch/2-cy*z};
     setZoom(z); setPan({x:MARGIN_LEFT+cw/2-cx*z,y:MARGIN_TOP+ch/2-cy*z});
-  },[tubes]);
+  },[]);
 
   // ── Edit operations ───────────────────────────────────────────────────────
   const delRow=useCallback((r:number)=> { setTubes(currentTubes => currentTubes.filter(t=>t.row!==r)); setNeedRecalc(true); }, [setTubes]);
@@ -937,12 +939,4 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
-
-
-
-
-
-
-
-
 

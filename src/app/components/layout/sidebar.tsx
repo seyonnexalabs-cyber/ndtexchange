@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import {
   LayoutDashboard, Building, Briefcase, ClipboardList, Settings, Users, Eye, Search,
   FileText, Calendar, MessageSquare, Wrench, Gavel, Star, PlusCircle, LifeBuoy,
-  CreditCard, History, DollarSign, ShieldCheck, Factory, Settings2, Database,
+  CreditCard, History, DollarSign, ShieldCheck, Factory, Settings2, Database, BarChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';

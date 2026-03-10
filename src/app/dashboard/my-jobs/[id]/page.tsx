@@ -152,23 +152,26 @@ export default function JobDetailPage() {
     const [attachedDesigns, setAttachedDesigns] = React.useState<TemaDesign[]>([]);
     const [isLoadingDesigns, setIsLoadingDesigns] = React.useState(false);
 
+    const designIdsString = React.useMemo(() => JSON.stringify(job?.temaDesignIds || []), [job?.temaDesignIds]);
+
     React.useEffect(() => {
-        if (firestore && job?.temaDesignIds && job.temaDesignIds.length > 0) {
+        const designIds = job?.temaDesignIds;
+        if (firestore && designIds && designIds.length > 0) {
             setIsLoadingDesigns(true);
             const designsRef = collection(firestore, 'designs');
-            const q = query(designsRef, where(documentId(), 'in', job.temaDesignIds.slice(0, 10)));
+            const q = query(designsRef, where(documentId(), 'in', designIds.slice(0, 10)));
             getDocs(q).then(snapshot => {
                 const designs = snapshot.docs.map(doc => doc.data() as TemaDesign);
                 setAttachedDesigns(designs);
-                setIsLoadingDesigns(false);
             }).catch(err => {
                 console.error("Error fetching attached designs:", err);
+            }).finally(() => {
                 setIsLoadingDesigns(false);
             });
         } else {
             setAttachedDesigns([]);
         }
-    }, [firestore, job?.temaDesignIds]);
+    }, [firestore, designIdsString, job?.temaDesignIds]);
     
     const { provider, auditor, client } = React.useMemo(() => {
         if (!allCompanies || !job) return { provider: null, auditor: null, client: null };

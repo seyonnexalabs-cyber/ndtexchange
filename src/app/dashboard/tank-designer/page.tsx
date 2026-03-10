@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -13,12 +13,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Simplified schema for the form
+// Updated schema to include shellReadings
 const tankDesignerSchema = z.object({
   name: z.string().min(3, "Design name is required."),
   diameter: z.coerce.number().positive("Diameter must be positive."),
   shellCourses: z.coerce.number().int().positive("Must be a whole number."),
   floorPlates: z.coerce.number().int().positive("Must be a whole number."),
+  shellReadings: z.array(z.object({
+    min: z.coerce.number().optional(),
+    max: z.coerce.number().optional(),
+    avg: z.coerce.number().optional(),
+  })).optional(),
 });
 
 type TankDesignerFormValues = z.infer<typeof tankDesignerSchema>;
@@ -37,8 +42,8 @@ const FloorPlanView = () => {
 };
 
 const ShellCoursesView = () => {
-    const form = useFormContext<TankDesignerFormValues>();
-    const shellCourses = form.watch('shellCourses');
+    const { control, watch } = useFormContext<TankDesignerFormValues>();
+    const shellCourses = watch('shellCourses');
     
     return (
         <div>
@@ -51,6 +56,7 @@ const ShellCoursesView = () => {
                         <div className="font-semibold md:col-span-1">Course {index + 1}</div>
                         <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                              <FormField
+                                control={control}
                                 name={`shellReadings.${index}.min`}
                                 render={({ field }) => (
                                     <FormItem>
@@ -60,6 +66,7 @@ const ShellCoursesView = () => {
                                 )}
                             />
                              <FormField
+                                control={control}
                                 name={`shellReadings.${index}.max`}
                                 render={({ field }) => (
                                     <FormItem>
@@ -69,6 +76,7 @@ const ShellCoursesView = () => {
                                 )}
                             />
                              <FormField
+                                control={control}
                                 name={`shellReadings.${index}.avg`}
                                 render={({ field }) => (
                                     <FormItem>
@@ -239,3 +247,4 @@ export default function TankDesignerPage() {
         </FormProvider>
     );
 }
+    

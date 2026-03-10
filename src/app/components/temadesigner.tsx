@@ -10,8 +10,9 @@ import {
   generateTEMALayout, recalcRowsCols,
   toCSV, toJSON, toDXF, passColor, rowColor,
   TEMA_TUBE_ODS, PITCH_RATIOS, PITCH_PATTERNS,
-  type TEMAConfig, type TEMALayout, type LayoutTube, type PitchPattern, type ShapeType, type ShellShape, type TemaDesign, type Job
+  type TEMAConfig, type TEMALayout, type LayoutTube, type PitchPattern, type ShapeType, type ShellShape
 } from "@/lib/tema";
+import { type TemaDesign, type Job } from "@/lib/types";
 import { Maximize, Minimize, Save, FolderOpen, Link2, Eraser, FileText, FileDown } from "lucide-react";
 import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, where, addDoc, setDoc, getDoc, updateDoc } from "firebase/firestore";
@@ -750,7 +751,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                     {cfg.shape.type==="circle"&&(<>
                         <Label>Shell Diameter</Label>
                         <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>
-                            {[6,8,10,12,15.25,19.25,23.25,25,29,33,37,42,48,60].map(id=>(
+                            {[6,8,10,12,15.25,19.25,23.25,29,33,37,42,48,60].map(id=>(
                             <button key={id} onClick={()=>updateShape({diameterMm:id*25.4})}
                                 style={{fontFamily:FM,fontSize:10*fontScale,padding:"2px 6px",borderRadius:3,cursor:"pointer",
                                 background:Math.abs((cfg.shape.diameterMm??0)-id*25.4)<0.5?C.accent:C.panel,
@@ -941,5 +942,3 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
-
-    

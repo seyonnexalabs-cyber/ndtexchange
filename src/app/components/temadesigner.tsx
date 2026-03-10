@@ -2,8 +2,9 @@
 
 "use client";
 /**
- * TemaDesigner v19
- * - Refactored keyboard event listener to remove useEffect-on-every-render pattern for better stability.
+ * TemaDesigner v22
+ * - Re-instated a stable useUndoRedo hook based on useReducer.
+ * - Refactored keyboard event listener and selection-based callbacks (e.g., delSelected) to use refs for accessing the latest state. This prevents stale closures and stabilizes the component, resolving the infinite loop and server crashes.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -114,7 +115,7 @@ const undoRedoReducer = <T,>(state: UndoRedoState<T>, action: UndoRedoAction<T>)
             ? (action.payload as (present: T) => T)(present)
             : action.payload;
 
-        if (newPresent === present) return state;
+        if (JSON.stringify(newPresent) === JSON.stringify(present)) return state;
         return { past: [...past, present], present: newPresent, future: [] };
     }
     case 'RESET': {
@@ -129,13 +130,13 @@ const useUndoRedo = <T,>(initialPresent: T) => {
         present: initialPresent,
         future: [],
     });
-    const canUndo = state.past.length !== 0;
-    const canRedo = state.future.length !== 0;
+    const canUndo = state.past.length > 0;
+    const canRedo = state.future.length > 0;
     const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
     const redo = useCallback(() => dispatch({ type: 'REDO' }), []);
     const set = useCallback((payload: T | ((present: T) => T)) => dispatch({ type: 'SET', payload }), []);
     const reset = useCallback((newPresent: T) => dispatch({ type: 'RESET', payload: newPresent }), []);
-    return { tubes: state.present, setTubes: set, undo, redo, canUndo, canRedo, resetTubes: reset };
+    return { state, set, reset, undo, redo, canUndo, canRedo };
 };
 
 
@@ -163,7 +164,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const router = useRouter();
 
   // Tubes state with Undo/Redo
-  const { tubes, setTubes, undo, redo, canUndo, canRedo, resetTubes } = useUndoRedo<LayoutTube[]>([]);
+  const { state: tubesState, set: setTubes, reset: resetTubes, undo, redo, canUndo, canRedo } = useUndoRedo<LayoutTube[]>([]);
+  const { present: tubes } = tubesState;
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -181,6 +183,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   // Selection & Tools
   const [selIds,setSelIds]=useState<Set<number>>(new Set());
+  const selIdsRef = useRef(selIds);
+  selIdsRef.current = selIds;
 
   const [hoverId,setHoverId]=useState<number|null>(null);
   const [selBox,setSelBox]=useState<{x1:number;y1:number;x2:number;y2:number}|null>(null);
@@ -284,10 +288,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   }, []);
 
   const delSelected = useCallback(() => {
-    setTubes(currentTubes => currentTubes.filter(t => !selIds.has(t.id)));
+    setTubes(currentTubes => currentTubes.filter(t => !selIdsRef.current.has(t.id)));
     setSelIds(new Set());
     setNeedRecalc(true);
-  }, [setTubes, selIds]);
+  }, [setTubes]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -298,7 +302,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
             if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
         }
         if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (selIds.size > 0) {
+            if (selIdsRef.current.size > 0) {
                 delSelected();
             }
         }
@@ -307,7 +311,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       
     window.addEventListener('keydown', handleKeyDown);
     return () => { window.removeEventListener('keydown', handleKeyDown); };
-  }, [undo, redo, delSelected, toggleFullscreen, selIds]);
+  }, [undo, redo, delSelected, toggleFullscreen]);
 
   useEffect(() => {
       const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -934,6 +938,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

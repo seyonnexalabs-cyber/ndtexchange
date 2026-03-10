@@ -1,11 +1,11 @@
+
 'use client';
 
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Search, Bell, Globe, QrCode, MessageSquare } from 'lucide-react';
+import { Search, Bell, Globe, QrCode, MessageSquare, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -16,6 +16,8 @@ import { Separator } from '@/components/ui/separator';
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import AppSidebar from '@/app/components/layout/sidebar';
 
 
 const userDetails = {
@@ -61,8 +63,18 @@ const AppHeader = () => {
     }
 
     return (
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
-            <SidebarTrigger />
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button size="icon" variant="outline" className="sm:hidden">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle Menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="sm:max-w-xs p-0">
+                    <AppSidebar />
+                </SheetContent>
+            </Sheet>
 
             <div className="hidden md:flex flex-col justify-center">
                 <div className="flex items-baseline gap-2">
@@ -146,5 +158,3 @@ const AppHeader = () => {
         </header>
     );
 }
-
-export default AppHeader;

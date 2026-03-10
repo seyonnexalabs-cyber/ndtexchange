@@ -2,9 +2,10 @@
 
 "use client";
 /**
- * TemaDesigner v23
- * - The keyboard event handler has been refactored to use refs for its callback dependencies.
- * - This prevents the event listener from being torn down and re-registered on every render, which was causing an infinite loop and crashing the server.
+ * TemaDesigner v24 - Stable Render Loop
+ * - The core drawing logic has been refactored into a single, stable useEffect hook.
+ * - This removes direct `draw()` calls from event handlers and breaks the dependency chain that was causing an infinite loop and server crashes.
+ * - All state and undo/redo functionality is preserved.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -115,7 +116,7 @@ const undoRedoReducer = <T,>(state: UndoRedoState<T>, action: UndoRedoAction<T>)
             ? (action.payload as (present: T) => T)(present)
             : action.payload;
 
-        if (JSON.stringify(newPresent) === JSON.stringify(present)) return state;
+        if (newPresent === present) return state;
         return { past: [...past, present], present: newPresent, future: [] };
     }
     case 'RESET': {
@@ -202,7 +203,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   // Polygon drawing mode for custom shape
   const [polyMode,setPolyMode]=useState(false);
   const [polyWip,setPolyWip]=useState<{x:number;y:number}[]>([]);
-  const polyMousePos=useRef<{x:number;y:number}|null>(null);
+  const [polyMousePos, setPolyMousePos] = useState<{x:number, y:number}|null>(null);
   
   // Dialogs
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -215,6 +216,14 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   const jobsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'jobs'), where('userId', '==', user.uid)) : null, [firestore, user]);
   const { data: userJobs, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+  
+  // ── Coordinate helpers ─────────────────────────────────────────────────────
+  const evToCSS=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
+    const r=canvasRef.current!.getBoundingClientRect();
+    return{x:e.clientX-r.left,y:e.clientY-r.top};
+  },[]);
+  const css2w=useCallback((cx:number,cy:number)=>({ x:(cx-panRef.current.x)/zoomRef.current, y:(cy-panRef.current.y)/zoomRef.current, }),[]);
+  const w2css=useCallback((wx:number,wy:number)=>({ x:panRef.current.x+wx*zoomRef.current, y:panRef.current.y+wy*zoomRef.current, }),[]);
   
   // ── Generate & Load ────────────────────────────────────────────────────────
   const applyDesignToCanvas = useCallback((design: TemaDesign | null) => {
@@ -293,63 +302,41 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     setNeedRecalc(true);
   }, [setTubes]);
 
-  // Use refs to store the latest versions of the callbacks to avoid stale closures in the event listener.
-  const delSelectedRef = React.useRef(delSelected);
-  useEffect(() => { delSelectedRef.current = delSelected; }, [delSelected]);
-
-  const undoRef = React.useRef(undo);
-  useEffect(() => { undoRef.current = undo; }, [undo]);
-  
-  const redoRef = React.useRef(redo);
-  useEffect(() => { redoRef.current = redo; }, [redo]);
-
-  const toggleFullscreenRef = React.useRef(toggleFullscreen);
-  useEffect(() => { toggleFullscreenRef.current = toggleFullscreen; }, [toggleFullscreen]);
+  // Use refs for callbacks to ensure stable event listener
+  const undoRef = React.useRef(undo); useEffect(() => { undoRef.current = undo; }, [undo]);
+  const redoRef = React.useRef(redo); useEffect(() => { redoRef.current = redo; }, [redo]);
+  const delSelectedRef = React.useRef(delSelected); useEffect(() => { delSelectedRef.current = delSelected; }, [delSelected]);
+  const toggleFullscreenRef = React.useRef(toggleFullscreen); useEffect(() => { toggleFullscreenRef.current = toggleFullscreen; }, [toggleFullscreen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
         if (e.ctrlKey || e.metaKey) {
             if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoRef.current(); }
             if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoRef.current(); }
         }
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (selIdsRef.current.size > 0) {
-                delSelectedRef.current();
-            }
-        }
+        if (e.key === 'Delete' || e.key === 'Backspace') { if (selIdsRef.current.size > 0) delSelectedRef.current(); }
         if (e.key === 'f') { e.preventDefault(); toggleFullscreenRef.current(); }
     };
-      
     window.addEventListener('keydown', handleKeyDown);
-    return () => { window.removeEventListener('keydown', handleKeyDown); };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []); // Empty dependency array ensures the listener is set up only once.
 
   useEffect(() => {
       const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
       document.addEventListener('fullscreenchange', onFsChange);
-      return () => {
-          document.removeEventListener('fullscreenchange', onFsChange);
-      };
+      return () => { document.removeEventListener('fullscreenchange', onFsChange); };
   }, []);
- 
-
-  // ── Coordinate helpers ─────────────────────────────────────────────────────
-  const evToCSS=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
-    const r=canvasRef.current!.getBoundingClientRect();
-    return{x:e.clientX-r.left,y:e.clientY-r.top};
-  },[]);
-  const css2w=useCallback((cx:number,cy:number)=>({ x:(cx-panRef.current.x)/zoomRef.current, y:(cy-panRef.current.y)/zoomRef.current, }),[]);
-  const w2css=useCallback((wx:number,wy:number)=>({ x:panRef.current.x+wx*zoomRef.current, y:panRef.current.y+wy*zoomRef.current, }),[]);
 
   // ── Draw ───────────────────────────────────────────────────────────────────
-  const draw=useCallback(()=>{
+  const drawDependencies = [layout, tubes, zoom, pan, colorMode, showLabels, showDims, showGrid, showShell, selIds, hoverId, selBox, cfg.shape, polyMode, polyWip, polyMousePos, w2css, css2w, fontScale, IN];
+
+  useEffect(()=>{
     const canvas=canvasRef.current;
     if(!canvas) return;
     const ctx=canvas.getContext("2d")!;
     const CW=canvas.width, CH=canvas.height;
-    const z=zoomRef.current, p=panRef.current;
+    const z=zoom, p=pan;
 
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,CW,MARGIN_TOP); ctx.fillRect(0,0,MARGIN_LEFT,CH);
@@ -440,7 +427,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       ctx.beginPath();
       const p0=w2css(polyWip[0].x,polyWip[0].y); ctx.moveTo(p0.x,p0.y);
       for(let i=1;i<polyWip.length;i++){const pp=w2css(polyWip[i].x,polyWip[i].y);ctx.lineTo(pp.x,pp.y);}
-      if(polyMousePos.current){const m=polyMousePos.current;ctx.lineTo(m.x,m.y);}
+      if(polyMousePos){const m=polyMousePos;ctx.lineTo(m.x,m.y);}
       ctx.stroke(); ctx.setLineDash([]);
       polyWip.forEach((pt,i)=>{
         const pp=w2css(pt.x,pt.y);
@@ -477,17 +464,16 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         ctx.textBaseline="alphabetic";
       }
     }
-  },[layout,tubes,zoom,pan,colorMode,showLabels,showDims,showGrid,showShell, selIds,hoverId,selBox,cfg.shape,polyMode,polyWip,w2css,fontScale, IN]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...drawDependencies]);
 
   useEffect(()=>{ const canvas=canvasRef.current; if(!canvas) return;
     const ro=new ResizeObserver(()=>{
       const rect=canvas.getBoundingClientRect();
-      if(rect.width>0&&rect.height>0){ canvas.width=Math.round(rect.width); canvas.height=Math.round(rect.height); draw(); }
+      if(rect.width>0&&rect.height>0){ canvas.width=Math.round(rect.width); canvas.height=Math.round(rect.height); }
     });
     ro.observe(canvas); return()=>ro.disconnect();
-  },[draw]);
-
-  useEffect(()=>{draw();},[draw]);
+  },[]);
 
   const hitTest=useCallback((cx:number,cy:number):LayoutTube|null=>{
     const w=css2w(cx,cy); let best:LayoutTube|null=null, bestD=Infinity;
@@ -529,14 +515,14 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   const onMouseMove=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
     const css=evToCSS(e);
-    if(polyMode){ polyMousePos.current=css; draw(); return; }
+    if(polyMode){ setPolyMousePos(css); return; }
     if(panDrag.current){
       const nx=panDrag.current.px+(e.clientX-panDrag.current.mx), ny=panDrag.current.py+(e.clientY-panDrag.current.my);
       panRef.current={x:nx,y:ny}; setPan({x:nx,y:ny}); return;
     }
-    if(selStart.current){ const s=selStart.current, sc=w2css(s.wx,s.wy); setSelBox({x1:sc.x,y1:sc.y,x2:css.x,y2:css.y}); return; }
+    if(selStart.current){ const sc=w2css(selStart.current.wx,selStart.current.wy); setSelBox({x1:sc.x,y1:sc.y,x2:css.x,y2:css.y}); return; }
     setHoverId(hitTest(css.x,css.y)?.id??null);
-  },[polyMode,evToCSS,hitTest,w2css,draw]);
+  },[polyMode,evToCSS,hitTest,w2css]);
 
   const onMouseUp=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{
     panDrag.current=null;
@@ -856,7 +842,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         </div>
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
           {busy&&(<div style={{position:"absolute",inset:0,background:"rgba(241,245,249,0.93)", display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10}}><Spinner/><div style={{fontFamily:F,fontSize:14*fontScale,fontWeight:600,color:C.text,marginTop:14}}>Generating layout…</div><div style={{fontFamily:F,fontSize:12*fontScale,color:C.text2,marginTop:4}}>Placing tubes · checking clearances</div><div style={{marginTop:14,width:160,height:3,background:C.border,borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:C.accent,borderRadius:2, animation:"td-progress 1.2s ease-in-out infinite",width:"45%"}}/></div></div>)}
-          <canvas ref={canvasRef} style={{display:"block",width:"100%",height:"100%", cursor:polyMode?"crosshair":tool==="pan"||panDrag.current?"grab": tool === 'plug' ? 'crosshair' : "default"}} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onDoubleClick={onDblClick} onMouseLeave={()=>{setHoverId(null);panDrag.current=null;selStart.current=null;setSelBox(null);}} onWheel={onWheel} onContextMenu={e=>e.preventDefault()}/>
+          <canvas ref={canvasRef} style={{display:"block",width:"100%",height:"100%", cursor:polyMode?"crosshair":tool==="pan"||panDrag.current?"grab": tool === 'plug' ? 'crosshair' : "default"}} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onDoubleClick={onDblClick} onMouseLeave={()=>{setHoverId(null);panDrag.current=null;selStart.current=null;setSelBox(null);setPolyMousePos(null);}} onWheel={onWheel} onContextMenu={e=>e.preventDefault()}/>
         </div>
       </div>
 
@@ -951,6 +937,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

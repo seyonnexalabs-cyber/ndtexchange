@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, collection, writeBatch } from 'firebase/firestore';
 import type { PlatformUser, Client, NDTServiceProvider, AuditFirm } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react';
@@ -113,8 +113,10 @@ export default function SignupPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
+        const batch = writeBatch(firestore);
+
         const companyRef = doc(collection(firestore, "companies"));
-        await setDoc(companyRef, {
+        batch.set(companyRef, {
             id: companyRef.id,
             name: data.companyName,
             type: data.companyType.charAt(0).toUpperCase() + data.companyType.slice(1),
@@ -141,7 +143,9 @@ export default function SignupPage() {
             userProfile.providerId = companyRef.id;
         }
 
-        await setDoc(userDocRef, userProfile);
+        batch.set(userDocRef, userProfile);
+
+        await batch.commit();
 
         toast.success("Account Created!", {
             description: "Welcome to NDT EXCHANGE. Your company is onboarded, and you can now log in.",
@@ -152,6 +156,8 @@ export default function SignupPage() {
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/email-already-in-use') {
             description = 'This email address is already in use. Please log in or use a different email.';
+        } else if (error.code === 'permission-denied') {
+            description = 'Permission denied. Please check Firestore rules for company creation.';
         }
         toast.error("Signup Failed", {
             description,

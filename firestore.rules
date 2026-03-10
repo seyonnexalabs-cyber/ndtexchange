@@ -85,7 +85,8 @@ service cloud.firestore {
     // ---------------------------
     match /companies/{companyId} {
         allow read: if true; // Publicly readable for directories
-        allow write: if isPlatformAdmin(); // Only admins can create/edit company profiles directly
+        allow create: if authed() && request.resource.data.contactEmail == request.auth.token.email; // Allow user to create their own company on signup
+        allow update, delete: if isPlatformAdmin(); // Only admins can edit or delete
     }
 
     match /assets/{assetId} {

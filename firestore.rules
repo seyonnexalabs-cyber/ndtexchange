@@ -1,5 +1,4 @@
 
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -129,18 +128,20 @@ service cloud.firestore {
 
         // Client on the job can read all bids.
         // Provider can only read their own bid.
-        allow read: if isOwner(resource.data.userId) || 
+        allow read: if isOwner(resource.data.inspectorId) || 
                     isCompanyMember(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId) || 
                     isPlatformAdmin();
 
         // Provider can update/withdraw their own bid before awarded.
         // Client can update status to accept/reject.
-        allow update: if isOwner(resource.data.userId) || 
+        allow update: if isOwner(resource.data.inspectorId) || 
                       isCompanyMember(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId) ||
                       isPlatformAdmin();
     }
     
     match /inspections/{inspectionId} {
+        allow read: if authed();
+        
         function isJobParticipant(jobId) {
             let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
             return isCompanyMember(job.clientCompanyId) || 
@@ -148,7 +149,6 @@ service cloud.firestore {
                    (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
         }
 
-        allow read: if authed();
         allow write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
     }

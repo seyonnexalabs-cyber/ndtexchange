@@ -14,11 +14,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFirebase, useUser } from '@/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, writeBatch } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { allUsers } from '@/lib/seed-data';
+import type { PlatformUser } from '@/lib/types';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin' | 'manufacturer';
 
@@ -53,20 +54,53 @@ export default function LoginPage() {
         let userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists() && process.env.NODE_ENV === 'development') {
-          console.warn(`User document for ${user.email} not found. Attempting to create one from seed data.`);
+          console.warn(`User document for ${user.email} not found. Attempting to create a profile.`);
           const seedUser = allUsers.find(u => u.email === user.email);
 
           if (seedUser) {
-              const { password, ...userDataToSave } = seedUser; // Exclude password from DB
-              const userProfileData = {
-                  ...userDataToSave,
-                  id: user.uid, // Use the actual UID from auth
-                  createdAt: serverTimestamp(),
-              };
-              await setDoc(userDocRef, userProfileData);
-              userDoc = await getDoc(userDocRef); // Re-fetch the document
-              toast.info("Dev Profile Created", { description: `A profile for ${user.email} was created automatically.`});
+            // Found a matching dev user, use their data
+            const { password, ...userDataToSave } = seedUser;
+            const userProfileData = {
+              ...userDataToSave,
+              id: user.uid,
+              createdAt: serverTimestamp(),
+            };
+            await setDoc(userDocRef, userProfileData);
+            toast.info("Dev Profile Created", { description: `A profile for ${user.email} was created from seed data.` });
+          } else {
+            // No seed user found, create a generic one to unblock development
+            const batch = writeBatch(firestore);
+
+            const newCompanyName = `${user.email?.split('@')[0]}'s Company`;
+            const companyRef = doc(collection(firestore, "companies"));
+            
+            const newCompanyData = {
+                id: companyRef.id,
+                name: newCompanyName,
+                type: 'Client',
+                contactPerson: user.displayName || user.email?.split('@')[0] || 'New User',
+                contactEmail: user.email,
+            };
+            batch.set(companyRef, newCompanyData);
+
+            const userProfileData: Partial<PlatformUser> = {
+              id: user.uid,
+              name: user.displayName || user.email?.split('@')[0] || 'New User',
+              email: user.email!,
+              role: 'Client',
+              companyId: companyRef.id,
+              company: newCompanyName,
+              status: 'Active',
+              createdAt: serverTimestamp(),
+            };
+            batch.set(userDocRef, userProfileData);
+
+            await batch.commit();
+
+            toast.info("Generic Profile Created", { description: `A placeholder profile and company were created for ${user.email}.` });
           }
+          
+          userDoc = await getDoc(userDocRef); // Re-fetch the document
         }
 
         if (userDoc.exists()) {

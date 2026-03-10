@@ -91,26 +91,36 @@ const useUndoRedo = <T,>(initialState: T) => {
     const [state, setState] = useState<{ past: T[]; present: T; future: T[]; }>({
         past: [], present: initialState, future: [],
     });
+
     const canUndo = state.past.length > 0;
     const canRedo = state.future.length > 0;
+
     const undo = useCallback(() => {
-        if (canUndo) {
-            setState(current => ({
-                past: current.past.slice(0, current.past.length - 1),
-                present: current.past[current.past.length - 1],
+        setState((current) => {
+            if (current.past.length === 0) return current;
+            const previous = current.past[current.past.length - 1];
+            const newPast = current.past.slice(0, current.past.length - 1);
+            return {
+                past: newPast,
+                present: previous,
                 future: [current.present, ...current.future],
-            }));
-        }
-    }, [canUndo]);
+            };
+        });
+    }, []);
+
     const redo = useCallback(() => {
-        if (canRedo) {
-            setState(current => ({
+        setState((current) => {
+            if (current.future.length === 0) return current;
+            const next = current.future[0];
+            const newFuture = current.future.slice(1);
+            return {
                 past: [...current.past, current.present],
-                present: current.future[0],
-                future: current.future.slice(1),
-            }));
-        }
-    }, [canRedo]);
+                present: next,
+                future: newFuture,
+            };
+        });
+    }, []);
+
     const set = useCallback((newState: T | ((prevState: T) => T)) => {
         setState(current => {
             const newPresent = typeof newState === 'function' ? (newState as (prevState: T) => T)(current.present) : newState;
@@ -124,6 +134,7 @@ const useUndoRedo = <T,>(initialState: T) => {
             };
         });
     }, []);
+
     return [state.present, set, undo, redo, canUndo, canRedo] as const;
 };
 
@@ -317,7 +328,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         ctx.save();
         ctx.strokeStyle="rgba(37,99,235,0.55)"; ctx.fillStyle="rgba(37,99,235,0.7)"; ctx.lineWidth=1;
         ctx.beginPath(); ctx.moveTo(Math.max(ax1,MARGIN_LEFT),ay); ctx.lineTo(Math.min(ax2,CW),ay); ctx.stroke();
-        for(const[x,d] of [[ax1,1],[ax2,-1]] as [number,number][]){
+        for(const[x,d] of [[ax1,1],[ax2,-1]] as [number,d][]){
           if(x<MARGIN_LEFT||x>CW) continue;
           ctx.beginPath(); ctx.moveTo(x,ay); ctx.lineTo(x+5*d,ay-4); ctx.lineTo(x+5*d,ay+4); ctx.closePath(); ctx.fill();
           ctx.beginPath(); ctx.moveTo(x,ay-6); ctx.lineTo(x,ay+6); ctx.stroke();
@@ -891,9 +902,4 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
 
-
-
-
-
-
-
+    

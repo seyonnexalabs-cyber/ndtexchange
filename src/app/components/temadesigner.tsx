@@ -1,10 +1,11 @@
 
+
 "use client";
 /**
  * TemaDesigner v17
  * - File menu moved to Design tab. Header dividers cleaned up.
  */
-import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
   generateTEMALayout, recalcRowsCols,
   toCSV, toJSON, toDXF, passColor, rowColor,
@@ -86,61 +87,96 @@ function Spinner(){return <div style={{width:22,height:22,border:`2px solid ${C.
 const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",numPasses:1,
   shape:{type:"circle",diameterMm:304.8}};
 
+
+// --- Undo/Redo Hook (useReducer implementation) ---
+const UNDO = 'UNDO';
+const REDO = 'REDO';
+const SET = 'SET';
+const RESET = 'RESET';
+
+type Action<T> =
+  | { type: typeof UNDO }
+  | { type: typeof REDO }
+  | { type: typeof SET; payload: T | ((prev: T) => T) }
+  | { type: typeof RESET; payload: T };
+
+interface State<T> {
+  past: T[];
+  present: T;
+  future: T[];
+}
+
+const undoReducer = <T,>(state: State<T>, action: Action<T>): State<T> => {
+  const { past, present, future } = state;
+
+  switch (action.type) {
+    case UNDO: {
+      if (past.length === 0) return state;
+      const previous = past[past.length - 1];
+      const newPast = past.slice(0, past.length - 1);
+      return {
+        past: newPast,
+        present: previous,
+        future: [present, ...future],
+      };
+    }
+    case REDO: {
+      if (future.length === 0) return state;
+      const next = future[0];
+      const newFuture = future.slice(1);
+      return {
+        past: [...past, present],
+        present: next,
+        future: newFuture,
+      };
+    }
+    case SET: {
+      const newPresent = typeof action.payload === 'function'
+        ? (action.payload as (prev: T) => T)(present)
+        : action.payload;
+
+      if (newPresent === present) return state;
+
+      return {
+        past: [...past, present],
+        present: newPresent,
+        future: [],
+      };
+    }
+    case RESET: {
+       return {
+            past: [],
+            present: action.payload,
+            future: [],
+        };
+    }
+    default:
+      return state;
+  }
+};
+
 const useUndoRedo = <T,>(initialState: T) => {
-    const [state, setState] = useState<{ past: T[]; present: T; future: T[]; }>({
-        past: [], present: initialState, future: [],
-    });
+    const [state, dispatch] = useReducer(undoReducer, {
+        past: [],
+        present: initialState,
+        future: [],
+    } as State<T>);
 
     const canUndo = state.past.length > 0;
     const canRedo = state.future.length > 0;
 
-    const undo = useCallback(() => {
-        setState((current) => {
-            if (current.past.length === 0) return current;
-            const previous = current.past[current.past.length - 1];
-            const newPast = current.past.slice(0, current.past.length - 1);
-            return {
-                past: newPast,
-                present: previous,
-                future: [current.present, ...current.future],
-            };
-        });
-    }, []);
+    const undo = useCallback(() => dispatch({ type: UNDO }), []);
+    const redo = useCallback(() => dispatch({ type: REDO }), []);
+    const set = useCallback((payload: T | ((prev: T) => T)) => dispatch({ type: SET, payload }), []);
+    const reset = useCallback((payload: T) => dispatch({ type: RESET, payload }), []);
 
-    const redo = useCallback(() => {
-        setState((current) => {
-            if (current.future.length === 0) return current;
-            const next = current.future[0];
-            const newFuture = current.future.slice(1);
-            return {
-                past: [...current.past, current.present],
-                present: next,
-                future: newFuture,
-            };
-        });
-    }, []);
-
-    const set = useCallback((newState: T | ((prevState: T) => T)) => {
-        setState(current => {
-            const newPresent = typeof newState === 'function' ? (newState as (prevState: T) => T)(current.present) : newState;
-            if (JSON.stringify(newPresent) === JSON.stringify(current.present)) {
-                return current;
-            }
-            return {
-                past: [...current.past, current.present],
-                present: newPresent,
-                future: [],
-            };
-        });
-    }, []);
-
-    return [state.present, set, undo, redo, canUndo, canRedo] as const;
+    return [state.present, set, undo, redo, canUndo, canRedo, reset] as const;
 };
 
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
-  const IN = 1 / 25.4; // Conversion factor from mm to inches
+  const IN = 1 / 25.4;
 
   const [cfg,setCfg]=useState<TEMAConfig>(DEFAULT);
   const [layout,setLayout]=useState<TEMALayout|null>(null);
@@ -157,7 +193,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const router = useRouter();
 
   // Tubes with undo/redo
-  const [tubes, setTubes, undo, redo, canUndo, canRedo]=useUndoRedo<LayoutTube[]>([]);
+  const [tubes, setTubes, undo, redo, canUndo, canRedo, resetTubes]=useUndoRedo<LayoutTube[]>([]);
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -210,17 +246,18 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     if (!design) return;
     setCfg(design.config);
     setLayout(generateTEMALayout(design.config));
-    setTubes(design.tubes);
+    resetTubes(design.tubes);
     setDesignName(design.name);
     setDesignId(design.id);
-  }, [setTubes]);
+  }, [resetTubes]);
 
   const generate=useCallback(async(resetView = true)=>{
     setBusy(true); setSelIds(new Set()); setNeedRecalc(false); setPolyMode(false); setPolyWip([]);
     await new Promise(r=>setTimeout(r,16));
     try{
       const L=generateTEMALayout(cfg);
-      setLayout(L); setTubes(L.tubes);
+      setLayout(L); 
+      resetTubes(L.tubes);
       setDesignId(null); setDesignName("Untitled Design");
       if(resetView && canvasRef.current){
         const rect=canvasRef.current.getBoundingClientRect();
@@ -232,7 +269,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         setZoom(z); setPan({x:MARGIN_LEFT+cw/2,y:MARGIN_TOP+ch/2});
       }
     }finally{setBusy(false);}
-  },[cfg, setTubes]);
+  },[cfg, resetTubes]);
   
   useEffect(() => {
     const designIdFromUrl = searchParams.get('designId');

@@ -19,7 +19,7 @@ export default function AboutPage() {
       <PublicHeader />
 
       <main className="flex-grow">
-        <HoneycombHero>
+        <HoneycombHero imageId="event-02">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Connecting the World of Asset Integrity

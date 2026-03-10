@@ -243,7 +243,7 @@ export default function ContactPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
       <main className="flex-grow">
-        <HoneycombHero>
+        <HoneycombHero imageId="tech-pt">
             <div className="max-w-3xl mx-auto">
               <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
                 Simple, Transparent Pricing

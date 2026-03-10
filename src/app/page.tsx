@@ -86,7 +86,7 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <HoneycombHero>
+        <HoneycombHero imageId="tech-ut">
             <div className="max-w-3xl text-center mx-auto">
               <h1 className="text-4xl md:text-6xl font-headline font-bold text-foreground">
                 The Digital Marketplace for Asset Integrity

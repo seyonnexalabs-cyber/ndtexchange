@@ -36,10 +36,10 @@ export default function HelpPage() {
         <section className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
-              <Card>
+              <Card className="group">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
-                        <BookOpen className="w-6 h-6 text-primary" />
+                        <BookOpen className="w-6 h-6 text-primary icon-hover-effect" />
                         <span>Guides & FAQs</span>
                     </CardTitle>
                 </CardHeader>
@@ -61,10 +61,10 @@ export default function HelpPage() {
                     </ul>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="group">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
-                        <MessageSquare className="w-6 h-6 text-primary" />
+                        <MessageSquare className="w-6 h-6 text-primary icon-hover-effect" />
                         <span>Contact Support</span>
                     </CardTitle>
                 </CardHeader>

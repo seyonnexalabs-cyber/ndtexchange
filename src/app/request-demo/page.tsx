@@ -47,10 +47,10 @@ export default function RequestDemoPage() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
-                <Card className="text-center">
+                <Card className="text-center group">
                     <CardHeader>
                         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-                            <Calendar className="w-8 h-8 text-primary" />
+                            <Calendar className="w-8 h-8 text-primary icon-hover-effect" />
                         </div>
                         <CardTitle className="mt-4 font-headline">1. Discovery Call</CardTitle>
                     </CardHeader>
@@ -58,10 +58,10 @@ export default function RequestDemoPage() {
                         <p>We'll start with a brief chat to understand your current workflows, challenges, and goals. This helps us tailor the demo to your specific needs.</p>
                     </CardContent>
                 </Card>
-                <Card className="text-center">
+                <Card className="text-center group">
                     <CardHeader>
                         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-                            <Video className="w-8 h-8 text-primary" />
+                            <Video className="w-8 h-8 text-primary icon-hover-effect" />
                         </div>
                         <CardTitle className="mt-4 font-headline">2. Live Platform Tour</CardTitle>
                     </CardHeader>
@@ -69,10 +69,10 @@ export default function RequestDemoPage() {
                         <p>Your specialist will walk you through the platform in real-time, focusing on the features relevant to your role (e.g., asset management, job bidding, equipment tracking).</p>
                     </CardContent>
                 </Card>
-                 <Card className="text-center">
+                 <Card className="text-center group">
                     <CardHeader>
                         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-                            <UserCheck className="w-8 h-8 text-primary" />
+                            <UserCheck className="w-8 h-8 text-primary icon-hover-effect" />
                         </div>
                         <CardTitle className="mt-4 font-headline">3. Custom Use-Cases</CardTitle>
                     </CardHeader>
@@ -80,12 +80,12 @@ export default function RequestDemoPage() {
                         <p>We'll demonstrate how NDT EXCHANGE can solve your specific problems, whether it's managing shutdown maintenance or finding certified local inspectors on short notice.</p>
                     </CardContent>
                 </Card>
-                 <Card className="text-center">
+                 <Card className="text-center group">
                     <CardHeader>
                         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-                            <Bot className="w-8 h-8 text-primary" />
+                            <Bot className="w-8 h-8 text-primary icon-hover-effect" />
                         </div>
-                        <CardTitle className="mt-4 font-headline">4. Q&A and Next Steps</CardTitle>
+                        <CardTitle className="mt-4 font-headline">4. Q&amp;A and Next Steps</CardTitle>
                     </CardHeader>
                     <CardContent className="text-muted-foreground">
                         <p>We'll answer all your questions and discuss pricing, onboarding, and how you can get started with a free 14-day trial.</p>

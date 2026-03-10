@@ -42,11 +42,11 @@ export default function AboutPage() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                <Card className="p-2">
+                <Card className="p-2 group">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <div className="bg-primary/10 p-4 rounded-full w-fit">
-                                <Building className="w-8 h-8 text-primary" />
+                                <Building className="w-8 h-8 text-primary icon-hover-effect" />
                             </div>
                             <CardTitle className="text-2xl font-headline">For Asset Owners (Clients)</CardTitle>
                         </div>
@@ -60,11 +60,11 @@ export default function AboutPage() {
                         </ul>
                     </CardContent>
                 </Card>
-                <Card className="p-2">
+                <Card className="p-2 group">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">
-                                <UserCheck className="w-8 h-8 text-primary" />
+                                <UserCheck className="w-8 h-8 text-primary icon-hover-effect" />
                             </div>
                             <CardTitle className="text-2xl font-headline">For NDT Providers (Inspectors)</CardTitle>
                         </div>
@@ -78,11 +78,11 @@ export default function AboutPage() {
                         </ul>
                     </CardContent>
                 </Card>
-                 <Card className="p-2">
+                 <Card className="p-2 group">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">
-                                <Globe className="w-8 h-8 text-primary" />
+                                <Globe className="w-8 h-8 text-primary icon-hover-effect" />
                             </div>
                             <CardTitle className="text-2xl font-headline">For Auditors & Regulators</CardTitle>
                         </div>
@@ -91,7 +91,7 @@ export default function AboutPage() {
                         <p>Ensure compliance and maintain oversight with tools designed for transparency and traceability across the inspection lifecycle.</p>
                         <ul className="space-y-3">
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Provide Expert Oversight:</strong> Participate in workflows requiring Level III review, offering your expertise to uphold the highest standards of quality and safety.</span></li>
-                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final approval.</span></li>
+                            <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Ensure Full Compliance:</strong> Access a complete, tamper-proof audit trail of the entire inspection lifecycle, from job creation to final report.</span></li>
                             <li className="flex items-start gap-2"><CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" /><span><strong>Work with Confidence:</strong> Review all documentation in a secure, read-only environment specifically designed for compliance and data integrity.</span></li>
                         </ul>
                     </CardContent>
@@ -112,11 +112,11 @@ export default function AboutPage() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                <Card className="p-2">
+                <Card className="p-2 group">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <div className="bg-primary/10 p-4 rounded-full w-fit">
-                                <Workflow className="w-8 h-8 text-primary" />
+                                <Workflow className="w-8 h-8 text-primary icon-hover-effect" />
                             </div>
                             <CardTitle className="text-2xl font-headline">Marketplace & Management in One</CardTitle>
                         </div>
@@ -125,11 +125,11 @@ export default function AboutPage() {
                         <p>We are the only platform that seamlessly integrates a competitive service procurement marketplace with a robust suite of operational management tools for both asset owners and service providers. This eliminates silos and creates a single, end-to-end workflow from job creation to final report.</p>
                     </CardContent>
                 </Card>
-                <Card className="p-2">
+                <Card className="p-2 group">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">
-                                <Users className="w-8 h-8 text-primary" />
+                                <Users className="w-8 h-8 text-primary icon-hover-effect" />
                             </div>
                             <CardTitle className="text-2xl font-headline">For the Entire Industry</CardTitle>
                         </div>
@@ -138,11 +138,11 @@ export default function AboutPage() {
                         <p>NDT EXCHANGE is designed for every stakeholder. Clients gain control over their assets, Providers find work and manage operations, Auditors ensure compliance, and OEMs connect with their user base. This network effect creates unparalleled value and efficiency for everyone.</p>
                     </CardContent>
                 </Card>
-                 <Card className="p-2">
+                 <Card className="p-2 group">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 p-4 rounded-full w-fit">
-                                <DatabaseZap className="w-8 h-8 text-primary" />
+                                <DatabaseZap className="w-8 h-8 text-primary icon-hover-effect" />
                             </div>
                             <CardTitle className="text-2xl font-headline">Built for NDT 4.0</CardTitle>
                         </div>

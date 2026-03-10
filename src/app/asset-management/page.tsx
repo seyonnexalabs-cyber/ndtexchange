@@ -78,17 +78,17 @@ export default function AssetManagementPage() {
                         </div>
                         <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-2 max-w-4xl mx-auto">
                             <FeatureCard
-                                icon={<TrendingUp className="w-8 h-8 text-primary" />}
+                                icon={<TrendingUp className="w-8 h-8 text-primary icon-hover-effect" />}
                                 title="Predictive & Condition-Based"
                                 description="Leverage historical data and trend analysis to move from reactive to proactive maintenance. Schedule inspections based on asset condition to prevent failures before they happen."
-                                cardClass="hover:border-primary/20"
+                                cardClass="hover:border-primary/20 group"
                                 iconContainerClass="bg-primary/10"
                             />
                             <FeatureCard
-                                icon={<TriangleAlert className="w-8 h-8 text-destructive" />}
+                                icon={<TriangleAlert className="w-8 h-8 text-destructive icon-hover-effect" />}
                                 title="Breakdown & Emergency Maintenance"
                                 description="When the unexpected happens, quickly find and dispatch qualified local inspectors. Our marketplace gives you immediate access to a network of professionals ready to respond."
-                                cardClass="hover:border-destructive/20"
+                                cardClass="hover:border-destructive/20 group"
                                 iconContainerClass="bg-destructive/10"
                             />
                         </div>
@@ -203,31 +203,31 @@ export default function AssetManagementPage() {
                     </div>
                     <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                       <FeatureCard
-                        icon={<FolderKanban className="w-8 h-8 text-primary" />}
+                        icon={<FolderKanban className="w-8 h-8 text-primary icon-hover-effect" />}
                         title="Centralized Document Vault"
                         description="Securely store and manage all asset-related documents like P&IDs, historical reports, and fabrication certificates in one easy-to-access vault."
-                        cardClass="hover:border-primary/20"
+                        cardClass="hover:border-primary/20 group"
                         iconContainerClass="bg-primary/10"
                       />
                       <FeatureCard
-                        icon={<History className="w-8 h-8 text-primary" />}
+                        icon={<History className="w-8 h-8 text-primary icon-hover-effect" />}
                         title="Complete Lifecycle History"
                         description="Gain a full, tamper-proof audit trail of every inspection, repair, and status change, providing unparalleled traceability for compliance and decision-making."
-                        cardClass="hover:border-primary/20"
+                        cardClass="hover:border-primary/20 group"
                         iconContainerClass="bg-primary/10"
                       />
                       <FeatureCard
-                        icon={<CalendarCheck className="w-8 h-8 text-primary" />}
+                        icon={<CalendarCheck className="w-8 h-8 text-primary icon-hover-effect" />}
                         title="Automated Scheduling & Alerts"
                         description="Stay ahead of maintenance with automated reminders for upcoming inspections. Prevent costly oversights and ensure your assets are always in compliance."
-                        cardClass="hover:border-primary/20"
+                        cardClass="hover:border-primary/20 group"
                         iconContainerClass="bg-primary/10"
                       />
                       <FeatureCard
-                        icon={<QrCode className="w-8 h-8 text-primary" />}
+                        icon={<QrCode className="w-8 h-8 text-primary icon-hover-effect" />}
                         title="QR Code Asset Tagging"
                         description="Instantly access an asset's full history and documentation in the field by scanning a simple QR code, streamlining on-site work for your team and providers."
-                        cardClass="hover:border-primary/20"
+                        cardClass="hover:border-primary/20 group"
                         iconContainerClass="bg-primary/10"
                       />
                     </div>

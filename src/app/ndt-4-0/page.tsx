@@ -17,22 +17,22 @@ export const metadata: Metadata = {
 export default function NDT40Page() {
     const coreTechnologies = [
         {
-            icon: <Share className="w-8 h-8 text-primary" />,
+            icon: <Share className="w-8 h-8 text-primary icon-hover-effect" />,
             title: 'IIoT & Connectivity',
             description: 'Sensors and smart devices continuously collect real-time data on asset health and environmental conditions, streaming it to a central platform.'
         },
         {
-            icon: <Cloud className="w-8 h-8 text-primary" />,
+            icon: <Cloud className="w-8 h-8 text-primary icon-hover-effect" />,
             title: 'Cloud & Big Data',
             description: 'Vast amounts of data from inspections, sensors, and operational history are stored and processed in the cloud, forming a rich dataset for analysis.'
         },
         {
-            icon: <BrainCircuit className="w-8 h-8 text-primary" />,
+            icon: <BrainCircuit className="w-8 h-8 text-primary icon-hover-effect" />,
             title: 'AI & Machine Learning',
             description: 'Algorithms analyze historical and real-time data to identify patterns, predict potential failures, and recommend optimal inspection intervals (Risk-Based Inspection).'
         },
         {
-            icon: <Copy className="w-8 h-8 text-primary" />,
+            icon: <Copy className="w-8 h-8 text-primary icon-hover-effect" />,
             title: 'Digital Twins',
             description: 'A virtual replica of a physical asset is created and continuously updated with live data, allowing for simulations, what-if analysis, and optimized maintenance planning.'
         },
@@ -71,7 +71,7 @@ export default function NDT40Page() {
                             icon={tech.icon}
                             title={tech.title}
                             description={tech.description}
-                            cardClass="hover:border-primary/20 text-center"
+                            cardClass="hover:border-primary/20 text-center group"
                             iconContainerClass="bg-primary/10"
                         />
                       ))}

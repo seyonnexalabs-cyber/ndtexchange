@@ -23,7 +23,7 @@ import HoneycombHero from '@/components/ui/honeycomb-hero';
 export default function HomePage() {
   const pillars = [
     {
-      icon: <Building className="w-8 h-8 text-primary" />,
+      icon: <Building className="w-8 h-8 text-primary icon-hover-effect" />,
       title: 'For Asset Owners',
       description: 'A complete toolkit to manage asset integrity, from procurement to decommissioning.',
       link: '/asset-management',
@@ -34,7 +34,7 @@ export default function HomePage() {
       ]
     },
     {
-      icon: <HardHat className="w-8 h-8 text-primary" />,
+      icon: <HardHat className="w-8 h-8 text-primary icon-hover-effect" />,
       title: 'For NDT Providers',
       description: 'Find new opportunities and streamline your operations with professional tools.',
       link: '/provider-tools',
@@ -45,7 +45,7 @@ export default function HomePage() {
       ]
     },
      {
-      icon: <Factory className="w-8 h-8 text-primary" />,
+      icon: <Factory className="w-8 h-8 text-primary icon-hover-effect" />,
       title: 'For Equipment OEMs',
       description: 'Showcase your products to a targeted audience of NDT professionals and asset owners.',
       link: '/oem-solutions',
@@ -121,7 +121,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                     {pillars.map((pillar, index) => (
-                        <Card key={index} className="text-center flex flex-col p-2">
+                        <Card key={index} className="text-center flex flex-col p-2 group">
                            <CardHeader>
                                 <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
                                     {pillar.icon}

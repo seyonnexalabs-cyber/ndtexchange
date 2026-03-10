@@ -44,24 +44,24 @@ export default function ProviderToolsPage() {
                     </div>
                     <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                       <FeatureCard
-                        icon={<Search className="w-8 h-8 text-accent" />}
+                        icon={<Search className="w-8 h-8 text-accent icon-hover-effect" />}
                         title="Find Qualified Jobs"
                         description="Discover a continuous stream of job opportunities from qualified asset owners. Filter jobs by technique and location to find the perfect match for your expertise."
-                        cardClass="hover:border-accent/20"
+                        cardClass="hover:border-accent/20 group"
                         iconContainerClass="bg-accent/10"
                       />
                       <FeatureCard
-                        icon={<Gavel className="w-8 h-8 text-accent" />}
+                        icon={<Gavel className="w-8 h-8 text-accent icon-hover-effect" />}
                         title="Submit Competitive Bids"
                         description="Use our structured bidding process to clearly present your technical qualifications, certifications, and pricing to win more work."
-                        cardClass="hover:border-accent/20"
+                        cardClass="hover:border-accent/20 group"
                         iconContainerClass="bg-accent/10"
                       />
                       <FeatureCard
-                        icon={<FileText className="w-8 h-8 text-accent" />}
+                        icon={<FileText className="w-8 h-8 text-accent icon-hover-effect" />}
                         title="Deliver Professional Reports"
                         description="Utilize standardized, technique-specific templates to generate high-quality, consistent digital reports that impress clients and streamline your submission process."
-                        cardClass="hover:border-accent/20"
+                        cardClass="hover:border-accent/20 group"
                         iconContainerClass="bg-accent/10"
                       />
                     </div>
@@ -96,24 +96,24 @@ export default function ProviderToolsPage() {
                     </div>
                     <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                       <FeatureCard
-                        icon={<Users className="w-8 h-8 text-accent" />}
+                        icon={<Users className="w-8 h-8 text-accent icon-hover-effect" />}
                         title="Technician Roster Management"
                         description="Maintain a central database of your inspectors, their qualifications, and certifications. Track availability and assign the right person to the right job."
-                        cardClass="hover:border-accent/20"
+                        cardClass="hover:border-accent/20 group"
                         iconContainerClass="bg-accent/10"
                       />
                       <FeatureCard
-                        icon={<Wrench className="w-8 h-8 text-accent" />}
+                        icon={<Wrench className="w-8 h-8 text-accent icon-hover-effect" />}
                         title="Equipment & Calibration Tracking"
                         description="Log all your NDT equipment, from UT machines to yokes. Track calibration schedules with automated reminders to prevent costly non-compliance."
-                        cardClass="hover:border-accent/20"
+                        cardClass="hover:border-accent/20 group"
                         iconContainerClass="bg-accent/10"
                       />
                       <FeatureCard
-                        icon={<QrCode className="w-8 h-8 text-accent" />}
+                        icon={<QrCode className="w-8 h-8 text-accent icon-hover-effect" />}
                         title="QR Code Equipment Tagging"
                         description="Instantly access an equipment's full history and checkout status in the field by scanning a simple QR code, streamlining on-site work for your team."
-                        cardClass="hover:border-accent/20"
+                        cardClass="hover:border-accent/20 group"
                         iconContainerClass="bg-accent/10"
                       />
                     </div>

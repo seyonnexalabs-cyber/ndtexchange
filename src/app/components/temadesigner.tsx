@@ -2,8 +2,8 @@
 
 "use client";
 /**
- * TemaDesigner v17
- * - File menu moved to Design tab. Header dividers cleaned up.
+ * TemaDesigner v18
+ * - Re-implemented stable Undo/Redo functionality using useReducer.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -84,6 +84,61 @@ function NumIn({value,onChange,min,max,step,unit, fontScale=1}:{value:number;onC
 function Spinner(){return <div style={{width:22,height:22,border:`2px solid ${C.border}`,
   borderTopColor:C.accent,borderRadius:"50%",animation:"td-spin 0.65s linear infinite",flexShrink:0}}/>;}
 
+// ── Undo/Redo Hook Implementation ───────────────────────────────────────────
+interface UndoRedoState<T> {
+  past: T[];
+  present: T;
+  future: T[];
+}
+type UndoRedoAction<T> =
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'SET'; payload: T | ((present: T) => T) }
+  | { type: 'RESET'; payload: T };
+
+const undoRedoReducer = <T,>(state: UndoRedoState<T>, action: UndoRedoAction<T>): UndoRedoState<T> => {
+  const { past, present, future } = state;
+  switch (action.type) {
+    case 'UNDO': {
+        if (past.length === 0) return state;
+        const newPast = past.slice(0, past.length - 1);
+        return { past: newPast, present: past[past.length - 1], future: [present, ...future] };
+    }
+    case 'REDO': {
+        if (future.length === 0) return state;
+        const newFuture = future.slice(1);
+        return { past: [...past, present], present: future[0], future: newFuture };
+    }
+    case 'SET': {
+        const newPresent = typeof action.payload === 'function'
+            ? (action.payload as (present: T) => T)(present)
+            : action.payload;
+
+        if (newPresent === present) return state;
+        return { past: [...past, present], present: newPresent, future: [] };
+    }
+    case 'RESET': {
+        return { past: [], present: action.payload, future: [] };
+    }
+    default: return state;
+  }
+};
+const useUndoRedo = <T,>(initialPresent: T) => {
+    const [state, dispatch] = useReducer(undoRedoReducer<T>, {
+        past: [],
+        present: initialPresent,
+        future: [],
+    });
+    const canUndo = state.past.length !== 0;
+    const canRedo = state.future.length !== 0;
+    const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
+    const redo = useCallback(() => dispatch({ type: 'REDO' }), []);
+    const set = useCallback((payload: T | ((present: T) => T)) => dispatch({ type: 'SET', payload }), []);
+    const reset = useCallback((newPresent: T) => dispatch({ type: 'RESET', payload: newPresent }), []);
+    return { tubes: state.present, setTubes: set, undo, redo, canUndo, canRedo, resetTubes: reset };
+};
+
+
 // ── Default config ────────────────────────────────────────────────────────────
 const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",numPasses:1,
   shape:{type:"circle",diameterMm:304.8}};
@@ -107,13 +162,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Tubes state
-  const [tubes, setTubes] = useState<LayoutTube[]>([]);
-  const canUndo = false; // dummy
-  const canRedo = false; // dummy
-  const undo = () => {}; // dummy
-  const redo = () => {}; // dummy
-  const resetTubes = useCallback((newTubes: LayoutTube[]) => setTubes(newTubes), []);
+  // Tubes state with Undo/Redo
+  const { tubes, setTubes, undo, redo, canUndo, canRedo, resetTubes } = useUndoRedo<LayoutTube[]>([]);
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -223,7 +273,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, firestore, user]); // Only run on mount and when key params change
+  }, [searchParams, firestore, user]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
    const toggleFullscreen = useCallback(() => {
@@ -237,23 +287,49 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     }
   }, []);
 
-  useEffect(()=>{
-    const h=(e:KeyboardEvent)=>{
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if(e.key==='Delete'||e.key==='Backspace'){
-        if(selIdsRef.current.size > 0){
-          setTubes(prev => prev.filter(t => !selIdsRef.current.has(t.id)));
-          setSelIds(new Set());
-          setNeedRecalc(true);
-        }
-      }
-      if(e.key==='f'){e.preventDefault();toggleFullscreen();}
-    };
-    const onFsChange=()=>setIsFullscreen(!!document.fullscreenElement);
-    window.addEventListener('keydown',h);
-    document.addEventListener('fullscreenchange',onFsChange);
-    return()=>{ window.removeEventListener('keydown',h); document.removeEventListener('fullscreenchange',onFsChange); };
-  },[toggleFullscreen]);
+  const delSelected = useCallback(() => {
+    setTubes(currentTubes => currentTubes.filter(t => !selIdsRef.current.has(t.id)));
+    setSelIds(new Set());
+    setNeedRecalc(true);
+  }, [setTubes]);
+
+  const undoRef = useRef(undo);
+  const redoRef = useRef(redo);
+  const delSelectedRef = useRef(delSelected);
+  const toggleFullscreenRef = useRef(toggleFullscreen);
+
+  useEffect(() => {
+      undoRef.current = undo;
+      redoRef.current = redo;
+      delSelectedRef.current = delSelected;
+      toggleFullscreenRef.current = toggleFullscreen;
+  });
+
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+          if (e.ctrlKey || e.metaKey) {
+              if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoRef.current(); }
+              if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoRef.current(); }
+          }
+          if (e.key === 'Delete' || e.key === 'Backspace') {
+              if (selIdsRef.current.size > 0) {
+                  delSelectedRef.current();
+              }
+          }
+          if (e.key === 'f') { e.preventDefault(); toggleFullscreenRef.current(); }
+      };
+
+      const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+      window.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('fullscreenchange', onFsChange);
+
+      return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.removeEventListener('fullscreenchange', onFsChange);
+      };
+  }, []); // Empty dependency array ensures this runs only once
   
  
 
@@ -430,7 +506,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     if(e.button===0){
       const hit=hitTest(css.x,css.y);
       if (tool === 'plug' && hit) {
-          setTubes(prev => prev.map(t => t.id === hit.id ? { ...t, status: t.status === 'plugged' ? 'ok' : 'plugged' } : t));
+          setTubes(currentTubes => currentTubes.map(t => t.id === hit.id ? { ...t, status: t.status === 'plugged' ? 'ok' : 'plugged' } : t));
           return;
       }
       if(hit){
@@ -504,39 +580,38 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   },[tubes]);
 
   // ── Edit operations ───────────────────────────────────────────────────────
-  const delSelected=useCallback(()=> setTubes(prev => prev.filter(t=>!selIdsRef.current.has(t.id))), []);
-  const delRow=useCallback((r:number)=>setTubes(prev => { setNeedRecalc(true); return prev.filter(t=>t.row!==r)}), []);
-  const delCol=useCallback((c:number)=>setTubes(prev => { setNeedRecalc(true); return prev.filter(t=>t.col!==c)}), []);
-  const delPass=useCallback((pp:number)=>setTubes(prev => { setNeedRecalc(true); return prev.filter(t=>t.pass!==pp)}), []);
+  const delRow=useCallback((r:number)=> { setTubes(tubes => tubes.filter(t=>t.row!==r)); setNeedRecalc(true); }, [setTubes]);
+  const delCol=useCallback((c:number)=> { setTubes(tubes => tubes.filter(t=>t.col!==c)); setNeedRecalc(true); }, [setTubes]);
+  const delPass=useCallback((pp:number)=>{ setTubes(tubes => tubes.filter(t=>t.pass!==pp)); setNeedRecalc(true); }, [setTubes]);
   const insertRowAfter=useCallback((row:number)=>{
     if(!layout) return;
-    setTubes(prevTubes => {
-        const rt=prevTubes.filter(t=>t.row===row); if(!rt.length) return prevTubes;
-        const nextY=prevTubes.find(t=>t.row===row+1)?.y;
+    setTubes(currentTubes => {
+        const rt=currentTubes.filter(t=>t.row===row); if(!rt.length) return currentTubes;
+        const nextY=currentTubes.find(t=>t.row===row+1)?.y;
         const SQ3H = Math.sqrt(3)/2;
         const pitchY=layout.pattern==='triangular'||layout.pattern==='rotated-triangular' ?layout.pitchMm*SQ3H : layout.pitchMm;
         const dy=nextY!=null?(nextY-rt[0].y):pitchY;
-        const maxId=prevTubes.length > 0 ? Math.max(...prevTubes.map(t=>t.id)) : 0;
+        const maxId=currentTubes.length > 0 ? Math.max(...currentTubes.map(t=>t.id)) : 0;
         const newT:LayoutTube[]=rt.map((t,i)=>({...t,id:maxId+1+i,y:t.y+dy/2,row:row+1}));
-        const shifted=prevTubes.map(t=>t.row>row?{...t,row:t.row+1}:t);
-        setNeedRecalc(true);
+        const shifted=currentTubes.map(t=>t.row>row?{...t,row:t.row+1}:t);
         return [...shifted,...newT];
     });
-  },[layout]);
+    setNeedRecalc(true);
+  },[layout, setTubes]);
   const insertColAfter=useCallback((col:number)=>{
     if(!layout) return;
-    setTubes(prevTubes => {
-        const ct=prevTubes.filter(t=>t.col===col); if(!ct.length) return prevTubes;
-        const nextX=prevTubes.find(t=>t.col===col+1)?.x;
+    setTubes(currentTubes => {
+        const ct=currentTubes.filter(t=>t.col===col); if(!ct.length) return currentTubes;
+        const nextX=currentTubes.find(t=>t.col===col+1)?.x;
         const dx=nextX!=null?(nextX-ct[0].x):layout.pitchMm;
-        const maxId=prevTubes.length > 0 ? Math.max(...prevTubes.map(t=>t.id)) : 0;
+        const maxId=currentTubes.length > 0 ? Math.max(...currentTubes.map(t=>t.id)) : 0;
         const newT:LayoutTube[]=ct.map((t,i)=>({...t,id:maxId+1+i,x:t.x+dx/2,col:col+1}));
-        const shifted=prevTubes.map(t=>t.col>col?{...t,col:t.col+1}:t);
-        setNeedRecalc(true);
+        const shifted=currentTubes.map(t=>t.col>col?{...t,col:t.col+1}:t);
         return [...shifted,...newT];
     });
-  },[layout]);
-  const recalc=()=>{ if(!layout) return; setTubes(prev => recalcRowsCols(prev,layout.pitchMm)); setNeedRecalc(false); };
+    setNeedRecalc(true);
+  },[layout, setTubes]);
+  const recalc=()=>{ if(!layout) return; setTubes(currentTubes => recalcRowsCols(currentTubes,layout.pitchMm)); setNeedRecalc(false); };
 
   // ── Selection helpers ────────────────────────────────────────────────────
   const selAll=()=>setSelIds(new Set(tubes.map(t=>t.id)));
@@ -874,5 +949,8 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
+
+
 
 

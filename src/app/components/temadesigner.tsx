@@ -89,92 +89,6 @@ const DEFAULT:TEMAConfig={tubeOdIn:0.75,pitchRatio:1.25,pattern:"triangular",num
   shape:{type:"circle",diameterMm:304.8}};
 
 
-// --- Undo/Redo Hook (useReducer implementation) ---
-const UNDO = 'UNDO';
-const REDO = 'REDO';
-const SET = 'SET';
-const RESET = 'RESET';
-
-type Action<T> =
-  | { type: typeof UNDO }
-  | { type: typeof REDO }
-  | { type: typeof SET; payload: T | ((prev: T) => T) }
-  | { type: typeof RESET; payload: T };
-
-interface State<T> {
-  past: T[];
-  present: T;
-  future: T[];
-}
-
-const undoReducer = <T,>(state: State<T>, action: Action<T>): State<T> => {
-  const { past, present, future } = state;
-
-  switch (action.type) {
-    case UNDO: {
-      if (past.length === 0) return state;
-      const previous = past[past.length - 1];
-      const newPast = past.slice(0, past.length - 1);
-      return {
-        past: newPast,
-        present: previous,
-        future: [present, ...future],
-      };
-    }
-    case REDO: {
-      if (future.length === 0) return state;
-      const next = future[0];
-      const newFuture = future.slice(1);
-      return {
-        past: [...past, present],
-        present: next,
-        future: newFuture,
-      };
-    }
-    case SET: {
-      const newPresent = typeof action.payload === 'function'
-        ? (action.payload as (prev: T) => T)(present)
-        : action.payload;
-
-      if (newPresent === present) return state;
-
-      return {
-        past: [...past, present],
-        present: newPresent,
-        future: [],
-      };
-    }
-    case RESET: {
-       return {
-            past: [],
-            present: action.payload,
-            future: [],
-        };
-    }
-    default:
-      return state;
-  }
-};
-
-const useUndoRedo = <T,>(initialState: T) => {
-    const [state, dispatch] = useReducer(undoReducer, {
-        past: [],
-        present: initialState,
-        future: [],
-    } as State<T>);
-
-    const canUndo = state.past.length > 0;
-    const canRedo = state.future.length > 0;
-
-    const undo = useCallback(() => dispatch({ type: UNDO }), []);
-    const redo = useCallback(() => dispatch({ type: REDO }), []);
-    const set = useCallback((payload: T | ((prev: T) => T)) => dispatch({ type: SET, payload }), []);
-    const reset = useCallback((payload: T) => dispatch({ type: RESET, payload }), []);
-
-    return [state.present, set, undo, redo, canUndo, canRedo, reset] as const;
-};
-
-
 // ── Main component ────────────────────────────────────────────────────────────
 export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const IN = 1 / 25.4;
@@ -193,8 +107,13 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Tubes with undo/redo
-  const [tubes, setTubes, undo, redo, canUndo, canRedo, resetTubes]=useUndoRedo<LayoutTube[]>([]);
+  // Tubes state
+  const [tubes, setTubes] = useState<LayoutTube[]>([]);
+  const canUndo = false; // dummy
+  const canRedo = false; // dummy
+  const undo = () => {}; // dummy
+  const redo = () => {}; // dummy
+  const resetTubes = useCallback((newTubes: LayoutTube[]) => setTubes(newTubes), []);
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -321,8 +240,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   useEffect(()=>{
     const h=(e:KeyboardEvent)=>{
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}
-      if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}
       if(e.key==='Delete'||e.key==='Backspace'){
         if(selIdsRef.current.size > 0){
           setTubes(prev => prev.filter(t => !selIdsRef.current.has(t.id)));
@@ -336,7 +253,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     window.addEventListener('keydown',h);
     document.addEventListener('fullscreenchange',onFsChange);
     return()=>{ window.removeEventListener('keydown',h); document.removeEventListener('fullscreenchange',onFsChange); };
-  },[undo, redo, setTubes, toggleFullscreen]);
+  },[toggleFullscreen]);
   
  
 
@@ -587,10 +504,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   },[tubes]);
 
   // ── Edit operations ───────────────────────────────────────────────────────
-  const delSelected=useCallback(()=>{ if(!selIds.size) return; setTubes(prev => prev.filter(t=>!selIds.has(t.id))); setSelIds(new Set()); setNeedRecalc(true); }, [selIds.size, setTubes]);
-  const delRow=useCallback((r:number)=>{setTubes(prev => prev.filter(t=>t.row!==r));setNeedRecalc(true);}, [setTubes]);
-  const delCol=useCallback((c:number)=>{setTubes(prev => prev.filter(t=>t.col!==c));setNeedRecalc(true);}, [setTubes]);
-  const delPass=useCallback((pp:number)=>{setTubes(prev => prev.filter(t=>t.pass!==pp));setNeedRecalc(true);}, [setTubes]);
+  const delSelected=useCallback(()=> setTubes(prev => prev.filter(t=>!selIdsRef.current.has(t.id))), []);
+  const delRow=useCallback((r:number)=>setTubes(prev => { setNeedRecalc(true); return prev.filter(t=>t.row!==r)}), []);
+  const delCol=useCallback((c:number)=>setTubes(prev => { setNeedRecalc(true); return prev.filter(t=>t.col!==c)}), []);
+  const delPass=useCallback((pp:number)=>setTubes(prev => { setNeedRecalc(true); return prev.filter(t=>t.pass!==pp)}), []);
   const insertRowAfter=useCallback((row:number)=>{
     if(!layout) return;
     setTubes(prevTubes => {
@@ -602,10 +519,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         const maxId=prevTubes.length > 0 ? Math.max(...prevTubes.map(t=>t.id)) : 0;
         const newT:LayoutTube[]=rt.map((t,i)=>({...t,id:maxId+1+i,y:t.y+dy/2,row:row+1}));
         const shifted=prevTubes.map(t=>t.row>row?{...t,row:t.row+1}:t);
+        setNeedRecalc(true);
         return [...shifted,...newT];
     });
-    setNeedRecalc(true);
-  },[layout,setTubes]);
+  },[layout]);
   const insertColAfter=useCallback((col:number)=>{
     if(!layout) return;
     setTubes(prevTubes => {
@@ -615,10 +532,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         const maxId=prevTubes.length > 0 ? Math.max(...prevTubes.map(t=>t.id)) : 0;
         const newT:LayoutTube[]=ct.map((t,i)=>({...t,id:maxId+1+i,x:t.x+dx/2,col:col+1}));
         const shifted=prevTubes.map(t=>t.col>col?{...t,col:t.col+1}:t);
+        setNeedRecalc(true);
         return [...shifted,...newT];
     });
-    setNeedRecalc(true);
-  },[layout,setTubes]);
+  },[layout]);
   const recalc=()=>{ if(!layout) return; setTubes(prev => recalcRowsCols(prev,layout.pitchMm)); setNeedRecalc(false); };
 
   // ── Selection helpers ────────────────────────────────────────────────────
@@ -957,4 +874,5 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 

@@ -244,21 +244,23 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                     toast.success(`Loaded design: ${designData.name}`);
                 } else {
                     toast.error("Permission Denied", { description: "You do not have permission to view this design." });
-                    generate(true);
+                    if (!layout) generate(true);
                 }
             } else {
                  toast.error("Design not found.");
-                 generate(true);
+                 if (!layout) generate(true);
             }
         }).catch(() => {
             toast.error("Error loading design.");
-            generate(true);
+            if (!layout) generate(true);
         });
     } else {
-        generate(true);
+        if (!layout) {
+            generate(true);
+        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, firestore, user]);
+  }, [searchParams, firestore, user, layout]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
    const toggleFullscreen = useCallback(() => {
@@ -328,7 +330,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         ctx.save();
         ctx.strokeStyle="rgba(37,99,235,0.55)"; ctx.fillStyle="rgba(37,99,235,0.7)"; ctx.lineWidth=1;
         ctx.beginPath(); ctx.moveTo(Math.max(ax1,MARGIN_LEFT),ay); ctx.lineTo(Math.min(ax2,CW),ay); ctx.stroke();
-        for(const[x,d] of [[ax1,1],[ax2,-1]] as [number,d][]){
+        for(const[x,d] of [[ax1,1],[ax2,-1]] as [number,number][]){
           if(x<MARGIN_LEFT||x>CW) continue;
           ctx.beginPath(); ctx.moveTo(x,ay); ctx.lineTo(x+5*d,ay-4); ctx.lineTo(x+5*d,ay+4); ctx.closePath(); ctx.fill();
           ctx.beginPath(); ctx.moveTo(x,ay-6); ctx.lineTo(x,ay+6); ctx.stroke();
@@ -635,7 +637,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const dl=(content:string,name:string,mime:string)=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([content],{type:mime})); a.download=name; a.click(); };
   const stem=`tubemapper_${cfg.tubeOdIn}in_${cfg.pattern}_${cfg.shape.type}`;
   const expCSV =()=>layout&&dl(toCSV(tubes,layout.pitchMm,layout.tubeOdMm,cfg),stem+".csv","text/csv");
-  const expJSON=()=>layout&&dl(toJSON(tubes,layout.pitchMm,layout.tubeOdMm,cfg),stem+".json","application/json");
+  const expJSON =()=>layout&&dl(toJSON(tubes,layout.pitchMm,layout.tubeOdMm,cfg),stem+".json","application/json");
   const expDXF =()=>layout&&dl(toDXF(tubes,layout.tubeOdMm),stem+".dxf","application/dxf");
 
   // Derived

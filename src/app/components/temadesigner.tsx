@@ -2,9 +2,9 @@
 
 "use client";
 /**
- * TemaDesigner v22
- * - Re-instated a stable useUndoRedo hook based on useReducer.
- * - Refactored keyboard event listener and selection-based callbacks (e.g., delSelected) to use refs for accessing the latest state. This prevents stale closures and stabilizes the component, resolving the infinite loop and server crashes.
+ * TemaDesigner v23
+ * - The keyboard event handler has been refactored to use refs for its callback dependencies.
+ * - This prevents the event listener from being torn down and re-registered on every render, which was causing an infinite loop and crashing the server.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -184,7 +184,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   // Selection & Tools
   const [selIds,setSelIds]=useState<Set<number>>(new Set());
   const selIdsRef = useRef(selIds);
-  selIdsRef.current = selIds;
+  useEffect(() => { selIdsRef.current = selIds; }, [selIds]);
 
   const [hoverId,setHoverId]=useState<number|null>(null);
   const [selBox,setSelBox]=useState<{x1:number;y1:number;x2:number;y2:number}|null>(null);
@@ -293,25 +293,38 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     setNeedRecalc(true);
   }, [setTubes]);
 
+  // Use refs to store the latest versions of the callbacks to avoid stale closures in the event listener.
+  const delSelectedRef = React.useRef(delSelected);
+  useEffect(() => { delSelectedRef.current = delSelected; }, [delSelected]);
+
+  const undoRef = React.useRef(undo);
+  useEffect(() => { undoRef.current = undo; }, [undo]);
+  
+  const redoRef = React.useRef(redo);
+  useEffect(() => { redoRef.current = redo; }, [redo]);
+
+  const toggleFullscreenRef = React.useRef(toggleFullscreen);
+  useEffect(() => { toggleFullscreenRef.current = toggleFullscreen; }, [toggleFullscreen]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
         if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-            if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+            if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoRef.current(); }
+            if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoRef.current(); }
         }
         if (e.key === 'Delete' || e.key === 'Backspace') {
             if (selIdsRef.current.size > 0) {
-                delSelected();
+                delSelectedRef.current();
             }
         }
-        if (e.key === 'f') { e.preventDefault(); toggleFullscreen(); }
+        if (e.key === 'f') { e.preventDefault(); toggleFullscreenRef.current(); }
     };
       
     window.addEventListener('keydown', handleKeyDown);
     return () => { window.removeEventListener('keydown', handleKeyDown); };
-  }, [undo, redo, delSelected, toggleFullscreen]);
+  }, []); // Empty dependency array ensures the listener is set up only once.
 
   useEffect(() => {
       const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -938,6 +951,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

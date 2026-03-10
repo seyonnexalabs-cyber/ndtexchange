@@ -426,6 +426,66 @@
             "modifiedAt": { "type": "string", "format": "date-time" }
         },
         "required": ["id", "userId", "name", "config", "tubes"]
+    },
+    "TankDesign": {
+        "title": "Tank Design",
+        "type": "object",
+        "description": "Represents a saved Storage Tank inspection layout and data.",
+        "properties": {
+            "id": { "type": "string" },
+            "userId": { "type": "string" },
+            "name": { "type": "string" },
+            "description": { "type": "string" },
+            "config": {
+                "type": "object",
+                "properties": {
+                    "diameter": { "type": "number", "description": "Tank diameter in feet" },
+                    "shellCourses": { "type": "number", "description": "Number of shell courses" },
+                    "floorPlates": { "type": "number", "description": "Number of floor plates" }
+                }
+            },
+            "floorScans": {
+                "type": "array",
+                "description": "Data points for the floor scan map.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "plate": { "type": "number" },
+                        "x": { "type": "number" },
+                        "y": { "type": "number" },
+                        "thickness": { "type": "number" }
+                    }
+                }
+            },
+            "shellReadings": {
+                "type": "array",
+                "description": "Thickness readings for each shell course.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "course": { "type": "number" },
+                        "readings": {
+                            "type": "array",
+                            "items": { "type": "number" }
+                        }
+                    }
+                }
+            },
+            "annularReadings": {
+                "type": "array",
+                "description": "Readings for the annular plate ring.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "position": { "type": "string", "description": "e.g., 3 o'clock" },
+                        "thickness": { "type": "number" }
+                    }
+                }
+            },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "modifiedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "name", "config"]
     }
   },
   "auth": {
@@ -459,7 +519,8 @@
       { "path": "/products/{prodId}", "definition": { "entityName": "Product", "schema": { "$ref": "#/entities/Product" }, "description": "Public directory of NDT products." } },
       { "path": "/plans/{planId}", "definition": { "entityName": "Plan", "schema": { "$ref": "#/entities/Plan" }, "description": "Public directory of subscription plans." } },
       { "path": "/events/{eventId}", "definition": { "entityName": "Event", "schema": { "$ref": "#/entities/Event" }, "description": "Public directory of industry events." } },
-      { "path": "/designs/{designId}", "definition": { "entityName": "TemaDesign", "schema": { "$ref": "#/entities/TemaDesign" }, "description": "Saved TEMA tubesheet designs." } }
+      { "path": "/designs/{designId}", "definition": { "entityName": "TemaDesign", "schema": { "$ref": "#/entities/TemaDesign" }, "description": "Saved TEMA tubesheet designs." } },
+      { "path": "/tankDesigns/{designId}", "definition": { "entityName": "TankDesign", "schema": { "$ref": "#/entities/TankDesign" }, "description": "Saved storage tank inspection designs." } }
     ]
   }
 }

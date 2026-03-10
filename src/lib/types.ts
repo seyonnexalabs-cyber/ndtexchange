@@ -522,3 +522,30 @@ export type TemaDesign = {
     jobId?: string;
 };
 
+export type TankDesign = {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  config: {
+    diameter: number;
+    shellCourses: number;
+    floorPlates: number;
+  };
+  floorScans?: {
+    plate: number;
+    x: number;
+    y: number;
+    thickness: number;
+  }[];
+  shellReadings?: {
+    course: number;
+    readings: number[];
+  }[];
+  annularReadings?: {
+    position: string;
+    thickness: number;
+  }[];
+  createdAt: any;
+  modifiedAt: any;
+};

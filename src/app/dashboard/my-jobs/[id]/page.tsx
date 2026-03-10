@@ -1,32 +1,28 @@
 
-
 'use client';
 import * as React from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, File, Edit, MoreVertical, ChevronRight, Settings2 } from 'lucide-react';
-import { format, parseISO, differenceInDays, addDays, isValid } from 'date-fns';
-import Image from 'next/image';
-import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, ACCEPTED_FILE_TYPES, cn, safeParseDate } from '@/lib/utils';
+import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, Edit, MoreVertical, ChevronRight, Settings2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { GLOBAL_DATE_FORMAT, GLOBAL_DATETIME_FORMAT, cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import JobActivityLog from '@/app/dashboard/my-jobs/components/job-history';
+import JobActivityLog from '../../my-jobs/components/job-history';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, serverTimestamp, query, where, limit, getDocs, doc, updateDoc, writeBatch, documentId, setDoc, arrayUnion, addDoc } from 'firebase/firestore';
 import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection, TemaDesign } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import WorkBreakdownTree from '../../my-jobs/components/work-breakdown-accordion';
+import UniformDocumentViewer from '../../components/uniform-document-viewer';
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
@@ -101,81 +97,6 @@ const BidsSection = ({ job, bids, allCompanies, onReviewBid, isClient, isAdmin }
     );
 };
 
-const BidsSummaryCard = ({ job, bids, allCompanies, onViewAllClick }: { job: Job, bids: Bid[], allCompanies: any[], onViewAllClick: () => void }) => {
-    const awardedBid = bids.find(b => b.status === 'Awarded');
-    const latestBid = bids[0]; // Bids will be sorted before being passed
-    const bidToShow = awardedBid || latestBid;
-    const provider = bidToShow ? allCompanies.find(c => c.id === bidToShow.providerCompanyId) : null;
-
-    return (
-        <Card className="flex flex-col">
-            <CardHeader>
-                <CardTitle className="text-lg">Bids</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow">
-                {bidToShow ? (
-                    <Table>
-                        <TableHeader>
-                            <TableRow><TableHead>Bidder</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>{provider?.name || 'N/A'}</TableCell>
-                                <TableCell>${bidToShow.amount.toLocaleString()}</TableCell>
-                                <TableCell><Badge variant={bidToShow.status === 'Awarded' ? 'success' : 'secondary'}>{bidToShow.status}</Badge></TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                ) : (
-                    <p className="text-sm text-muted-foreground">No bids submitted yet.</p>
-                )}
-            </CardContent>
-            <CardFooter>
-                <Button variant="outline" className="w-full" onClick={onViewAllClick}>View Bids</Button>
-            </CardFooter>
-        </Card>
-    );
-};
-
-const MessagesSummaryCard = ({ onOpenMessagesClick }: { onOpenMessagesClick: () => void }) => (
-    <Card className="flex flex-col">
-        <CardHeader><CardTitle className="text-lg">Messages</CardTitle></CardHeader>
-        <CardContent className="flex-grow space-y-4 text-sm">
-            <div className="flex items-start gap-2">
-                <Avatar className="h-8 w-8"><AvatarFallback>You</AvatarFallback></Avatar>
-                <div className="rounded-lg bg-primary text-primary-foreground p-2"><p>Inspection is in progress now.</p></div>
-            </div>
-             <div className="flex items-start gap-2">
-                <Avatar className="h-8 w-8"><AvatarFallback>NDT</AvatarFallback></Avatar>
-                <div className="rounded-lg bg-muted p-2"><p>Got it. Keep us updated.</p></div>
-            </div>
-        </CardContent>
-        <CardFooter>
-            <Input placeholder="Type a message..." onClick={onOpenMessagesClick} readOnly />
-        </CardFooter>
-    </Card>
-);
-
-const TechniciansSummaryCard = ({ job, onManageClick }: { job: Job, onManageClick: () => void }) => (
-    <Card className="flex flex-col">
-        <CardHeader><CardTitle className="text-lg">Technicians</CardTitle></CardHeader>
-        <CardContent className="flex-grow space-y-2">
-            {(job.assignedTechnicians && job.assignedTechnicians.length > 0) ? job.assignedTechnicians.map(tech => (
-                <div key={tech.id} className="flex items-center gap-3 rounded-md border p-2">
-                    <Avatar className="h-10 w-10"><AvatarFallback>{tech.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback></Avatar>
-                    <div>
-                        <p className="font-semibold">{tech.name}</p>
-                        <p className="text-xs text-muted-foreground">{tech.level || 'Technician'}</p>
-                    </div>
-                </div>
-            )) : <p className="text-sm text-muted-foreground">No technicians assigned yet.</p>}
-        </CardContent>
-        <CardFooter>
-            <Button variant="outline" className="w-full" onClick={onManageClick}>Manage Technicians</Button>
-        </CardFooter>
-    </Card>
-);
-
 export default function JobDetailPage() {
     const params = useParams();
     const id = params.id as string;
@@ -186,6 +107,7 @@ export default function JobDetailPage() {
     
     const [activeTab, setActiveTab] = React.useState('overview');
     const [reviewingBid, setReviewingBid] = React.useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
+    const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -224,6 +146,8 @@ export default function JobDetailPage() {
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<any>(useMemoFirebase(() => (firestore ? collection(firestore, 'companies') : null), [firestore]));
+    
+    const { data: allNdtTechniques, isLoading: isLoadingTechniques } = useCollection<any>(useMemoFirebase(() => (firestore ? collection(firestore, 'techniques') : null), [firestore]));
 
     const [attachedDesigns, setAttachedDesigns] = React.useState<TemaDesign[]>([]);
     const [isLoadingDesigns, setIsLoadingDesigns] = React.useState(false);
@@ -300,7 +224,7 @@ export default function JobDetailPage() {
         if (provider) setReviewingBid({ ...bid, provider: provider as NDTServiceProvider });
     };
 
-    const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections || isLoadingDesigns;
+    const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections || isLoadingDesigns || isLoadingTechniques;
 
     if (isLoading) {
         return (
@@ -353,11 +277,10 @@ export default function JobDetailPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="scope">Work Breakdown</TabsTrigger>
                     <TabsTrigger value="bids">Bids</TabsTrigger>
-                    <TabsTrigger value="designs">Designs</TabsTrigger>
-                    <TabsTrigger value="messages">Messages</TabsTrigger>
-                    <TabsTrigger value="technicians">Technicians</TabsTrigger>
-                    <TabsTrigger value="audit">Audit</TabsTrigger>
+                    <TabsTrigger value="documents">Documents</TabsTrigger>
+                    <TabsTrigger value="audit">History</TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview" className="mt-6">
                     <div className="space-y-6">
@@ -368,67 +291,50 @@ export default function JobDetailPage() {
                                     <li className="flex"><strong className="w-32">Job Information:</strong> <span className="text-muted-foreground">{job.description}</span></li>
                                     <li className="flex"><strong className="w-32">Location:</strong> <span className="text-muted-foreground">{job.location}</span></li>
                                     <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? <ClientFormattedDate date={scheduledDate} formatString='PPP' /> : 'Not Scheduled'}</span></li>
-                                    <li className="flex items-start"><strong className="w-32 shrink-0">Attachments:</strong> 
-                                        <div className="flex flex-wrap gap-2">
-                                            {job.documents?.map(doc => (
-                                                <Button key={doc.name} variant="outline" size="sm" asChild className="h-auto py-1 px-2">
-                                                    <Link href={doc.url} target="_blank" rel="noopener noreferrer">
-                                                        <FileText className="mr-2 h-3.5 w-3.5"/>{doc.name}
-                                                    </Link>
-                                                </Button>
-                                            ))}
+                                    <li className="flex items-start"><strong className="w-32 shrink-0">Techniques:</strong>
+                                        <div className="flex flex-wrap gap-1">
+                                            {job.techniques?.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
                                         </div>
                                     </li>
                                 </ul>
                             </CardContent>
                         </Card>
-                        <div className="grid lg:grid-cols-3 gap-6">
-                           <BidsSummaryCard job={job} bids={sortedBids} allCompanies={allCompanies || []} onViewAllClick={() => setActiveTab('bids')} />
-                           <MessagesSummaryCard onOpenMessagesClick={() => setActiveTab('messages')} />
-                           <TechniciansSummaryCard job={job} onManageClick={() => setActiveTab('technicians')} />
-                        </div>
                     </div>
+                </TabsContent>
+                 <TabsContent value="scope" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Work Breakdown Structure</CardTitle>
+                            <CardDescription>A tree view of all assets and inspections required for this job.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <WorkBreakdownTree
+                                inspections={inspections || []}
+                                job={job}
+                                constructUrl={constructUrl}
+                                allNdtTechniques={allNdtTechniques || []}
+                            />
+                        </CardContent>
+                    </Card>
                 </TabsContent>
                 <TabsContent value="bids" className="mt-6">
                     <BidsSection job={job} bids={sortedBids} allCompanies={allCompanies || []} onReviewBid={handleReviewBid} isClient={isClient} isAdmin={isAdmin} />
                 </TabsContent>
-                <TabsContent value="designs" className="mt-6">
+                <TabsContent value="documents" className="mt-6">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Settings2 className="h-5 w-5 text-primary" />Attached Designs</CardTitle>
-                        </CardHeader>
+                        <CardHeader><CardTitle>Attached Documents</CardTitle></CardHeader>
                         <CardContent>
-                             {attachedDesigns.length > 0 ? (
-                                <div className="space-y-2">
-                                    {attachedDesigns.map(design => (
-                                        <div key={design.id} className="flex justify-between items-center rounded-md border p-3">
-                                            <div>
-                                                <p className="font-semibold">{design.name}</p>
-                                                <p className="text-xs text-muted-foreground">ID: {design.id}</p>
-                                            </div>
-                                            <Button asChild variant="outline" size="sm">
-                                                <Link href={constructUrl(`/dashboard/temadesigner?designId=${design.id}`)}>View Design</Link>
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : <p className="text-muted-foreground text-sm">No TEMA designs have been attached to this job.</p>}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                 <TabsContent value="messages" className="mt-6">
-                    <Card>
-                        <CardHeader><CardTitle>Messages</CardTitle></CardHeader>
-                        <CardContent>
-                            <p className="text-center text-muted-foreground p-8">Full chat implementation coming soon.</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                 <TabsContent value="technicians" className="mt-6">
-                    <Card>
-                        <CardHeader><CardTitle>Assigned Technicians</CardTitle></CardHeader>
-                        <CardContent>
-                            <p className="text-center text-muted-foreground p-8">Technician management UI coming soon.</p>
+                            <div className="space-y-2">
+                                {job.documents?.map(doc => (
+                                    <button key={doc.name} className="flex w-full items-center gap-3 rounded-md border p-3 text-left hover:bg-muted" onClick={() => setIsViewerOpen(true)}>
+                                        <FileText className="h-5 w-5 text-primary" />
+                                        <p className="font-medium text-sm">{doc.name}</p>
+                                    </button>
+                                ))}
+                                {(!job.documents || job.documents.length === 0) && (
+                                    <p className="text-muted-foreground text-sm">No documents have been attached to this job.</p>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -463,6 +369,14 @@ export default function JobDetailPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <UniformDocumentViewer 
+                isOpen={isViewerOpen}
+                onOpenChange={setIsViewerOpen}
+                documents={job.documents || []}
+                title={`Job Documents: ${job.title}`}
+                description="Secure viewer for all documents related to this job."
+            />
         </div>
     );
 }

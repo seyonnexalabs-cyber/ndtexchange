@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFormContext, useFieldArray } from 'react-hook-form';
@@ -61,7 +62,7 @@ const UTReportTemplate = () => {
                                 <FormItem className="md:col-span-1">
                                     <FormLabel>Thickness (mm)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="0.01" {...field} />
+                                        <Input type="number" step="0.001" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

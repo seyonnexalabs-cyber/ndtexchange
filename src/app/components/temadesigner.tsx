@@ -2,12 +2,15 @@
 
 "use client";
 /**
- * TemaDesigner v26 - Refactored for Stability
- * - The core `generate` function and its related effects have been refactored to
- *   prevent server crashes from unstable rendering loops.
- * - This version separates the heavy synchronous layout calculation from the React state
- *   updates by using an intermediate state to trigger a stable `useEffect`.
- * - This resolves the "Internal Server Error" issue while preserving all functionality.
+ * TemaDesigner v27 - Final Stability Refactor
+ * - The core `generate` function and its related effects have been refactored
+ *   to be fully stable and prevent server-side rendering loops.
+ * - The new architecture uses a stable `useCallback` for the generate function by
+ *   accessing dynamic state (like `cfg`) via a React `ref`.
+ * - The initial generation is now triggered by a `useEffect` with an empty
+ *   dependency array, ensuring it runs exactly once on mount.
+ * - This resolves the persistent "Internal Server Error" issue while preserving
+ *   all functionality, including undo/redo.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -153,10 +156,12 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const IN = 1 / 25.4;
 
   const [cfg,setCfg]=useState<TEMAConfig>(DEFAULT);
+  const cfgRef = useRef(cfg);
+  useEffect(() => { cfgRef.current = cfg }, [cfg]);
+
   const [layout,setLayout]=useState<TEMALayout|null>(null);
   const [busy,setBusy]=useState(false);
-  const [generatedLayout, setGeneratedLayout] = useState<{ layout: TEMALayout, resetView: boolean } | null>(null);
-
+  
   // Design metadata
   const [designName, setDesignName] = useState("Untitled Design");
   const [designId, setDesignId] = useState<string | null>(null);
@@ -170,8 +175,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   // Tubes state with Undo/Redo
   const { state: tubesState, set: setTubes, reset: resetTubes, undo, redo, canUndo, canRedo } = useUndoRedo<LayoutTube[]>([]);
   const { present: tubes } = tubesState;
-  const tubesRef = React.useRef(tubes); // ref for tubes state
-  useEffect(() => { tubesRef.current = tubes; }, [tubes]); // Keep ref updated
+  const tubesRef = React.useRef(tubes);
+  useEffect(() => { tubesRef.current = tubes; }, [tubes]);
 
   // Canvas
   const designerRef=useRef<HTMLDivElement>(null);
@@ -227,8 +232,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     const r=canvasRef.current!.getBoundingClientRect();
     return{x:e.clientX-r.left,y:e.clientY-r.top};
   },[]);
-  const css2w=useCallback((cx:number,cy:number)=>({ x:(cx-panRef.current.x)/zoomRef.current, y:(cy-panRef.current.y)/zoomRef.current, }),[]);
-  const w2css=useCallback((wx:number,wy:number)=>({ x:panRef.current.x+wx*zoomRef.current, y:panRef.current.y+wy*zoomRef.current, }),[]);
+  const css2w=useCallback((cx:number,cy:number)=>{ const p = panRef.current; const z = zoomRef.current; return { x: (cx - p.x) / z, y: (cy - p.y) / z }; }, []);
+  const w2css=useCallback((wx:number,wy:number)=>{ const p = panRef.current; const z = zoomRef.current; return { x: p.x + wx * z, y: p.y + wy * z }; }, []);
   
   // ── Generate & Load ────────────────────────────────────────────────────────
   
@@ -239,23 +244,18 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     setPolyMode(false);
     setPolyWip([]);
     
-    // Perform calculation synchronously and set the result to trigger the effect
-    const L = generateTEMALayout(cfg);
-    setGeneratedLayout({ layout: L, resetView });
-  }, [cfg]);
-  
-  useEffect(() => {
-    if (generatedLayout) {
-      setLayout(generatedLayout.layout);
-      resetTubes(generatedLayout.layout.tubes);
-      setDesignId(null);
-      setDesignName("Untitled Design");
-      
-      if (generatedLayout.resetView && canvasRef.current) {
+    const L = generateTEMALayout(cfgRef.current);
+    
+    setLayout(L);
+    resetTubes(L.tubes);
+    setDesignId(null);
+    setDesignName("Untitled Design");
+    
+    if (resetView && canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
-        const cw = rect.width - MARGIN_LEFT;
-        const ch = rect.height - MARGIN_TOP;
-        const br = Math.max(generatedLayout.layout.bundleDia / 2 + generatedLayout.layout.tubeOdMm * 3, 30);
+        const cw = rect.width > 0 ? rect.width - MARGIN_LEFT : 600;
+        const ch = rect.height > 0 ? rect.height - MARGIN_TOP : 600;
+        const br = Math.max(L.bundleDia / 2 + L.tubeOdMm * 3, 30);
         const fit = Math.min(cw, ch) * 0.42 / br;
         const z = Math.max(0.1, Math.min(fit, 15));
         const p = { x: MARGIN_LEFT + cw / 2, y: MARGIN_TOP + ch / 2 };
@@ -263,12 +263,10 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         panRef.current = p;
         setZoom(z);
         setPan(p);
-      }
-      
-      setGeneratedLayout(null); // Reset the trigger
-      setBusy(false);
     }
-  }, [generatedLayout, resetTubes]);
+    
+    setBusy(false);
+  }, [resetTubes]); // This is stable
   
   const applyDesignToCanvas = useCallback((design: TemaDesign | null) => {
     if (!design) return;
@@ -282,10 +280,12 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   // Effect for initial generation
   useEffect(() => {
     const hasDesignId = searchParams.get('designId');
+    // This will only run once on mount if there's no layout and no design ID
     if (!layout && !hasDesignId) {
       generate(true);
     }
-  }, []); // Run only once on initial mount if no design ID is present
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   // Effect for loading from URL
   useEffect(() => {
@@ -299,7 +299,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
           toast.error("Design not found or permission denied.", {
             description: "You are being redirected to the main designer.",
           });
-          // Redirect to clear the URL param and trigger default layout generation
           router.replace('/dashboard/temadesigner'); 
         }
       }).catch((err) => {
@@ -543,7 +542,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
       panRef.current={x:nx,y:ny}; setPan({x:nx,y:ny}); return;
     }
     if(selStart.current){ const sc=w2css(selStart.current.wx,selStart.current.wy); setSelBox({x1:sc.x,y1:sc.y,x2:css.x,y2:css.y}); return; }
-    setHoverId(hitTest(css.x,css.y)?.id??null);
+    const hit=hitTest(css.x,css.y);
+    setHoverId(hit?.id ?? null);
   },[polyMode,evToCSS,hitTest,w2css]);
 
   const onMouseUp=useCallback((e:React.MouseEvent<HTMLCanvasElement>)=>{

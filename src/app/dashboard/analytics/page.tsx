@@ -224,7 +224,10 @@ export default function AnalyticsPage() {
                                         offset={4}
                                         className="fill-foreground"
                                         fontSize={12}
-                                        formatter={(value: number) => `$${(value / 1000).toFixed(1)}k`}
+                                        formatter={(value: number | string) => {
+                                            const numeric = typeof value === 'number' ? value : Number(value);
+                                            return Number.isNaN(numeric) ? '' : `$${(numeric / 1000).toFixed(1)}k`;
+                                        }}
                                     />
                                 </Bar>
                             </BarChart>

@@ -261,7 +261,7 @@ export default function PostJobPage() {
     
     React.useEffect(() => {
         // Set the default bid expiry date on the client to avoid hydration mismatch
-        if (!form.getValues('bidExpiryDate') && form.formState.isPristine) {
+        if (!form.getValues('bidExpiryDate') && !form.formState.isDirty) {
             form.setValue('bidExpiryDate', addDays(new Date(), 7));
         }
     }, [form, isClient]);
@@ -283,7 +283,7 @@ export default function PostJobPage() {
         return ['all', ...new Set(allTypes)];
     }, [clientAssets]);
 
-    const { fields: scopeFields, replace: replaceScope } = useFieldArray({
+    const { fields: scopeFields, replace: replaceScope } = useFieldArray<any>({
         control: form.control,
         name: "scope" as any, // Type assertion to handle union type
     });
@@ -658,7 +658,7 @@ export default function PostJobPage() {
                             <CardHeader><CardTitle>Technique Assignment</CardTitle><CardDescription>Assign specific NDT techniques to each selected asset.</CardDescription></CardHeader>
                             <CardContent className="space-y-6">
                                 {scopeFields.map((field, index) => {
-                                    const asset = clientAssets?.find(a => a.id === field.assetId);
+                                    const asset = clientAssets?.find(a => a.id === (field as any).assetId);
                                     return (
                                         <div key={field.id} className="rounded-md border p-4 space-y-4">
                                             <h4 className="font-semibold">{asset?.name} <span className="text-sm font-normal text-muted-foreground">({asset?.location})</span></h4>

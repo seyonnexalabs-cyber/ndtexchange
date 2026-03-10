@@ -28,10 +28,10 @@ import Image from "next/image";
 const assetSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters.'),
     type: z.enum(['Tank', 'Piping', 'Vessel', 'Crane', 'Weld Joint']),
-    location: z.string({ required_error: 'Please select a location or add a new one.'}),
+    location: z.string().min(1, 'Please select a location or add a new one.'),
     isMovable: z.boolean().default(false),
     newLocation: z.string().optional(),
-    nextInspection: z.date({ required_error: 'Please select a valid date.' }),
+    nextInspection: z.date().refine((date) => Boolean(date), { message: 'Please select a valid date.' }),
     manufacturer: z.string().optional(),
     model: z.string().optional(),
     serialNumber: z.string().optional(),

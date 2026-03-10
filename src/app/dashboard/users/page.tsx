@@ -28,7 +28,7 @@ import { useSearch } from "@/app/components/layout/search-provider";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, query, where, Query, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, query, where, Query, addDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -310,7 +310,7 @@ const EditUserForm = ({ user, onCancel, onSubmit, allCompanies }: { user: Platfo
     );
 }
 
-const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser, allCompanies, selectedRoles, handleRoleChange, statusFilter, setStatusFilter, selectedCompanies, handleCompanyChange }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void, allCompanies: any[], selectedRoles: string[], handleRoleChange: (role: string) => void, statusFilter: string, setStatusFilter: (status: string) => void, selectedCompanies: string[], handleCompanyChange: (company: string) => void }) => {
+const PlatformUsersView = ({ users, companyAdmins, onPromoteUser, onDisableUser, onEditUser, allCompanies, selectedRoles, setSelectedRoles, handleRoleChange, statusFilter, setStatusFilter, selectedCompanies, setSelectedCompanies, handleCompanyChange }: { users: PlatformUser[], companyAdmins: Set<string>, onPromoteUser: (user: PlatformUser) => void, onDisableUser: (user: PlatformUser) => void, onEditUser: (user: PlatformUser) => void, allCompanies: any[], selectedRoles: string[], setSelectedRoles: (roles: string[]) => void, handleRoleChange: (role: string) => void, statusFilter: string, setStatusFilter: (status: string) => void, selectedCompanies: string[], setSelectedCompanies: (companies: string[]) => void, handleCompanyChange: (company: string) => void }) => {
     const isMobile = useIsMobile();
     const { searchQuery } = useSearch();
 
@@ -769,10 +769,12 @@ export default function UsersPage() {
                 onEditUser={handleEditClick}
                 allCompanies={allCompanies || []}
                 selectedRoles={selectedRoles}
+                setSelectedRoles={setSelectedRoles}
                 handleRoleChange={handleRoleChange}
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
                 selectedCompanies={selectedCompanies}
+                setSelectedCompanies={setSelectedCompanies}
                 handleCompanyChange={handleCompanyChange}
             />
 

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Calendar, Filter, X } from "lucide-react";

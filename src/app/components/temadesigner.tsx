@@ -82,6 +82,7 @@ const Chip=({label,active,onClick,color=C.accent}:{label:string;active:boolean;o
 function NumIn({value,onChange,min,max,step,unit, fontScale=1}:{value:number;onChange:(n:number)=>void;min?:number;max?:number;step?:number;unit?:string, fontScale?: number}){
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     <input type="number" value={value} min={min} max={max} step={step??1}
+      placeholder="0"
       onChange={e=>{const v=parseFloat(e.target.value);if(!isNaN(v))onChange(v);}}
       style={{fontFamily:FM,fontSize:12 * fontScale,padding:"4px 7px",border:`1px solid ${C.border2}`,
         borderRadius:4,width:70,outline:"none",color:C.text,background:C.panel}}/>

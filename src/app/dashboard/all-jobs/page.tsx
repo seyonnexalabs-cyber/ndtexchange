@@ -55,8 +55,8 @@ const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Da
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
-    const [formatted, setFormatted] = React.useState<string | null>(null);
-    React.useEffect(() => {
+    const [formatted, setFormatted] = useState<string | null>(null);
+    useEffect(() => {
         if (date) {
             setFormatted(format(date, formatString));
         }
@@ -166,44 +166,41 @@ export default function AllJobsPage() {
     };
     
     const handleStatusChange = (status: string) => {
-        setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, s]);
+        setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
     };
 
     const hasActiveFilters = selectedProviders.length > 0 || selectedStatuses.length > 0 || selectedClients.length > 0;
 
-    const PaginationControls = () => (
-         pageCount > 1 && (
+    const PaginationControls = () => {
+        if (pageCount <= 1) return null;
+        return (
             <div className="mt-6">
-                 <Pagination>
+                <Pagination>
                     <PaginationContent>
                         <PaginationItem>
                             <PaginationPrevious
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault();
+                                onClick={() => {
                                     setCurrentPage((prev) => Math.max(prev - 1, 1));
                                 }}
                                 className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
                             />
                         </PaginationItem>
-                         <PaginationItem>
+                        <PaginationItem>
                             <span className="text-sm font-medium p-2">Page {currentPage} of {pageCount}</span>
                         </PaginationItem>
                         <PaginationItem>
                             <PaginationNext
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault();
+                                onClick={() => {
                                     setCurrentPage((prev) => Math.min(prev + 1, pageCount));
                                 }}
-                                 className={cn(currentPage === pageCount && "pointer-events-none opacity-50")}
+                                className={cn(currentPage === pageCount && "pointer-events-none opacity-50")}
                             />
                         </PaginationItem>
                     </PaginationContent>
                 </Pagination>
             </div>
-        )
-    );
+        );
+    };
     
     if (isLoadingJobs || isLoadingCompanies) {
         return (

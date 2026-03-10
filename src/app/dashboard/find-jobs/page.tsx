@@ -21,9 +21,9 @@ import { collection, query, where } from 'firebase/firestore';
 import type { Job, NDTTechnique } from '@/lib/types';
 
 const ClientRelativeDateBadge = ({ date, className }: { date: Date | null, className?: string }) => {
-    const [isTodayFlag, setIsTodayFlag] = React.useState(false);
+    const [isTodayFlag, setIsTodayFlag] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (date) {
             setIsTodayFlag(isToday(date));
         } else {

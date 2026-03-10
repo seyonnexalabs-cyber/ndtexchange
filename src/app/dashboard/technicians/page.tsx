@@ -63,7 +63,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, isEditing, allTechn
                 ...defaultValues,
                 certifications: defaultValues.certifications?.map(c => ({
                     ...c,
-                    validUntil: c.validUntil ? safeParseDate(c.validUntil) : undefined,
+                    validUntil: c.validUntil ? (safeParseDate(c.validUntil) || undefined) : undefined,
                 }))
             });
         }

@@ -298,8 +298,8 @@ const AppSidebar = () => {
 
   const menuItems = useMemo(() => {
     if (!role) return [];
-    
-    let menu;
+
+    let menu: any[];
     switch (role) {
       case 'client':
         menu = clientMenu;

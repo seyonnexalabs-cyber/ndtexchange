@@ -55,7 +55,6 @@ export default function LoginPage() {
         if (userDoc.exists()) {
           userData = userDoc.data();
         } else {
-           console.warn("User document not found for logged in user:", user.uid);
             toast.error('Login Error', {
               description: 'User profile not found. Please contact support.',
             });

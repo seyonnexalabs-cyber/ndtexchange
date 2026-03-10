@@ -2,11 +2,12 @@
 
 "use client";
 /**
- * TemaDesigner v25 - Stable Generation
- * - Refactored the core `generate` function to use `setTimeout` instead of `async/await` to
- *   defer heavy computation, preventing server crashes from unstable rendering loops.
- * - This provides a more robust, browser-standard way to update the UI before a long task.
- * - All state and undo/redo functionality is preserved.
+ * TemaDesigner v26 - Refactored for Stability
+ * - The core `generate` function and its related effects have been refactored to
+ *   prevent server crashes from unstable rendering loops.
+ * - This version separates the heavy synchronous layout calculation from the React state
+ *   updates by using an intermediate state to trigger a stable `useEffect`.
+ * - This resolves the "Internal Server Error" issue while preserving all functionality.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -154,6 +155,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const [cfg,setCfg]=useState<TEMAConfig>(DEFAULT);
   const [layout,setLayout]=useState<TEMALayout|null>(null);
   const [busy,setBusy]=useState(false);
+  const [generatedLayout, setGeneratedLayout] = useState<{ layout: TEMALayout, resetView: boolean } | null>(null);
 
   // Design metadata
   const [designName, setDesignName] = useState("Untitled Design");
@@ -229,6 +231,45 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   const w2css=useCallback((wx:number,wy:number)=>({ x:panRef.current.x+wx*zoomRef.current, y:panRef.current.y+wy*zoomRef.current, }),[]);
   
   // ── Generate & Load ────────────────────────────────────────────────────────
+  
+  const generate = useCallback((resetView = true) => {
+    setBusy(true);
+    setSelIds(new Set());
+    setNeedRecalc(false);
+    setPolyMode(false);
+    setPolyWip([]);
+    
+    // Perform calculation synchronously and set the result to trigger the effect
+    const L = generateTEMALayout(cfg);
+    setGeneratedLayout({ layout: L, resetView });
+  }, [cfg]);
+  
+  useEffect(() => {
+    if (generatedLayout) {
+      setLayout(generatedLayout.layout);
+      resetTubes(generatedLayout.layout.tubes);
+      setDesignId(null);
+      setDesignName("Untitled Design");
+      
+      if (generatedLayout.resetView && canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const cw = rect.width - MARGIN_LEFT;
+        const ch = rect.height - MARGIN_TOP;
+        const br = Math.max(generatedLayout.layout.bundleDia / 2 + generatedLayout.layout.tubeOdMm * 3, 30);
+        const fit = Math.min(cw, ch) * 0.42 / br;
+        const z = Math.max(0.1, Math.min(fit, 15));
+        const p = { x: MARGIN_LEFT + cw / 2, y: MARGIN_TOP + ch / 2 };
+        zoomRef.current = z;
+        panRef.current = p;
+        setZoom(z);
+        setPan(p);
+      }
+      
+      setGeneratedLayout(null); // Reset the trigger
+      setBusy(false);
+    }
+  }, [generatedLayout, resetTubes]);
+  
   const applyDesignToCanvas = useCallback((design: TemaDesign | null) => {
     if (!design) return;
     setCfg(design.config);
@@ -238,39 +279,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     setDesignId(design.id);
   }, [resetTubes]);
 
-  const generate = useCallback((resetView = true) => {
-    setBusy(true);
-    setSelIds(new Set());
-    setNeedRecalc(false);
-    setPolyMode(false);
-    setPolyWip([]);
-    
-    // Use a timeout to allow the UI to update to 'busy' before the heavy calculation
-    setTimeout(() => {
-        try {
-            const L = generateTEMALayout(cfg);
-            setLayout(L);
-            resetTubes(L.tubes);
-            setDesignId(null);
-            setDesignName("Untitled Design");
-            if (resetView && canvasRef.current) {
-                const rect = canvasRef.current.getBoundingClientRect();
-                const cw = rect.width - MARGIN_LEFT;
-                const ch = rect.height - MARGIN_TOP;
-                const br = Math.max(L.bundleDia / 2 + L.tubeOdMm * 3, 30);
-                const fit = Math.min(cw, ch) * 0.42 / br;
-                const z = Math.max(0.1, Math.min(fit, 15));
-                zoomRef.current = z;
-                panRef.current = { x: MARGIN_LEFT + cw / 2, y: MARGIN_TOP + ch / 2 };
-                setZoom(z);
-                setPan({ x: MARGIN_LEFT + cw / 2, y: MARGIN_TOP + ch / 2 });
-            }
-        } finally {
-            setBusy(false);
-        }
-    }, 16);
-  }, [cfg, resetTubes]);
-  
   // Effect for initial generation
   useEffect(() => {
     const hasDesignId = searchParams.get('designId');
@@ -322,25 +330,19 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     setNeedRecalc(true);
   }, [setTubes]);
 
-  // Use refs for callbacks to ensure stable event listener
-  const undoRef = React.useRef(undo); useEffect(() => { undoRef.current = undo; }, [undo]);
-  const redoRef = React.useRef(redo); useEffect(() => { redoRef.current = redo; }, [redo]);
-  const delSelectedRef = React.useRef(delSelected); useEffect(() => { delSelectedRef.current = delSelected; }, [delSelected]);
-  const toggleFullscreenRef = React.useRef(toggleFullscreen); useEffect(() => { toggleFullscreenRef.current = toggleFullscreen; }, [toggleFullscreen]);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
         if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoRef.current(); }
-            if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoRef.current(); }
+            if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+            if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
         }
-        if (e.key === 'Delete' || e.key === 'Backspace') { if (selIdsRef.current.size > 0) delSelectedRef.current(); }
-        if (e.key === 'f') { e.preventDefault(); toggleFullscreenRef.current(); }
+        if (e.key === 'Delete' || e.key === 'Backspace') { if (selIdsRef.current.size > 0) delSelected(); }
+        if (e.key === 'f') { e.preventDefault(); toggleFullscreen(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []); // Empty dependency array ensures the listener is set up only once.
+  }, [undo, redo, delSelected, toggleFullscreen]);
 
   useEffect(() => {
       const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -960,3 +962,6 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
 
 
 
+
+
+  

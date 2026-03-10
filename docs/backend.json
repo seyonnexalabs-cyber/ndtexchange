@@ -1,4 +1,5 @@
 
+
 {
   "entities": {
     "User": {
@@ -178,7 +179,7 @@
         "clientCompanyId": { "type": "string", "description": "The ID of the client company for the job." },
         "amount": { "type": "number" },
         "notes": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "withdrawn"] },
+        "status": { "type": "string", "enum": ["Submitted", "Shortlisted", "Awarded", "Rejected", "Withdrawn", "Not Selected"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "jobId", "inspectorId", "userId", "providerCompanyId", "amount", "clientCompanyId"]

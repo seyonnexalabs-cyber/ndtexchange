@@ -456,6 +456,7 @@ export type Bid = {
   jobTitle: string;
   inspectorId: string;
   providerCompanyId: string;
+  clientCompanyId: string;
   userId: string; // The client user ID who owns the job
   client: string; // The client company name
   location: string;

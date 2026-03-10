@@ -131,16 +131,16 @@ service cloud.firestore {
         // A provider can create a bid.
         allow create: if isCompanyMember(request.resource.data.providerCompanyId);
 
-        // Client on the job can read all bids.
+        // Client on the job can read bids.
         // Provider can only read their own bid.
         allow read: if isOwner(resource.data.inspectorId) || 
-                    isCompanyMember(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId) || 
+                    isCompanyMember(resource.data.clientCompanyId) || 
                     isPlatformAdmin();
 
         // Provider can update/withdraw their own bid before awarded.
         // Client can update status to accept/reject.
         allow update: if isOwner(resource.data.inspectorId) || 
-                      isCompanyMember(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.clientCompanyId) ||
+                      isCompanyMember(request.resource.data.clientCompanyId) ||
                       isPlatformAdmin();
     }
     

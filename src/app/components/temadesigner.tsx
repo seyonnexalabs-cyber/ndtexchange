@@ -2,8 +2,8 @@
 
 "use client";
 /**
- * TemaDesigner v18
- * - Re-implemented stable Undo/Redo functionality using useReducer.
+ * TemaDesigner v19
+ * - Refactored keyboard event listener to remove useEffect-on-every-render pattern for better stability.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
 import {
@@ -181,10 +181,6 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
   // Selection & Tools
   const [selIds,setSelIds]=useState<Set<number>>(new Set());
-  const selIdsRef = useRef(selIds);
-  useEffect(() => {
-    selIdsRef.current = selIds;
-  }, [selIds]);
 
   const [hoverId,setHoverId]=useState<number|null>(null);
   const [selBox,setSelBox]=useState<{x1:number;y1:number;x2:number;y2:number}|null>(null);
@@ -276,7 +272,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   }, [searchParams, firestore, user]);
 
   // ── Keyboard & Fullscreen ──────────────────────────────────────────────────
-   const toggleFullscreen = useCallback(() => {
+  const toggleFullscreen = useCallback(() => {
     if (!designerRef.current) return;
     if (!document.fullscreenElement) {
         designerRef.current.requestFullscreen().catch(err => {
@@ -288,49 +284,38 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   }, []);
 
   const delSelected = useCallback(() => {
-    setTubes(currentTubes => currentTubes.filter(t => !selIdsRef.current.has(t.id)));
+    setTubes(currentTubes => currentTubes.filter(t => !selIds.has(t.id)));
     setSelIds(new Set());
     setNeedRecalc(true);
-  }, [setTubes]);
-
-  const undoRef = useRef(undo);
-  const redoRef = useRef(redo);
-  const delSelectedRef = useRef(delSelected);
-  const toggleFullscreenRef = useRef(toggleFullscreen);
+  }, [setTubes, selIds]);
 
   useEffect(() => {
-      undoRef.current = undo;
-      redoRef.current = redo;
-      delSelectedRef.current = delSelected;
-      toggleFullscreenRef.current = toggleFullscreen;
-  });
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+            if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+        }
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (selIds.size > 0) {
+                delSelected();
+            }
+        }
+        if (e.key === 'f') { e.preventDefault(); toggleFullscreen(); }
+    };
+      
+    window.addEventListener('keydown', handleKeyDown);
+    return () => { window.removeEventListener('keydown', handleKeyDown); };
+  }, [undo, redo, delSelected, toggleFullscreen, selIds]);
 
   useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-          if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-          if (e.ctrlKey || e.metaKey) {
-              if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoRef.current(); }
-              if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoRef.current(); }
-          }
-          if (e.key === 'Delete' || e.key === 'Backspace') {
-              if (selIdsRef.current.size > 0) {
-                  delSelectedRef.current();
-              }
-          }
-          if (e.key === 'f') { e.preventDefault(); toggleFullscreenRef.current(); }
-      };
-
       const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-      window.addEventListener('keydown', handleKeyDown);
       document.addEventListener('fullscreenchange', onFsChange);
-
       return () => {
-          window.removeEventListener('keydown', handleKeyDown);
           document.removeEventListener('fullscreenchange', onFsChange);
       };
-  }, []); // Empty dependency array ensures this runs only once
-  
+  }, []);
  
 
   // ── Coordinate helpers ─────────────────────────────────────────────────────
@@ -580,9 +565,9 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
   },[tubes]);
 
   // ── Edit operations ───────────────────────────────────────────────────────
-  const delRow=useCallback((r:number)=> { setTubes(tubes => tubes.filter(t=>t.row!==r)); setNeedRecalc(true); }, [setTubes]);
-  const delCol=useCallback((c:number)=> { setTubes(tubes => tubes.filter(t=>t.col!==c)); setNeedRecalc(true); }, [setTubes]);
-  const delPass=useCallback((pp:number)=>{ setTubes(tubes => tubes.filter(t=>t.pass!==pp)); setNeedRecalc(true); }, [setTubes]);
+  const delRow=useCallback((r:number)=> { setTubes(currentTubes => currentTubes.filter(t=>t.row!==r)); setNeedRecalc(true); }, [setTubes]);
+  const delCol=useCallback((c:number)=> { setTubes(currentTubes => currentTubes.filter(t=>t.col!==c)); setNeedRecalc(true); }, [setTubes]);
+  const delPass=useCallback((pp:number)=>{ setTubes(currentTubes => currentTubes.filter(t=>t.pass!==pp)); setNeedRecalc(true); }, [setTubes]);
   const insertRowAfter=useCallback((row:number)=>{
     if(!layout) return;
     setTubes(currentTubes => {
@@ -949,6 +934,7 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 
 

@@ -175,12 +175,13 @@
         "inspectorId": { "type": "string" },
         "userId": { "type": "string" },
         "providerCompanyId": { "type": "string" },
+        "clientCompanyId": { "type": "string", "description": "The ID of the client company for the job." },
         "amount": { "type": "number" },
         "notes": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "withdrawn"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "jobId", "inspectorId", "userId", "providerCompanyId", "amount"]
+      "required": ["id", "jobId", "inspectorId", "userId", "providerCompanyId", "amount", "clientCompanyId"]
     },
     "Review": {
       "title": "Review",

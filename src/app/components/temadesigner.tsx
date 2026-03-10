@@ -2,9 +2,10 @@
 
 "use client";
 /**
- * TemaDesigner v24 - Stable Render Loop
- * - The core drawing logic has been refactored into a single, stable useEffect hook.
- * - This removes direct `draw()` calls from event handlers and breaks the dependency chain that was causing an infinite loop and server crashes.
+ * TemaDesigner v25 - Stable Generation
+ * - Refactored the core `generate` function to use `setTimeout` instead of `async/await` to
+ *   defer heavy computation, preventing server crashes from unstable rendering loops.
+ * - This provides a more robust, browser-standard way to update the UI before a long task.
  * - All state and undo/redo functionality is preserved.
  */
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo, useReducer } from "react";
@@ -237,25 +238,38 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     setDesignId(design.id);
   }, [resetTubes]);
 
-  const generate=useCallback(async(resetView = true)=>{
-    setBusy(true); setSelIds(new Set()); setNeedRecalc(false); setPolyMode(false); setPolyWip([]);
-    await new Promise(r=>setTimeout(r,16));
-    try{
-      const L=generateTEMALayout(cfg);
-      setLayout(L); 
-      resetTubes(L.tubes);
-      setDesignId(null); setDesignName("Untitled Design");
-      if(resetView && canvasRef.current){
-        const rect=canvasRef.current.getBoundingClientRect();
-        const cw=rect.width-MARGIN_LEFT, ch=rect.height-MARGIN_TOP;
-        const br=Math.max(L.bundleDia/2+L.tubeOdMm*3,30);
-        const fit=Math.min(cw,ch)*0.42/br;
-        const z=Math.max(0.1,Math.min(fit,15));
-        zoomRef.current=z; panRef.current={x:MARGIN_LEFT+cw/2,y:MARGIN_TOP+ch/2};
-        setZoom(z); setPan({x:MARGIN_LEFT+cw/2,y:MARGIN_TOP+ch/2});
-      }
-    }finally{setBusy(false);}
-  },[cfg, resetTubes]);
+  const generate = useCallback((resetView = true) => {
+    setBusy(true);
+    setSelIds(new Set());
+    setNeedRecalc(false);
+    setPolyMode(false);
+    setPolyWip([]);
+    
+    // Use a timeout to allow the UI to update to 'busy' before the heavy calculation
+    setTimeout(() => {
+        try {
+            const L = generateTEMALayout(cfg);
+            setLayout(L);
+            resetTubes(L.tubes);
+            setDesignId(null);
+            setDesignName("Untitled Design");
+            if (resetView && canvasRef.current) {
+                const rect = canvasRef.current.getBoundingClientRect();
+                const cw = rect.width - MARGIN_LEFT;
+                const ch = rect.height - MARGIN_TOP;
+                const br = Math.max(L.bundleDia / 2 + L.tubeOdMm * 3, 30);
+                const fit = Math.min(cw, ch) * 0.42 / br;
+                const z = Math.max(0.1, Math.min(fit, 15));
+                zoomRef.current = z;
+                panRef.current = { x: MARGIN_LEFT + cw / 2, y: MARGIN_TOP + ch / 2 };
+                setZoom(z);
+                setPan({ x: MARGIN_LEFT + cw / 2, y: MARGIN_TOP + ch / 2 });
+            }
+        } finally {
+            setBusy(false);
+        }
+    }, 16);
+  }, [cfg, resetTubes]);
   
   // Effect for initial generation
   useEffect(() => {
@@ -263,7 +277,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
     if (!layout && !hasDesignId) {
       generate(true);
     }
-  }, [layout, generate, searchParams]);
+  }, []); // Run only once on initial mount if no design ID is present
 
   // Effect for loading from URL
   useEffect(() => {
@@ -943,5 +957,6 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
   ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
+
 
 

@@ -18,8 +18,9 @@ import { z } from 'zod';
 import { toast } from "sonner";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Switch } from '@/components/ui/switch';
-import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc, FirestorePermissionError, errorEmitter, useStorage } from '@/firebase';
 import { doc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
@@ -57,8 +58,9 @@ export default function EditAssetPage() {
     const id = params.id as string;
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { firestore, user } = useFirebase();
+    const { firestore, user, storage } = useFirebase();
     const [showNewLocation, setShowNewLocation] = React.useState(false);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const { data: asset, isLoading: isLoadingAsset } = useDoc<Asset>(
         useMemoFirebase(() => (firestore && id ? doc(firestore, `assets`, id) : null), [firestore, id])
@@ -88,8 +90,6 @@ export default function EditAssetPage() {
             }
         }
     }, [asset, form]);
-    
-    const possibleParents = React.useMemo(() => (existingAssets || []).filter(e => e.id !== id), [id, existingAssets]);
 
     const handleFileChange = (file: File | null) => {
         form.setValue('thumbnail', file);
@@ -127,13 +127,32 @@ export default function EditAssetPage() {
         return `${base}?${params.toString()}`;
     };
 
-    const handleFormSubmit = (values: AssetFormValues) => {
-        if (!firestore || !user || !asset) return;
+    const handleFormSubmit = async (values: AssetFormValues) => {
+        if (!firestore || !user || !asset || !storage) return;
+        setIsSubmitting(true);
+        
+        let thumbnailUrl = asset.thumbnailUrl;
+        if (values.thumbnail && typeof values.thumbnail !== 'string') {
+            const file = values.thumbnail as File;
+            const assetThumbnailRef = storageRef(storage, `assets/${id}/thumbnail-${file.name}`);
+            try {
+                const snapshot = await uploadBytes(assetThumbnailRef, file);
+                thumbnailUrl = await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error("Error uploading thumbnail:", error);
+                toast.error("Thumbnail Upload Failed");
+                setIsSubmitting(false);
+                return;
+            }
+        } else if (!values.thumbnail) {
+            thumbnailUrl = undefined;
+        }
         
         const location = values.location === '__add_new__' ? values.newLocation! : values.location;
         const dataToSave: Partial<Asset> = {
             ...values,
             location,
+            thumbnailUrl,
             nextInspection: format(values.nextInspection, 'yyyy-MM-dd'),
             installationDate: values.installationDate ? format(values.installationDate, 'yyyy-MM-dd') : undefined,
             modifiedAt: serverTimestamp(),
@@ -155,6 +174,7 @@ export default function EditAssetPage() {
 
         toast.success("Asset Updated", { description: `${values.name} has been updated.` });
         router.push(constructUrl(`/dashboard/assets/${id}`));
+        setIsSubmitting(false);
     };
     
     const uniqueLocations = React.useMemo(() => {
@@ -203,7 +223,7 @@ export default function EditAssetPage() {
                             <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag &amp; drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the equipment.</FormDescription> <FormMessage /> </FormItem> )}/>
                             <CardFooter className="px-0 pt-4 flex justify-end gap-2">
                                 <Button type="button" variant="ghost" onClick={() => router.push(constructUrl(`/dashboard/assets/${id}`))}>Cancel</Button>
-                                <Button type="submit">Save Changes</Button>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Changes'}</Button>
                             </CardFooter>
                         </form>
                     </Form>

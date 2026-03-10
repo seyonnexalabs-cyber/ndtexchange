@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -29,7 +28,7 @@ import { useSearch } from "@/app/components/layout/search-provider";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, query, where, Query } from 'firebase/firestore';
+import { collection, doc, query, where, Query, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -606,7 +605,6 @@ export default function UsersPage() {
             const companyMatch = selectedCompanies.length === 0 || selectedCompanies.includes(user.company);
             const statusMatch = statusFilter === 'all' || user.status === statusFilter;
 
-            // Only apply client-side filtering for filters *not* used in the query
             if (selectedRoles.length > 0) return searchMatch && companyMatch && statusMatch;
             if (selectedCompanies.length > 0) return searchMatch && roleMatch && statusMatch;
             if (statusFilter !== 'all') return searchMatch && roleMatch && companyMatch;
@@ -627,22 +625,68 @@ export default function UsersPage() {
         }
     }, [role, router, searchParams]);
 
-    const handleAddUser = (values: z.infer<typeof userSchema>) => {
-        console.log("Invite User:", values);
-        setIsAddUserOpen(false);
-        toast.success('User Invited (Simulation)', {
-            description: `An invitation email would be sent to ${values.email}.`,
-        });
+    const handleAddUser = async (values: z.infer<typeof userSchema>) => {
+        if (!firestore || !allCompanies) return;
+    
+        const company = allCompanies.find(c => c.name === values.company);
+        if (!company) {
+            toast.error("Company not found.");
+            return;
+        }
+
+        try {
+            const usersCollection = collection(firestore, 'users');
+            const docRef = doc(usersCollection); // Create a reference first to get an ID
+            const newUserData: Omit<PlatformUser, 'id'> = {
+                name: values.name,
+                email: values.email,
+                role: values.role,
+                company: values.company,
+                companyId: company.id,
+                status: 'Invited',
+                createdAt: serverTimestamp(),
+            };
+
+            await setDoc(docRef, { ...newUserData, id: docRef.id });
+
+            toast.success('User Invited', {
+                description: `An invitation simulation has been triggered for ${values.email}.`,
+            });
+            setIsAddUserOpen(false);
+        } catch (error) {
+            console.error("Error inviting user:", error);
+            toast.error("Invitation Failed", { description: "Could not create the new user." });
+        }
     };
 
     const handleEditClick = (user: PlatformUser) => {
         setEditingUser(user);
     };
 
-    const handleEditSubmit = (values: z.infer<typeof editUserSchema>) => {
-        console.log("Edit User:", values);
-        toast.success('User Updated', { description: `${values.name}'s profile has been successfully updated.` });
-        setEditingUser(null);
+    const handleEditSubmit = async (values: z.infer<typeof editUserSchema>) => {
+        if (!firestore || !allCompanies) return;
+
+        const company = allCompanies.find(c => c.name === values.company);
+        if (!company) {
+            toast.error("Company not found.");
+            return;
+        }
+        
+        try {
+            const userRef = doc(firestore, 'users', values.id);
+            await updateDoc(userRef, {
+                name: values.name,
+                role: values.role,
+                company: values.company,
+                companyId: company.id
+            });
+
+            toast.success('User Updated', { description: `${values.name}'s profile has been successfully updated.` });
+            setEditingUser(null);
+        } catch (error) {
+            console.error("Error updating user:", error);
+            toast.error("Update Failed", { description: "Could not save user changes." });
+        }
     };
 
     const handleSetCompanyAdmin = (userToMakeAdmin: PlatformUser) => {
@@ -671,12 +715,19 @@ export default function UsersPage() {
         }
     };
     
-    const confirmDisableUser = () => {
-        if (!userToDisable) return;
-        toast.error("User Disabled", {
-            description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
-        });
-        setUserToDisable(null);
+    const confirmDisableUser = async () => {
+        if (!userToDisable || !firestore) return;
+        try {
+            const userRef = doc(firestore, 'users', userToDisable.id);
+            await updateDoc(userRef, { status: 'Disabled' });
+            toast.error("User Disabled", {
+                description: `${userToDisable.name} has been disabled and can no longer access the platform.`,
+            });
+            setUserToDisable(null);
+        } catch (error) {
+            console.error("Error disabling user:", error);
+            toast.error("Update Failed", { description: "Could not disable the user." });
+        }
     };
     
     const handleRoleChange = (role: string) => setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);

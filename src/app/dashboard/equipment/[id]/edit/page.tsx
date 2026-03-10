@@ -22,8 +22,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ChevronsUpDown, Trash } from "lucide-react";
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import Image from "next/image";
-import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError, useStorage } from '@/firebase';
 import { doc, updateDoc, collection, arrayUnion } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -48,7 +49,8 @@ export default function EditEquipmentPage() {
     const id = params.id as string;
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { firestore, user } = useFirebase();
+    const { firestore, user, storage } = useFirebase();
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
@@ -122,23 +124,38 @@ export default function EditEquipmentPage() {
         return `${base}?${params.toString()}`;
     };
 
-    const handleFormSubmit = (values: EquipmentFormValues) => {
-        if (!firestore || !userProfile) return;
+    const handleFormSubmit = async (values: EquipmentFormValues) => {
+        if (!firestore || !userProfile || !storage || !equipmentToEdit) return;
+        setIsSubmitting(true);
         
+        let thumbnailUrl = equipmentToEdit.thumbnailUrl;
+        if (values.thumbnail && typeof values.thumbnail !== 'string') {
+            const file = values.thumbnail as File;
+            const equipThumbnailRef = storageRef(storage, `equipment/${id}/thumbnail-${file.name}`);
+            try {
+                const snapshot = await uploadBytes(equipThumbnailRef, file);
+                thumbnailUrl = await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error("Error uploading thumbnail:", error);
+                toast.error("Thumbnail Upload Failed");
+                setIsSubmitting(false);
+                return;
+            }
+        } else if (!values.thumbnail) {
+            thumbnailUrl = undefined;
+        }
+
         const { thumbnail, ...equipmentData } = values;
-        const dataToSave = {
+        
+        const updatedData = {
             ...equipmentData,
             providerId: userProfile.companyId,
-            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd')
+            thumbnailUrl,
+            nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
+            history: arrayUnion({ event: 'Updated', user: userProfile.name, timestamp: new Date().toISOString() })
         };
         
         const equipmentDocRef = doc(firestore, 'equipment', id);
-        
-        const updatedData = {
-            ...dataToSave,
-            history: arrayUnion({ event: 'Updated', user: userProfile.name, timestamp: new Date().toISOString() })
-        };
-
         updateDoc(equipmentDocRef, updatedData).catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
                 path: equipmentDocRef.path,
@@ -150,6 +167,7 @@ export default function EditEquipmentPage() {
 
         toast.success("Equipment Updated", { description: `${values.name} has been updated.` });
         router.push(constructUrl(`/dashboard/equipment/${id}`));
+        setIsSubmitting(false);
     };
     
     const isLoading = isLoadingProfile || isLoadingAllEquipment || isLoadingTechniques || isLoadingEquipmentToEdit;
@@ -190,7 +208,7 @@ export default function EditEquipmentPage() {
                             <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag &amp; drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the equipment.</FormDescription> <FormMessage /> </FormItem> )}/>
                             <CardFooter className="px-0 pt-4 flex justify-end gap-2">
                                 <Button type="button" variant="ghost" onClick={() => router.push(constructUrl(`/dashboard/equipment/${id}`))}>Cancel</Button>
-                                <Button type="submit">Save Changes</Button>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Changes'}</Button>
                             </CardFooter>
                         </form>
                     </Form>

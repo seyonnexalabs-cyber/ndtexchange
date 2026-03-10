@@ -13,8 +13,9 @@ import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, ChevronsUpDown } from "lucide-react";
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useStorage } from '@/firebase';
 import { doc, collection, setDoc, arrayUnion } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { Equipment, EquipmentHistory, NDTTechnique, PlatformUser } from "@/lib/types";
 import { format } from 'date-fns';
 import { cn, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/utils';
@@ -44,7 +45,8 @@ type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 export default function AddEquipmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { firestore, user } = useFirebase();
+    const { firestore, user, storage } = useFirebase();
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
@@ -110,18 +112,35 @@ export default function AddEquipmentPage() {
     };
 
     const handleFormSubmit = async (values: EquipmentFormValues) => {
-        if (!firestore || !userProfile) return;
+        if (!firestore || !userProfile || !storage) return;
+        setIsSubmitting(true);
         
         const { thumbnail, ...equipmentData } = values;
         
         const newEquipmentRef = doc(collection(firestore, 'equipment'));
         
+        let thumbnailUrl: string | undefined = undefined;
+        if (thumbnail) {
+            const file = thumbnail as File;
+            const equipThumbnailRef = storageRef(storage, `equipment/${newEquipmentRef.id}/thumbnail-${file.name}`);
+            try {
+                const snapshot = await uploadBytes(equipThumbnailRef, file);
+                thumbnailUrl = await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error("Error uploading thumbnail:", error);
+                toast.error("Thumbnail Upload Failed");
+                setIsSubmitting(false);
+                return;
+            }
+        }
+
         const newHistoryEntry: EquipmentHistory = { event: 'Created', user: userProfile.name, timestamp: new Date().toISOString(), notes: 'Item created in inventory.' };
 
         const dataToSave = {
             id: newEquipmentRef.id,
             ...equipmentData,
             providerId: userProfile.companyId,
+            thumbnailUrl,
             nextCalibration: format(values.nextCalibration, 'yyyy-MM-dd'),
             status: 'Available',
             approvalStatus: 'Pending Approval',
@@ -136,6 +155,8 @@ export default function AddEquipmentPage() {
         } catch (error) {
             console.error("Error saving equipment:", error);
             toast.error("Save Failed", { description: "Could not save equipment." });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -159,7 +180,6 @@ export default function AddEquipmentPage() {
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-                            {/* Form fields here, identical to the edit form */}
                             <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
                             <FormField control={form.control} name="type" render={({ field }) => ( <FormItem> <FormLabel>Type</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl> <SelectContent> <SelectItem value="Instrument">Instrument</SelectItem> <SelectItem value="Probe">Probe/Transducer</SelectItem> <SelectItem value="Source">Source</SelectItem> <SelectItem value="Sensor">Sensor/Detector</SelectItem> <SelectItem value="Calibration Standard">Calibration Standard</SelectItem> <SelectItem value="Accessory">Accessory</SelectItem> <SelectItem value="Visual Aid">Visual Aid</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
                             <FormField control={form.control} name="parentId" render={({ field }) => ( <FormItem> <FormLabel>Parent Equipment (Optional)</FormLabel> <Select onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Assign to a kit or system" /> </SelectTrigger> </FormControl> <SelectContent> <SelectItem value="none">None (Standalone Equipment)</SelectItem> {possibleParents.map(parent => ( <SelectItem key={parent.id} value={parent.id}>{parent.name}</SelectItem> ))} </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
@@ -173,7 +193,7 @@ export default function AddEquipmentPage() {
                             <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag &amp; drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the equipment.</FormDescription> <FormMessage /> </FormItem> )}/>
                             <CardFooter className="px-0 pt-4 flex justify-end gap-2">
                                 <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/equipment'))}>Cancel</Button>
-                                <Button type="submit">Submit for Approval</Button>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : 'Submit for Approval'}</Button>
                             </CardFooter>
                         </form>
                     </Form>

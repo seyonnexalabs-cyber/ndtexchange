@@ -14,8 +14,9 @@ import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from "lucide-react";
 import Link from 'next/link';
-import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError, useStorage } from '@/firebase';
 import { doc, collection, serverTimestamp, setDoc } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import type { Asset, PlatformUser } from '@/lib/types';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Switch } from '@/components/ui/switch';
@@ -51,8 +52,9 @@ type AssetFormValues = z.infer<typeof assetSchema>;
 
 export default function AddAssetPage() {
     const router = useRouter();
-    const { firestore, user } = useFirebase();
+    const { firestore, user, storage } = useFirebase();
     const searchParams = useSearchParams();
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
@@ -113,20 +115,38 @@ export default function AddAssetPage() {
         return [...new Set(allLocations)];
     }, [existingAssets]);
 
-    const handleFormSubmit = (values: AssetFormValues) => {
-        if (!firestore || !user || !userProfile) {
+    const handleFormSubmit = async (values: AssetFormValues) => {
+        if (!firestore || !user || !userProfile || !storage) {
             toast.error("Error", { description: "Not authenticated. Please try again." });
             return;
         }
+        setIsSubmitting(true);
 
         const location = values.location === '__add_new__' ? values.newLocation! : values.location;
         
         const assetRef = doc(collection(firestore, `assets`));
+
+        let thumbnailUrl: string | undefined = undefined;
+        if (values.thumbnail) {
+            const file = values.thumbnail as File;
+            const assetThumbnailRef = storageRef(storage, `assets/${assetRef.id}/thumbnail-${file.name}`);
+            try {
+                const snapshot = await uploadBytes(assetThumbnailRef, file);
+                thumbnailUrl = await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error("Error uploading thumbnail:", error);
+                toast.error("Thumbnail Upload Failed", { description: "Could not upload the asset thumbnail. Please try again." });
+                setIsSubmitting(false);
+                return;
+            }
+        }
+
         const dataToSave: Omit<Asset, 'id'> = {
             companyId: userProfile.companyId,
             name: values.name,
             type: values.type,
             location,
+            thumbnailUrl,
             isMovable: values.isMovable,
             status: 'Requires Inspection',
             approvalStatus: 'Pending Approval',
@@ -160,6 +180,7 @@ export default function AddAssetPage() {
 
         toast.success("Asset Submitted for Approval", { description: `${values.name} is awaiting approval.` });
         router.push(constructUrl('/dashboard/assets'));
+        setIsSubmitting(false);
     };
     
     if (isLoadingProfile || isLoadingAssets) {
@@ -203,7 +224,7 @@ export default function AddAssetPage() {
                             <FormField control={form.control} name="thumbnail" render={() => ( <FormItem> <FormLabel>Thumbnail Image</FormLabel> <div {...dragHandlers} onClick={() => fileInputRef.current?.click()} className={cn( "relative w-full h-48 rounded-md border-2 border-dashed flex items-center justify-center text-center text-muted-foreground cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50" )} > {thumbnailPreview ? ( <> <Image src={thumbnailPreview} alt="Thumbnail preview" fill className="object-contain rounded-md p-2" /> <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-md"><p className="text-white font-semibold">Click or drag to replace</p></div> </> ) : ( <p>Click or drag & drop to upload thumbnail</p> )} <FormControl> <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} /> </FormControl> </div> <FormDescription>This image will be used as the display card for the asset.</FormDescription> <FormMessage /> </FormItem> )}/>
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button type="button" variant="ghost" onClick={() => router.push(constructUrl('/dashboard/assets'))}>Cancel</Button>
-                                <Button type="submit">Submit for Approval</Button>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : 'Submit for Approval'}</Button>
                             </div>
                         </form>
                     </Form>

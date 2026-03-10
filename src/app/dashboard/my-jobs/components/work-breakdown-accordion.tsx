@@ -88,7 +88,7 @@ const WorkBreakdownTree = ({ inspections, job, constructUrl, allNdtTechniques }:
                             constructUrl={constructUrl}
                         />
                         <TreeNode>
-                            {assetData.inspections.map(inspection => {
+                            {assetData.inspections.map((inspection: Inspection) => {
                                 const technique = allNdtTechniques?.find(t => t.acronym === inspection.technique);
                                 return (
                                     <div key={inspection.id} className="mt-1">

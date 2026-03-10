@@ -110,6 +110,7 @@ export default function EditProductPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user: authUser } = useUser();
+    const { firestore } = useFirebase();
     const storage = useStorage();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     
@@ -120,8 +121,8 @@ export default function EditProductPage() {
     const [imagesToRemove, setImagesToRemove] = React.useState<string[]>([]);
 
 
-    const { data: currentUserProfile, isLoading: isLoadingProfile, firestore } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (useFirebase().firestore && authUser ? doc(useFirebase().firestore, 'users', authUser.uid) : null), [authUser])
+    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
     );
     
     const { data: productToEdit, isLoading: isLoadingProduct } = useDoc<Product>(

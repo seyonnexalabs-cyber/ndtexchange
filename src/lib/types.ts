@@ -16,7 +16,7 @@ export type Asset = {
     name: string;
     type: 'Tank' | 'Piping' | 'Vessel' | 'Crane' | 'Weld Joint';
     location: string;
-    isMovable: boolean;
+    isMovable?: boolean;
     status: 'Operational' | 'Requires Inspection' | 'Under Repair' | 'Decommissioned';
     approvalStatus: 'Approved' | 'Pending Approval' | 'Rejected';
     nextInspection: string;
@@ -93,7 +93,9 @@ export type Job = {
     durationDays?: number;
     estimatedBudget?: string;
     certificationsRequired?: string[];
+    description?: string;
     clientCompanyId?: string;
+    providerId?: string;
     userId?: string; // The user ID of the creator of the job
     temaDesignIds?: string[];
     createdAt?: any;
@@ -149,6 +151,8 @@ export type Equipment = {
     modifiedBy?: string;
 };
 
+export type InspectorAsset = Equipment;
+
 export type Award = {
     name: string;
     year: number;
@@ -198,8 +202,8 @@ export type Review = {
   productName?: string;
   providerId?: string;
   clientId?: string;
-  userEmail: string;
-  userName: string;
+  userEmail?: string;
+  userName?: string;
   rating: number;
   comment: string;
   date: any;
@@ -231,6 +235,19 @@ export type PlatformUser = {
     createdBy?: string;
     modifiedAt?: any;
     modifiedBy?: string;
+};
+
+export type Notification = {
+    id: string;
+    userId: string;
+    type?: string;
+    title: string;
+    href?: string;
+    message?: string;
+    description?: string;
+    read?: boolean;
+    timestamp?: string;
+    createdAt?: any;
 };
 
 export type Subscription = {
@@ -463,6 +480,7 @@ export type Bid = {
   amount: number;
   status: 'Submitted' | 'Shortlisted' | 'Awarded' | 'Rejected' | 'Withdrawn' | 'Not Selected';
   submittedDate: any;
+  jobDate?: string;
   comments?: string;
   mobilizationDate?: string;
   certifications?: string[];

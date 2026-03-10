@@ -46,8 +46,8 @@ export default function SignupPage() {
   
   const [selectedCompany, setSelectedCompany] = useState<{ name: string; type: "client" | "inspector" | "auditor" | "manufacturer"; } | null>(null);
   const [suggestions, setSuggestions] = useState<{ name: string; type: "client" | "inspector" | "auditor" | "manufacturer"; }[]>([]);
-  const companyInputRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const companyInputRef = useRef<HTMLInputElement | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement | null>(null);
 
   const companiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'companies') : null, [firestore]);
   const { data: companiesFromDb } = useCollection<Client | NDTServiceProvider | AuditFirm>(companiesQuery);
@@ -217,15 +217,22 @@ export default function SignupPage() {
                            <FormField
                                 control={form.control}
                                 name="companyName"
-                                render={({ field }) => (
+                                render={({ field }) => {
+                                    const { ref, ...fieldProps } = field;
+                                    return (
                                     <FormItem>
                                         <FormLabel>Company Name</FormLabel>
                                         <div className="relative">
                                             <FormControl>
                                                 <Input
-                                                    ref={companyInputRef}
+                                                    ref={(node) => {
+                                                        companyInputRef.current = node;
+                                                        if (typeof field.ref === 'function') {
+                                                            field.ref(node);
+                                                        }
+                                                    }}
                                                     placeholder="Start typing your company name..."
-                                                    {...field}
+                                                    {...fieldProps}
                                                     onChange={(e) => {
                                                         field.onChange(e);
                                                         const search = e.target.value;
@@ -266,7 +273,8 @@ export default function SignupPage() {
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
-                                )}
+                                );
+                            }}
                             />
 
                              {selectedCompany && (

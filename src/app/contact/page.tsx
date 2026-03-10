@@ -42,8 +42,8 @@ const contactFormSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
   email: z.string().email(),
   phone: z.string().optional(),
-  role: z.enum(["asset-owner", "ndt-company", "auditor", "oem-other"], {required_error: 'Please select your role.'}),
-  inquiryType: z.enum(["demo", "pricing", "partnership", "support", "general", "oem-listing"], {required_error: 'Please select an inquiry type.'}),
+  role: z.enum(["asset-owner", "ndt-company", "auditor", "oem-other"]),
+  inquiryType: z.enum(["demo", "pricing", "partnership", "support", "general", "oem-listing"]),
   message: z.string().min(10, "Please provide a brief message (min. 10 characters)."),
 });
 

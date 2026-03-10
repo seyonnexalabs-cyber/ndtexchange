@@ -21,19 +21,19 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
 import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { useSearch } from "@/app/components/layout/search-provider";
-import { useForm } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import type { InspectorAsset, EquipmentHistory, Job, EquipmentType, PlatformUser } from '@/lib/types';
+import type { Equipment, EquipmentHistory, InspectorAsset, Job, EquipmentType, PlatformUser } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 
 
-const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
+const equipmentTypeIcons: { [key in EquipmentType]: React.ReactElement } = {
     'Instrument': <RadioTower className="w-6 h-6 text-primary" />,
     'Probe': <SlidersHorizontal className="w-6 h-6 text-primary" />,
     'Source': <Waves className="w-6 h-6 text-primary" />,
@@ -44,7 +44,7 @@ const equipmentTypeIcons: { [key in EquipmentType]: React.ReactNode } = {
 };
 
 const checkInSchema = z.object({
-  condition: z.enum(['Good', 'Damaged', 'Requires Calibration'], { required_error: "Please select the equipment's condition." }),
+  condition: z.enum(['Good', 'Damaged', 'Requires Calibration']),
   hoursUsed: z.coerce.number().min(0, "Hours must be 0 or more.").optional(),
   notes: z.string().optional(),
 });
@@ -57,7 +57,7 @@ const checkOutSchema = z.object({
 type CheckOutFormValues = z.infer<typeof checkOutSchema>;
 
 const serviceOutSchema = z.object({
-  serviceType: z.enum(['Calibration', 'Repair', 'Maintenance'], { required_error: "Please select a service type." }),
+  serviceType: z.enum(['Calibration', 'Repair', 'Maintenance']),
   vendor: z.string().min(2, "Vendor name is required."),
   serviceOrderNumber: z.string().optional(),
   expectedReturnDate: z.date().optional(),
@@ -76,11 +76,11 @@ const CheckInOutForm = ({
  }: { 
     formId: string;
     action: 'check-in' | 'check-out';
-    onSubmit: (values: CheckInFormValues | CheckOutFormValues) => void;
+    onSubmit: SubmitHandler<CheckInFormValues | CheckOutFormValues>;
     jobsForCheckout: Job[];
 }) => {
     const isCheckIn = action === 'check-in';
-    const form = useForm({
+    const form = useForm<CheckInFormValues | CheckOutFormValues>({
         resolver: zodResolver(isCheckIn ? checkInSchema : checkOutSchema),
         defaultValues: isCheckIn 
             ? { condition: 'Good', hoursUsed: 0, notes: '' } 
@@ -300,7 +300,7 @@ const ServiceOutForm = ({
 };
 
 
-const statusVariants: { [key in InspectorAsset['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
+const statusVariants: { [key in Equipment['status']]: 'success' | 'default' | 'destructive' | 'outline' | 'secondary' } = {
     'Available': 'success',
     'In Use': 'default',
     'Calibration Due': 'destructive',
@@ -567,11 +567,13 @@ export default function EquipmentPage() {
     const isTransactionDialogOpen = transactionState.action !== null;
     const closeTransactionDialog = () => setTransactionState({ action: null, equipment: null });
 
-    const transactionDialogTitle = {
+    const transactionDialogTitleMap = {
         'check-in': 'Check In Equipment',
         'check-out': 'Check Out for Job',
         'service-out': 'Check Out for Service',
-    }[transactionState.action || ''] || '';
+    } as const;
+
+    const transactionDialogTitle = transactionState.action ? transactionDialogTitleMap[transactionState.action] : '';
 
     if (role !== 'inspector') {
         return null;

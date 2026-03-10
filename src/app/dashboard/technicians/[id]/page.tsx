@@ -70,7 +70,7 @@ const TechnicianForm = ({ onCancel, onSubmit, defaultValues, allTechniques }: { 
                 ...defaultValues,
                 certifications: defaultValues.certifications?.map(c => ({
                     ...c,
-                    validUntil: c.validUntil ? safeParseDate(c.validUntil) : undefined,
+                    validUntil: c.validUntil ? (safeParseDate(c.validUntil) || undefined) : undefined,
                 }))
             });
         }
@@ -382,7 +382,7 @@ export default function TechnicianDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="text-center">
-                             <Badge variant={technician.workStatus ? workStatusStyles[technician.workStatus] : 'outline'}>{technician.workStatus || 'N/A'}</Badge>
+                             <Badge variant={technician.workStatus ? technicianStatusVariants[technician.workStatus] : 'outline'}>{technician.workStatus || 'N/A'}</Badge>
                              <div className="mt-4 text-sm border-t pt-4">
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Jobs Completed</span>
@@ -524,11 +524,13 @@ export default function TechnicianDetailPage() {
                         onSubmit={handleFormSubmit}
                         onCancel={() => setIsFormOpen(false)}
                         allTechniques={allTechniques || []}
-                        isEditing={true}
                         defaultValues={{
                             name: technician.name,
                             workStatus: technician.workStatus,
-                            certifications: technician.certifications
+                            certifications: technician.certifications?.map(c => ({
+                                ...c,
+                                validUntil: c.validUntil ? (safeParseDate(c.validUntil) || undefined) : undefined,
+                            }))
                         }}
                     />
                 </DialogContent>

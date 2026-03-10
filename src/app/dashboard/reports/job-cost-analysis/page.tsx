@@ -23,7 +23,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, doc } from 'firebase/firestore';
 import type { Job, Bid, NDTServiceProvider, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -277,7 +277,7 @@ export default function JobCostAnalysisReportPage() {
                                                 initialFocus
                                                 mode="range"
                                                 defaultMonth={field.value.from}
-                                                selected={field.value}
+                                                selected={field.value as any}
                                                 onSelect={field.onChange}
                                                 numberOfMonths={1}
                                             />

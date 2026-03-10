@@ -313,7 +313,7 @@ export default function CalendarPage() {
                 </>
             );
         } else {
-             const resourceData = event.data as { resource: PlatformUser | Equipment, jobs: Job[] };
+             const resourceData = selectedEvent.data as { resource: PlatformUser | Equipment, jobs: Job[] };
              const resourceType = selectedEvent.type === 'technician' ? 'Technician' : 'Equipment';
              return (
                 <>
@@ -399,7 +399,7 @@ export default function CalendarPage() {
                         <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                                 mode="single"
-                                selected={currentDate}
+                                selected={currentDate ?? undefined}
                                 onSelect={(date) => date && setCurrentDate(date)}
                                 initialFocus
                             />

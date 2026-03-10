@@ -35,7 +35,7 @@ const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
 };
 
 
-const userActionStyles: { [key in UserAuditLog['action']]: 'default' | 'destructive' | 'secondary' | 'outline' } = {
+const userActionStyles: { [key in UserAuditLog['action']]: 'default' | 'destructive' | 'secondary' | 'outline' | 'success' } = {
     'User Invited': 'secondary',
     'User Disabled': 'destructive',
     'User Enabled': 'success',

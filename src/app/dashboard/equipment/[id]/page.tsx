@@ -7,7 +7,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Edit, MoreVertical, QrCode, Printer, Wrench, HardHat, Package, SlidersHorizontal, RadioTower, Waves, Cpu, Eye, Cable, History, Calendar } from 'lucide-react';
+import { ChevronLeft, Edit, MoreVertical, QrCode, Printer, Wrench, HardHat, Package, SlidersHorizontal, RadioTower, Waves, Cpu, Eye, Cable, History, Calendar, Briefcase } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
@@ -223,7 +223,13 @@ export default function EquipmentDetailPage() {
                                     <Image src={equipment.thumbnailUrl} alt={equipment.name} fill className="object-contain p-4" />
                                 ) : (
                                     <div className="flex items-center justify-center h-full">
-                                        {React.cloneElement(equipmentTypeIcons[equipment!.type] || <Wrench />, { className: 'w-24 h-24 text-primary/30' })}
+                                        {(() => {
+                                            const icon = equipmentTypeIcons[equipment!.type] || <Wrench />;
+                                            if (React.isValidElement(icon)) {
+                                                return React.cloneElement(icon as React.ReactElement<any>, { className: 'w-24 h-24 text-primary/30' });
+                                            }
+                                            return icon;
+                                        })()}
                                     </div>
                                 )}
                             </div>

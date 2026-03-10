@@ -20,15 +20,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn, GLOBAL_DATE_FORMAT, safeParseDate } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
-import { ChartConfig, ChartContainer, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, doc } from 'firebase/firestore';
 import type { Job, Bid, PlatformUser, NDTServiceProvider, Review, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const reportSchema = z.object({
   providerIds: z.array(z.string()).optional(),
+  techniqueIds: z.array(z.string()).optional(),
   dateRange: z.object({
     from: z.date().optional(),
     to: z.date().optional(),
@@ -50,6 +51,7 @@ export default function ProviderPerformanceReportPage() {
         resolver: zodResolver(reportSchema),
         defaultValues: {
           providerIds: [],
+          techniqueIds: [],
           dateRange: { from: undefined, to: undefined }
         },
     });
@@ -57,7 +59,7 @@ export default function ProviderPerformanceReportPage() {
     const searchParams = useSearchParams();
     const isMobile = useIsMobile();
     const { firestore, user } = useFirebase();
-    const { data: userProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
+    const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user]));
 
     const { data: serviceProviders, isLoading: isLoadingProviders } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore ? query(collection(firestore, 'companies'), where('type', '==', 'Provider')) : null), [firestore]));
     
@@ -299,7 +301,7 @@ export default function ProviderPerformanceReportPage() {
                                                 initialFocus
                                                 mode="range"
                                                 defaultMonth={field.value.from}
-                                                selected={field.value}
+                                                selected={field.value as any}
                                                 onSelect={field.onChange}
                                                 numberOfMonths={1}
                                             />

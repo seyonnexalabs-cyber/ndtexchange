@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, setDoc, updateDoc, query } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { Product, Manufacturer, NDTTechnique } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";

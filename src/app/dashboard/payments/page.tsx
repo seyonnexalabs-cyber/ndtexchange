@@ -30,8 +30,8 @@ import type { Job, JobPayment, PlatformUser } from '@/lib/types';
 
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
-    const [formatted, setFormatted] = React.useState<string | null>(null);
-    React.useEffect(() => {
+    const [formatted, setFormatted] = useState<string | null>(null);
+    useEffect(() => {
         if (date) {
             setFormatted(format(date, formatString));
         }
@@ -85,7 +85,7 @@ const RecordPaymentForm = ({
         },
     });
 
-    React.useEffect(() => {
+useEffect(() => {
         // Set default date on client to avoid hydration mismatch
         if (!form.getValues('paymentDate')) {
             form.setValue('paymentDate', new Date());

@@ -103,7 +103,8 @@ export default function JobDetailPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role') || 'client';
-    const { firestore, user: authUser, isUserLoading: isAuthLoading } = useUser();
+    const { firestore } = useFirebase();
+    const { user: authUser, isUserLoading: isAuthLoading } = useUser();
     
     const [activeTab, setActiveTab] = React.useState('overview');
     const [reviewingBid, setReviewingBid] = React.useState<(Bid & { provider: NDTServiceProvider }) | null>(null);

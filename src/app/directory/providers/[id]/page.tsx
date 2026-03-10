@@ -242,7 +242,7 @@ export default function PublicProviderProfilePage() {
                                                     <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center gap-3">
-                                                                <Avatar><AvatarFallback>{review.clientName.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar>
+                                                                 <Avatar><AvatarFallback>{review.clientName.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback></Avatar>
                                                                 <div>
                                                                     <p className="font-semibold">{review.clientName}</p>
                                                                     <StarRating rating={review.rating} />

@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from 'next/image';
@@ -519,7 +519,7 @@ export default function PublicProductProfilePage() {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar>
-                                                            <AvatarFallback>{review.userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                            <AvatarFallback>{(review.userName || 'User').split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
                                                             <p className="font-semibold">{review.userName}</p>

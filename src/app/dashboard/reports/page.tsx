@@ -113,7 +113,7 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
                                     <CardTitle className="text-base">{inspection.assetName}</CardTitle>
                                     <p className="font-extrabold text-xs text-muted-foreground">{inspection.jobId}</p>
                                 </div>
-                                <Badge variant={jobStatusVariants[inspection.job.status]}>{inspection.job.status}</Badge>
+                                <Badge variant={jobStatusVariants[inspection.job.status as keyof typeof jobStatusVariants]}>{inspection.job.status}</Badge>
                             </div>
                             <CardDescription>
                                 <Badge variant="secondary" shape="rounded">{inspection.technique}</Badge>
@@ -176,7 +176,7 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <Badge variant={jobStatusVariants[inspection.job.status]}>{inspection.job.status}</Badge>
+                                <Badge variant={jobStatusVariants[inspection.job.status as keyof typeof jobStatusVariants]}>{inspection.job.status}</Badge>
                             </TableCell>
                             <TableCell className="text-right">
                                 <Button asChild variant="outline" size="sm">
@@ -274,10 +274,10 @@ export default function ReportsPage() {
         });
     }, [allInspections, allUsers, searchQuery, role]);
     
-    const reportsForAuditorQueue = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job.status === 'Report Submitted' && ['level3', 'auto'].includes(i.job.workflow)), [augmentedAndFilteredInspections]);
-    const auditorHistory = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job.status === 'Audit Approved'), [augmentedAndFilteredInspections]);
-    const reportsForClientReview = useMemo(() => augmentedAndFilteredInspections.filter(i => ['Client Review', 'Audit Approved'].includes(i.job.status)), [augmentedAndFilteredInspections]);
-    const inspectorRevisions = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job.status === 'Revisions Requested'), [augmentedAndFilteredInspections]);
+    const reportsForAuditorQueue = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job?.status === 'Report Submitted' && ['level3', 'auto'].includes(i.job?.workflow || '')), [augmentedAndFilteredInspections]);
+    const auditorHistory = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job?.status === 'Audit Approved'), [augmentedAndFilteredInspections]);
+    const reportsForClientReview = useMemo(() => augmentedAndFilteredInspections.filter(i => ['Client Review', 'Audit Approved'].includes(i.job?.status || '')), [augmentedAndFilteredInspections]);
+    const inspectorRevisions = useMemo(() => augmentedAndFilteredInspections.filter(i => i.job?.status === 'Revisions Requested'), [augmentedAndFilteredInspections]);
 
     const roleConfig = useMemo(() => {
         switch(role) {

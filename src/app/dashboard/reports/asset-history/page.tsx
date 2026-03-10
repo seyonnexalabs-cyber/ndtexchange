@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { jobs, reviews, clientData, serviceProviders, NDTTechniques } from '@/lib/seed-data';
+import { NDTTechniques } from '@/lib/seed-data';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -218,7 +218,7 @@ export default function AssetHistoryReportPage() {
                                                 initialFocus
                                                 mode="range"
                                                 defaultMonth={field.value.from}
-                                                selected={field.value}
+                                                selected={field.value as any}
                                                 onSelect={field.onChange}
                                                 numberOfMonths={1}
                                             />

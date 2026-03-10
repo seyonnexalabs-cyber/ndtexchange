@@ -14,13 +14,13 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Payment, Subscription, Plan } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
-    const [formatted, setFormatted] = React.useState<string | null>(null);
-    React.useEffect(() => {
+    const [formatted, setFormatted] = useState<string | null>(null);
+    useEffect(() => {
         if (date) {
             setFormatted(format(date, formatString));
         }

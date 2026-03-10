@@ -219,7 +219,7 @@ export default function ProviderDetailPage() {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar>
-                                                            <AvatarFallback>{review.clientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                            <AvatarFallback>{review.clientName.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
                                                             <p className="font-semibold">{review.clientName}</p>

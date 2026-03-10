@@ -73,8 +73,9 @@ const PaginationControls = ({ currentPage, pageCount, onPageChange, itemsPerPage
     itemsPerPage: number,
     onItemsPerPageChange: (value: string) => void,
     totalItems: number,
-}) => (
-    (pageCount > 1 || totalItems > 0) && (
+}) => {
+    if (!(pageCount > 1 || totalItems > 0)) return null;
+    return (
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
                 Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
@@ -100,7 +101,6 @@ const PaginationControls = ({ currentPage, pageCount, onPageChange, itemsPerPage
                         <PaginationContent>
                             <PaginationItem>
                                 <PaginationPrevious
-                                    href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         onPageChange(Math.max(currentPage - 1, 1));
@@ -113,7 +113,6 @@ const PaginationControls = ({ currentPage, pageCount, onPageChange, itemsPerPage
                             </PaginationItem>
                             <PaginationItem>
                                 <PaginationNext
-                                    href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         onPageChange(Math.min(currentPage + 1, pageCount));
@@ -126,8 +125,8 @@ const PaginationControls = ({ currentPage, pageCount, onPageChange, itemsPerPage
                 )}
             </div>
         </div>
-    )
-);
+    );
+};
 
 
 export default function EcosystemPage() {

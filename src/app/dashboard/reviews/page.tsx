@@ -64,7 +64,7 @@ const ReviewsList = ({ reviews, onApprove, onReject }: { reviews: any[], onAppro
                                 <CardTitle className="text-base">{review.job?.title || review.productName}</CardTitle>
                                 <p className="text-xs font-extrabold text-muted-foreground">{review.job?.id || review.productId}</p>
                             </div>
-                            <Badge variant={statusStyles[review.status]}>{review.status}</Badge>
+                            <Badge variant={statusStyles[review.status as keyof typeof statusStyles]}>{review.status}</Badge>
                         </div>
                         <CardDescription>
                             For {review.provider?.name || review.productName} by {review.client?.name || review.userName}

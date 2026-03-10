@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, ChevronsUpDown } from "lucide-react";
-import { useFirebase, useCollection, useMemoFirebase, useUser, useStorage } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useStorage, useDoc } from '@/firebase';
 import { doc, collection, setDoc, arrayUnion } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { Equipment, EquipmentHistory, NDTTechnique, PlatformUser } from "@/lib/types";
@@ -34,7 +34,7 @@ const equipmentSchema = z.object({
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   serialNumber: z.string().optional(),
-  nextCalibration: z.date({ required_error: "Please select a date." }),
+  nextCalibration: z.date().refine((date) => Boolean(date), { message: "Please select a date." }),
   thumbnail: z.any().optional(),
   parentId: z.string().optional(),
 });

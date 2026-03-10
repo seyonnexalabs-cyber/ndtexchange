@@ -55,8 +55,8 @@ const ClientRelativeDateBadge = ({ date, today }: { date: Date | null, today: Da
 };
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
-    const [formatted, setFormatted] = React.useState<string | null>(null);
-    React.useEffect(() => {
+    const [formatted, setFormatted] = useState<string | null>(null);
+    useEffect(() => {
         if (date) {
             setFormatted(format(date, formatString));
         }

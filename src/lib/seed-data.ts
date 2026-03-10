@@ -983,9 +983,9 @@ export const payments: Payment[] = [
   { id: 'PAY-007', subscriptionId: 'SUB-003', companyName: 'MISTRAS Group', amount: 299, date: '2024-06-01', status: 'Succeeded' },
   { id: 'PAY-009', subscriptionId: 'SUB-010', companyName: 'Blue Horizon Services', amount: 299, date: '2024-07-20', status: 'Succeeded' },
   { id: 'PAY-010', subscriptionId: 'SUB-004', companyName: 'Applus+', amount: 299, date: '2024-06-01', status: 'Succeeded' },
-  { id: 'PAY-012', subscriptionId: 'Aviation Maintenance Pros', amount: 499, date: '2024-07-25', status: 'Succeeded' },
-  { id: 'PAY-013', subscriptionId: 'SGS', amount: 299, date: '2024-07-26', status: 'Succeeded' },
-  { id: 'PAY-014', subscriptionId: 'DNV (Det Norske Veritas)', amount: 499, date: '2024-07-10', status: 'Succeeded' },
+  { id: 'PAY-012', subscriptionId: 'SUB-012', companyName: 'Aviation Maintenance Pros', amount: 499, date: '2024-07-25', status: 'Succeeded' },
+  { id: 'PAY-013', subscriptionId: 'SUB-013', companyName: 'SGS', amount: 299, date: '2024-07-26', status: 'Succeeded' },
+  { id: 'PAY-014', subscriptionId: 'SUB-014', companyName: 'DNV (Det Norske Veritas)', amount: 499, date: '2024-07-10', status: 'Succeeded' },
 ];
 
 export const jobPayments: JobPayment[] = [

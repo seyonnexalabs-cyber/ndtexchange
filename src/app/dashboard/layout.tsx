@@ -1,8 +1,8 @@
 
 'use client';
 
-import AppSidebar from '@/components/layout/sidebar';
-import AppHeader from '@/components/layout/header';
+import AppSidebar from '@/app/components/layout/sidebar';
+import AppHeader from '@/app/components/layout/header';
 import { SearchProvider } from '@/app/components/layout/search-provider';
 import { QRScannerProvider } from '@/app/components/layout/qr-scanner-provider';
 

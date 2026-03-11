@@ -253,8 +253,8 @@ const FloorScanEntryDialog = ({
 
     const handleAddReading = () => {
         if (plateNumber === null) return;
-        // Dummy coordinates for now. A real implementation might get these from a click on the SVG.
-        append({ plate: plateNumber, x: Math.random(), y: Math.random(), thickness: undefined });
+        // Add a reading with placeholder coordinates that the user will fill in.
+        append({ plate: plateNumber, x: 0, y: 0, thickness: undefined });
     };
     
     return (
@@ -269,31 +269,57 @@ const FloorScanEntryDialog = ({
                 <ScrollArea className="h-64">
                 <div className="space-y-4 pr-4">
                     {existingReadingIndices.map((originalIndex, displayIndex) => (
-                        <div key={originalIndex} className="flex items-end gap-2">
-                            <FormField
-                                control={control}
-                                name={`floorScans.${originalIndex}.thickness`}
-                                render={({ field }) => (
-                                    <FormItem className="flex-grow">
-                                        <FormLabel>Reading {displayIndex + 1} (in)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" step="0.001" placeholder="e.g., 0.245" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => remove(originalIndex)}
-                            >
-                                <Trash className="h-4 w-4" />
-                            </Button>
+                        <div key={originalIndex} className="p-4 border rounded-md relative space-y-2 bg-background">
+                            <div className="flex justify-between items-center mb-2">
+                                <FormLabel className="font-semibold">Reading {displayIndex + 1}</FormLabel>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                    onClick={() => remove(originalIndex)}
+                                >
+                                    <Trash className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <FormField
+                                    control={control}
+                                    name={`floorScans.${originalIndex}.x`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs">X (ft)</FormLabel>
+                                            <FormControl><Input type="number" step="0.1" placeholder="e.g., 5.2" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={control}
+                                    name={`floorScans.${originalIndex}.y`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs">Y (ft)</FormLabel>
+                                            <FormControl><Input type="number" step="0.1" placeholder="e.g., -10.1" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={control}
+                                    name={`floorScans.${originalIndex}.thickness`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs">Thickness (in)</FormLabel>
+                                            <FormControl><Input type="number" step="0.001" placeholder="e.g., 0.245" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
                     ))}
-                     {existingReadingIndices.length === 0 && <p className="text-muted-foreground text-center py-8">No readings for this plate yet.</p>}
+                    {existingReadingIndices.length === 0 && <p className="text-muted-foreground text-center py-8">No readings for this plate yet.</p>}
                 </div>
                 </ScrollArea>
                 <DialogFooter>

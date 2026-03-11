@@ -547,7 +547,7 @@ export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>
             { user: 'John Doe', timestamp: new Date('2024-07-06T10:00:00Z'), action: `Awarded job to provider "TEAM, Inc." for $18,500.`, statusChange: 'Assigned' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-07T11:00:00Z'), action: `Scheduled job.`, details: 'Inspection scheduled for 2024-07-10 to 2024-07-11', statusChange: 'Scheduled' },
             { user: 'Maria Garcia', timestamp: new Date('2024-07-10T08:30:00Z'), action: `Job status changed to In Progress.`, statusChange: 'In Progress' },
-            { user: 'Maria Garcia', timestamp: new Date('2024-07-11T17:00:00Z'), action: `Submitted inspection reports for UT and MT.`, documentName: '2 reports submitted', statusChange: 'Report Submitted' },
+            { user: 'Maria Garcia', timestamp: new Date('2024-07-11T17:00:00Z'), action: `Submitted inspection report for UT and MT.`, documentName: '2 reports submitted', statusChange: 'Report Submitted' },
             { user: 'System', timestamp: new Date('2024-07-11T17:01:00Z'), action: `Status changed to Under Audit.`, statusChange: 'Under Audit' },
             { user: 'Alex Chen', timestamp: new Date('2024-07-12T13:00:00Z'), action: `Approved inspection report.`, statusChange: 'Audit Approved' },
             { user: 'System', timestamp: new Date('2024-07-12T13:01:00Z'), action: `Status changed to Client Review.`, statusChange: 'Client Review' },
@@ -867,11 +867,13 @@ export const bidsData: Bid[] = [
     { id: 'BID-001', clientCompanyId: 'client-05', userId: 'user-client-04', jobId: 'JOB-001', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 12500, status: 'Shortlisted', submittedDate: '2024-06-29', comments: 'We are available to start next week. Our Level III is on standby for data review.', client: 'Chemical Plant C', location: 'Baton Rouge, LA', jobTitle: 'PAUT on Pressure Vessel Welds' },
     { id: 'BID-001A', clientCompanyId: 'client-05', userId: 'user-client-04', jobId: 'JOB-001', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 11800, status: 'Submitted', submittedDate: '2024-07-01', comments: 'Our team has extensive experience with this vessel type. We can mobilize within 48 hours.', client: 'Chemical Plant C', location: 'Baton Rouge, LA', jobTitle: 'PAUT on Pressure Vessel Welds' },
     { id: 'BID-002', clientCompanyId: 'client-01', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-002', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 4800, status: 'Awarded', submittedDate: '2024-06-18', client: 'Global Energy Corp.', location: 'Long Beach, CA', jobTitle: 'MT Inspection on Crane Hooks' },
+    { id: 'BID-003A', clientCompanyId: 'client-02', userId: 'user-client-02', jobId: 'JOB-003', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 16000, status: 'Awarded', submittedDate: '2024-05-20', client: 'Marine Tankers Ltd.', location: 'Vessel MT-Alpha', jobTitle: 'Annual UT Thickness Survey' },
     { id: 'BID-003', clientCompanyId: 'client-04', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-005', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 8200, status: 'Submitted', submittedDate: '2024-07-03', client: 'State Department of Transportation', location: 'Sacramento, CA', jobTitle: 'VT of Bridge Structural Welds' },
     { id: 'BID-004', clientCompanyId: 'client-06', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-006', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 22000, status: 'Not Selected', submittedDate: '2024-07-04', client: 'Power Generation LLC', location: 'Houston, TX', jobTitle: 'RT on Boiler Tubes' },
     { id: 'BID-004A', clientCompanyId: 'client-06', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-006', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 21500, status: 'Awarded', submittedDate: '2024-07-04', client: 'Power Generation LLC', location: 'Houston, TX', jobTitle: 'RT on Boiler Tubes' },
     { id: 'BID-005', clientCompanyId: 'client-05', userId: 'user-client-04', jobId: 'JOB-007', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 15000, status: 'Awarded', submittedDate: '2024-07-06', client: 'Chemical Plant C', location: 'Baton Rouge, LA', jobTitle: 'Eddy Current on Heat Exchanger Tubes' },
     { id: 'BID-009', clientCompanyId: 'client-05', userId: 'user-client-04', jobId: 'JOB-009', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 9500, status: 'Submitted', submittedDate: '2024-07-13', client: 'Chemical Plant C', location: 'Plaquemine, LA', jobTitle: 'APR Inspection of Boiler Tubes' },
+    { id: 'BID-010A', clientCompanyId: 'client-07', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-010', inspectorId: 'user-tech-03', providerCompanyId: 'provider-04', amount: 4500, status: 'Awarded', submittedDate: '2024-07-09', client: 'Port Authority', location: 'Port Terminal F', jobTitle: 'Gantry Crane Cable Inspection' },
     { id: 'BID-011', clientCompanyId: 'client-02', userId: 'user-client-02', jobId: 'JOB-011', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 18000, status: 'Awarded', submittedDate: '2024-06-05', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', jobTitle: 'Tank Floor Corrosion Mapping' },
     { id: 'BID-012', clientCompanyId: 'client-06', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-012', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 35000, status: 'Awarded', submittedDate: '2024-05-05', client: 'Power Generation LLC', location: 'Houston, TX', jobTitle: 'Advanced RT of Turbine Blades' },
     { id: 'BID-013', clientCompanyId: 'client-01', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-013', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 18000, status: 'Awarded', submittedDate: '2024-07-22', client: 'Global Energy Corp.', location: 'Freeport, TX', jobTitle: 'Acoustic Emission Monitoring of Sphere Tank' },
@@ -883,7 +885,6 @@ export const bidsData: Bid[] = [
     { id: 'BID-020', clientCompanyId: 'client-01', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-020', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 32000, status: 'Awarded', submittedDate: '2024-06-20', client: 'Global Energy Corp.', location: 'Gulf of Mexico', jobTitle: 'Marine Riser Inspection' },
     { id: 'BID-021', clientCompanyId: 'client-01', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-021', inspectorId: 'user-tech-01', providerCompanyId: 'provider-01', amount: 7500, status: 'Awarded', submittedDate: '2024-07-16', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Tank Wall Thickness UT' },
     { id: 'BID-022', clientCompanyId: 'client-01', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-022', inspectorId: 'user-tech-02', providerCompanyId: 'provider-02', amount: 13000, status: 'Awarded', submittedDate: '2024-07-12', client: 'Global Energy Corp.', location: 'Freeport, TX', jobTitle: 'Nozzle Weld PAUT' },
-    { id: 'BID-023', clientCompanyId: 'provider-03', userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', jobId: 'JOB-023', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 5500, status: 'Awarded', submittedDate: '2024-07-29', client: 'TEAM, Inc.', location: 'Midland, TX', jobTitle: 'Internal Job For TEAM' },
     { id: 'BID-024', clientCompanyId: 'client-02', userId: 'user-client-02', jobId: 'JOB-024', inspectorId: 'user-tech-03', providerCompanyId: 'provider-04', amount: 19000, status: 'Awarded', submittedDate: '2024-07-21', client: 'Marine Tankers Ltd.', location: 'New Orleans, LA', jobTitle: 'Storage Tank Weld RT' },
     { id: 'BID-014', clientCompanyId: 'client-03', userId: 'user-client-03', jobId: 'JOB-014', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 15000, status: 'Awarded', submittedDate: '2024-07-18', client: 'Energy Transfer', location: 'Permian Basin, TX', jobTitle: 'Internal Corrosion Mapping of Piping' },
     { id: 'BID-025', clientCompanyId: 'client-01', userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2', jobId: 'JOB-025', inspectorId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', providerCompanyId: 'provider-03', amount: 10000, status: 'Awarded', submittedDate: '2024-07-26', client: 'Global Energy Corp.', location: 'Houston, TX', jobTitle: 'Shutdown Support - MT' },
@@ -1001,7 +1002,7 @@ export const payments: Payment[] = [
 export const jobPayments: JobPayment[] = [
     { id: 'JP-PERFECT-P', jobId: 'JOB-PERFECT', jobTitle: 'Perfect Lifecycle Demo Job', amount: 18500, payer: 'Global Energy Corp.', payee: 'TEAM, Inc.', payeeType: 'Provider', paidOn: '2024-07-20T10:00:00Z', status: 'Paid' },
     { id: 'JP-PERFECT-A', jobId: 'JOB-PERFECT', jobTitle: 'Perfect Lifecycle Demo Job', amount: 1500, payer: 'Global Energy Corp.', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-07-20T10:05:00Z', status: 'Paid' },
-    { id: 'JP-001', jobId: 'JOB-003', jobTitle: 'Annual UT Thickness Survey', amount: 15000, payer: 'Marine Tankers Ltd.', payee: 'MISTRAS Group', payeeType: 'Provider', paidOn: '2024-06-30', status: 'Paid' },
+    { id: 'JP-001', jobId: 'JOB-003', jobTitle: 'Annual UT Thickness Survey', amount: 16000, payer: 'Marine Tankers Ltd.', payee: 'MISTRAS Group', payeeType: 'Provider', paidOn: '2024-06-30', status: 'Paid' },
     { id: 'JP-002', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', amount: 4800, payer: 'Global Energy Corp.', payee: 'TEAM, Inc.', payeeType: 'Provider', paidOn: '2024-07-05', status: 'Paid' },
     { id: 'JP-002A', jobId: 'JOB-002', jobTitle: 'MT Inspection on Crane Hooks', amount: 500, payer: 'Global Energy Corp.', payee: 'NDT Auditors LLC', payeeType: 'Auditor', paidOn: '2024-07-06', status: 'Paid' },
     { id: 'JP-003', jobId: 'JOB-007', jobTitle: 'Eddy Current on Heat Exchanger Tubes', amount: 15000, payer: 'Chemical Plant C', payee: 'MISTRAS Group', payeeType: 'Provider', paidOn: '2024-07-12', status: 'Pending' },
@@ -1079,49 +1080,6 @@ export const jobChats: JobChat[] = [
             { id: 'MSG-005', senderId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2', text: "Confirmed. I have the procedure documents ready.", timestamp: '2024-07-01T11:05:00Z'},
         ]
     }
-];
-
-export const notifications: Notification[] = [
-    {
-        id: 'NOTIF-001',
-        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
-        type: 'job',
-        title: 'New Bid on "PAUT on Pressure Vessel Welds"',
-        description: 'TEAM, Inc. has placed a bid for $11,800.',
-        timestamp: '2024-07-01T11:30:00Z',
-        read: false,
-        href: '/dashboard/my-jobs/JOB-001'
-    },
-    {
-        id: 'NOTIF-002',
-        userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2',
-        type: 'job',
-        title: 'Job Awarded: "MT Inspection on Crane Hooks"',
-        description: 'Your bid for $4,800 has been accepted by Global Energy Corp.',
-        timestamp: '2024-06-19T15:05:00Z',
-        read: true,
-        href: '/dashboard/my-jobs/JOB-002'
-    },
-    {
-        id: 'NOTIF-003',
-        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
-        type: 'message',
-        title: 'New Message on "MT Inspection on Crane Hooks"',
-        description: 'Maria Garcia: "Not a problem, John. I\'ve added it to the inspection plan..."',
-        timestamp: '2024-06-20T15:00:00Z',
-        read: false,
-        href: '/dashboard/messages'
-    },
-    {
-        id: 'NOTIF-004',
-        userId: 'NAXP822MG6cWlaCNkaqkYpxDRmQ2',
-        type: 'job',
-        title: 'Report Approved for "Tank Floor Corrosion Mapping"',
-        description: 'The client has approved your report for JOB-011.',
-        timestamp: '2024-07-03T16:00:00Z',
-        read: true,
-        href: '/dashboard/my-jobs/JOB-011'
-    },
 ];
 
 export const subscriptionPlans: Plan[] = [

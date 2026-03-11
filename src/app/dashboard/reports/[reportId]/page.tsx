@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -45,6 +46,7 @@ const ReportViewerPage = ({ reportId }: { reportId: string }) => {
 // --- Report Generation Component ---
 
 const reportSchema = z.object({
+  inspectorId: z.string({ required_error: "Please select the performing inspector." }),
   inspectionEquipmentId: z.string({ required_error: "Please select the inspection equipment used." }),
   summary: z.string().min(10, "Summary must be at least 10 characters."),
   findings: z.array(z.object({
@@ -110,6 +112,10 @@ const ReportGeneratorPage = () => {
     const { data: providerEquipment, isLoading: isLoadingEquipment } = useCollection<Equipment>(
         useMemoFirebase(() => (firestore && job?.providerCompanyId ? query(collection(firestore, 'equipment'), where('providerId', '==', job.providerCompanyId)) : null), [firestore, job])
     );
+
+    const { data: providerTechnicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(
+        useMemoFirebase(() => (firestore && job?.providerCompanyId ? query(collection(firestore, 'users'), where('companyId', '==', job.providerCompanyId), where('role', '==', 'Inspector')) : null), [firestore, job])
+    );
     
     const form = useForm<z.infer<typeof reportSchema>>({
         resolver: zodResolver(reportSchema),
@@ -123,7 +129,7 @@ const ReportGeneratorPage = () => {
     }
 
     const onSubmit = async (values: z.infer<typeof reportSchema>) => {
-        if (!firestore || !job || !inspection || !authUser || !currentUserProfile) {
+        if (!firestore || !job || !inspection || !authUser || !currentUserProfile || !providerTechnicians) {
             toast.error("Error", { description: "Missing critical data to submit report." });
             return;
         }
@@ -131,6 +137,12 @@ const ReportGeneratorPage = () => {
         
         try {
             const batch = writeBatch(firestore);
+            const inspector = providerTechnicians.find(t => t.id === values.inspectorId);
+            if (!inspector) {
+                toast.error("Error", { description: "Selected inspector not found." });
+                setIsSubmitting(false);
+                return;
+            }
 
             const newReportRef = doc(collection(firestore, 'reports'));
             const reportData = {
@@ -148,6 +160,7 @@ const ReportGeneratorPage = () => {
             const inspectionRef = doc(firestore, 'inspections', inspection.id);
             batch.update(inspectionRef, {
                 status: 'Completed',
+                inspector: inspector.name,
                 report: {
                     id: newReportRef.id,
                     submittedOn: serverTimestamp(),
@@ -188,7 +201,7 @@ const ReportGeneratorPage = () => {
     
     const handleNext = async () => {
         const fieldsToValidate: any[] = [];
-        if (step === 2) fieldsToValidate.push('inspectionEquipmentId');
+        if (step === 2) fieldsToValidate.push('inspectorId', 'inspectionEquipmentId');
         if (step === 3) fieldsToValidate.push('summary'); // Add more fields as needed per template
         
         const isValid = fieldsToValidate.length > 0 ? await form.trigger(fieldsToValidate) : true;
@@ -197,7 +210,7 @@ const ReportGeneratorPage = () => {
     
     const handleBack = () => setStep(s => s - 1);
     
-    const isLoading = isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile || isLoadingTechnique || isLoadingEquipment || !jobId || !inspectionId;
+    const isLoading = isLoadingJob || isLoadingInspection || isLoadingClient || isLoadingProvider || isLoadingProfile || isLoadingTechnique || isLoadingEquipment || isLoadingTechnicians || !jobId || !inspectionId;
 
     if (isLoading) {
         return (
@@ -273,9 +286,21 @@ const ReportGeneratorPage = () => {
                         <Card>
                             <CardHeader><CardTitle>2. Asset & Technique</CardTitle></CardHeader>
                             <CardContent className="grid grid-cols-2 gap-8">
+                                <FormField control={form.control} name="inspectorId" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Performing Inspector*</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select inspector..."/></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                {(providerTechnicians || []).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
                                 <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Select Inspection Equipment*</FormLabel>
+                                        <FormLabel>Inspection Equipment*</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select equipment..."/></SelectTrigger></FormControl>
                                             <SelectContent>

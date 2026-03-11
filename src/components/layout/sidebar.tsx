@@ -48,7 +48,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 import { useUser } from '@/firebase';
 
 

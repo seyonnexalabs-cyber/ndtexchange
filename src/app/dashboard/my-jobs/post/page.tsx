@@ -36,7 +36,7 @@ const scopeItemSchema = z.object({
 });
 
 const baseSchemaObject = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters.'),
+  title: z.string().min(5, 'Title must be at least 5 characters long.'),
   jobType: z.enum(['shutdown', 'project', 'callout'], { required_error: 'Please select a job type.' }),
   industry: z.string({ required_error: 'Please select an industry.' }),
   location: z.string({ required_error: 'Please select a location or add a new one.'}),
@@ -122,6 +122,7 @@ const clientJobSchema = baseSchemaObject.extend({
 
 const inspectorJobSchema = baseSchemaObject.extend({
     clientName: z.string().min(2, "Client Name is required."),
+    assetDescription: z.string().min(3, "An asset description is required."),
     techniques: z.array(z.string()).min(1, "At least one technique is required."),
 }).superRefine((data, ctx) => {
     // Inspector jobs are always internal
@@ -255,7 +256,7 @@ export default function PostJobPage() {
             estimatedBudget: '', certificationsRequired: [], description: '',
             bidExpiryDate: undefined,
             workflow: 'standard', isMarketplaceJob: true,
-            ...(isClient ? { assetIds: [], scope: [] } : { techniques: [] })
+            ...(isClient ? { assetIds: [], scope: [] } : { assetDescription: '', techniques: [] })
         },
     });
     
@@ -315,7 +316,7 @@ export default function PostJobPage() {
 
     const inspectorSteps = [
         { id: 1, name: 'Core Details', fields: ['title', 'clientName', 'jobType', 'industry', 'location'] },
-        { id: 2, name: 'Scope & Requirements', fields: ['techniques', 'certificationsRequired', 'estimatedBudget'] },
+        { id: 2, name: 'Scope & Requirements', fields: ['assetDescription', 'techniques', 'certificationsRequired', 'estimatedBudget'] },
         { id: 3, name: 'Scheduling & Documents', fields: ['scheduledStartDate', 'durationDays', 'scheduledEndDate', 'documents'] },
         { id: 4, name: 'Review & Create', fields: ['description'] }
     ];
@@ -389,7 +390,7 @@ export default function PostJobPage() {
                 endDate = addDays(values.scheduledStartDate, values.durationDays);
             }
 
-            const jobScope = 'scope' in values ? (values.scope as any) : [];
+            const jobScope = 'scope' in values ? (values as any).scope : [];
             const flatAssetIds = isClient ? (values as any).assetIds : [];
             const flatTechniques = isClient ? [...new Set(jobScope.flatMap((s: any) => s.techniques))] : (values as any).techniques;
 
@@ -397,16 +398,20 @@ export default function PostJobPage() {
                 ? (values as any).newLocation 
                 : (values as any).location;
 
+            let jobDescription = values.description || '';
+            if ('assetDescription' in values && (values as any).assetDescription) {
+                jobDescription = `Asset to be inspected: ${(values as any).assetDescription}\n\n${jobDescription}`;
+            }
+
             const newJobData: any = {
                 id: jobRef.id,
                 title: values.title,
                 location: jobLocation,
                 techniques: flatTechniques,
-                description: values.description || '',
+                description: jobDescription,
                 workflow: values.workflow,
                 isInternal: isInternalJob,
                 assetIds: flatAssetIds,
-                clientId: user.uid,
                 client: userProfile.company,
                 clientCompanyId: userProfile.companyId,
                 status: newJobStatus,
@@ -424,6 +429,12 @@ export default function PostJobPage() {
                 certificationsRequired: values.certificationsRequired,
                 estimatedBudget: values.estimatedBudget || '',
             };
+
+            if (isInspector) {
+              newJobData.client = (values as any).clientName;
+              newJobData.providerId = userProfile.companyId;
+              newJobData.providerCompanyId = userProfile.companyId;
+            }
             
             if (values.durationDays) {
                 newJobData.durationDays = values.durationDays;
@@ -647,6 +658,7 @@ export default function PostJobPage() {
                          <Card>
                             <CardHeader><CardTitle>Scope & Requirements</CardTitle><CardDescription>Detail the work required for this internal job.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
+                                <FormField name="assetDescription" control={form.control} render={({ field }) => (<FormItem><FormLabel>Asset Description*</FormLabel><FormControl><Textarea placeholder="Describe the asset to be inspected, e.g., '10-meter storage tank T-101 at North facility'" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField name="techniques" control={form.control} render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Techniques Required*</FormLabel><MultiSelect options={techniqueOptions} selected={field.value || []} onChange={field.onChange} placeholder="Select required techniques..." /><FormMessage /></FormItem>)} />
                                 <FormField name="estimatedBudget" control={form.control} render={({ field }) => (<FormItem><FormLabel>Job Value / Budget (Optional)</FormLabel><FormControl><Input placeholder="e.g., $15,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </CardContent>

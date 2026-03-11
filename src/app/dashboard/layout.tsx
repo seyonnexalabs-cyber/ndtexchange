@@ -1,7 +1,8 @@
+
 'use client';
 
 import AppSidebar from '@/components/layout/sidebar';
-import AppHeader from '@/app/components/layout/header';
+import AppHeader from '@/components/layout/header';
 import { SearchProvider } from '@/app/components/layout/search-provider';
 import { QRScannerProvider } from '@/app/components/layout/qr-scanner-provider';
 
@@ -13,11 +14,11 @@ export default function DashboardLayout({
   return (
     <SearchProvider>
       <QRScannerProvider>
-        <div className="grid h-screen w-full overflow-hidden md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-            <div className="hidden border-r bg-sidebar md:flex md:flex-col">
+        <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+            <div className="hidden border-r bg-sidebar md:flex md:flex-col overflow-hidden">
               <AppSidebar />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col overflow-hidden">
               <AppHeader />
               <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                 {children}

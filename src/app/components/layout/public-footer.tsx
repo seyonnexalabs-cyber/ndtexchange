@@ -39,13 +39,13 @@ export default function PublicFooter() {
     ];
 
     return (
-        <footer className="bg-background text-foreground border-t">
+        <footer className="bg-muted/30 text-foreground border-t">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div className="md:col-span-1">
                         <Link href="/" className="flex items-center gap-3">
                             <LogoIcon className="h-10 w-auto text-primary" />
-                            <span className="text-xl font-headline font-bold text-foreground whitespace-nowrap">NDT EXCHANGE</span>
+                            <span className="text-xl font-headline font-bold text-primary whitespace-nowrap">NDT EXCHANGE</span>
                         </Link>
                         <p className="mt-4 text-sm text-muted-foreground">
                             The premier marketplace for Non-Destructive Testing services.

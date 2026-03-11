@@ -36,7 +36,7 @@ export default function PublicHeader() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
         <Link href="/" className="flex items-center gap-3">
           <LogoIcon className="h-10 w-auto text-primary" />
-          <span className="text-xl font-bold tracking-tighter text-foreground font-headline">
+          <span className="text-xl font-bold tracking-tighter font-headline text-primary">
             NDT EXCHANGE
           </span>
         </Link>
@@ -68,7 +68,7 @@ export default function PublicHeader() {
                         <SheetTitle>
                            <Link href="/" className="flex items-center gap-3">
                                 <LogoIcon className="h-8 w-auto text-primary" />
-                                <span className="text-lg font-bold text-foreground tracking-tighter font-headline">NDT EXCHANGE</span>
+                                <span className="text-lg font-bold tracking-tighter font-headline text-primary">NDT EXCHANGE</span>
                             </Link>
                         </SheetTitle>
                     </SheetHeader>
@@ -89,12 +89,10 @@ export default function PublicHeader() {
               </Sheet>
            </div>
            <div className="hidden md:flex items-center space-x-2">
-              <Button
-                asChild
-              >
+              <Button>
                 <Link href="/login">Dashboard</Link>
               </Button>
-              <Button asChild>
+              <Button>
                 <Link href="/signup">Get Started</Link>
               </Button>
            </div>

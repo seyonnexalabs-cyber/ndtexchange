@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -312,9 +313,9 @@ const AppSidebar = () => {
     return (
         <div className="flex h-full max-h-screen flex-col gap-2">
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                <Link href="/" className="flex items-center gap-2 font-semibold">
+                <Link href="/" className="flex items-center gap-2 font-bold font-headline">
                     <LogoIcon className="h-6 w-6 text-primary" />
-                    <span>NDT EXCHANGE</span>
+                    <span className="text-foreground">NDT EXCHANGE</span>
                 </Link>
             </div>
         </div>
@@ -324,7 +325,7 @@ const AppSidebar = () => {
   return (
     <div className="flex h-full max-h-screen flex-col gap-2">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-        <Link href={constructUrl("/dashboard")} className="flex items-center gap-2 font-semibold text-foreground">
+        <Link href={constructUrl("/dashboard")} className="flex items-center gap-2 font-bold font-headline text-foreground">
           <LogoIcon className="h-6 w-6 text-primary" />
           <span>NDT EXCHANGE</span>
         </Link>

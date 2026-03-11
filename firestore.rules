@@ -66,7 +66,7 @@ service cloud.firestore {
     }
     
     match /tasks/{taskId} {
-      allow read, write, delete: if isOwner(resource.data.userId);
+      allow read, write, delete: if isOwner(resource.data.userId) || isPlatformAdmin();
       allow create: if isOwner(request.resource.data.userId) || isPlatformAdmin();
     }
     
@@ -92,14 +92,14 @@ service cloud.firestore {
     match /assets/{assetId} {
         allow read: if authed(); // Allow any auth'd user to read, access is controlled by pages
         allow create: if isCompanyMember(request.resource.data.companyId) || isPlatformAdmin();
-        allow update, delete: if isCompanyMember(resource.data.companyId);
+        allow update, delete: if isCompanyMember(resource.data.companyId) || isPlatformAdmin();
     }
 
     match /equipment/{equipmentId} {
         allow read: if true; // Publicly readable for provider profiles
         // providerId is used here instead of companyId
         allow create: if isCompanyMember(request.resource.data.providerId) || isPlatformAdmin();
-        allow update, delete: if isCompanyMember(resource.data.providerId);
+        allow update, delete: if isCompanyMember(resource.data.providerId) || isPlatformAdmin();
     }
     
     // ---------------------------

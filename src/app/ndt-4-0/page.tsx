@@ -128,7 +128,7 @@ export default function NDT40Page() {
                       <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
                         <Link href="/signup">Start Your Free Trial</Link>
                       </Button>
-                      <Button size="lg" asChild variant="outline">
+                      <Button size="lg" asChild variant="ghost">
                         <Link href="/request-demo">Request a Demo</Link>
                       </Button>
                     </div>

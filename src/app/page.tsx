@@ -95,13 +95,13 @@ export default function HomePage() {
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">
-                <Button size="lg" asChild>
+                <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
+                <Button size="lg" variant="ghost" asChild>
                   <Link href="/request-demo">Request a Demo</Link>
                 </Button>
-                <Button size="lg" variant="link" asChild>
+                <Button size="lg" variant="ghost" asChild>
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>

@@ -30,7 +30,7 @@ export default function OEMSolutionsPage() {
                                 Showcase your equipment to a dedicated audience of asset owners and service providers at the exact moment they're planning and executing inspections.
                             </p>
                             <div className="mt-8">
-                                <Button size="lg" asChild>
+                                <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
                                     <Link href="/contact">Partner With Us</Link>
                                 </Button>
                             </div>

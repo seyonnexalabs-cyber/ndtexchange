@@ -17,10 +17,10 @@ import { useQRScanner } from "@/app/components/layout/qr-scanner-provider";
 import { toast } from 'sonner';
 import { cn, safeParseDate } from "@/lib/utils";
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, query, where, limit } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { Asset, PlatformUser } from '@/lib/types';
+import type { Asset, PlatformUser, Subscription } from '@/lib/types';
 
 
 const assetIcons = {
@@ -222,14 +222,21 @@ export default function AssetsPage() {
     const router = useRouter();
     const { setScanOpen } = useQRScanner();
     
-    // In a real app, this would come from a user context or subscription check.
-    const isSubscriptionActive = false;
-
     const { firestore, user: authUser } = useFirebase();
     const { data: userProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null), [firestore, authUser])
     );
     
+    const subscriptionQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile?.companyId) return null;
+        return query(collection(firestore, 'subscriptions'), where('companyId', '==', userProfile.companyId), limit(1));
+    }, [firestore, userProfile]);
+    
+    const { data: subscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(subscriptionQuery);
+    
+    const subscription = subscriptions?.[0];
+    const isSubscriptionActive = !!subscription && (subscription.status === 'Active' || subscription.status === 'Trialing');
+
     useEffect(() => {
         if (role && !['client', 'inspector'].includes(role)) {
             router.replace(`/dashboard?${searchParams.toString()}`);
@@ -242,7 +249,7 @@ export default function AssetsPage() {
     }, [firestore, userProfile]);
     
     const { data: assetsFromDb, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
-    const isLoading = isLoadingAssets || isLoadingProfile;
+    const isLoading = isLoadingAssets || isLoadingProfile || isLoadingSubscriptions;
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());

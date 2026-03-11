@@ -366,7 +366,7 @@ const AppSidebar = () => {
             </CardHeader>
             <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
               <Button size="sm" className="w-full" asChild>
-                  <Link href={constructUrl('/dashboard/billing')}>Manage</Link>
+                  <Link href={constructUrl('/dashboard/subscriptions')}>Manage</Link>
               </Button>
             </CardContent>
           </Card>

@@ -39,25 +39,25 @@ export default function PublicFooter() {
     ];
 
     return (
-        <footer className="bg-primary text-primary-foreground border-t">
+        <footer className="bg-background text-foreground border-t">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div className="md:col-span-1">
                         <Link href="/" className="flex items-center gap-3">
-                            <LogoIcon className="h-10 w-auto" />
-                            <span className="text-xl font-headline font-bold text-primary-foreground whitespace-nowrap">NDT EXCHANGE</span>
+                            <LogoIcon className="h-10 w-auto text-primary" />
+                            <span className="text-xl font-headline font-bold text-foreground whitespace-nowrap">NDT EXCHANGE</span>
                         </Link>
-                        <p className="mt-4 text-sm text-primary-foreground/80">
+                        <p className="mt-4 text-sm text-muted-foreground">
                             The premier marketplace for Non-Destructive Testing services.
                         </p>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:col-span-4 gap-8">
                         <div>
-                            <h3 className="font-semibold tracking-wider uppercase">Platform</h3>
+                            <h3 className="font-semibold tracking-wider uppercase text-primary">Platform</h3>
                             <ul className="mt-4 space-y-2">
                                 {platformLinks.map(link => (
                                     <li key={link.label}>
-                                        <Link href={link.href} className="text-sm text-primary-foreground/80 hover:text-primary-foreground">
+                                        <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
                                             {link.label}
                                         </Link>
                                     </li>
@@ -65,11 +65,11 @@ export default function PublicFooter() {
                             </ul>
                         </div>
                         <div>
-                            <h3 className="font-semibold tracking-wider uppercase">Management</h3>
+                            <h3 className="font-semibold tracking-wider uppercase text-primary">Management</h3>
                             <ul className="mt-4 space-y-2">
                                 {managementLinks.map(link => (
                                     <li key={link.label}>
-                                        <Link href={link.href} className="text-sm text-primary-foreground/80 hover:text-primary-foreground">
+                                        <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
                                             {link.label}
                                         </Link>
                                     </li>
@@ -77,11 +77,11 @@ export default function PublicFooter() {
                             </ul>
                         </div>
                         <div>
-                            <h3 className="font-semibold tracking-wider uppercase">Resources</h3>
+                            <h3 className="font-semibold tracking-wider uppercase text-primary">Resources</h3>
                             <ul className="mt-4 space-y-2">
                                 {resourcesLinks.map(link => (
                                     <li key={link.label}>
-                                        <Link href={link.href} className="text-sm text-primary-foreground/80 hover:text-primary-foreground">
+                                        <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
                                             {link.label}
                                         </Link>
                                     </li>
@@ -89,11 +89,11 @@ export default function PublicFooter() {
                             </ul>
                         </div>
                         <div>
-                            <h3 className="font-semibold tracking-wider uppercase">Company</h3>
+                            <h3 className="font-semibold tracking-wider uppercase text-primary">Company</h3>
                             <ul className="mt-4 space-y-2">
                                 {companyLinks.map(link => (
                                     <li key={link.label}>
-                                        <Link href={link.href} className="text-sm text-primary-foreground/80 hover:text-primary-foreground">
+                                        <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
                                             {link.label}
                                         </Link>
                                     </li>
@@ -103,8 +103,8 @@ export default function PublicFooter() {
                     </div>
                 </div>
 
-                <div className="mt-12 border-t border-primary-foreground/20 pt-8">
-                    <p className="text-sm text-center text-primary-foreground/80">
+                <div className="mt-12 border-t border-border pt-8">
+                    <p className="text-sm text-center text-muted-foreground">
                         &copy; {currentYear} NDT EXCHANGE. All Rights Reserved.
                     </p>
                 </div>
@@ -112,6 +112,3 @@ export default function PublicFooter() {
         </footer>
     );
 }
-
-    
-    

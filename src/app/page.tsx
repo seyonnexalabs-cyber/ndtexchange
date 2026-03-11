@@ -139,7 +139,7 @@ export default function HomePage() {
                                 </ul>
                             </CardContent>
                             <CardFooter className="justify-center pt-6">
-                                <Button variant="secondary" asChild>
+                                <Button asChild>
                                     <Link href={pillar.link}>Learn More</Link>
                                 </Button>
                             </CardFooter>
@@ -224,7 +224,7 @@ export default function HomePage() {
                 })}
             </div>
              <div className="mt-12 text-center">
-                <Button asChild variant="outline">
+                <Button asChild>
                     <Link href="/techniques">View All Techniques & Manufacturers</Link>
                 </Button>
             </div>
@@ -232,12 +232,12 @@ export default function HomePage() {
         </section>
 
          {/* Call to Action Section */}
-        <section className="bg-primary/90 py-16 text-primary-foreground">
+        <section className="bg-background py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-headline font-semibold">
+            <h2 className="text-3xl font-headline font-semibold text-primary">
               Ready to Join NDT EXCHANGE?
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-primary-foreground/80">
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
               Experience the future of asset integrity management. Start your 14-day free trial today.
             </p>
             <div className="mt-8">

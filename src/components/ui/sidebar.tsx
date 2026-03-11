@@ -125,7 +125,7 @@ const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenuButtonP
         ref={ref}
         variant={isActive ? "secondary" : "ghost"}
         className={cn(
-            "w-full h-10 justify-start gap-3 rounded-md text-base",
+            "w-full h-10 justify-start gap-3 rounded-md text-sm",
             isCollapsed && "size-10 shrink-0 justify-center p-0",
             className
         )}

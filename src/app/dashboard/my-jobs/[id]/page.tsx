@@ -284,6 +284,8 @@ export default function JobDetailPage() {
     
     const isClient = role === 'client';
     const isAdmin = role === 'admin';
+    const isAssignedProvider = role === 'inspector' && job.providerCompanyId === currentUserProfile?.companyId;
+    const canUpdateStatus = isClient || isAdmin || isAssignedProvider;
     const scheduledDate = job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) : null;
 
     return (
@@ -303,18 +305,20 @@ export default function JobDetailPage() {
                         </Link>
                     </Button>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline">Update Status</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Change Status To</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => handleStatusUpdate('In Progress')}>In Progress</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStatusUpdate('Report Submitted')}>Report Submitted</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStatusUpdate('Completed')}>Completed</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {canUpdateStatus && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">Update Status</Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Change Status To</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => handleStatusUpdate('In Progress')}>In Progress</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleStatusUpdate('Report Submitted')}>Report Submitted</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleStatusUpdate('Completed')}>Completed</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -243,7 +243,11 @@ export default function JobDetailPage() {
             const jobRef = doc(firestore, 'jobs', job.id);
             const historyEntry = {
                 user: currentUserProfile.name,
-                timestamp: serverTimestamp(),
+                // Fixing the serverTimestamp() issue here for client-side updates.
+                // Firebase serverTimestamp() can only be used in 'set' or 'update' operations when the value is directly provided.
+                // For arrayUnion, it expects a client-side value if it's not a direct field update.
+                // Using toISOString() for a client-generated timestamp in arrayUnion.
+                timestamp: new Date().toISOString(), 
                 action: `Status changed to ${newStatus}`,
                 statusChange: newStatus
             };

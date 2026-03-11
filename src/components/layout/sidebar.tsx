@@ -9,10 +9,10 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
   SidebarMenuBadge,
   SidebarSeparator,
   useSidebar,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -20,9 +20,7 @@ import {
   Briefcase,
   ClipboardList,
   Settings,
-  LogOut,
   Users,
-  BarChart,
   Eye,
   Search,
   FileText,
@@ -40,14 +38,13 @@ import {
   Factory,
   Settings2,
   Database,
+  BarChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useMemo, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
 import { LogoIcon } from '@/components/ui/icons';
 import { useUser } from '@/firebase';
 
@@ -259,207 +256,196 @@ const ClientExpiryDate = ({ expiry }: { expiry: string }) => {
     );
 };
 
+const AppSidebarContent = () => {
+    const pathname = usePathname();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { isMobile, setOpenMobile, state } = useSidebar();
+    const { user, isUserLoading } = useUser();
+
+    const validRoles = ['client', 'inspector', 'admin', 'auditor', 'manufacturer'];
+    const roleParam = searchParams.get('role');
+    const planParam = searchParams.get('plan');
+    
+    useEffect(() => {
+        if (isUserLoading) {
+            return;
+        }
+
+        if (!user) {
+            router.replace('/login');
+            return;
+        }
+        
+        if (!roleParam || !validRoles.includes(roleParam as string)) {
+        router.replace('/login');
+        }
+    }, [roleParam, router, user, isUserLoading]);
+    
+    const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : null;
+
+    const menuItems = useMemo(() => {
+        if (!role) return [];
+
+        let menu: any[];
+        switch (role) {
+        case 'client':
+            menu = clientMenu;
+            break;
+        case 'inspector':
+            if (planParam === 'operations') {
+            menu = inspectorMenu.filter(group => group.title !== 'Marketplace');
+            } else {
+            menu = inspectorMenu;
+            }
+            break;
+        case 'admin':
+            menu = adminMenu;
+            break;
+        case 'auditor':
+            menu = auditorMenu;
+            break;
+        case 'manufacturer':
+            menu = manufacturerMenu;
+            break;
+        default:
+            menu = [];
+        }
+        return menu;
+    }, [role, planParam]);
+
+    const activeItem = useMemo(() => {
+        if (!pathname || !menuItems.length) return null;
+
+        const allItems = menuItems.flatMap(group => group.items);
+
+        if (pathname === '/dashboard') {
+            return allItems.find(item => item.href === '/dashboard');
+        }
+        
+        const exactMatch = allItems.find(item => item.href === pathname);
+        if(exactMatch) return exactMatch;
+
+        const matchingItems = allItems.filter(
+        (item: any) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
+        );
+
+        if (matchingItems.length === 0) {
+        return allItems.find(item => item.href === pathname);
+        }
+        if (matchingItems.length === 1) return matchingItems[0];
+        
+        return matchingItems.reduce((best, current) => 
+            (current.href && best.href && current.href.length > best.href.length) ? current : best
+        );
+    }, [pathname, menuItems]);
+
+    const handleLinkClick = () => {
+        if (isMobile) {
+        setOpenMobile(false);
+        }
+    };
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    }
+
+    const getPlanDetails = () => {
+        if (!role) return null;
+        switch (role) {
+        case 'client':
+            return { name: 'Client Pro', expiry: '2025-01-15' };
+        case 'inspector':
+            return { name: planParam === 'operations' ? 'Provider Operations' : 'Provider Marketplace', expiry: '2025-01-15' };
+        case 'auditor':
+            return { name: 'Auditor Access', expiry: 'N/A' };
+        case 'admin':
+            return { name: 'Platform Admin', expiry: 'N/A' };
+        default:
+            return null;
+        }
+    };
+
+    const planDetails = getPlanDetails();
+  
+    if (!role || isUserLoading) {
+        return (
+            <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
+                <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
+                    <LogoIcon className="h-8 w-8 text-primary shrink-0" />
+                    <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
+                        NDT EXCHANGE
+                    </h1>
+                </Link>
+            </SidebarHeader>
+        );
+    }
+
+    return (
+        <>
+            <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
+                <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
+                    <LogoIcon className="h-8 w-8 text-primary shrink-0" />
+                    <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
+                        NDT EXCHANGE
+                    </h1>
+                </Link>
+            </SidebarHeader>
+            <SidebarContent className="p-2">
+                <SidebarMenu>
+                {menuItems.map((group: any, groupIndex) => (
+                    <div key={group.title}>
+                    <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
+                        <span className="group-data-[state=expanded]:inline">{group.title}</span>
+                        <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
+                    </h3>
+                    {group.items.map((item: any) => {
+                        return (
+                        <SidebarMenuItem key={item.id}>
+                            <SidebarMenuButton
+                            asChild
+                            isActive={item.id === activeItem?.id}
+                            tooltip={{ children: item.label }}
+                            >
+                            <Link href={item.href ? constructUrl(item.href) : '#'} onClick={handleLinkClick}>
+                                <>
+                                    <item.icon className="text-primary" />
+                                    <span>{item.label}</span>
+                                    {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                                </>
+                            </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        );
+                    })}
+                    {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1 group-data-[state=collapsed]:hidden" />}
+                    </div>
+                ))}
+                </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
+                {state === 'expanded' && planDetails && role !== 'admin' && role !== 'auditor' && (
+                <div>
+                    <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
+                    <p className="font-semibold text-sm">{planDetails.name}</p>
+                    {planDetails.expiry !== 'N/A' && <ClientExpiryDate expiry={planDetails.expiry} />}
+                    <Link href={constructUrl('/dashboard/billing')} onClick={handleLinkClick} className="text-xs text-primary hover:underline font-medium mt-2 block">
+                        Manage Subscription
+                    </Link>
+                </div>
+                )}
+            </SidebarFooter>
+        </>
+    );
+}
 
 const AppSidebar = () => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { isMobile, setOpenMobile, state } = useSidebar();
-  const { user, isUserLoading } = useUser();
-
-  const validRoles = ['client', 'inspector', 'admin', 'auditor', 'manufacturer'];
-  const roleParam = searchParams.get('role');
-  const planParam = searchParams.get('plan');
-  
-  useEffect(() => {
-    if (isUserLoading) {
-        return; // Wait until the auth state is determined
-    }
-
-    // If there is no authenticated user, redirect to login page.
-    if (!user) {
-        router.replace('/login');
-        return;
-    }
-    
-    // If there is a user, but no valid role in the URL,
-    // it's an inconsistent state. Redirect to login to re-establish the session.
-    if (!roleParam || !validRoles.includes(roleParam as string)) {
-      router.replace('/login');
-    }
-  }, [roleParam, router, user, isUserLoading]);
-  
-  const role = (roleParam && validRoles.includes(roleParam)) ? roleParam : null;
-
-  const currentUser = useMemo(() => {
-    if (!role) return userDetails.common;
-    return userDetails[role as keyof typeof userDetails] || userDetails.common;
-  }, [role]);
-
-  const menuItems = useMemo(() => {
-    if (!role) return [];
-
-    let menu: any[];
-    switch (role) {
-      case 'client':
-        menu = clientMenu;
-        break;
-      case 'inspector':
-        if (planParam === 'operations') {
-          // For "Operations Only" plan, filter out the "Marketplace" group
-          menu = inspectorMenu.filter(group => group.title !== 'Marketplace');
-        } else {
-          // For "Marketplace" plan (or default), show all items
-          menu = inspectorMenu;
-        }
-        break;
-      case 'admin':
-        menu = adminMenu;
-        break;
-      case 'auditor':
-        menu = auditorMenu;
-        break;
-      case 'manufacturer':
-        menu = manufacturerMenu;
-        break;
-      default:
-        menu = [];
-    }
-    return menu;
-  }, [role, planParam]);
-
-  const activeItem = useMemo(() => {
-    if (!pathname || !menuItems.length) return null;
-
-    const allItems = menuItems.flatMap(group => group.items);
-
-    if (pathname === '/dashboard') {
-        return allItems.find(item => item.href === '/dashboard');
-    }
-    
-    // Exact match first
-    const exactMatch = allItems.find(item => item.href === pathname);
-    if(exactMatch) return exactMatch;
-
-    const matchingItems = allItems.filter(
-      (item: any) => item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)
-    );
-
-    if (matchingItems.length === 0) {
-      return allItems.find(item => item.href === pathname);
-    }
-    if (matchingItems.length === 1) return matchingItems[0];
-    
-    // Find the item with the longest href, which is the most specific match
-    return matchingItems.reduce((best, current) => 
-        (current.href && best.href && current.href.length > best.href.length) ? current : best
-    );
-  }, [pathname, menuItems]);
-
-  const handleLinkClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
-
-  const handleLogout = () => {
-    router.push('/login');
-  };
-
-  const constructUrl = (base: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    return `${base}?${params.toString()}`;
-  }
-
-  const getPlanDetails = () => {
-    if (!role) return null;
-    switch (role) {
-      case 'client':
-        return { name: 'Client Pro', expiry: '2025-01-15' };
-      case 'inspector':
-        return { name: planParam === 'operations' ? 'Provider Operations' : 'Provider Marketplace', expiry: '2025-01-15' };
-      case 'auditor':
-        return { name: 'Auditor Access', expiry: 'N/A' };
-      case 'admin':
-        return { name: 'Platform Admin', expiry: 'N/A' };
-      default:
-        return null;
-    }
-  };
-
-  const planDetails = getPlanDetails();
-  
-  if (!role || isUserLoading) {
     return (
         <Sidebar collapsible="icon">
-          <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
-            <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
-                <LogoIcon className="h-8 w-8 text-primary shrink-0" />
-                <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
-                    NDT EXCHANGE
-                </h1>
-            </Link>
-          </SidebarHeader>
+            <AppSidebarContent />
         </Sidebar>
-    );
-  }
-
-  return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
-        <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
-            <LogoIcon className="h-8 w-8 text-primary shrink-0" />
-            <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
-                NDT EXCHANGE
-            </h1>
-        </Link>
-      </SidebarHeader>
-      <SidebarContent className="p-2">
-        <SidebarMenu>
-          {menuItems.map((group: any, groupIndex) => (
-            <div key={group.title}>
-              <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
-                <span className="group-data-[state=expanded]:inline">{group.title}</span>
-                <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
-              </h3>
-              {group.items.map((item: any) => {
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={item.id === activeItem?.id}
-                      tooltip={{ children: item.label }}
-                    >
-                      <Link href={item.href ? constructUrl(item.href) : '#'} onClick={handleLinkClick}>
-                        <>
-                            <item.icon className="text-primary" />
-                            <span>{item.label}</span>
-                            {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
-                        </>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-              {groupIndex < menuItems.length -1 && <SidebarSeparator className="my-1 group-data-[state=collapsed]:hidden" />}
-            </div>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-border flex flex-col gap-3">
-        {state === 'expanded' && planDetails && role !== 'admin' && role !== 'auditor' && (
-          <div>
-            <p className="text-xs font-semibold text-card-foreground/70">Current Plan</p>
-            <p className="font-semibold text-sm">{planDetails.name}</p>
-            {planDetails.expiry !== 'N/A' && <ClientExpiryDate expiry={planDetails.expiry} />}
-             <Link href={constructUrl('/dashboard/billing')} onClick={handleLinkClick} className="text-xs text-primary hover:underline font-medium mt-2 block">
-                Manage Subscription
-            </Link>
-          </div>
-        )}
-      </SidebarFooter>
-    </Sidebar>
-  );
-};
+    )
+}
 
 export default AppSidebar;

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Save, FolderOpen, FileText } from 'lucide-react';
+import { Database, Save, FolderOpen, FileText, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar';
@@ -38,15 +39,22 @@ const tankDesignerSchema = z.object({
       position: z.string(),
       thickness: z.coerce.number().optional()
   })).optional(),
+  floorScans: z.array(z.object({
+    plate: z.coerce.number(),
+    x: z.coerce.number(),
+    y: z.coerce.number(),
+    thickness: z.coerce.number().optional(),
+  })).optional(),
 });
 
 type TankDesignerFormValues = z.infer<typeof tankDesignerSchema>;
 
-const FloorPlanView = () => {
-    const { watch } = useFormContext<TankDesignerFormValues>();
+const FloorPlanView = ({ onPlateClick }: { onPlateClick: (plateIndex: number) => void }) => {
+    const { watch, getValues } = useFormContext<TankDesignerFormValues>();
     const floorPlates = watch('floorPlates');
     const diameter = watch('diameter');
     const [hoveredPlate, setHoveredPlate] = React.useState<number | null>(null);
+    const allScans = getValues('floorScans') || [];
 
     const radius = 250; // SVG radius
     const angleStep = 360 / (floorPlates > 0 ? floorPlates : 1);
@@ -69,24 +77,40 @@ const FloorPlanView = () => {
     return (
         <div>
             <p className="text-muted-foreground mb-4">
-                An interactive map of the tank floor, generated from your configuration.
+                An interactive map of the tank floor, generated from your configuration. Click a plate to enter readings.
             </p>
             <div className="aspect-square w-full max-w-lg mx-auto">
                 <svg viewBox="0 0 500 500">
                     <circle cx="250" cy="250" r="250" fill="hsl(var(--muted))" />
-                    {floorPlates > 0 && Array.from({ length: floorPlates }).map((_, index) => (
-                        <path
-                            key={index}
-                            d={getWedgePath(index)}
-                            fill={hoveredPlate === index ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--muted))'}
-                            stroke="hsl(var(--border))"
-                            strokeWidth="2"
-                            className="cursor-pointer transition-all"
-                            onMouseEnter={() => setHoveredPlate(index)}
-                            onMouseLeave={() => setHoveredPlate(null)}
-                            onClick={() => toast.info(`Plate ${index + 1} clicked`, { description: "Data entry for this plate would appear here."})}
-                        />
-                    ))}
+                    {floorPlates > 0 && Array.from({ length: floorPlates }).map((_, index) => {
+                        const plateScans = allScans.filter(s => s.plate === index && s.thickness);
+                        const hasReadings = plateScans.length > 0;
+                        const minThickness = hasReadings ? Math.min(...plateScans.map(s => s.thickness!)) : null;
+                        
+                        let fillColor = 'hsl(var(--muted))';
+                        if (minThickness !== null) {
+                            if (minThickness < 0.1) fillColor = 'hsl(var(--destructive) / 0.3)';
+                            else if (minThickness < 0.2) fillColor = 'hsl(var(--card-color-3) / 0.3)';
+                            else fillColor = 'hsl(var(--card-color-1) / 0.3)';
+                        }
+                        if (hoveredPlate === index) {
+                            fillColor = 'hsl(var(--primary) / 0.2)';
+                        }
+
+                        return (
+                            <path
+                                key={index}
+                                d={getWedgePath(index)}
+                                fill={fillColor}
+                                stroke="hsl(var(--border))"
+                                strokeWidth="2"
+                                className="cursor-pointer transition-all"
+                                onMouseEnter={() => setHoveredPlate(index)}
+                                onMouseLeave={() => setHoveredPlate(null)}
+                                onClick={() => onPlateClick(index)}
+                            />
+                        )
+                    })}
                     <text x="250" y="250" textAnchor="middle" dy=".3em" className="text-2xl font-bold fill-muted-foreground select-none pointer-events-none">
                         ø{diameter}'
                     </text>
@@ -199,6 +223,90 @@ const AnnularRingView = () => {
     );
 };
 
+const FloorScanEntryDialog = ({
+    isOpen,
+    onClose,
+    plateNumber,
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    plateNumber: number | null;
+}) => {
+    const { control, getValues } = useFormContext<TankDesignerFormValues>();
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "floorScans",
+    });
+
+    if (plateNumber === null) return null;
+    
+    const existingReadingIndices = React.useMemo(() => {
+        const allScans = getValues("floorScans") || [];
+        const indices: number[] = [];
+        allScans.forEach((scan, index) => {
+            if (scan.plate === plateNumber) {
+                indices.push(index);
+            }
+        });
+        return indices;
+    }, [getValues, plateNumber]);
+
+
+    const handleAddReading = () => {
+        // Dummy coordinates for now. A real implementation might get these from a click on the SVG.
+        append({ plate: plateNumber, x: Math.random(), y: Math.random(), thickness: undefined });
+    };
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Floor Scan Readings for Plate {plateNumber + 1}</DialogTitle>
+                    <DialogDescription>
+                        Add or edit thickness readings for this floor plate.
+                    </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="h-64">
+                <div className="space-y-4 pr-4">
+                    {existingReadingIndices.map((originalIndex, displayIndex) => (
+                        <div key={originalIndex} className="flex items-end gap-2">
+                            <FormField
+                                control={control}
+                                name={`floorScans.${originalIndex}.thickness`}
+                                render={({ field }) => (
+                                    <FormItem className="flex-grow">
+                                        <FormLabel>Reading {displayIndex + 1} (in)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" step="0.001" placeholder="e.g., 0.245" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => remove(originalIndex)}
+                            >
+                                <Trash className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                     {existingReadingIndices.length === 0 && <p className="text-muted-foreground text-center py-8">No readings for this plate yet.</p>}
+                </div>
+                </ScrollArea>
+                <DialogFooter>
+                     <Button type="button" variant="outline" onClick={handleAddReading}>
+                        Add Reading
+                    </Button>
+                    <Button onClick={onClose}>Done</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 function SaveDialog({isOpen, onClose, onSave, currentName, currentDescription}: {isOpen:boolean; onClose:()=>void; onSave:(name:string, desc:string)=>void, currentName?: string, currentDescription?: string}) {
     const [name, setName] = React.useState(currentName || "");
     const [desc, setDesc] = React.useState(currentDescription || "");
@@ -245,7 +353,8 @@ export default function TankDesignerPage() {
                 { position: "3 o'clock", thickness: undefined },
                 { position: "6 o'clock", thickness: undefined },
                 { position: "9 o'clock", thickness: undefined },
-            ]
+            ],
+            floorScans: [],
         },
     });
     
@@ -255,6 +364,7 @@ export default function TankDesignerPage() {
     const [designId, setDesignId] = React.useState<string | null>(null);
     const [isSaveModalOpen, setIsSaveModalOpen] = React.useState(false);
     const [isLoadModalOpen, setIsLoadModalOpen] = React.useState(false);
+    const [editingPlate, setEditingPlate] = React.useState<number | null>(null);
 
     const designsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'tankDesigns'), where('userId', '==', user.uid)) : null, [firestore, user]);
     const { data: savedDesigns, isLoading: isLoadingDesigns } = useCollection<TankDesign>(designsQuery);
@@ -265,6 +375,9 @@ export default function TankDesignerPage() {
         form.reset({
             ...restOfDesign,
             ...config,
+            floorScans: design.floorScans || [],
+            annularReadings: design.annularReadings || [],
+            shellReadings: design.shellReadings || [],
         });
         setDesignId(design.id);
     }, [form]);
@@ -344,7 +457,7 @@ export default function TankDesignerPage() {
             const { diameter, shellCourses, floorPlates, ...restOfValues } = values;
 
             const newDocRef = doc(collection(firestore, 'tankDesigns'));
-            const newDesign = {
+            const newDesign: Omit<TankDesign, 'createdAt' | 'modifiedAt'> & { createdAt: any; modifiedAt: any; } = {
                 id: newDocRef.id,
                 userId: user.uid,
                 name,
@@ -352,6 +465,7 @@ export default function TankDesignerPage() {
                 config: { diameter, shellCourses, floorPlates },
                 shellReadings: restOfValues.shellReadings,
                 annularReadings: restOfValues.annularReadings,
+                floorScans: restOfValues.floorScans,
                 createdAt: serverTimestamp(),
                 modifiedAt: serverTimestamp(),
             };
@@ -369,6 +483,10 @@ export default function TankDesignerPage() {
     const handleLoadDesign = (design: TankDesign) => {
         setIsLoadModalOpen(false);
         router.push(`/dashboard/tank-designer?designId=${design.id}`);
+    };
+    
+    const handlePlateClick = (plateIndex: number) => {
+        setEditingPlate(plateIndex);
     };
 
     return (
@@ -463,7 +581,7 @@ export default function TankDesignerPage() {
                                             <CardDescription>Visualize MFL or UT floor scan data.</CardDescription>
                                         </CardHeader>
                                         <CardContent>
-                                            <FloorPlanView />
+                                            <FloorPlanView onPlateClick={handlePlateClick} />
                                         </CardContent>
                                     </Card>
                                 </TabsContent>
@@ -494,6 +612,11 @@ export default function TankDesignerPage() {
                     </div>
                 </div>
             </form>
+            <FloorScanEntryDialog
+                isOpen={editingPlate !== null}
+                onClose={() => setEditingPlate(null)}
+                plateNumber={editingPlate}
+            />
              <SaveDialog 
                 isOpen={isSaveModalOpen} 
                 onClose={() => setIsSaveModalOpen(false)} 

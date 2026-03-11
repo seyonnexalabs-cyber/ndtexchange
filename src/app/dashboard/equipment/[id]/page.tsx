@@ -210,7 +210,7 @@ export default function EquipmentDetailPage() {
                 <div className="flex gap-2">
                     <Button asChild variant="outline"><Link href={constructUrl(`/dashboard/equipment/${id}/edit`)}><Edit className="mr-2"/>Edit Equipment</Link></Button>
                     <Button>Check Out/In</Button>
-                    <Button variant="ghost" size="icon"><MoreVertical/></Button>
+                    <Button variant="ghost" size="icon" aria-label="More actions" title="More actions"><MoreVertical/></Button>
                 </div>
             </div>
 

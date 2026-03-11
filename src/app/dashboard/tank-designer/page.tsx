@@ -397,12 +397,24 @@ export default function TankDesignerPage() {
     const applyDesignToForm = React.useCallback((design: TankDesign | null) => {
         if (!design) return;
         const { config, ...restOfDesign } = design;
+
+        const normalizedShellReadings = (design.shellReadings || []).map(item => {
+            const readings = item.readings || [];
+            if (readings.length === 0) {
+                return { min: undefined, max: undefined, avg: undefined };
+            }
+            const min = Math.min(...readings);
+            const max = Math.max(...readings);
+            const avg = readings.reduce((sum, v) => sum + v, 0) / readings.length;
+            return { min, max, avg };
+        });
+
         form.reset({
             ...restOfDesign,
             ...config,
             floorScans: design.floorScans || [],
             annularReadings: design.annularReadings || [],
-            shellReadings: design.shellReadings || [],
+            shellReadings: normalizedShellReadings,
         });
         setDesignId(design.id);
     }, [form]);
@@ -449,13 +461,34 @@ export default function TankDesignerPage() {
         toast.info("Saving design...");
         try {
             const values = form.getValues();
-            const { name, description, diameter, shellCourses, floorPlates, ...restOfValues } = values;
+            const { name, description, diameter, shellCourses, floorPlates, shellReadings, ...restOfValues } = values;
+
+            const normalizedShellReadings = (shellReadings || []).map((entry, index) => ({
+                course: index + 1,
+                readings: [entry.min ?? 0, entry.max ?? 0, entry.avg ?? 0],
+            }));
+
+            const normalizedAnnularReadings = (restOfValues.annularReadings || []).map((entry: {position: string, thickness?: number}) => ({
+                position: entry.position,
+                thickness: entry.thickness ?? 0,
+            }));
+
+            const normalizedFloorScans = (restOfValues.floorScans || []).map((entry: {plate:number; x:number; y:number; thickness?: number}) => ({
+                plate: entry.plate,
+                x: entry.x,
+                y: entry.y,
+                thickness: entry.thickness ?? 0,
+            }));
+
             const dataToSave = {
                 name,
                 description,
                 userId: user.uid,
                 config: { diameter, shellCourses, floorPlates },
                 ...restOfValues,
+                shellReadings: normalizedShellReadings,
+                annularReadings: normalizedAnnularReadings,
+                floorScans: normalizedFloorScans,
                 modifiedAt: serverTimestamp(),
             };
             await updateDoc(doc(firestore, 'tankDesigns', designId), dataToSave);
@@ -479,7 +512,24 @@ export default function TankDesignerPage() {
         toast.info("Saving new design...");
         try {
             const values = form.getValues();
-            const { diameter, shellCourses, floorPlates, ...restOfValues } = values;
+            const { diameter, shellCourses, floorPlates, shellReadings, ...restOfValues } = values;
+
+            const normalizedShellReadings = (shellReadings || []).map((entry, index) => ({
+                course: index + 1,
+                readings: [entry.min ?? 0, entry.max ?? 0, entry.avg ?? 0],
+            }));
+
+            const normalizedAnnularReadings = (restOfValues.annularReadings || []).map((entry: {position: string, thickness?: number}) => ({
+                position: entry.position,
+                thickness: entry.thickness ?? 0,
+            }));
+
+            const normalizedFloorScans = (restOfValues.floorScans || []).map((entry: {plate:number; x:number; y:number; thickness?: number}) => ({
+                plate: entry.plate,
+                x: entry.x,
+                y: entry.y,
+                thickness: entry.thickness ?? 0,
+            }));
 
             const newDocRef = doc(collection(firestore, 'tankDesigns'));
             const newDesign: Omit<TankDesign, 'createdAt' | 'modifiedAt'> & { createdAt: any; modifiedAt: any; } = {
@@ -488,9 +538,9 @@ export default function TankDesignerPage() {
                 name,
                 description: description || '',
                 config: { diameter, shellCourses, floorPlates },
-                shellReadings: restOfValues.shellReadings,
-                annularReadings: restOfValues.annularReadings,
-                floorScans: restOfValues.floorScans,
+                shellReadings: normalizedShellReadings,
+                annularReadings: normalizedAnnularReadings,
+                floorScans: normalizedFloorScans,
                 createdAt: serverTimestamp(),
                 modifiedAt: serverTimestamp(),
             };

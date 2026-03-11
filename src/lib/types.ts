@@ -88,6 +88,7 @@ export type Job = {
     documents?: JobDocument[];
     history?: JobUpdate[];
     isInternal?: boolean;
+    internalNotes?: string;
     jobType?: 'shutdown' | 'project' | 'callout';
     industry?: string;
     durationDays?: number;

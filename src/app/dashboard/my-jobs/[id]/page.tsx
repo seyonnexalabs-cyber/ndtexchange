@@ -326,7 +326,7 @@ export default function JobDetailPage() {
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical /></Button>
+                            <Button variant="ghost" size="icon" aria-label="Open more menu" title="Open more menu"><MoreVertical /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem>View Marketplace Listing</DropdownMenuItem>

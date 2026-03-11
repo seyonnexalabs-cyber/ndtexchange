@@ -91,7 +91,7 @@ const ChatWindow = ({
             !isMobile && !currentThread && "hidden md:flex"
         )}>
             <div className="flex items-center gap-3 p-4 border-b">
-                {isMobile && <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft /></Button>}
+                {isMobile && <Button variant="ghost" size="icon" onClick={onBack} aria-label="Go back" title="Go back"><ChevronLeft /></Button>}
                 <div>
                     <p className="font-semibold">{currentThread.companyName}</p>
                     <p className="text-sm text-muted-foreground">{currentThread.subject}</p>

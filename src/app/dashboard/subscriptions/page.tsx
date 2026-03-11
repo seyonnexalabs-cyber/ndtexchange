@@ -30,25 +30,37 @@ const ClientFormattedDate = ({ date, formatString }: { date: Date | null, format
     return <>{formatted}</>;
 };
 
-function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
+function PricingCard({ plan, price, yearlyPrice, description, features, isFeatured, isCurrent = false, onUpgradeClick, billingCycle }: { 
     plan: string; 
-    price: string; 
+    price: number; 
+    yearlyPrice: number; 
     description: string; 
-    features: string[], 
-    isFeatured?: boolean, 
-    isCurrent?: boolean,
-    onUpgradeClick: (plan: string, price: string) => void
+    features: string[]; 
+    isFeatured?: boolean; 
+    isCurrent?: boolean;
+    billingCycle: 'monthly' | 'yearly';
+    onUpgradeClick: (plan: string, priceLabel: string) => void
 }) {
+  const displayPrice = billingCycle === 'monthly' ? price : yearlyPrice;
+  const displayLabel = displayPrice === 0 ? 'Free' : (displayPrice === Infinity ? 'Custom' : `$${(displayPrice / 100).toFixed(2)}`);
+  const isCustom = displayPrice === Infinity;
+  const isFree = displayPrice === 0;
+  const savings = (price > 0 && yearlyPrice > 0 && billingCycle === 'yearly') ? Math.round((1 - yearlyPrice / (price * 12)) * 100) : null;
+
   return (
-    <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "", isCurrent && "bg-muted")}>
+    <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "", isCurrent && "bg-muted")}> 
       <CardHeader className="text-center">
         {isCurrent && <div className="text-sm font-bold text-primary">CURRENT PLAN</div>}
+        {isFeatured && !isCurrent && <div className="text-sm font-semibold text-accent">POPULAR</div>}
         <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
         <CardDescription>{description}</CardDescription>
         <div className="pt-4">
-            <span className="text-4xl font-bold">{price}</span>
-             {price !== "Custom" && <span className="text-sm text-muted-foreground">/mo</span>}
+            <span className="text-4xl font-bold">{displayLabel}</span>
+            {displayLabel !== "Custom" && displayLabel !== "Free" && <span className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>}
         </div>
+        {savings && savings > 0 && (
+            <div className="mt-1 text-xs text-emerald-600">Save {savings}% annually</div>
+        )}
       </CardHeader>
       <CardContent className="flex-grow">
         <ul className="space-y-3">
@@ -65,9 +77,9 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
             className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} 
             variant={isCurrent ? 'outline' : isFeatured ? 'default' : 'outline'} 
             disabled={isCurrent}
-            onClick={() => !isCurrent && onUpgradeClick(plan, price)}
+            onClick={() => !isCurrent && onUpgradeClick(plan, displayLabel)}
         >
-            {isCurrent ? "This is your current plan" : (price === 'Custom' ? 'Contact Sales' : 'Pay with Razorpay')}
+            {isCurrent ? "This is your current plan" : (isCustom ? 'Contact Sales' : 'Pay with Razorpay')}
         </Button>
       </CardFooter>
     </Card>
@@ -75,34 +87,38 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
 }
 
 
-const ClientPlans = ({ onUpgradeClick, plans }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[] }) => (
+const ClientPlans = ({ onUpgradeClick, plans, billingCycle, currentPlanName }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[], billingCycle: 'monthly' | 'yearly', currentPlanName: string }) => (
     <>
         {plans.filter(p => p.audience === 'Client').map(plan => (
             <PricingCard
                 key={plan.id}
                 plan={plan.name}
-                price={plan.price.monthlyUSD === 0 ? 'Free' : (plan.price.monthlyUSD === Infinity ? 'Custom' : `$${plan.price.monthlyUSD / 100}`)}
+                price={plan.price.monthlyUSD}
+                yearlyPrice={plan.price.yearlyUSD}
                 description={plan.description}
                 features={plan.features}
-                isCurrent={plan.id === 'client-free'} // Simplified for demo
+                isCurrent={plan.name === currentPlanName}
                 isFeatured={plan.isFeatured}
+                billingCycle={billingCycle}
                 onUpgradeClick={onUpgradeClick}
             />
         ))}
     </>
 );
 
-const ProviderPlans = ({ onUpgradeClick, plans }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[] }) => (
+const ProviderPlans = ({ onUpgradeClick, plans, billingCycle, currentPlanName }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[], billingCycle: 'monthly' | 'yearly', currentPlanName: string }) => (
     <>
        {plans.filter(p => p.audience === 'Provider').map(plan => (
             <PricingCard
                 key={plan.id}
                 plan={plan.name}
-                price={plan.price.monthlyUSD === 0 ? 'Free' : (plan.price.monthlyUSD === Infinity ? 'Custom' : `$${plan.price.monthlyUSD / 100}`)}
+                price={plan.price.monthlyUSD}
+                yearlyPrice={plan.price.yearlyUSD}
                 description={plan.description}
                 features={plan.features}
-                isCurrent={plan.id === 'provider-starter'} // Simplified for demo
+                isCurrent={plan.name === currentPlanName}
                 isFeatured={plan.isFeatured}
+                billingCycle={billingCycle}
                 onUpgradeClick={onUpgradeClick}
             />
         ))}
@@ -220,12 +236,38 @@ const userDetails = {
 
 export default function BillingPage() {
     const searchParams = useSearchParams();
-    const role = searchParams.get('role') || 'client';
+    const role = (searchParams.get('role') || 'client').toLowerCase();
     const { firestore } = useFirebase();
 
-    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
     const currentUser = useMemo(() => userDetails[role as keyof typeof userDetails] || userDetails.client, [role]);
+
+    const plansQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(
+            collection(firestore, 'plans'),
+            where('isActive', '==', true),
+            where('isPublic', '==', true),
+            orderBy('isFeatured', 'desc'),
+            orderBy('price.monthlyUSD', 'asc')
+        );
+    }, [firestore]);
+
+    const { data: plans, isLoading: isLoadingPlans, error: plansError } = useCollection<Plan>(plansQuery);
+
+    const { data: userSubscriptions, isLoading: isLoadingSubscriptions, error: subscriptionsError } = useCollection<Subscription>(useMemoFirebase(() => firestore ? query(collection(firestore, 'subscriptions'), where('companyName', '==', currentUser.company), where('status', 'in', ['Active', 'Trialing'])) : null, [firestore, currentUser.company]));
+    
+    const [lastPlansUpdatedAt, setLastPlansUpdatedAt] = useState<Date | null>(null);
+
+    useEffect(() => {
+        if (plans && plans.length > 0) {
+            setLastPlansUpdatedAt(new Date());
+        }
+    }, [plans]);
+
+    const currentSubscription = (userSubscriptions && userSubscriptions.length > 0) ? userSubscriptions[0] : null;
+    const currentPlanName = currentSubscription?.plan || '';
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -277,20 +319,35 @@ export default function BillingPage() {
     };
 
   const renderPlansByRole = () => {
-    if (isLoadingPlans) {
+    if (isLoadingPlans || isLoadingSubscriptions) {
         return [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />);
     }
+
+    if (plansError || subscriptionsError) {
+        return (
+            <Card className="col-span-full border-destructive">
+                <CardHeader>
+                    <CardTitle className="text-destructive">Could not load plans</CardTitle>
+                    <CardDescription>{plansError?.message || subscriptionsError?.message || 'Please try again later.'}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={() => window.location.reload()}>Retry</Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
     switch(role) {
         case 'client':
-            return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />;
+            return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
         case 'inspector':
-            return <ProviderPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />;
+            return <ProviderPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
         case 'auditor':
             return <AuditorView constructUrl={constructUrl} />;
         case 'admin':
             return <AdminView constructUrl={constructUrl} />;
         default:
-             return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />; // Default to client view
+             return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />; // Default to client view
     }
   }
 
@@ -303,14 +360,21 @@ export default function BillingPage() {
             <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
             Back to Settings
         </Link>
-      <div className="flex items-center gap-4">
-        <CreditCard className="w-8 h-8 text-primary" />
-        <div>
-            <h1 className="text-2xl font-headline font-semibold">Subscription Plans</h1>
-            <p className="text-muted-foreground">
-                Choose a plan that fits your needs.
-            </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <CreditCard className="w-8 h-8 text-primary" />
+          <div>
+              <h1 className="text-2xl font-headline font-semibold">Subscription Plans</h1>
+              <p className="text-muted-foreground">Choose a plan that fits your needs.</p>
+          </div>
         </div>
+        <div className="flex items-center gap-2 rounded-lg bg-muted p-2">
+          <Button size="sm" variant={billingCycle === 'monthly' ? 'default' : 'outline'} onClick={() => setBillingCycle('monthly')}>Monthly</Button>
+          <Button size="sm" variant={billingCycle === 'yearly' ? 'default' : 'outline'} onClick={() => setBillingCycle('yearly')}>Yearly</Button>
+        </div>
+      </div>
+      <div className="text-sm text-muted-foreground">
+        {lastPlansUpdatedAt ? `Plans updated ${Math.floor((Date.now() - lastPlansUpdatedAt.getTime()) / 1000)}s ago` : 'Waiting for plan updates...'}
       </div>
       
       <section id="pricing" className="py-8 space-y-8">

@@ -190,6 +190,8 @@ export default function ContactPage() {
         else setCurrency('USD');
     }, [isMounted]);
 
+    const [selectedAudience, setSelectedAudience] = useState<'Client' | 'Provider' | 'Auditor'>('Client');
+
     const allPlans = useMemo(() => {
       const activePlans = subscriptionPlans.filter(p => p.isActive && p.isPublic);
       const audienceOrder = ['Client', 'Provider', 'Auditor'];
@@ -202,6 +204,8 @@ export default function ContactPage() {
         return priceToNumber(a.price.monthlyUSD) - priceToNumber(b.price.monthlyUSD);
       });
     }, []);
+
+    const quickPlans = useMemo(() => allPlans.filter(p => p.audience === selectedAudience).slice(0, 2), [allPlans, selectedAudience]);
 
     const featureCategories = useMemo(() => [
         { category: 'Core Features', features: [
@@ -256,6 +260,53 @@ export default function ContactPage() {
 
         <section id="pricing-table" className="py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid gap-6 md:grid-cols-12 mb-8">
+                    <div className="md:col-span-4 p-4 border rounded-xl bg-white">
+                        <h2 className="text-lg font-semibold">Quick plan actions</h2>
+                        <p className="text-sm text-muted-foreground mt-1">Jump directly to the right subscription tier or request a quote.</p>
+                        <div className="mt-4 space-y-3">
+                            <Button size="sm" variant="secondary" onClick={() => window.location.href = '/dashboard/subscriptions?role=client'}>Client Plans</Button>
+                            <Button size="sm" variant="secondary" onClick={() => window.location.href = '/dashboard/subscriptions?role=inspector'}>Inspector Plans</Button>
+                            <Button size="sm" variant="secondary" onClick={() => window.location.href = '/dashboard/subscriptions?role=auditor'}>Auditor Info</Button>
+                        </div>
+                        <div className="mt-5">
+                            <Label>Focused plan preview:</Label>
+                            <Select value={selectedAudience} onValueChange={value => setSelectedAudience(value as any)}>
+                                <SelectTrigger><SelectValue placeholder="Choose audience" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Client">Client</SelectItem>
+                                    <SelectItem value="Provider">Provider</SelectItem>
+                                    <SelectItem value="Auditor">Auditor</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className="md:col-span-8">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {quickPlans.map(plan => (
+                                <Card key={plan.id} className="border">
+                                    <CardHeader>
+                                        <CardTitle>{plan.name}</CardTitle>
+                                        <CardDescription>{plan.description}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-lg font-bold">{formatPrice(billingCycle === 'monthly' ? plan.price.monthlyUSD : plan.price.yearlyUSD)} / {billingCycle}</p>
+                                        <ul className="mt-3 text-sm space-y-1">
+                                            <li>{plan.userLimit} users</li>
+                                            <li>{plan.dataLimitGB} GB storage</li>
+                                            <li>{plan.marketplaceAccess ? 'Marketplace access' : 'No marketplace'}</li>
+                                        </ul>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button className="w-full" onClick={() => window.location.href = '/dashboard/subscriptions?role=' + selectedAudience.toLowerCase()}>
+                                            View Plans
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </div>
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-12">
                     <div className="flex items-center space-x-2">
                         <Label htmlFor="billing-cycle">Monthly</Label>

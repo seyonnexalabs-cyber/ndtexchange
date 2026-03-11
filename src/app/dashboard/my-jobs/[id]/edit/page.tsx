@@ -66,8 +66,8 @@ export default function EditJobPage() {
                 title: job.title,
                 description: job.description || '',
                 location: job.location,
-                scheduledStartDate: job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) : undefined,
-                scheduledEndDate: job.scheduledEndDate ? safeParseDate(job.scheduledEndDate) : undefined,
+                scheduledStartDate: job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) ?? undefined : undefined,
+                scheduledEndDate: job.scheduledEndDate ? safeParseDate(job.scheduledEndDate) ?? undefined : undefined,
                 internalNotes: job.internalNotes || '',
             });
         }
@@ -202,7 +202,7 @@ export default function EditJobPage() {
                                     <FormItem>
                                         <FormLabel>Internal Notes</FormLabel>
                                         <FormControl><Textarea {...field} className="min-h-24" /></FormControl>
-                                        <FormDescription>These notes are only visible to users within your company.</FormDescription>
+                                        <p className="text-xs text-muted-foreground mt-1">These notes are only visible to users within your company.</p>
                                         <FormMessage />
                                     </FormItem>
                                 )}

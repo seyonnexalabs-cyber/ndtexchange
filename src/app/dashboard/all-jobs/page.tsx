@@ -350,7 +350,12 @@ export default function AllJobsPage() {
                      {selectedClients.map(clientId => (
                         <Badge key={clientId} variant="secondary">
                             {clientData.find(c => c.id === clientId)?.name}
-                            <button onClick={() => handleClientChange(clientId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                            <button
+                                onClick={() => handleClientChange(clientId)}
+                                className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                aria-label={`Remove ${clientData.find(c => c.id === clientId)?.name || 'client'} filter`}
+                                title={`Remove ${clientData.find(c => c.id === clientId)?.name || 'client'} filter`}
+                            >
                                 <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
@@ -358,7 +363,12 @@ export default function AllJobsPage() {
                     {selectedProviders.map(providerId => (
                         <Badge key={providerId} variant="secondary">
                             {serviceProviders.find(p => p.id === providerId)?.name}
-                            <button onClick={() => handleProviderChange(providerId)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                            <button
+                                onClick={() => handleProviderChange(providerId)}
+                                className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                aria-label={`Remove ${serviceProviders.find(p => p.id === providerId)?.name || 'provider'} filter`}
+                                title={`Remove ${serviceProviders.find(p => p.id === providerId)?.name || 'provider'} filter`}
+                            >
                                 <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>
@@ -366,7 +376,12 @@ export default function AllJobsPage() {
                     {selectedStatuses.map(status => (
                         <Badge key={status} variant="secondary">
                             Status: {status}
-                             <button onClick={() => handleStatusChange(status)} className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                             <button
+                                onClick={() => handleStatusChange(status)}
+                                className="ml-1.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                aria-label={`Remove ${status} status filter`}
+                                title={`Remove ${status} status filter`}
+                            >
                                 <X className="h-3 w-3 text-primary" />
                             </button>
                         </Badge>

@@ -71,7 +71,7 @@ const ChatView = ({ isMobile, selectedJob, messages, isLoadingMessages, onBack, 
     return (
         <div className={cn("flex-1 flex-col flex")}>
             <div className="flex items-center gap-3 p-4 border-b">
-                {isMobile && <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft /></Button>}
+                {isMobile && <Button variant="ghost" size="icon" onClick={onBack} aria-label="Go back" title="Go back"><ChevronLeft /></Button>}
                 <div className="w-full">
                     <p className="font-semibold">{selectedJob.title}</p>
                     <div className="text-sm text-muted-foreground">

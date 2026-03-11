@@ -59,8 +59,8 @@ const HoneycombHero = ({
         }
       `}</style>
 
-      {/* Deep gradient base */}
-      <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(135deg,#020b18 0%,#041830 40%,#062040 70%,#0a2d58 100%)' }} />
+      {/* Slightly lighter gradient base */}
+      <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(135deg,#10243b 0%,#1b3d5c 35%,#2a5678 70%,#3570a0 100%)' }} />
 
       {/* Hex grid tile pattern */}
       <div

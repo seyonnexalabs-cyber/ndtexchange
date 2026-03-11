@@ -51,9 +51,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       return () => window.removeEventListener("resize", checkMobile);
     }, [isClient]);
 
-    const state = isCollapsed ? 'collapsed' : 'expanded';
+    const state: 'expanded' | 'collapsed' = isCollapsed ? 'collapsed' : 'expanded';
 
-    const contextValue = { isCollapsed, isMobile, setOpenMobile, state };
+    const contextValue: SidebarContextProps = { isCollapsed, isMobile, setOpenMobile, state };
 
     return (
       <SidebarContext.Provider value={contextValue}>

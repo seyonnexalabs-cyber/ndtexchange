@@ -23,9 +23,13 @@ export default {
   				'sans-serif'
   			],
   			headline: [
-  				'var(--font-headline)',
+  				'var(--font-body)',
   				'sans-serif'
-  			]
+  			],
+        display: [
+          'var(--font-headline)',
+          'sans-serif'
+        ]
   		},
   		colors: {
   			background: 'hsl(var(--background))',

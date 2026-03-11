@@ -16,7 +16,7 @@ export const Logo = ({ className, iconClassName, textClassName }: LogoProps) => 
       <LogoIcon className={cn("h-10 w-auto text-[#0038b8]", iconClassName)} />
       <span 
         className={cn(
-            "font-headline text-[22px] font-normal tracking-tighter text-[#0038b8]", 
+            "font-display text-[22px] font-normal tracking-tighter text-[#0038b8]", 
             textClassName
         )}
       >

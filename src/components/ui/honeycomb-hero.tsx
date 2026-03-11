@@ -1,44 +1,110 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-type HoneycombHeroProps = {
-  children: React.ReactNode;
-  className?: string;
-};
+const HEXAGONS = Array.from({ length: 22 }, (_, i) => ({
+  id: i,
+  size: 36 + (i * 19) % 64,
+  x: (i * 41 + 13) % 100,
+  y: (i * 57 + 9) % 100,
+  delay: (i * 0.65) % 5,
+  duration: 7 + (i * 1.1) % 7,
+  opacity: 0.05 + (i % 5) * 0.025,
+  stroke: i % 3 === 0,
+}));
 
-const HoneycombHero = ({ children, className }: HoneycombHeroProps) => {
+function HexShape({ size, stroke }: { size: number; stroke: boolean }) {
+  const r = size / 2;
+  const pts = Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 3) * i - Math.PI / 6;
+    return `${r + r * Math.cos(a)},${r + r * Math.sin(a)}`;
+  }).join(' ');
   return (
-    <section className={cn('relative w-full overflow-hidden flex items-center justify-center py-20 md:py-28 bg-primary text-primary-foreground', className)}>
-        <div className="absolute inset-0 z-0 opacity-10">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern 
-                  id="honeycomb" 
-                  x="0" 
-                  y="0" 
-                  width="56" 
-                  height="97" 
-                  patternUnits="userSpaceOnUse"
-                  patternTransform="scale(1.5)"
-                >
-                  <path 
-                    d="M28 0 L56 16.16 V48.5 L28 64.66 L0 48.5 V16.16 Z" 
-                    fill="none" 
-                    stroke="hsl(var(--primary-foreground))" 
-                    strokeWidth="1"
-                  />
-                  <circle cx="28" cy="0" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="56" cy="16.16" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="56" cy="48.5" r="5" fill="hsl(var(--primary-foreground))" /> {/* Larger node */}
-                  <circle cx="28" cy="64.66" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="0" cy="48.5" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="0" cy="16.16" r="6" fill="hsl(var(--primary-foreground))" /> {/* Variation in size */}
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#honeycomb)" />
-            </svg>
-        </div>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+      <polygon
+        points={pts}
+        fill={stroke ? 'none' : 'rgba(30,144,255,0.9)'}
+        stroke={stroke ? 'rgba(30,144,255,0.9)' : 'none'}
+        strokeWidth={stroke ? 1.5 : 0}
+      />
+    </svg>
+  );
+}
 
+const HoneycombHero = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+  return (
+    <section className={cn("relative w-full overflow-hidden flex items-center justify-center py-20 md:py-24", className)}>
+      <style>{`
+        @keyframes hch-float {
+          0%,100% { transform: translateY(0) rotate(0deg); }
+          33%      { transform: translateY(-26px) rotate(13deg); }
+          66%      { transform: translateY(13px) rotate(-9deg); }
+        }
+        @keyframes hch-grid {
+          0%,100% { opacity: .08; }
+          50%      { opacity: .18; }
+        }
+        @keyframes hch-scan {
+          0%   { top: -3%; }
+          100% { top: 103%; }
+        }
+        @keyframes hch-glow {
+          0%,100% { opacity: .55; transform: translate(-50%,-50%) scale(1); }
+          50%     { opacity: .78; transform: translate(-50%,-50%) scale(1.07); }
+        }
+        .hch-grid { animation: hch-grid 5s ease-in-out infinite; }
+        .hch-scan { animation: hch-scan 9s linear infinite; }
+        .hch-glow { animation: hch-glow 6s ease-in-out infinite; }
+      `}</style>
+
+      {/* Deep gradient base */}
+      <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(135deg,#020b18 0%,#041830 40%,#062040 70%,#0a2d58 100%)' }} />
+
+      {/* Hex grid tile pattern */}
+      <div
+        className="hch-grid absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='92' viewBox='0 0 80 92'%3E%3Cpolygon points='40,2 76,22 76,62 40,82 4,62 4,22' fill='none' stroke='hsl(var(--primary-foreground))' stroke-width='0.7'/%3E%3C/svg%3E")`,
+          backgroundSize: '80px 92px',
+        }}
+      />
+
+      {/* Floating ambient hexagons */}
+      {HEXAGONS.map((h) => (
+        <div
+          key={h.id}
+          className="absolute z-0 pointer-events-none"
+          style={{
+            left: `${h.x}%`,
+            top: `${h.y}%`,
+            opacity: h.opacity,
+            animation: `hch-float ${h.duration}s ${h.delay}s ease-in-out infinite`,
+          }}
+        >
+          <HexShape size={h.size} stroke={h.stroke} />
+        </div>
+      ))}
+
+      {/* Radial centre glow */}
+      <div
+        className="hch-glow absolute z-0 pointer-events-none"
+        style={{
+          top: '50%', left: '50%',
+          width: 660, height: 660,
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse,rgba(30,144,255,.22) 0%,rgba(0,191,255,.07) 45%,transparent 70%)',
+        }}
+      />
+
+      {/* Scan line sweep */}
+      <div
+        className="hch-scan absolute left-0 right-0 z-0 pointer-events-none"
+        style={{
+          height: 2,
+          background: 'linear-gradient(90deg,transparent,rgba(30,144,255,.38),rgba(0,191,255,.6),rgba(30,144,255,.38),transparent)',
+        }}
+      />
+
+      {/* Hero Content */}
       <div className="relative z-10 text-center px-4 container mx-auto">
         {children}
       </div>

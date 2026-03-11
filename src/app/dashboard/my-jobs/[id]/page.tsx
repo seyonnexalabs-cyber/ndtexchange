@@ -23,6 +23,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import WorkBreakdownTree from '../../my-jobs/components/work-breakdown-accordion';
 import UniformDocumentViewer from '../../components/uniform-document-viewer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'Draft': 'outline', 'Posted': 'secondary', 'Assigned': 'default', 'Scheduled': 'default', 'In Progress': 'default',
@@ -228,6 +237,29 @@ export default function JobDetailPage() {
         if (provider) setReviewingBid({ ...bid, provider: provider as NDTServiceProvider });
     };
 
+    const handleStatusUpdate = async (newStatus: Job['status']) => {
+        if (!firestore || !job || !currentUserProfile) return;
+        try {
+            const jobRef = doc(firestore, 'jobs', job.id);
+            const historyEntry = {
+                user: currentUserProfile.name,
+                timestamp: serverTimestamp(),
+                action: `Status changed to ${newStatus}`,
+                statusChange: newStatus
+            };
+            await updateDoc(jobRef, { 
+                status: newStatus,
+                history: arrayUnion(historyEntry)
+            });
+            toast.success('Job Status Updated', {
+                description: `The job is now marked as "${newStatus}".`,
+            });
+        } catch (error) {
+            console.error("Error updating status:", error);
+            toast.error("Update Failed");
+        }
+    };
+
     const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections || isLoadingDesigns || isLoadingTechniques;
 
     if (isLoading) {
@@ -265,9 +297,38 @@ export default function JobDetailPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-2xl lg:text-3xl font-headline font-bold">{job.title}</h1>
                 <div className="flex gap-2">
-                    <Button variant="outline"><Edit className="mr-2"/>Edit Job</Button>
-                    <Button variant="outline">Update Status</Button>
-                    <Button variant="ghost" size="icon"><MoreVertical /></Button>
+                    <Button asChild variant="outline">
+                        <Link href={constructUrl(`/dashboard/my-jobs/${id}/edit`)}>
+                            <Edit className="mr-2"/>Edit Job
+                        </Link>
+                    </Button>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">Update Status</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Change Status To</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => handleStatusUpdate('In Progress')}>In Progress</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleStatusUpdate('Report Submitted')}>Report Submitted</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleStatusUpdate('Completed')}>Completed</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem>View Marketplace Listing</DropdownMenuItem>
+                            <DropdownMenuItem>Print Job Details</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                Cancel Job
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
             

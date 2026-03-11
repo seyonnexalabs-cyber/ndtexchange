@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3B82F6" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased text-sm">
         <Suspense fallback={<div>Loading...</div>}>
           <FirebaseClientProvider>
             <ModeProvider>

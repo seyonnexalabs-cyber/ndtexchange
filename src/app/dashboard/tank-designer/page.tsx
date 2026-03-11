@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { Label } from '@/components/ui/label';
 
 const tankDesignerSchema = z.object({
   name: z.string().min(3, "Design name is required."),

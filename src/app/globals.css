@@ -229,7 +229,7 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground text-sm;
+    @apply bg-background text-foreground;
   }
   @page {
     size: A4;

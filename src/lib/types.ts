@@ -261,8 +261,11 @@ export type Subscription = {
   endDate?: string;
   userCount: number;
   dataUsageGB: number;
-  userLimit: number;
-  dataLimitGB: number;
+  userLimit: number | 'Unlimited';
+  dataLimitGB: number | 'Unlimited';
+  assetLimit: number | 'Unlimited';
+  equipmentLimit: number | 'Unlimited';
+  biddingLimit: number | 'Unlimited';
   createdAt?: any;
   createdBy?: string;
   modifiedAt?: any;

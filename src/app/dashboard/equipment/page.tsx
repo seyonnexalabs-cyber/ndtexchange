@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo, cloneElement, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFirebase, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import type { Equipment, EquipmentHistory, InspectorAsset, Job, EquipmentType, PlatformUser } from '@/lib/types';
+import type { Equipment, EquipmentHistory, InspectorAsset, Job, EquipmentType, PlatformUser, Subscription } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 
@@ -374,7 +375,7 @@ const CalibrationBar = ({ nextCalibration }: { nextCalibration: string }) => {
 };
 
 
-const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick, isSubscriptionActive }: {
+const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onCheckInClick, onServiceOutClick, isSubscriptionActive, isEquipmentLimitReached }: {
     asset: InspectorAsset,
     onQrClick: (data: {id: string, name: string}) => void,
     constructUrl: (base: string) => string,
@@ -382,6 +383,7 @@ const EquipmentCard = ({ asset, onQrClick, constructUrl, onCheckOutClick, onChec
     onCheckInClick: (equipment: InspectorAsset) => void,
     onServiceOutClick: (equipment: InspectorAsset) => void,
     isSubscriptionActive: boolean,
+    isEquipmentLimitReached: boolean,
 }) => {
     return (
         <Card key={asset.id} className="flex flex-col">
@@ -441,7 +443,7 @@ export default function EquipmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
-    const { firestore, user } = useFirebase();
+    const { firestore, user: authUser } = useFirebase();
     const { setScanOpen } = useQRScanner();
     const { searchQuery } = useSearch();
 
@@ -449,19 +451,21 @@ export default function EquipmentPage() {
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
     const [statusFilter, setStatusFilter] = useState('all');
     
-    // In a real app, this would come from a user context or subscription check.
-    const isSubscriptionActive = false;
+    const { data: subscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(useMemoFirebase(() => (firestore && userProfile?.companyId) ? query(collection(firestore, 'subscriptions'), where('companyId', '==', userProfile.companyId)) : null, [firestore, userProfile]));
+
+    const subscription = subscriptions?.[0];
+    const isSubscriptionActive = !!subscription && (subscription.status === 'Active' || subscription.status === 'Trialing');
 
     useEffect(() => {
         if (role && role !== 'inspector') {
             router.replace(`/dashboard?${searchParams.toString()}`);
         }
-        if (user && firestore) {
-            getDoc(doc(firestore, 'users', user.uid)).then(docSnap => {
+        if (authUser && firestore) {
+            getDoc(doc(firestore, 'users', authUser.uid)).then(docSnap => {
                 if (docSnap.exists()) setUserProfile(docSnap.data() as PlatformUser);
             });
         }
-    }, [role, router, searchParams, user, firestore]);
+    }, [role, router, searchParams, authUser, firestore]);
     
     const equipmentQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId) return null;
@@ -476,6 +480,10 @@ export default function EquipmentPage() {
     }, [firestore, userProfile]);
     
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
+    
+    const equipmentLimit = subscription?.equipmentLimit ?? 0;
+    const currentEquipmentCount = equipmentFromDb?.length || 0;
+    const isEquipmentLimitReached = equipmentLimit !== 'Unlimited' && currentEquipmentCount >= equipmentLimit;
 
     const equipment = equipmentFromDb || [];
 
@@ -579,7 +587,7 @@ export default function EquipmentPage() {
         return null;
     }
     
-    if(isLoadingEquipment || isLoadingJobs || !userProfile) {
+    if(isLoadingEquipment || isLoadingJobs || !userProfile || isLoadingSubscriptions) {
         return (
              <div className="space-y-6">
                 <div className="flex justify-between items-center">
@@ -608,16 +616,25 @@ export default function EquipmentPage() {
                         <QrCode className="mr-2 h-4 w-4 text-primary"/>
                         Scan QR
                     </Button>
-                    <Button asChild disabled={!isSubscriptionActive}><Link href={constructUrl('/dashboard/equipment/add')}>Add New Equipment</Link></Button>
+                    <Button asChild disabled={!isSubscriptionActive || isEquipmentLimitReached}><Link href={constructUrl('/dashboard/equipment/add')}>Add New Equipment</Link></Button>
                 </div>
             </div>
 
-            {!isSubscriptionActive && (
+             {!isSubscriptionActive && (
                  <Alert variant="destructive" className="mb-6">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Subscription Expired</AlertTitle>
+                    <AlertTitle>Subscription Inactive</AlertTitle>
                     <AlertDescription>
-                        Your plan has expired. Your account is in read-only mode. You cannot add new equipment. Please visit settings to upgrade your plan.
+                        Your plan is not active. You cannot add new equipment. Please visit settings to manage your subscription.
+                    </AlertDescription>
+                </Alert>
+            )}
+             {isSubscriptionActive && isEquipmentLimitReached && (
+                 <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Equipment Limit Reached</AlertTitle>
+                    <AlertDescription>
+                        You have reached the maximum number of equipment items for your plan. Please upgrade to add more.
                     </AlertDescription>
                 </Alert>
             )}
@@ -652,6 +669,7 @@ export default function EquipmentPage() {
                             onServiceOutClick={handleServiceOutClick}
                             constructUrl={constructUrl}
                             isSubscriptionActive={isSubscriptionActive}
+                            isEquipmentLimitReached={isEquipmentLimitReached}
                         />
                     ))}
                 </div>

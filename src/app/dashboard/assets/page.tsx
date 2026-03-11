@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +44,14 @@ const ClientFormattedDate = ({ date, formatString }: { date: Date | null, format
     return <>{formatted}</>;
 };
 
-const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscriptionActive }: { assets: Asset[], isLoading: boolean, onApprove: (id: string) => void, onReject: (id: string) => void, isSubscriptionActive: boolean }) => {
+const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscriptionActive, isAssetLimitReached }: { 
+    assets: Asset[], 
+    isLoading: boolean, 
+    onApprove: (id: string) => void, 
+    onReject: (id: string) => void, 
+    isSubscriptionActive: boolean,
+    isAssetLimitReached: boolean
+}) => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [qrCodeData, setQrCodeData] = useState<{ id: string, name: string } | null>(null);
@@ -101,9 +109,18 @@ const ClientAssetsView = ({ assets, isLoading, onApprove, onReject, isSubscripti
             {!isSubscriptionActive && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Subscription Expired</AlertTitle>
+                    <AlertTitle>Subscription Inactive</AlertTitle>
                     <AlertDescription>
-                        Your plan has expired. Your account is in read-only mode. You cannot add new assets. Please visit settings to upgrade your plan.
+                        Your plan is not active. You cannot add new assets. Please visit settings to manage your subscription.
+                    </AlertDescription>
+                </Alert>
+            )}
+             {isSubscriptionActive && isAssetLimitReached && (
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Asset Limit Reached</AlertTitle>
+                    <AlertDescription>
+                        You have reached the maximum number of assets for your current plan. Please upgrade to add more.
                     </AlertDescription>
                 </Alert>
             )}
@@ -249,6 +266,10 @@ export default function AssetsPage() {
     }, [firestore, userProfile]);
     
     const { data: assetsFromDb, isLoading: isLoadingAssets } = useCollection<Asset>(assetsQuery);
+    const assetLimit = subscription?.assetLimit ?? 0;
+    const currentAssetCount = assetsFromDb?.length || 0;
+    const isAssetLimitReached = assetLimit !== 'Unlimited' && currentAssetCount >= assetLimit;
+
     const isLoading = isLoadingAssets || isLoadingProfile || isLoadingSubscriptions;
 
     const constructUrl = (base: string) => {
@@ -297,14 +318,14 @@ export default function AssetsPage() {
                         Scan Asset
                     </Button>
                     {role === 'client' && (
-                        <Button asChild variant="outline" className="w-full sm:w-auto" disabled={!isSubscriptionActive}>
+                        <Button asChild variant="outline" className="w-full sm:w-auto" disabled={!isSubscriptionActive || isAssetLimitReached}>
                            <Link href={constructUrl("/dashboard/assets/add")}>Add New Asset</Link>
                         </Button>
                     )}
                 </div>
             </div>
             
-            {role === 'client' ? <ClientAssetsView assets={assetsFromDb || []} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} isSubscriptionActive={isSubscriptionActive} /> : (
+            {role === 'client' ? <ClientAssetsView assets={assetsFromDb || []} isLoading={isLoading} onApprove={handleApproveAsset} onReject={handleRejectAsset} isSubscriptionActive={isSubscriptionActive} isAssetLimitReached={isAssetLimitReached} /> : (
                  <div className="text-center p-10 border rounded-lg mt-8">
                     <QrCode className="mx-auto h-12 w-12 text-primary" />
                     <h2 className="mt-4 text-xl font-headline">Ready to Scan</h2>

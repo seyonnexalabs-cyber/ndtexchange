@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
 import type { Payment, Subscription, Plan } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -245,14 +245,22 @@ export default function BillingPage() {
 
     const plansQuery = useMemoFirebase(() => {
         if (!firestore) return null;
+
+        const planCollection = collection(firestore, 'plans');
+
+        if (role === 'admin') {
+            // Admin can see all plans and manage active/public flags.
+            return query(planCollection, orderBy('audience', 'asc'), orderBy('price.monthlyUSD', 'asc'));
+        }
+
         return query(
-            collection(firestore, 'plans'),
+            planCollection,
             where('isActive', '==', true),
             where('isPublic', '==', true),
-            orderBy('isFeatured', 'desc'),
+            orderBy('audience', 'asc'),
             orderBy('price.monthlyUSD', 'asc')
         );
-    }, [firestore]);
+    }, [firestore, role]);
 
     const { data: plans, isLoading: isLoadingPlans, error: plansError } = useCollection<Plan>(plansQuery);
 
@@ -268,6 +276,74 @@ export default function BillingPage() {
 
     const currentSubscription = (userSubscriptions && userSubscriptions.length > 0) ? userSubscriptions[0] : null;
     const currentPlanName = currentSubscription?.plan || '';
+
+    const createNewPlan = async () => {
+        if (!firestore) return;
+        try {
+            const newPlan: Omit<Plan, 'id'> = {
+                name: 'New Plan',
+                audience: 'Client',
+                price: { monthlyUSD: 5000, yearlyUSD: 50000 },
+                description: 'New plan created by administrator',
+                priceDescription: 'Default price',
+                userLimit: 5,
+                dataLimitGB: 100,
+                assetLimit: 10,
+                biddingLimit: 10,
+                equipmentLimit: 10,
+                marketplaceAccess: true,
+                reportingLevel: 'Basic',
+                apiAccess: false,
+                customBranding: false,
+                isPublic: false,
+                isActive: false,
+                isFeatured: false,
+                isPopular: false,
+                features: ['Custom plan content'],
+            };
+
+            await addDoc(collection(firestore, 'plans'), newPlan);
+            toast.success('New plan added; refresh to see it.');
+        } catch (error) {
+            toast.error('Failed to add plan.');
+            console.error(error);
+        }
+    };
+
+    const editPlan = async (plan: Plan) => {
+        if (!firestore) return;
+        try {
+            const newName = window.prompt('Plan name', plan.name);
+            if (!newName) return;
+
+            const monthly = Number(window.prompt('Monthly USD (cents)', String(plan.price.monthlyUSD)));
+            if (Number.isNaN(monthly)) return;
+
+            const yearly = Number(window.prompt('Yearly USD (cents)', String(plan.price.yearlyUSD)));
+            if (Number.isNaN(yearly)) return;
+
+            await updateDoc(doc(firestore, 'plans', plan.id), {
+                name: newName,
+                'price.monthlyUSD': monthly,
+                'price.yearlyUSD': yearly,
+            });
+            toast.success('Plan updated.');
+        } catch (error) {
+            toast.error('Failed to update plan.');
+            console.error(error);
+        }
+    };
+
+    const togglePlanFlag = async (plan: Plan, flag: 'isActive' | 'isPublic' | 'isFeatured') => {
+        if (!firestore) return;
+        try {
+            await updateDoc(doc(firestore, 'plans', plan.id), { [flag]: !plan[flag] });
+            toast.success(`${flag} set to ${!plan[flag] ? 'true' : 'false'}`);
+        } catch (error) {
+            toast.error(`Failed to toggle ${flag}.`);
+            console.error(error);
+        }
+    };
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -345,7 +421,57 @@ export default function BillingPage() {
         case 'auditor':
             return <AuditorView constructUrl={constructUrl} />;
         case 'admin':
-            return <AdminView constructUrl={constructUrl} />;
+            return (
+                <div className="col-span-full">
+                    <AdminView constructUrl={constructUrl} />
+                    <Card className="mt-6">
+                        <CardHeader>
+                            <CardTitle>Admin Plan Manager</CardTitle>
+                            <CardDescription>Manage subscription plans for the platform.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="mb-4 flex justify-end">
+                                <Button onClick={createNewPlan}>Add New Plan</Button>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Audience</TableHead>
+                                            <TableHead>Monthly</TableHead>
+                                            <TableHead>Yearly</TableHead>
+                                            <TableHead>Active</TableHead>
+                                            <TableHead>Public</TableHead>
+                                            <TableHead>Featured</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {(plans || []).map(plan => (
+                                            <TableRow key={plan.id}>
+                                                <TableCell>{plan.name}</TableCell>
+                                                <TableCell>{plan.audience}</TableCell>
+                                                <TableCell>${(plan.price.monthlyUSD / 100).toFixed(2)}</TableCell>
+                                                <TableCell>${(plan.price.yearlyUSD / 100).toFixed(2)}</TableCell>
+                                                <TableCell>{plan.isActive ? 'Yes' : 'No'}</TableCell>
+                                                <TableCell>{plan.isPublic ? 'Yes' : 'No'}</TableCell>
+                                                <TableCell>{plan.isFeatured ? 'Yes' : 'No'}</TableCell>
+                                                <TableCell className="text-right space-x-2">
+                                                    <Button size="sm" variant="outline" onClick={() => editPlan(plan)}>Edit</Button>
+                                                    <Button size="sm" variant={plan.isActive ? 'secondary' : 'outline'} onClick={() => togglePlanFlag(plan, 'isActive')}>{plan.isActive ? 'Deactivate' : 'Activate'}</Button>
+                                                    <Button size="sm" variant={plan.isPublic ? 'secondary' : 'outline'} onClick={() => togglePlanFlag(plan, 'isPublic')}>{plan.isPublic ? 'Make Private' : 'Make Public'}</Button>
+                                                    <Button size="sm" variant={plan.isFeatured ? 'secondary' : 'outline'} onClick={() => togglePlanFlag(plan, 'isFeatured')}>{plan.isFeatured ? 'Unset Featured' : 'Set Featured'}</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            );
         default:
              return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />; // Default to client view
     }

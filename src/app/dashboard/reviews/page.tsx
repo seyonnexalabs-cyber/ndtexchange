@@ -37,7 +37,7 @@ const ClientFormattedDate = ({ date }: { date: Date | null }) => {
         }
     }, [date]);
     if (!formatted) return null;
-    return <p className="text-xs text-muted-foreground mt-2">{formatted}</p>;
+    return <span className="text-xs text-muted-foreground mt-2">{formatted}</span>;
 };
 
 const statusStyles: { [key in Review['status']]: 'success' | 'default' | 'secondary' | 'destructive' | 'outline' } = {

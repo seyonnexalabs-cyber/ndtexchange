@@ -20,9 +20,9 @@ const ClientFormattedDate = ({ timestamp }: { timestamp: any }) => {
     if (formattedDate === null) return null;
 
     return (
-        <p className="text-xs text-muted-foreground/80 shrink-0">
+        <span className="text-xs text-muted-foreground/80 shrink-0">
             {formattedDate}
-        </p>
+        </span>
     );
 };
 

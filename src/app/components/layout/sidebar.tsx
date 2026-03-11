@@ -325,13 +325,13 @@ const AppSidebar = () => {
   }
 
   return (
-    <div className="flex h-full max-h-screen flex-col gap-2">
+    <div className="flex h-full flex-col gap-2">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
         <Link href={constructUrl("/dashboard")} className="flex items-center gap-3">
           <Logo iconClassName="h-8 w-auto text-primary" textClassName="text-xl text-foreground" />
         </Link>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             {menuItems.map((group) => (
                 <div key={group.title} className="mb-2">

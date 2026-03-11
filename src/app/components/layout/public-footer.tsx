@@ -1,7 +1,7 @@
 
 'use client';
 import Link from 'next/link';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 import { useState, useEffect } from 'react';
 
 export default function PublicFooter() {

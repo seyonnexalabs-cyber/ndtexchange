@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 
 
 export default function PublicHeader() {

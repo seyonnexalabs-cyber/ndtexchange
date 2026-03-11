@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useMemo, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
-import { LogoIcon } from '@/app/components/icons';
+import { LogoIcon } from '@/components/ui/icons';
 import { useUser } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
@@ -373,5 +373,3 @@ const AppSidebar = () => {
     </div>
   );
 };
-
-export default AppSidebar;

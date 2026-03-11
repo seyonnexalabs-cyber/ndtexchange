@@ -7,7 +7,7 @@ import { MoreVertical, Building, QrCode, Printer, AlertTriangle } from "lucide-r
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import Image from "next/image";
-import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/app/components/icons";
+import { TankIcon, PipeIcon, CraneIcon, WeldIcon } from "@/components/ui/icons";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, useState, cloneElement, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";

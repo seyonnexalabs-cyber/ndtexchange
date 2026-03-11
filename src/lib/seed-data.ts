@@ -446,6 +446,16 @@ export const clientAssets: Asset[] = [
     { id: 'ASSET-009', companyId: 'client-07', name: 'Gantry Crane G-02', type: 'Crane', location: 'Port Terminal F', status: 'Operational', nextInspection: '2024-12-01', manufacturer: 'Liebherr', model: 'LTM 1050', serialNumber: 'SN-C9D0E1F2', installationDate: '2019-08-05', thumbnailUrl: 'https://images.unsplash.com/photo-1759390304074-dc0bb44b5f4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FudHJ5JTIwY3JhbmV8ZW58MHx8fHwxNzY5MDAyMjE2fDA&ixlib=rb-4.1.0&q=80&w=1080', approvalStatus: 'Approved' },
     { id: 'ASSET-010', companyId: 'client-01', name: 'Heat Exchanger E-401', type: 'Vessel', location: 'Refinery A', status: 'Requires Inspection', nextInspection: '2024-07-30', manufacturer: 'HeatEx Inc.', model: 'HE-500', serialNumber: 'SN-G3H4I5J6', installationDate: '2019-01-20', approvalStatus: 'Approved' },
     { id: 'ASSET-PEND-01', companyId: 'client-01', name: 'New Pipeline Segment', type: 'Piping', location: 'Refinery A', status: 'Requires Inspection', approvalStatus: 'Pending Approval', nextInspection: '2025-06-01', notes: 'Newly created asset awaiting admin approval.' },
+    {
+        id: 'ASSET-TEAM-01',
+        companyId: 'provider-03',
+        name: 'Internal Training Block',
+        type: 'Weld Joint',
+        location: 'Houston, TX',
+        status: 'Operational',
+        nextInspection: '2025-01-01',
+        approvalStatus: 'Approved',
+    },
 ];
 
 export const allUsers: PlatformUser[] = [
@@ -800,7 +810,7 @@ export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>
         technicianIds: ['NAXP822MG6cWlaCNkaqkYpxDRmQ2'],
         workflow: 'standard',
         isInternal: true,
-        assetIds: ['ASSET-001'],
+        assetIds: ['ASSET-TEAM-01'],
         techniques: ['RVI'],
         jobType: 'project',
         industry: 'Oil & Gas — Midstream',
@@ -950,7 +960,7 @@ export const inspectionsData: Inspection[] = [
     { id: 'INSP-011', jobId: 'JOB-020', assetName: 'Marine Riser Segment 4', assetId: 'ASSET-006', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-02', status: 'Completed' },
     { id: 'INSP-012', jobId: 'JOB-021', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'UT', inspector: 'Maria Garcia', date: '2024-07-22', status: 'Completed' },
     { id: 'INSP-013', jobId: 'JOB-022', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PAUT', inspector: 'Maria Garcia', date: '2024-07-20', status: 'Requires Review' },
-    { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Storage Tank T-101', assetId: 'ASSET-001', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
+    { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Internal Training Block', assetId: 'ASSET-TEAM-01', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
     { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
 ];
 

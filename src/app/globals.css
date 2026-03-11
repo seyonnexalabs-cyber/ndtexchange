@@ -6,16 +6,16 @@
 @layer base {
   :root, .client-theme {
     --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    --foreground: 221 83% 53%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 221 83% 53%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 221 83% 53%;
 
-    --primary: 224 82% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -23,7 +23,7 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 145 73% 37%;
+    --accent: 158 44% 33%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -31,18 +31,19 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 224 82% 58%;
+    --ring: 221 83% 53%;
+    --radius: 0.5rem;
 
     /* Chart Colors */
-    --chart-1: 224 82% 58%;
-    --chart-2: 145 73% 37%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 158 44% 33%;
     --chart-3: 35 92% 58%;
     --chart-4: 201 25% 57%;
     --chart-5: 210 10% 50%;
     
     /* Stat Card Colors */
-    --card-color-1: 224 82% 68%; /* Lighter Blue */
-    --card-color-2: 145 73% 47%; /* Lighter Green */
+    --card-color-1: 221 83% 63%; /* Lighter Blue */
+    --card-color-2: 158 44% 43%; /* Lighter Green */
     --card-color-3: 35 92% 68%; /* Lighter Orange */
     --card-color-4: 0 84% 70%; /* Lighter Red */
 
@@ -79,6 +80,7 @@
     --border: 158 15% 91%;
     --input: 158 15% 91%;
     --ring: 158 44% 33%;
+    --radius: 0.5rem;
 
     /* Chart Colors */
     --chart-1: 158 44% 33%;
@@ -122,6 +124,7 @@
     --border: 240 15% 91%;
     --input: 240 15% 91%;
     --ring: 244 67% 54%;
+    --radius: 0.5rem;
 
     /* Chart Colors */
     --chart-1: 244 67% 54%;
@@ -165,6 +168,7 @@
     --border: 220 20% 90%;
     --input: 220 20% 90%;
     --ring: 220 14% 28%;
+    --radius: 0.5rem;
 
     /* Chart Colors */
     --chart-1: 220 14% 28%;
@@ -201,6 +205,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 142 76% 40%;
+    --radius: 0.5rem;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

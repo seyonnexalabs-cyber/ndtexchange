@@ -30,10 +30,10 @@ const HoneycombHero = ({ children, className }: HoneycombHeroProps) => {
                   />
                   <circle cx="28" cy="0" r="3" fill="hsl(var(--primary-foreground))" />
                   <circle cx="56" cy="16.16" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="56" cy="48.5" r="5" fill="hsl(var(--primary-foreground))" />
+                  <circle cx="56" cy="48.5" r="5" fill="hsl(var(--primary-foreground))" /> {/* Larger node */}
                   <circle cx="28" cy="64.66" r="3" fill="hsl(var(--primary-foreground))" />
                   <circle cx="0" cy="48.5" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="0" cy="16.16" r="6" fill="hsl(var(--primary-foreground))" />
+                  <circle cx="0" cy="16.16" r="6" fill="hsl(var(--primary-foreground))" /> {/* Variation in size */}
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#honeycomb)" />

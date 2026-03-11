@@ -238,9 +238,8 @@ const FloorScanEntryDialog = ({
         name: "floorScans",
     });
 
-    if (plateNumber === null) return null;
-    
     const existingReadingIndices = React.useMemo(() => {
+        if (plateNumber === null) return [];
         const allScans = getValues("floorScans") || [];
         const indices: number[] = [];
         allScans.forEach((scan, index) => {
@@ -253,6 +252,7 @@ const FloorScanEntryDialog = ({
 
 
     const handleAddReading = () => {
+        if (plateNumber === null) return;
         // Dummy coordinates for now. A real implementation might get these from a click on the SVG.
         append({ plate: plateNumber, x: Math.random(), y: Math.random(), thickness: undefined });
     };
@@ -261,7 +261,7 @@ const FloorScanEntryDialog = ({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Floor Scan Readings for Plate {plateNumber + 1}</DialogTitle>
+                    <DialogTitle>Floor Scan Readings for Plate {plateNumber !== null ? plateNumber + 1 : ''}</DialogTitle>
                     <DialogDescription>
                         Add or edit thickness readings for this floor plate.
                     </DialogDescription>
@@ -491,9 +491,9 @@ export default function TankDesignerPage() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(() => handleSave())}>
-                <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="h-full flex flex-col">
+                <div className="p-4 border-b shrink-0">
+                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="flex items-center gap-4">
                            <Database className="h-8 w-8 text-primary" />
                            <div>
@@ -501,7 +501,7 @@ export default function TankDesignerPage() {
                                 <p className="text-muted-foreground mt-1">Visualize inspection data for API 650/653 storage tanks.</p>
                             </div>
                         </div>
-                         <Menubar>
+                        <Menubar>
                             <MenubarMenu>
                                 <MenubarTrigger>File</MenubarTrigger>
                                 <MenubarContent>
@@ -512,63 +512,68 @@ export default function TankDesignerPage() {
                             </MenubarMenu>
                         </Menubar>
                     </div>
+                </div>
 
-                    <div className="grid lg:grid-cols-4 gap-8 items-start">
-                        <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Configuration</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                     <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Design Name</FormLabel>
-                                                <FormControl><Input {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="diameter"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Diameter (ft)</FormLabel>
-                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="shellCourses"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Shell Courses</FormLabel>
-                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="floorPlates"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Floor Plates</FormLabel>
-                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </CardContent>
-                            </Card>
-                        </div>
-                        <div className="lg:col-span-3">
-                             <Tabs defaultValue="floor">
+                <div className="flex-grow overflow-hidden">
+                    <div className="grid lg:grid-cols-4 gap-8 items-start h-full">
+                        <ScrollArea className="lg:col-span-1 h-full p-4">
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Configuration</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                            <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Design Name</FormLabel>
+                                                    <FormControl><Input {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="diameter"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Diameter (ft)</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="shellCourses"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Shell Courses</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                            <FormField
+                                            control={form.control}
+                                            name="floorPlates"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Floor Plates</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </ScrollArea>
+                        <div className="lg:col-span-3 h-full">
+                            <ScrollArea className="h-full p-4">
+                                <Tabs defaultValue="floor">
                                 <TabsList>
                                     <TabsTrigger value="floor">Floor Plan</TabsTrigger>
                                     <TabsTrigger value="shell">Shell Courses</TabsTrigger>
@@ -586,7 +591,7 @@ export default function TankDesignerPage() {
                                     </Card>
                                 </TabsContent>
                                 <TabsContent value="shell" className="mt-4">
-                                     <Card>
+                                        <Card>
                                         <CardHeader>
                                             <CardTitle>Shell Course Mapping</CardTitle>
                                             <CardDescription>Record wall thickness readings for each course.</CardDescription>
@@ -608,16 +613,17 @@ export default function TankDesignerPage() {
                                     </Card>
                                 </TabsContent>
                             </Tabs>
+                            </ScrollArea>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
             <FloorScanEntryDialog
                 isOpen={editingPlate !== null}
                 onClose={() => setEditingPlate(null)}
                 plateNumber={editingPlate}
             />
-             <SaveDialog 
+                <SaveDialog 
                 isOpen={isSaveModalOpen} 
                 onClose={() => setIsSaveModalOpen(false)} 
                 onSave={handleSaveAs} 

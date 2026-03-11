@@ -14,8 +14,8 @@ export default function DashboardLayout({
   return (
     <SearchProvider>
       <QRScannerProvider>
-        <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] overflow-hidden">
-            <div className="hidden border-r bg-sidebar md:flex md:flex-col">
+        <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+            <div className="hidden border-r bg-sidebar md:flex md:flex-col overflow-hidden">
               <AppSidebar />
             </div>
             <div className="flex flex-col overflow-y-auto">

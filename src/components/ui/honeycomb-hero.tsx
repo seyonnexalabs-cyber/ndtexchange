@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -43,17 +44,6 @@ const HoneycombHero = ({ children, className }: { children: React.ReactNode, cla
           0%,100% { opacity: .08; }
           50%      { opacity: .18; }
         }
-        @keyframes hch-scan {
-          0%   { top: -3%; }
-          100% { top: 103%; }
-        }
-        @keyframes hch-glow {
-          0%,100% { opacity: .55; transform: translate(-50%,-50%) scale(1); }
-          50%     { opacity: .78; transform: translate(-50%,-50%) scale(1.07); }
-        }
-        .hch-grid { animation: hch-grid 5s ease-in-out infinite; }
-        .hch-scan { animation: hch-scan 9s linear infinite; }
-        .hch-glow { animation: hch-glow 6s ease-in-out infinite; }
       `}</style>
 
       {/* Deep gradient base */}
@@ -83,26 +73,6 @@ const HoneycombHero = ({ children, className }: { children: React.ReactNode, cla
           <HexShape size={h.size} stroke={h.stroke} />
         </div>
       ))}
-
-      {/* Radial centre glow */}
-      <div
-        className="hch-glow absolute z-0 pointer-events-none"
-        style={{
-          top: '50%', left: '50%',
-          width: 660, height: 660,
-          borderRadius: '50%',
-          background: 'radial-gradient(ellipse,rgba(30,144,255,.22) 0%,rgba(0,191,255,.07) 45%,transparent 70%)',
-        }}
-      />
-
-      {/* Scan line sweep */}
-      <div
-        className="hch-scan absolute left-0 right-0 z-0 pointer-events-none"
-        style={{
-          height: 2,
-          background: 'linear-gradient(90deg,transparent,rgba(30,144,255,.38),rgba(0,191,255,.6),rgba(30,144,255,.38),transparent)',
-        }}
-      />
 
       {/* Hero Content */}
       <div className="relative z-10 text-center px-4 container mx-auto">

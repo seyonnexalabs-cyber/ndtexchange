@@ -182,10 +182,10 @@ const AnnularRingView = () => {
     
     // Positions for inputs
     const positions = [
-        { label: "12 o'clock", top: '0%', left: '50%', transform: 'translate(-50%, -50%)' },
-        { label: "3 o'clock", top: '50%', left: '100%', transform: 'translate(-50%, -50%)' },
-        { label: "6 o'clock", top: '100%', left: '50%', transform: 'translate(-50%, -50%)' },
-        { label: "9 o'clock", top: '50%', left: '0%', transform: 'translate(-50%, -50%)' },
+        { label: "12 o'clock", className: 'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2' },
+        { label: "3 o'clock", className: 'top-1/2 left-full -translate-x-full -translate-y-1/2' },
+        { label: "6 o'clock", className: 'top-full left-1/2 -translate-x-1/2 -translate-y-full' },
+        { label: "9 o'clock", className: 'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2' },
     ];
     
     const annularWidth = 50; // SVG units
@@ -204,7 +204,7 @@ const AnnularRingView = () => {
                     const position = positions.find(p => p.label === field.position);
                     if (!position) return null;
                     return (
-                        <div key={field.id} className="absolute" style={{ top: position.top, left: position.left, transform: position.transform }}>
+                        <div key={field.id} className={`absolute ${position.className}`}>
                              <FormField
                                 control={control}
                                 name={`annularReadings.${index}.thickness`}
@@ -510,6 +510,54 @@ export default function TankDesignerPage() {
         router.push(`/dashboard/tank-designer?designId=${design.id}`);
     };
     
+    const shellReadings = form.watch('shellReadings') || [];
+    const annularReadings = form.watch('annularReadings') || [];
+    const floorScans = form.watch('floorScans') || [];
+
+    const designMetrics = React.useMemo(() => {
+        const shellValid = shellReadings.filter(r => r.min != null && r.max != null && r.avg != null);
+        const shellMin = shellValid.length ? Math.min(...shellValid.map(r => r.min!)) : undefined;
+        const shellMax = shellValid.length ? Math.max(...shellValid.map(r => r.max!)) : undefined;
+        const shellAvg = shellValid.length ? shellValid.reduce((sum, r) => sum + (r.avg ?? 0), 0) / shellValid.length : undefined;
+
+        const annularValid = annularReadings.filter(r => r.thickness != null);
+        const annularMin = annularValid.length ? Math.min(...annularValid.map(r => r.thickness!)) : undefined;
+
+        const plateGroups: Record<number, number[]> = {};
+        floorScans.forEach(scan => {
+            if (scan.plate == null || scan.thickness == null) return;
+            const plate = Number(scan.plate);
+            if (!plateGroups[plate]) plateGroups[plate] = [];
+            plateGroups[plate].push(scan.thickness);
+        });
+
+        const plates = Object.keys(plateGroups).map(p => Number(p));
+        const plateMin = plates.length ? Math.min(...plates.map(p => Math.min(...plateGroups[p]))) : undefined;
+        const plateAvg = plates.length ? (plates.reduce((sum, p) => sum + (plateGroups[p].reduce((a,b)=>a+b,0) / plateGroups[p].length),0) / plates.length) : undefined;
+
+        return { shellMin, shellMax, shellAvg, annularMin, plateMin, plateAvg };
+    }, [shellReadings, annularReadings, floorScans]);
+
+    const handleAutoPopulate = () => {
+        const shellCourses = form.getValues('shellCourses');
+        const floorPlates = form.getValues('floorPlates');
+
+        if (shellCourses > 0) {
+            form.setValue('shellReadings', Array.from({ length: shellCourses }).map(() => ({ min: 0.230, max: 0.280, avg: 0.255 })));
+        }
+        if (floorPlates > 0) {
+            form.setValue('floorScans', Array.from({ length: floorPlates * 4 }).map((_, i) => ({ plate: Math.floor(i / 4), x: (i % 4) * 2.5, y: Math.floor(i / 4) * 2.5, thickness: 0.250 })));
+        }
+        if (annularReadings.length === 0) {
+            form.setValue('annularReadings', [
+                { position: "12 o'clock", thickness: 0.260 },
+                { position: "3 o'clock", thickness: 0.245 },
+                { position: "6 o'clock", thickness: 0.240 },
+                { position: "9 o'clock", thickness: 0.248 },
+            ]);
+        }
+    };
+
     const handlePlateClick = (plateIndex: number) => {
         setEditingPlate(plateIndex);
     };
@@ -587,6 +635,25 @@ export default function TankDesignerPage() {
                                 </FormItem>
                             )}
                         />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Health Summary</CardTitle>
+                        <CardDescription>Quick integrity metrics and automated baseline fill.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p className="text-sm">Tank shell min thickness: <strong>{designMetrics.shellMin?.toFixed(3) ?? 'N/A'} in</strong></p>
+                            <p className="text-sm">Tank shell avg thickness: <strong>{designMetrics.shellAvg?.toFixed(3) ?? 'N/A'} in</strong></p>
+                            <p className="text-sm">Annular min thickness: <strong>{designMetrics.annularMin?.toFixed(3) ?? 'N/A'} in</strong></p>
+                            <p className="text-sm">Floor plate min thickness: <strong>{designMetrics.plateMin?.toFixed(3) ?? 'N/A'} in</strong></p>
+                            <p className="text-sm">Floor plate avg thickness: <strong>{designMetrics.plateAvg?.toFixed(3) ?? 'N/A'} in</strong></p>
+                        </div>
+                        <div className="flex items-center justify-end">
+                            <Button variant="outline" onClick={handleAutoPopulate}>Auto-populate sample data</Button>
+                        </div>
                     </CardContent>
                 </Card>
 

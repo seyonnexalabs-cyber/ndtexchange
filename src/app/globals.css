@@ -96,6 +96,48 @@
     --card-color-4: 158 15% 45%; /* Mid Gray */
   }
 
+  .manufacturer-theme {
+    --background: 0 0% 100%;
+    --foreground: 210 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 15% 15%;
+
+    --primary: 200 75% 40%; /* OEM Teal */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 200 20% 92%;
+    --secondary-foreground: 210 15% 15%;
+
+    --muted: 200 20% 92%;
+    --muted-foreground: 210 15% 45%;
+
+    --accent: 180 80% 38%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 200 20% 90%;
+    --input: 200 20% 90%;
+    --ring: 200 75% 40%;
+    --radius: 0.5rem;
+
+    --chart-1: 200 75% 40%;
+    --chart-2: 180 80% 38%;
+    --chart-3: 200 75% 50%;
+    --chart-4: 180 80% 48%;
+    --chart-5: 200 30% 55%;
+
+    --card-color-1: 200 75% 50%;
+    --card-color-2: 180 80% 48%;
+    --card-color-3: 205 75% 64%;
+    --card-color-4: 170 70% 66%;
+  }
+
   .auditor-theme {
     --background: 0 0% 100%;
     --foreground: 220 15% 20%;

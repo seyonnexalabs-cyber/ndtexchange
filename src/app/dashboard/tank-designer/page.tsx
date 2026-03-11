@@ -239,16 +239,15 @@ const FloorScanEntryDialog = ({
     });
 
     const existingReadingIndices = React.useMemo(() => {
-        if (plateNumber === null) return [];
-        const allScans = getValues("floorScans") || [];
-        const indices: number[] = [];
-        allScans.forEach((scan, index) => {
-            if (scan.plate === plateNumber) {
-                indices.push(index);
-            }
-        });
-        return indices;
-    }, [getValues, plateNumber]);
+      if (plateNumber === null) return [];
+      const allScans = getValues("floorScans") || [];
+      return allScans.reduce((acc: number[], scan, index) => {
+          if (scan.plate === plateNumber) {
+              acc.push(index);
+          }
+          return acc;
+      }, []);
+  }, [getValues, plateNumber, fields]); // depend on fields to re-run when array changes
 
 
     const handleAddReading = () => {
@@ -517,152 +516,142 @@ export default function TankDesignerPage() {
 
     return (
         <FormProvider {...form}>
-            <div className="h-full flex flex-col">
-                <div className="p-4 border-b shrink-0">
-                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div className="flex items-center gap-4">
-                           <Database className="h-8 w-8 text-primary" />
-                           <div>
-                                <h1 className="text-2xl font-headline font-semibold">Storage Tank Designer</h1>
-                                <p className="text-muted-foreground mt-1">Visualize inspection data for API 650/653 storage tanks.</p>
-                            </div>
+            <div className="space-y-6">
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                        <Database className="h-8 w-8 text-primary" />
+                        <div>
+                            <h1 className="text-2xl font-headline font-semibold">Storage Tank Designer</h1>
+                            <p className="text-muted-foreground mt-1">Visualize inspection data for API 650/653 storage tanks.</p>
                         </div>
-                        <Menubar>
-                            <MenubarMenu>
-                                <MenubarTrigger>File</MenubarTrigger>
-                                <MenubarContent>
-                                    <MenubarItem onSelect={handleSave} disabled={!designId}>Save</MenubarItem>
-                                    <MenubarItem onSelect={() => setIsSaveModalOpen(true)}>Save As...</MenubarItem>
-                                    <MenubarItem onSelect={() => setIsLoadModalOpen(true)}>Load...</MenubarItem>
-                                </MenubarContent>
-                            </MenubarMenu>
-                        </Menubar>
                     </div>
+                    <Menubar>
+                        <MenubarMenu>
+                            <MenubarTrigger>File</MenubarTrigger>
+                            <MenubarContent>
+                                <MenubarItem onSelect={handleSave} disabled={!designId}>Save</MenubarItem>
+                                <MenubarItem onSelect={() => setIsSaveModalOpen(true)}>Save As...</MenubarItem>
+                                <MenubarItem onSelect={() => setIsLoadModalOpen(true)}>Load...</MenubarItem>
+                            </MenubarContent>
+                        </MenubarMenu>
+                    </Menubar>
                 </div>
+                
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Configuration</CardTitle>
+                        <CardDescription>Define the basic parameters of your storage tank.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Design Name</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="diameter"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Diameter (ft)</FormLabel>
+                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="shellCourses"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Shell Courses</FormLabel>
+                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                            <FormField
+                            control={form.control}
+                            name="floorPlates"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Floor Plates</FormLabel>
+                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
 
-                <div className="flex-grow overflow-hidden">
-                    <div className="grid lg:grid-cols-4 gap-8 items-start h-full">
-                        <ScrollArea className="lg:col-span-1 h-full p-4">
-                            <div className="space-y-6">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Configuration</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                            <FormField
-                                            control={form.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Design Name</FormLabel>
-                                                    <FormControl><Input {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="diameter"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Diameter (ft)</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="shellCourses"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Shell Courses</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                            <FormField
-                                            control={form.control}
-                                            name="floorPlates"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Floor Plates</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </ScrollArea>
-                        <div className="lg:col-span-3 h-full">
-                            <ScrollArea className="h-full p-4">
-                                <Tabs defaultValue="floor">
-                                <TabsList>
-                                    <TabsTrigger value="floor">Floor Plan</TabsTrigger>
-                                    <TabsTrigger value="shell">Shell Courses</TabsTrigger>
-                                    <TabsTrigger value="annular">Annular Ring</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="floor" className="mt-4">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Floor Scan Mapping</CardTitle>
-                                            <CardDescription>Visualize MFL or UT floor scan data.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <FloorPlanView onPlateClick={handlePlateClick} />
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-                                <TabsContent value="shell" className="mt-4">
-                                        <Card>
-                                        <CardHeader>
-                                            <CardTitle>Shell Course Mapping</CardTitle>
-                                            <CardDescription>Record wall thickness readings for each course.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <ShellCoursesView />
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-                                <TabsContent value="annular" className="mt-4">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Annular Plate Mapping</CardTitle>
-                                            <CardDescription>Inspect the critical corrosion zone at the shell-to-floor junction.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <AnnularRingView />
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-                            </Tabs>
-                            </ScrollArea>
-                        </div>
-                    </div>
-                </div>
+                <Tabs defaultValue="floor">
+                    <TabsList>
+                        <TabsTrigger value="floor">Floor Plan</TabsTrigger>
+                        <TabsTrigger value="shell">Shell Courses</TabsTrigger>
+                        <TabsTrigger value="annular">Annular Ring</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="floor" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Floor Scan Mapping</CardTitle>
+                                <CardDescription>Visualize MFL or UT floor scan data.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <FloorPlanView onPlateClick={handlePlateClick} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="shell" className="mt-4">
+                            <Card>
+                            <CardHeader>
+                                <CardTitle>Shell Course Mapping</CardTitle>
+                                <CardDescription>Record wall thickness readings for each course.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ShellCoursesView />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="annular" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Annular Plate Mapping</CardTitle>
+                                <CardDescription>Inspect the critical corrosion zone at the shell-to-floor junction.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <AnnularRingView />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+                
+                 <FloorScanEntryDialog
+                    isOpen={editingPlate !== null}
+                    onClose={() => setEditingPlate(null)}
+                    plateNumber={editingPlate}
+                />
+                    <SaveDialog 
+                    isOpen={isSaveModalOpen} 
+                    onClose={() => setIsSaveModalOpen(false)} 
+                    onSave={handleSaveAs} 
+                    currentName={watchedName}
+                    currentDescription={watchedDescription}
+                />
+                <LoadDialog 
+                    isOpen={isLoadModalOpen} 
+                    onClose={() => setIsLoadModalOpen(false)} 
+                    designs={savedDesigns || []} 
+                    onLoad={handleLoadDesign} 
+                    isLoading={isLoadingDesigns} 
+                />
             </div>
-            <FloorScanEntryDialog
-                isOpen={editingPlate !== null}
-                onClose={() => setEditingPlate(null)}
-                plateNumber={editingPlate}
-            />
-                <SaveDialog 
-                isOpen={isSaveModalOpen} 
-                onClose={() => setIsSaveModalOpen(false)} 
-                onSave={handleSaveAs} 
-                currentName={watchedName}
-                currentDescription={watchedDescription}
-            />
-            <LoadDialog 
-                isOpen={isLoadModalOpen} 
-                onClose={() => setIsLoadModalOpen(false)} 
-                designs={savedDesigns || []} 
-                onLoad={handleLoadDesign} 
-                isLoading={isLoadingDesigns} 
-            />
         </FormProvider>
     );
 }
+

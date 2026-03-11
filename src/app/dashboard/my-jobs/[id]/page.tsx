@@ -120,8 +120,8 @@ export default function JobDetailPage() {
     const { data: job, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id as string) : null), [firestore, id]));
     
     const bidsQuery = useMemoFirebase(() => {
-        if (!firestore || !job?.id) return null;
-        return query(collection(firestore, 'bids'), where('jobId', '==', job.id));
+        if (!firestore || !job?.id || !job?.clientCompanyId) return null;
+        return query(collection(firestore, 'bids'), where('jobId', '==', job.id), where('clientCompanyId', '==', job.clientCompanyId));
     }, [firestore, job]);
 
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);

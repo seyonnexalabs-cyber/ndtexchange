@@ -114,6 +114,7 @@ const inspectorMenu: MenuGroup[] = [
     title: 'Tools',
     items: [
       { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'Tube Designer', icon: Settings2 },
+      { id: 'tankdesigner', href: '/dashboard/tank-designer', label: 'Tank Designer', icon: Database },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
@@ -325,9 +326,8 @@ const AppSidebar = () => {
   return (
     <div className="flex h-full max-h-screen flex-col gap-2">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-        <Link href={constructUrl("/dashboard")} className="flex items-center gap-2 font-bold font-headline text-foreground">
-          <LogoIcon className="h-6 w-6 text-primary" />
-          <span>NDT EXCHANGE</span>
+        <Link href={constructUrl("/dashboard")} className="flex items-center gap-3">
+          <Logo iconClassName="h-8 w-auto text-primary" textClassName="text-xl text-foreground" />
         </Link>
       </div>
       <div className="flex-1">
@@ -340,7 +340,7 @@ const AppSidebar = () => {
                             key={item.id}
                             href={constructUrl(item.href)}
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
+                                "flex items-center gap-3 rounded-lg px-3 py-2 text-foreground transition-all hover:bg-muted hover:text-primary",
                                 activeItem?.id === item.id && "bg-muted text-primary font-semibold"
                             )}
                         >

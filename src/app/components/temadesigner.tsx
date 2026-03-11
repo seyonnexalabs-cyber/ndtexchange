@@ -49,8 +49,8 @@ const MARGIN_LEFT = 38;
 const MARGIN_TOP  = 38;
 
 // ── Tiny UI helpers ──────────────────────────────────────────────────────────
-const Btn = memo(React.forwardRef<HTMLButtonElement, { children: React.ReactNode; onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; variant?: "default" | "primary" | "danger" | "ghost" | "warn"; size?: "xs" | "sm" | "md"; disabled?: boolean; title?: string;[key: string]: any; }>(
-    ({ children, onClick, variant = "default", size = "sm", disabled, title, ...rest }, ref) => {
+const Btn = memo(React.forwardRef<HTMLButtonElement, { children: React.ReactNode; onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; variant?: "default" | "primary" | "danger" | "ghost" | "warn"; size?: "xs" | "sm" | "md"; disabled?: boolean; title?: string; fontScale?: number; [key: string]: any; }>(
+    ({ children, onClick, variant = "default", size = "sm", disabled, title, fontScale = 1, ...rest }, ref) => {
         const szMap: { [k: string]: { fs: number, p: string } } = { xs: { fs: 10, p: '2px 7px' }, sm: { fs: 12, p: '4px 10px' }, md: { fs: 13, p: '6px 14px' } };
         const sz = szMap[size] ?? szMap.sm;
         const v: Record<string, React.CSSProperties> = {
@@ -61,20 +61,20 @@ const Btn = memo(React.forwardRef<HTMLButtonElement, { children: React.ReactNode
             warn: { background: C.warnL, border: `1px solid ${C.warn}`, color: C.warn },
         };
         return <button ref={ref} onClick={onClick} disabled={disabled} title={title}
-            style={{ fontFamily: F, fontWeight: 600, borderRadius: 5, cursor: disabled ? "not-allowed" : "pointer", fontSize: sz.fs, padding: sz.p, opacity: disabled ? .45 : 1, transition: "all 0.1s", whiteSpace: "nowrap", ...v[variant] }} {...rest}>{children}</button>;
+            style={{ fontFamily: F, fontWeight: 600, borderRadius: 5, cursor: disabled ? "not-allowed" : "pointer", fontSize: sz.fs * fontScale, padding: sz.p, opacity: disabled ? .45 : 1, transition: "all 0.1s", whiteSpace: "nowrap", ...v[variant] }} {...rest}>{children}</button>;
     }
 ));
 Btn.displayName="Btn";
 
-const Divider=({label}:{label?:string})=>(
+const Divider=({label, fontScale = 1}:{label?:string, fontScale?:number})=>(
   <div style={{display:"flex",alignItems:"center",gap:6,margin:"8px 0"}}>
     <div style={{flex:1,height:1,background:C.border}}/>
-    {label&&<span style={{fontFamily:F,fontSize:10,color:C.text3,whiteSpace:"nowrap"}}>{label}</span>}
+    {label&&<span style={{fontFamily:F,fontSize:10*fontScale,color:C.text3,whiteSpace:"nowrap"}}>{label}</span>}
     <div style={{flex:1,height:1,background:C.border}}/>
   </div>
 );
-const Chip=({label,active,onClick,color=C.accent}:{label:string;active:boolean;onClick:()=>void;color?:string;[k:string]:any})=>(
-  <button onClick={onClick} style={{fontFamily:F,fontSize:11,fontWeight:600,padding:"3px 9px",
+const Chip=({label,active,onClick,color=C.accent, fontScale = 1}:{label:string;active:boolean;onClick:()=>void;color?:string; fontScale?: number; [k:string]:any})=>(
+  <button onClick={onClick} style={{fontFamily:F,fontSize:11*fontScale,fontWeight:600,padding:"3px 9px",
     borderRadius:4,cursor:"pointer",transition:"all 0.1s",whiteSpace:"nowrap",
     background:active?color:C.panel,color:active?"#fff":C.text2,
     border:`1px solid ${active?color:C.border2}`}}>{label}</button>
@@ -723,7 +723,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                         {!isTrial && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Btn size="sm"><FileText size={14}/> File</Btn>
+                                    <Btn size="sm" fontScale={fontScale}><FileText size={14}/> File</Btn>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuItem onSelect={() => handleSave()} disabled={!designId}><Save size={14} className="mr-2"/> Save</DropdownMenuItem>
@@ -746,8 +746,8 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                         )}
                         <button onClick={() => generate(true)} disabled={busy} style={{flex: 1, padding:"7px 0",borderRadius:5,cursor:busy?"not-allowed":"pointer", fontFamily:F,fontSize:13*fontScale,fontWeight:700, background:busy?C.border2:C.accent,color:busy?"#94a3b8":"#fff", border:"none",boxShadow:busy?"none":"0 2px 10px rgba(37,99,235,0.28)", display:"flex",alignItems:"center",justifyContent:"center",gap:8, transition:"all 0.15s"}}>{busy?<><Spinner/> Generating…</>:"⚡ Generate Layout"}</button>
                     </div>
-                    <Divider />
-                    <Label>Shell Shape</Label>
+                    <Divider fontScale={fontScale} />
+                    <Label style={{ fontSize: 14 * fontScale }}>Shell Shape</Label>
                     <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
                         {(["circle","rectangle","ellipse","hexagon","polygon"] as ShapeType[]).map(s=>(
                         <Chip key={s} label={s==="polygon"?"✏ Polygon":s[0].toUpperCase()+s.slice(1)}
@@ -755,7 +755,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                             if(s==="polygon"){setPolyWip([]);setPolyMode(true);}
                             else{setPolyMode(false);}
                             updateShape({type:s});
-                            }} color={s==="polygon"?"#7c3aed":C.accent}/>
+                            }} color={s==="polygon"?"#7c3aed":C.accent} fontScale={fontScale}/>
                         ))}
                     </div>
                     {cfg.shape.type==="polygon"&&(<div style={{marginBottom:6}}>
@@ -763,11 +763,11 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                             <div style={{fontSize:11*fontScale,color:"#7c3aed",fontWeight:600,marginBottom:2}}>{polyMode?"Drawing polygon on canvas…":"Custom polygon shape"}</div>
                             <div style={{fontSize:10*fontScale,color:"#6d28d9",lineHeight:1.5}}>{polyMode?"Click to add vertices. Double-click to close.":`${(cfg.shape.polygon?.length??0)} vertices defined.`}</div>
                         </div>
-                        <div style={{display:"flex",gap:4}}><Btn size="xs" variant={polyMode?"primary":"default"} onClick={()=>{setPolyMode(true);setPolyWip([]);}}>{polyMode?"Drawing…":"✏ Draw"}</Btn>{polyMode&&<Btn size="xs" onClick={()=>{setPolyMode(false);setPolyWip([]);}}>Cancel</Btn>}{cfg.shape.polygon&&cfg.shape.polygon.length>2&&<Btn size="xs" variant="danger" onClick={()=>updateShape({polygon:[]})}>Clear</Btn>}</div>
+                        <div style={{display:"flex",gap:4}}><Btn size="xs" variant={polyMode?"primary":"default"} onClick={()=>{setPolyMode(true);setPolyWip([]);}} fontScale={fontScale}>{polyMode?"Drawing…":"✏ Draw"}</Btn>{polyMode&&<Btn size="xs" onClick={()=>{setPolyMode(false);setPolyWip([]);}} fontScale={fontScale}>Cancel</Btn>}{cfg.shape.polygon&&cfg.shape.polygon.length>2&&<Btn size="xs" variant="danger" onClick={()=>updateShape({polygon:[]})} fontScale={fontScale}>Clear</Btn>}</div>
                         </div>)}
 
                     {cfg.shape.type==="circle"&&(<>
-                        <Label>Shell Diameter</Label>
+                        <Label style={{ fontSize: 14 * fontScale }}>Shell Diameter</Label>
                         <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>
                             {[6,8,10,12,15.25,19.25,23.25,29,33,37,42,48,60].map(id=>(
                             <button key={id} onClick={()=>updateShape({diameterMm:id*25.4})}
@@ -779,18 +779,18 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                         </div>
                         <NumIn value={+((cfg.shape.diameterMm??304.8)*IN).toFixed(2)} onChange={v=>updateShape({diameterMm:v/IN})} min={1.2} max={80} step={1} unit="in" fontScale={fontScale}/>
                         </>)}
-                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label>Width</Label><NumIn value={+((cfg.shape.widthMm??500)*IN).toFixed(2)} onChange={v=>updateShape({widthMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Height</Label><NumIn value={+((cfg.shape.heightMm??400)*IN).toFixed(2)} onChange={v=>updateShape({heightMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
-                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label>Semi-A</Label><NumIn value={+((cfg.shape.axisAMm??500)*IN).toFixed(2)} onChange={v=>updateShape({axisAMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label>Semi-B</Label><NumIn value={+((cfg.shape.axisBMm??350)*IN).toFixed(2)} onChange={v=>updateShape({axisBMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
-                    {cfg.shape.type==="hexagon"&&(<div><Label>Flat-to-flat</Label><NumIn value={+((cfg.shape.hexSizeMm??300)*IN).toFixed(2)} onChange={v=>updateShape({hexSizeMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div>)}
+                    {cfg.shape.type==="rectangle"&&(<div style={{display:"flex",gap:8}}><div><Label style={{ fontSize: 14 * fontScale }}>Width</Label><NumIn value={+((cfg.shape.widthMm??500)*IN).toFixed(2)} onChange={v=>updateShape({widthMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label style={{ fontSize: 14 * fontScale }}>Height</Label><NumIn value={+((cfg.shape.heightMm??400)*IN).toFixed(2)} onChange={v=>updateShape({heightMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="ellipse"&&(<div style={{display:"flex",gap:8}}><div><Label style={{ fontSize: 14 * fontScale }}>Semi-A</Label><NumIn value={+((cfg.shape.axisAMm??500)*IN).toFixed(2)} onChange={v=>updateShape({axisAMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div><div><Label style={{ fontSize: 14 * fontScale }}>Semi-B</Label><NumIn value={+((cfg.shape.axisBMm??350)*IN).toFixed(2)} onChange={v=>updateShape({axisBMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div></div>)}
+                    {cfg.shape.type==="hexagon"&&(<div><Label style={{ fontSize: 14 * fontScale }}>Flat-to-flat</Label><NumIn value={+((cfg.shape.hexSizeMm??300)*IN).toFixed(2)} onChange={v=>updateShape({hexSizeMm:v/IN})} min={1.2} unit="in" fontScale={fontScale}/></div>)}
 
-                    <Divider/><Label>Tube OD</Label>
-                    <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>{TEMA_TUBE_ODS.map(t=>( <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val} onClick={()=>setCfg(p=>({...p,tubeOdIn:t.val}))} color={C.accent}/>))}</div>
-                    <Divider/><Label>Pitch Ratio</Label>
+                    <Divider fontScale={fontScale}/><Label style={{ fontSize: 14 * fontScale }}>Tube OD</Label>
+                    <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8}}>{TEMA_TUBE_ODS.map(t=>( <Chip key={t.val} label={t.label} active={cfg.tubeOdIn===t.val} onClick={()=>setCfg(p=>({...p,tubeOdIn:t.val}))} color={C.accent} fontScale={fontScale}/>))}</div>
+                    <Divider fontScale={fontScale}/><Label style={{ fontSize: 14 * fontScale }}>Pitch Ratio</Label>
                     <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_RATIOS.map(pr=>(<div key={pr.val} onClick={()=>setCfg(p=>({...p,pitchRatio:pr.val}))} style={{padding:"4px 8px",borderRadius:4,cursor:"pointer", background:cfg.pitchRatio===pr.val?C.accentL:"transparent", border:`1px solid ${cfg.pitchRatio===pr.val?C.accentM:C.border}`,transition:"all 0.1s"}}><span style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pitchRatio===pr.val?C.accent:C.text2}}>{pr.label}</span></div>))}</div>
-                    <Divider/><Label>Pitch Pattern</Label>
+                    <Divider fontScale={fontScale}/><Label style={{ fontSize: 14 * fontScale }}>Pitch Pattern</Label>
                     <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:8}}>{PITCH_PATTERNS.map(pp=>(<div key={pp.id} onClick={()=>setCfg(p=>({...p,pattern:pp.id}))} style={{padding:"5px 8px",borderRadius:4,cursor:"pointer", background:cfg.pattern===pp.id?C.accentL:"transparent", border:`1px solid ${cfg.pattern===pp.id?C.accentM:C.border}`,transition:"all 0.1s"}}><div style={{fontSize:12*fontScale,fontWeight:600,color:cfg.pattern===pp.id?C.accent:C.text}}>{pp.label}</div><div style={{fontSize:10*fontScale,color:C.text3,marginTop:1}}>{pp.desc}</div></div>))}</div>
-                    <Divider/><Label>Tube Passes</Label>
-                    <div style={{display:"flex",gap:4,marginBottom:8}}>{[1,2,4,6,8].map(n=>(<Chip key={n} label={`${n}P`} active={cfg.numPasses===n} onClick={()=>setCfg(p=>({...p,numPasses:n}))} color={C.accent}/>))}</div>
+                    <Divider fontScale={fontScale}/><Label style={{ fontSize: 14 * fontScale }}>Tube Passes</Label>
+                    <div style={{display:"flex",gap:4,marginBottom:8}}>{[1,2,4,6,8].map(n=>(<Chip key={n} label={`${n}P`} active={cfg.numPasses===n} onClick={()=>setCfg(p=>({...p,numPasses:n}))} color={C.accent} fontScale={fontScale}/>))}</div>
                 </div>
             </TabsContent>
             <TabsContent value="details" className="flex-grow flex flex-col min-h-0">
@@ -816,7 +816,7 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
                 )}
                 <div style={{padding:"8px 14px"}}>
                     <div style={{fontSize:10*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Display</div>
-                    <div style={{display:"flex",gap:3,marginBottom:5}}>{(["mono","pass","row"] as const).map(m=>(<Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m} onClick={()=>setColorMode(m)} color="#475569"/>))}</div>
+                    <div style={{display:"flex",gap:3,marginBottom:5}}>{(["mono","pass","row"] as const).map(m=>(<Chip key={m} label={m[0].toUpperCase()+m.slice(1)} active={colorMode===m} onClick={()=>setColorMode(m)} color="#475569" fontScale={fontScale}/>))}</div>
                     <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>{[["Labels",showLabels,setShowLabels],["Dims",showDims,setShowDims],["Grid",showGrid,setShowGrid],["Shell",showShell,setShowShell]].map(([l,v,fn])=>( <button key={l as string} onClick={()=>(fn as any)(!(v as boolean))} style={{fontFamily:F,fontSize:10*fontScale,padding:"2px 7px",borderRadius:3,cursor:"pointer", background:(v as boolean)?C.accent:C.panel,color:(v as boolean)?"#fff":C.text2, border:`1px solid ${(v as boolean)?C.accent:C.border2}`,transition:"all 0.1s"}}>{l as string}</button>))}</div>
                 </div>
                 <div style={{padding:"8px 14px 12px", flex: 1, display: 'flex', flexDirection: 'column', borderTop: `1px solid ${C.border}`, minHeight: 0}}>
@@ -842,26 +842,26 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
 
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
         <div style={{height:42,flexShrink:0,display:"flex",alignItems:"center",padding:"0 10px", gap:5,background:C.panel,borderBottom:`1px solid ${C.border}`,flexWrap:"nowrap",overflowX:"auto"}}>
-            <Btn size="xs" variant="ghost" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">↩ Undo</Btn>
-            <Btn size="xs" variant="ghost" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Y)">↪ Redo</Btn>
+            <Btn size="xs" variant="ghost" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)" fontScale={fontScale}>↩ Undo</Btn>
+            <Btn size="xs" variant="ghost" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Y)" fontScale={fontScale}>↪ Redo</Btn>
             <div style={{width:1,height:22,background:C.border}}/>
             <div style={{display:"flex",gap:3}}>
-                <Chip label="⬚ Select" active={tool==="select"} onClick={()=>{setTool("select");}}/>
-                <Chip label="✥ Pan" active={tool==="pan"} onClick={()=>{setTool("pan");}}/>
-                <Chip label="● Plug" active={tool==="plug"} onClick={()=>{setTool("plug");}} color="#334155"/>
+                <Chip label="⬚ Select" active={tool==="select"} onClick={()=>{setTool("select");}} fontScale={fontScale}/>
+                <Chip label="✥ Pan" active={tool==="pan"} onClick={()=>{setTool("pan");}} fontScale={fontScale}/>
+                <Chip label="● Plug" active={tool==="plug"} onClick={()=>{setTool("plug");}} color="#334155" fontScale={fontScale}/>
             </div>
             <div style={{width:1,height:22,background:C.border}}/>
-            <Btn size="xs" onClick={selAll}>All</Btn>
-            <Btn size="xs" onClick={clearSel} disabled={!selIds.size}>Clear</Btn>
-            {selIds.size>0&&<Btn size="xs" variant="danger" onClick={delSelected}>✕ Delete {selIds.size}</Btn>}
+            <Btn size="xs" onClick={selAll} fontScale={fontScale}>All</Btn>
+            <Btn size="xs" onClick={clearSel} disabled={!selIds.size} fontScale={fontScale}>Clear</Btn>
+            {selIds.size>0&&<Btn size="xs" variant="danger" onClick={delSelected} fontScale={fontScale}>✕ Delete {selIds.size}</Btn>}
             <div style={{flex:1}}/>
-            {needRecalc&&(<div style={{display:"flex",alignItems:"center",gap:5,background:C.warnL, border:"1px solid #fbbf24",borderRadius:4,padding:"3px 8px"}}><span style={{fontSize:10*fontScale,color:"#92400e",fontWeight:500}}>⚠ Numbering stale</span><Btn size="xs" variant="warn" onClick={recalc}>↺ Recalculate</Btn></div>)}
-            <Btn size="xs" variant="ghost" onClick={fitView} title="Fit view">⊙ Fit</Btn>
-            <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.min(30,zoom*1.2);zoomRef.current=z;setZoom(z);}}>+</Btn>
+            {needRecalc&&(<div style={{display:"flex",alignItems:"center",gap:5,background:C.warnL, border:"1px solid #fbbf24",borderRadius:4,padding:"3px 8px"}}><span style={{fontSize:10*fontScale,color:"#92400e",fontWeight:500}}>⚠ Numbering stale</span><Btn size="xs" variant="warn" onClick={recalc} fontScale={fontScale}>↺ Recalculate</Btn></div>)}
+            <Btn size="xs" variant="ghost" onClick={fitView} title="Fit view" fontScale={fontScale}>⊙ Fit</Btn>
+            <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.min(30,zoom*1.2);zoomRef.current=z;setZoom(z);}} fontScale={fontScale}>+</Btn>
             <span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3,minWidth:36,textAlign:"center"}}>{(zoom*100).toFixed(0)}%</span>
-            <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}}>–</Btn>
-            <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.max(0.5, s - 0.1))}>A-</Btn><span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(fontScale*100).toFixed(0)}%</span><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.min(2, s + 0.1))}>A+</Btn>
-            <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={toggleFullscreen} title="Fullscreen (F)">{isFullscreen ? <Minimize size={14}/> : <Maximize size={14}/>}</Btn>
+            <Btn size="xs" variant="ghost" onClick={()=>{const z=Math.max(0.03,zoom/1.2);zoomRef.current=z;setZoom(z);}} fontScale={fontScale}>–</Btn>
+            <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.max(0.5, s - 0.1))} fontScale={fontScale}>A-</Btn><span style={{fontFamily:FM,fontSize:10,color:C.text3,minWidth:36,textAlign:"center"}}>{(fontScale*100).toFixed(0)}%</span><Btn size="xs" variant="ghost" onClick={() => setFontScale(s => Math.min(2, s + 0.1))} fontScale={fontScale}>A+</Btn>
+            <div style={{width:1,height:22,background:C.border}}/><Btn size="xs" variant="ghost" onClick={toggleFullscreen} title="Fullscreen (F)" fontScale={fontScale}>{isFullscreen ? <Minimize size={14}/> : <Maximize size={14}/>}</Btn>
         </div>
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
           {busy&&(<div style={{position:"absolute",inset:0,background:"rgba(241,245,249,0.93)", display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10}}><Spinner/><div style={{fontFamily:F,fontSize:14*fontScale,fontWeight:600,color:C.text,marginTop:14}}>Generating layout…</div><div style={{fontFamily:F,fontSize:12*fontScale,color:C.text2,marginTop:4}}>Placing tubes · checking clearances</div><div style={{marginTop:14,width:160,height:3,background:C.border,borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:C.accent,borderRadius:2, animation:"td-progress 1.2s ease-in-out infinite",width:"45%"}}/></div></div>)}
@@ -873,14 +873,14 @@ export default function TemaDesigner({ isTrial }: { isTrial?: boolean }) {
         <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
           <div style={{marginBottom:6}}><div style={{fontSize:11*fontScale,fontWeight:700,color:C.text3,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:5}}>Selection</div>
             {!selIds.size&&<div style={{fontSize:11*fontScale,color:C.text3,lineHeight:1.7}}>Click or drag to select.<br/>Shift+click to add.<br/>Del to delete.</div>}
-            {selIds.size===1&&(()=>{const t=selTubes[0];return(<div><div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>{[["Pass",t.pass],["x",`${(t.x*IN).toFixed(4)}"`],["y",`${(t.y*IN).toFixed(4)}"`],["OD",`${(t.r*2*IN).toFixed(3)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span></div>))}<Btn variant="danger" size="xs" onClick={delSelected}>Remove tube</Btn></div>);})()}
-            {selIds.size>1&&(<div><div style={{fontFamily:FM,fontSize:13*fontScale,fontWeight:700,color:C.accent,marginBottom:4}}>{selIds.size} selected</div><div style={{fontSize:11*fontScale,color:C.text2,marginBottom:5,lineHeight:1.6}}>Rows: {selRows.slice(0,4).map(r=>`R${r+1}`).join(", ")}{selRows.length>4?`+${selRows.length-4}`:""}<br/>Cols: {selCols.length} unique</div><Btn variant="danger" size="xs" onClick={delSelected}>✕ Delete {selIds.size}</Btn></div>)}
+            {selIds.size===1&&(()=>{const t=selTubes[0];return(<div><div style={{fontFamily:FM,fontSize:16*fontScale,fontWeight:700,color:C.accent,marginBottom:5}}>R{t.row+1}-C{t.col+1}</div>{[["Pass",t.pass],["x",`${(t.x*IN).toFixed(4)}"`],["y",`${(t.y*IN).toFixed(4)}"`],["OD",`${(t.r*2*IN).toFixed(3)}"`]].map(([k,v])=>(<div key={String(k)} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11*fontScale,color:C.text3}}>{k}</span><span style={{fontFamily:FM,fontSize:11*fontScale,color:C.text}}>{v}</span></div>))}<Btn variant="danger" size="xs" onClick={delSelected} fontScale={fontScale}>Remove tube</Btn></div>);})()}
+            {selIds.size>1&&(<div><div style={{fontFamily:FM,fontSize:13*fontScale,fontWeight:700,color:C.accent,marginBottom:4}}>{selIds.size} selected</div><div style={{fontSize:11*fontScale,color:C.text2,marginBottom:5,lineHeight:1.6}}>Rows: {selRows.slice(0,4).map(r=>`R${r+1}`).join(", ")}{selRows.length>4?`+${selRows.length-4}`:""}<br/>Cols: {selCols.length} unique</div><Btn variant="danger" size="xs" onClick={delSelected} fontScale={fontScale}>✕ Delete {selIds.size}</Btn></div>)}
           </div>
-          <Divider label="Rows"/><div style={{fontSize:10*fontScale,color:C.text2,marginBottom:4}}>Click=select · Shift=add · +↓ insert · ✕ delete</div>
+          <Divider label="Rows" fontScale={fontScale}/><div style={{fontSize:10*fontScale,color:C.text2,marginBottom:4}}>Click=select · Shift=add · +↓ insert · ✕ delete</div>
           <div style={{maxHeight:160,overflowY:"auto",border:`1px solid ${C.border}`,borderRadius:4}}>{uRows.map(r=>{ const cnt=tubes.filter(t=>t.row===r).length; const isSel=selRows.includes(r); return(<div key={r} onClick={e=>e.shiftKey?addSelRow(r):selRow(r)} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px", borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:isSel?C.accentL:"transparent"}}><div style={{width:8,height:8,borderRadius:"50%",background:rowColor(r),flexShrink:0}}/><span style={{fontFamily:FM,fontSize:10*fontScale,color:isSel?C.accent:C.text,flex:1}}>R{r+1}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{cnt}t</span><button onClick={e=>{e.stopPropagation();insertRowAfter(r);}} title="Insert row below" style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.text3}}>+↓</button><button onClick={e=>{e.stopPropagation();delRow(r);}} title="Delete row" style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button></div>);})}</div>
-          <Divider label="Columns"/><div style={{maxHeight:130,overflowY:"auto",border:`1px solid ${C.border}`,borderRadius:4}}>{uCols.slice(0,60).map(c=>{ const cnt=tubes.filter(t=>t.col===c).length; const isSel=selCols.includes(c); return(<div key={c} onClick={e=>e.shiftKey?addSelCol(c):selCol(c)} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px", borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:isSel?C.accentL:"transparent"}}><span style={{fontFamily:FM,fontSize:10*fontScale,color:isSel?C.accent:C.text,flex:1}}>C{c+1}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{cnt}t</span><button onClick={e=>{e.stopPropagation();insertColAfter(c);}} title="Insert col after" style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.text3}}>+→</button><button onClick={e=>{e.stopPropagation();delCol(c);}} title="Delete column" style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button></div>);})}{uCols.length>60&&<div style={{padding:"3px 6px",fontSize:10*fontScale,color:C.text3}}>…{uCols.length-60} more</div>}</div>
-          {cfg.numPasses>1&&(<><Divider label="Passes"/><div style={{border:`1px solid ${C.border}`,borderRadius:4}}>{uPasses.map(pp=>(<div key={pp} onClick={()=>selPass(pp)} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px", borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}><div style={{width:8,height:8,borderRadius:"50%",background:passColor(pp),flexShrink:0}}/><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text,flex:1}}>Pass {pp}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{tubes.filter(t=>t.pass===pp).length}t</span><button onClick={e=>{e.stopPropagation();delPass(pp);}} style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button></div>))}</div></>)}
-          <Divider label="Recalculate"/><button onClick={recalc} style={{width:"100%",padding:"7px 0",borderRadius:4,cursor:"pointer",fontFamily:F, fontSize:12*fontScale,fontWeight:600, background:needRecalc?C.warn:"transparent", color:needRecalc?"#fff":C.text2, border:`1px solid ${needRecalc?C.warn:C.border2}`,transition:"all 0.15s"}}>↺ Recalculate Rows & Cols</button>
+          <Divider label="Columns" fontScale={fontScale}/><div style={{maxHeight:130,overflowY:"auto",border:`1px solid ${C.border}`,borderRadius:4}}>{uCols.slice(0,60).map(c=>{ const cnt=tubes.filter(t=>t.col===c).length; const isSel=selCols.includes(c); return(<div key={c} onClick={e=>e.shiftKey?addSelCol(c):selCol(c)} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px", borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:isSel?C.accentL:"transparent"}}><span style={{fontFamily:FM,fontSize:10*fontScale,color:isSel?C.accent:C.text,flex:1}}>C{c+1}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{cnt}t</span><button onClick={e=>{e.stopPropagation();insertColAfter(c);}} title="Insert col after" style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.text3}}>+→</button><button onClick={e=>{e.stopPropagation();delCol(c);}} title="Delete column" style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button></div>);})}{uCols.length>60&&<div style={{padding:"3px 6px",fontSize:10*fontScale,color:C.text3}}>…{uCols.length-60} more</div>}</div>
+          {cfg.numPasses>1&&(<><Divider label="Passes" fontScale={fontScale}/><div style={{border:`1px solid ${C.border}`,borderRadius:4}}>{uPasses.map(pp=>(<div key={pp} onClick={()=>selPass(pp)} style={{display:"flex",alignItems:"center",gap:4,padding:"3px 6px", borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}><div style={{width:8,height:8,borderRadius:"50%",background:passColor(pp),flexShrink:0}}/><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text,flex:1}}>Pass {pp}</span><span style={{fontFamily:FM,fontSize:10*fontScale,color:C.text3}}>{tubes.filter(t=>t.pass===pp).length}t</span><button onClick={e=>{e.stopPropagation();delPass(pp);}} style={{fontFamily:F,fontSize:9*fontScale,padding:"1px 4px",borderRadius:2,cursor:"pointer", background:"transparent",border:`1px solid ${C.border2}`,color:C.danger}}>✕</button></div>))}</div></>)}
+          <Divider label="Recalculate" fontScale={fontScale}/><button onClick={recalc} style={{width:"100%",padding:"7px 0",borderRadius:4,cursor:"pointer",fontFamily:F, fontSize:12*fontScale,fontWeight:600, background:needRecalc?C.warn:"transparent", color:needRecalc?"#fff":C.text2, border:`1px solid ${needRecalc?C.warn:C.border2}`,transition:"all 0.15s"}}>↺ Recalculate Rows & Cols</button>
           <div style={{fontSize:10*fontScale,color:C.text3,marginTop:3,lineHeight:1.5}}>Keyboard: Ctrl+Z undo · Ctrl+Y redo · Del to delete</div>
         </div>
       </div>
@@ -966,3 +966,4 @@ function rRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,
 
 
   
+

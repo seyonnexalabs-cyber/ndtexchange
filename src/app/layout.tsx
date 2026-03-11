@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
 import { ModeProvider } from '@/app/components/layout/mode-provider';
-import { Inter, Fraunces } from 'next/font/google';
+import { Inter, Audiowide } from 'next/font/google';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 const inter = Inter({
@@ -17,10 +17,10 @@ const inter = Inter({
   variable: '--font-body',
 });
 
-const fraunces = Fraunces({
+const audiowide = Audiowide({
   subsets: ['latin'],
-  weight: ['700'],
-  variable: '--font-fraunces',
+  weight: ['400'],
+  variable: '--font-headline',
 });
 
 
@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${audiowide.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="NDT EXCHANGE" />

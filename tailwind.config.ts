@@ -23,8 +23,8 @@ export default {
   				'sans-serif'
   			],
   			headline: [
-  				'var(--font-fraunces)',
-  				'serif'
+  				'var(--font-headline)',
+  				'sans-serif'
   			]
   		},
   		colors: {

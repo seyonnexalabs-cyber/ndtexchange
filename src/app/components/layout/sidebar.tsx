@@ -374,3 +374,5 @@ const AppSidebar = () => {
     </div>
   );
 };
+
+export default AppSidebar;

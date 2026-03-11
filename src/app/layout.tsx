@@ -7,14 +7,14 @@ import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
 import { ModeProvider } from '@/app/components/layout/mode-provider';
-import { Plus_Jakarta_Sans, Fraunces } from 'next/font/google';
+import { Inter, Fraunces } from 'next/font/google';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
-const plus_jakarta_sans = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-plus-jakarta-sans',
+  style: ['normal'],
+  variable: '--font-body',
 });
 
 const fraunces = Fraunces({
@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${plus_jakarta_sans.variable} ${fraunces.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="NDT EXCHANGE" />

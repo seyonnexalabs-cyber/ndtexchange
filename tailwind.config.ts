@@ -19,7 +19,7 @@ export default {
   	extend: {
   		fontFamily: {
   			body: [
-  				'var(--font-plus-jakarta-sans)',
+  				'var(--font-body)',
   				'sans-serif'
   			],
   			headline: [

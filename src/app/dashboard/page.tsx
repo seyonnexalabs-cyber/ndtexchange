@@ -774,7 +774,6 @@ const AdminDashboard = () => {
             const batch = writeBatch(firestore);
             const seedData = await import('@/lib/seed-data');
 
-            // 1. Top-level collections
             const topLevelCollections = [
                 { name: 'companies', data: seedData.allCompanies },
                 { name: 'users', data: seedData.allUsers.map(({ password, ...user }) => user) },
@@ -795,7 +794,6 @@ const AdminDashboard = () => {
                 { name: 'bids', data: seedData.bidsData },
                 { name: 'inspections', data: seedData.inspectionsData },
                 { name: 'tasks', data: seedData.tasks },
-                { name: 'notifications', data: seedData.notifications },
             ];
 
             console.log("[SEED] Preparing top-level collections...");

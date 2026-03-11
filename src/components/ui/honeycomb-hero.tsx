@@ -31,9 +31,22 @@ function HexShape({ size, stroke }: { size: number; stroke: boolean }) {
   );
 }
 
-const HoneycombHero = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+const HoneycombHero = ({
+  children,
+  className,
+  contentContainerClassName,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  contentContainerClassName?: string;
+}) => {
   return (
-    <section className={cn("relative w-full overflow-hidden flex items-center justify-center py-20 md:py-24", className)}>
+    <section
+      className={cn(
+        'relative w-full overflow-hidden flex items-center justify-center py-20 md:py-24',
+        className
+      )}
+    >
       <style>{`
         @keyframes hch-float {
           0%,100% { transform: translateY(0) rotate(0deg); }
@@ -75,7 +88,12 @@ const HoneycombHero = ({ children, className }: { children: React.ReactNode, cla
       ))}
 
       {/* Hero Content */}
-      <div className="relative z-10 text-center px-4 container mx-auto">
+      <div
+        className={cn(
+          'relative z-10 text-center px-4 container mx-auto',
+          contentContainerClassName
+        )}
+      >
         {children}
       </div>
     </section>

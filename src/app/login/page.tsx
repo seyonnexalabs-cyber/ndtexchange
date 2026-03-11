@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -20,6 +21,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { allUsers } from '@/lib/seed-data';
 import type { PlatformUser } from '@/lib/types';
+import HoneycombHero from '@/components/ui/honeycomb-hero';
 
 type UserType = 'client' | 'inspector' | 'auditor' | 'admin' | 'manufacturer';
 
@@ -54,7 +56,6 @@ export default function LoginPage() {
         let userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists() && process.env.NODE_ENV === 'development') {
-          console.warn(`User document for ${user.email} not found. Attempting to create a profile.`);
           const seedUser = allUsers.find(u => u.email === user.email);
 
           if (seedUser) {
@@ -185,41 +186,17 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="hidden lg:block relative bg-primary">
-          <div className="absolute inset-0 z-0 opacity-10">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern 
-                  id="honeycomb" 
-                  x="0" 
-                  y="0" 
-                  width="56" 
-                  height="97" 
-                  patternUnits="userSpaceOnUse"
-                  patternTransform="scale(1.5)"
-                >
-                  <path 
-                    d="M28 0 L56 16.16 V48.5 L28 64.66 L0 48.5 V16.16 Z" 
-                    fill="none" 
-                    stroke="hsl(var(--primary-foreground))" 
-                    strokeWidth="1"
-                  />
-                  <circle cx="28" cy="0" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="56" cy="16.16" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="56" cy="48.5" r="5" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="28" cy="64.66" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="0" cy="48.5" r="3" fill="hsl(var(--primary-foreground))" />
-                  <circle cx="0" cy="16.16" r="6" fill="hsl(var(--primary-foreground))" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#honeycomb)" />
-            </svg>
-          </div>
-          <div className="relative z-10 flex h-full flex-col justify-end p-10 text-primary-foreground">
-            <h2 className="text-4xl font-bold font-headline">The Digital Marketplace for Asset Integrity</h2>
+      <div className="hidden lg:block">
+        <HoneycombHero
+          className="h-full py-0 md:py-0"
+          contentContainerClassName="h-full flex flex-col justify-end items-start text-left p-10 max-w-full"
+        >
+          <div className="max-w-xl">
+            <h2 className="text-4xl font-bold font-headline text-primary-foreground">The Digital Marketplace for Asset Integrity</h2>
             <p className="mt-4 text-lg max-w-xl text-primary-foreground/80">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
           </div>
-        </div>
+        </HoneycombHero>
+      </div>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-md gap-6">
           <div className="grid gap-2 text-center">

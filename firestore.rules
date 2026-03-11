@@ -67,7 +67,7 @@ service cloud.firestore {
     
     match /tasks/{taskId} {
       allow read, write, delete: if isOwner(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) || isPlatformAdmin();
     }
     
     match /designs/{designId} {

@@ -1,3 +1,4 @@
+
 'use client';
 
 import AppSidebar from '@/components/layout/sidebar';
@@ -19,7 +20,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex flex-col">
               <AppHeader />
-              <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6 overflow-auto">
+              <main className="flex flex-1 flex-col overflow-auto p-4 lg:p-6">
                 {children}
               </main>
             </div>

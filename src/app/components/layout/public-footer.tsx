@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { Logo } from '@/app/components/logo';
@@ -39,7 +38,7 @@ export default function PublicFooter() {
     ];
 
     return (
-        <footer className="bg-muted/30 text-foreground border-t">
+        <footer className="bg-muted text-foreground border-t">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div className="md:col-span-1">

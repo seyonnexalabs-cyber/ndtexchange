@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ export default function PublicHeader() {
   );
 
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-20 border-b bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
         <Link href="/">
           <Logo />

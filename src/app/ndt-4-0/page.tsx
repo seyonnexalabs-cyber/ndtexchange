@@ -125,10 +125,10 @@ export default function NDT40Page() {
                       Take the first step towards a predictive, data-driven asset integrity program.
                     </p>
                     <div className="mt-8 flex justify-center gap-4">
-                      <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                      <Button size="lg" asChild>
                         <Link href="/signup">Start Your Free Trial</Link>
                       </Button>
-                      <Button size="lg" asChild variant="ghost">
+                      <Button size="lg" asChild>
                         <Link href="/request-demo">Request a Demo</Link>
                       </Button>
                     </div>

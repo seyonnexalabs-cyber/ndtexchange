@@ -113,7 +113,7 @@ export default function PublicAuditorProfilePage() {
                         Back to Ecosystem
                     </Link>
                      <div className="flex gap-2">
-                        <Button asChild variant="outline"><Link href="/login">Log In to Contact</Link></Button>
+                        <Button asChild><Link href="/login">Log In to Contact</Link></Button>
                         <Button asChild><Link href="/signup">Post a Job</Link></Button>
                     </div>
                 </div>

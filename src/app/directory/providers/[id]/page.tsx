@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
-import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
+import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from "@/lib/utils";
 import { useFirebase, useCollection, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { NDTServiceProvider, PlatformUser, InspectorAsset, Subscription, Review, NDTTechnique } from '@/lib/types';
@@ -146,7 +146,7 @@ export default function PublicProviderProfilePage() {
                             {backText}
                         </Link>
                         <div className="flex gap-2">
-                            <Button asChild variant="outline"><Link href="/login">Log In to Contact</Link></Button>
+                            <Button asChild><Link href="/login">Log In to Contact</Link></Button>
                             <Button asChild><Link href="/signup">Post a Job</Link></Button>
                         </div>
                     </div>
@@ -283,7 +283,9 @@ export default function PublicProviderProfilePage() {
                                         ))}
                                     </div>
                                     {(publicEquipment || []).length === 0 && (
-                                        <div className="text-center text-muted-foreground py-10">This provider has not listed any public equipment.</div>
+                                        <div className="text-center text-muted-foreground py-10">
+                                            This provider has not listed any public equipment.
+                                        </div>
                                     )}
                                 </CardContent>
                             </Card>

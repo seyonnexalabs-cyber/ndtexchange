@@ -94,13 +94,13 @@ export default function HomePage() {
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">
-                <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Button size="lg" asChild>
                   <Link href="/signup">Sign Up Free</Link>
                 </Button>
-                <Button size="lg" variant="ghost" asChild>
+                <Button size="lg" asChild>
                   <Link href="/request-demo">Request a Demo</Link>
                 </Button>
-                <Button size="lg" variant="ghost" asChild>
+                <Button size="lg" asChild>
                   <Link href="/platform-workflow">How It Works</Link>
                 </Button>
               </div>
@@ -241,7 +241,7 @@ export default function HomePage() {
               Experience the future of asset integrity management. Start your 14-day free trial today.
             </p>
             <div className="mt-8">
-              <Button size="lg" asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
+              <Button size="lg" asChild>
                 <Link href="/signup">Sign Up for a Free Trial</Link>
               </Button>
             </div>

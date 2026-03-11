@@ -78,7 +78,7 @@ export default function PublicHeader() {
                         ))}
                     </div>
                      <div className="mt-8 pt-6 border-t space-y-2">
-                        <Button asChild className="w-full" variant="outline" onClick={() => setMobileMenuOpen(false)}>
+                        <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
                             <Link href="/login">Dashboard</Link>
                         </Button>
                         <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
@@ -91,7 +91,6 @@ export default function PublicHeader() {
            <div className="hidden md:flex items-center space-x-2">
               <Button
                 asChild
-                variant="outline"
               >
                 <Link href="/login">Dashboard</Link>
               </Button>

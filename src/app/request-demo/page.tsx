@@ -21,10 +21,10 @@ export default function RequestDemoPage() {
       <main className="flex-grow">
         <HoneycombHero>
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                 See NDT EXCHANGE in Action
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                 Schedule a live, personalized demo with one of our specialists to see how our platform can address your specific challenges in asset integrity management.
               </p>
                <div className="mt-8">

@@ -24,10 +24,10 @@ export default function HelpPage() {
               <div className="mx-auto bg-primary text-primary-foreground p-4 rounded-full w-fit mb-6">
                 <LifeBuoy className="w-10 h-10" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                 Help & Support Center
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                 We're here to help. Find the resources you need to get the most out of NDT EXCHANGE, or get in touch with our support team.
               </p>
             </div>

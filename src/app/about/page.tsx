@@ -19,12 +19,12 @@ export default function AboutPage() {
       <PublicHeader />
 
       <main className="flex-grow">
-        <HoneycombHero imageId="event-02">
+        <HoneycombHero>
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                 Connecting the World of Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                 NDT EXCHANGE is a purpose-built digital ecosystem where asset owners ensure operational continuity and certified NDT professionals find opportunities to grow their business.
               </p>
             </div>

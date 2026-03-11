@@ -23,10 +23,10 @@ export default function OEMSolutionsPage() {
                 <HoneycombHero className="py-20 md:py-32">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div className="text-left">
-                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                                 Connect with the Heart of the NDT Industry
                             </h1>
-                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                            <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                                 Showcase your equipment to a dedicated audience of asset owners and service providers at the exact moment they're planning and executing inspections.
                             </p>
                             <div className="mt-8">

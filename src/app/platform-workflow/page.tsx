@@ -1,5 +1,4 @@
 
-
 import type { Metadata } from 'next';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -118,8 +117,8 @@ export default function PlatformWorkflowPage() {
             <main className="flex-grow">
                 <HoneycombHero>
                     <div className="max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">Platform Workflow</h1>
-                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">End-to-end process from project creation to payment — a step-by-step breakdown of each phase.</p>
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">Platform Workflow</h1>
+                        <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">End-to-end process from project creation to payment — a step-by-step breakdown of each phase.</p>
                     </div>
                 </HoneycombHero>
 

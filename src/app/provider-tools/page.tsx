@@ -24,10 +24,10 @@ export default function ProviderToolsPage() {
                 {/* Hero Section */}
                 <HoneycombHero className="py-16 md:py-28">
                     <div className="max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                             Grow and Streamline Your NDT Business
                         </h1>
-                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                        <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                             From finding new clients in our marketplace to managing your day-to-day operations, our platform is your end-to-end solution for growth and efficiency.
                         </p>
                     </div>

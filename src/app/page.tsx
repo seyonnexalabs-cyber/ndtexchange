@@ -86,12 +86,12 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <HoneycombHero imageId="tech-ut">
+        <HoneycombHero>
             <div className="max-w-3xl text-center mx-auto">
-              <h1 className="text-4xl md:text-6xl font-headline font-bold text-foreground">
+              <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary-foreground">
                 The Digital Marketplace for Asset Integrity
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                 A purpose-built ecosystem connecting asset owners with certified NDT professionals. Streamline procurement, manage assets, and grow your NDT business.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4">

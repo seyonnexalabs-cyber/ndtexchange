@@ -89,10 +89,10 @@ export default function EventsPage() {
             <main className="flex-grow">
                 <HoneycombHero>
                     <div className="max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                             NDT Events Worldwide
                         </h1>
-                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                        <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                             Explore upcoming conferences, exhibitions, and training courses for the Non-Destructive Testing industry.
                         </p>
                     </div>

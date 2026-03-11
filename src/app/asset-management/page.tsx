@@ -26,10 +26,10 @@ export default function AssetManagementPage() {
                 {/* Hero Section */}
                 <HoneycombHero className="py-16 md:py-28">
                     <div className="max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                             Total Lifecycle Asset Management
                         </h1>
-                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                        <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                             Go beyond simple NDT. Our platform provides a complete, 360-degree view of your asset's health, history, and documentation in one secure, centralized location.
                         </p>
                     </div>

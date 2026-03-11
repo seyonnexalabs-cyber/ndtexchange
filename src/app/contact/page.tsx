@@ -243,12 +243,12 @@ export default function ContactPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <PublicHeader />
       <main className="flex-grow">
-        <HoneycombHero imageId="tech-pt">
+        <HoneycombHero>
             <div className="max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                 Simple, Transparent Pricing
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+              <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                 Whether you're an asset owner, service provider, or auditor, we have a plan that fits your needs. Start free and scale as you grow.
               </p>
             </div>

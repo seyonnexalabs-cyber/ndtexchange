@@ -46,10 +46,10 @@ export default function NDT40Page() {
                 {/* Hero Section */}
                 <HoneycombHero>
                     <div className="max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                             Embracing NDT 4.0: The Future of Asset Integrity
                         </h1>
-                        <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                        <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                             NDT 4.0 is the application of Industry 4.0 principles to non-destructive testing. It represents a shift from reactive inspections to a predictive, data-driven, and interconnected ecosystem for managing asset health.
                         </p>
                     </div>

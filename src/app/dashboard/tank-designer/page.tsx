@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,12 +9,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Save } from 'lucide-react';
+import { Database, Save, FolderOpen, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar';
+import { useFirebase, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, collection, addDoc, setDoc, getDoc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
+import type { TankDesign } from '@/lib/types';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
-// Updated schema to include shellReadings and annularReadings
 const tankDesignerSchema = z.object({
   name: z.string().min(3, "Design name is required."),
+  description: z.string().optional(),
   diameter: z.coerce.number().positive({ message: "Diameter must be a positive number." }),
   shellCourses: z.coerce.number().int().positive({ message: "Must be a whole number." }),
   floorPlates: z.coerce.number().int().positive({ message: "Must be a whole number." }),
@@ -177,7 +186,7 @@ const AnnularRingView = () => {
                                 render={({ field }) => (
                                     <FormItem className="w-40">
                                         <FormLabel className="text-xs text-center block">{position.label}</FormLabel>
-                                        <FormControl><Input type="number" step="0.001" placeholder="Thickness (in)" {...field} className="text-center" /></FormControl>
+                                        <FormControl><Input type="number" step="0.001" placeholder="Thickness (in)" {...field} /></FormControl>
                                     </FormItem>
                                 )}
                             />
@@ -189,12 +198,44 @@ const AnnularRingView = () => {
     );
 };
 
+function SaveDialog({isOpen, onClose, onSave, currentName, currentDescription}: {isOpen:boolean; onClose:()=>void; onSave:(name:string, desc:string)=>void, currentName?: string, currentDescription?: string}) {
+    const [name, setName] = React.useState(currentName || "");
+    const [desc, setDesc] = React.useState(currentDescription || "");
+
+    React.useEffect(() => {
+        if(isOpen) {
+            setName(currentName || "New Tank Design");
+            setDesc(currentDescription || "");
+        }
+    }, [isOpen, currentName, currentDescription])
+
+    return <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent><DialogHeader><DialogTitle>Save Design As</DialogTitle><DialogDescription>Give your tank layout a name and an optional description.</DialogDescription></DialogHeader>
+        <div className="space-y-4 py-2">
+            <div><Label htmlFor="design-name">Design Name</Label><Input id="design-name" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g., West-101 Crude Tank"/></div>
+            <div><Label htmlFor="design-desc">Description (Optional)</Label><Textarea id="design-desc" value={desc} onChange={e=>setDesc(e.target.value)} placeholder="A brief description of this design..."/></div>
+        </div>
+        <DialogFooter><DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose><Button onClick={()=>onSave(name,desc)} disabled={!name}>Save</Button></DialogFooter>
+        </DialogContent></Dialog>
+}
+
+function LoadDialog({isOpen, onClose, designs, onLoad, isLoading}: {isOpen:boolean; onClose:()=>void; designs:TankDesign[], onLoad:(design:TankDesign)=>void, isLoading:boolean}) {
+    return <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-lg"><DialogHeader><DialogTitle>Load Design</DialogTitle><DialogDescription>Select one of your previously saved designs to load it into the editor.</DialogDescription></DialogHeader>
+        <ScrollArea className="h-72 border rounded-md">{isLoading ? <div className="p-4"><Skeleton className="h-20"/></div> : 
+            <div className="p-2 space-y-1">{designs.length > 0 ? designs.map(d=><button key={d.id} onClick={()=>onLoad(d)} className="w-full text-left p-2 rounded-md hover:bg-muted">
+                <p className="font-semibold">{d.name}</p><p className="text-xs text-muted-foreground">{d.description || `Diameter: ${d.config.diameter}ft`}</p></button>)
+            : <p className="p-4 text-center text-sm text-muted-foreground">No saved designs found.</p>}</div>
+        }</ScrollArea></DialogContent></Dialog>
+}
+
 
 export default function TankDesignerPage() {
     const form = useForm<TankDesignerFormValues>({
         resolver: zodResolver(tankDesignerSchema),
         defaultValues: {
             name: "New Tank Design",
+            description: "",
             diameter: 40,
             shellCourses: 5,
             floorPlates: 8,
@@ -206,30 +247,151 @@ export default function TankDesignerPage() {
             ]
         },
     });
+    
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { firestore, user } = useFirebase();
+    const [designId, setDesignId] = React.useState<string | null>(null);
+    const [isSaveModalOpen, setIsSaveModalOpen] = React.useState(false);
+    const [isLoadModalOpen, setIsLoadModalOpen] = React.useState(false);
 
-    const onSubmit = (values: TankDesignerFormValues) => {
-        console.log(values);
-        toast.success("Design Saved (Simulation)", {
-            description: "In a real application, this would save the tank design to the database.",
+    const designsQuery = useMemoFirebase(() => (firestore && user) ? query(collection(firestore, 'tankDesigns'), where('userId', '==', user.uid)) : null, [firestore, user]);
+    const { data: savedDesigns, isLoading: isLoadingDesigns } = useCollection<TankDesign>(designsQuery);
+
+    const applyDesignToForm = React.useCallback((design: TankDesign | null) => {
+        if (!design) return;
+        const { config, ...restOfDesign } = design;
+        form.reset({
+            ...restOfDesign,
+            ...config,
         });
+        setDesignId(design.id);
+    }, [form]);
+
+    React.useEffect(() => {
+        const designIdFromUrl = searchParams.get('designId');
+        if (designIdFromUrl && firestore && user && designIdFromUrl !== designId) {
+          getDoc(doc(firestore, 'tankDesigns', designIdFromUrl)).then(docSnap => {
+            if (docSnap.exists() && docSnap.data().userId === user.uid) {
+              applyDesignToForm(docSnap.data() as TankDesign);
+              toast.success(`Loaded design: ${docSnap.data().name}`);
+            } else {
+              toast.error("Design not found or permission denied.", {
+                description: "You are being redirected to the main designer.",
+              });
+              router.replace('/dashboard/tank-designer'); 
+            }
+          }).catch((err) => {
+            console.error("Error loading design:", err);
+            toast.error("Error loading design.", {
+              description: "There was a problem fetching the design from the database.",
+            });
+            router.replace('/dashboard/tank-designer');
+          });
+        }
+    }, [searchParams, firestore, user, applyDesignToForm, router, designId]);
+
+    const watchedName = form.watch('name');
+    const watchedDescription = form.watch('description');
+
+    const handleSave = async () => {
+        if (!designId) {
+            setIsSaveModalOpen(true);
+            return;
+        }
+        if (!firestore || !user) return;
+        
+        await form.trigger();
+        if (!form.formState.isValid) {
+            toast.error("Validation Error", { description: "Please check your inputs."});
+            return;
+        }
+
+        toast.info("Saving design...");
+        try {
+            const values = form.getValues();
+            const { name, description, diameter, shellCourses, floorPlates, ...restOfValues } = values;
+            const dataToSave = {
+                name,
+                description,
+                userId: user.uid,
+                config: { diameter, shellCourses, floorPlates },
+                ...restOfValues,
+                modifiedAt: serverTimestamp(),
+            };
+            await updateDoc(doc(firestore, 'tankDesigns', designId), dataToSave);
+            toast.success("Design Saved!", { description: `"${values.name}" has been updated.`});
+        } catch(e) {
+            console.error(e);
+            toast.error("Save Failed", { description: "Could not save design."});
+        }
+    };
+
+    const handleSaveAs = async (name: string, description: string) => {
+        if (!firestore || !user) return;
+
+        await form.trigger();
+        if (!form.formState.isValid) {
+            toast.error("Validation Error", { description: "Please check your inputs."});
+            return;
+        }
+
+        setIsSaveModalOpen(false);
+        toast.info("Saving new design...");
+        try {
+            const values = form.getValues();
+            const { diameter, shellCourses, floorPlates, ...restOfValues } = values;
+
+            const newDocRef = doc(collection(firestore, 'tankDesigns'));
+            const newDesign = {
+                id: newDocRef.id,
+                userId: user.uid,
+                name,
+                description: description || '',
+                config: { diameter, shellCourses, floorPlates },
+                shellReadings: restOfValues.shellReadings,
+                annularReadings: restOfValues.annularReadings,
+                createdAt: serverTimestamp(),
+                modifiedAt: serverTimestamp(),
+            };
+            await setDoc(newDocRef, newDesign);
+            setDesignId(newDocRef.id);
+            form.setValue('name', name);
+            form.setValue('description', description);
+            toast.success("Design Saved!", { description: `"${name}" has been saved.`});
+        } catch(e) {
+            console.error(e);
+            toast.error("Save Failed", { description: "Could not save new design."});
+        }
+    };
+    
+    const handleLoadDesign = (design: TankDesign) => {
+        setIsLoadModalOpen(false);
+        router.push(`/dashboard/tank-designer?designId=${design.id}`);
     };
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(() => handleSave())}>
                 <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h1 className="text-2xl font-headline font-semibold flex items-center gap-3">
-                                <Database className="text-primary" />
-                                Storage Tank Designer
-                            </h1>
-                            <p className="text-muted-foreground mt-1">Visualize inspection data for API 650/653 storage tanks.</p>
+                        <div className="flex items-center gap-4">
+                           <Database className="h-8 w-8 text-primary" />
+                           <div>
+                                <h1 className="text-2xl font-headline font-semibold">Storage Tank Designer</h1>
+                                <p className="text-muted-foreground mt-1">Visualize inspection data for API 650/653 storage tanks.</p>
+                            </div>
                         </div>
-                         <Button type="submit">
-                            <Save className="mr-2 h-4 w-4" />
-                            Save Design
-                        </Button>
+                         <Menubar>
+                            <MenubarMenu>
+                                <MenubarTrigger>File</MenubarTrigger>
+                                <MenubarContent>
+                                    <MenubarItem onSelect={handleSave} disabled={!designId}>Save</MenubarItem>
+                                    <MenubarItem onSelect={() => setIsSaveModalOpen(true)}>Save As...</MenubarItem>
+                                    <MenubarItem onSelect={() => setIsLoadModalOpen(true)}>Load...</MenubarItem>
+                                </MenubarContent>
+                            </MenubarMenu>
+                        </Menubar>
                     </div>
 
                     <div className="grid lg:grid-cols-4 gap-8 items-start">
@@ -331,6 +493,20 @@ export default function TankDesignerPage() {
                     </div>
                 </div>
             </form>
+             <SaveDialog 
+                isOpen={isSaveModalOpen} 
+                onClose={() => setIsSaveModalOpen(false)} 
+                onSave={handleSaveAs} 
+                currentName={watchedName}
+                currentDescription={watchedDescription}
+            />
+            <LoadDialog 
+                isOpen={isLoadModalOpen} 
+                onClose={() => setIsLoadModalOpen(false)} 
+                designs={savedDesigns || []} 
+                onLoad={handleLoadDesign} 
+                isLoading={isLoadingDesigns} 
+            />
         </FormProvider>
     );
 }

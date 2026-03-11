@@ -1,4 +1,3 @@
-
 'use client';
 
 import AppSidebar from '@/components/layout/sidebar';
@@ -18,7 +17,7 @@ export default function DashboardLayout({
             <div className="hidden border-r bg-sidebar md:flex md:flex-col">
               <AppSidebar />
             </div>
-            <div className="flex flex-col overflow-hidden">
+            <div className="flex flex-col">
               <AppHeader />
               <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                 {children}

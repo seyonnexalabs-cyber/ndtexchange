@@ -16,6 +16,7 @@ import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
 import { LogoIcon } from '@/components/ui/icons';
 import { useUser } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Logo } from '@/app/components/logo';
 
 type MenuItem = {
   id: string;

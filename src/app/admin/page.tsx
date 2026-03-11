@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { LogoIcon } from '@/components/ui/icons';
+import { Logo } from '@/app/components/logo';
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
       <div className="absolute top-8 left-8">
           <Link href="/">
-            <LogoIcon className="h-10 w-auto text-primary" />
+            <Logo />
           </Link>
       </div>
       <Card className="w-full max-w-sm">

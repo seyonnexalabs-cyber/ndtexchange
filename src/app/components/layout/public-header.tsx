@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { LogoIcon } from '@/components/ui/icons';
+import { Logo } from '@/app/components/logo';
 
 
 export default function PublicHeader() {
@@ -34,11 +34,8 @@ export default function PublicHeader() {
   return (
     <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
-        <Link href="/" className="flex items-center gap-3">
-          <LogoIcon className="h-10 w-auto text-primary" />
-          <span className="text-xl font-bold tracking-tighter font-headline text-primary">
-            NDT EXCHANGE
-          </span>
+        <Link href="/">
+          <Logo />
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
@@ -66,9 +63,8 @@ export default function PublicHeader() {
                 <SheetContent>
                     <SheetHeader>
                         <SheetTitle>
-                           <Link href="/" className="flex items-center gap-3">
-                                <LogoIcon className="h-8 w-auto text-primary" />
-                                <span className="text-lg font-bold tracking-tighter font-headline text-primary">NDT EXCHANGE</span>
+                           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+                                <Logo iconClassName="h-8" textClassName="text-xl" />
                             </Link>
                         </SheetTitle>
                     </SheetHeader>

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogoIcon } from '@/components/ui/icons';
+import { Logo } from '@/app/components/logo';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -170,22 +170,20 @@ export default function SignupPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="hidden lg:block">
-        <HoneycombHero
-          className="h-full py-0 md:py-0"
-          contentContainerClassName="h-full flex flex-col justify-end items-start text-left p-10 max-w-full"
-        >
-           <div className="max-w-xl">
-            <h2 className="text-4xl font-bold font-headline text-primary-foreground">The Digital Marketplace for Asset Integrity</h2>
-            <p className="mt-4 text-lg max-w-xl text-primary-foreground/80">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
-          </div>
-        </HoneycombHero>
-      </div>
+      <HoneycombHero
+        className="hidden lg:flex h-full py-0 md:py-0"
+        contentContainerClassName="h-full flex flex-col justify-end items-start text-left p-10 max-w-full"
+      >
+        <div className="max-w-xl">
+          <h2 className="text-4xl font-bold font-headline text-primary-foreground">The Digital Marketplace for Asset Integrity</h2>
+          <p className="mt-4 text-lg max-w-xl text-primary-foreground/80">Connecting asset owners with certified NDT professionals to ensure operational continuity and grow businesses.</p>
+        </div>
+      </HoneycombHero>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-md gap-6">
             <div className="space-y-2 text-center">
                 <Link href="/" className="flex items-center justify-center">
-                    <LogoIcon className="h-14 w-auto text-primary" />
+                    <Logo iconClassName="h-14" />
                 </Link>
                 <p className="text-muted-foreground">Onboard your company to start your 14-day free trial.</p>
             </div>

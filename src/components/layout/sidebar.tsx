@@ -45,8 +45,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate, cn } from '@/lib/utils';
-import { LogoIcon } from '@/components/ui/icons';
 import { useUser } from '@/firebase';
+import { Logo } from '@/app/components/logo';
 
 
 const userDetails = {
@@ -372,11 +372,8 @@ const AppSidebarContent = () => {
     if (!role || isUserLoading) {
         return (
             <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
-                <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
-                    <LogoIcon className="h-8 w-8 text-primary shrink-0" />
-                    <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
-                        NDT EXCHANGE
-                    </h1>
+                 <Link href={constructUrl("/")} onClick={handleLinkClick}>
+                    <Logo iconClassName="h-8 w-auto" textClassName="text-xl text-sidebar-foreground group-data-[state=collapsed]:hidden" />
                 </Link>
             </SidebarHeader>
         );
@@ -385,11 +382,8 @@ const AppSidebarContent = () => {
     return (
         <>
             <SidebarHeader className="p-4 flex items-center group-data-[state=expanded]:justify-start group-data-[state=collapsed]:justify-center">
-                <Link href={constructUrl("/dashboard")} onClick={handleLinkClick} className="flex items-center gap-3">
-                    <LogoIcon className="h-8 w-8 text-primary shrink-0" />
-                    <h1 className="text-xl font-headline font-bold text-card-foreground group-data-[state=collapsed]:hidden whitespace-nowrap">
-                        NDT EXCHANGE
-                    </h1>
+                <Link href={constructUrl("/dashboard")} onClick={handleLinkClick}>
+                    <Logo iconClassName="h-8 w-auto" textClassName="text-xl text-sidebar-foreground group-data-[state=collapsed]:hidden" />
                 </Link>
             </SidebarHeader>
             <SidebarContent className="p-2">

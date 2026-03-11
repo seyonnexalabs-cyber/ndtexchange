@@ -13,10 +13,10 @@ interface LogoProps {
 export const Logo = ({ className, iconClassName, textClassName }: LogoProps) => {
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <LogoIcon className={cn("h-10 w-auto text-[#0038b8]", iconClassName)} />
+      <LogoIcon className={cn("h-10 w-auto text-primary", iconClassName)} />
       <span 
         className={cn(
-            "font-display text-[22px] font-normal tracking-tighter text-[#0038b8]", 
+            "font-display text-[22px] font-normal tracking-tighter text-primary", 
             textClassName
         )}
       >

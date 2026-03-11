@@ -391,7 +391,7 @@ const AppSidebarContent = () => {
                 <SidebarMenu>
                 {menuItems.map((group: any, groupIndex) => (
                     <div key={group.title}>
-                    <h3 className="px-3 py-2 text-sm font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
+                    <h3 className="px-3 py-2 text-xs font-semibold tracking-wide text-card-foreground/90 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:text-center">
                         <span className="group-data-[state=expanded]:inline">{group.title}</span>
                         <span className="hidden group-data-[state=collapsed]:inline">{group.title[0]}</span>
                     </h3>

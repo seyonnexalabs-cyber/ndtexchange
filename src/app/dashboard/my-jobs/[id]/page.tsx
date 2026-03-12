@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, Edit, MoreVertical, ChevronRight, Settings2 } from 'lucide-react';
@@ -348,19 +348,49 @@ export default function JobDetailPage() {
                 <span className="text-muted-foreground"><span className="font-semibold text-foreground">Auditor:</span> {auditor?.name || 'N/A'}</span>
             </div>
             
-             <Card className="mb-6">
-                <CardHeader><CardTitle>Job Overview</CardTitle></CardHeader>
-                <CardContent>
-                    <ul className="space-y-3 text-sm">
-                        <li className="flex"><strong className="w-32">Job Information:</strong> <span className="text-muted-foreground">{job.description}</span></li>
-                        <li className="flex"><strong className="w-32">Location:</strong> <span className="text-muted-foreground">{job.location}</span></li>
-                        <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? <ClientFormattedDate date={scheduledDate} formatString='PPP' /> : 'Not Scheduled'}</span></li>
-                        <li className="flex items-start"><strong className="w-32 shrink-0">Techniques:</strong>
-                            <div className="flex flex-wrap gap-1">
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle>Job Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">Job Description</h4>
+                        <p className="mt-1 text-sm">{job.description || 'No description provided.'}</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div>
+                            <h4 className="text-sm font-semibold text-muted-foreground">Location</h4>
+                            <p className="mt-1 text-sm">{job.location}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-semibold text-muted-foreground">Scheduled Date</h4>
+                            <p className="mt-1 text-sm">{scheduledDate ? <ClientFormattedDate date={scheduledDate} formatString='PPP' /> : 'Not Scheduled'}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-semibold text-muted-foreground">Job Type</h4>
+                            <p className="mt-1 text-sm capitalize">{job.jobType || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-semibold text-muted-foreground">Industry</h4>
+                            <p className="mt-1 text-sm">{job.industry || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-semibold text-muted-foreground">Estimated Budget</h4>
+                            <p className="mt-1 text-sm">{job.estimatedBudget || 'Not Specified'}</p>
+                        </div>
+                        <div className="lg:col-span-3">
+                            <h4 className="text-sm font-semibold text-muted-foreground">Required Techniques</h4>
+                            <div className="mt-2 flex flex-wrap gap-1">
                                 {job.techniques?.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                        <div className="lg:col-span-3">
+                            <h4 className="text-sm font-semibold text-muted-foreground">Required Certifications</h4>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                                {job.certificationsRequired?.map(c => <Badge key={c} variant="outline">{c}</Badge>)}
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

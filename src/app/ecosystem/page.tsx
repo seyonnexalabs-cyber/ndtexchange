@@ -343,10 +343,10 @@ export default function EcosystemPage() {
                 <main className="flex-grow">
                     <HoneycombHero>
                         <div className="max-w-3xl mx-auto text-center">
-                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
+                            <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary-foreground">
                                 NDT Industry Ecosystem
                             </h1>
-                            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                            <p className="mt-6 text-lg md:text-xl text-primary-foreground/80">
                                 Explore a curated directory of service providers, auditors, manufacturers, and products, all in one place.
                             </p>
                         </div>
@@ -517,8 +517,7 @@ export default function EcosystemPage() {
                                                         setSelectedProviderIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind]);
                                                         setProviderPage(1);
                                                     }}>
-                                                        <Check className={cn("mr-2 h-4 w-4", selectedProviderIndustries.includes(ind) ? "opacity-100" : "opacity-0")} />
-                                                        {ind}
+                                                        <Check className={cn("mr-2 h-4 w-4", selectedProviderIndustries.includes(ind) ? "opacity-100" : "opacity-0")} />{ind}
                                                     </CommandItem>
                                                 ))}
                                                 </CommandGroup></CommandList>
@@ -709,3 +708,5 @@ export default function EcosystemPage() {
         </TooltipProvider>
     );
 }
+
+    

@@ -23,8 +23,8 @@ function HexShape({ size, stroke }: { size: number; stroke: boolean }) {
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
       <polygon
         points={pts}
-        fill={stroke ? 'none' : 'rgba(30,144,255,0.9)'}
-        stroke={stroke ? 'rgba(30,144,255,0.9)' : 'none'}
+        fill={stroke ? 'none' : 'hsl(var(--primary))'}
+        stroke={stroke ? 'hsl(var(--primary))' : 'none'}
         strokeWidth={stroke ? 1.5 : 0}
       />
     </svg>
@@ -59,8 +59,8 @@ const HoneycombHero = ({
         }
       `}</style>
 
-      {/* Slightly lighter gradient base */}
-      <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(135deg,#10243b 0%,#1b3d5c 35%,#2a5678 70%,#3570a0 100%)' }} />
+      {/* Thematic gradient background */}
+      <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(135deg, hsl(var(--hero-bg-start, 221 83% 20%)) 0%, hsl(var(--hero-bg-end, 221 83% 40%)) 100%)' }} />
 
       {/* Hex grid tile pattern */}
       <div
@@ -101,3 +101,5 @@ const HoneycombHero = ({
 };
 
 export default HoneycombHero;
+
+    

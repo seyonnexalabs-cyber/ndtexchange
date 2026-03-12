@@ -50,6 +50,9 @@
     --sidebar-width: 16rem;
     --sidebar-width-icon: 3rem;
     --sidebar-width-mobile: 18rem;
+
+    --hero-bg-start: 221 83% 20%;
+    --hero-bg-end: 221 83% 40%;
   }
 
   .inspector-theme {
@@ -94,6 +97,9 @@
     --card-color-2: 24 95% 63%; /* Mid Orange */
     --card-color-3: 45 85% 65%; /* Mid Gold */
     --card-color-4: 158 15% 45%; /* Mid Gray */
+
+    --hero-bg-start: 158 44% 15%;
+    --hero-bg-end: 158 44% 25%;
   }
 
   .manufacturer-theme {
@@ -136,6 +142,9 @@
     --card-color-2: 180 80% 48%;
     --card-color-3: 205 75% 64%;
     --card-color-4: 170 70% 66%;
+    
+    --hero-bg-start: 200 75% 20%;
+    --hero-bg-end: 200 75% 35%;
   }
 
   .auditor-theme {
@@ -180,6 +189,9 @@
     --card-color-2: 220 13% 79%; /* Light Gray */
     --card-color-3: 190 70% 55%; /* Mid Teal */
     --card-color-4: 330 70% 65%; /* Pink */
+
+    --hero-bg-start: 244 67% 25%;
+    --hero-bg-end: 244 67% 45%;
   }
 
   .admin-theme {
@@ -224,6 +236,9 @@
     --card-color-2: 142 76% 50%; /* Mid Green */
     --card-color-3: 260 80% 70%; /* Lavender */
     --card-color-4: 350 80% 65%; /* Rose */
+
+    --hero-bg-start: 220 14% 15%;
+    --hero-bg-end: 220 14% 25%;
   }
 
   .dark {
@@ -361,3 +376,5 @@
     transform: scale(1.15) rotate(5deg);
   }
 }
+
+    

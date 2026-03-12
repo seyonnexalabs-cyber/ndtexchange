@@ -843,7 +843,7 @@ export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>
         id: 'JOB-025', 
         userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
         title: 'Shutdown Support - MT', 
-        client: 'Global Energy Corp.',
+        client: 'Global Energy Corp.', 
         clientCompanyId: 'client-01',
         providerCompanyId: 'provider-03', 
         location: 'Houston, TX', 
@@ -904,7 +904,19 @@ export const inspectionsData: Inspection[] = [
             id: 'REP-PERFECT',
             submittedOn: '2024-07-11T17:00:00Z',
             submittedBy: 'Maria Garcia',
-            reportData: { summary: 'UT inspection completed on all accessible welds of heat exchanger E-401. All readings are within acceptable tolerance. No reportable indications found.' },
+            reportData: {
+                equipmentUsed: 'Olympus 45MG, M110-RM probe',
+                calibrationBlock: 'IIW Type 1 Block, S/N: CB-54321',
+                couplant: 'Sonotech Ultragel II',
+                surfaceCondition: 'Cleaned',
+                inspectionArea: 'All accessible shell and nozzle welds',
+                findings: [
+                    { location: 'Nozzle A, Weld 1', thickness: 12.5, notes: 'Nominal thickness.' },
+                    { location: 'Shell Course 2, TML-1', thickness: 12.3, notes: 'Slight thinning, within tolerance.' },
+                    { location: 'Shell Course 2, TML-2', thickness: 12.4, notes: 'Nominal thickness.' }
+                ],
+                summary: 'UT inspection completed on all accessible welds of heat exchanger E-401. All readings are within acceptable tolerance. No reportable indications found.'
+            },
             documents: []
         }
     },
@@ -921,7 +933,13 @@ export const inspectionsData: Inspection[] = [
             id: 'REP-PERFECT-2',
             submittedOn: '2024-07-11T17:00:00Z',
             submittedBy: 'Maria Garcia',
-            reportData: { summary: 'MT inspection of crane hooks completed. No indications found.' },
+            reportData: {
+                equipment: 'Parker B-300S Yoke',
+                media: 'Dry Powder, Red',
+                fieldStrength: '45 A/cm',
+                lighting: 'Visible Light (> 100 fc)',
+                summary: 'MT inspection of all accessible welds on crane hooks completed. No relevant linear indications were found. The components are fit for service.'
+            },
             documents: []
         }
     },

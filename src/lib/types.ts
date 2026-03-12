@@ -476,6 +476,20 @@ export type Plan = {
     features: string[];
 };
 
+export type AddOn = {
+    id: string;
+    name: string;
+    description: string;
+    audiences: Array<'Client' | 'Provider' | 'Auditor'>;
+    price: {
+        monthlyUSD: number;
+        yearlyUSD: number;
+    };
+    features: string[];
+    isPublic: boolean;
+    isActive: boolean;
+};
+
 export type Bid = {
   id: string;
   jobId: string;

@@ -1,8 +1,8 @@
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, Mail, Phone } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Send, Mail, Phone, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import * as React from 'react';
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { subscriptionPlans } from '@/lib/seed-data';
+import { subscriptionPlans, subscriptionAddOns } from '@/lib/seed-data';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
 import { PricingTable } from '@/app/components/pricing-table';
 
@@ -222,6 +222,46 @@ export default function ContactPage() {
                 plans={allPlans}
                 onPlanSelect={() => router.push('/signup')}
             />
+          </div>
+        </section>
+
+        <section id="add-ons" className="py-16 bg-surface">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
+              <div>
+                <h2 className="text-3xl font-headline font-semibold text-primary">Optional Add-Ons</h2>
+                <p className="mt-2 text-muted-foreground">Extend your base plan with targeted capacity and capability packs.</p>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Add-ons are billed on top of plan prices. Select one or multiple for your organisation and we can combine in checkout.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {subscriptionAddOns.filter(addOn => addOn.isActive && addOn.isPublic).map((addOn) => (
+                <Card key={addOn.id} className="border hover:shadow-lg transition-all">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">{addOn.name}</CardTitle>
+                    <CardDescription>{addOn.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xl font-bold">{addOn.price.monthlyUSD === 0 ? 'Free' : `$${(addOn.price.monthlyUSD / 100).toFixed(2)}/mo`}</p>
+                    <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                      {addOn.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-green-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button size="sm" onClick={() => router.push('/signup?addon=' + addOn.id)}>
+                      Add to trial
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 

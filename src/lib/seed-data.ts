@@ -1,6 +1,6 @@
 
 
-import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan, NDTEvent } from '@/lib/types';
+import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan, AddOn, NDTEvent } from '@/lib/types';
 import { CheckCircle2, Circle, HelpCircle, XCircle, ArrowDown, ArrowRight, ArrowUp, Repeat, Square } from 'lucide-react';
 
 // This file serves as the master data source for seeding the Firestore database.
@@ -1351,6 +1351,49 @@ export const subscriptionPlanDetails = subscriptionPlans.reduce((acc, plan) => {
     acc[plan.name] = plan;
     return acc;
 }, {} as Record<string, Plan>);
+
+export const subscriptionAddOns: AddOn[] = [
+    {
+        id: 'addon-extra-user',
+        name: 'Extra User Seat',
+        description: 'Add additional user seat to your plan (billed per user per month).',
+        audiences: ['Client', 'Provider', 'Auditor'],
+        price: { monthlyUSD: 1000, yearlyUSD: 10000 },
+        features: ['+1 active user', 'Role-permissions', 'Dashboard seat'],
+        isPublic: true,
+        isActive: true,
+    },
+    {
+        id: 'addon-data-bundle',
+        name: 'Data Vault Expansion (10GB)',
+        description: 'Increase storage for job files, inspect reports, and historical archives.',
+        audiences: ['Client', 'Provider', 'Auditor'],
+        price: { monthlyUSD: 500, yearlyUSD: 5000 },
+        features: ['+10GB storage', 'Extended retention', 'Fast archive search'],
+        isPublic: true,
+        isActive: true,
+    },
+    {
+        id: 'addon-api-requests',
+        name: 'API Integration Pack',
+        description: 'High-volume API usage for integrations and automation workflows.',
+        audiences: ['Client', 'Provider', 'Auditor'],
+        price: { monthlyUSD: 2500, yearlyUSD: 25000 },
+        features: ['20,000 API calls/month', 'Webhooks', 'API support'],
+        isPublic: true,
+        isActive: true,
+    },
+    {
+        id: 'addon-priority-support',
+        name: 'Priority Support',
+        description: 'Faster SLAs and dedicated account touchpoints.',
+        audiences: ['Client', 'Provider'],
+        price: { monthlyUSD: 1500, yearlyUSD: 15000 },
+        features: ['Priority ticket routing', 'Monthly check-in', 'Expert onboarding'],
+        isPublic: true,
+        isActive: true,
+    },
+];
 
 export const labels = [
   { value: "bug", label: "Bug" },

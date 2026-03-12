@@ -532,20 +532,33 @@ const SubscriptionSettings = ({ subscription }: { subscription?: Subscription })
 
                 <div className="space-y-4">
                     <h4 className="font-semibold">Usage this billing cycle</h4>
-                    <div>
-                        <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>Data Storage</span>
-                            <span>{subscription.dataUsageGB} GB / {subscription.dataLimitGB} GB used</span>
-                        </div>
-                        <Progress value={(subscription.dataUsageGB / subscription.dataLimitGB) * 100} />
-                    </div>
-                    <div>
-                        <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>Team Members</span>
-                            <span>{subscription.userCount} / {subscription.userLimit} users</span>
-                        </div>
-                        <Progress value={(subscription.userCount / subscription.userLimit) * 100} />
-                    </div>
+                    {(() => {
+                        const dataPercent = typeof subscription.dataLimitGB === 'number' && subscription.dataLimitGB > 0
+                            ? Math.min(100, (subscription.dataUsageGB / subscription.dataLimitGB) * 100)
+                            : 0;
+                        const userPercent = typeof subscription.userLimit === 'number' && subscription.userLimit > 0
+                            ? Math.min(100, (subscription.userCount / subscription.userLimit) * 100)
+                            : 0;
+
+                        return (
+                            <>
+                                <div>
+                                    <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                                        <span>Data Storage</span>
+                                        <span>{subscription.dataUsageGB} GB / {subscription.dataLimitGB} GB used</span>
+                                    </div>
+                                    <Progress value={dataPercent} />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                                        <span>Team Members</span>
+                                        <span>{subscription.userCount} / {subscription.userLimit} users</span>
+                                    </div>
+                                    <Progress value={userPercent} />
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
             </CardContent>
             <CardFooter className="gap-2">

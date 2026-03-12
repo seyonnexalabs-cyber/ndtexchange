@@ -468,6 +468,11 @@ export type Plan = {
     isActive: boolean;
     isFeatured?: boolean;
     isPopular?: boolean;
+    trialPeriodDays?: number;
+    userCredits?: number;
+    dataCreditsGB?: number;
+    overagePricePerUserUSD?: number;
+    overagePricePer10GBUSD?: number;
     features: string[];
 };
 

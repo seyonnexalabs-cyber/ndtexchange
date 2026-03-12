@@ -91,18 +91,11 @@ const PaymentHistory = ({ companyName }: { companyName: string }) => {
 export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const { firestore, user: authUser } = useFirebase();
-    
-    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
-        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
-    );
+    const { firestore } = useFirebase();
 
-    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? query(collection(firestore, 'plans'), where('isActive', '==', true)) : null, [firestore]));
-    
-    const { data: userSubscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(useMemoFirebase(() => (firestore && currentUserProfile?.companyId) ? query(collection(firestore, 'subscriptions'), where('companyId', '==', currentUserProfile.companyId), where('status', 'in', ['Active', 'Trialing'])) : null, [firestore, currentUserProfile?.companyId]));
-    
-    const currentSubscription = (userSubscriptions && userSubscriptions.length > 0) ? userSubscriptions[0] : null;
-    const currentPlanName = currentSubscription?.plan || '';
+    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
+
+    const currentUser = useMemo(() => userDetails[role as keyof typeof userDetails] || userDetails.client, [role]);
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -171,15 +164,15 @@ export default function BillingPage() {
             <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
             Back to Settings
         </Link>
-        <div className="flex items-center gap-4">
-          <CreditCard className="w-8 h-8 text-primary" />
-          <div>
-              <h1 className="text-2xl font-headline font-semibold">Subscription Plans</h1>
-              <p className="text-muted-foreground">
-                  Choose a plan that fits your needs.
-              </p>
-          </div>
+      <div className="flex items-center gap-4">
+        <CreditCard className="w-8 h-8 text-primary" />
+        <div>
+            <h1 className="text-2xl font-headline font-semibold">Subscription Plans</h1>
+            <p className="text-muted-foreground">
+                Choose a plan that fits your needs.
+            </p>
         </div>
+      </div>
       
         <section id="pricing" className="py-8 space-y-8">
             {role === 'admin' ? (

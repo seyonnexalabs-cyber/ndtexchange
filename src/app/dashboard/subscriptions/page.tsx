@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, addDoc, updateDoc, doc, getDocs } from 'firebase/firestore';
 import type { Payment, Subscription, Plan } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -356,42 +356,133 @@ export default function BillingPage() {
         }
     }, []);
 
+    const createOrUpdateSubscription = async (planObj: Plan, paymentInfo?: { paymentId: string; amountUSD: number; status: 'Succeeded' | 'Failed' }) => {
+        if (!firestore) return;
+
+        const companyId = currentUser.company.replace(/\s+/g, '-').toLowerCase();
+        const now = new Date();
+        const startDate = now.toISOString();
+        const trialDays = planObj.trialPeriodDays ?? (planObj.price.monthlyUSD === 0 && planObj.price.yearlyUSD === 0 ? 30 : 0);
+        const status = planObj.price.monthlyUSD === 0 && planObj.price.yearlyUSD === 0 ? 'Trialing' : 'Active';
+        const endDate = trialDays > 0 ? new Date(now.getTime() + (trialDays * 24 * 60 * 60 * 1000)).toISOString() : null;
+
+        // Query existing active/trial subscription
+        const existingSubQuery = query(
+            collection(firestore, 'subscriptions'),
+            where('companyName', '==', currentUser.company),
+            where('status', 'in', ['Active', 'Trialing'])
+        );
+        const existingSub = await getDocs(existingSubQuery);
+
+        let subscriptionId: string;
+        const baseSubscriptionData = {
+            companyId,
+            companyName: currentUser.company,
+            plan: planObj.name,
+            status,
+            startDate,
+            endDate,
+            userCount: 1,
+            dataUsageGB: 0,
+            userLimit: planObj.userLimit === 'Unlimited' ? 999999 : planObj.userLimit,
+            dataLimitGB: planObj.dataLimitGB === 'Unlimited' ? 999999 : planObj.dataLimitGB,
+            createdAt: now,
+            createdBy: currentUser.email,
+            modifiedAt: now,
+            modifiedBy: currentUser.email,
+        };
+
+        if (!existingSub.empty) {
+            const latestSub = existingSub.docs[0];
+            subscriptionId = latestSub.id;
+            await updateDoc(doc(firestore, 'subscriptions', subscriptionId), {
+                ...baseSubscriptionData,
+                modifiedAt: now,
+                modifiedBy: currentUser.email,
+            });
+        } else {
+            const subsDoc = await addDoc(collection(firestore, 'subscriptions'), baseSubscriptionData);
+            subscriptionId = subsDoc.id;
+        }
+
+        if (paymentInfo && paymentInfo.status === 'Succeeded') {
+            await addDoc(collection(firestore, 'payments'), {
+                subscriptionId,
+                companyName: currentUser.company,
+                amount: paymentInfo.amountUSD,
+                date: new Date().toISOString(),
+                status: 'Succeeded',
+                createdAt: now,
+                createdBy: currentUser.email,
+            });
+        }
+
+        await addDoc(collection(firestore, 'billingAuditLog'), {
+            timestamp: now,
+            companyName: currentUser.company,
+            action: planObj.price.monthlyUSD === 0 && planObj.price.yearlyUSD === 0 ? 'Subscription Started' : 'Payment Succeeded',
+            details: paymentInfo ? `Plan set to ${planObj.name} with payment ${paymentInfo.amountUSD} USD` : `Plan set to ${planObj.name}`,
+        });
+
+        toast.success(`Subscription updated to ${planObj.name}`);
+    };
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
 
-    const handleUpgradeClick = (plan: string, price: string) => {
-        if (price === "Custom") {
-             const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
-             window.location.href = mailtoHref;
-        } else {
-            const amountInCents = parseInt(price.replace('$', '')) * 100;
-        
-            const options = {
-                "key": "rzp_test_SCmu4c9MVES9Ei", // Public Test Key
-                "amount": amountInCents,
-                "currency": currentUser.currency,
-                "name": "NDT EXCHANGE",
-                "description": `Subscription for ${plan}`,
-                "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",
-                "handler": function (response: any){
-                    toast.success("Payment Successful!", {
-                        description: `Payment ID: ${response.razorpay_payment_id}`,
-                    });
-                },
-                "prefill": {
-                    "name": currentUser.name,
-                    "email": currentUser.email,
-                },
-                "theme": {
-                    "color": "#3B82F6" // Matches the client primary color
-                }
-            };
-    
-            const rzp = new (window as any).Razorpay(options);
-            rzp.open();
+    const handleUpgradeClick = async (planName: string, priceLabel: string) => {
+        const selectedPlan = plans?.find(p => p.name === planName);
+        if (!selectedPlan) {
+            toast.error('Selected plan could not be found.');
+            return;
         }
+
+        if (priceLabel === 'Custom') {
+            const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${selectedPlan.name} Plan&body=Hello, I'm interested in upgrading to the ${selectedPlan.name} plan. Please provide me with more details.`;
+            window.location.href = mailtoHref;
+            return;
+        }
+
+        const selectedPrice = billingCycle === 'monthly' ? selectedPlan.price.monthlyUSD : selectedPlan.price.yearlyUSD;
+
+        if (selectedPrice === 0) {
+            await createOrUpdateSubscription(selectedPlan);
+            return;
+        }
+
+        const amountInCents = selectedPrice; // Razorpay expects smallest currency unit for USD
+
+        const options = {
+            key: 'rzp_test_SCmu4c9MVES9Ei',
+            amount: amountInCents,
+            currency: currentUser.currency,
+            name: 'NDT EXCHANGE',
+            description: `Subscription for ${selectedPlan.name}`,
+            image: 'https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT',
+            handler: async function (response: any) {
+                toast.success('Payment Successful!', {
+                    description: `Payment ID: ${response.razorpay_payment_id}`,
+                });
+
+                await createOrUpdateSubscription(selectedPlan, {
+                    paymentId: response.razorpay_payment_id,
+                    amountUSD: selectedPrice / 100,
+                    status: 'Succeeded',
+                });
+            },
+            prefill: {
+                name: currentUser.name,
+                email: currentUser.email,
+            },
+            theme: {
+                color: '#3B82F6',
+            },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
     };
 
   const renderPlansByRole = () => {

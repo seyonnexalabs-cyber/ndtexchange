@@ -223,9 +223,14 @@ export default function BillingPage() {
     const role = searchParams.get('role') || 'client';
     const { firestore } = useFirebase();
 
-    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
-
     const currentUser = useMemo(() => userDetails[role as keyof typeof userDetails] || userDetails.client, [role]);
+
+    const subscriptionsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'subscriptions'), where('companyName', '==', currentUser.company), where('status', 'in', ['Active', 'Trialing', 'Past Due'])) : null, [firestore, currentUser.company]);
+    const { data: subscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(subscriptionsQuery);
+
+    const currentSubscription = subscriptions && subscriptions.length > 0 ? subscriptions[0] : null;
+
+    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -312,6 +317,24 @@ export default function BillingPage() {
             </p>
         </div>
       </div>
+      {currentSubscription && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Subscription</CardTitle>
+              <CardDescription>Your active plan and trial status.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div><strong>Plan:</strong> {currentSubscription.plan}</div>
+                <div><strong>Status:</strong> {currentSubscription.status}</div>
+                <div><strong>Start Date:</strong> {new Date(currentSubscription.startDate).toLocaleDateString()}</div>
+                {currentSubscription.endDate && <div><strong>End Date:</strong> {new Date(currentSubscription.endDate).toLocaleDateString()}</div>}
+                <div><strong>Users:</strong> {currentSubscription.userCount}/{currentSubscription.userLimit}</div>
+                <div><strong>Data:</strong> {currentSubscription.dataUsageGB}GB/{currentSubscription.dataLimitGB}GB</div>
+              </div>
+            </CardContent>
+          </Card>
+      )}
       
       <section id="pricing" className="py-8 space-y-8">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">

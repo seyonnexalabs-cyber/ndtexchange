@@ -254,6 +254,37 @@ export default function ContactPage() {
             </div>
         </HoneycombHero>
 
+        <section id="pricing-intro" className="py-12">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid gap-6 md:grid-cols-3">
+                    {['Client', 'Provider', 'Auditor'].map(audience => (
+                        <Card key={audience} className="border hover:border-primary transition-all">
+                            <CardHeader>
+                                <CardTitle className="text-xl font-semibold">{audience}</CardTitle>
+                                <CardDescription>{
+                                    audience === 'Client'
+                                        ? 'Asset owners, operators, and EPC teams.'
+                                        : audience === 'Provider'
+                                            ? 'Service providers, inspection firms, and contractors.'
+                                            : 'Solo/firm auditors and regulatory reviewers.'
+                                }</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                    {subscriptionPlans.filter(p => p.audience === audience && p.isActive && p.isPublic).slice(0, 2).map(plan => (
+                                        <li key={plan.id} className="flex justify-between">
+                                            <span>{plan.name}</span>
+                                            <span className="font-semibold">{plan.price.monthlyUSD === 0 ? 'Free' : `$${(plan.price.monthlyUSD / 100).toFixed(0)}/mo`}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </section>
+
         <section id="pricing-table" className="py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center space-x-2">
@@ -426,7 +457,7 @@ export default function ContactPage() {
                      <AccordionItem value="item-4">
                         <AccordionTrigger>What happens at the end of my free trial?</AccordionTrigger>
                         <AccordionContent>
-                        Towards the end of your 14-day free trial, we will contact you to discuss paid plan options. If you choose not to subscribe, your account will be transitioned to our free "Starter" or "Access" plan, so you won't lose your data.
+                        Towards the end of your 30-day free trial, we will contact you to discuss paid plan options. If you choose not to subscribe, your account will transition to the free access tier so your data remains available.
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

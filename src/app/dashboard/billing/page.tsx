@@ -2,8 +2,8 @@
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, CreditCard, ChevronLeft } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CreditCard, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn, safeParseDate } from '@/lib/utils';
@@ -17,8 +17,7 @@ import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Payment, Subscription, Plan, PlatformUser } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { PricingTable } from '@/app/components/pricing-table';
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
     const [formatted, setFormatted] = useState<string | null>(null);
@@ -31,143 +30,6 @@ const ClientFormattedDate = ({ date, formatString }: { date: Date | null, format
     if (!formatted) return null;
     return <>{formatted}</>;
 };
-
-function PricingCard({ plan, price, yearlyPrice, description, features, isFeatured, isCurrent = false, onUpgradeClick, billingCycle }: { 
-    plan: string; 
-    price: number; 
-    yearlyPrice: number; 
-    description: string; 
-    features: string[], 
-    isFeatured?: boolean, 
-    isCurrent?: boolean,
-    billingCycle: 'monthly' | 'yearly';
-    onUpgradeClick: (plan: string, priceLabel: string) => void
-}) {
-  const displayPrice = billingCycle === 'monthly' ? price : yearlyPrice;
-  const displayLabel = displayPrice === 0 ? 'Free' : (displayPrice === Infinity ? 'Custom' : `$${(displayPrice / 100).toFixed(2)}`);
-  const isCustom = displayPrice === Infinity;
-  const isFree = displayPrice === 0;
-  const savings = (price > 0 && yearlyPrice > 0 && billingCycle === 'yearly') ? Math.round((1 - yearlyPrice / (price * 12)) * 100) : null;
-
-  return (
-    <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "", isCurrent && "bg-muted")}>
-      <CardHeader className="text-center">
-        {isCurrent && <div className="text-sm font-bold text-primary">CURRENT PLAN</div>}
-        {isFeatured && !isCurrent && <div className="text-sm font-semibold text-accent">POPULAR</div>}
-        <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-        <div className="pt-4">
-            <span className="text-4xl font-bold">{displayLabel}</span>
-            {displayLabel !== "Custom" && displayLabel !== "Free" && <span className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>}
-        </div>
-        {savings && savings > 0 && (
-            <div className="mt-1 text-xs text-emerald-600">Save {savings}% annually</div>
-        )}
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <ul className="space-y-3">
-          {features.map((feature, i) => (
-            <li key={i} className="flex items-start">
-              <CheckCircle className="w-5 h-5 text-primary mr-3 mt-1 shrink-0" />
-              <span className="text-muted-foreground">{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-      <CardFooter>
-        <Button 
-            className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} 
-            variant={isCurrent ? 'outline' : isFeatured ? 'default' : 'outline'} 
-            disabled={isCurrent}
-            onClick={() => !isCurrent && onUpgradeClick(plan, displayLabel)}
-        >
-            {isCurrent ? "This is your current plan" : (isCustom ? 'Contact Sales' : 'Pay with Razorpay')}
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
-
-
-const ClientPlans = ({ onUpgradeClick, plans, billingCycle, currentPlanName }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[], billingCycle: 'monthly' | 'yearly', currentPlanName: string }) => (
-    <>
-        {plans.filter(p => p.audience === 'Client' && p.isPublic).map(plan => (
-            <PricingCard
-                key={plan.id}
-                plan={plan.name}
-                price={plan.price.monthlyUSD}
-                yearlyPrice={plan.price.yearlyUSD}
-                description={plan.description}
-                features={plan.features}
-                isCurrent={plan.name === currentPlanName}
-                isFeatured={plan.isFeatured}
-                billingCycle={billingCycle}
-                onUpgradeClick={onUpgradeClick}
-            />
-        ))}
-    </>
-);
-
-const ProviderPlans = ({ onUpgradeClick, plans, billingCycle, currentPlanName }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[], billingCycle: 'monthly' | 'yearly', currentPlanName: string }) => (
-    <>
-       {plans.filter(p => p.audience === 'Provider' && p.isPublic).map(plan => (
-            <PricingCard
-                key={plan.id}
-                plan={plan.name}
-                price={plan.price.monthlyUSD}
-                yearlyPrice={plan.price.yearlyUSD}
-                description={plan.description}
-                features={plan.features}
-                isCurrent={plan.name === currentPlanName}
-                isFeatured={plan.isFeatured}
-                billingCycle={billingCycle}
-                onUpgradeClick={onUpgradeClick}
-            />
-        ))}
-    </>
-);
-
-const AuditorView = ({ constructUrl }: { constructUrl: (url: string) => string }) => (
-    <Card className="col-span-1 md:col-span-2 lg:col-span-3">
-        <CardHeader>
-            <CardTitle>Auditor & Regulator Access</CardTitle>
-            <CardDescription>Your access is managed through Client or Enterprise accounts.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-muted-foreground">
-                As an auditor, your firm is typically granted access to specific jobs or assets by a Client company that holds an Enterprise plan. There is no separate subscription plan for auditors. If a client needs to grant you access, they can do so through their Enterprise account settings.
-            </p>
-        </CardContent>
-         <CardFooter>
-            <Button asChild variant="outline">
-                <Link href={constructUrl("/dashboard/settings")}>
-                    Back to Settings
-                </Link>
-            </Button>
-        </CardFooter>
-    </Card>
-);
-
-const AdminView = ({ constructUrl }: { constructUrl: (url: string) => string }) => (
-    <Card className="col-span-1 md:col-span-2 lg:col-span-3">
-        <CardHeader>
-            <CardTitle>Platform Subscription Management</CardTitle>
-            <CardDescription>You are viewing this page as a platform administrator.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-muted-foreground">
-                As an administrator, you manage the subscription plans for all users on the platform. This page is typically for clients and providers to manage their own subscriptions. To manage all platform subscriptions, please visit the <Link href={constructUrl("/dashboard/subscriptions")} className="text-primary underline">Subscription Management</Link> page.
-            </p>
-        </CardContent>
-         <CardFooter>
-            <Button asChild variant="outline">
-                <Link href={constructUrl("/dashboard/settings")}>
-                    Back to Settings
-                </Link>
-            </Button>
-        </CardFooter>
-    </Card>
-);
 
 const PaymentHistory = ({ companyName }: { companyName: string }) => {
     const { firestore } = useFirebase();
@@ -230,8 +92,7 @@ export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
     const { firestore, user: authUser } = useFirebase();
-    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-
+    
     const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
         useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
     );
@@ -259,19 +120,17 @@ export default function BillingPage() {
         return `${base}?${params.toString()}`;
     }
 
-    const handleUpgradeClick = (plan: string, price: string) => {
-        if (price === "Custom") {
-             const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
+    const handlePlanSelect = (plan: Plan, priceInCents: number, billingCycle: 'monthly' | 'yearly') => {
+        if (priceInCents === Infinity) {
+             const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan.name} Plan&body=Hello, I'm interested in upgrading to the ${plan.name} plan. Please provide me with more details.`;
              window.location.href = mailtoHref;
         } else {
-            const amountInCents = Number(price.replace(/[^0-9.-]+/g,"")) * 100;
-        
             const options = {
                 "key": "rzp_test_SCmu4c9MVES9Ei", // Public Test Key
-                "amount": amountInCents,
+                "amount": priceInCents,
                 "currency": 'USD',
                 "name": "NDT EXCHANGE",
-                "description": `Subscription for ${plan}`,
+                "description": `Subscription for ${plan.name} (${billingCycle})`,
                 "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",
                 "handler": function (response: any){
                     toast.success("Payment Successful!", {
@@ -292,23 +151,16 @@ export default function BillingPage() {
         }
     };
 
-  const renderPlansByRole = () => {
-    if (isLoadingPlans || isLoadingSubscriptions || isLoadingProfile) {
-        return [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />);
-    }
-    switch(role) {
-        case 'client':
-            return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
-        case 'inspector':
-            return <ProviderPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
-        case 'auditor':
-            return <AuditorView constructUrl={constructUrl} />;
-        case 'admin':
-            return <AdminView constructUrl={constructUrl} />;
-        default:
-             return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
-    }
-  }
+    const plansByAudience = useMemo(() => {
+        if (!plans) return [];
+        let audience: 'Client' | 'Provider' | 'Auditor' = 'Client';
+        switch (role) {
+            case 'client': audience = 'Client'; break;
+            case 'inspector': audience = 'Provider'; break;
+            case 'auditor': audience = 'Auditor'; break;
+        }
+        return plans.filter(p => p.audience === audience && p.isPublic);
+    }, [plans, role]);
 
   return (
     <div className="space-y-6">
@@ -319,7 +171,6 @@ export default function BillingPage() {
             <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
             Back to Settings
         </Link>
-      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <CreditCard className="w-8 h-8 text-primary" />
           <div>
@@ -329,20 +180,39 @@ export default function BillingPage() {
               </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-muted p-1">
-            <Button size="sm" variant={billingCycle === 'monthly' ? 'default' : 'ghost'} onClick={() => setBillingCycle('monthly')}>Monthly</Button>
-            <Button size="sm" variant={billingCycle === 'yearly' ? 'default' : 'ghost'} onClick={() => setBillingCycle('yearly')}>Yearly</Button>
-        </div>
-      </div>
       
-      <section id="pricing" className="py-8 space-y-8">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {renderPlansByRole()}
-          </div>
+        <section id="pricing" className="py-8 space-y-8">
+            {role === 'admin' ? (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Platform Subscription Management</CardTitle>
+                        <CardDescription>You are viewing this page as a platform administrator. To manage plans, go to the main subscriptions page.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild>
+                            <Link href={constructUrl('/dashboard/subscriptions')}>Manage All Subscriptions</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : role === 'auditor' ? (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Auditor & Regulator Access</CardTitle>
+                        <CardDescription>Your access is managed through Client or Enterprise accounts.</CardDescription>
+                    </CardHeader>
+                </Card>
+            ) : (
+                <PricingTable 
+                    plans={plansByAudience}
+                    onPlanSelect={(plan, price, cycle) => handlePlanSelect(plan, price, cycle)}
+                    currentPlanName={currentPlanName}
+                    isLoading={isLoadingPlans || isLoadingSubscriptions || isLoadingProfile}
+                />
+            )}
            <p className="text-center text-muted-foreground mt-8 text-sm">
               All subscription plans are billed annually. Pricing is usage-based, determined by factors like platform hosting, data storage, and number of users. <strong>Please note: we process payments for platform subscriptions, but we do not process payments for the NDT jobs themselves.</strong> Contact our sales team for a detailed quote tailored to your needs.
            </p>
-      </section>
+        </section>
         {(role === 'client' || role === 'inspector') && currentUserProfile && (
             <section id="payment-history">
                 <PaymentHistory companyName={currentUserProfile.company} />
@@ -351,5 +221,3 @@ export default function BillingPage() {
     </div>
   );
 }
-
-    

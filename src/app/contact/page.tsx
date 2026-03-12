@@ -1,14 +1,14 @@
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Send, Mail, Phone, X, CheckCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Send, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,23 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { subscriptionPlans } from '@/lib/seed-data';
-import type { Plan } from '@/lib/types';
 import HoneycombHero from '@/components/ui/honeycomb-hero';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-
-type Currency = 'USD' | 'EUR' | 'INR' | 'GBP' | 'CAD';
-type BillingCycle = 'monthly' | 'yearly';
-
-const exchangeRates: Record<Currency, { rate: number; symbol: string; locale: string }> = {
-    USD: { rate: 1, symbol: '$', locale: 'en-US' },
-    EUR: { rate: 0.93, symbol: '€', locale: 'de-DE' },
-    INR: { rate: 83.5, symbol: '₹', locale: 'en-IN' },
-    GBP: { rate: 0.79, symbol: '£', locale: 'en-GB' },
-    CAD: { rate: 1.37, symbol: 'C$', locale: 'en-CA' },
-};
+import { PricingTable } from '@/app/components/pricing-table';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name is required."),
@@ -170,24 +155,7 @@ const ContactForm = () => {
 };
 
 export default function ContactPage() {
-    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>('monthly');
-    const [currency, setCurrency] = React.useState<Currency>('USD');
-    const [isMounted, setIsMounted] = React.useState(false);
-    
-    React.useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    React.useEffect(() => {
-        if (!isMounted) return;
-        // This effect runs only on the client side, after hydration
-        const userLocale = navigator.language.toLowerCase();
-        if (userLocale.includes('in')) setCurrency('INR');
-        else if (['de', 'fr', 'es', 'it', 'nl', 'pt', 'fi', 'at', 'be', 'cy', 'ee', 'gr', 'ie', 'lv', 'lt', 'lu', 'mt', 'sk', 'si'].some(prefix => userLocale.startsWith(prefix))) setCurrency('EUR');
-        else if (userLocale.includes('gb')) setCurrency('GBP');
-        else if (userLocale.includes('ca')) setCurrency('CAD');
-        else setCurrency('USD');
-    }, [isMounted]);
+    const router = useRouter();
 
     const allPlans = useMemo(() => {
       const activePlans = subscriptionPlans.filter(p => p.isActive && p.isPublic);
@@ -201,22 +169,6 @@ export default function ContactPage() {
         return priceToNumber(a.price.monthlyUSD) - priceToNumber(b.price.monthlyUSD);
       });
     }, []);
-    
-    const formatPrice = (priceInCents: number) => {
-        if (priceInCents === 0) return 'Free';
-        if (priceInCents === Infinity) return 'Custom';
-
-        const baseAmount = priceInCents / 100;
-        const finalAmount = billingCycle === 'yearly' ? baseAmount * 10 : baseAmount;
-        const convertedAmount = finalAmount * exchangeRates[currency].rate;
-        
-        return new Intl.NumberFormat(exchangeRates[currency].locale, {
-            style: 'currency',
-            currency: currency,
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(convertedAmount);
-    };
 
     return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -235,60 +187,10 @@ export default function ContactPage() {
 
         <section id="pricing-table" className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center space-x-4 mb-12">
-              <Label htmlFor="billing-cycle">Monthly</Label>
-              <Switch id="billing-cycle" checked={billingCycle === 'yearly'} onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')} />
-              <Label htmlFor="billing-cycle" className="flex items-center">
-                Yearly
-                <Badge variant="secondary" className="ml-2">Save ~16%</Badge>
-              </Label>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch justify-center">
-                {allPlans.map((plan) => {
-                    const priceValue = billingCycle === 'monthly' ? plan.price.monthlyUSD : plan.price.yearlyUSD;
-                    const isCustom = priceValue === Infinity;
-                    
-                    let audienceColorClass = '';
-                    switch (plan.audience) {
-                        case 'Client': audienceColorClass = 'border-blue-300'; break;
-                        case 'Provider': audienceColorClass = 'border-green-300'; break;
-                        case 'Auditor': audienceColorClass = 'border-gray-300'; break;
-                    }
-
-                    return (
-                        <Card key={plan.id} className={cn("flex flex-col transition-all hover:shadow-lg hover:-translate-y-1", plan.isFeatured && "border-primary ring-2 ring-primary", audienceColorClass)}>
-                            <CardHeader className="text-center">
-                                {plan.isPopular && <Badge className="mb-2 w-fit mx-auto">Popular</Badge>}
-                                <p className="font-semibold text-primary">{plan.audience}</p>
-                                <CardTitle className="text-2xl font-headline">{plan.name}</CardTitle>
-                                <CardDescription>{plan.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex-grow flex flex-col justify-between">
-                                <div>
-                                    <div className="text-center mb-6">
-                                        <span className="text-4xl font-bold">{isMounted ? formatPrice(priceValue) : <Skeleton className="h-10 w-24 inline-block" />}</span>
-                                        {!isCustom && priceValue > 0 && <span className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>}
-                                    </div>
-                                    <ul className="space-y-3 text-sm">
-                                        {plan.features.map((feature, i) => (
-                                            <li key={i} className="flex items-start">
-                                                <Check className="w-4 h-4 text-green-500 mr-2 mt-0.5 shrink-0" />
-                                                <span className="text-muted-foreground">{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </CardContent>
-                            <CardFooter>
-                                <Button asChild className="w-full" variant={plan.isFeatured ? 'default' : 'outline'}>
-                                    <Link href="/signup">Get Started</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    );
-                })}
-            </div>
+            <PricingTable 
+                plans={allPlans}
+                onPlanSelect={() => router.push('/signup')}
+            />
           </div>
         </section>
 

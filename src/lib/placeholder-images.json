@@ -9,37 +9,37 @@
     {
       "id": "tech-ut",
       "description": "An inspector performing ultrasonic testing on a pipe weld.",
-      "imageUrl": "https://placehold.co/800x600/e2e8f0/64748b/png?text=Ultrasonic+Testing",
+      "imageUrl": "https://images.unsplash.com/photo-1581092921447-4e4b52474969?q=80&w=800&h=600&fit=crop",
       "imageHint": "ultrasonic inspection"
     },
     {
       "id": "tech-rt",
       "description": "An industrial radiograph of a complex mechanical part.",
-      "imageUrl": "https://placehold.co/800x600/e2e8f0/64748b/png?text=Radiographic+Testing",
+      "imageUrl": "https://images.unsplash.com/photo-1579169187310-815e1a13d745?q=80&w=800&h=600&fit=crop",
       "imageHint": "industrial xray"
     },
     {
       "id": "tech-mt",
       "description": "Close-up of magnetic particles forming an indication on a steel component.",
-      "imageUrl": "https://placehold.co/800x600/e2e8f0/64748b/png?text=Magnetic+Particle",
+      "imageUrl": "https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=800&h=600&fit=crop",
       "imageHint": "magnetic inspection"
     },
     {
       "id": "tech-pt",
       "description": "A critical aerospace component glows under UV light during a liquid penetrant test.",
-      "imageUrl": "https://placehold.co/800x600/e2e8f0/64748b/png?text=Penetrant+Testing",
+      "imageUrl": "https://images.unsplash.com/photo-1655182513906-1755106518af?q=80&w=800&h=600&fit=crop",
       "imageHint": "uv light"
     },
     {
       "id": "tech-vt",
       "description": "An engineer using a videoscope for a remote visual inspection inside a turbine engine.",
-      "imageUrl": "https://placehold.co/800x600/e2e8f0/64748b/png?text=Visual+Testing",
+      "imageUrl": "https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=800&h=600&fit=crop",
       "imageHint": "engineer inspection"
     },
     {
       "id": "tech-ae",
       "description": "A network of acoustic emission sensors monitoring a large pressure vessel for structural integrity.",
-      "imageUrl": "https://placehold.co/800x600/e2e8f0/64748b/png?text=Acoustic+Emission",
+      "imageUrl": "https://images.unsplash.com/photo-1704741389627-5991d9953ba3?q=80&w=800&h=600&fit=crop",
       "imageHint": "acoustic sensor"
     },
     {

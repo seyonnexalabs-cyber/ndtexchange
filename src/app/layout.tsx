@@ -51,15 +51,15 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased text-sm">
         <Suspense fallback={<div>Loading...</div>}>
-          <FirebaseClientProvider>
-            <ModeProvider>
-              <ThemeProvider>
-                {children}
-              </ThemeProvider>
-              <Toaster richColors />
-            </ModeProvider>
-            <FirebaseErrorListener />
-          </FirebaseClientProvider>
+            <FirebaseClientProvider>
+              <ModeProvider>
+                <ThemeProvider>
+                  {children}
+                </ThemeProvider>
+                <Toaster richColors />
+              </ModeProvider>
+              <FirebaseErrorListener />
+            </FirebaseClientProvider>
         </Suspense>
         <CookieConsent />
       </body>

@@ -11,6 +11,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+
   return (
     <SearchProvider>
       <QRScannerProvider>
@@ -20,8 +21,8 @@ export default function DashboardLayout({
             </div>
             <div className="flex flex-col overflow-y-auto">
               <AppHeader />
-              <main className="flex-1 p-4 lg:p-6">
-                {children}
+              <main id="dashboard-main-content" className="flex-1 p-4 lg:p-6">
+                  {children}
               </main>
             </div>
         </div>

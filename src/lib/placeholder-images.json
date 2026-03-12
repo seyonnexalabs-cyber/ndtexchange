@@ -8,39 +8,39 @@
     },
     {
       "id": "tech-ut",
-      "description": "An inspector performing ultrasonic testing on a pipe.",
+      "description": "An inspector performing ultrasonic testing on a pipe weld.",
       "imageUrl": "https://picsum.photos/seed/techut/800/600",
-      "imageHint": "scientist lab"
+      "imageHint": "ultrasonic inspection"
     },
     {
       "id": "tech-rt",
-      "description": "An X-ray film showing a weld inspection.",
+      "description": "An industrial radiograph of a complex mechanical part.",
       "imageUrl": "https://picsum.photos/seed/techrt/800/600",
-      "imageHint": "xray circuit"
+      "imageHint": "industrial xray"
     },
     {
       "id": "tech-mt",
-      "description": "Magnetic particle inspection highlighting a flaw.",
+      "description": "Close-up of magnetic particles forming an indication on a steel component.",
       "imageUrl": "https://picsum.photos/seed/techmt/800/600",
-      "imageHint": "magnetic field"
+      "imageHint": "magnetic inspection"
     },
     {
       "id": "tech-pt",
-      "description": "A component under UV light showing liquid penetrant indications.",
+      "description": "A critical aerospace component glows under UV light during a liquid penetrant test.",
       "imageUrl": "https://picsum.photos/seed/techpt/800/600",
       "imageHint": "uv light"
     },
     {
       "id": "tech-vt",
-      "description": "A remote visual inspection borescope inside an engine.",
+      "description": "An engineer using a videoscope for a remote visual inspection inside a turbine engine.",
       "imageUrl": "https://picsum.photos/seed/techvt/800/600",
       "imageHint": "engineer inspection"
     },
     {
       "id": "tech-ae",
-      "description": "Acoustic emission sensors on a large pressure vessel.",
+      "description": "A network of acoustic emission sensors monitoring a large pressure vessel for structural integrity.",
       "imageUrl": "https://picsum.photos/seed/techae/800/600",
-      "imageHint": "sound wave"
+      "imageHint": "acoustic sensor"
     },
     {
       "id": "event-01",

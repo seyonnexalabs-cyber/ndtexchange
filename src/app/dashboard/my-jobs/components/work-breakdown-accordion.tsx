@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -95,14 +94,10 @@ const WorkBreakdownTree = ({ inspections, job, constructUrl, allNdtTechniques }:
                                         <NodeItem
                                             icon={<Settings2 className="h-5 w-5 text-primary/70"/>}
                                             label={technique?.title || inspection.technique}
-                                            href={`/dashboard/my-jobs/${job.id}?tab=scope`}
+                                            href={inspection.report ? `/dashboard/reports/${inspection.report.id}` : `/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}`}
                                             constructUrl={constructUrl}
                                         >
                                             <div className="flex items-center gap-1.5 text-muted-foreground ml-2">
-                                                <ChevronRight className="h-4 w-4" />
-                                                <Link href={constructUrl(inspection.report ? `/dashboard/reports/${inspection.report.id}` : `/dashboard/reports/new?jobId=${job.id}&inspectionId=${inspection.id}`)} className="hover:underline flex items-center gap-1">
-                                                    <FileText className="h-4 w-4"/> [Report]
-                                                </Link>
                                                 <Badge variant={inspectionStatusVariants[inspection.status]}>{inspection.status}</Badge>
                                             </div>
                                         </NodeItem>

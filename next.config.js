@@ -37,6 +37,18 @@ const nextConfig = {
         hostname: 'api.qrserver.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'as2.ftcdn.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'image.shutterstock.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

@@ -13,10 +13,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { GLOBAL_DATE_FORMAT } from '@/lib/utils';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
-import type { Payment, Subscription, Plan } from '@/lib/types';
+import type { Payment, Subscription, Plan, PlatformUser } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
     const [formatted, setFormatted] = useState<string | null>(null);
@@ -30,25 +32,37 @@ const ClientFormattedDate = ({ date, formatString }: { date: Date | null, format
     return <>{formatted}</>;
 };
 
-function PricingCard({ plan, price, description, features, isFeatured, isCurrent = false, onUpgradeClick }: { 
+function PricingCard({ plan, price, yearlyPrice, description, features, isFeatured, isCurrent = false, onUpgradeClick, billingCycle }: { 
     plan: string; 
-    price: string; 
+    price: number; 
+    yearlyPrice: number; 
     description: string; 
     features: string[], 
     isFeatured?: boolean, 
     isCurrent?: boolean,
-    onUpgradeClick: (plan: string, price: string) => void
+    billingCycle: 'monthly' | 'yearly';
+    onUpgradeClick: (plan: string, priceLabel: string) => void
 }) {
+  const displayPrice = billingCycle === 'monthly' ? price : yearlyPrice;
+  const displayLabel = displayPrice === 0 ? 'Free' : (displayPrice === Infinity ? 'Custom' : `$${(displayPrice / 100).toFixed(2)}`);
+  const isCustom = displayPrice === Infinity;
+  const isFree = displayPrice === 0;
+  const savings = (price > 0 && yearlyPrice > 0 && billingCycle === 'yearly') ? Math.round((1 - yearlyPrice / (price * 12)) * 100) : null;
+
   return (
     <Card className={cn("flex flex-col", isFeatured ? "border-primary ring-2 ring-primary shadow-lg" : "", isCurrent && "bg-muted")}>
       <CardHeader className="text-center">
         {isCurrent && <div className="text-sm font-bold text-primary">CURRENT PLAN</div>}
+        {isFeatured && !isCurrent && <div className="text-sm font-semibold text-accent">POPULAR</div>}
         <CardTitle className="text-2xl font-headline">{plan}</CardTitle>
         <CardDescription>{description}</CardDescription>
         <div className="pt-4">
-            <span className="text-4xl font-bold">{price}</span>
-             {price !== "Custom" && <span className="text-sm text-muted-foreground">/mo</span>}
+            <span className="text-4xl font-bold">{displayLabel}</span>
+            {displayLabel !== "Custom" && displayLabel !== "Free" && <span className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>}
         </div>
+        {savings && savings > 0 && (
+            <div className="mt-1 text-xs text-emerald-600">Save {savings}% annually</div>
+        )}
       </CardHeader>
       <CardContent className="flex-grow">
         <ul className="space-y-3">
@@ -65,9 +79,9 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
             className={cn("w-full", isFeatured && "bg-accent hover:bg-accent/90 text-accent-foreground")} 
             variant={isCurrent ? 'outline' : isFeatured ? 'default' : 'outline'} 
             disabled={isCurrent}
-            onClick={() => !isCurrent && onUpgradeClick(plan, price)}
+            onClick={() => !isCurrent && onUpgradeClick(plan, displayLabel)}
         >
-            {isCurrent ? "This is your current plan" : (price === 'Custom' ? 'Contact Sales' : 'Pay with Razorpay')}
+            {isCurrent ? "This is your current plan" : (isCustom ? 'Contact Sales' : 'Pay with Razorpay')}
         </Button>
       </CardFooter>
     </Card>
@@ -75,34 +89,38 @@ function PricingCard({ plan, price, description, features, isFeatured, isCurrent
 }
 
 
-const ClientPlans = ({ onUpgradeClick, plans }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[] }) => (
+const ClientPlans = ({ onUpgradeClick, plans, billingCycle, currentPlanName }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[], billingCycle: 'monthly' | 'yearly', currentPlanName: string }) => (
     <>
-        {plans.filter(p => p.audience === 'Client').map(plan => (
+        {plans.filter(p => p.audience === 'Client' && p.isPublic).map(plan => (
             <PricingCard
                 key={plan.id}
                 plan={plan.name}
-                price={plan.price.monthlyUSD === 0 ? 'Free' : (plan.price.monthlyUSD === Infinity ? 'Custom' : `$${plan.price.monthlyUSD / 100}`)}
+                price={plan.price.monthlyUSD}
+                yearlyPrice={plan.price.yearlyUSD}
                 description={plan.description}
                 features={plan.features}
-                isCurrent={plan.id === 'client-free'} // Simplified for demo
+                isCurrent={plan.name === currentPlanName}
                 isFeatured={plan.isFeatured}
+                billingCycle={billingCycle}
                 onUpgradeClick={onUpgradeClick}
             />
         ))}
     </>
 );
 
-const ProviderPlans = ({ onUpgradeClick, plans }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[] }) => (
+const ProviderPlans = ({ onUpgradeClick, plans, billingCycle, currentPlanName }: { onUpgradeClick: (plan: string, price: string) => void, plans: Plan[], billingCycle: 'monthly' | 'yearly', currentPlanName: string }) => (
     <>
-       {plans.filter(p => p.audience === 'Provider').map(plan => (
+       {plans.filter(p => p.audience === 'Provider' && p.isPublic).map(plan => (
             <PricingCard
                 key={plan.id}
                 plan={plan.name}
-                price={plan.price.monthlyUSD === 0 ? 'Free' : (plan.price.monthlyUSD === Infinity ? 'Custom' : `$${plan.price.monthlyUSD / 100}`)}
+                price={plan.price.monthlyUSD}
+                yearlyPrice={plan.price.yearlyUSD}
                 description={plan.description}
                 features={plan.features}
-                isCurrent={plan.id === 'provider-starter'} // Simplified for demo
+                isCurrent={plan.name === currentPlanName}
                 isFeatured={plan.isFeatured}
+                billingCycle={billingCycle}
                 onUpgradeClick={onUpgradeClick}
             />
         ))}
@@ -208,24 +226,22 @@ const PaymentHistory = ({ companyName }: { companyName: string }) => {
 };
 
 
-// Simplified user details for pre-filling payment form
-const userDetails = {
-    client: { name: 'John Doe', email: 'john.d@globalenergy.corp', company: 'Global Energy Corp.', currency: 'USD' },
-    inspector: { name: 'Jane Smith', email: 'jane.s@acmeinspection.com', company: 'TEAM, Inc.', currency: 'USD' },
-    auditor: { name: 'Alex Chen', email: 'alex.c@ndtauditors.gov', company: 'NDT Auditors LLC', currency: 'USD' },
-    admin: { name: 'Admin User', email: 'admin@ndtexchange.com', company: 'NDT EXCHANGE', currency: 'USD' },
-    manufacturer: { name: 'OEM User', email: 'oem.user@evident.com', company: 'Evident Scientific', currency: 'USD' },
-};
-
-
 export default function BillingPage() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role') || 'client';
-    const { firestore } = useFirebase();
+    const { firestore, user: authUser } = useFirebase();
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? collection(firestore, 'plans') : null, [firestore]));
+    const { data: currentUserProfile, isLoading: isLoadingProfile } = useDoc<PlatformUser>(
+        useMemoFirebase(() => (authUser ? doc(firestore, 'users', authUser.uid) : null), [authUser, firestore])
+    );
 
-    const currentUser = useMemo(() => userDetails[role as keyof typeof userDetails] || userDetails.client, [role]);
+    const { data: plans, isLoading: isLoadingPlans } = useCollection<Plan>(useMemoFirebase(() => firestore ? query(collection(firestore, 'plans'), where('isActive', '==', true)) : null, [firestore]));
+    
+    const { data: userSubscriptions, isLoading: isLoadingSubscriptions } = useCollection<Subscription>(useMemoFirebase(() => (firestore && currentUserProfile?.companyId) ? query(collection(firestore, 'subscriptions'), where('companyId', '==', currentUserProfile.companyId), where('status', 'in', ['Active', 'Trialing'])) : null, [firestore, currentUserProfile?.companyId]));
+    
+    const currentSubscription = (userSubscriptions && userSubscriptions.length > 0) ? userSubscriptions[0] : null;
+    const currentPlanName = currentSubscription?.plan || '';
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -248,12 +264,12 @@ export default function BillingPage() {
              const mailtoHref = `mailto:sales@ndtexchange.com?subject=Subscription Upgrade Request: ${plan} Plan&body=Hello, I'm interested in upgrading to the ${plan} plan. Please provide me with more details.`;
              window.location.href = mailtoHref;
         } else {
-            const amountInCents = parseInt(price.replace('$', '')) * 100;
+            const amountInCents = Number(price.replace(/[^0-9.-]+/g,"")) * 100;
         
             const options = {
                 "key": "rzp_test_SCmu4c9MVES9Ei", // Public Test Key
                 "amount": amountInCents,
-                "currency": currentUser.currency,
+                "currency": 'USD',
                 "name": "NDT EXCHANGE",
                 "description": `Subscription for ${plan}`,
                 "image": "https://placehold.co/128x128/3B82F6/FFFFFF/png?text=NDT",
@@ -263,11 +279,11 @@ export default function BillingPage() {
                     });
                 },
                 "prefill": {
-                    "name": currentUser.name,
-                    "email": currentUser.email,
+                    "name": currentUserProfile?.name,
+                    "email": currentUserProfile?.email,
                 },
                 "theme": {
-                    "color": "#3B82F6" // Matches the client primary color
+                    "color": "#3B82F6"
                 }
             };
     
@@ -277,20 +293,20 @@ export default function BillingPage() {
     };
 
   const renderPlansByRole = () => {
-    if (isLoadingPlans) {
+    if (isLoadingPlans || isLoadingSubscriptions || isLoadingProfile) {
         return [...Array(3)].map((_, i) => <Skeleton key={i} className="h-96" />);
     }
     switch(role) {
         case 'client':
-            return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />;
+            return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
         case 'inspector':
-            return <ProviderPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />;
+            return <ProviderPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
         case 'auditor':
             return <AuditorView constructUrl={constructUrl} />;
         case 'admin':
             return <AdminView constructUrl={constructUrl} />;
         default:
-             return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} />; // Default to client view
+             return <ClientPlans onUpgradeClick={handleUpgradeClick} plans={plans || []} billingCycle={billingCycle} currentPlanName={currentPlanName} />;
     }
   }
 
@@ -303,13 +319,19 @@ export default function BillingPage() {
             <ChevronLeft className="mr-2 h-4 w-4 text-primary" />
             Back to Settings
         </Link>
-      <div className="flex items-center gap-4">
-        <CreditCard className="w-8 h-8 text-primary" />
-        <div>
-            <h1 className="text-2xl font-headline font-semibold">Subscription Plans</h1>
-            <p className="text-muted-foreground">
-                Choose a plan that fits your needs.
-            </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <CreditCard className="w-8 h-8 text-primary" />
+          <div>
+              <h1 className="text-2xl font-headline font-semibold">Subscription Plans</h1>
+              <p className="text-muted-foreground">
+                  Choose a plan that fits your needs.
+              </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-muted p-1">
+            <Button size="sm" variant={billingCycle === 'monthly' ? 'default' : 'ghost'} onClick={() => setBillingCycle('monthly')}>Monthly</Button>
+            <Button size="sm" variant={billingCycle === 'yearly' ? 'default' : 'ghost'} onClick={() => setBillingCycle('yearly')}>Yearly</Button>
         </div>
       </div>
       
@@ -321,11 +343,13 @@ export default function BillingPage() {
               All subscription plans are billed annually. Pricing is usage-based, determined by factors like platform hosting, data storage, and number of users. <strong>Please note: we process payments for platform subscriptions, but we do not process payments for the NDT jobs themselves.</strong> Contact our sales team for a detailed quote tailored to your needs.
            </p>
       </section>
-        {(role === 'client' || role === 'inspector') && (
+        {(role === 'client' || role === 'inspector') && currentUserProfile && (
             <section id="payment-history">
-                <PaymentHistory companyName={currentUser.company} />
+                <PaymentHistory companyName={currentUserProfile.company} />
             </section>
         )}
     </div>
   );
 }
+
+    

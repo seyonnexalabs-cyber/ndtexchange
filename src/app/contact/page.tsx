@@ -1,4 +1,3 @@
-
 'use client';
 import PublicHeader from '@/app/components/layout/public-header';
 import PublicFooter from '@/app/components/layout/public-footer';
@@ -202,26 +201,6 @@ export default function ContactPage() {
         return priceToNumber(a.price.monthlyUSD) - priceToNumber(b.price.monthlyUSD);
       });
     }, []);
-
-    const featureCategories = useMemo(() => [
-        { category: 'Core Features', features: [
-            { name: 'User Seats', prop: 'userLimit' },
-            { name: 'Data Storage', prop: 'dataLimitGB', suffix: ' GB' },
-            { name: 'Marketplace Access', prop: 'marketplaceAccess', type: 'boolean' },
-        ]},
-        { category: 'Client Features', features: [
-            { name: 'Managed Assets', prop: 'assetLimit' }
-        ]},
-        { category: 'Provider Features', features: [
-            { name: 'Equipment Inventory', prop: 'equipmentLimit' },
-            { name: 'Marketplace Bids', prop: 'biddingLimit', suffix: '/ month' },
-        ]},
-        { category: 'Advanced Features', features: [
-            { name: 'Reporting Level', prop: 'reportingLevel' },
-            { name: 'Custom Branding', prop: 'customBranding', type: 'boolean' },
-            { name: 'API Access', prop: 'apiAccess', type: 'boolean' },
-        ]}
-    ], []);
     
     const formatPrice = (priceInCents: number) => {
         if (priceInCents === 0) return 'Free';
@@ -255,148 +234,62 @@ export default function ContactPage() {
         </HoneycombHero>
 
         <section id="pricing-table" className="py-16">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center space-x-2">
-                    <Label htmlFor="billing-cycle">Monthly</Label>
-                    <Switch id="billing-cycle" checked={billingCycle === 'yearly'} onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')} />
-                    <Label htmlFor="billing-cycle" className="flex items-center">Yearly <Badge variant="secondary" className="ml-2">Save 16%</Badge></Label>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="border-b">
-                                <th className="w-1/4 p-4 text-left font-semibold text-lg"></th>
-                                {allPlans.map((plan, index) => {
-                                    const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
-                                    let audienceBg = '';
-                                    switch(plan.audience) {
-                                        case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
-                                        case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
-                                        case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
-                                    }
-                                    return (
-                                    <th key={plan.id} className={cn(
-                                        "w-1/5 p-4 text-center",
-                                        audienceBg,
-                                        isNewAudience && "border-l-4 border-border",
-                                        plan.isFeatured && "border-y-2 border-primary"
-                                    )}>
-                                        <h3 className="text-lg font-bold">{plan.name}</h3>
-                                        <p className="text-sm text-muted-foreground">{plan.description}</p>
-                                    </th>
-                                )})}
-                            </tr>
-                            <tr className="border-b">
-                                <th className="p-4 text-left font-semibold">Price</th>
-                                {allPlans.map((plan, index) => {
-                                    const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
-                                    let audienceBg = '';
-                                    switch(plan.audience) {
-                                        case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
-                                        case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
-                                        case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
-                                    }
-                                    return (
-                                     <td key={plan.id} className={cn(
-                                         "p-4 text-center", 
-                                         audienceBg,
-                                         isNewAudience && "border-l-4 border-border",
-                                         plan.isFeatured && "border-y-2 border-primary"
-                                        )}>
-                                        {isMounted ? (
-                                            <>
-                                                <p className="text-3xl font-bold">{formatPrice(plan.price.monthlyUSD)}</p>
-                                                <p className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'month' : 'year'}</p>
-                                            </>
-                                        ) : (
-                                            <div className="h-12 w-24 mx-auto flex flex-col items-center justify-center gap-1">
-                                                <Skeleton className="h-8 w-full" />
-                                                <Skeleton className="h-4 w-1/2" />
-                                            </div>
-                                        )}
-                                    </td>
-                                )})}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {featureCategories.map(category => {
-                                const hasFeatureInCategory = allPlans.some(plan => 
-                                    category.features.some(feature => (plan as any)[feature.prop] !== undefined && (plan as any)[feature.prop] !== 0 && (plan as any)[feature.prop] !== false)
-                                );
-                                if (!hasFeatureInCategory) return null;
-
-                                return (
-                                <React.Fragment key={category.category}>
-                                    <tr className="bg-muted/30">
-                                        <th colSpan={allPlans.length + 1} className="p-3 font-semibold text-base">{category.category}</th>
-                                    </tr>
-                                    {category.features.map(feature => {
-                                        const hasFeature = allPlans.some(plan => (plan as any)[feature.prop] !== undefined && (plan as any)[feature.prop] !== 0 && (plan as any)[feature.prop] !== false);
-                                        if(!hasFeature) return null;
-
-                                        return (
-                                            <tr key={feature.name} className="border-b">
-                                                <td className="p-4 font-medium">{feature.name}</td>
-                                                {allPlans.map((plan, index) => {
-                                                    const value = (plan as any)[feature.prop];
-                                                    let displayValue: React.ReactNode;
-                                                    if (feature.type === 'boolean') {
-                                                        displayValue = value ? <Check className="mx-auto text-primary" /> : <X className="mx-auto text-muted-foreground" />;
-                                                    } else {
-                                                        const formattedValue = value === 'Unlimited' || value === Infinity ? 'Unlimited' : `${value}${feature.suffix || ''}`;
-                                                        displayValue = (value === undefined || value === 0 || value === false) ? <X className="mx-auto text-muted-foreground" /> : formattedValue;
-                                                    }
-                                                    const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
-                                                    let audienceBg = '';
-                                                    switch(plan.audience) {
-                                                        case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
-                                                        case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
-                                                        case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
-                                                    }
-                                                    
-                                                    return (
-                                                         <td key={plan.id} className={cn(
-                                                             "p-4 text-center text-muted-foreground",
-                                                              audienceBg,
-                                                              isNewAudience && "border-l-4 border-border",
-                                                              plan.isFeatured && "border-y-2 border-primary"
-                                                            )}>
-                                                            {displayValue}
-                                                        </td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        )
-                                    })}
-                                </React.Fragment>
-                            )})}
-                            <tr className="">
-                                <td className="p-4"></td>
-                                {allPlans.map((plan, index) => {
-                                     const isNewAudience = index > 0 && allPlans[index - 1].audience !== plan.audience;
-                                     let audienceBg = '';
-                                     switch(plan.audience) {
-                                         case 'Client': audienceBg = 'bg-blue-50/50 dark:bg-blue-950/50'; break;
-                                         case 'Provider': audienceBg = 'bg-green-50/50 dark:bg-green-950/50'; break;
-                                         case 'Auditor': audienceBg = 'bg-gray-100/50 dark:bg-gray-800/50'; break;
-                                     }
-                                    return (
-                                    <td key={plan.id} className={cn(
-                                        "p-4 text-center", 
-                                        audienceBg,
-                                        isNewAudience && "border-l-4 border-border",
-                                        plan.isFeatured && "border-y-2 border-primary"
-                                        )}>
-                                        <Button asChild variant={plan.isFeatured ? 'default' : 'outline'} className="w-full">
-                                            <Link href="/signup">Get Started</Link>
-                                        </Button>
-                                    </td>
-                                )})}
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center space-x-4 mb-12">
+              <Label htmlFor="billing-cycle">Monthly</Label>
+              <Switch id="billing-cycle" checked={billingCycle === 'yearly'} onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')} />
+              <Label htmlFor="billing-cycle" className="flex items-center">
+                Yearly
+                <Badge variant="secondary" className="ml-2">Save ~16%</Badge>
+              </Label>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch justify-center">
+                {allPlans.map((plan) => {
+                    const priceValue = billingCycle === 'monthly' ? plan.price.monthlyUSD : plan.price.yearlyUSD;
+                    const isCustom = priceValue === Infinity;
+                    
+                    let audienceColorClass = '';
+                    switch (plan.audience) {
+                        case 'Client': audienceColorClass = 'border-blue-300'; break;
+                        case 'Provider': audienceColorClass = 'border-green-300'; break;
+                        case 'Auditor': audienceColorClass = 'border-gray-300'; break;
+                    }
+
+                    return (
+                        <Card key={plan.id} className={cn("flex flex-col transition-all hover:shadow-lg hover:-translate-y-1", plan.isFeatured && "border-primary ring-2 ring-primary", audienceColorClass)}>
+                            <CardHeader className="text-center">
+                                {plan.isPopular && <Badge className="mb-2 w-fit mx-auto">Popular</Badge>}
+                                <p className="font-semibold text-primary">{plan.audience}</p>
+                                <CardTitle className="text-2xl font-headline">{plan.name}</CardTitle>
+                                <CardDescription>{plan.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow flex flex-col justify-between">
+                                <div>
+                                    <div className="text-center mb-6">
+                                        <span className="text-4xl font-bold">{isMounted ? formatPrice(priceValue) : <Skeleton className="h-10 w-24 inline-block" />}</span>
+                                        {!isCustom && priceValue > 0 && <span className="text-sm text-muted-foreground">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>}
+                                    </div>
+                                    <ul className="space-y-3 text-sm">
+                                        {plan.features.map((feature, i) => (
+                                            <li key={i} className="flex items-start">
+                                                <Check className="w-4 h-4 text-green-500 mr-2 mt-0.5 shrink-0" />
+                                                <span className="text-muted-foreground">{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button asChild className="w-full" variant={plan.isFeatured ? 'default' : 'outline'}>
+                                    <Link href="/signup">Get Started</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    );
+                })}
+            </div>
+          </div>
         </section>
 
         <section id="faq" className="py-16 bg-card">

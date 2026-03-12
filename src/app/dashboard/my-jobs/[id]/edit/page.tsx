@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -6,7 +5,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,6 +57,12 @@ export default function EditJobPage() {
 
     const form = useForm<EditJobFormValues>({
         resolver: zodResolver(editJobSchema),
+        defaultValues: {
+            title: '',
+            description: '',
+            location: '',
+            internalNotes: '',
+        }
     });
 
     React.useEffect(() => {

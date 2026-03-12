@@ -31,6 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import JobChatWindow from '../../my-jobs/components/job-chat-window';
 
 
 const jobStatusVariants: Record<Job['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -115,7 +116,7 @@ export default function JobDetailPage() {
     const { firestore } = useFirebase();
     const { user: authUser, isUserLoading: isAuthLoading } = useUser();
     
-    const [activeTab, setActiveTab] = React.useState('overview');
+    const [activeTab, setActiveTab] = React.useState('scope');
     const [reviewingBid, setReviewingBid] = React.useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
@@ -346,34 +347,31 @@ export default function JobDetailPage() {
                 <span className="text-muted-foreground"><span className="font-semibold text-foreground">Provider:</span> {provider?.name || 'N/A'}</span>
                 <span className="text-muted-foreground"><span className="font-semibold text-foreground">Auditor:</span> {auditor?.name || 'N/A'}</span>
             </div>
+            
+             <Card className="mb-6">
+                <CardHeader><CardTitle>Job Overview</CardTitle></CardHeader>
+                <CardContent>
+                    <ul className="space-y-3 text-sm">
+                        <li className="flex"><strong className="w-32">Job Information:</strong> <span className="text-muted-foreground">{job.description}</span></li>
+                        <li className="flex"><strong className="w-32">Location:</strong> <span className="text-muted-foreground">{job.location}</span></li>
+                        <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? <ClientFormattedDate date={scheduledDate} formatString='PPP' /> : 'Not Scheduled'}</span></li>
+                        <li className="flex items-start"><strong className="w-32 shrink-0">Techniques:</strong>
+                            <div className="flex flex-wrap gap-1">
+                                {job.techniques?.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                            </div>
+                        </li>
+                    </ul>
+                </CardContent>
+            </Card>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs defaultValue="scope" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="scope">Work Breakdown</TabsTrigger>
                     <TabsTrigger value="bids">Bids</TabsTrigger>
+                    <TabsTrigger value="messages">Messages</TabsTrigger>
                     <TabsTrigger value="documents">Documents</TabsTrigger>
                     <TabsTrigger value="audit">History</TabsTrigger>
                 </TabsList>
-                <TabsContent value="overview" className="mt-6">
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader><CardTitle>Job Overview</CardTitle></CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3 text-sm">
-                                    <li className="flex"><strong className="w-32">Job Information:</strong> <span className="text-muted-foreground">{job.description}</span></li>
-                                    <li className="flex"><strong className="w-32">Location:</strong> <span className="text-muted-foreground">{job.location}</span></li>
-                                    <li className="flex"><strong className="w-32">Scheduled Date:</strong> <span className="text-muted-foreground">{scheduledDate ? <ClientFormattedDate date={scheduledDate} formatString='PPP' /> : 'Not Scheduled'}</span></li>
-                                    <li className="flex items-start"><strong className="w-32 shrink-0">Techniques:</strong>
-                                        <div className="flex flex-wrap gap-1">
-                                            {job.techniques?.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
-                                        </div>
-                                    </li>
-                                </ul>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
                  <TabsContent value="scope" className="mt-6">
                     <Card>
                         <CardHeader>
@@ -392,6 +390,11 @@ export default function JobDetailPage() {
                 </TabsContent>
                 <TabsContent value="bids" className="mt-6">
                     <BidsSection job={job} bids={sortedBids} allCompanies={allCompanies || []} onReviewBid={handleReviewBid} isClient={isClient} isAdmin={isAdmin} />
+                </TabsContent>
+                <TabsContent value="messages" className="mt-0 -m-6">
+                    <div className="h-[70vh] pt-6">
+                        <JobChatWindow job={job} />
+                    </div>
                 </TabsContent>
                 <TabsContent value="documents" className="mt-6">
                     <Card>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -14,13 +15,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { format, isToday } from 'date-fns';
 import { GLOBAL_DATE_FORMAT, safeParseDate } from '@/lib/utils';
-import { useSearch } from '@/app/components/layout/search-provider';
+import { useSearch } from '@/components/layout/search-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 
 
-const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const inspectionStatusVariants: Record<Inspection['status'], 'success' | 'destructive' | 'secondary' > = {
     'Scheduled': 'secondary',
     'Completed': 'success',
     'Requires Review': 'destructive'
@@ -282,7 +283,7 @@ export default function ReportsPage() {
     const roleConfig = useMemo(() => {
         switch(role) {
             case 'auditor': return {
-                title: "Reports",
+                title: "Audit Queue",
                 tabs: [
                     { value: "queue", label: `Audit Queue (${reportsForAuditorQueue.length})`, data: reportsForAuditorQueue },
                     { value: "history", label: `History (${auditorHistory.length})`, data: auditorHistory },
@@ -290,7 +291,7 @@ export default function ReportsPage() {
                 defaultTab: tabParam || "queue",
             };
             case 'client': return {
-                title: "Reports",
+                title: "Inspections & Reports",
                 tabs: [
                     { value: "all", label: `All Reports (${augmentedAndFilteredInspections.length})`, data: augmentedAndFilteredInspections },
                     { value: "review", label: `Awaiting My Review (${reportsForClientReview.length})`, data: reportsForClientReview },

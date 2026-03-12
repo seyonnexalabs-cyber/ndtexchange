@@ -504,7 +504,6 @@
       { "path": "/assets/{assetId}", "definition": { "entityName": "Asset", "schema": { "$ref": "#/entities/Asset" }, "description": "Assets owned by a company." } },
       { "path": "/inspections/{inspectionId}", "definition": { "entityName": "Inspection", "schema": { "$ref": "#/entities/Inspection" }, "description": "Inspections performed on assets." } },
       { "path": "/jobs/{jobId}", "definition": { "entityName": "Job", "schema": { "$ref": "#/entities/Job" }, "description": "Job requests from clients." } },
-      { "path": "/messages/{messageId}", "definition": { "entityName": "Message", "schema": { "$ref": "#/entities/Message" }, "description": "Messages within a job." } },
       { "path": "/bids/{bidId}", "definition": { "entityName": "Bid", "schema": { "$ref": "#/entities/Bid" }, "description": "Bids on jobs." } },
       { "path": "/supportChats/{supportChatId}", "definition": { "entityName": "SupportThread", "schema": { "$ref": "#/entities/SupportThread" }, "description": "Support conversation threads." } },
       { "path": "/supportMessages/{messageId}", "definition": { "entityName": "SupportMessage", "schema": { "$ref": "#/entities/SupportMessage" }, "description": "Individual messages within a support thread." } },

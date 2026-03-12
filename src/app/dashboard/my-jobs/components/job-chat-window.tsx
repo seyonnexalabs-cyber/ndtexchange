@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -9,7 +10,7 @@ import { toast } from 'sonner';
 import type { Job, PlatformUser } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, query, where, orderBy, serverTimestamp, addDoc, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, serverTimestamp, addDoc, doc, setDoc } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn, safeParseDate } from '@/lib/utils';
@@ -72,7 +73,7 @@ export default function JobChatWindow({ job }: JobChatWindowProps) {
 
     const messagesQuery = useMemoFirebase(() => {
         if (!firestore || !job.id) return null;
-        return query(collection(firestore, 'messages'), where('jobId', '==', job.id), orderBy('timestamp', 'asc'));
+        return query(collection(firestore, 'jobs', job.id, 'messages'), orderBy('timestamp', 'asc'));
     }, [firestore, job.id]);
 
     const { data: messages, isLoading: isLoadingMessages } = useCollection<any>(messagesQuery);
@@ -94,7 +95,8 @@ export default function JobChatWindow({ job }: JobChatWindowProps) {
         };
 
         try {
-            await addDoc(collection(firestore, 'messages'), messageData);
+            const messageRef = doc(collection(firestore, 'jobs', job.id, 'messages'));
+            await setDoc(messageRef, { id: messageRef.id, ...messageData });
             setNewMessage('');
         } catch (error) {
             console.error("Error sending message:", error);

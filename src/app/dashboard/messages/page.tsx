@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -51,7 +52,7 @@ export default function MessagesPage() {
 
     const messagesQuery = useMemoFirebase(() => {
         if (!firestore || !selectedJob) return null;
-        return query(collection(firestore, 'messages'), where('jobId', '==', selectedJob.id), orderBy('timestamp', 'asc'));
+        return query(collection(firestore, 'jobs', selectedJob.id, 'messages'), orderBy('timestamp', 'asc'));
     }, [firestore, selectedJob]);
     
     const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
@@ -73,7 +74,7 @@ export default function MessagesPage() {
             timestamp: serverTimestamp(),
         };
         
-        const messageRef = doc(collection(firestore, 'messages'));
+        const messageRef = doc(collection(firestore, 'jobs', selectedJob.id, 'messages'));
         await setDoc(messageRef, { id: messageRef.id, ...messageData });
         setNewMessage('');
     };

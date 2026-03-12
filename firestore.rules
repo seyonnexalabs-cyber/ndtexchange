@@ -12,7 +12,7 @@ service cloud.firestore {
     }
 
     function isPlatformAdmin() {
-      return authed() && getRequestingUserData().role == 'Admin';
+      return authed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
     }
 
     function getUserData(userId) {
@@ -29,6 +29,13 @@ service cloud.firestore {
     
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isJobParticipant(jobId) {
+        let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
+        return isCompanyMember(job.clientCompanyId) || 
+                (job.providerCompanyId != null && isCompanyMember(job.providerCompanyId)) ||
+                (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
     }
 
     // ---------------------------
@@ -126,6 +133,12 @@ service cloud.firestore {
                       isPlatformAdmin();
                       
       allow delete: if isPlatformAdmin();
+
+      // Nested Messages collection
+      match /messages/{messageId} {
+        allow read, delete: if isJobParticipant(jobId) || isPlatformAdmin();
+        allow create: if isOwner(request.resource.data.senderId) && isJobParticipant(jobId);
+      }
     }
     
     match /bids/{bidId} {
@@ -147,30 +160,10 @@ service cloud.firestore {
     
     match /inspections/{inspectionId} {
         allow read: if authed();
-        
-        function isJobParticipant(jobId) {
-            let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
-            return isCompanyMember(job.clientCompanyId) || 
-                   (job.providerCompanyId != null && isCompanyMember(job.providerCompanyId)) ||
-                   (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
-        }
-
         allow write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
     }
 
-    match /messages/{messageId} {
-        function isJobParticipant(jobId) {
-            let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
-            return isCompanyMember(job.clientCompanyId) || 
-                   (job.providerCompanyId != null && isCompanyMember(job.providerCompanyId)) ||
-                   (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
-        }
-
-        allow read, delete: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
-        allow create: if isOwner(request.resource.data.senderId) && isJobParticipant(request.resource.data.jobId);
-    }
-    
     match /reviews/{reviewId} {
         allow read: if resource.data.status == 'Approved' || isPlatformAdmin();
         allow create: if authed();

@@ -11,8 +11,8 @@ export default function TankDesignerTrialPage() {
   return (
     <div className={cn("flex flex-col h-screen", 'screenshot-protection')}>
       <PublicHeader />
-      <main className="flex-grow flex flex-col relative">
-        <div className="p-4 bg-background border-b z-10">
+      <main className="flex-grow flex flex-col relative p-4 lg:p-6 bg-muted/30">
+        <div className="mb-4">
           <Alert>
             <Info className="h-4 w-4" />
             <AlertTitle>You're Using the Trial Version</AlertTitle>
@@ -21,7 +21,7 @@ export default function TankDesignerTrialPage() {
             </AlertDescription>
           </Alert>
         </div>
-        <div className="flex-grow h-0 z-10">
+        <div className="flex-grow h-0">
           <TankDesigner isTrial={true} />
         </div>
       </main>

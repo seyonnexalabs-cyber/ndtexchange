@@ -604,14 +604,12 @@ export default function TankDesigner({ isTrial }: { isTrial?: boolean }) {
         if (floorPlates > 0) {
             form.setValue('floorScans', Array.from({ length: floorPlates * 4 }).map((_, i) => ({ plate: Math.floor(i / 4), x: (i % 4) * 2.5, y: Math.floor(i / 4) * 2.5, thickness: 0.250 })));
         }
-        if (annularReadings.length === 0) {
-            form.setValue('annularReadings', [
-                { position: "12 o'clock", thickness: 0.260 },
-                { position: "3 o'clock", thickness: 0.245 },
-                { position: "6 o'clock", thickness: 0.240 },
-                { position: "9 o'clock", thickness: 0.248 },
-            ]);
-        }
+        form.setValue('annularReadings', [
+            { position: "12 o'clock", thickness: 0.260 },
+            { position: "3 o'clock", thickness: 0.245 },
+            { position: "6 o'clock", thickness: 0.240 },
+            { position: "9 o'clock", thickness: 0.248 },
+        ]);
     };
 
     const handlePlateClick = (plateIndex: number) => {

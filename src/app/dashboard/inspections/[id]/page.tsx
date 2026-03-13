@@ -9,14 +9,14 @@ import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation
 import { toast } from 'sonner';
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, FileText, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, FileText, Check, ArrowRight, ArrowLeft, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc, updateDoc, deleteField } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider, PlatformUser, Inspection, Equipment, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -77,6 +77,8 @@ export default function InspectionTaskPage() {
     
     const [step, setStep] = React.useState(1);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isSaving, setIsSaving] = React.useState(false);
+
 
     const { data: inspection, isLoading: isLoadingInspection } = useDoc<Inspection>(useMemoFirebase(() => (firestore && inspectionId ? doc(firestore, 'inspections', inspectionId) : null), [firestore, inspectionId]));
     const { data: job, isLoading: isLoadingJob } = useDoc<Job>(useMemoFirebase(() => (firestore && inspection?.jobId ? doc(firestore, 'jobs', inspection.jobId) : null), [firestore, inspection]));
@@ -107,63 +109,45 @@ export default function InspectionTaskPage() {
         defaultValues: { summary: '', findings: [{ location: "", thickness: 0, notes: "" }] },
     });
 
-    const watchedInspectorId = form.watch('inspectorId');
-    const watchedEquipmentId = form.watch('inspectionEquipmentId');
-
     React.useEffect(() => {
         if (inspection) {
+            const initialData = inspection.draftReportData || inspection.report?.reportData || {};
             form.reset({
                 inspectorId: inspection.inspectorId,
                 inspectionEquipmentId: inspection.equipmentId,
-                summary: inspection.report?.reportData?.summary || '',
-                findings: inspection.report?.reportData?.findings || [{ location: "", thickness: 0, notes: "" }],
-                // You can add other fields from reportData here if needed
+                ...initialData
             });
         }
     }, [inspection, form]);
-
-    React.useEffect(() => {
-        if (!watchedInspectorId || !firestore || !inspection || watchedInspectorId === inspection.inspectorId) {
-            return;
-        }
-
-        const inspector = providerTechnicians?.find(t => t.id === watchedInspectorId);
-        if (!inspector) return;
-
-        const inspectionRef = doc(firestore, 'inspections', inspectionId);
-        updateDoc(inspectionRef, {
-            inspectorId: watchedInspectorId,
-            inspector: inspector.name
-        }).then(() => {
-            toast.info("Inspector assigned.");
-        }).catch(err => {
-            console.error("Failed to update inspector:", err);
-            toast.error("Failed to assign inspector.");
-        });
-
-    }, [watchedInspectorId, firestore, inspectionId, inspection, providerTechnicians]);
-
-    React.useEffect(() => {
-        if (!watchedEquipmentId || !firestore || !inspection || watchedEquipmentId === inspection.equipmentId) {
-            return;
-        }
-
-        const inspectionRef = doc(firestore, 'inspections', inspectionId);
-        updateDoc(inspectionRef, {
-            equipmentId: watchedEquipmentId
-        }).then(() => {
-            toast.info("Equipment assigned.");
-        }).catch(err => {
-            console.error("Failed to update equipment:", err);
-            toast.error("Failed to assign equipment.");
-        });
-
-    }, [watchedEquipmentId, firestore, inspectionId, inspection]);
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     }
+
+    const handleSaveProgress = async () => {
+        if (!firestore || !inspectionId) return;
+        setIsSaving(true);
+        try {
+            const values = form.getValues();
+            const { inspectorId, inspectionEquipmentId, ...draftReportData } = values;
+
+            const inspectionRef = doc(firestore, 'inspections', inspectionId);
+            await updateDoc(inspectionRef, {
+                inspectorId: inspectorId,
+                equipmentId: inspectionEquipmentId,
+                draftReportData: draftReportData
+            });
+
+            toast.success("Progress Saved!");
+            form.reset(values); // Resets dirty state
+        } catch (error) {
+            console.error("Error saving progress:", error);
+            toast.error("Failed to save progress.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const onSubmit = async (values: z.infer<typeof reportSchema>) => {
         if (!firestore || !job || !inspection || !authUser || !currentUserProfile || !providerTechnicians) {
@@ -182,12 +166,14 @@ export default function InspectionTaskPage() {
             }
 
             const newReportRef = doc(collection(firestore, 'jobs', job.id, 'reports'));
+            const { inspectorId, inspectionEquipmentId, ...reportContent } = values;
+
             const reportData = {
                 id: newReportRef.id,
                 jobId: job.id,
                 inspectionId: inspection.id,
                 assetId: inspection.assetId,
-                reportData: values,
+                reportData: reportContent,
                 createdAt: serverTimestamp(),
                 createdBy: currentUserProfile.id,
                 companyId: currentUserProfile.companyId,
@@ -204,7 +190,8 @@ export default function InspectionTaskPage() {
                     id: newReportRef.id,
                     submittedOn: serverTimestamp(),
                     submittedBy: currentUserProfile.name,
-                }
+                },
+                draftReportData: deleteField()
             });
             
             const jobRef = doc(firestore, 'jobs', job.id);
@@ -389,15 +376,28 @@ export default function InspectionTaskPage() {
                         <Button type="button" variant="outline" onClick={handleBack} disabled={step === 1}>
                             <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                         </Button>
-                        {step < steps.length ? (
-                            <Button type="button" onClick={handleNext}>
-                                Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                        
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleSaveProgress}
+                                disabled={!form.formState.isDirty || isSubmitting || isSaving}
+                            >
+                                <Save className="mr-2 h-4 w-4" />
+                                {isSaving ? "Saving..." : "Save Progress"}
                             </Button>
-                        ) : (
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? "Submitting..." : <><FileText className="mr-2 h-4 w-4"/> Generate Report</>}
-                            </Button>
-                        )}
+
+                            {step < steps.length ? (
+                                <Button type="button" onClick={handleNext}>
+                                    Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <Button type="submit" disabled={isSubmitting}>
+                                    {isSubmitting ? "Submitting..." : <><FileText className="mr-2 h-4 w-4"/> Generate Report</>}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </form>
             </div>
